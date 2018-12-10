@@ -1,0 +1,4 @@
+config/bookmarks.txt
+config/recent-files.txt
+*__pycache__*
+scripts/addons/retopoflow-master/*
