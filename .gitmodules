@@ -1,0 +1,3 @@
+[submodule "scripts\\addons\\Tila_Config\\addon_common"]
+	path = scripts\\addons\\Tila_Config\\addon_common
+	url = https://github.com/CGCookie/addon_common.git
