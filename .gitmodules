@@ -19,3 +19,6 @@
 [submodule "scripts/addons/Principled-Baker"]
 	path = scripts/addons/Principled-Baker
 	url = https://github.com/danielenger/Principled-Baker.git
+[submodule "scripts/addons/BakeMyScan"]
+	path = scripts/addons/BakeMyScan
+	url = https://github.com/norgeotloic/BakeMyScan.git
