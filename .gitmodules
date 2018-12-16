@@ -10,3 +10,6 @@
 [submodule "scripts/addons/simple-asset-manager"]
 	path = scripts/addons/simple-asset-manager
 	url = https://gitlab.com/tibicen/simple-asset-manager.git
+[submodule "scripts/addons/glTF-Blender-IO"]
+	path = scripts/addons/glTF-Blender-IO
+	url = https://github.com/sketchfab/glTF-Blender-IO.git
