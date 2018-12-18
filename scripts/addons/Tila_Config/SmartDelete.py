@@ -11,7 +11,7 @@ import bpy
 
 class SmartDeleteOperator(bpy.types.Operator):
     bl_idname = "object.tila_smart_delete"
-    bl_label = "Smart Delete"
+    bl_label = "TILA: Smart Delete"
     bl_options = {'REGISTER', 'UNDO'}
 
     def execute(self, context):

@@ -3,7 +3,7 @@ from mathutils import *
 
 class EmptyMeshOperator(bpy.types.Operator):
     bl_idname = "object.emptymesh"
-    bl_label = "Empty Mesh"
+    bl_label = "TILA: Empty Mesh"
     bl_options = {'REGISTER', 'UNDO'}
 
     def execute(self, context):
