@@ -2,7 +2,7 @@ import bpy
 from mathutils import *
 
 class EmptyMeshOperator(bpy.types.Operator):
-    bl_idname = "object.emptymesh"
+    bl_idname = "object.tila_emptymesh"
     bl_label = "TILA: Empty Mesh"
     bl_options = {'REGISTER', 'UNDO'}
 

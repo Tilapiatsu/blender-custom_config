@@ -10,7 +10,7 @@ bl_info = {
 import bpy
 
 class SmartDeleteOperator(bpy.types.Operator):
-    bl_idname = "object.tila_smart_delete"
+    bl_idname = "object.tila_smartdelete"
     bl_label = "TILA: Smart Delete"
     bl_options = {'REGISTER', 'UNDO'}
 
@@ -39,8 +39,6 @@ class SmartDeleteOperator(bpy.types.Operator):
             
         # elif context.space_data.type == 'IMAGE_EDITOR':
         #     layout.label("No Context! image editor")
-        else:
-            layout.label("No Context!")
         return {'FINISHED'}
 
 addon_keymaps = []
@@ -55,6 +53,7 @@ def register():
         km = [kc.keymaps.new(name='3D View', space_type='VIEW_3D'),
               kc.keymaps.new(name='Outliner', space_type='OUTLINER'),
               kc.keymaps.new(name='File Browser', space_type='FILE_BROWSER')]
+              
         kmi = [km[0].keymap_items.new(SmartDeleteOperator.bl_idname, 'DEL', 'PRESS'),
                 km[1].keymap_items.new(SmartDeleteOperator.bl_idname, 'DEL', 'PRESS'),
                 km[2].keymap_items.new(SmartDeleteOperator.bl_idname, 'DEL', 'PRESS')]
