@@ -59,14 +59,20 @@ def register():
                 km[2].keymap_items.new(SmartDeleteOperator.bl_idname, 'DEL', 'PRESS')]
 
         for i in range(len(km)):
-            addon_keymaps.append((km[i], kmi[i]))
+            addon_keymaps.append(km[i])
 
 def unregister():
-
-    for km, kmi in addon_keymaps:
-        km.keymap_items.remove(kmi)
+    wm = bpy.context.window_manager
+    for km in addon_keymaps:
+        for kmi in km.keymap_items:
+            km.keymap_items.remove(kmi)
+        wm.keyconfigs.addon.keymaps.remove(km)
     addon_keymaps.clear()
 
 
 if __name__ == "__main__":
+    try:
+        unregister()
+    except:
+        pass
     register()
