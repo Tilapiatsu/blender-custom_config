@@ -1,0 +1,15 @@
+{
+  "Cython.__version__": "0.28.5",
+  "date": 1544894689,
+  "os.name": "nt",
+  "sys.api_version": 1013,
+  "sys.platform": "win32",
+  "sys.version": "3.7.0 (default, Jun 28 2018, 08:04:48) [MSC v.1912 64 bit (AMD64)]",
+  "sys.version_info": [
+    3,
+    7,
+    0,
+    "final",
+    0
+  ]
+}
