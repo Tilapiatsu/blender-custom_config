@@ -2,3 +2,6 @@ config/bookmarks.txt
 config/recent-files.txt
 *__pycache__*
 scripts/addons/retopoflow-master/*
+scripts/addons/Capsule/*
+scripts/addons/animation_nodes/*
+scripts/addons/RenderBurst.py
