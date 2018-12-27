@@ -34,3 +34,6 @@
 [submodule "scripts/addons/Optix-Denoiser"]
 	path = scripts/addons/Optix-Denoiser
 	url = https://github.com/troopy28/OptiX-Denoiser-for-Blender.git
+[submodule "scripts/addons/RenderBurst_GIT"]
+	path = scripts/addons/RenderBurst_GIT
+	url = https://github.com/VertStretch/RenderBurst.git
