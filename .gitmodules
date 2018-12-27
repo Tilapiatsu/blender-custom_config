@@ -19,9 +19,6 @@
 [submodule "scripts/addons/BakeMyScan"]
 	path = scripts/addons/BakeMyScan
 	url = https://github.com/norgeotloic/BakeMyScan.git
-[submodule "scripts/addons/fSpy-Blender"]
-	path = scripts/addons/fSpy-Blender
-	url = https://github.com/stuffmatic/fSpy-Blender.git
 [submodule "scripts/addons/object-shake"]
 	path = scripts/addons/object-shake
 	url = https://github.com/thatimster/object-shake.git
