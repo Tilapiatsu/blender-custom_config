@@ -7,9 +7,6 @@
 [submodule "scripts/addons/DNoise"]
 	path = scripts/addons/DNoise
 	url = https://github.com/grantwilk/DNOISE.git
-[submodule "scripts/addons/glTF-Blender-IO"]
-	path = scripts/addons/glTF-Blender-IO
-	url = https://github.com/sketchfab/glTF-Blender-IO.git
 [submodule "scripts/addons/MACHIN3tools"]
 	path = scripts/addons/MACHIN3tools
 	url = https://github.com/machin3io/MACHIN3tools.git
