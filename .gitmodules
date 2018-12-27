@@ -37,6 +37,3 @@
 [submodule "scripts/addons/Capsule_GIT"]
 	path = scripts/addons/Capsule_GIT
 	url = https://github.com/Takanu/Capsule.git
-[submodule "scipts/addons/simple-asset-manager_GIT"]
-	path = scipts/addons/simple-asset-manager_GIT
-	url = https://gitlab.com/tibicen/simple-asset-manager.git
