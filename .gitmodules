@@ -37,3 +37,6 @@
 [submodule "scripts/addons/fSpy-Blender_GIT"]
 	path = scripts/addons/fSpy-Blender_GIT
 	url = https://github.com/stuffmatic/fSpy-Blender.git
+[submodule "scripts/addons/glTF_Blender-IO_GIT"]
+	path = scripts/addons/glTF_Blender-IO_GIT
+	url = https://github.com/sketchfab/glTF-Blender-IO.git
