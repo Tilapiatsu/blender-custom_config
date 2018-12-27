@@ -4,4 +4,9 @@ config/recent-files.txt
 scripts/addons/retopoflow-master/*
 scripts/addons/Capsule/*
 scripts/addons/animation_nodes/*
+scripts/addons/SimpleAssetManager/*
+scripts/addons/fspy_blender/*
+scripts/addons/glTF_Blender-IO/*
+
 scripts/addons/RenderBurst.py
+scripts/addons/Object_Shake.py
