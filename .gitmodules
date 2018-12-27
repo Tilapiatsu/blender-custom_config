@@ -28,9 +28,6 @@
 [submodule "scripts/addons/object-shake"]
 	path = scripts/addons/object-shake
 	url = https://github.com/thatimster/object-shake.git
-[submodule "scripts/addons/RenderBurst"]
-	path = scripts/addons/RenderBurst
-	url = https://github.com/VertStretch/RenderBurst.git
 [submodule "scripts/addons/Capsule"]
 	path = scripts/addons/Capsule
 	url = https://github.com/Takanu/Capsule.git
