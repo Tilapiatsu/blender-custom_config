@@ -40,3 +40,6 @@
 [submodule "scripts/addons/glTF_Blender-IO_GIT"]
 	path = scripts/addons/glTF_Blender-IO_GIT
 	url = https://github.com/sketchfab/glTF-Blender-IO.git
+[submodule "scripts/addons/fake-bpy-module"]
+	path = scripts/addons/fake-bpy-module
+	url = https://github.com/nutti/fake-bpy-module.git
