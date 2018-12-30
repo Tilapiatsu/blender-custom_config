@@ -1,3 +1,5 @@
 {
-    "python.pythonPath": "C:\\Users\\Tilapiatsu\\Anaconda3\\python.exe"
-}
+    "python.pythonPath": "C:\\Users\\Tilapiatsu\\Anaconda3\\python.exe",
+    "python.autoComplete.extraPaths": [
+        "${workspaceFolder}/scripts/addons/fake-bpy-module/premade_modules/2.80/e5e885d0ecb9430a73e0a904cdb6035a2ef77e98"
+    ]
