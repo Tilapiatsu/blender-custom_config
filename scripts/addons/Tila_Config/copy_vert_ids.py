@@ -399,7 +399,7 @@ def get_other_verts_edges(face, vert1, vert2, first_edge):
 import addon_utils
 
 def register():
-    bpy.utils.register_module(__name__)
+    # bpy.utils.register_module(__name__)
     bpy.types.Scene.copy_indices = CopyIDs()
     # bpy.ops.wm.addon_enable(module="space_view3d_copy_attributes")
     addon_utils.enable("space_view3d_copy_attributes", default_set=True, persistent=True)
@@ -408,7 +408,7 @@ def register():
 
 
 def unregister():
-    bpy.utils.unregister_module(__name__)
+    # bpy.utils.unregister_module(__name__)
     del bpy.types.Scene.copy_indices
     bpy.types.VIEW3D_MT_copypopup.remove(append_copy_ids)  #remove copy ids to Ctrl+C 'Copy Attributes addon'
     bpy.types.MESH_MT_CopyFaceSettings.remove(append_copy_ids_editmode)  #remove copy ids to Ctrl+C 'Copy Attributes addon'
