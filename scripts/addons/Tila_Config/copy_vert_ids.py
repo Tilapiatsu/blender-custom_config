@@ -77,7 +77,7 @@ class TransferVertId(bpy.types.Operator):
     bl_description = "Transfer vert ID by vert proximity (for meshes with same vertex positions)"
     bl_options = {'REGISTER', 'UNDO'}
 
-    delta = bpy.props.FloatProperty(name="Delta", description="SearchDistance", default=0.1, min=0, max=1, precision = 4)
+    delta : bpy.props.FloatProperty(name="Delta", description="SearchDistance", default=0.1, min=0, max=1, precision = 4)
     def execute(self, context):
 
         sourceObj=context.active_object
@@ -164,7 +164,7 @@ class PasteVertID(bpy.types.Operator):
     bl_description = "Paste vertices ID by topology (two faces have to be selected)"
     bl_options = {'REGISTER', 'UNDO'}
 
-    invert_normals = BoolProperty(name="Invert Normals", description="Invert Normals", default=False)
+    invert_normals : BoolProperty(name="Invert Normals", description="Invert Normals", default=False)
 
     @staticmethod
     def sortOtherVerts(preocessedVertsIdDict, allVerts):
