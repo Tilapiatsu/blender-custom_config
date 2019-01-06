@@ -7,9 +7,6 @@ import pkgutil
 import importlib
 from pathlib import Path
 
-from .EmptyMesh import EmptyMeshOperator
-from .SmartDelete import SmartDeleteOperator
-
 __all__ = (
     "init",
     "register",
@@ -18,7 +15,7 @@ __all__ = (
 
 
 modules = None
-ordered_classes = (EmptyMeshOperator, SmartDeleteOperator)
+ordered_classes = None
 
 def init():
     global modules

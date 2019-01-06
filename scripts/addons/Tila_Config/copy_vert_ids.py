@@ -20,7 +20,7 @@ bl_info = {
     "name": "Copy Vert IDs",
     "author": "Jose Conseco based on UV Transfer from MagicUV Nutti",
     "version": (1, 0),
-    "blender": (2, 79, 0),
+    "blender": (2, 80, 0),
     "location": "CTRL+C - requires \'Copy attributes Menu\' to be enabled",
     "description": "Transfer Vert IDs form selected obj",
     "warning": "",
