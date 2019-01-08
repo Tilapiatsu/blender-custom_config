@@ -1,5 +1,5 @@
 
-set param=/e /r:10 /w:1 /bytes /fp
+set param=/e /purge /r:10 /w:1 /bytes /fp
 
 robocopy "Capsule_GIT\Capsule" "Capsule" %param%
 robocopy "simple-asset-manager_GIT\SimpleAssetManager" "SimpleAssetManager" %param%
