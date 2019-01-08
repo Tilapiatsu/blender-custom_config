@@ -94,7 +94,7 @@ def tila_keymaps():
             if select_tool in km_idname:
                 for k in kmi:
                     if k.idname == select_tool:
-                        
+                        pass
 
 
             kmi = km.keymap_items.new(select_tool, k_select, 'CLICK')
