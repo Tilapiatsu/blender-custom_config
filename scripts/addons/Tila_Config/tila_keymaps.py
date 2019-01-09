@@ -70,7 +70,7 @@ def tila_keymaps():
         kmi = km.keymap_items.new('screen.animation_play', k_menu, 'PRESS', shift=True)
         kmi = km.keymap_items.new("popup.hp_properties", 'V',"PRESS", ctrl=True, shift=True)
 
-    def navigation_keys( km=None, pan=None, orbit=None, dolly=None):
+    def navigation_keys(kmis=None, pan=None, orbit=None, dolly=None):
         if orbit:
             kmi = km.keymap_items.new(orbit, k_manip, "PRESS", alt=True)
         if pan:
@@ -78,7 +78,7 @@ def tila_keymaps():
         if dolly:
             kmi = km.keymap_items.new(dolly, k_manip, "PRESS", alt=True, ctrl=True)
 
-    def selection_keys( km=None,
+    def selection_keys( kmis=None,
                         select_tool=None, 
                         lasso_tool=None,
                         shortestpath_tool=None,  
@@ -86,13 +86,13 @@ def tila_keymaps():
                         more_tool=None, less_tool=None, 
                         linked_tool=None):
 
-        if km:
-            km_idname = [k.idname for k in km]
+        if kmis:
+            km_idname = [k.idname for k in kmis]
 
     # Select / Deselect / Add
         if select_tool:
             if select_tool in km_idname:
-                for k in kmi:
+                for k in kmis:
                     if k.idname == select_tool:
                         pass
 
@@ -168,11 +168,15 @@ def tila_keymaps():
 
 # 3D View
     # Replace Existing
-    3d_view = kc.keymaps['3D View'].keymap_items
+    view3d = kc.keymaps['3D View'].keymap_items
     km = kc.keymaps.new('3D View', space_type='VIEW_3D', region_type='WINDOW', modal=False)
     global_keys()
-    navigation_keys('view3d.move', 'view3d.rotate', 'view3d.dolly')
-    selection_keys( km=3d_view,
+    navigation_keys(kmis=view3d,
+                    pan='view3d.move',
+                    orbit='view3d.rotate',
+                    dolly='view3d.dolly')
+
+    selection_keys( kmis=view3d,
                     select_tool='view3d.select', 
                     lasso_tool='view3d.select_lasso')
 
@@ -180,17 +184,17 @@ def tila_keymaps():
 # View2D
     km = kc.keymaps.new('View2D', space_type='EMPTY', region_type='WINDOW', modal=False)
     global_keys()
-    navigation_keys('view2d.pan', None, 'view2d.zoom')
+    navigation_keys(kmis=view3d, pan='view2d.pan', orbit=None, dolly='view2d.zoom')
     
 # View2D buttons List
     km = kc.keymaps.new('View2D Buttons List', space_type='EMPTY', region_type='WINDOW', modal=False)
     global_keys()
-    navigation_keys('view2d.pan', None, 'view2d.zoom')
+    navigation_keys(kmis=view3d, pan='view2d.pan', orbit=None, dolly='view2d.zoom')
 
 # Image
     km = kc.keymaps.new('Image', space_type='IMAGE_EDITOR', region_type='WINDOW', modal=False)
     global_keys()
-    navigation_keys('image.view_pan', None, 'image.view_zoom')
+    navigation_keys(kmis=view3d, pan='image.view_pan', orbit=None, dolly='image.view_zoom')
 
 # UV Editor
     km = kc.keymaps.new('UV Editor', space_type='EMPTY', region_type='WINDOW', modal=False)
