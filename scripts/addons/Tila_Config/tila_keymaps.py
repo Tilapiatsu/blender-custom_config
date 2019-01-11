@@ -66,6 +66,14 @@ def tila_keymaps():
 	k_linked = 'W'
 
 # Functions
+
+	def replace_km_dec(func):
+		if select_tool:
+			if select_tool in km_idname:
+				for k in kmis:
+					if k.idname == select_tool:
+						func()
+
 	def global_keys():
 		kmi = km.keymap_items.new("screen.userpref_show","TAB","PRESS", ctrl=True)
 		kmi = km.keymap_items.new("wm.window_fullscreen_toggle","F11","PRESS")
@@ -96,6 +104,7 @@ def tila_keymaps():
 			if select_tool in km_idname:
 				for k in kmis:
 					if k.idname == select_tool:
+						print("'{}' select_tool found".format(k.idname))
 						pass
 
 
