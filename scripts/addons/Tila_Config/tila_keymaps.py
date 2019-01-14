@@ -68,11 +68,14 @@ def tila_keymaps():
 # Functions
 
 	def replace_km_dec(func):
-		if select_tool:
-			if select_tool in km_idname:
-				for k in kmis:
-					if k.idname == select_tool:
-						func()
+		def func_wrapper(tool, kmis, km_idname, **kwargs):
+			if tool:
+				if tool in km_idname:
+					for k in kmis:
+						if k.idname == tool:
+							print("'{}' tool found".format(k.idname))
+							func(tool, km_idname, **kwargs)
+		return func_wrapper
 
 	def global_keys():
 		kmi = km.keymap_items.new("screen.userpref_show","TAB","PRESS", ctrl=True)
@@ -99,22 +102,20 @@ def tila_keymaps():
 		if kmis:
 			km_idname = [k.idname for k in kmis]
 
-	# Select / Deselect / Add
+		k_select_tool = {	"tool":select_tool,
+							"key":k_select,
+							"action":"CLICK",
+							"kwargs":{}}
+
+		# Select / Deselect / Add
 		if select_tool:
-			if select_tool in km_idname:
-				for k in kmis:
-					if k.idname == select_tool:
-						print("'{}' select_tool found".format(k.idname))
-						pass
-
-
 			kmi = km.keymap_items.new(select_tool, k_select, 'CLICK')
 			kmi = km.keymap_items.new(select_tool, k_select, 'CLICK', shift=True)
 			kmi_props_setattr(kmi.properties, 'extend', True)
 			kmi = km.keymap_items.new(select_tool, k_select, 'CLICK', ctrl=True)
 			kmi_props_setattr(kmi.properties, 'deselect', True)
 	
-	# Lasso Select / Deselect / Add
+		# Lasso Select / Deselect / Add
 		if lasso_tool:
 			kmi = km.keymap_items.new(lasso_tool, k_lasso, 'PRESS')
 			kmi_props_setattr(kmi.properties, 'mode', 'SET')
@@ -123,11 +124,11 @@ def tila_keymaps():
 			kmi = km.keymap_items.new(lasso_tool, k_lasso, 'PRESS', ctrl=True)
 			kmi_props_setattr(kmi.properties, 'mode', 'SUB')
 
-	#  shortest Path Select / Deselect / Add
+		#  shortest Path Select / Deselect / Add
 		if shortestpath_tool:
 			kmi = km.keymap_items.new(shortestpath_tool, k_lasso, 'CLICK')
 
-	# Loop Select / Deselect / Add
+		# Loop Select / Deselect / Add
 		if loop_tool:
 			kmi = km.keymap_items.new(loop_tool, k_select, 'DOUBLE_CLICK')
 			kmi = km.keymap_items.new(loop_tool, k_select, 'DOUBLE_CLICK', shift=True)
@@ -137,7 +138,7 @@ def tila_keymaps():
 			kmi_props_setattr(kmi.properties, 'extend', False)
 			kmi_props_setattr(kmi.properties, 'deselect', True)
 
-	# Ring Select / Deselect / Add
+		# Ring Select / Deselect / Add
 		if ring_tool:
 			kmi = km.keymap_items.new(ring_tool, k_cursor, 'CLICK', ctrl=True)
 			kmi_props_setattr(kmi.properties, 'ring', True)
@@ -155,14 +156,14 @@ def tila_keymaps():
 			kmi_props_setattr(kmi.properties, 'extend', False)
 			kmi_props_setattr(kmi.properties, 'toggle', False)
 
-	# Select More / Less
+		# Select More / Less
 		if more_tool:
 			kmi = km.keymap_items.new(more_tool, k_more, 'PRESS')
 
 		if less_tool:
 			kmi = km.keymap_items.new(less_tool, k_more, 'PRESS')
 
-	# Linked
+		# Linked
 		if linked_tool:
 			kmi = km.keymap_items.new(linked_tool, k_linked, 'PRESS')
 
