@@ -13,6 +13,10 @@ bl_info = {
 import bpy
 import os
 
+class bKemap():
+	def __init__(self, kmi):
+		pass
+
 def kmi_props_setattr(kmi_props, attr, value):
 	try:
 		setattr(kmi_props, attr, value)
