@@ -46,3 +46,6 @@
 [submodule "scripts/addons/tissue"]
 	path = scripts/addons/tissue
 	url = https://github.com/alessandro-zomparelli/tissue.git
+[submodule "scripts/addons/curve_cad"]
+	path = scripts/addons/curve_cad
+	url = https://github.com/Lichtso/curve_cad.git
