@@ -55,3 +55,6 @@
 [submodule "scripts/addons/GoB"]
 	path = scripts/addons/GoB
 	url = https://github.com/JoseConseco/GoB.git
+[submodule "scripts/addons/BRM_BakeUI"]
+	path = scripts/addons/BRM_BakeUI
+	url = https://github.com/leukbaars/BRM-BakeUI.git
