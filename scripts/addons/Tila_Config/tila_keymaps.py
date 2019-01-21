@@ -38,6 +38,7 @@ def kmi_props_getattr(kmi_props, attr, value):
 
 
 def kmi_props_list(kmi_props):
+	# TODO Correct the props list
 	return dir(kmi_props)[2:]
 
 
@@ -100,14 +101,16 @@ class TilaKeymaps():
 	# Decorators
 	def replace_km_dec(func):
 		def func_wrapper(self, tool, keymap, action, **kwargs):
+			new_kmi = func(self, tool, keymap, action, **kwargs)
 			if tool and self.km_idname:
 				if tool in self.km_idname:
 					for k in self.kmis:
 						if k.idname == tool:
-							print("'{}' tool found, replace km {}".format(k.idname, k.type))
-							return func(self, tool, keymap, action, **kwargs, original=k)
-				else:
-					return self.set_km(tool, keymap, action, **kwargs)
+							if self.compare_tool(new_kmi, k):
+								print("'{}' tool found, replace keymap '{}'".format(k.idname, k.to_string()))
+								k.active = False
+
+			return new_kmi
 		return func_wrapper
 
 	# Functions
@@ -122,27 +125,22 @@ class TilaKeymaps():
 			return False
 		else:
 			for i in range(len(kmi1_props)):
+				print(kmi1_props[i], kmi2_props[i])
 				if kmi1_props[i] != kmi2_props[i]:
 					return False
+				# TODO compare the values of the props and not the name only
 			else:
 				return True
 
 	@replace_km_dec
 	def set_replace_km(self, tool, keymap, action, **kwargs):
-		original = kwargs['original']
-		del kwargs['original']
-
 		kmi = self.set_km(tool, keymap, action, **kwargs)
-
-		if self.compare_tool(kmi, original):
-			original.active = False
-		if self.compare_km(kmi, original):
-			original.active = False
-
 		return kmi
 
 	def set_km(self, tool, keymap, action, **kwargs):
-		return self.km.keymap_items.new(tool, keymap, action, **kwargs)
+		kmi = self.km.keymap_items.new(tool, keymap, action, **kwargs)
+		print("assigning new tool '{}' to keymap '{}'".format(kmi.idname, kmi.to_string()))
+		return kmi
 	# Global Keymap Functions
 
 	def global_keys(self):
