@@ -28,7 +28,7 @@ def kmi_props_setattr(kmi_props, attr, value):
 		print("Warning: %r" % e)
 
 
-def kmi_props_getattr(kmi_props, attr, value):
+def kmi_props_getattr(kmi_props, attr):
 	try:
 		return getattr(kmi_props, attr)
 	except AttributeError:
@@ -38,8 +38,7 @@ def kmi_props_getattr(kmi_props, attr, value):
 
 
 def kmi_props_list(kmi_props):
-	# TODO Correct the props list
-	return dir(kmi_props)[2:]
+	return dir(kmi_props)[3:]
 
 
 def kmi_km_replace(kmi, km, *kwargs):
@@ -68,6 +67,9 @@ def kmi_get_kmi(km, tool_name):
 
 
 class TilaKeymaps():
+	keymap_List = {"new": [],
+					"disable": []}
+
 	def __init__(self):
 
 		# Define global variables
@@ -108,8 +110,12 @@ class TilaKeymaps():
 						if k.idname == tool:
 							if self.compare_tool(new_kmi, k):
 								print("'{}' tool found, replace keymap '{}'".format(k.idname, k.to_string()))
-								k.active = False
-
+								# k.active = False
+								# Store keymap to disable
+								self.keymap_List["disable"].append(k)
+								
+								# self.kmis.remove(k)
+	
 			return new_kmi
 		return func_wrapper
 
@@ -119,17 +125,20 @@ class TilaKeymaps():
 		return kmi1.type == kmi2.type and kmi1.ctrl == kmi2.ctrl and kmi1.alt == kmi2.alt and kmi1.shift == kmi2.shift and kmi1.any == kmi2.any
 
 	def compare_tool(self, kmi1, kmi2):
-		kmi1_props = kmi_props_list(kmi1)
-		kmi2_props = kmi_props_list(kmi2)
+		kmi1_props = kmi_props_list(kmi1.properties)
+		kmi2_props = kmi_props_list(kmi2.properties)
+
 		if len(kmi1_props) != len(kmi2_props):
 			return False
 		else:
 			for i in range(len(kmi1_props)):
-				print(kmi1_props[i], kmi2_props[i])
 				if kmi1_props[i] != kmi2_props[i]:
 					return False
-				# TODO compare the values of the props and not the name only
+				else:
+					if kmi_props_getattr(kmi1.properties, kmi1_props[i]) != kmi_props_getattr(kmi2.properties, kmi2_props[i]):
+						return False
 			else:
+				print("Keymap '{}' and Keymap '{}' are matching".format(kmi1.name, kmi2.name))
 				return True
 
 	@replace_km_dec
@@ -140,6 +149,10 @@ class TilaKeymaps():
 	def set_km(self, tool, keymap, action, **kwargs):
 		kmi = self.km.keymap_items.new(tool, keymap, action, **kwargs)
 		print("assigning new tool '{}' to keymap '{}'".format(kmi.idname, kmi.to_string()))
+
+		# Store keymap in class variable
+		self.keymap_List["new"].append(kmi)
+
 		return kmi
 	# Global Keymap Functions
 
@@ -232,13 +245,17 @@ class TilaKeymaps():
 	# Keymap define
 
 	def set_tila_keymap(self):
+		print("----------------------------------------------------------------")
 		print("Setting Tilapiatsu's keymaps")
+		print("----------------------------------------------------------------")
+		print("")
+
 		# Window
 		self.kmis = self.kcu.keymaps['Window'].keymap_items
 		self.km = self.kca.keymaps.new('Window', space_type='EMPTY', region_type='WINDOW', modal=False)
 		self.global_keys()
-		kmi = self.set_replace_km("wm.call_menu_pie", self.k_menu,"PRESS",ctrl=True ,shift=True, alt=True)
-		kmi = self.set_replace_km("wm.revert_without_prompt","N","PRESS", shift=True)
+		kmi = self.set_replace_km("wm.call_menu_pie", self.k_menu, "PRESS", ctrl=True ,shift=True, alt=True)
+		kmi = self.set_replace_km("wm.revert_without_prompt", "N", "PRESS", shift=True)
 		kmi = self.set_replace_km('wm.console_toggle', 'TAB', 'PRESS', ctrl=True, shift=True)     
 
 		# 3D View
@@ -568,9 +585,17 @@ def hp_keymaps():
 	kmi = km.keymap_items.new('time.view_frame', 'NUMPAD_0', 'PRESS')
 
 
-
 def register():
-	TilaKeymaps().set_tila_keymap()
+	TK = TilaKeymaps()
+	TK.set_tila_keymap()
+
+	print("----------------------------------------------------------------")
+	print("Disabling redundant keymap ")
+	print("----------------------------------------------------------------")
+	print("")
+	for kmi in TK.keymap_List["disable"]:
+		print("Disabling '{}'".format(kmi.name))
+		kmi.active = False
 
 def unregister():
 	pass
