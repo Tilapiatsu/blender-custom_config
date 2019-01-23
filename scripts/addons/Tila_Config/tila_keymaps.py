@@ -188,12 +188,9 @@ class TilaKeymaps():
 	
 		# Lasso Select / Deselect / Add
 		if lasso_tool:
-			kmi = self.set_replace_km(lasso_tool, self.k_lasso, 'PRESS')
-			kmi_props_setattr(kmi.properties, 'mode', 'SET')
-			kmi = self.set_replace_km(lasso_tool, self.k_lasso, 'PRESS', shift=True)
-			kmi_props_setattr(kmi.properties, 'mode', 'ADD')
-			kmi = self.set_replace_km(lasso_tool, self.k_lasso, 'PRESS', ctrl=True)
-			kmi_props_setattr(kmi.properties, 'mode', 'SUB')
+			kmi = self.set_replace_km(lasso_tool, self.k_lasso, 'PRESS', properties=[('mode', 'SET')])
+			kmi = self.set_replace_km(lasso_tool, self.k_lasso, 'PRESS', shift=True, properties=[('mode', 'ADD')])
+			kmi = self.set_replace_km(lasso_tool, self.k_lasso, 'PRESS', ctrl=True, properties=[('mode', 'SUB')])
 
 		#  shortest Path Select / Deselect / Add
 		if shortestpath_tool:
@@ -202,30 +199,15 @@ class TilaKeymaps():
 		# Loop Select / Deselect / Add
 		if loop_tool:
 			kmi = self.set_replace_km(loop_tool, self.k_select, 'DOUBLE_CLICK')
-			kmi = self.set_replace_km(loop_tool, self.k_select, 'DOUBLE_CLICK', shift=True)
-			kmi_props_setattr(kmi.properties, 'extend', True)
-			kmi_props_setattr(kmi.properties, 'ring', False)
-			kmi = self.set_replace_km(loop_tool, self.k_select, 'DOUBLE_CLICK', ctrl=True)
-			kmi_props_setattr(kmi.properties, 'extend', False)
-			kmi_props_setattr(kmi.properties, 'deselect', True)
+			kmi = self.set_replace_km(loop_tool, self.k_select, 'DOUBLE_CLICK', shift=True, properties=[('extend', True), ('ring', False)])
+			kmi = self.set_replace_km(loop_tool, self.k_select, 'DOUBLE_CLICK', ctrl=True, properties=[('extend', False), ('deselect', True)])
+
 
 		# Ring Select / Deselect / Add
 		if ring_tool:
-			kmi = self.set_replace_km(ring_tool, self.k_cursor, 'CLICK', ctrl=True)
-			kmi_props_setattr(kmi.properties, 'ring', True)
-			kmi_props_setattr(kmi.properties, 'deselect', True)
-			kmi_props_setattr(kmi.properties, 'extend', False)
-			kmi_props_setattr(kmi.properties, 'toggle', False)
-			kmi = self.set_replace_km(ring_tool, self.k_cursor, 'CLICK', ctrl=True, shift=True)
-			kmi_props_setattr(kmi.properties, 'ring', True)
-			kmi_props_setattr(kmi.properties, 'deselect', False)
-			kmi_props_setattr(kmi.properties, 'extend', True)
-			kmi_props_setattr(kmi.properties, 'toggle', False)
-			kmi = self.set_replace_km(ring_tool, self.k_cursor, 'DOUBLE_CLICK', ctrl=True)
-			kmi_props_setattr(kmi.properties, 'ring', True)
-			kmi_props_setattr(kmi.properties, 'deselect', True)
-			kmi_props_setattr(kmi.properties, 'extend', False)
-			kmi_props_setattr(kmi.properties, 'toggle', False)
+			kmi = self.set_replace_km(ring_tool, self.k_cursor, 'CLICK', ctrl=True, properties=[('ring', True), ('deselect', True), ('extend', False), ('toggle', False)])
+			kmi = self.set_replace_km(ring_tool, self.k_cursor, 'CLICK', ctrl=True, shift=True, properties=[('ring', True), ('deselect', False), ('extend', True), ('toggle', False)])
+			kmi = self.set_replace_km(ring_tool, self.k_cursor, 'DOUBLE_CLICK', ctrl=True, properties=[('ring', True), ('deselect', True), ('extend', False), ('toggle', False)])
 
 		# Select More / Less
 		if more_tool:
@@ -239,8 +221,7 @@ class TilaKeymaps():
 			kmi = self.set_replace_km(linked_tool, self.k_linked, 'PRESS')
 
 	def selection_tool(self):
-		kmi = self.set_replace_km('wm.tool_set_by_name', self.k_menu, "PRESS")
-		kmi_props_setattr(kmi.properties, 'name', 'Select')
+		kmi = self.set_replace_km('wm.tool_set_by_name', self.k_menu, "PRESS", properties=[('name', 'Select')])
 
 	# Keymap define
 
