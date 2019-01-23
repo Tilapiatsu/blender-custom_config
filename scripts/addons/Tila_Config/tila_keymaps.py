@@ -102,8 +102,8 @@ class TilaKeymaps():
 
 	# Decorators
 	def replace_km_dec(func):
-		def func_wrapper(self, tool, keymap, action, **kwargs):
-			new_kmi = func(self, tool, keymap, action, **kwargs)
+		def func_wrapper(self, tool, keymap, action, alt=False, any=False, ctrl=False, shift=False, properties=()):
+			new_kmi = func(self, tool, keymap, action, alt=alt, any=any, ctrl=ctrl, shift=shift, properties=properties)
 			if tool and self.km_idname:
 				if tool in self.km_idname:
 					for k in self.kmis:
@@ -142,12 +142,14 @@ class TilaKeymaps():
 				return True
 
 	@replace_km_dec
-	def set_replace_km(self, tool, keymap, action, **kwargs):
-		kmi = self.set_km(tool, keymap, action, **kwargs)
+	def set_replace_km(self, tool, keymap, action, alt=False, any=False, ctrl=False, shift=False, properties=()):
+		kmi = self.set_km(tool, keymap, action, alt=alt, any=any, ctrl=ctrl, shift=shift, properties=properties)
 		return kmi
 
-	def set_km(self, tool, keymap, action, **kwargs):
-		kmi = self.km.keymap_items.new(tool, keymap, action, **kwargs)
+	def set_km(self, tool, keymap, action, alt=False, any=False, ctrl=False, shift=False, properties=()):
+		kmi = self.km.keymap_items.new(tool, keymap, action, alt=alt, any=any, ctrl=ctrl, shift=shift)
+		for p in properties:
+			kmi_props_setattr(kmi.properties, p[0], p[1])
 		print("assigning new tool '{}' to keymap '{}'".format(kmi.idname, kmi.to_string()))
 
 		# Store keymap in class variable
@@ -181,10 +183,8 @@ class TilaKeymaps():
 		# Select / Deselect / Add
 		if select_tool:
 			kmi = self.set_replace_km(select_tool, self.k_select, 'CLICK')
-			kmi = self.set_replace_km(select_tool, self.k_select, 'CLICK', shift=True)
-			kmi_props_setattr(kmi.properties, 'extend', True)
-			kmi = self.set_replace_km(select_tool, self.k_select, 'CLICK', ctrl=True)
-			kmi_props_setattr(kmi.properties, 'deselect', True)
+			kmi = self.set_replace_km(select_tool, self.k_select, 'CLICK', shift=True, properties=[('extend', True)])
+			kmi = self.set_replace_km(select_tool, self.k_select, 'CLICK', ctrl=True, properties=[('deselect', True)])
 	
 		# Lasso Select / Deselect / Add
 		if lasso_tool:
