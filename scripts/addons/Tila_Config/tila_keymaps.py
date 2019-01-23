@@ -68,7 +68,7 @@ def kmi_get_kmi(km, tool_name):
 
 class TilaKeymaps():
 	keymap_List = {"new": [],
-					"disable": []}
+					"replaced": []}
 
 	def __init__(self):
 
@@ -76,7 +76,7 @@ class TilaKeymaps():
 		self.wm = bpy.context.window_manager
 		self.kca = self.wm.keyconfigs.addon
 		self.kcu = self.wm.keyconfigs.user
-		
+
 		self.km = None
 		self.kmis = None
 
@@ -89,7 +89,7 @@ class TilaKeymaps():
 		self.k_lasso = 'RIGHTMOUSE'
 		self.k_context = 'RIGHTMOUSE'
 		self.k_more = 'UP_ARROW'
-		self.k_less = 'UP_ARROW'
+		self.k_less = 'DOWN_ARROW'
 		self.k_linked = 'W'
 
 	# Property
@@ -102,27 +102,38 @@ class TilaKeymaps():
 
 	# Decorators
 	def replace_km_dec(func):
-		def func_wrapper(self, tool, keymap, action, alt=False, any=False, ctrl=False, shift=False, properties=()):
-			new_kmi = func(self, tool, keymap, action, alt=alt, any=any, ctrl=ctrl, shift=shift, properties=properties)
+		def func_wrapper(self, tool, keymap, action, alt=False, any=False, ctrl=False, shift=False, oskey=False, properties=()):
+			new_kmi = func(self, tool, keymap, action, alt=alt, any=any, ctrl=ctrl, shift=shift, oskey=oskey, properties=properties)
 			if tool and self.km_idname:
 				if tool in self.km_idname:
 					for k in self.kmis:
 						if k.idname == tool:
 							if self.compare_tool(new_kmi, k):
-								print("'{}' tool found, replace keymap '{}'".format(k.idname, k.to_string()))
+								print("'{}' tool found, replace keymap '{}' to '{}'".format(k.idname, k.to_string(), new_kmi.to_string()))
 								# k.active = False
-								# Store keymap to disable
-								self.keymap_List["disable"].append(k)
 								
-								# self.kmis.remove(k)
-	
+								# Replace keymap attribute
+								k.key_modifier = new_kmi.key_modifier
+								k.map_type = new_kmi.map_type
+								k.type = new_kmi.type
+								k.value = new_kmi.value
+
+								k.any = new_kmi.any
+								k.alt = new_kmi.alt
+								k.ctrl = new_kmi.ctrl
+								k.shift = new_kmi.shift
+								k.oskey = new_kmi.oskey
+								
+								# Store keymap to disable
+								self.keymap_List["replaced"].append(k)
+
 			return new_kmi
 		return func_wrapper
 
 	# Functions
 
 	def compare_km(self, kmi1, kmi2):
-		return kmi1.type == kmi2.type and kmi1.ctrl == kmi2.ctrl and kmi1.alt == kmi2.alt and kmi1.shift == kmi2.shift and kmi1.any == kmi2.any
+		return kmi1.type == kmi2.type and kmi1.ctrl == kmi2.ctrl and kmi1.alt == kmi2.alt and kmi1.shift == kmi2.shift and kmi1.any == kmi2.any and	kmi1.oskey == kmi2.oskey and kmi1.key_modifier == kmi2.key_modifier and kmi1.map_type == kmi2.map_type and kmi1.value == kmi2.value
 
 	def compare_tool(self, kmi1, kmi2):
 		kmi1_props = kmi_props_list(kmi1.properties)
@@ -142,12 +153,12 @@ class TilaKeymaps():
 				return True
 
 	@replace_km_dec
-	def set_replace_km(self, tool, keymap, action, alt=False, any=False, ctrl=False, shift=False, properties=()):
-		kmi = self.set_km(tool, keymap, action, alt=alt, any=any, ctrl=ctrl, shift=shift, properties=properties)
+	def set_replace_km(self, tool, keymap, action, alt=False, any=False, ctrl=False, shift=False, oskey=False, properties=()):
+		kmi = self.set_km(tool, keymap, action, alt=alt, any=any, ctrl=ctrl, shift=shift, oskey=oskey, properties=properties)
 		return kmi
 
-	def set_km(self, tool, keymap, action, alt=False, any=False, ctrl=False, shift=False, properties=()):
-		kmi = self.km.keymap_items.new(tool, keymap, action, alt=alt, any=any, ctrl=ctrl, shift=shift)
+	def set_km(self, tool, keymap, action, alt=False, any=False, ctrl=False, shift=False, oskey=False, properties=()):
+		kmi = self.km.keymap_items.new(tool, keymap, action, alt=alt, any=any, ctrl=ctrl, shift=shift, oskey=oskey)
 		for p in properties:
 			kmi_props_setattr(kmi.properties, p[0], p[1])
 		print("assigning new tool '{}' to keymap '{}'".format(kmi.idname, kmi.to_string()))
@@ -159,18 +170,18 @@ class TilaKeymaps():
 	# Global Keymap Functions
 
 	def global_keys(self):
-		kmi = self.set_replace_km("screen.userpref_show", "TAB", "PRESS", ctrl=True)
-		kmi = self.set_replace_km("wm.window_fullscreen_toggle", "F11", "PRESS")
-		kmi = self.set_replace_km('screen.animation_play', self.k_menu, 'PRESS', shift=True)
-		kmi = self.set_replace_km("popup.hp_properties", 'V', "PRESS", ctrl=True, shift=True)
+		self.set_replace_km("screen.userpref_show", "TAB", "PRESS", ctrl=True)
+		self.set_replace_km("wm.window_fullscreen_toggle", "F11", "PRESS")
+		self.set_replace_km('screen.animation_play', self.k_menu, 'PRESS', shift=True)
+		self.set_replace_km("popup.hp_properties", 'V', "PRESS", ctrl=True, shift=True)
 
 	def navigation_keys(self, pan=None, orbit=None, dolly=None):
 		if orbit:
-			kmi = self.set_replace_km(orbit, self.k_manip, "PRESS", alt=True)
+			self.set_replace_km(orbit, self.k_manip, "PRESS", alt=True)
 		if pan:
-			kmi = self.set_replace_km(pan, self.k_manip, "PRESS", alt=True, shift=True)
+			self.set_replace_km(pan, self.k_manip, "PRESS", alt=True, shift=True)
 		if dolly:
-			kmi = self.set_replace_km(dolly, self.k_manip, "PRESS", alt=True, ctrl=True)
+			self.set_replace_km(dolly, self.k_manip, "PRESS", alt=True, ctrl=True)
 
 	def selection_keys(self,
 						select_tool=None, 
@@ -182,46 +193,45 @@ class TilaKeymaps():
 
 		# Select / Deselect / Add
 		if select_tool:
-			kmi = self.set_replace_km(select_tool, self.k_select, 'CLICK')
-			kmi = self.set_replace_km(select_tool, self.k_select, 'CLICK', shift=True, properties=[('extend', True)])
-			kmi = self.set_replace_km(select_tool, self.k_select, 'CLICK', ctrl=True, properties=[('deselect', True)])
+			self.set_replace_km(select_tool, self.k_select, 'CLICK')
+			self.set_replace_km(select_tool, self.k_select, 'CLICK', shift=True, properties=[('extend', True)])
+			self.set_replace_km(select_tool, self.k_select, 'CLICK', ctrl=True, properties=[('deselect', True)])
 	
 		# Lasso Select / Deselect / Add
 		if lasso_tool:
-			kmi = self.set_replace_km(lasso_tool, self.k_lasso, 'PRESS', properties=[('mode', 'SET')])
-			kmi = self.set_replace_km(lasso_tool, self.k_lasso, 'PRESS', shift=True, properties=[('mode', 'ADD')])
-			kmi = self.set_replace_km(lasso_tool, self.k_lasso, 'PRESS', ctrl=True, properties=[('mode', 'SUB')])
+			self.set_replace_km(lasso_tool, self.k_lasso, 'PRESS', properties=[('mode', 'SET')])
+			self.set_replace_km(lasso_tool, self.k_lasso, 'PRESS', shift=True, properties=[('mode', 'ADD')])
+			self.set_replace_km(lasso_tool, self.k_lasso, 'PRESS', ctrl=True, properties=[('mode', 'SUB')])
 
 		#  shortest Path Select / Deselect / Add
 		if shortestpath_tool:
-			kmi = self.set_replace_km(shortestpath_tool, self.k_lasso, 'CLICK')
+			self.set_replace_km(shortestpath_tool, self.k_lasso, 'CLICK')
 
 		# Loop Select / Deselect / Add
 		if loop_tool:
-			kmi = self.set_replace_km(loop_tool, self.k_select, 'DOUBLE_CLICK')
-			kmi = self.set_replace_km(loop_tool, self.k_select, 'DOUBLE_CLICK', shift=True, properties=[('extend', True), ('ring', False)])
-			kmi = self.set_replace_km(loop_tool, self.k_select, 'DOUBLE_CLICK', ctrl=True, properties=[('extend', False), ('deselect', True)])
-
+			self.set_replace_km(loop_tool, self.k_select, 'DOUBLE_CLICK')
+			self.set_replace_km(loop_tool, self.k_select, 'DOUBLE_CLICK', shift=True, properties=[('extend', True), ('ring', False)])
+			self.set_replace_km(loop_tool, self.k_select, 'DOUBLE_CLICK', ctrl=True, properties=[('extend', False), ('deselect', True)])
 
 		# Ring Select / Deselect / Add
 		if ring_tool:
-			kmi = self.set_replace_km(ring_tool, self.k_cursor, 'CLICK', ctrl=True, properties=[('ring', True), ('deselect', True), ('extend', False), ('toggle', False)])
-			kmi = self.set_replace_km(ring_tool, self.k_cursor, 'CLICK', ctrl=True, shift=True, properties=[('ring', True), ('deselect', False), ('extend', True), ('toggle', False)])
-			kmi = self.set_replace_km(ring_tool, self.k_cursor, 'DOUBLE_CLICK', ctrl=True, properties=[('ring', True), ('deselect', True), ('extend', False), ('toggle', False)])
+			self.set_replace_km(ring_tool, self.k_cursor, 'CLICK', ctrl=True, properties=[('ring', True), ('deselect', True), ('extend', False), ('toggle', False)])
+			self.set_replace_km(ring_tool, self.k_cursor, 'CLICK', ctrl=True, shift=True, properties=[('ring', True), ('deselect', False), ('extend', True), ('toggle', False)])
+			self.set_replace_km(ring_tool, self.k_cursor, 'DOUBLE_CLICK', ctrl=True, properties=[('ring', True), ('deselect', True), ('extend', False), ('toggle', False)])
 
 		# Select More / Less
 		if more_tool:
-			kmi = self.set_replace_km(more_tool, self.k_more, 'PRESS')
+			self.set_replace_km(more_tool, self.k_more, 'PRESS', shift=True)
 
 		if less_tool:
-			kmi = self.set_replace_km(less_tool, self.k_more, 'PRESS')
+			self.set_replace_km(less_tool, self.k_less, 'PRESS', shift=True)
 
 		# Linked
 		if linked_tool:
-			kmi = self.set_replace_km(linked_tool, self.k_linked, 'PRESS')
+			self.set_replace_km(linked_tool, self.k_linked, 'PRESS')
 
 	def selection_tool(self):
-		kmi = self.set_replace_km('wm.tool_set_by_name', self.k_menu, "PRESS", properties=[('name', 'Select')])
+		self.set_replace_km('wm.tool_set_by_name', self.k_menu, "PRESS", properties=[('name', 'Select')])
 
 	# Keymap define
 
@@ -235,9 +245,9 @@ class TilaKeymaps():
 		self.kmis = self.kcu.keymaps['Window'].keymap_items
 		self.km = self.kca.keymaps.new('Window', space_type='EMPTY', region_type='WINDOW', modal=False)
 		self.global_keys()
-		kmi = self.set_replace_km("wm.call_menu_pie", self.k_menu, "PRESS", ctrl=True ,shift=True, alt=True)
-		kmi = self.set_replace_km("wm.revert_without_prompt", "N", "PRESS", shift=True)
-		kmi = self.set_replace_km('wm.console_toggle', 'TAB', 'PRESS', ctrl=True, shift=True)     
+		self.set_replace_km("wm.call_menu_pie", self.k_menu, "PRESS", ctrl=True, shift=True, alt=True)
+		self.set_replace_km("wm.revert_without_prompt", "N", "PRESS", shift=True)
+		self.set_replace_km('wm.console_toggle', 'TAB', 'PRESS', ctrl=True, shift=True)     
 
 		# 3D View
 		# Replace Existing
@@ -281,11 +291,11 @@ class TilaKeymaps():
 		self.global_keys()
 		self.selection_tool()
 		self.selection_keys(shortestpath_tool='mesh.shortest_path_pick',
-					loop_tool='mesh.loop_select',
-					ring_tool='mesh.loop_select',
-					more_tool='mesh.select_more',
-					less_tool='mesh.select_less',
-					linked_tool='mesh.select_linked_pick' )
+							loop_tool='mesh.loop_select',
+							ring_tool='mesh.loop_select',
+							more_tool='mesh.select_more',
+							less_tool='mesh.select_less',
+							linked_tool='mesh.select_linked_pick')
 
 		# Object Mode
 		self.kmis = self.kcu.keymaps['Object Mode'].keymap_items
@@ -298,11 +308,11 @@ class TilaKeymaps():
 		self.km = self.kca.keymaps.new('Curve', space_type='EMPTY', region_type='WINDOW', modal=False)
 		self.global_keys()
 		self.selection_tool()
-		kmi = self.set_replace_km('curve.select_linked', self.k_select, 'DOUBLE_CLICK', shift=True)
-		kmi = self.set_replace_km('curve.select_linked_pick', self.k_select, 'DOUBLE_CLICK')
-		kmi = self.set_replace_km('curve.reveal', 'H', 'PRESS', ctrl=True, shift=True)
-		kmi = self.set_replace_km('curve.shortest_path_pick', self.k_select, 'PRESS', ctrl=True, shift=True)
-		kmi = self.set_replace_km('curve.draw', 'LEFTMOUSE', 'PRESS', alt=True)
+		self.set_replace_km('curve.select_linked', self.k_select, 'DOUBLE_CLICK', shift=True)
+		self.set_replace_km('curve.select_linked_pick', self.k_select, 'DOUBLE_CLICK')
+		self.set_replace_km('curve.reveal', 'H', 'PRESS', ctrl=True, shift=True)
+		self.set_replace_km('curve.shortest_path_pick', self.k_select, 'PRESS', ctrl=True, shift=True)
+		self.set_replace_km('curve.draw', 'LEFTMOUSE', 'PRESS', alt=True)
 
 		# Outliner
 		self.kmis = self.kcu.keymaps['Outliner'].keymap_items
@@ -342,8 +352,8 @@ def hp_keymaps():
 	k_lasso =  'RIGHTMOUSE'
 
 	def global_keys():
-		kmi = km.keymap_items.new("screen.userpref_show","TAB","PRESS", ctrl=True)
-		kmi = km.keymap_items.new("wm.window_fullscreen_toggle","F11","PRESS")
+		kmi = km.keymap_items.new("screen.userpref_show", "TAB", "PRESS", ctrl=True)
+		kmi = km.keymap_items.new("wm.window_fullscreen_toggle", "F11", "PRESS")
 		kmi = km.keymap_items.new('screen.animation_play', 'PERIOD', 'PRESS')
 		kmi = km.keymap_items.new("popup.hp_properties", 'V',"PRESS", ctrl=True, shift=True)
 	# kmi = km.keymap_items.new('gpencil.blank_frame_add', 'B', 'PRESS', key_modifier='FOUR')
@@ -570,13 +580,13 @@ def register():
 	TK = TilaKeymaps()
 	TK.set_tila_keymap()
 
-	print("----------------------------------------------------------------")
-	print("Disabling redundant keymap ")
-	print("----------------------------------------------------------------")
-	print("")
-	for kmi in TK.keymap_List["disable"]:
-		print("Disabling '{}'".format(kmi.name))
-		kmi.active = False
+	# print("----------------------------------------------------------------")
+	# print("Disabling redundant keymap ")
+	# print("----------------------------------------------------------------")
+	# print("")
+	# for kmi in TK.keymap_List["disable"]:
+	# 	print("Disabling '{}'".format(kmi.name))
+	# 	kmi.active = False
 
 def unregister():
 	pass
