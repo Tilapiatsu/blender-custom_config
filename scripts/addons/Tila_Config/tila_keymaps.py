@@ -102,17 +102,15 @@ class TilaKeymaps():
 
 	# Decorators
 	def replace_km_dec(func):
-		def func_wrapper(self, tool, keymap, action, alt=False, any=False, ctrl=False, shift=False, oskey=False, properties=()):
-			new_kmi = func(self, tool, keymap, action, alt=alt, any=any, ctrl=ctrl, shift=shift, oskey=oskey, properties=properties)
-			if tool and self.km_idname:
-				if tool in self.km_idname:
+		def func_wrapper(self, idname, type, value, alt=False, any=False, ctrl=False, shift=False, oskey=False, key_modifier='NONE', properties=()):
+			new_kmi = func(self, idname, type, value, alt=alt, any=any, ctrl=ctrl, shift=shift, oskey=oskey, key_modifier=key_modifier, properties=properties)
+			if idname and self.km_idname:
+				if idname in self.km_idname:
 					for k in self.kmis:
-						if k.idname == tool:
-							if self.compare_tool(new_kmi, k):
-								print("'{}' tool found, replace keymap '{}' to '{}'".format(k.idname, k.to_string(), new_kmi.to_string()))
+						if k.idname == idname:
+							if self.compare_idname(new_kmi, k):
+								print("{} : '{}' tool found, replace keymap '{}' to '{}'".format(self.km.name, k.idname, k.to_string(), new_kmi.to_string()))
 
-								old_km = k
-							
 								# Replace keymap attribute
 								self.replace_km(new_kmi, k)
 
@@ -139,7 +137,7 @@ class TilaKeymaps():
 	def compare_km(self, kmi1, kmi2):
 		return kmi1.type == kmi2.type and kmi1.ctrl == kmi2.ctrl and kmi1.alt == kmi2.alt and kmi1.shift == kmi2.shift and kmi1.any == kmi2.any and	kmi1.oskey == kmi2.oskey and kmi1.key_modifier == kmi2.key_modifier and kmi1.map_type == kmi2.map_type and kmi1.value == kmi2.value
 
-	def compare_tool(self, kmi1, kmi2):
+	def compare_idname(self, kmi1, kmi2):
 		kmi1_props = kmi_props_list(kmi1.properties)
 		kmi2_props = kmi_props_list(kmi2.properties)
 
@@ -153,22 +151,23 @@ class TilaKeymaps():
 					if kmi_props_getattr(kmi1.properties, kmi1_props[i]) != kmi_props_getattr(kmi2.properties, kmi2_props[i]):
 						return False
 			else:
-				print("Keymap '{}' and Keymap '{}' are matching".format(kmi1.name, kmi2.name))
+				# print("Keymap '{}' and Keymap '{}' are matching".format(kmi1.name, kmi2.name))
 				return True
 
 	@replace_km_dec
-	def set_replace_km(self, tool, keymap, action, alt=False, any=False, ctrl=False, shift=False, oskey=False, properties=()):
-		kmi = self.set_km(tool, keymap, action, alt=alt, any=any, ctrl=ctrl, shift=shift, oskey=oskey, properties=properties)
+	def set_replace_km(self, idname, type, value, alt=False, any=False, ctrl=False, shift=False, oskey=False, key_modifier='NONE', properties=()):
+		kmi = self.set_km(idname, type, value, alt=alt, any=any, ctrl=ctrl, shift=shift, oskey=oskey, key_modifier=key_modifier, properties=properties)
 		return kmi
 
-	def set_km(self, tool, keymap, action, alt=False, any=False, ctrl=False, shift=False, oskey=False, properties=()):
-		kmi = self.km.keymap_items.new(tool, keymap, action, alt=alt, any=any, ctrl=ctrl, shift=shift, oskey=oskey)
+	def set_km(self, idname, type, value, alt=False, any=False, ctrl=False, shift=False, oskey=False, key_modifier='NONE', properties=()):
+		kmi = self.km.keymap_items.new(idname, type, value, alt=alt, any=any, ctrl=ctrl, shift=shift, oskey=oskey, key_modifier=key_modifier)
+		kmi.active = True
 		for p in properties:
 			kmi_props_setattr(kmi.properties, p[0], p[1])
-		print("assigning new tool '{}' to keymap '{}'".format(kmi.idname, kmi.to_string()))
+		print("{} : assigning new tool '{}' to keymap '{}'".format(self.km.name, kmi.idname, kmi.to_string()))
 
 		# Store keymap in class variable
-		self.keymap_List["new"].append(kmi)
+		self.keymap_List["new"].append((self.km, kmi))
 
 		return kmi
 	# Global Keymap Functions
@@ -241,7 +240,7 @@ class TilaKeymaps():
 
 	def set_tila_keymap(self):
 		print("----------------------------------------------------------------")
-		print("Setting Tilapiatsu's keymaps")
+		print("Assigning Tilapiatsu's keymaps")
 		print("----------------------------------------------------------------")
 		print("")
 
@@ -254,7 +253,6 @@ class TilaKeymaps():
 		self.set_replace_km('wm.console_toggle', 'TAB', 'PRESS', ctrl=True, shift=True)     
 
 		# 3D View
-		# Replace Existing
 		self.kmis = self.kcu.keymaps['3D View'].keymap_items
 		self.km = self.kca.keymaps.new('3D View', space_type='VIEW_3D', region_type='WINDOW', modal=False)
 		self.global_keys()
@@ -341,6 +339,12 @@ class TilaKeymaps():
 		# Animation
 		self.kmis = self.kcu.keymaps['Animation'].keymap_items
 		self.km = self.kca.keymaps.new('Animation', space_type='EMPTY', region_type='WINDOW', modal=False)
+
+		print("----------------------------------------------------------------")
+		print("Assignment complete")
+		print("----------------------------------------------------------------")
+		print("")
+
 
 
 def hp_keymaps():
@@ -597,8 +601,21 @@ def register():
 def unregister():
 	TK = TilaKeymaps()
 	for k in keymap_List['replaced']:
-		TK.km = k[0]
-		TK.replace_km(k[2], k[1])
+		try:
+			TK.km = k[0]
+			print("remove replaced", k[2].idname, k[1].idname)
+			TK.replace_km(k[2], k[1])
+		except Exception as e:
+			print("Warning: %r" % e)
+
+	for k in keymap_List['new']:
+		try:
+			TK.km = k[0]
+			TK.km.keymap_items.remove(k[1])
+			TK.wm.keyconfigs.addon.keymaps.remove(TK.km)
+			print('Removing keymap for {}'.format(k[1].idname))
+		except Exception as e:
+			print("Warning: %r" % e)
 
 if __name__ == "__main__":
 	register()
