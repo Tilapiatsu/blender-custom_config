@@ -110,27 +110,31 @@ class TilaKeymaps():
 						if k.idname == tool:
 							if self.compare_tool(new_kmi, k):
 								print("'{}' tool found, replace keymap '{}' to '{}'".format(k.idname, k.to_string(), new_kmi.to_string()))
-								# k.active = False
-								
-								# Replace keymap attribute
-								k.key_modifier = new_kmi.key_modifier
-								k.map_type = new_kmi.map_type
-								k.type = new_kmi.type
-								k.value = new_kmi.value
 
-								k.any = new_kmi.any
-								k.alt = new_kmi.alt
-								k.ctrl = new_kmi.ctrl
-								k.shift = new_kmi.shift
-								k.oskey = new_kmi.oskey
-								
-								# Store keymap to disable
-								self.keymap_List["replaced"].append(k)
+								old_km = k
+							
+								# Replace keymap attribute
+								self.replace_km(new_kmi, k)
+
+								# Store keymap in class variable
+								self.keymap_List["replaced"].append((self.km, k, new_kmi))
 
 			return new_kmi
 		return func_wrapper
 
 	# Functions
+
+	def replace_km(self, km_src, km_dest):
+		km_dest.key_modifier = km_src.key_modifier
+		km_dest.map_type = km_src.map_type
+		km_dest.type = km_src.type
+		km_dest.value = km_src.value
+
+		km_dest.any = km_src.any
+		km_dest.alt = km_src.alt
+		km_dest.ctrl = km_src.ctrl
+		km_dest.shift = km_src.shift
+		km_dest.oskey = km_src.oskey
 
 	def compare_km(self, kmi1, kmi2):
 		return kmi1.type == kmi2.type and kmi1.ctrl == kmi2.ctrl and kmi1.alt == kmi2.alt and kmi1.shift == kmi2.shift and kmi1.any == kmi2.any and	kmi1.oskey == kmi2.oskey and kmi1.key_modifier == kmi2.key_modifier and kmi1.map_type == kmi2.map_type and kmi1.value == kmi2.value
@@ -575,11 +579,13 @@ def hp_keymaps():
 	kmi = km.keymap_items.new('time.view_all', 'NDOF_BUTTON_FIT', 'PRESS')
 	kmi = km.keymap_items.new('time.view_frame', 'NUMPAD_0', 'PRESS')
 
-
+keymap_List = {}
 def register():
 	TK = TilaKeymaps()
 	TK.set_tila_keymap()
 
+	keymap_List['new'] = TK.keymap_List['new']
+	keymap_List['replaced'] = TK.keymap_List['replaced']
 	# print("----------------------------------------------------------------")
 	# print("Disabling redundant keymap ")
 	# print("----------------------------------------------------------------")
@@ -589,7 +595,10 @@ def register():
 	# 	kmi.active = False
 
 def unregister():
-	pass
+	TK = TilaKeymaps()
+	for k in keymap_List['replaced']:
+		TK.km = k[0]
+		TK.replace_km(k[2], k[1])
 
 if __name__ == "__main__":
 	register()
