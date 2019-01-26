@@ -61,3 +61,6 @@
 [submodule "scripts/addons/real_camera"]
 	path = scripts/addons/real_camera
 	url = https://github.com/macio97/Real-Camera.git
+[submodule "scripts/addons/Magic-UV"]
+	path = scripts/addons/Magic-UV
+	url = https://github.com/nutti/Magic-UV.git
