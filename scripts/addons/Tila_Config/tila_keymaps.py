@@ -13,9 +13,42 @@ bl_info = {
 import bpy
 import os
 
+
 class bKeymap():
 	def __init__(self, kmi):
-		pass
+		self.kmi = kmi
+		self.idname = kmi.idname
+		self.type = kmi.type
+		self.value = kmi.value
+		self.map_type = kmi.map_type
+		
+		self.alt = kmi.alt
+		self.any = kmi.any
+		self.ctrl = kmi.ctrl
+		self.shift = kmi.shift
+		self.oskey = kmi.oskey
+		self.key_modifier = kmi.key_modifier
+		self.properties = kmi.properties
+
+		self.idname = kmi.idname
+
+	def to_string(self):
+		string = ''
+		if self.any:
+			string += "Any "
+		if self.ctrl:
+			string += "Ctrl "
+		if self.alt:
+			string += "Alt "
+		if self.shift:
+			string += "Shift "
+		if self.oskey:
+			string += "OsKey "
+		if self.key_modifier != 'NONE':
+			string += self.key_modifier + " "
+		if self.type != "NONE":
+			string += self.type
+		return string
 
 
 def kmi_props_setattr(kmi_props, attr, value):
@@ -104,18 +137,26 @@ class TilaKeymaps():
 	def replace_km_dec(func):
 		def func_wrapper(self, idname, type, value, alt=False, any=False, ctrl=False, shift=False, oskey=False, key_modifier='NONE', properties=()):
 			new_kmi = func(self, idname, type, value, alt=alt, any=any, ctrl=ctrl, shift=shift, oskey=oskey, key_modifier=key_modifier, properties=properties)
+			keymlap_List = {'km': self.km, 'kmis': self.kmis, 'new_kmi': new_kmi}
 			if idname and self.km_idname:
 				if idname in self.km_idname:
 					for k in self.kmis:
 						if k.idname == idname:
 							if self.compare_idname(new_kmi, k):
+								# TODO if multiple keymap is assigned to the same command, how to replace the proper one ?
 								print("{} : '{}' tool found, replace keymap '{}' to '{}'".format(self.km.name, k.idname, k.to_string(), new_kmi.to_string()))
+
+								k_old = bKeymap(k)
+
+								keymlap_List['old_kmi'] = k_old
+								keymlap_List['old_kmi_id'] = k.id
 
 								# Replace keymap attribute
 								self.replace_km(new_kmi, k)
 
 								# Store keymap in class variable
-								self.keymap_List["replaced"].append((self.km, k, new_kmi))
+								self.keymap_List["replaced"].append(keymlap_List)
+								break
 
 			return new_kmi
 		return func_wrapper
@@ -599,23 +640,33 @@ def register():
 	# 	kmi.active = False
 
 def unregister():
+	print("----------------------------------------------------------------")
+	print("Reverting Tilapiatsu's keymap")
+	print("----------------------------------------------------------------")
+	print("")
+
 	TK = TilaKeymaps()
 	for k in keymap_List['replaced']:
 		try:
-			TK.km = k[0]
-			print("remove replaced", k[2].idname, k[1].idname)
-			TK.replace_km(k[2], k[1])
+			TK.km = k['km']
+			print("{} : Replacing '{}' : '{}'  by '{}' : '{}'".format(k['km'].name, k['new_kmi'].idname, k['new_kmi'].to_string(), k['old_kmi'].idname, k['old_kmi'].to_string()))
+			TK.replace_km(k['old_kmi'], k['kmis'].from_id(k['old_kmi_id']))
 		except Exception as e:
 			print("Warning: %r" % e)
 
 	for k in keymap_List['new']:
 		try:
 			TK.km = k[0]
+			print("{} : Removing keymap for '{}' : '{}'".format(k[0].name, k[1].idname, k[1].to_string()))
 			TK.km.keymap_items.remove(k[1])
-			TK.wm.keyconfigs.addon.keymaps.remove(TK.km)
-			print('Removing keymap for {}'.format(k[1].idname))
+			
 		except Exception as e:
 			print("Warning: %r" % e)
+	
+	print("----------------------------------------------------------------")
+	print("Revert complete")
+	print("----------------------------------------------------------------")
+	print("")
 
 if __name__ == "__main__":
 	register()
