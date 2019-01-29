@@ -51,6 +51,13 @@ class bKeymap():
 		return string
 
 
+class bProp():
+	def __init__(self, prop):
+	
+		for p in prop:
+			setattr(self, p[0], p[1])
+
+
 def kmi_props_setattr(kmi_props, attr, value):
 	try:
 		setattr(kmi_props, attr, value)
@@ -78,6 +85,7 @@ def kmi_props_list(kmi_props):
 			prop.remove(s)
 	return prop
 
+
 class TilaKeymaps():
 	keymap_List = {"new": [],
 					"replaced": []}
@@ -90,7 +98,8 @@ class TilaKeymaps():
 		self.kcu = self.wm.keyconfigs.user
 
 		self.km = None
-		self.kmis = None
+		self.ukmis = None
+		self.akmis = None
 
 		self.k_viewfit = 'MIDDLEMOUSE'
 		self.k_manip = 'LEFTMOUSE'
@@ -108,7 +117,7 @@ class TilaKeymaps():
 	@property
 	def km_idname(self):
 		try:
-			return [k.idname for k in self.kmis]
+			return [k.idname for k in self.ukmis]
 		except Exception as e:
 			print("Warning: %r" % e)
 
@@ -118,12 +127,12 @@ class TilaKeymaps():
 			
 			new_kmi = func(self, idname, type, value, alt=alt, any=any, ctrl=ctrl, shift=shift, oskey=oskey, key_modifier=key_modifier, properties=properties)
 			
-			keymlap_List = {'km': self.km, 'kmis': self.kmis, 'new_kmi': new_kmi}
-			duplicates = [k for k in self.kmis if k.idname == idname]
+			keymlap_List = {'km': self.km, 'kmis': self.ukmis, 'new_kmi': new_kmi}
+			duplicates = [k for k in self.ukmis if k.idname == idname]
 
 			if len(duplicates):
 				for k in duplicates:
-					if self.compare_idname(new_kmi, k):
+					if self.compare_tool(new_kmi, k):
 						# TODO if multiple keymap is assigned to the same command, how to replace the proper one ?
 						print("{} : '{}' tool found, replace keymap '{}' to '{}'".format(self.km.name, k.idname, k.to_string(), new_kmi.to_string()))
 
@@ -140,7 +149,7 @@ class TilaKeymaps():
 						
 						return k
 
-			return new_kmi
+				return new_kmi
 		return func_wrapper
 
 	# Functions
@@ -160,7 +169,7 @@ class TilaKeymaps():
 	def compare_km(self, kmi1, kmi2):
 		return kmi1.type == kmi2.type and kmi1.ctrl == kmi2.ctrl and kmi1.alt == kmi2.alt and kmi1.shift == kmi2.shift and kmi1.any == kmi2.any and	kmi1.oskey == kmi2.oskey and kmi1.key_modifier == kmi2.key_modifier and kmi1.map_type == kmi2.map_type and kmi1.value == kmi2.value
 
-	def compare_idname(self, kmi1, kmi2):
+	def compare_tool(self, kmi1, kmi2):
 		kmi1_props = kmi_props_list(kmi1.properties)
 		kmi2_props = kmi_props_list(kmi2.properties)
 
@@ -177,8 +186,29 @@ class TilaKeymaps():
 					if prop1 != prop2:
 						return False
 			else:
-				# print("Keymap '{}' and Keymap '{}' are matching".format(kmi1.name, kmi2.name))
 				return True
+
+	def compare_prop(self, prop1, prop2):
+		if prop2 is None:
+			return None
+		else:
+			kmi1_props = kmi_props_list(prop1)
+			kmi2_props = kmi_props_list(prop2)
+
+			if len(kmi1_props) != len(kmi2_props):
+				return False
+			else:
+				for i in range(len(kmi1_props)):
+					if kmi1_props[i] != kmi2_props[i]:
+						return False
+					else:
+						p1 = kmi_props_getattr(prop1, kmi1_props[i])
+						p2 = kmi_props_getattr(prop2, kmi2_props[i])
+
+						if p1 != p2:
+							return False
+				else:
+					return True
 
 	@replace_km_dec
 	def set_replace_km(self, idname, type, value, alt=False, any=False, ctrl=False, shift=False, oskey=False, key_modifier='NONE', properties=()):
@@ -207,7 +237,7 @@ class TilaKeymaps():
 			else:
 				return None
 
-		for k in self.kmis:
+		for k in self.ukmis:
 			if compare_attr(k.idname, idname) is False:
 				continue
 
@@ -235,16 +265,20 @@ class TilaKeymaps():
 			if compare_attr(k.key_modifier, key_modifier) is False:
 				continue
 
-			if compare_attr(k.properties, properties) is False:
+			if self.compare_prop(k.properties, properties) is False:
 				continue
 			
 			return k
 
 		else:
-			return None
-				
+			return None		
 
 	# Global Keymap Functions
+
+	def init_kmi(self, name, space_type='EMPTY', region_type='WINDOW', modal=False, tool=False):
+		self.ukmis = self.kcu.keymaps[name].keymap_items
+		self.km = self.kca.keymaps.new(name, space_type=space_type, region_type=region_type, modal=modal, tool=tool)
+		self.akmis = self.kca.keymaps[name].keymap_items
 
 	def global_keys(self):
 		self.set_replace_km("screen.userpref_show", "TAB", "PRESS", ctrl=True)
@@ -308,7 +342,7 @@ class TilaKeymaps():
 			self.set_replace_km(linked_tool, self.k_linked, 'PRESS')
 
 	def selection_tool(self):
-		self.set_replace_km('wm.tool_set_by_name', self.k_menu, "PRESS", properties=[('name', 'Select')])
+		self.set_replace_km('wm.tool_set_by_name', self.k_menu, "PRESS", properties=[('name', 'Select'), ('cycle', False)])
 
 	def right_mouse(self):
 		kmi = self.find_km(idname='wm.call_menu', type='RIGHTMOUSE', value='PRESS')
@@ -327,19 +361,28 @@ class TilaKeymaps():
 		print("")
 
 		# Window
-		self.kmis = self.kcu.keymaps['Window'].keymap_items
-		self.km = self.kca.keymaps.new('Window', space_type='EMPTY', region_type='WINDOW', modal=False)
+		self.init_kmi(name='Window', space_type='EMPTY', region_type='WINDOW')
 		self.global_keys()
 		self.right_mouse()
 		self.set_replace_km("wm.call_menu_pie", self.k_menu, "PRESS", ctrl=True, shift=True, alt=True)
 		self.set_replace_km("wm.revert_without_prompt", "N", "PRESS", shift=True)
-		self.set_replace_km('wm.console_toggle', 'TAB', 'PRESS', ctrl=True, shift=True)    
+		self.set_replace_km('wm.console_toggle', 'TAB', 'PRESS', ctrl=True, shift=True)
+		self.set_replace_km('outliner.item_rename', 'F2', 'PRESS')
+
+		toolbar = self.find_km(idname='wm.toolbar')
+		if toolbar:
+			toolbar.active = False
 
 		# 3D View
-		self.kmis = self.kcu.keymaps['3D View'].keymap_items
-		self.km = self.kca.keymaps.new('3D View', space_type='VIEW_3D', region_type='WINDOW', modal=False)
+		self.init_kmi(name='3D View', space_type='VIEW_3D', region_type='WINDOW')
 		self.global_keys()
 		self.right_mouse()
+
+		select_tool = self.find_km(idname='wm.tool_set_by_name', properties=bProp((('text', 'Select Box'))))
+		if select_tool:
+			kmi_props_setattr(select_tool, "text", 'Select')
+
+		self.selection_tool()
 		self.navigation_keys(pan='view3d.move',
 							orbit='view3d.rotate',
 							dolly='view3d.dolly')
@@ -347,42 +390,36 @@ class TilaKeymaps():
 		self.selection_keys(select_tool='view3d.select', 
 							lasso_tool='view3d.select_lasso')
 		
-		
 		# 3d Cursor
 		kmi = self.set_replace_km('view3d.cursor3d', self.k_cursor, 'CLICK', ctrl=True, alt=True, shift=True, properties=[('use_depth', True)])
 		kmi_props_setattr(kmi.properties, 'orientation', 'GEOM')
 		self.set_replace_km('transform.translate', 'EVT_TWEAK_M', 'ANY', ctrl=True, alt=True, shift=True, properties=[('cursor_transform', True), ('release_confirm', True)])
 
 		# View2D
-		self.kmis = self.kcu.keymaps['View2D'].keymap_items
-		self.km = self.kca.keymaps.new('View2D', space_type='EMPTY', region_type='WINDOW', modal=False)
+		self.init_kmi(name='View2D', space_type='EMPTY', region_type='WINDOW')
 		self.global_keys()
 		self.right_mouse()
 		self.navigation_keys(pan='view2d.pan', orbit=None, dolly='view2d.zoom')
-		
+
 		# View2D buttons List
-		self.kmis = self.kcu.keymaps['View2D Buttons List'].keymap_items
-		self.km = self.kca.keymaps.new('View2D Buttons List', space_type='EMPTY', region_type='WINDOW', modal=False)
+		self.init_kmi(name='View2D Buttons List', space_type='EMPTY', region_type='WINDOW')
 		self.global_keys()
 		self.right_mouse()
 		self.navigation_keys(pan='view2d.pan', orbit=None, dolly='view2d.zoom')
 
 		# Image
-		self.kmis = self.kcu.keymaps['Image'].keymap_items
-		self.km = self.kca.keymaps.new('Image', space_type='IMAGE_EDITOR', region_type='WINDOW', modal=False)
+		self.init_kmi(name='Image', space_type='IMAGE_EDITOR', region_type='WINDOW')
 		self.global_keys()
 		self.right_mouse()
 		self.navigation_keys(pan='image.view_pan', orbit=None, dolly='image.view_zoom')
 
 		# UV Editor
-		self.kmis = self.kcu.keymaps['UV Editor'].keymap_items
-		self.km = self.kca.keymaps.new('UV Editor', space_type='EMPTY', region_type='WINDOW', modal=False)
+		self.init_kmi(name='UV Editor', space_type='EMPTY', region_type='WINDOW')
 		self.global_keys()
 		self.right_mouse()
 
 		# Mesh
-		self.kmis = self.kcu.keymaps['Mesh'].keymap_items
-		self.km = self.kca.keymaps.new(name='Mesh')
+		self.init_kmi(name='Mesh', space_type='EMPTY', region_type='WINDOW')
 		self.global_keys()
 		self.selection_tool()
 		self.right_mouse()
@@ -394,15 +431,13 @@ class TilaKeymaps():
 							linked_tool='mesh.select_linked_pick')
 
 		# Object Mode
-		self.kmis = self.kcu.keymaps['Object Mode'].keymap_items
-		self.km = self.kca.keymaps.new(name='Object Mode')
+		self.init_kmi(name='Object Mode', space_type='EMPTY', region_type='WINDOW')
 		self.global_keys()
 		self.selection_tool()
 		self.right_mouse()
 
 		# Curve
-		self.kmis = self.kcu.keymaps['Curve'].keymap_items
-		self.km = self.kca.keymaps.new('Curve', space_type='EMPTY', region_type='WINDOW', modal=False)
+		self.init_kmi(name='Curve', space_type='EMPTY', region_type='WINDOW')
 		self.global_keys()
 		self.selection_tool()
 		self.right_mouse()
@@ -413,38 +448,34 @@ class TilaKeymaps():
 		self.set_replace_km('curve.draw', 'LEFTMOUSE', 'PRESS', alt=True)
 
 		# Outliner
-		self.kmis = self.kcu.keymaps['Outliner'].keymap_items
-		self.km = self.kca.keymaps.new('Outliner', space_type='OUTLINER', region_type='WINDOW', modal=False)
+		self.init_kmi(name='Outliner', space_type='OUTLINER', region_type='WINDOW')
 		self.global_keys()
 		self.right_mouse()
 
 		# Dopesheet
-		self.kmis = self.kcu.keymaps['Dopesheet'].keymap_items
-		self.km = self.kca.keymaps.new('Dopesheet Editor', space_type='DOPESHEET_EDITOR', region_type='WINDOW', modal=False)
+		self.init_kmi(name='Dopesheet', space_type='DOPESHEET_EDITOR', region_type='WINDOW')
+		# self.ukmis = self.kcu.keymaps['Dopesheet'].keymap_items
+		# self.km = self.kca.keymaps.new('Dopesheet Editor', space_type='DOPESHEET_EDITOR', region_type='WINDOW', modal=False)
 		self.global_keys()
 		self.right_mouse()
 
 		# Grease Pencil
-		self.kmis = self.kcu.keymaps['Grease Pencil'].keymap_items
-		self.km = self.kca.keymaps.new('Grease Pencil', space_type='EMPTY', region_type='WINDOW', modal=False)
+		self.init_kmi(name='Grease Pencil', space_type='EMPTY', region_type='WINDOW')
 		self.global_keys()
 		self.right_mouse()
 
 		# Graph Editor
-		self.kmis = self.kcu.keymaps['Graph Editor'].keymap_items
-		self.km = self.kca.keymaps.new('Graph Editor', space_type='GRAPH_EDITOR', region_type='WINDOW', modal=False)
+		self.init_kmi(name='Graph Editor', space_type='GRAPH_EDITOR', region_type='WINDOW')
 		self.global_keys()
 		self.right_mouse()
-	
+
 		# Node Editor
-		self.kmis = self.kcu.keymaps['Node Editor'].keymap_items
-		self.km = self.kca.keymaps.new('Node Editor', space_type='NODE_EDITOR', region_type='WINDOW', modal=False)
+		self.init_kmi(name='Node Editor', space_type='NODE_EDITOR', region_type='WINDOW')
 		self.global_keys()
 		self.right_mouse()
 
 		# Animation
-		self.kmis = self.kcu.keymaps['Animation'].keymap_items
-		self.km = self.kca.keymaps.new('Animation', space_type='EMPTY', region_type='WINDOW', modal=False)
+		self.init_kmi(name='Animation', space_type='EMPTY', region_type='WINDOW')
 		self.global_keys()
 		self.right_mouse()
 
@@ -452,7 +483,6 @@ class TilaKeymaps():
 		print("Assignment complete")
 		print("----------------------------------------------------------------")
 		print("")
-
 
 
 def hp_keymaps():
@@ -730,6 +760,8 @@ def unregister():
 		except Exception as e:
 			print("Warning: %r" % e)
 	
+	keymap_List.clear()
+
 	print("----------------------------------------------------------------")
 	print("Revert complete")
 	print("----------------------------------------------------------------")
