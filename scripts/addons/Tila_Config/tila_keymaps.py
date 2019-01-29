@@ -115,28 +115,30 @@ class TilaKeymaps():
 	# Decorators
 	def replace_km_dec(func):
 		def func_wrapper(self, idname, type, value, alt=False, any=False, ctrl=False, shift=False, oskey=False, key_modifier='NONE', properties=()):
+			
 			new_kmi = func(self, idname, type, value, alt=alt, any=any, ctrl=ctrl, shift=shift, oskey=oskey, key_modifier=key_modifier, properties=properties)
+			
 			keymlap_List = {'km': self.km, 'kmis': self.kmis, 'new_kmi': new_kmi}
-			if idname and self.km_idname:
-				duplicates = [k for k in self.kmis if k.idname == idname]
-				if len(duplicates):
-					for k in duplicates:
-						if self.compare_idname(new_kmi, k):
-							# TODO if multiple keymap is assigned to the same command, how to replace the proper one ?
-							print("{} : '{}' tool found, replace keymap '{}' to '{}'".format(self.km.name, k.idname, k.to_string(), new_kmi.to_string()))
+			duplicates = [k for k in self.kmis if k.idname == idname]
 
-							k_old = bKeymap(k)
+			if len(duplicates):
+				for k in duplicates:
+					if self.compare_idname(new_kmi, k):
+						# TODO if multiple keymap is assigned to the same command, how to replace the proper one ?
+						print("{} : '{}' tool found, replace keymap '{}' to '{}'".format(self.km.name, k.idname, k.to_string(), new_kmi.to_string()))
 
-							keymlap_List['old_kmi'] = k_old
-							keymlap_List['old_kmi_id'] = k.id
+						k_old = bKeymap(k)
 
-							# Replace keymap attribute
-							self.replace_km(new_kmi, k)
+						keymlap_List['old_kmi'] = k_old
+						keymlap_List['old_kmi_id'] = k.id
 
-							# Store keymap in class variable
-							self.keymap_List["replaced"].append(keymlap_List)
-							
-							return k
+						# Replace keymap attribute
+						self.replace_km(new_kmi, k)
+
+						# Store keymap in class variable
+						self.keymap_List["replaced"].append(keymlap_List)
+						
+						return k
 
 			return new_kmi
 		return func_wrapper
@@ -274,13 +276,13 @@ class TilaKeymaps():
 	
 		# Lasso Select / Deselect / Add
 		if lasso_tool:
-			self.set_replace_km(lasso_tool, self.k_lasso, 'ANY', properties=[('mode', 'SET')])
+			self.set_replace_km(lasso_tool, self.k_lasso, 'ANY')
 			self.set_replace_km(lasso_tool, self.k_lasso, 'ANY', shift=True, properties=[('mode', 'ADD')])
 			self.set_replace_km(lasso_tool, self.k_lasso, 'ANY', ctrl=True, properties=[('mode', 'SUB')])
 
 		#  shortest Path Select / Deselect / Add
 		if shortestpath_tool:
-			self.set_replace_km(shortestpath_tool, self.k_lasso, 'CLICK')
+			self.set_replace_km(shortestpath_tool, self.k_context, 'CLICK', shift=True)
 
 		# Loop Select / Deselect / Add
 		if loop_tool:
@@ -344,6 +346,7 @@ class TilaKeymaps():
 
 		self.selection_keys(select_tool='view3d.select', 
 							lasso_tool='view3d.select_lasso')
+		
 		
 		# 3d Cursor
 		kmi = self.set_replace_km('view3d.cursor3d', self.k_cursor, 'CLICK', ctrl=True, alt=True, shift=True, properties=[('use_depth', True)])
