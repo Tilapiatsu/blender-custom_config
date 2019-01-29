@@ -71,17 +71,12 @@ def kmi_props_getattr(kmi_props, attr):
 
 
 def kmi_props_list(kmi_props):
-	return dir(kmi_props)[3:]
-
-
-def kmi_km_replace(kmi, km, *kwargs):
-	try:
-		setattr(kmi, attr, value)
-	except AttributeError:
-		print("Warning: property '%s' not found in keymap item '%s'" %
-			  (attr, kmi.__class__.__name__))
-	except Exception as e:
-		print("Warning: %r" % e)
+	prop = dir(kmi_props)[3:]
+	skip = ['path', 'constraint_axis']
+	for s in skip:
+		if s in prop:
+			prop.remove(s)
+	return prop
 
 class TilaKeymaps():
 	keymap_List = {"new": [],
@@ -103,7 +98,7 @@ class TilaKeymaps():
 		self.k_nav = 'MIDDLEMOUSE'
 		self.k_menu = 'SPACE'
 		self.k_select = 'LEFTMOUSE'
-		self.k_lasso = 'RIGHTMOUSE'
+		self.k_lasso = 'EVT_TWEAK_R'
 		self.k_context = 'RIGHTMOUSE'
 		self.k_more = 'UP_ARROW'
 		self.k_less = 'DOWN_ARROW'
@@ -123,25 +118,25 @@ class TilaKeymaps():
 			new_kmi = func(self, idname, type, value, alt=alt, any=any, ctrl=ctrl, shift=shift, oskey=oskey, key_modifier=key_modifier, properties=properties)
 			keymlap_List = {'km': self.km, 'kmis': self.kmis, 'new_kmi': new_kmi}
 			if idname and self.km_idname:
-				if idname in self.km_idname:
-					for k in self.kmis:
-						if k.idname == idname:
-							if self.compare_idname(new_kmi, k):
-								# TODO if multiple keymap is assigned to the same command, how to replace the proper one ?
-								print("{} : '{}' tool found, replace keymap '{}' to '{}'".format(self.km.name, k.idname, k.to_string(), new_kmi.to_string()))
+				duplicates = [k for k in self.kmis if k.idname == idname]
+				if len(duplicates):
+					for k in duplicates:
+						if self.compare_idname(new_kmi, k):
+							# TODO if multiple keymap is assigned to the same command, how to replace the proper one ?
+							print("{} : '{}' tool found, replace keymap '{}' to '{}'".format(self.km.name, k.idname, k.to_string(), new_kmi.to_string()))
 
-								k_old = bKeymap(k)
+							k_old = bKeymap(k)
 
-								keymlap_List['old_kmi'] = k_old
-								keymlap_List['old_kmi_id'] = k.id
+							keymlap_List['old_kmi'] = k_old
+							keymlap_List['old_kmi_id'] = k.id
 
-								# Replace keymap attribute
-								self.replace_km(new_kmi, k)
+							# Replace keymap attribute
+							self.replace_km(new_kmi, k)
 
-								# Store keymap in class variable
-
-								self.keymap_List["replaced"].append(keymlap_List)
-								break
+							# Store keymap in class variable
+							self.keymap_List["replaced"].append(keymlap_List)
+							
+							return k
 
 			return new_kmi
 		return func_wrapper
@@ -174,7 +169,10 @@ class TilaKeymaps():
 				if kmi1_props[i] != kmi2_props[i]:
 					return False
 				else:
-					if kmi_props_getattr(kmi1.properties, kmi1_props[i]) != kmi_props_getattr(kmi2.properties, kmi2_props[i]):
+					prop1 = kmi_props_getattr(kmi1.properties, kmi1_props[i])
+					prop2 = kmi_props_getattr(kmi2.properties, kmi2_props[i])
+
+					if prop1 != prop2:
 						return False
 			else:
 				# print("Keymap '{}' and Keymap '{}' are matching".format(kmi1.name, kmi2.name))
@@ -276,9 +274,9 @@ class TilaKeymaps():
 	
 		# Lasso Select / Deselect / Add
 		if lasso_tool:
-			self.set_replace_km(lasso_tool, self.k_lasso, 'PRESS', properties=[('mode', 'SET')])
-			self.set_replace_km(lasso_tool, self.k_lasso, 'PRESS', shift=True, properties=[('mode', 'ADD')])
-			self.set_replace_km(lasso_tool, self.k_lasso, 'PRESS', ctrl=True, properties=[('mode', 'SUB')])
+			self.set_replace_km(lasso_tool, self.k_lasso, 'ANY', properties=[('mode', 'SET')])
+			self.set_replace_km(lasso_tool, self.k_lasso, 'ANY', shift=True, properties=[('mode', 'ADD')])
+			self.set_replace_km(lasso_tool, self.k_lasso, 'ANY', ctrl=True, properties=[('mode', 'SUB')])
 
 		#  shortest Path Select / Deselect / Add
 		if shortestpath_tool:
@@ -347,7 +345,10 @@ class TilaKeymaps():
 		self.selection_keys(select_tool='view3d.select', 
 							lasso_tool='view3d.select_lasso')
 		
-
+		# 3d Cursor
+		kmi = self.set_replace_km('view3d.cursor3d', self.k_cursor, 'CLICK', ctrl=True, alt=True, shift=True, properties=[('use_depth', True)])
+		kmi_props_setattr(kmi.properties, 'orientation', 'GEOM')
+		self.set_replace_km('transform.translate', 'EVT_TWEAK_M', 'ANY', ctrl=True, alt=True, shift=True, properties=[('cursor_transform', True), ('release_confirm', True)])
 
 		# View2D
 		self.kmis = self.kcu.keymaps['View2D'].keymap_items
