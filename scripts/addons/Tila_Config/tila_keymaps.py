@@ -352,6 +352,14 @@ class TilaKeymaps():
 		else:
 			kmi.value = 'RELEASE'
 
+	def kmi_set_active(self, enable, idname=None, type=None, value=None, alt=None, any=None, ctrl=None, shift=None, oskey=None, key_modifier=None, properties=None):
+		kmi = self.find_km(idname=idname, type=type, value=value, alt=alt, any=any, ctrl=ctrl, shift=shift, oskey=oskey, key_modifier=key_modifier, properties=properties)
+		if kmi:
+			kmi.active = enable
+			return enable
+		
+		return None
+
 	# Keymap define
 
 	def set_tila_keymap(self):
@@ -367,11 +375,10 @@ class TilaKeymaps():
 		self.set_replace_km("wm.call_menu_pie", self.k_menu, "PRESS", ctrl=True, shift=True, alt=True)
 		self.set_replace_km("wm.revert_without_prompt", "N", "PRESS", shift=True)
 		self.set_replace_km('wm.console_toggle', 'TAB', 'PRESS', ctrl=True, shift=True)
+		
+		self.kmi_set_active(False, idname='wm.call_menu', type='F2')
 		self.set_replace_km('outliner.item_rename', 'F2', 'PRESS')
-
-		toolbar = self.find_km(idname='wm.toolbar')
-		if toolbar:
-			toolbar.active = False
+		self.kmi_set_active(False, idname='wm.toolbar')
 
 		# 3D View
 		self.init_kmi(name='3D View', space_type='VIEW_3D', region_type='WINDOW')
