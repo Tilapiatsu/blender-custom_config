@@ -357,6 +357,7 @@ class TilaKeymaps():
 		select_tool = self.find_km(idname='wm.tool_set_by_name', properties=bProp([('name', 'Select Box')]))
 		if select_tool:
 			kmi_props_setattr(select_tool.properties, "name", 'Select')
+			kmi_props_setattr(select_tool.properties, "cycle", False)
 		self.set_replace_km('wm.tool_set_by_name', self.k_menu, "PRESS", properties=[('name', 'Select'), ('cycle', False)])
 
 	def right_mouse(self):
@@ -393,6 +394,7 @@ class TilaKeymaps():
 		
 		self.kmi_set_active(False, idname='wm.call_menu', type='F2')
 		self.kmi_set_active(False, idname='wm.toolbar')
+		self.selection_tool()
 
 		# 3D View
 		self.init_kmi(name='3D View', space_type='VIEW_3D', region_type='WINDOW')
