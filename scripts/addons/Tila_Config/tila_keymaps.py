@@ -13,6 +13,8 @@ bl_info = {
 import bpy
 import os
 
+# TODO 
+# - Create a rename /batch rename feature
 
 class bKeymap():
 	def __init__(self, kmi):
@@ -188,25 +190,35 @@ class TilaKeymaps():
 			else:
 				return True
 
-	def compare_prop(self, prop1, prop2):
+	def compare_prop(self, prop1, prop2, compare_size=False):
 		if prop2 is None:
 			return None
 		else:
 			kmi1_props = kmi_props_list(prop1)
 			kmi2_props = kmi_props_list(prop2)
 
-			if len(kmi1_props) != len(kmi2_props):
-				return False
-			else:
-				for i in range(len(kmi1_props)):
-					if kmi1_props[i] != kmi2_props[i]:
-						return False
-					else:
-						p1 = kmi_props_getattr(prop1, kmi1_props[i])
-						p2 = kmi_props_getattr(prop2, kmi2_props[i])
-
-						if p1 != p2:
+			if compare_size:
+				if len(kmi1_props) != len(kmi2_props):
+					return False
+				else:
+					for i in range(len(kmi1_props)):
+						if kmi1_props[i] != kmi2_props[i]:
 							return False
+						else:
+							p1 = kmi_props_getattr(prop1, kmi1_props[i])
+							p2 = kmi_props_getattr(prop2, kmi2_props[i])
+
+							if p1 != p2:
+								return False
+					else:
+						return True
+			else:
+				for p2name in kmi2_props:
+					if p2name in kmi1_props:
+						p1 = kmi_props_getattr(prop1, p2name)
+						p2 = kmi_props_getattr(prop2, p2name)
+						if p1 != p2:
+								return False
 				else:
 					return True
 
@@ -342,6 +354,9 @@ class TilaKeymaps():
 			self.set_replace_km(linked_tool, self.k_linked, 'PRESS')
 
 	def selection_tool(self):
+		select_tool = self.find_km(idname='wm.tool_set_by_name', properties=bProp([('name', 'Select Box')]))
+		if select_tool:
+			kmi_props_setattr(select_tool.properties, "name", 'Select')
 		self.set_replace_km('wm.tool_set_by_name', self.k_menu, "PRESS", properties=[('name', 'Select'), ('cycle', False)])
 
 	def right_mouse(self):
@@ -377,19 +392,14 @@ class TilaKeymaps():
 		self.set_replace_km('wm.console_toggle', 'TAB', 'PRESS', ctrl=True, shift=True)
 		
 		self.kmi_set_active(False, idname='wm.call_menu', type='F2')
-		self.set_replace_km('outliner.item_rename', 'F2', 'PRESS')
 		self.kmi_set_active(False, idname='wm.toolbar')
 
 		# 3D View
 		self.init_kmi(name='3D View', space_type='VIEW_3D', region_type='WINDOW')
 		self.global_keys()
 		self.right_mouse()
-
-		select_tool = self.find_km(idname='wm.tool_set_by_name', properties=bProp((('text', 'Select Box'))))
-		if select_tool:
-			kmi_props_setattr(select_tool, "text", 'Select')
-
 		self.selection_tool()
+		
 		self.navigation_keys(pan='view3d.move',
 							orbit='view3d.rotate',
 							dolly='view3d.dolly')
@@ -458,6 +468,7 @@ class TilaKeymaps():
 		self.init_kmi(name='Outliner', space_type='OUTLINER', region_type='WINDOW')
 		self.global_keys()
 		self.right_mouse()
+		self.set_replace_km('outliner.item_rename', 'F2', 'PRESS')
 
 		# Dopesheet
 		self.init_kmi(name='Dopesheet', space_type='DOPESHEET_EDITOR', region_type='WINDOW')
