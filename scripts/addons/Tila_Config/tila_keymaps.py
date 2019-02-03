@@ -57,6 +57,7 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 	def selection_keys(self,
 						select_tool=None, 
 						lasso_tool=None,
+                    	circle_tool=None,
 						shortestpath_tool=None,
 						loop_tool=None, ring_tool=None,
 						more_tool=None, less_tool=None,
@@ -74,6 +75,11 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 			self.kmi_set_replace(lasso_tool, self.k_lasso, 'ANY', shift=True, properties=[('mode', 'ADD')])
 			self.kmi_set_replace(lasso_tool, self.k_lasso, 'ANY', ctrl=True, properties=[('mode', 'SUB')])
 
+		# Circle
+		if circle_tool:
+			self.kmi_set_replace(circle_tool, self.k_select, 'PRESS', shift=True, properties=[('wait_for_input', False)])
+			self.kmi_set_replace(circle_tool, self.k_select, 'PRESS', ctrl=True, properties=[('wait_for_input', False), ('deselect', True)])
+		
 		#  shortest Path Select / Deselect / Add
 		if shortestpath_tool:
 			self.kmi_set_replace(shortestpath_tool, self.k_context, 'CLICK', shift=True)
@@ -86,9 +92,9 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 
 		# Ring Select / Deselect / Add
 		if ring_tool:
-			self.kmi_set_replace(ring_tool, self.k_cursor, 'CLICK', ctrl=True, properties=[('ring', True), ('deselect', True), ('extend', False), ('toggle', False)])
+			self.kmi_set_replace(ring_tool, self.k_cursor, 'CLICK', ctrl=True, properties=[('ring', True), ('deselect', False), ('extend', False), ('toggle', False)])
 			self.kmi_set_replace(ring_tool, self.k_cursor, 'CLICK', ctrl=True, shift=True, properties=[('ring', True), ('deselect', False), ('extend', True), ('toggle', False)])
-			self.kmi_set_replace(ring_tool, self.k_cursor, 'DOUBLE_CLICK', ctrl=True, properties=[('ring', True), ('deselect', True), ('extend', False), ('toggle', False)])
+			self.kmi_set_replace(ring_tool, self.k_cursor, 'DOUBLE_CLICK', ctrl=True, shift=True, properties=[('ring', True), ('deselect', True), ('extend', False), ('toggle', False)])
 
 		# Select More / Less
 		if more_tool:
@@ -119,13 +125,13 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 
 	def duplicate(self, duplicate=None, duplicate_prop=None, duplicate_link=None, duplicate_link_prop=None):
 		if duplicate:
-			self.kmi_set_replace(duplicate, 'D', 'PRESS', ctrl=True)
+			kmi = self.kmi_set_replace(duplicate, 'D', 'PRESS', ctrl=True)
 			if duplicate_prop:
-				pass
+				self.kmi_prop_setattr(kmi.properties, duplicate_prop[0], duplicate_prop[1])
 		if duplicate_link:
-			self.kmi_set_replace(duplicate_link, 'D', 'PRESS', ctrl=True, shift=True)
+			kmi = self.kmi_set_replace(duplicate_link, 'D', 'PRESS', ctrl=True, shift=True)
 			if duplicate_link_prop:
-				pass
+				self.kmi_prop_setattr(kmi.properties, duplicate_link_prop[0], duplicate_link_prop[1])
 
 	# Keymap define
 
@@ -152,13 +158,16 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		self.global_keys()
 		self.right_mouse()
 		self.selection_tool()
+		# Disabling zoom key
+		self.kmi_set_active(False, ctrl=True, type=self.k_cursor)
 		
 		self.navigation_keys(pan='view3d.move',
 							orbit='view3d.rotate',
 							dolly='view3d.dolly')
 
 		self.selection_keys(select_tool='view3d.select', 
-							lasso_tool='view3d.select_lasso')
+							lasso_tool='view3d.select_lasso',
+                      		circle_tool='view3d.select_circle')
 		
 		# 3d Cursor
 		kmi = self.kmi_set_replace('view3d.cursor3d', self.k_cursor, 'CLICK', ctrl=True, alt=True, shift=True, properties=[('use_depth', True)])
@@ -190,6 +199,7 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		self.selection_tool()
 		self.selection_keys(select_tool='uv.select',
                       		lasso_tool='uv.select_lasso',
+                      		circle_tool='uv.select_circle',
                       		loop_tool='uv.select_loop',
                       		more_tool='uv.select_more',
                       		less_tool='uv.select_less')
@@ -202,9 +212,10 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		self.global_keys()
 		self.selection_tool()
 		self.right_mouse()
+		
 		self.selection_keys(shortestpath_tool='mesh.shortest_path_pick',
 							loop_tool='mesh.loop_select',
-							ring_tool='mesh.loop_select',
+                      		ring_tool='mesh.edgering_select',
 							more_tool='mesh.select_more',
 							less_tool='mesh.select_less',
 							linked_tool='mesh.select_linked_pick')
@@ -275,12 +286,13 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		self.kmi_init(name='Metaball', space_type='EMPTY', region_type='WINDOW')
 		self.global_keys()
 		self.right_mouse()
+		self.duplicate(duplicate='mball.duplicate_move')
 
 		# NLA Editor
 		self.kmi_init(name='NLA Editor', space_type='EMPTY', region_type='WINDOW')
 		self.global_keys()
 		self.right_mouse()
-		self.duplicate(duplicate='nla.duplicate', duplicate_link='nla.duplicate')
+		self.duplicate(duplicate='nla.duplicate', duplicate_link='nla.duplicate', duplicate_link_prop=('linked', True))
 
 		# Grease Pencil
 		self.kmi_init(name='Grease Pencil', space_type='EMPTY', region_type='WINDOW')
@@ -291,6 +303,7 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		self.kmi_init(name='Grease Pencil Stroke Edit Mode', space_type='EMPTY', region_type='WINDOW')
 		self.global_keys()
 		self.right_mouse()
+		self.duplicate(duplicate='gpencil.duplicate_move')
 		
 		print("----------------------------------------------------------------")
 		print("Assignment complete")
