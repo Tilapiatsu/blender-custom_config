@@ -15,6 +15,7 @@ import os
 
 # TODO 
 # - Create a rename /batch rename feature
+# - Modify the camera behaviour to slow the dolly speed based on the distance from the object
 
 class bKeymap():
 	def __init__(self, kmi):
@@ -162,7 +163,8 @@ class TilaKeymaps():
 		km_dest.type = km_src.type
 		km_dest.value = km_src.value
 
-		km_dest.any = km_src.any
+		if km_src.any != km_dest.any:
+			km_dest.any = km_src.any
 		km_dest.alt = km_src.alt
 		km_dest.ctrl = km_src.ctrl
 		km_dest.shift = km_src.shift
@@ -289,8 +291,8 @@ class TilaKeymaps():
 
 	def init_kmi(self, name, space_type='EMPTY', region_type='WINDOW', modal=False, tool=False):
 		self.ukmis = self.kcu.keymaps[name].keymap_items
-		self.km = self.kca.keymaps.new(name, space_type=space_type, region_type=region_type, modal=modal, tool=tool)
-		self.akmis = self.kca.keymaps[name].keymap_items
+		self.km = self.kcu.keymaps.new(name, space_type=space_type, region_type=region_type, modal=modal, tool=tool)
+		self.akmis = self.kcu.keymaps[name].keymap_items
 
 	def global_keys(self):
 		self.set_replace_km("screen.userpref_show", "TAB", "PRESS", ctrl=True)
@@ -352,6 +354,7 @@ class TilaKeymaps():
 		# Linked
 		if linked_tool:
 			self.set_replace_km(linked_tool, self.k_linked, 'PRESS')
+			self.set_replace_km(linked_tool, self.k_linked, 'PRESS', ctrl=True, properties=[('deselect', True)])
 
 	def selection_tool(self):
 		select_tool = self.find_km(idname='wm.tool_set_by_name', properties=bProp([('name', 'Select Box')]))
@@ -367,6 +370,12 @@ class TilaKeymaps():
 			print('Cant find right mouse button contextual menu')
 		else:
 			kmi.value = 'RELEASE'
+
+	def duplicate(self, duplicate=None, duplicate_link=None):
+		if duplicate:
+			self.set_replace_km(duplicate, 'D', 'PRESS', ctrl=True)
+		if duplicate_link:
+			self.set_replace_km(duplicate_link, 'D', 'PRESS', ctrl=True, shift=True)
 
 	def kmi_set_active(self, enable, idname=None, type=None, value=None, alt=None, any=None, ctrl=None, shift=None, oskey=None, key_modifier=None, properties=None):
 		kmi = self.find_km(idname=idname, type=type, value=value, alt=alt, any=any, ctrl=ctrl, shift=shift, oskey=oskey, key_modifier=key_modifier, properties=properties)
@@ -436,6 +445,15 @@ class TilaKeymaps():
 		self.init_kmi(name='UV Editor', space_type='EMPTY', region_type='WINDOW')
 		self.global_keys()
 		self.right_mouse()
+		self.selection_tool()
+		self.selection_keys(select_tool='uv.select',
+                      		lasso_tool='uv.select_lasso',
+                      		loop_tool='uv.select_loop',
+                      		more_tool='uv.select_more',
+                      		less_tool='uv.select_less')
+							  
+		self.set_replace_km('uv.cursor_set', self.k_cursor, 'PRESS', ctrl=True, alt=True, shift=True)
+		
 
 		# Mesh
 		self.init_kmi(name='Mesh', space_type='EMPTY', region_type='WINDOW')
@@ -449,17 +467,21 @@ class TilaKeymaps():
 							less_tool='mesh.select_less',
 							linked_tool='mesh.select_linked_pick')
 
+		self.duplicate(duplicate='mesh.duplicate_move')
+
 		# Object Mode
 		self.init_kmi(name='Object Mode', space_type='EMPTY', region_type='WINDOW')
 		self.global_keys()
 		self.selection_tool()
 		self.right_mouse()
+		self.duplicate(duplicate='object.duplicate_move', duplicate_link='object.duplicate_move_linked')
 
 		# Curve
 		self.init_kmi(name='Curve', space_type='EMPTY', region_type='WINDOW')
 		self.global_keys()
 		self.selection_tool()
 		self.right_mouse()
+		self.duplicate(duplicate='curve.duplicate_move')
 		self.set_replace_km('curve.select_linked', self.k_select, 'DOUBLE_CLICK', shift=True)
 		self.set_replace_km('curve.select_linked_pick', self.k_select, 'DOUBLE_CLICK')
 		self.set_replace_km('curve.reveal', 'H', 'PRESS', ctrl=True, shift=True)
@@ -474,20 +496,21 @@ class TilaKeymaps():
 
 		# Dopesheet
 		self.init_kmi(name='Dopesheet', space_type='DOPESHEET_EDITOR', region_type='WINDOW')
-		# self.ukmis = self.kcu.keymaps['Dopesheet'].keymap_items
-		# self.km = self.kca.keymaps.new('Dopesheet Editor', space_type='DOPESHEET_EDITOR', region_type='WINDOW', modal=False)
 		self.global_keys()
 		self.right_mouse()
+		self.duplicate(duplicate='node.duplicate_move', duplicate_link='node.duplicate_move_keep_inputs')
 
-		# Grease Pencil
-		self.init_kmi(name='Grease Pencil', space_type='EMPTY', region_type='WINDOW')
+		# Mask Editing
+		self.init_kmi(name='Mask Editing', space_type='EMPTY', region_type='WINDOW')
 		self.global_keys()
 		self.right_mouse()
+		self.set_replace_km('mask.duplicate_move', 'D', 'PRESS', ctrl=True)
 
 		# Graph Editor
 		self.init_kmi(name='Graph Editor', space_type='GRAPH_EDITOR', region_type='WINDOW')
 		self.global_keys()
 		self.right_mouse()
+		self.duplicate(duplicate='graph.duplicate_move')
 
 		# Node Editor
 		self.init_kmi(name='Node Editor', space_type='NODE_EDITOR', region_type='WINDOW')
@@ -498,6 +521,12 @@ class TilaKeymaps():
 		self.init_kmi(name='Animation', space_type='EMPTY', region_type='WINDOW')
 		self.global_keys()
 		self.right_mouse()
+
+		# Armature
+		self.init_kmi(name='Armature', space_type='EMPTY', region_type='WINDOW')
+		self.global_keys()
+		self.right_mouse()
+		self.duplicate(duplicate='armature.duplicate_move')
 
 		print("----------------------------------------------------------------")
 		print("Assignment complete")
