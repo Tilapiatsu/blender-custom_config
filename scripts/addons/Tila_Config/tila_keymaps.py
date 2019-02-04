@@ -77,8 +77,8 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 
 		# Circle
 		if circle_tool:
-			self.kmi_set_replace(circle_tool, self.k_select, 'PRESS', shift=True, properties=[('wait_for_input', False)])
-			self.kmi_set_replace(circle_tool, self.k_select, 'PRESS', ctrl=True, properties=[('wait_for_input', False), ('deselect', True)])
+			self.kmi_set_replace(circle_tool, self.k_select, 'PRESS', shift=True, properties=[('wait_for_input', False), ('radius', 10)])
+			self.kmi_set_replace(circle_tool, self.k_select, 'PRESS', ctrl=True, properties=[('wait_for_input', False), ('deselect', True), ('radius', 10)])
 		
 		#  shortest Path Select / Deselect / Add
 		if shortestpath_tool:
@@ -118,6 +118,7 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 	def right_mouse(self):
 		kmi = self.kmi_find(idname='wm.call_menu', type='RIGHTMOUSE', value='PRESS')
 
+
 		if kmi is None:
 			print('Cant find right mouse button contextual menu')
 		else:
@@ -133,6 +134,12 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 			if duplicate_link_prop:
 				self.kmi_prop_setattr(kmi.properties, duplicate_link_prop[0], duplicate_link_prop[1])
 
+	def tool_smooth(self):
+		self.kmi_set_replace('wm.tool_set_by_name', 'S', 'PRESS', shift=True, properties=[('name', 'Smooth')])
+	
+	def tool_proportional(self):
+		self.kmi_set_replace_modal('PROPORTIONAL_SIZE', 'MOUSEMOVE', 'ANY', alt=True)
+	
 	# Keymap define
 
 	def set_tila_keymap(self):
@@ -160,7 +167,7 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		self.selection_tool()
 		# Disabling zoom key
 		self.kmi_set_active(False, ctrl=True, type=self.k_cursor)
-		
+		self.kmi_set_active(False, idname='view3d.select_circle', type="C")
 		self.navigation_keys(pan='view3d.move',
 							orbit='view3d.rotate',
 							dolly='view3d.dolly')
@@ -205,7 +212,7 @@ class TilaKeymaps(KeymapManager.KeymapManager):
                       		less_tool='uv.select_less')
 		
 		self.kmi_set_replace('uv.cursor_set', self.k_cursor, 'PRESS', ctrl=True, alt=True, shift=True)
-		
+		self.tool_smooth()
 
 		# Mesh
 		self.kmi_init(name='Mesh', space_type='EMPTY', region_type='WINDOW')
@@ -221,6 +228,8 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 							linked_tool='mesh.select_linked_pick')
 
 		self.duplicate(duplicate='mesh.duplicate_move')
+		self.tool_smooth()
+		
 
 		# Object Mode
 		self.kmi_init(name='Object Mode', space_type='EMPTY', region_type='WINDOW')
@@ -304,6 +313,11 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		self.global_keys()
 		self.right_mouse()
 		self.duplicate(duplicate='gpencil.duplicate_move')
+		
+
+		# Transform Modal Map
+		self.kmi_init(name='Transform Modal Map', space_type='EMPTY', region_type='WINDOW')
+		self.tool_proportional()
 		
 		print("----------------------------------------------------------------")
 		print("Assignment complete")
