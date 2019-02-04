@@ -118,7 +118,6 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 	def right_mouse(self):
 		kmi = self.kmi_find(idname='wm.call_menu', type='RIGHTMOUSE', value='PRESS')
 
-
 		if kmi is None:
 			print('Cant find right mouse button contextual menu')
 		else:
@@ -133,6 +132,13 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 			kmi = self.kmi_set_replace(duplicate_link, 'D', 'PRESS', ctrl=True, shift=True)
 			if duplicate_link_prop:
 				self.kmi_prop_setattr(kmi.properties, duplicate_link_prop[0], duplicate_link_prop[1])
+
+	def hide_reveal(self, hide=None, unhide=None):
+		if hide:
+			self.kmi_set_replace(hide, 'H', 'PRESS', properties=[('unselected', False)])
+			self.kmi_set_replace(hide, 'H', 'PRESS', ctrl=True, alt=True, shift=True, properties=[('unselected', True)])
+		if unhide:
+			self.kmi_set_replace(unhide, 'H', 'PRESS', alt=True, shift=True, properties=[('select', False)])
 
 	def tool_smooth(self):
 		self.kmi_set_replace('wm.tool_set_by_name', 'S', 'PRESS', shift=True, properties=[('name', 'Smooth')])
@@ -209,10 +215,12 @@ class TilaKeymaps(KeymapManager.KeymapManager):
                       		circle_tool='uv.select_circle',
                       		loop_tool='uv.select_loop',
                       		more_tool='uv.select_more',
-                      		less_tool='uv.select_less')
+                      		less_tool='uv.select_less',
+                      		linked_tool='uv.select_linked_pick')
 		
 		self.kmi_set_replace('uv.cursor_set', self.k_cursor, 'PRESS', ctrl=True, alt=True, shift=True)
 		self.tool_smooth()
+		self.hide_reveal(hide='uv.hide', unhide='uv.reveal')
 
 		# Mesh
 		self.kmi_init(name='Mesh', space_type='EMPTY', region_type='WINDOW')
@@ -228,8 +236,14 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 							linked_tool='mesh.select_linked_pick')
 
 		self.duplicate(duplicate='mesh.duplicate_move')
+		self.hide_reveal(hide='mesh.hide', unhide='mesh.reveal')
+
 		self.tool_smooth()
-		
+		self.kmi_set_active(False, 'view3d.select_box')
+		self.kmi_set_replace('wm.tool_set_by_name', 'B', 'PRESS', properties=[('name', 'Bevel')])
+		self.kmi_set_replace('wm.tool_set_by_name', 'C', 'PRESS', properties=[('name', 'Knife')])
+		self.kmi_set_replace('wm.tool_set_by_name', 'C', 'PRESS', alt=True, shift=True, properties=[('name', 'Loop Cut')])
+		self.kmi_set_replace('mesh.bridge_edge_loops', 'B', 'PRESS', shift=True)
 
 		# Object Mode
 		self.kmi_init(name='Object Mode', space_type='EMPTY', region_type='WINDOW')
@@ -313,11 +327,16 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		self.global_keys()
 		self.right_mouse()
 		self.duplicate(duplicate='gpencil.duplicate_move')
-		
 
 		# Transform Modal Map
 		self.kmi_init(name='Transform Modal Map', space_type='EMPTY', region_type='WINDOW')
 		self.tool_proportional()
+		
+		# Knife Tool Modal Map
+		self.kmi_init(name='Knife Tool Modal Map', space_type='EMPTY', region_type='WINDOW')
+		self.kmi_set_active(False, idname='PANNING')
+		self.kmi_set_active(False, idname='CANCEL', type='RIGHTMOUSE')
+		self.kmi_set_replace_modal('PANNING', self.k_select, 'CLICK', alt=True)
 		
 		print("----------------------------------------------------------------")
 		print("Assignment complete")
