@@ -136,7 +136,7 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 	def hide_reveal(self, hide=None, unhide=None):
 		if hide:
 			self.kmi_set_replace(hide, 'H', 'PRESS', properties=[('unselected', False)])
-			self.kmi_set_replace(hide, 'H', 'PRESS', ctrl=True, alt=True, shift=True, properties=[('unselected', True)])
+			self.kmi_set_replace(hide, 'H', 'PRESS', ctrl=True, properties=[('unselected', True)])
 		if unhide:
 			self.kmi_set_replace(unhide, 'H', 'PRESS', alt=True, shift=True, properties=[('select', False)])
 
@@ -144,7 +144,7 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		self.kmi_set_replace('wm.tool_set_by_name', 'S', 'PRESS', shift=True, properties=[('name', 'Smooth')])
 	
 	def tool_proportional(self):
-		self.kmi_set_replace_modal('PROPORTIONAL_SIZE', 'MOUSEMOVE', 'ANY', alt=True)
+		self.modal_set_replace('PROPORTIONAL_SIZE', 'MOUSEMOVE', 'ANY', alt=True)
 	
 	# Keymap define
 
@@ -336,7 +336,7 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		self.kmi_init(name='Knife Tool Modal Map', space_type='EMPTY', region_type='WINDOW')
 		self.kmi_set_active(False, idname='PANNING')
 		self.kmi_set_active(False, idname='CANCEL', type='RIGHTMOUSE')
-		self.kmi_set_replace_modal('PANNING', self.k_select, 'CLICK', alt=True)
+		self.modal_set_replace('PANNING', self.k_select, 'CLICK', alt=True)
 		
 		print("----------------------------------------------------------------")
 		print("Assignment complete")

@@ -167,8 +167,8 @@ class KeymapManager():
         return kmi
 
     @replace_km_dec
-    def kmi_set_replace_modal(self, propvalue, type, value, alt=False, any=False, ctrl=False, shift=False, oskey=False, key_modifier='NONE', properties=()):
-        kmi = self.kmi_set_modal(propvalue, type, value, alt=alt, any=any, ctrl=ctrl, shift=shift, oskey=oskey, key_modifier=key_modifier, properties=properties)
+    def modal_set_replace(self, propvalue, type, value, alt=False, any=False, ctrl=False, shift=False, oskey=False, key_modifier='NONE', properties=()):
+        kmi = self.modal_set(propvalue, type, value, alt=alt, any=any, ctrl=ctrl, shift=shift, oskey=oskey, key_modifier=key_modifier, properties=properties)
         return kmi
 
     def kmi_set(self, idname, type, value, alt=False, any=False, ctrl=False, shift=False, oskey=False, key_modifier='NONE', properties=()):
@@ -183,7 +183,7 @@ class KeymapManager():
 
         return kmi
     
-    def kmi_set_modal(self, propvalue, type, value, alt=False, any=False, ctrl=False, shift=False, oskey=False, key_modifier='NONE', properties=()):
+    def modal_set(self, propvalue, type, value, alt=False, any=False, ctrl=False, shift=False, oskey=False, key_modifier='NONE', properties=()):
         kmi = self.km.keymap_items.new_modal(propvalue, type, value, alt=alt, any=any, ctrl=ctrl, shift=shift, oskey=oskey, key_modifier=key_modifier)
         kmi.active = True
         for p in properties:
