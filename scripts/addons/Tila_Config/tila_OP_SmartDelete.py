@@ -1,3 +1,4 @@
+import bpy
 bl_info = {
     "name": "Smart Delete",
     "author": "Tilapiatsu",
@@ -7,7 +8,6 @@ bl_info = {
     "category": "Object",
 }
 
-import bpy
 
 class SmartDeleteOperator(bpy.types.Operator):
     bl_idname = "object.tila_smartdelete"
@@ -21,29 +21,32 @@ class SmartDeleteOperator(bpy.types.Operator):
                 # if vertex mode on
                 if current_mesh_mode[0]:
                     bpy.ops.mesh.dissolve_verts()
-        
+
                 # if vertex mode on
                 if current_mesh_mode[1]:
                     bpy.ops.mesh.dissolve_edges(use_verts=False)
-        
+
                 # if vertex mode on
                 if current_mesh_mode[2]:
                     bpy.ops.mesh.delete(type='FACE')
 
             elif context.mode == 'OBJECT':
                 bpy.ops.object.delete(use_global=False, confirm=False)
-        
+
         elif context.space_data.type == 'OUTLINER':
             bpy.ops.outliner.collection_delete(hierarchy=False)
             bpy.ops.outliner.object_operation(type='DELETE')
-            
+
         # elif context.space_data.type == 'IMAGE_EDITOR':
         #     layout.label("No Context! image editor")
         return {'FINISHED'}
 
+
 addon_keymaps = []
 
+
 def register():
+    pass
     # handle the keymap
     wm = bpy.context.window_manager
     # Note that in background mode (no GUI available), keyconfigs are not available either,
@@ -53,15 +56,17 @@ def register():
         km = [kc.keymaps.new(name='3D View', space_type='VIEW_3D'),
               kc.keymaps.new(name='Outliner', space_type='OUTLINER'),
               kc.keymaps.new(name='File Browser', space_type='FILE_BROWSER')]
-              
+
         kmi = [km[0].keymap_items.new(SmartDeleteOperator.bl_idname, 'DEL', 'PRESS'),
-                km[1].keymap_items.new(SmartDeleteOperator.bl_idname, 'DEL', 'PRESS'),
-                km[2].keymap_items.new(SmartDeleteOperator.bl_idname, 'DEL', 'PRESS')]
+               km[1].keymap_items.new(SmartDeleteOperator.bl_idname, 'DEL', 'PRESS'),
+               km[2].keymap_items.new(SmartDeleteOperator.bl_idname, 'DEL', 'PRESS')]
 
         for i in range(len(km)):
             addon_keymaps.append(km[i])
 
+
 def unregister():
+    pass
     wm = bpy.context.window_manager
     for km in addon_keymaps:
         for kmi in km.keymap_items:

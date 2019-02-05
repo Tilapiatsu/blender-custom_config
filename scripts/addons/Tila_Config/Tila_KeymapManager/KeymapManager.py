@@ -182,7 +182,7 @@ class KeymapManager():
         self.keymap_List["new"].append((self.km, kmi))
 
         return kmi
-    
+
     def modal_set(self, propvalue, type, value, alt=False, any=False, ctrl=False, shift=False, oskey=False, key_modifier='NONE', properties=()):
         kmi = self.km.keymap_items.new_modal(propvalue, type, value, alt=alt, any=any, ctrl=ctrl, shift=shift, oskey=oskey, key_modifier=key_modifier)
         kmi.active = True
@@ -195,7 +195,7 @@ class KeymapManager():
 
         return kmi
 
-    def kmi_find(self, idname=None, type=None, value=None, alt=None, any=None, ctrl=None, shift=None, oskey=None, key_modifier=None, properties=None):
+    def kmi_find(self, idname=None, type=None, value=None, alt=None, any=None, ctrl=None, shift=None, oskey=None, key_modifier=None, propvalue=None, properties=None):
         def attr_compare(src_attr, comp_attr):
             if comp_attr is not None:
                 if comp_attr != src_attr:
@@ -207,6 +207,9 @@ class KeymapManager():
 
         for k in self.ukmis:
             if attr_compare(k.idname, idname) is False:
+                continue
+
+            if attr_compare(k.propvalue, propvalue) is False:
                 continue
 
             if attr_compare(k.type, type) is False:
@@ -271,8 +274,8 @@ class KeymapManager():
                 prop.remove(s)
         return prop
 
-    def kmi_set_active(self, enable, idname=None, type=None, value=None, alt=None, any=None, ctrl=None, shift=None, oskey=None, key_modifier=None, properties=None):
-        kmi = self.kmi_find(idname=idname, type=type, value=value, alt=alt, any=any, ctrl=ctrl, shift=shift, oskey=oskey, key_modifier=key_modifier, properties=properties)
+    def kmi_set_active(self, enable, idname=None, type=None, value=None, alt=None, any=None, ctrl=None, shift=None, oskey=None, key_modifier=None, propvalue=None, properties=None):
+        kmi = self.kmi_find(idname=idname, type=type, value=value, alt=alt, any=any, ctrl=ctrl, shift=shift, oskey=oskey, key_modifier=key_modifier, propvalue=propvalue, properties=properties)
         if kmi:
             kmi.active = enable
             return enable

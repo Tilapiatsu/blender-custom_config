@@ -1,6 +1,7 @@
 import bpy
 from mathutils import *
 
+
 class EmptyMeshOperator(bpy.types.Operator):
     bl_idname = "object.tila_emptymesh"
     bl_label = "TILA: Empty Mesh"
@@ -23,7 +24,7 @@ class EmptyMeshOperator(bpy.types.Operator):
         bpy.ops.mesh.select_all(action='SELECT')
         bpy.ops.mesh.delete(type='FACE')
         bpy.ops.object.mode_set(mode='OBJECT')
-        
+
         bpy.context.selected_objects[0].name = "EmptyMesh"
 
         if currentMode == "EDIT":
@@ -31,9 +32,12 @@ class EmptyMeshOperator(bpy.types.Operator):
 
         return {'FINISHED'}
 
+
 addon_keymaps = []
 
+
 def register():
+    pass
     # handle the keymap
     wm = bpy.context.window_manager
     # Note that in background mode (no GUI available), keyconfigs are not available either,
@@ -44,13 +48,14 @@ def register():
               kc.keymaps.new(name='Outliner', space_type='OUTLINER'),
               kc.keymaps.new(name='File Browser', space_type='FILE_BROWSER')]
         kmi = [km[0].keymap_items.new(EmptyMeshOperator.bl_idname, 'N', 'PRESS', shift=True, ctrl=True, alt=True),
-                km[1].keymap_items.new(EmptyMeshOperator.bl_idname, 'N', 'PRESS', shift=True, ctrl=True, alt=True),
-                km[2].keymap_items.new(EmptyMeshOperator.bl_idname, 'N', 'PRESS', shift=True, ctrl=True, alt=True)]
+               km[1].keymap_items.new(EmptyMeshOperator.bl_idname, 'N', 'PRESS', shift=True, ctrl=True, alt=True),
+               km[2].keymap_items.new(EmptyMeshOperator.bl_idname, 'N', 'PRESS', shift=True, ctrl=True, alt=True)]
         for i in range(len(km)):
             addon_keymaps.append((km[i], kmi[i]))
 
-def unregister():
 
+def unregister():
+    pass
     for km, kmi in addon_keymaps:
         km.keymap_items.remove(kmi)
     addon_keymaps.clear()

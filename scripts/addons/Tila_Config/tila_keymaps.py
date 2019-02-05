@@ -146,6 +146,9 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 	def tool_proportional(self):
 		self.modal_set_replace('PROPORTIONAL_SIZE', 'MOUSEMOVE', 'ANY', alt=True)
 	
+	def tool_smart_delete(self):
+		self.kmi_set_active(False, type='DEL')
+		self.kmi_set_replace('object.tila_smartdelete', 'DEL', 'PRESS')
 	# Keymap define
 
 	def set_tila_keymap(self):
@@ -171,6 +174,7 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		self.global_keys()
 		self.right_mouse()
 		self.selection_tool()
+		self.tool_smart_delete()
 		# Disabling zoom key
 		self.kmi_set_active(False, ctrl=True, type=self.k_cursor)
 		self.kmi_set_active(False, idname='view3d.select_circle', type="C")
@@ -182,6 +186,8 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 							lasso_tool='view3d.select_lasso',
                       		circle_tool='view3d.select_circle')
 		
+		self.kmi_set_replace('object.tila_emptymesh', 'N', 'PRESS', ctrl=True, alt=True, shift=True)
+
 		# 3d Cursor
 		kmi = self.kmi_set_replace('view3d.cursor3d', self.k_cursor, 'CLICK', ctrl=True, alt=True, shift=True, properties=[('use_depth', True)])
 		self.kmi_prop_setattr(kmi.properties, 'orientation', 'GEOM')
@@ -237,13 +243,16 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 
 		self.duplicate(duplicate='mesh.duplicate_move')
 		self.hide_reveal(hide='mesh.hide', unhide='mesh.reveal')
+		self.tool_smart_delete()
 
 		self.tool_smooth()
 		self.kmi_set_active(False, 'view3d.select_box')
-		self.kmi_set_replace('wm.tool_set_by_name', 'B', 'PRESS', properties=[('name', 'Bevel')])
-		self.kmi_set_replace('wm.tool_set_by_name', 'C', 'PRESS', properties=[('name', 'Knife')])
+		self.kmi_set_replace('mesh.bevel', 'B', 'PRESS')
+		# self.kmi_set_replace('wm.tool_set_by_name', 'C', 'PRESS', properties=[('name', 'Knife')])
+		self.kmi_set_replace('mesh.knife_tool', 'C', 'PRESS')
 		self.kmi_set_replace('wm.tool_set_by_name', 'C', 'PRESS', alt=True, shift=True, properties=[('name', 'Loop Cut')])
 		self.kmi_set_replace('mesh.bridge_edge_loops', 'B', 'PRESS', shift=True)
+		self.kmi_set_replace('mesh.edge_collapse', 'DEL', 'PRESS', shift=True)
 
 		# Object Mode
 		self.kmi_init(name='Object Mode', space_type='EMPTY', region_type='WINDOW')
@@ -269,6 +278,16 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		self.global_keys()
 		self.right_mouse()
 		self.kmi_set_replace('outliner.item_rename', 'F2', 'PRESS')
+
+		self.tool_smart_delete()
+		self.kmi_set_replace('object.tila_emptymesh', 'N', 'PRESS', ctrl=True, alt=True, shift=True)
+
+		# File Browser
+		self.kmi_init(name='File Browser', space_type='FILE_BROWSER', region_type='WINDOW')
+		self.global_keys()
+		self.right_mouse()
+		self.tool_smart_delete()
+		self.kmi_set_replace('object.tila_emptymesh', 'N', 'PRESS', ctrl=True, alt=True, shift=True)
 
 		# Dopesheet
 		self.kmi_init(name='Dopesheet', space_type='DOPESHEET_EDITOR', region_type='WINDOW')
@@ -334,9 +353,18 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		
 		# Knife Tool Modal Map
 		self.kmi_init(name='Knife Tool Modal Map', space_type='EMPTY', region_type='WINDOW')
-		self.kmi_set_active(False, idname='PANNING')
-		self.kmi_set_active(False, idname='CANCEL', type='RIGHTMOUSE')
-		self.modal_set_replace('PANNING', self.k_select, 'CLICK', alt=True)
+		# self.kmi_set_active(False, propvalue='PANNING')
+		# self.kmi_set_active(False, propvalue='CANCEL', type='RIGHTMOUSE')
+		panning = self.kmi_find(propvalue='PANNING')
+		panning.type = self.k_select
+		panning.value = 'ANY'
+		panning.any = True
+
+		panning = self.kmi_find(propvalue='ADD_CUT')
+		panning.type = 'RIGHTMOUSE'
+
+		# self.modal_set_replace('PANNING', self.k_select, 'CLICK_DRAG', alt=True)
+		self.modal_set_replace('NEW_CUT', 'SPACE', 'PRESS')
 		
 		print("----------------------------------------------------------------")
 		print("Assignment complete")
