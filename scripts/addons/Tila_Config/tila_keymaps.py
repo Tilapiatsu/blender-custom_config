@@ -22,6 +22,7 @@ bl_info = {
 # - Smart edit mode
 # - Vertex Normal Pie Menu : Mark Hard, Mark Soft, update normal, Thief
 # - UV Pie Menu : Split, sew, mak seam etc
+# - add the select through like Heavypoly
 
 
 class TilaKeymaps(KeymapManager.KeymapManager):
