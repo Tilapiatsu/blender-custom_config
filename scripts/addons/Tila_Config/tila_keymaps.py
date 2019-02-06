@@ -20,6 +20,8 @@ bl_info = {
 # - Modify the camera behaviour to slow the dolly speed based on the distance from the object
 # - select next/previous
 # - Smart edit mode
+# - Vertex Normal Pie Menu : Mark Hard, Mark Soft, update normal, Thief
+# - UV Pie Menu : Split, sew, mak seam etc
 
 
 class TilaKeymaps(KeymapManager.KeymapManager):
