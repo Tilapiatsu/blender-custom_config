@@ -18,6 +18,8 @@ bl_info = {
 # TODO 
 # - Create a rename /batch rename feature
 # - Modify the camera behaviour to slow the dolly speed based on the distance from the object
+# - select next/previous
+# - Smart edit mode
 
 
 class TilaKeymaps(KeymapManager.KeymapManager):
@@ -45,6 +47,9 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		self.kmi_set_replace("wm.window_fullscreen_toggle", "F11", "PRESS")
 		self.kmi_set_replace('screen.animation_play', self.k_menu, 'PRESS', shift=True)
 		self.kmi_set_replace("popup.hp_properties", 'V', "PRESS", ctrl=True, shift=True)
+		# Disable Keymap
+		self.kmi_set_active(False, type='X')
+		self.kmi_set_active(False, type='X', shift=True)
 
 	def navigation_keys(self, pan=None, orbit=None, dolly=None):
 		if orbit:
@@ -77,8 +82,8 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 
 		# Circle
 		if circle_tool:
-			self.kmi_set_replace(circle_tool, self.k_select, 'PRESS', shift=True, properties=[('wait_for_input', False), ('radius', 10)])
-			self.kmi_set_replace(circle_tool, self.k_select, 'PRESS', ctrl=True, properties=[('wait_for_input', False), ('deselect', True), ('radius', 10)])
+			self.kmi_set_replace(circle_tool, self.k_select, 'CLICK_DRAG', shift=True, properties=[('wait_for_input', False), ('radius', 10)])
+			self.kmi_set_replace(circle_tool, self.k_select, 'CLICK_DRAG', ctrl=True, properties=[('wait_for_input', False), ('deselect', True), ('radius', 10)])
 		
 		#  shortest Path Select / Deselect / Add
 		if shortestpath_tool:
@@ -140,6 +145,13 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		if unhide:
 			self.kmi_set_replace(unhide, 'H', 'PRESS', alt=True, shift=True, properties=[('select', False)])
 
+	def snap(self, snapping=None, snapping_prop=None):
+		type = 'X'
+
+		self.kmi_set_replace('wm.context_toggle', type, 'PRESS', properties=[('data_path', 'tool_settings.use_snap')])
+		if snapping and snapping_prop:
+			self.kmi_set_replace(snapping, type, 'PRESS', shift=True, properties=snapping_prop)
+
 	def tool_smooth(self):
 		self.kmi_set_replace('wm.tool_set_by_name', 'S', 'PRESS', shift=True, properties=[('name', 'Smooth')])
 	
@@ -149,6 +161,7 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 	def tool_smart_delete(self):
 		self.kmi_set_active(False, type='DEL')
 		self.kmi_set_replace('object.tila_smartdelete', 'DEL', 'PRESS')
+
 	# Keymap define
 
 	def set_tila_keymap(self):
@@ -187,6 +200,7 @@ class TilaKeymaps(KeymapManager.KeymapManager):
                       		circle_tool='view3d.select_circle')
 		
 		self.kmi_set_replace('object.tila_emptymesh', 'N', 'PRESS', ctrl=True, alt=True, shift=True)
+		self.snap(snapping='wm.call_panel', snapping_prop=[('name', 'VIEW3D_PT_snapping')])
 
 		# 3d Cursor
 		kmi = self.kmi_set_replace('view3d.cursor3d', self.k_cursor, 'CLICK', ctrl=True, alt=True, shift=True, properties=[('use_depth', True)])
@@ -227,6 +241,7 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		self.kmi_set_replace('uv.cursor_set', self.k_cursor, 'PRESS', ctrl=True, alt=True, shift=True)
 		self.tool_smooth()
 		self.hide_reveal(hide='uv.hide', unhide='uv.reveal')
+		self.snap(snapping='wm.context_menu_enum', snapping_prop=[('data_path', 'tool_settings.snap_uv_element')])
 
 		# Mesh
 		self.kmi_init(name='Mesh', space_type='EMPTY', region_type='WINDOW')
@@ -253,6 +268,10 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		self.kmi_set_replace('wm.tool_set_by_name', 'C', 'PRESS', alt=True, shift=True, properties=[('name', 'Loop Cut')])
 		self.kmi_set_replace('mesh.bridge_edge_loops', 'B', 'PRESS', shift=True)
 		self.kmi_set_replace('mesh.edge_collapse', 'DEL', 'PRESS', shift=True)
+		self.kmi_set_replace('mesh.fill', 'P', 'PRESS', shift=True, properties=[('use_beauty', True)])
+		self.kmi_set_replace('mesh.edge_face_add', 'P', 'PRESS')
+		self.kmi_set_replace('mesh.flip_normals', 'F', 'PRESS')
+		self.kmi_set_replace('mesh.subdivide', 'D', 'PRESS')
 
 		# Object Mode
 		self.kmi_init(name='Object Mode', space_type='EMPTY', region_type='WINDOW')
@@ -260,6 +279,7 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		self.selection_tool()
 		self.right_mouse()
 		self.duplicate(duplicate='object.duplicate_move', duplicate_link='object.duplicate_move_linked')
+		self.kmi_set_replace('object.delete', 'DEL', 'PRESS', ctrl=True, alt=True, shift=True, properties=[('use_global', True),('confirm', True)])
 
 		# Curve
 		self.kmi_init(name='Curve', space_type='EMPTY', region_type='WINDOW')
@@ -312,6 +332,7 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		self.global_keys()
 		self.right_mouse()
 		self.duplicate(duplicate='node.duplicate_move', duplicate_link='node.duplicate_move_keep_inputs')
+		self.snap(snapping='wm.context_menu_enum', snapping_prop=[('data_path', 'tool_settings.snap_node_element')])
 
 		# Animation
 		self.kmi_init(name='Animation', space_type='EMPTY', region_type='WINDOW')
@@ -353,8 +374,6 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		
 		# Knife Tool Modal Map
 		self.kmi_init(name='Knife Tool Modal Map', space_type='EMPTY', region_type='WINDOW')
-		# self.kmi_set_active(False, propvalue='PANNING')
-		# self.kmi_set_active(False, propvalue='CANCEL', type='RIGHTMOUSE')
 		panning = self.kmi_find(propvalue='PANNING')
 		panning.type = self.k_select
 		panning.value = 'ANY'
@@ -363,7 +382,6 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		panning = self.kmi_find(propvalue='ADD_CUT')
 		panning.type = 'RIGHTMOUSE'
 
-		# self.modal_set_replace('PANNING', self.k_select, 'CLICK_DRAG', alt=True)
 		self.modal_set_replace('NEW_CUT', 'SPACE', 'PRESS')
 		
 		print("----------------------------------------------------------------")
