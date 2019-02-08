@@ -20,22 +20,69 @@ class TILA_smart_editmode(bpy.types.Operator):
     bl_idname = "view3d.tila_smart_editmode"
     bl_label = "Smart Edit Mode"
 
-    type = bpy.props.StringProperty(name="type", default='VERT')
+    mode = bpy.props.IntProperty(name='mode', default=0)
     use_extend = bpy.props.BoolProperty(name='use_extend', default=False)
     use_expand = bpy.props.BoolProperty(name='use_expand', default=False)
+    alt_mode = bpy.props.BoolProperty(name='alt_mode', default=False)
+
+    mesh_mode = ['VERT', 'EDGE', 'FACE']
+    gpencile_mode = ['POINT', 'STROKE', 'SEGMENT']
 
     def modal(self, context, event):
         pass
 
     def invoke(self, context, event):
-        if bpy.context.mode in [ 'EDIT_MESH', 'EDIT_CURVE', 'EDIT_SURFACE', 'EDIT_TEXT']:
+        def switch_mesh_mode(self, current_mode):
+            if self.mesh_mode[self.mode] == current_mode:
+                bpy.ops.object.editmode_toggle()
+            else:
+                bpy.ops.mesh.select_mode(use_extend=self.use_extend, use_expand=self.use_expand, type=self.mesh_mode[self.mode])
+
+        def switch_gpencil_mode(self, current_mode):
+            if self.gpencile_mode[self.mode] == current_mode:
+                bpy.ops.object.editmode_toggle()
+            else:
+                bpy.ops.gpencil.selectmode_toggle(mode=self.mesh_mode[self.mode])
+
+        if bpy.context.mode == 'OBJECT':
             bpy.ops.object.editmode_toggle()
+
+            if bpy.context.active_object.type == 'MESH':
+                bpy.ops.mesh.select_mode(use_extend=self.use_extend, use_expand=self.use_expand, type=self.mesh_mode[self.mode])
+
+            elif bpy.context.active_object.type == 'GPENCIL':
+                if self.alt_mode:
+                    bpy.ops.gpencil.paintmode_toggle()
+                else:
+                    bpy.ops.gpencil.editmode_toggle()
+
+        elif bpy.context.mode == 'EDIT_MESH':
+            if self.alt_mode:
+                bpy.ops.object.editmode_toggle()
+            else:
+                if bpy.context.scene.tool_settings.mesh_select_mode[0]:
+                    switch_mesh_mode(self, 'VERT')
+                if bpy.context.scene.tool_settings.mesh_select_mode[1]:
+                    switch_mesh_mode(self, 'EDGE')
+                if bpy.context.scene.tool_settings.mesh_select_mode[2]:
+                    switch_mesh_mode(self, 'FACE')
+
+        elif bpy.context.mode in ['EDIT_GPENCIL']:
+            if self.alt_mode:
+                bpy.ops.gpencil.editmode_toggle()
+            else:
+                if bpy.context.scene.tool_settings.gpencil_selectmode == 'POINT':
+                    switch_gpencil_mode(self, 'POINT')
+                if bpy.context.scene.tool_settings.gpencil_selectmode == 'STROKE':
+                    switch_gpencil_mode(self, 'STROKE')
+                if bpy.context.scene.tool_settings.gpencil_selectmode == 'SEGMENT':
+                    switch_gpencil_mode(self, 'SEGMENT')
         else:
             bpy.ops.object.editmode_toggle()
-            bpy.ops.mesh.select_mode(use_extend=self.use_extend, use_expand=self.use_expand, type=self.type)
 
         return {'FINISHED'}
- 
+
+
 classes = (
     TILA_smart_editmode
 )

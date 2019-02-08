@@ -21,6 +21,8 @@ bl_info = {
 # - Smart edit mode
 # - Vertex Normal Pie Menu : Mark Hard, Mark Soft, update normal, Thief
 # - UV Pie Menu : Split, sew, mak seam etc
+# - Subdivision script
+# - H Sould Toggle visibility nod hide only
 
 
 class TilaKeymaps(KeymapManager.KeymapManager):
@@ -41,6 +43,9 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		self.k_more = 'UP_ARROW'
 		self.k_less = 'DOWN_ARROW'
 		self.k_linked = 'W'
+		self.k_vert_mode = 'ONE'
+		self.k_edge_mode = 'TWO'
+		self.k_face_mode = 'THREE'
 
 	# Global Keymap Functions
 
@@ -61,7 +66,37 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		if dolly:
 			self.kmi_set_replace(dolly, self.k_manip, "PRESS", alt=True, ctrl=True)
 
+	def mode_selection(self):
+		self.kmi_set_replace('view3d.tila_smart_editmode', self.k_vert_mode, 'PRESS', properties=[('mode', 0), ('use_extend', False), ('use_expand', False)], disable_double=True)
+		self.kmi_set_replace('view3d.tila_smart_editmode', self.k_edge_mode, 'PRESS', properties=[('mode', 1), ('use_extend', False), ('use_expand', False)], disable_double=True)
+		self.kmi_set_replace('view3d.tila_smart_editmode', self.k_face_mode, 'PRESS', properties=[('mode', 2), ('use_extend', False), ('use_expand', False)], disable_double=True)
+
+		self.kmi_set_replace('view3d.tila_smart_editmode', self.k_vert_mode, 'PRESS', shift=True, properties=[('mode', 0), ('use_extend', True), ('use_expand', False)], disable_double=True)
+		self.kmi_set_replace('view3d.tila_smart_editmode', self.k_edge_mode, 'PRESS', shift=True, properties=[('mode', 1), ('use_extend', True), ('use_expand', False)], disable_double=True)
+		self.kmi_set_replace('view3d.tila_smart_editmode', self.k_face_mode, 'PRESS', shift=True, properties=[('mode', 2), ('use_extend', True), ('use_expand', False)], disable_double=True)
+
+		self.kmi_set_replace('view3d.tila_smart_editmode', self.k_vert_mode, 'PRESS', ctrl=True, properties=[('mode', 0), ('use_extend', False), ('use_expand', True)], disable_double=True)
+		self.kmi_set_replace('view3d.tila_smart_editmode', self.k_edge_mode, 'PRESS', ctrl=True, properties=[('mode', 1), ('use_extend', False), ('use_expand', True)], disable_double=True)
+		self.kmi_set_replace('view3d.tila_smart_editmode', self.k_face_mode, 'PRESS', ctrl=True, properties=[('mode', 2), ('use_extend', False), ('use_expand', True)], disable_double=True)
+
+		self.kmi_set_replace('view3d.tila_smart_editmode', self.k_vert_mode, 'PRESS', ctrl=True, shift=True, properties=[('mode', 0), ('use_extend', True), ('use_expand', True)], disable_double=True)
+		self.kmi_set_replace('view3d.tila_smart_editmode', self.k_edge_mode, 'PRESS', ctrl=True, shift=True, properties=[('mode', 1), ('use_extend', True), ('use_expand', True)], disable_double=True)
+		self.kmi_set_replace('view3d.tila_smart_editmode', self.k_face_mode, 'PRESS', ctrl=True, shift=True, properties=[('mode', 2), ('use_extend', True), ('use_expand', True)], disable_double=True)
+
+	def collection_visibility(self, collection_visibility_tool):
+		self.kmi_set_replace(collection_visibility_tool, 'NUMPAD_1', 'PRESS', any=True, properties=[('collection_index', 1)])
+		self.kmi_set_replace(collection_visibility_tool, 'NUMPAD_2', 'PRESS', any=True, properties=[('collection_index', 2)])
+		self.kmi_set_replace(collection_visibility_tool, 'NUMPAD_3', 'PRESS', any=True, properties=[('collection_index', 3)])
+		self.kmi_set_replace(collection_visibility_tool, 'NUMPAD_4', 'PRESS', any=True, properties=[('collection_index', 4)])
+		self.kmi_set_replace(collection_visibility_tool, 'NUMPAD_5', 'PRESS', any=True, properties=[('collection_index', 5)])
+		self.kmi_set_replace(collection_visibility_tool, 'NUMPAD_6', 'PRESS', any=True, properties=[('collection_index', 6)])
+		self.kmi_set_replace(collection_visibility_tool, 'NUMPAD_7', 'PRESS', any=True, properties=[('collection_index', 7)])
+		self.kmi_set_replace(collection_visibility_tool, 'NUMPAD_8', 'PRESS', any=True, properties=[('collection_index', 8)])
+		self.kmi_set_replace(collection_visibility_tool, 'NUMPAD_9', 'PRESS', any=True, properties=[('collection_index', 9)])
+		self.kmi_set_active(False, idname=collection_visibility_tool, type='ZERO')
+
 	def selection_keys(self,
+
 						select_tool=None, 
 						lasso_tool=None, select_through_tool=None,
                     	circle_tool=None,
@@ -221,6 +256,12 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		self.kmi_set_replace('object.tila_emptymesh', 'N', 'PRESS', ctrl=True, alt=True, shift=True)
 		self.snap(snapping='wm.call_panel', snapping_prop=[('name', 'VIEW3D_PT_snapping')])
 
+		self.mode_selection()
+
+		self.kmi_set_replace('view3d.view_persportho', 'NUMPAD_ASTERIX', 'PRESS')
+
+		self.collection_visibility('object.hide_collection')
+
 		# 3d Cursor
 		kmi = self.kmi_set_replace('view3d.cursor3d', self.k_cursor, 'CLICK', ctrl=True, alt=True, shift=True, properties=[('use_depth', True)])
 		self.kmi_prop_setattr(kmi.properties, 'orientation', 'GEOM')
@@ -267,7 +308,8 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		self.global_keys()
 		self.selection_tool()
 		self.right_mouse()
-		
+		self.mode_selection()
+
 		self.selection_keys(shortestpath_tool='mesh.shortest_path_pick',
 							loop_tool='mesh.loop_select',
                       		ring_tool='mesh.edgering_select',
@@ -300,7 +342,21 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		self.selection_tool()
 		self.right_mouse()
 		self.duplicate(duplicate='object.duplicate_move', duplicate_link='object.duplicate_move_linked')
-		self.kmi_set_replace('object.delete', 'DEL', 'PRESS', ctrl=True, alt=True, shift=True, properties=[('use_global', True),('confirm', True)])
+
+			#  Disabling subdivision_set shortcut
+		self.kmi_set_active(False, 'object.subdivision_set', type='ZERO')
+		self.kmi_set_active(False, 'object.subdivision_set', type='ONE')
+		self.kmi_set_active(False, 'object.subdivision_set', type='TWO')
+		self.kmi_set_active(False, 'object.subdivision_set', type='THREE')
+		self.kmi_set_active(False, 'object.subdivision_set', type='FOUR')
+		self.kmi_set_active(False, 'object.subdivision_set', type='FIVE')
+
+		self.kmi_set_replace('object.delete', 'DEL', 'PRESS', ctrl=True, alt=True, shift=True, properties=[('use_global', True), ('confirm', True)])
+		self.kmi_set_replace('object.subdivision_set', 'NUMPAD_PLUS', 'PRESS', properties=[('level', 1), ('relative', True)])
+		self.kmi_set_replace('object.subdivision_set', 'NUMPAD_MINUS', 'PRESS', disable_double=True, properties=[('level', -1), ('relative', True)])
+
+			# Set collection visibility shortcut
+		self.collection_visibility('object.hide_collection')
 
 		# Curve
 		self.kmi_init(name='Curve', space_type='EMPTY', region_type='WINDOW')
@@ -388,6 +444,10 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		self.global_keys()
 		self.right_mouse()
 		self.duplicate(duplicate='gpencil.duplicate_move')
+		self.collection_visibility('object.hide_collection')
+		self.kmi_set_replace('view3d.tila_smart_editmode', 'TAB', 'PRESS', properties=[('alt_mode', True)], disable_double=True)
+		self.selection_keys(more_tool='gpencil.select_more',
+                      		less_tool='gpencil.select_less')
 
 		# Transform Modal Map
 		self.kmi_init(name='Transform Modal Map', space_type='EMPTY', region_type='WINDOW')
