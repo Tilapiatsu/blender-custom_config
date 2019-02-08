@@ -26,11 +26,10 @@ class TILA_select_through(bpy.types.Operator):
     def modal(self, context, event):
         bpy.context.space_data.shading.show_xray = True
         if event.type == 'MOUSEMOVE' and event.value == 'PRESS':
-            print(self.type, self.mode)
             if self.type == 'BORDER':
                 bpy.ops.view3d.select_box('INVOKE_DEFAULT', mode=self.mode, wait_for_input=False)
             if self.type == 'LASSO':
-                bpy.ops.view3d.select_lasso(mode=self.mode)
+                bpy.ops.view3d.select_lasso('INVOKE_DEFAULT', mode=self.mode)
             return {'RUNNING_MODAL'}
         if event.type in {'ESC'}:  # Cancel
             bpy.context.space_data.shading.show_xray = False
@@ -45,7 +44,7 @@ class TILA_select_through(bpy.types.Operator):
             if self.type == 'BORDER':
                 bpy.ops.view3d.select_box('INVOKE_DEFAULT', mode=self.mode, wait_for_input=False)
             if self.type == 'LASSO':
-                bpy.ops.view3d.select_lasso(mode=self.mode)
+                bpy.ops.view3d.select_lasso('INVOKE_DEFAULT', mode=self.mode)
         else:
             context.window_manager.modal_handler_add(self)
         return {'RUNNING_MODAL'}
