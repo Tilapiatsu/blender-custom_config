@@ -18,11 +18,9 @@ bl_info = {
 # TODO 
 # - Create a rename /batch rename feature
 # - Modify the camera behaviour to slow the dolly speed based on the distance from the object
-# - select next/previous
 # - Smart edit mode
 # - Vertex Normal Pie Menu : Mark Hard, Mark Soft, update normal, Thief
 # - UV Pie Menu : Split, sew, mak seam etc
-# - add the select through like Heavypoly
 
 
 class TilaKeymaps(KeymapManager.KeymapManager):
@@ -70,6 +68,7 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 						shortestpath_tool=None,
 						loop_tool=None, ring_tool=None,
 						more_tool=None, less_tool=None,
+						next_tool=None, previous_tool=None, 
 						linked_tool=None):
 
 		# Select / Deselect / Add
@@ -117,6 +116,13 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 
 		if less_tool:
 			self.kmi_set_replace(less_tool, self.k_less, 'PRESS', shift=True)
+		
+		# Select Next / Previous
+		if next_tool:
+			self.kmi_set_replace(next_tool, self.k_more, 'PRESS')
+
+		if previous_tool:
+			self.kmi_set_replace(previous_tool, self.k_less, 'PRESS')
 
 		# Linked
 		if linked_tool:
@@ -267,6 +273,8 @@ class TilaKeymaps(KeymapManager.KeymapManager):
                       		ring_tool='mesh.edgering_select',
 							more_tool='mesh.select_more',
 							less_tool='mesh.select_less',
+							next_tool='mesh.select_next_item',
+							previous_tool='mesh.select_prev_item',
 							linked_tool='mesh.select_linked_pick')
 
 		self.duplicate(duplicate='mesh.duplicate_move')
