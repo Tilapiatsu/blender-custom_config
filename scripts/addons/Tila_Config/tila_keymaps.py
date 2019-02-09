@@ -261,6 +261,7 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		self.kmi_set_replace('view3d.view_persportho', 'NUMPAD_ASTERIX', 'PRESS')
 
 		self.collection_visibility('object.hide_collection')
+		self.kmi_set_replace('bpy.ops.mesh.select_all', 'RIGHTMOUSE', 'CLICK', ctrl=True, alt=True, shift=True, properties=[('action', 'INVERT')])
 
 		# 3d Cursor
 		kmi = self.kmi_set_replace('view3d.cursor3d', self.k_cursor, 'CLICK', ctrl=True, alt=True, shift=True, properties=[('use_depth', True)])
@@ -357,6 +358,8 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 
 			# Set collection visibility shortcut
 		self.collection_visibility('object.hide_collection')
+		self.mode_selection()
+		self.kmi_set_replace('view3d.tila_smart_editmode', 'TAB', 'PRESS', shift=True, properties=[('alt_mode', True)], disable_double=True)
 
 		# Curve
 		self.kmi_init(name='Curve', space_type='EMPTY', region_type='WINDOW')
@@ -438,6 +441,8 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		self.kmi_init(name='Grease Pencil', space_type='EMPTY', region_type='WINDOW')
 		self.global_keys()
 		self.right_mouse()
+		self.mode_selection()
+		self.kmi_set_replace('view3d.tila_smart_editmode', 'TAB', 'PRESS', shift=True, properties=[('alt_mode', True)], disable_double=True)
 
 		# Grease Pencil Stroke Edit Mode
 		self.kmi_init(name='Grease Pencil Stroke Edit Mode', space_type='EMPTY', region_type='WINDOW')
@@ -445,9 +450,19 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		self.right_mouse()
 		self.duplicate(duplicate='gpencil.duplicate_move')
 		self.collection_visibility('object.hide_collection')
-		self.kmi_set_replace('view3d.tila_smart_editmode', 'TAB', 'PRESS', properties=[('alt_mode', True)], disable_double=True)
+		self.mode_selection()
+		self.kmi_set_replace('view3d.tila_smart_editmode', 'TAB', 'PRESS', shift=True, properties=[('alt_mode', True)], disable_double=True)
 		self.selection_keys(more_tool='gpencil.select_more',
                       		less_tool='gpencil.select_less')
+
+		# Grease Pencil Stroke Paint Mode
+		self.kmi_init(name='Grease Pencil Stroke Paint Mode', space_type='EMPTY', region_type='WINDOW')
+		self.global_keys()
+		self.right_mouse()
+		self.duplicate(duplicate='gpencil.duplicate_move')
+		self.collection_visibility('object.hide_collection')
+		self.mode_selection()
+		self.kmi_set_replace('view3d.tila_smart_editmode', 'TAB', 'PRESS', shift=True, properties=[('alt_mode', True)], disable_double=True)
 
 		# Transform Modal Map
 		self.kmi_init(name='Transform Modal Map', space_type='EMPTY', region_type='WINDOW')
@@ -460,8 +475,11 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		panning.value = 'ANY'
 		panning.any = True
 
-		panning = self.kmi_find(propvalue='ADD_CUT')
-		panning.type = 'RIGHTMOUSE'
+		add_cut = self.kmi_find(propvalue='ADD_CUT')
+		add_cut.type = 'RIGHTMOUSE'
+
+		end_cut = self.kmi_find(propvalue='NEW_CUT')
+		end_cut.type = 'MIDDLEMOUSE'
 
 		self.modal_set_replace('NEW_CUT', 'SPACE', 'PRESS')
 		
