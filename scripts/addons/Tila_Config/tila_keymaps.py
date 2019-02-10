@@ -67,21 +67,27 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 			self.kmi_set_replace(dolly, self.k_manip, "PRESS", alt=True, ctrl=True)
 
 	def mode_selection(self):
-		self.kmi_set_replace('view3d.tila_smart_editmode', self.k_vert_mode, 'PRESS', properties=[('mode', 0), ('use_extend', False), ('use_expand', False)], disable_double=True)
-		self.kmi_set_replace('view3d.tila_smart_editmode', self.k_edge_mode, 'PRESS', properties=[('mode', 1), ('use_extend', False), ('use_expand', False)], disable_double=True)
-		self.kmi_set_replace('view3d.tila_smart_editmode', self.k_face_mode, 'PRESS', properties=[('mode', 2), ('use_extend', False), ('use_expand', False)], disable_double=True)
+		self.kmi_set_replace('view3d.tila_smart_editmode', self.k_vert_mode, 'PRESS', properties=[('mode', 0), ('use_extend', False), ('use_expand', False), ('alt_mode', False)], disable_double=True)
+		self.kmi_set_replace('view3d.tila_smart_editmode', self.k_edge_mode, 'PRESS', properties=[('mode', 1), ('use_extend', False), ('use_expand', False), ('alt_mode', False)], disable_double=True)
+		self.kmi_set_replace('view3d.tila_smart_editmode', self.k_face_mode, 'PRESS', properties=[('mode', 2), ('use_extend', False), ('use_expand', False), ('alt_mode', False)], disable_double=True)
 
-		self.kmi_set_replace('view3d.tila_smart_editmode', self.k_vert_mode, 'PRESS', shift=True, properties=[('mode', 0), ('use_extend', True), ('use_expand', False)], disable_double=True)
-		self.kmi_set_replace('view3d.tila_smart_editmode', self.k_edge_mode, 'PRESS', shift=True, properties=[('mode', 1), ('use_extend', True), ('use_expand', False)], disable_double=True)
-		self.kmi_set_replace('view3d.tila_smart_editmode', self.k_face_mode, 'PRESS', shift=True, properties=[('mode', 2), ('use_extend', True), ('use_expand', False)], disable_double=True)
+		self.kmi_set_replace('view3d.tila_smart_editmode', self.k_vert_mode, 'PRESS', shift=True, properties=[('mode', 0), ('use_extend', True), ('use_expand', False), ('alt_mode', False)], disable_double=True)
+		self.kmi_set_replace('view3d.tila_smart_editmode', self.k_edge_mode, 'PRESS', shift=True, properties=[('mode', 1), ('use_extend', True), ('use_expand', False), ('alt_mode', False)], disable_double=True)
+		self.kmi_set_replace('view3d.tila_smart_editmode', self.k_face_mode, 'PRESS', shift=True, properties=[
+		                     ('mode', 2), ('use_extend', True), ('use_expand', False), ('alt_mode', False)], disable_double=True)
 
-		self.kmi_set_replace('view3d.tila_smart_editmode', self.k_vert_mode, 'PRESS', ctrl=True, properties=[('mode', 0), ('use_extend', False), ('use_expand', True)], disable_double=True)
-		self.kmi_set_replace('view3d.tila_smart_editmode', self.k_edge_mode, 'PRESS', ctrl=True, properties=[('mode', 1), ('use_extend', False), ('use_expand', True)], disable_double=True)
-		self.kmi_set_replace('view3d.tila_smart_editmode', self.k_face_mode, 'PRESS', ctrl=True, properties=[('mode', 2), ('use_extend', False), ('use_expand', True)], disable_double=True)
+		self.kmi_set_replace('view3d.tila_smart_editmode', self.k_vert_mode, 'PRESS', ctrl=True, properties=[('mode', 0), ('use_extend', False), ('use_expand', True), ('alt_mode', False)], disable_double=True)
+		self.kmi_set_replace('view3d.tila_smart_editmode', self.k_edge_mode, 'PRESS', ctrl=True, properties=[
+		                     ('mode', 1), ('use_extend', False), ('use_expand', True), ('alt_mode', False)], disable_double=True)
+		self.kmi_set_replace('view3d.tila_smart_editmode', self.k_face_mode, 'PRESS', ctrl=True, properties=[
+		                     ('mode', 2), ('use_extend', False), ('use_expand', True), ('alt_mode', False)], disable_double=True)
 
-		self.kmi_set_replace('view3d.tila_smart_editmode', self.k_vert_mode, 'PRESS', ctrl=True, shift=True, properties=[('mode', 0), ('use_extend', True), ('use_expand', True)], disable_double=True)
-		self.kmi_set_replace('view3d.tila_smart_editmode', self.k_edge_mode, 'PRESS', ctrl=True, shift=True, properties=[('mode', 1), ('use_extend', True), ('use_expand', True)], disable_double=True)
-		self.kmi_set_replace('view3d.tila_smart_editmode', self.k_face_mode, 'PRESS', ctrl=True, shift=True, properties=[('mode', 2), ('use_extend', True), ('use_expand', True)], disable_double=True)
+		self.kmi_set_replace('view3d.tila_smart_editmode', self.k_vert_mode, 'PRESS', ctrl=True, shift=True, properties=[
+		                     ('mode', 0), ('use_extend', True), ('use_expand', True), ('alt_mode', False)], disable_double=True)
+		self.kmi_set_replace('view3d.tila_smart_editmode', self.k_edge_mode, 'PRESS', ctrl=True, shift=True, properties=[
+		                     ('mode', 1), ('use_extend', True), ('use_expand', True), ('alt_mode', False)], disable_double=True)
+		self.kmi_set_replace('view3d.tila_smart_editmode', self.k_face_mode, 'PRESS', ctrl=True, shift=True, properties=[
+		                     ('mode', 2), ('use_extend', True), ('use_expand', True), ('alt_mode', False)], disable_double=True)
 
 	def collection_visibility(self, collection_visibility_tool):
 		self.kmi_set_replace(collection_visibility_tool, 'NUMPAD_1', 'PRESS', any=True, properties=[('collection_index', 1)])
@@ -96,10 +102,9 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		self.kmi_set_active(False, idname=collection_visibility_tool, type='ZERO')
 
 	def selection_keys(self,
-
 						select_tool=None, 
 						lasso_tool=None, select_through_tool=None,
-                    	circle_tool=None,
+						circle_tool=None,
 						shortestpath_tool=None,
 						loop_tool=None, ring_tool=None,
 						more_tool=None, less_tool=None,
@@ -200,7 +205,7 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		type = 'X'
 
 		self.kmi_set_replace('wm.context_toggle', type, 'PRESS', properties=[('data_path', 'tool_settings.use_snap')])
-		if snapping and snapping_prop:
+		if snapping is not None and snapping_prop is not None:
 			self.kmi_set_replace(snapping, type, 'PRESS', shift=True, properties=snapping_prop)
 
 	def tool_smooth(self):
@@ -212,6 +217,15 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 	def tool_smart_delete(self):
 		self.kmi_set_active(False, type='DEL')
 		self.kmi_set_replace('object.tila_smartdelete', 'DEL', 'PRESS')
+
+	def tool_radial_control(self, radius=None, opacity=None, eraser_radius=None):
+		type = 'S'
+		if radius:
+			self.kmi_set_replace('wm.radial_control', type, 'PRESS', properties=[('data_path_primary', radius)], disable_double=True)
+		if opacity:
+			self.kmi_set_replace('wm.radial_control', type, 'PRESS', shift=True, properties=[('data_path_primary', opacity)], disable_double=True)
+		if eraser_radius:
+			self.kmi_set_replace('wm.radial_control', type, 'PRESS', ctrl=True, alt=True, properties=[('data_path_primary', eraser_radius)], disable_double=True)
 
 	# Keymap define
 
@@ -251,7 +265,7 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		self.selection_keys(select_tool='view3d.select', 
 							lasso_tool='view3d.select_lasso',
 							select_through_tool='view3d.tila_select_through',
-                      		circle_tool='view3d.select_circle')
+					  		circle_tool='view3d.select_circle')
 		
 		self.kmi_set_replace('object.tila_emptymesh', 'N', 'PRESS', ctrl=True, alt=True, shift=True)
 		self.snap(snapping='wm.call_panel', snapping_prop=[('name', 'VIEW3D_PT_snapping')])
@@ -292,12 +306,12 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		self.right_mouse()
 		self.selection_tool()
 		self.selection_keys(select_tool='uv.select',
-                      		lasso_tool='uv.select_lasso',
-                      		circle_tool='uv.select_circle',
-                      		loop_tool='uv.select_loop',
-                      		more_tool='uv.select_more',
-                      		less_tool='uv.select_less',
-                      		linked_tool='uv.select_linked_pick')
+					  		lasso_tool='uv.select_lasso',
+					  		circle_tool='uv.select_circle',
+					  		loop_tool='uv.select_loop',
+					  		more_tool='uv.select_more',
+					  		less_tool='uv.select_less',
+					  		linked_tool='uv.select_linked_pick')
 		
 		self.kmi_set_replace('uv.cursor_set', self.k_cursor, 'PRESS', ctrl=True, alt=True, shift=True)
 		self.tool_smooth()
@@ -313,7 +327,7 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 
 		self.selection_keys(shortestpath_tool='mesh.shortest_path_pick',
 							loop_tool='mesh.loop_select',
-                      		ring_tool='mesh.edgering_select',
+					  		ring_tool='mesh.edgering_select',
 							more_tool='mesh.select_more',
 							less_tool='mesh.select_less',
 							next_tool='mesh.select_next_item',
@@ -336,6 +350,10 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		self.kmi_set_replace('mesh.edge_face_add', 'P', 'PRESS')
 		self.kmi_set_replace('mesh.flip_normals', 'F', 'PRESS')
 		self.kmi_set_replace('mesh.subdivide', 'D', 'PRESS')
+
+		self.kmi_set_replace('mesh.remove_doubles', 'M', 'PRESS', ctrl=True, shift=True, disable_double=True)
+		kmi = self.kmi_set_replace('mesh.separate', 'D', 'PRESS', ctrl=True, shift=True, properties=(['type', 'SELECTED']))
+		self.kmi_prop_setattr(kmi.properties, 'type', 'SELECTED')
 
 		# Object Mode
 		self.kmi_init(name='Object Mode', space_type='EMPTY', region_type='WINDOW')
@@ -442,7 +460,16 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		self.global_keys()
 		self.right_mouse()
 		self.mode_selection()
+		self.duplicate(duplicate='gpencil.duplicate_move')
 		self.kmi_set_replace('view3d.tila_smart_editmode', 'TAB', 'PRESS', shift=True, properties=[('alt_mode', True)], disable_double=True)
+		self.selection_keys(select_tool='gpencil.select',
+							lasso_tool='gpencil.select_lasso',
+					  		circle_tool='gpencil.select_circle',
+					  		more_tool='gpencil.select_more',
+					  		less_tool='gpencil.select_less',
+					  		next_tool='gpencil.select_first',
+					  		previous_tool='gpencil.select_last',
+					  		linked_tool='gpencil.select_linked')
 
 		# Grease Pencil Stroke Edit Mode
 		self.kmi_init(name='Grease Pencil Stroke Edit Mode', space_type='EMPTY', region_type='WINDOW')
@@ -451,9 +478,14 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		self.duplicate(duplicate='gpencil.duplicate_move')
 		self.collection_visibility('object.hide_collection')
 		self.mode_selection()
+		self.tool_smart_delete()
+		self.kmi_set_active(False, idname='gpencil.dissolve')
+		self.kmi_set_active(False, idname='gpencil.active_frames_delete_all')
+		self.kmi_set_replace('gpencil.dissolve', 'DEL', 'PRESS', shift=True, properties=[('type', 'POINTS')], disable_double=True)
+		self.kmi_set_replace('gpencil.active_frames_delete_all', 'DEL', 'PRESS', ctrl=True, alt=True, shift=True)
 		self.kmi_set_replace('view3d.tila_smart_editmode', 'TAB', 'PRESS', shift=True, properties=[('alt_mode', True)], disable_double=True)
 		self.selection_keys(more_tool='gpencil.select_more',
-                      		less_tool='gpencil.select_less')
+					  		less_tool='gpencil.select_less')
 
 		# Grease Pencil Stroke Paint Mode
 		self.kmi_init(name='Grease Pencil Stroke Paint Mode', space_type='EMPTY', region_type='WINDOW')
@@ -463,6 +495,20 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		self.collection_visibility('object.hide_collection')
 		self.mode_selection()
 		self.kmi_set_replace('view3d.tila_smart_editmode', 'TAB', 'PRESS', shift=True, properties=[('alt_mode', True)], disable_double=True)
+		self.tool_radial_control(radius='tool_settings.gpencil_paint.brush.size', opacity='tool_settings.gpencil_paint.brush.gpencil_settings.pen_strength',
+		                         eraser_radius='preferences.edit.grease_pencil_eraser_radius')
+		
+		# Grease Pencil Stroke Paint (Draw brush)
+		self.kmi_init(name='Grease Pencil Stroke Paint (Draw brush)', space_type='EMPTY', region_type='WINDOW')
+		kmi = self.kmi_find(idname='gpencil.draw', ctrl=False, alt=True, shift=False)
+		kmi.ctrl = True
+		kmi.alt = False
+		kmi.shift = True
+
+		kmi = self.kmi_find(idname='gpencil.draw', ctrl=False, alt=True, shift=True)
+		kmi.ctrl = True
+		kmi.alt = True
+		kmi.shift = True
 
 		# Transform Modal Map
 		self.kmi_init(name='Transform Modal Map', space_type='EMPTY', region_type='WINDOW')

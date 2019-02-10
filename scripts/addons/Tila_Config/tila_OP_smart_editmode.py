@@ -26,7 +26,7 @@ class TILA_smart_editmode(bpy.types.Operator):
     alt_mode = bpy.props.BoolProperty(name='alt_mode', default=False)
 
     mesh_mode = ['VERT', 'EDGE', 'FACE']
-    gpencile_mode = ['POINT', 'STROKE', 'SEGMENT']
+    gpencil_mode = ['POINT', 'STROKE', 'SEGMENT']
 
     def modal(self, context, event):
         pass
@@ -39,12 +39,14 @@ class TILA_smart_editmode(bpy.types.Operator):
                 bpy.ops.mesh.select_mode(use_extend=self.use_extend, use_expand=self.use_expand, type=self.mesh_mode[self.mode])
 
         def switch_gpencil_mode(self, current_mode):
-            if self.gpencile_mode[self.mode] == current_mode:
+            if self.gpencil_mode[self.mode] == current_mode:
                 bpy.ops.gpencil.editmode_toggle()
             else:
-                bpy.ops.gpencil.selectmode_toggle(mode=self.gpencile_mode[self.mode])
+                bpy.context.scene.tool_settings.gpencil_selectmode = self.gpencil_mode[self.mode]
 
         if bpy.context.mode == 'OBJECT':
+            if bpy.context.active_object is None:
+                return {'CANCELED'}
             if bpy.context.active_object.type == 'MESH':
                 bpy.ops.object.editmode_toggle()
                 bpy.ops.mesh.select_mode(use_extend=self.use_extend, use_expand=self.use_expand, type=self.mesh_mode[self.mode])
@@ -54,6 +56,7 @@ class TILA_smart_editmode(bpy.types.Operator):
                     bpy.ops.gpencil.paintmode_toggle()
                 else:
                     bpy.ops.gpencil.editmode_toggle()
+                    bpy.context.scene.tool_settings.gpencil_selectmode = self.gpencil_mode[self.mode]
 
         elif bpy.context.mode == 'EDIT_MESH':
             if self.alt_mode:
@@ -68,14 +71,9 @@ class TILA_smart_editmode(bpy.types.Operator):
 
         elif bpy.context.mode in ['EDIT_GPENCIL', 'PAINT_GPENCIL', 'SCULPT_GPENCIL', 'WEIGHT_GPENCIL']:
             if self.alt_mode:
-                bpy.ops.gpencil.editmode_toggle()
+                bpy.ops.gpencil.paintmode_toggle()
             else:
-                if bpy.context.scene.tool_settings.gpencil_selectmode == 'POINT':
-                    switch_gpencil_mode(self, 'POINT')
-                elif bpy.context.scene.tool_settings.gpencil_selectmode == 'STROKE':
-                    switch_gpencil_mode(self, 'STROKE')
-                elif bpy.context.scene.tool_settings.gpencil_selectmode == 'SEGMENT':
-                    switch_gpencil_mode(self, 'SEGMENT')
+                switch_gpencil_mode(self, bpy.context.scene.tool_settings.gpencil_selectmode)
         else:
             bpy.ops.object.editmode_toggle()
 

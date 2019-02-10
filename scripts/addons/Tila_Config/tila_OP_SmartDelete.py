@@ -30,6 +30,12 @@ class SmartDeleteOperator(bpy.types.Operator):
                 if current_mesh_mode[2]:
                     bpy.ops.mesh.delete(type='FACE')
 
+            elif context.mode == 'EDIT_GPENCIL':
+                try:
+                    bpy.ops.gpencil.delete(type='POINTS')
+                except Exception as e:
+                    print("Warning: %r" % e)
+
             elif context.mode == 'OBJECT':
                 bpy.ops.object.delete(use_global=False, confirm=False)
 
