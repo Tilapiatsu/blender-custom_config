@@ -46,7 +46,7 @@ class TILA_smart_editmode(bpy.types.Operator):
 
         if bpy.context.mode == 'OBJECT':
             if bpy.context.active_object is None:
-                return {'CANCELED'}
+                return {'CANCELLED'}
             if bpy.context.active_object.type == 'MESH':
                 bpy.ops.object.editmode_toggle()
                 bpy.ops.mesh.select_mode(use_extend=self.use_extend, use_expand=self.use_expand, type=self.mesh_mode[self.mode])

@@ -22,6 +22,8 @@ bl_info = {
 # - UV Pie Menu : Split, sew, mak seam etc
 # - Subdivision script
 # - H Sould Toggle visibility nod hide only
+# - Need to fix the subdivision level + and - in sculpt mode
+# - Need to fix the rotate scaling pivot point in UV context
 
 
 class TilaKeymaps(KeymapManager.KeymapManager):
