@@ -18,12 +18,13 @@ bl_info = {
 # TODO 
 # - Create a rename /batch rename feature
 # - Modify the camera behaviour to slow the dolly speed based on the distance from the object
+#   --Modify the camera bihaviour to be able to rotate around the last point under the mouse
 # - Vertex Normal Pie Menu : Mark Hard, Mark Soft, update normal, Thief
 # - UV Pie Menu : Split, sew, mak seam etc
 # - Subdivision script
-# - H Sould Toggle visibility nod hide only
 # - Need to fix the subdivision level + and - in sculpt mode
 # - Need to fix the rotate scaling pivot point in UV context
+# - create an isolate script
 
 
 class TilaKeymaps(KeymapManager.KeymapManager):
@@ -59,6 +60,7 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		self.kmi_set_active(False, type='X')
 		self.kmi_set_active(False, type='X', shift=True)
 		self.kmi_set_active(False, type='TAB', ctrl=True, shift=True)
+		self.kmi_set_active(False, idname='wm.call_panel', type='X', ctrl=True)
 
 	def navigation_keys(self, pan=None, orbit=None, dolly=None):
 		if orbit:
@@ -76,20 +78,20 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		self.kmi_set_replace('view3d.tila_smart_editmode', self.k_vert_mode, 'PRESS', shift=True, properties=[('mode', 0), ('use_extend', True), ('use_expand', False), ('alt_mode', False)], disable_double=True)
 		self.kmi_set_replace('view3d.tila_smart_editmode', self.k_edge_mode, 'PRESS', shift=True, properties=[('mode', 1), ('use_extend', True), ('use_expand', False), ('alt_mode', False)], disable_double=True)
 		self.kmi_set_replace('view3d.tila_smart_editmode', self.k_face_mode, 'PRESS', shift=True, properties=[
-		                     ('mode', 2), ('use_extend', True), ('use_expand', False), ('alt_mode', False)], disable_double=True)
+							 ('mode', 2), ('use_extend', True), ('use_expand', False), ('alt_mode', False)], disable_double=True)
 
 		self.kmi_set_replace('view3d.tila_smart_editmode', self.k_vert_mode, 'PRESS', ctrl=True, properties=[('mode', 0), ('use_extend', False), ('use_expand', True), ('alt_mode', False)], disable_double=True)
 		self.kmi_set_replace('view3d.tila_smart_editmode', self.k_edge_mode, 'PRESS', ctrl=True, properties=[
-		                     ('mode', 1), ('use_extend', False), ('use_expand', True), ('alt_mode', False)], disable_double=True)
+							 ('mode', 1), ('use_extend', False), ('use_expand', True), ('alt_mode', False)], disable_double=True)
 		self.kmi_set_replace('view3d.tila_smart_editmode', self.k_face_mode, 'PRESS', ctrl=True, properties=[
-		                     ('mode', 2), ('use_extend', False), ('use_expand', True), ('alt_mode', False)], disable_double=True)
+							 ('mode', 2), ('use_extend', False), ('use_expand', True), ('alt_mode', False)], disable_double=True)
 
 		self.kmi_set_replace('view3d.tila_smart_editmode', self.k_vert_mode, 'PRESS', ctrl=True, shift=True, properties=[
-		                     ('mode', 0), ('use_extend', True), ('use_expand', True), ('alt_mode', False)], disable_double=True)
+							 ('mode', 0), ('use_extend', True), ('use_expand', True), ('alt_mode', False)], disable_double=True)
 		self.kmi_set_replace('view3d.tila_smart_editmode', self.k_edge_mode, 'PRESS', ctrl=True, shift=True, properties=[
-		                     ('mode', 1), ('use_extend', True), ('use_expand', True), ('alt_mode', False)], disable_double=True)
+							 ('mode', 1), ('use_extend', True), ('use_expand', True), ('alt_mode', False)], disable_double=True)
 		self.kmi_set_replace('view3d.tila_smart_editmode', self.k_face_mode, 'PRESS', ctrl=True, shift=True, properties=[
-		                     ('mode', 2), ('use_extend', True), ('use_expand', True), ('alt_mode', False)], disable_double=True)
+							 ('mode', 2), ('use_extend', True), ('use_expand', True), ('alt_mode', False)], disable_double=True)
 
 	def collection_visibility(self, collection_visibility_tool):
 		self.kmi_set_replace(collection_visibility_tool, 'NUMPAD_1', 'PRESS', any=True, properties=[('collection_index', 1)])
@@ -280,8 +282,7 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		# Disabling zoom key
 		self.kmi_set_active(False, ctrl=True, type=self.k_cursor)
 		self.kmi_set_active(False, idname='view3d.select_circle', type="C")
-		# self.kmi_set_active(False, idname='view3d.select_lasso', ctrl=True)
-		# self.kmi_set_active(False, idname='view3d.select_lasso', ctrl=True, shift=True)
+
 		self.navigation_keys(pan='view3d.move',
 							orbit='view3d.rotate',
 							dolly='view3d.dolly')
@@ -384,6 +385,8 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		kmi = self.kmi_set_replace('mesh.separate', 'D', 'PRESS', ctrl=True, shift=True, properties=(['type', 'SELECTED']))
 		self.kmi_prop_setattr(kmi.properties, 'type', 'SELECTED')
 
+		self.tool_subdivision(subdivision='object.subdivision_set')
+
 		self.tool_sculpt('sculpt.sculptmode_toggle')
 
 		# Object Mode
@@ -411,12 +414,14 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		self.tool_sculpt('sculpt.sculptmode_toggle')
 
 		self.tool_radial_control(radius=[('data_path_primary', 'tool_settings.sculpt.brush.size'), ('data_path_secondary', 'tool_settings.unified_paint_settings.size'), ('use_secondary', 'tool_settings.unified_paint_settings.use_unified_size'), ('rotation_path', 'tool_settings.sculpt.brush.texture_slot.angle'), ('color_path', 'tool_settings.sculpt.brush.cursor_color_add'), ('image_id', 'tool_settings.sculpt.brush')],
-                           		opacity=[('data_path_primary', 'tool_settings.sculpt.brush.strength'), ('data_path_secondary', 'tool_settings.unified_paint_settings.strength'), ('use_secondary', 'tool_settings.unified_paint_settings.use_unified_strength'), (
-                               'rotation_path', 'tool_settings.sculpt.brush.texture_slot.angle'), ('color_path', 'tool_settings.sculpt.brush.cursor_color_add'), ('image_id', 'tool_settings.sculpt.brush')],
-                           		eraser_radius=[('data_path_primary', 'tool_settings.sculpt.brush.texture_slot.angle'), ('rotation_path', 'tool_settings.sculpt.brush.texture_slot.angle'), ('color_path', 'tool_settings.sculpt.brush.cursor_color_add'), ('image_id', 'tool_settings.sculpt.brush')])
+						   		opacity=[('data_path_primary', 'tool_settings.sculpt.brush.strength'), ('data_path_secondary', 'tool_settings.unified_paint_settings.strength'), ('use_secondary', 'tool_settings.unified_paint_settings.use_unified_strength'), (
+							   'rotation_path', 'tool_settings.sculpt.brush.texture_slot.angle'), ('color_path', 'tool_settings.sculpt.brush.cursor_color_add'), ('image_id', 'tool_settings.sculpt.brush')],
+						   		eraser_radius=[('data_path_primary', 'tool_settings.sculpt.brush.texture_slot.angle'), ('rotation_path', 'tool_settings.sculpt.brush.texture_slot.angle'), ('color_path', 'tool_settings.sculpt.brush.cursor_color_add'), ('image_id', 'tool_settings.sculpt.brush')])
 
-		self.tool_subdivision(subdivision='object.subdivision_set')
-
+		self.kmi_set_replace('sculpt.tila_multires_subdivision', 'D', 'PRESS', properties=[('subd', 1), ('relative', True), ('increase_subd', False)])
+		self.kmi_set_replace('sculpt.tila_multires_subdivision', 'D', 'PRESS', ctrl=True, properties=[('subd', 1), ('relative', True), ('increase_subd', True)])
+		self.kmi_set_replace('sculpt.tila_multires_subdivision', 'D', 'PRESS', shift=True, properties=[('subd', -1), ('relative', True), ('increase_subd', False)])
+		self.kmi_set_replace('sculpt.dynamic_topology_toggle', 'D', 'PRESS', ctrl=True, alt=True, shift=True)
 		# Curve
 		self.kmi_init(name='Curve', space_type='EMPTY', region_type='WINDOW')
 		self.global_keys()
@@ -536,7 +541,7 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		self.mode_selection()
 		self.kmi_set_replace('view3d.tila_smart_editmode', 'TAB', 'PRESS', shift=True, properties=[('alt_mode', True)], disable_double=True)
 		self.tool_radial_control(radius=[('data_path_primary', 'tool_settings.gpencil_paint.brush.size')], opacity=[('data_path_primary', 'tool_settings.gpencil_paint.brush.gpencil_settings.pen_strength')],
-		                         eraser_radius=[('data_path_primary', 'preferences.edit.grease_pencil_eraser_radius')])
+								 eraser_radius=[('data_path_primary', 'preferences.edit.grease_pencil_eraser_radius')])
 		
 		# Grease Pencil Stroke Paint (Draw brush)
 		self.kmi_init(name='Grease Pencil Stroke Paint (Draw brush)', space_type='EMPTY', region_type='WINDOW')
