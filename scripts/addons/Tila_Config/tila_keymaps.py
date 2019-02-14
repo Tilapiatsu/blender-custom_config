@@ -21,10 +21,9 @@ bl_info = {
 #   --Modify the camera bihaviour to be able to rotate around the last point under the mouse
 # - Vertex Normal Pie Menu : Mark Hard, Mark Soft, update normal, Thief
 # - UV Pie Menu : Split, sew, mak seam etc
-# - Subdivision script
-# - Need to fix the subdivision level + and - in sculpt mode
-# - Need to fix the rotate scaling pivot point in UV context
+# - Need to fix the rotate/scaling pivot point in UV context
 # - create an isolate script
+# - Modify keymap for masking in sculpt mode
 
 
 class TilaKeymaps(KeymapManager.KeymapManager):
@@ -399,6 +398,8 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		self.tool_subdivision(subdivision='object.subdivision_set')
 		self.kmi_set_replace('object.delete', 'DEL', 'PRESS', ctrl=True, alt=True, shift=True, properties=[('use_global', True), ('confirm', True)])
 
+		self.kmi_set_replace('view3d.tila_isolate', 'X', 'PRESS', ctrl=True, alt=True, shift=True)
+		
 		# Set collection visibility shortcut
 		self.collection_visibility('object.hide_collection')
 		self.mode_selection()
