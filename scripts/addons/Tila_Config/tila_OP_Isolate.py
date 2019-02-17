@@ -3,6 +3,7 @@ from bpy.props import IntProperty, BoolProperty, EnumProperty
 from mathutils import Vector
 import bgl
 import bpy
+import bmesh
 bl_info = {
     "name": "Isolate",
     "description": "contextual Isolate function that work in object and edit mode",
@@ -28,24 +29,36 @@ class TILA_isolate(bpy.types.Operator):
     def modal(self, context, event):
         pass
 
-    def isolate(self, isolate=None, reveal=None):
-        if len(self.selected_objects) == 0 or self.is_isolated:
+    def isolate(self, context,  isolate=None, reveal=None, sel_count=0):
+        if sel_count == 0 or self.is_isolated:
             reveal()
             self.is_isolated = False
             self.isolated_items = []
+            return 'REVEAL'
         else:
             isolate(unselected=True)
             self.is_isolated = True
             self.isolated_items.append(self.selected_objects)
+            return 'ISOLATE'
 
     def invoke(self, context, event):
         self.selected_objects = bpy.context.selected_objects
         if context.space_data.type == 'VIEW_3D':
 
             if bpy.context.mode == 'OBJECT':
-                self.isolate(isolate=bpy.ops.object.hide_view_set, reveal=bpy.ops.object.hide_view_clear)
+                if self.isolate(context, isolate=bpy.ops.object.hide_view_set, reveal=bpy.ops.object.hide_view_clear, sel_count=len(self.selected_objects)) == 'REVEAL':
+                    bpy.ops.object.select_all(action='INVERT')
             elif bpy.context.mode in ['EDIT_MESH', 'EDIT_CURVE', 'EDIT_SURFACE']:
-                self.isolate(isolate=bpy.ops.mesh.hide, reveal=bpy.ops.mesh.reveal)
+                selected_face = []
+                for obj in self.selected_objects:
+                    faces = obj.data
+                    bm = bmesh.from_edit_mesh(faces)
+                    for f in bm.faces:
+                        if f.select:
+                            selected_face.append(f)
+                if self.isolate(context, isolate=bpy.ops.mesh.hide, reveal=bpy.ops.mesh.reveal, sel_count=len(selected_face)) == 'REVEAL':
+                    bpy.ops.mesh.select_all(action='INVERT')
+
             elif bpy.context.mode in ['PAINT_GPENCIL', 'EDIT_GPENCIL', 'SCULPT_GPENCIL']:
                 pass
 

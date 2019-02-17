@@ -388,6 +388,8 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 
 		self.tool_sculpt('sculpt.sculptmode_toggle')
 
+		self.kmi_set_replace('view3d.tila_isolate', 'X', 'PRESS', ctrl=True, alt=True, shift=True)
+
 		# Object Mode
 		self.kmi_init(name='Object Mode', space_type='EMPTY', region_type='WINDOW')
 		self.global_keys()
@@ -517,6 +519,8 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 
 		self.tool_sculpt('gpencil.sculptmode_toggle')
 
+		self.kmi_set_replace('view3d.tila_isolate', 'X', 'PRESS', ctrl=True, alt=True, shift=True)
+
 		# Grease Pencil Stroke Edit Mode
 		self.kmi_init(name='Grease Pencil Stroke Edit Mode', space_type='EMPTY', region_type='WINDOW')
 		self.global_keys()
@@ -533,6 +537,7 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		self.selection_keys(more_tool='gpencil.select_more',
 					  		less_tool='gpencil.select_less')
 
+		self.kmi_set_replace('view3d.tila_isolate', 'X', 'PRESS', ctrl=True, alt=True, shift=True)
 		# Grease Pencil Stroke Paint Mode
 		self.kmi_init(name='Grease Pencil Stroke Paint Mode', space_type='EMPTY', region_type='WINDOW')
 		self.global_keys()
