@@ -428,8 +428,11 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		self.kmi_set_replace('sculpt.tila_multires_subdivision', 'D', 'PRESS', shift=True, properties=[('subd', -1), ('relative', True), ('increase_subd', False)])
 		self.kmi_set_replace('sculpt.dynamic_topology_toggle', 'D', 'PRESS', ctrl=True, alt=True, shift=True)
 		
-		self.kmi_set_replace('paint.mask_lasso_gesture', self.k_context, 'PRESS', ctrl=True, properties=[('value', 1)])
-		self.kmi_set_replace('paint.mask_lasso_gesture', self.k_context, 'PRESS', ctrl=True, shift=True, properties=[('value', 0)])
+		self.kmi_set_replace('paint.mask_lasso_gesture', self.k_context, 'PRESS', properties=[('value', 1)])
+		self.kmi_set_replace('paint.mask_lasso_gesture', self.k_context, 'PRESS', shift=True, properties=[('value', 0)])
+
+		self.kmi_set_replace('paint.hide_show', self.k_nav, 'CLICK_DRAG', ctrl=True, shift=True, properties=[('action', 'HIDE'), ('wait_for_input', False)], disable_double=True)
+		self.kmi_set_replace('paint.hide_show', self.k_nav, 'CLICK', ctrl=True, shift=True, properties=[('action', 'SHOW'), ('wait_for_input', False)], disable_double=True)
 		
 		# Curve
 		self.kmi_init(name='Curve', space_type='EMPTY', region_type='WINDOW')
