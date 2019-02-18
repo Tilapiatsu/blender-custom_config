@@ -390,6 +390,8 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 
 		self.kmi_set_replace('view3d.tila_isolate', 'X', 'PRESS', ctrl=True, alt=True, shift=True)
 
+		# self.kmi_set_replace('object.merge_tool', 'M', 'PRESS')
+
 		# Object Mode
 		self.kmi_init(name='Object Mode', space_type='EMPTY', region_type='WINDOW')
 		self.global_keys()
@@ -425,6 +427,10 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		self.kmi_set_replace('sculpt.tila_multires_subdivision', 'D', 'PRESS', ctrl=True, properties=[('subd', 1), ('relative', True), ('increase_subd', True)])
 		self.kmi_set_replace('sculpt.tila_multires_subdivision', 'D', 'PRESS', shift=True, properties=[('subd', -1), ('relative', True), ('increase_subd', False)])
 		self.kmi_set_replace('sculpt.dynamic_topology_toggle', 'D', 'PRESS', ctrl=True, alt=True, shift=True)
+		
+		self.kmi_set_replace('paint.mask_lasso_gesture', self.k_context, 'PRESS', ctrl=True, properties=[('value', 1)])
+		self.kmi_set_replace('paint.mask_lasso_gesture', self.k_context, 'PRESS', ctrl=True, shift=True, properties=[('value', 0)])
+		
 		# Curve
 		self.kmi_init(name='Curve', space_type='EMPTY', region_type='WINDOW')
 		self.global_keys()
