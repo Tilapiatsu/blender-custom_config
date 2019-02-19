@@ -23,7 +23,7 @@ bl_info = {
 # - UV Pie Menu : Split, sew, mak seam etc
 # - Need to fix the rotate/scaling pivot point in UV context
 # - create an isolate script
-# - Modify keymap for masking in sculpt mode
+# - Modify keymap for hiding/reveal in sculpt mode
 
 
 class TilaKeymaps(KeymapManager.KeymapManager):
