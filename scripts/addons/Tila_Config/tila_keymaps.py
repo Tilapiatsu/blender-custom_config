@@ -24,6 +24,7 @@ bl_info = {
 # - Need to fix the rotate/scaling pivot point in UV context
 # - create an isolate script
 # - Modify keymap for hiding/reveal in sculpt mode
+# - modify the highlight color in the outliner
 
 
 class TilaKeymaps(KeymapManager.KeymapManager):
@@ -47,6 +48,10 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		self.k_vert_mode = 'ONE'
 		self.k_edge_mode = 'TWO'
 		self.k_face_mode = 'THREE'
+
+		self.k_move = 'G'
+		self.k_rotate = 'R'
+		self.k_scale = 'S'
 
 	# Global Keymap Functions
 
@@ -253,6 +258,11 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		if orientation:
 			self.kmi_set_replace('wm.call_panel', 'X', 'PRESS', ctrl=True, shift=True, properties=[('name', orientation), ('keep_open', False)], disable_double=True)
 	
+	def tool_transform(self):
+		self.kmi_set_replace('wm.tool_set_by_name', self.k_move, 'PRESS', properties=[('name', 'Move')])
+		self.kmi_set_replace('wm.tool_set_by_name', self.k_rotate, 'PRESS', properties=[('name', 'Rotate')])
+		self.kmi_set_replace('wm.tool_set_by_name', self.k_scale, 'PRESS', properties=[('name', 'Scale')])
+
 	# Keymap define
 	def set_tila_keymap(self):
 		print("----------------------------------------------------------------")
@@ -353,6 +363,7 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		self.selection_tool()
 		self.right_mouse()
 		self.mode_selection()
+		self.tool_transform()
 
 		self.selection_keys(shortestpath_tool='mesh.shortest_path_pick',
 							loop_tool='mesh.loop_select',
@@ -397,6 +408,7 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		self.global_keys()
 		self.selection_tool()
 		self.right_mouse()
+		self.tool_transform()
 		self.duplicate(duplicate='object.duplicate_move', duplicate_link='object.duplicate_move_linked')
 
 		self.tool_subdivision(subdivision='object.subdivision_set')
@@ -438,13 +450,15 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		self.kmi_init(name='Curve', space_type='EMPTY', region_type='WINDOW')
 		self.global_keys()
 		self.selection_tool()
+		self.tool_transform()
 		self.right_mouse()
 		self.duplicate(duplicate='curve.duplicate_move')
+		self.tool_smart_delete()
 		self.kmi_set_replace('curve.select_linked', self.k_select, 'DOUBLE_CLICK', shift=True)
 		self.kmi_set_replace('curve.select_linked_pick', self.k_select, 'DOUBLE_CLICK')
 		self.kmi_set_replace('curve.reveal', 'H', 'PRESS', ctrl=True, shift=True)
 		self.kmi_set_replace('curve.shortest_path_pick', self.k_select, 'PRESS', ctrl=True, shift=True)
-		self.kmi_set_replace('curve.draw', 'LEFTMOUSE', 'PRESS', alt=True)
+		self.kmi_set_replace('curve.draw', 'LEFTMOUSE', 'PRESS', alt=True, ctrl=True, shift=True, properties=[('wait_for_input', False)])
 
 		# Outliner
 		self.kmi_init(name='Outliner', space_type='OUTLINER', region_type='WINDOW')

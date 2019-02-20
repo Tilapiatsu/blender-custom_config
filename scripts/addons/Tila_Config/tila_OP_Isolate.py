@@ -48,7 +48,7 @@ class TILA_isolate(bpy.types.Operator):
             if bpy.context.mode == 'OBJECT':
                 if self.isolate(context, isolate=bpy.ops.object.hide_view_set, reveal=bpy.ops.object.hide_view_clear, sel_count=len(self.selected_objects)) == 'REVEAL':
                     bpy.ops.object.select_all(action='INVERT')
-            elif bpy.context.mode in ['EDIT_MESH', 'EDIT_CURVE', 'EDIT_SURFACE']:
+            elif bpy.context.mode == 'EDIT_MESH':
                 selected_face = []
                 for obj in self.selected_objects:
                     faces = obj.data
@@ -58,7 +58,8 @@ class TILA_isolate(bpy.types.Operator):
                             selected_face.append(f)
                 if self.isolate(context, isolate=bpy.ops.mesh.hide, reveal=bpy.ops.mesh.reveal, sel_count=len(selected_face)) == 'REVEAL':
                     bpy.ops.mesh.select_all(action='INVERT')
-
+            elif bpy.context.mode in ['EDIT_CURVE', 'EDIT_SURFACE']:
+                pass
             elif bpy.context.mode in ['PAINT_GPENCIL', 'EDIT_GPENCIL', 'SCULPT_GPENCIL']:
                 pass
 
