@@ -22,8 +22,6 @@ bl_info = {
 # - Vertex Normal Pie Menu : Mark Hard, Mark Soft, update normal, Thief
 # - UV Pie Menu : Split, sew, mak seam etc
 # - Need to fix the rotate/scaling pivot point in UV context
-# - create an isolate script
-# - Modify keymap for hiding/reveal in sculpt mode
 # - modify the highlight color in the outliner
 
 
@@ -443,8 +441,8 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		self.kmi_set_replace('paint.mask_lasso_gesture', self.k_context, 'PRESS', properties=[('value', 1)])
 		self.kmi_set_replace('paint.mask_lasso_gesture', self.k_context, 'PRESS', shift=True, properties=[('value', 0)])
 
-		self.kmi_set_replace('paint.hide_show', self.k_nav, 'CLICK_DRAG', ctrl=True, shift=True, properties=[('action', 'HIDE'), ('wait_for_input', False)], disable_double=True)
-		self.kmi_set_replace('paint.hide_show', self.k_nav, 'CLICK', ctrl=True, shift=True, properties=[('action', 'SHOW'), ('wait_for_input', False)], disable_double=True)
+		self.kmi_set_replace('paint.hide_show', self.k_nav, 'CLICK_DRAG', ctrl=True, properties=[('action', 'HIDE'), ('wait_for_input', False), ('area', 'INSIDE')], disable_double=True)
+		self.kmi_set_replace('paint.hide_show', self.k_nav, 'CLICK_DRAG', ctrl=True, shift=True, properties=[('action', 'SHOW'), ('wait_for_input', False), ('area', 'OUTSIDE')], disable_double=True)
 		
 		# Curve
 		self.kmi_init(name='Curve', space_type='EMPTY', region_type='WINDOW')
@@ -609,6 +607,9 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 
 		self.modal_set_replace('NEW_CUT', 'SPACE', 'PRESS')
 		
+		# Gesture Box Modal Map
+		self.kmi_init(name='Gesture Box', space_type='EMPTY', region_type='WINDOW')
+		self.modal_set_replace('SELECT', self.k_cursor, 'RELEASE', any=True)
 		print("----------------------------------------------------------------")
 		print("Assignment complete")
 		print("----------------------------------------------------------------")
