@@ -25,9 +25,6 @@
 [submodule "scripts/addons/RenderBurst_GIT"]
 	path = scripts/addons/RenderBurst_GIT
 	url = https://github.com/VertStretch/RenderBurst.git
-[submodule "scripts/addons/animation_nodes_GIT"]
-	path = scripts/addons/animation_nodes_GIT
-	url = https://github.com/JacquesLucke/animation_nodes.git
 [submodule "scripts/addons/Capsule_GIT"]
 	path = scripts/addons/Capsule_GIT
 	url = https://github.com/Takanu/Capsule.git
