@@ -44,5 +44,7 @@ ui.outliner.selected_highlight = (0.29, 0.38, 0.29)
 ui.outliner.space.text = (0.6, 0.6, 0.6)
 ui.outliner.space.text_hi = (0.733, 1.0, 0.584)
 
+# Enabling addon
+addon_utils.enable('space_view3d_modifier_tools')
 
 print("Loading Tilapiatu's user preferences Completed")
