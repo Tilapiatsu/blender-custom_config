@@ -31,9 +31,6 @@
 [submodule "scripts/addons/simple-asset-manager_GIT"]
 	path = scripts/addons/simple-asset-manager_GIT
 	url = https://gitlab.com/tibicen/simple-asset-manager.git
-[submodule "scripts/addons/fSpy-Blender_GIT"]
-	path = scripts/addons/fSpy-Blender_GIT
-	url = https://github.com/stuffmatic/fSpy-Blender.git
 [submodule "scripts/addons/fake-bpy-module"]
 	path = scripts/addons/fake-bpy-module
 	url = https://github.com/nutti/fake-bpy-module.git
