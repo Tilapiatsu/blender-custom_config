@@ -22,9 +22,6 @@
 [submodule "scripts/addons/Optix-Denoiser"]
 	path = scripts/addons/Optix-Denoiser
 	url = https://github.com/troopy28/OptiX-Denoiser-for-Blender.git
-[submodule "scripts/addons/RenderBurst_GIT"]
-	path = scripts/addons/RenderBurst_GIT
-	url = https://github.com/VertStretch/RenderBurst.git
 [submodule "scripts/addons/fake-bpy-module"]
 	path = scripts/addons/fake-bpy-module
 	url = https://github.com/nutti/fake-bpy-module.git
