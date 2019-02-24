@@ -61,6 +61,3 @@
 [submodule "scripts/addons/Magic-UV"]
 	path = scripts/addons/Magic-UV
 	url = https://github.com/nutti/Magic-UV.git
-[submodule "scripts/addons/retopoflow"]
-	path = scripts/addons/retopoflow
-	url = https://github.com/CGCookie/retopoflow.git
