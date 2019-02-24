@@ -46,9 +46,6 @@
 [submodule "scripts/addons/curve_cad"]
 	path = scripts/addons/curve_cad
 	url = https://github.com/Lichtso/curve_cad.git
-[submodule "scripts/addons/mesh_align_plus_GIT"]
-	path = scripts/addons/mesh_align_plus_GIT
-	url = https://github.com/egtwobits/mesh_mesh_align_plus.git
 [submodule "scripts/addons/GoB"]
 	path = scripts/addons/GoB
 	url = https://github.com/JoseConseco/GoB.git
