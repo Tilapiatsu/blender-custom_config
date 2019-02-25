@@ -23,6 +23,26 @@ bl_info = {
 # - UV Pie Menu : Split, sew, mak seam etc
 # - Need to fix the rotate/scaling pivot point in UV context
 
+# Addon to Enable
+
+# -   Modifier tool
+# -   Mesure It
+# -   Extra Object Mesh and Curve
+# -   Import Image as Plane
+# -   fSpy
+# -   3d print
+# -   F2
+# -   LoopTool
+# -   MachineTool
+# -   Mesh Align Plus
+# -   Snaap_utility Line
+# -   Node Wrangle
+# -   Principled Bake
+# -   BoolTool
+# -   D-Noise
+# -   Render Burst
+# -   Magic UV
+
 
 class TilaKeymaps(KeymapManager.KeymapManager):
 
@@ -56,7 +76,11 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		self.kmi_set_replace("screen.userpref_show", "TAB", "PRESS", ctrl=True)
 		self.kmi_set_replace("wm.window_fullscreen_toggle", "F11", "PRESS")
 		self.kmi_set_replace('screen.animation_play', self.k_menu, 'PRESS', shift=True)
-		self.kmi_set_replace("popup.hp_properties", 'V', "PRESS", ctrl=True, shift=True)
+		self.kmi_set_replace("popup.hp_properties", 'V', "PRESS")
+
+		self.kmi_set_replace('popup.hp_materials', 'M', 'PRESS')
+		self.kmi_set_replace('popup.hp_render', 'EQUAL', 'PRESS')
+		self.kmi_set_replace('pie.add', 'A', 'PRESS', ctrl=True, alt=True, shift=True)
 		# Disable Keymap
 		self.kmi_set_active(False, type='X')
 		self.kmi_set_active(False, type='X', shift=True)
@@ -415,6 +439,7 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 
 		self.kmi_set_replace('view3d.tila_isolate', 'X', 'PRESS', ctrl=True, alt=True, shift=True)
 		
+		self.kmi_set_replace('object.move_to_collection', 'M', 'PRESS', ctrl=True, alt=True, disable_double=True)
 		# Set collection visibility shortcut
 		self.collection_visibility('object.hide_collection')
 		self.mode_selection()
