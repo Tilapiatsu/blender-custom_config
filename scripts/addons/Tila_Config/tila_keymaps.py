@@ -22,6 +22,7 @@ bl_info = {
 # - Vertex Normal Pie Menu : Mark Hard, Mark Soft, update normal, Thief
 # - UV Pie Menu : Split, sew, mak seam etc
 # - Need to fix the rotate/scaling pivot point in UV context
+# - add keymap for symmetry
 
 # Addon to Enable
 
@@ -80,7 +81,8 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 
 		self.kmi_set_replace('popup.hp_materials', 'M', 'PRESS')
 		self.kmi_set_replace('popup.hp_render', 'EQUAL', 'PRESS')
-		self.kmi_set_replace('pie.add', 'A', 'PRESS', ctrl=True, alt=True, shift=True)
+		self.kmi_set_replace('wm.call_menu_pie', 'A', 'PRESS', ctrl=True, alt=True, shift=True, properties=[('name', 'pie.add')])
+		self.kmi_set_replace('wm.call_menu_pie', 'TAB', 'PRESS', ctrl=True, alt=True, shift=True, properties=[('name', 'pie.areas')])
 		# Disable Keymap
 		self.kmi_set_active(False, type='X')
 		self.kmi_set_active(False, type='X', shift=True)
@@ -295,7 +297,7 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		self.kmi_init(name='Window', space_type='EMPTY', region_type='WINDOW')
 		self.global_keys()
 		self.right_mouse()
-		self.kmi_set_replace("wm.call_menu_pie", self.k_menu, "PRESS", ctrl=True, shift=True, alt=True)
+		# self.kmi_set_replace("wm.call_menu_pie", self.k_menu, "PRESS", ctrl=True, shift=True, alt=True)
 		self.kmi_set_replace("wm.revert_without_prompt", "N", "PRESS", shift=True)
 		self.kmi_set_replace('wm.console_toggle', 'TAB', 'PRESS', ctrl=True, shift=True)
 		
@@ -310,7 +312,7 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		self.selection_tool()
 		self.tool_smart_delete()
 		# Disabling zoom key
-		self.kmi_set_active(False, ctrl=True, type=self.k_cursor)
+		self.kmi_set_replace('view3d.zoom', self.k_manip, 'PRESS', ctrl=True, alt=True)
 		self.kmi_set_active(False, idname='view3d.select_circle', type="C")
 
 		self.navigation_keys(pan='view3d.move',
@@ -335,6 +337,9 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		self.kmi_set_replace('view3d.view_selected', 'A', 'PRESS', ctrl=True, shift=True)
 
 		self.tool_center(pivot='VIEW3D_PT_pivot_point', orientation='VIEW3D_PT_transform_orientations')
+
+		self.kmi_set_replace('wm.call_menu_pie', 'Q', 'PRESS', ctrl=True, alt=True, shift=True, properties=[('name', 'pie.hp_boolean')])
+		
 
 		# 3d Cursor
 		kmi = self.kmi_set_replace('view3d.cursor3d', self.k_cursor, 'CLICK', ctrl=True, alt=True, shift=True, properties=[('use_depth', True)])
@@ -424,6 +429,7 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 
 		self.kmi_set_replace('view3d.tila_isolate', 'X', 'PRESS', ctrl=True, alt=True, shift=True)
 
+		self.kmi_set_replace('mesh.toggle_use_automerge', 'BACK_SLASH', 'PRESS')
 		# self.kmi_set_replace('object.merge_tool', 'M', 'PRESS')
 
 		# Object Mode
@@ -614,6 +620,19 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		self.right_mouse()
 		self.tool_radial_control(radius=[('data_path_primary', 'tool_settings.gpencil_sculpt.brush.size')], opacity=[('data_path_primary', 'tool_settings.gpencil_sculpt.brush.strength')])
 
+		# Frames
+		self.kmi_init(name='Frames', space_type='EMPTY', region_type='WINDOW')
+		self.global_keys()
+		self.right_mouse()
+		self.kmi_set_replace('screen.animation_play', 'SPACE', 'PRESS', ctrl=True, shift=True,  properties=[('reverse', True)])
+
+		# Screen
+		self.kmi_init(name='Screen', space_type='EMPTY', region_type='WINDOW')
+		self.global_keys()
+		self.right_mouse()
+		self.kmi_set_replace('screen.screen_full_area', 'SPACE', 'PRESS', ctrl=True, alt=True)
+		self.kmi_set_replace('screen.screen_full_area', 'SPACE', 'PRESS', ctrl=True, alt=True, shift=True, properties=[('use_hide_panels', True)])
+
 		# Transform Modal Map
 		self.kmi_init(name='Transform Modal Map', space_type='EMPTY', region_type='WINDOW')
 		self.tool_proportional()
@@ -636,6 +655,7 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		# Gesture Box Modal Map
 		self.kmi_init(name='Gesture Box', space_type='EMPTY', region_type='WINDOW')
 		self.modal_set_replace('SELECT', self.k_cursor, 'RELEASE', any=True)
+
 		print("----------------------------------------------------------------")
 		print("Assignment complete")
 		print("----------------------------------------------------------------")
