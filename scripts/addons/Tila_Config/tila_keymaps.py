@@ -17,12 +17,13 @@ bl_info = {
 
 # TODO 
 # - Create a rename /batch rename feature
+# 	-- Update the view3d.viewport_rename operator to add batch rename functions
 # - Modify the camera behaviour to slow the dolly speed based on the distance from the object
 #   --Modify the camera bihaviour to be able to rotate around the last point under the mouse
 # - Vertex Normal Pie Menu : Mark Hard, Mark Soft, update normal, Thief
 # - UV Pie Menu : Split, sew, mak seam etc
 # - Need to fix the rotate/scaling pivot point in UV context
-# - add keymap for symmetry
+# - Create a simple Bevel like Modo Does : Bevel + Inset + Segment count
 
 # Addon to Enable
 
@@ -62,7 +63,7 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		self.k_context = 'RIGHTMOUSE'
 		self.k_more = 'UP_ARROW'
 		self.k_less = 'DOWN_ARROW'
-		self.k_linked = 'W'
+		self.k_linked = 'w'
 		self.k_vert_mode = 'ONE'
 		self.k_edge_mode = 'TWO'
 		self.k_face_mode = 'THREE'
@@ -83,6 +84,9 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		self.kmi_set_replace('popup.hp_render', 'EQUAL', 'PRESS')
 		self.kmi_set_replace('wm.call_menu_pie', 'A', 'PRESS', ctrl=True, alt=True, shift=True, properties=[('name', 'pie.add')])
 		self.kmi_set_replace('wm.call_menu_pie', 'TAB', 'PRESS', ctrl=True, alt=True, shift=True, properties=[('name', 'pie.areas')])
+		self.kmi_set_replace('wm.call_menu_pie', 'X', 'PRESS', alt=True, shift=True, properties=[('name', 'pie.symmetry')])
+
+		self.kmi_set_replace('view3d.viewport_rename', 'F2', 'PRESS')
 		# Disable Keymap
 		self.kmi_set_active(False, type='X')
 		self.kmi_set_active(False, type='X', shift=True)
@@ -428,8 +432,10 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		self.tool_center(pivot='VIEW3D_PT_pivot_point', orientation='VIEW3D_PT_transform_orientations')
 
 		self.kmi_set_replace('view3d.tila_isolate', 'X', 'PRESS', ctrl=True, alt=True, shift=True)
+		self.kmi_set_replace('mesh.toggle_x_symetry', 'X', 'PRESS', ctrl=True, alt=True)
 
 		self.kmi_set_replace('mesh.toggle_use_automerge', 'BACK_SLASH', 'PRESS')
+		self.kmi_set_replace('wm.call_menu_pie', 'X', 'PRESS', alt=True, shift=True, properties=[('name', 'pie.symmetry')])
 		# self.kmi_set_replace('object.merge_tool', 'M', 'PRESS')
 
 		# Object Mode
