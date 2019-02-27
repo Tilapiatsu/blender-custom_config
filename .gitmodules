@@ -52,9 +52,6 @@
 [submodule "scripts/GIT/mesh_align_plus"]
 	path = scripts/GIT/mesh_align_plus
 	url = https://github.com/egtwobits/mesh_mesh_align_plus.git
-[submodule "scripts/GIT/glTF-Blender-IO"]
-	path = scripts/GIT/glTF-Blender-IO
-	url = https://github.com/sketchfab/glTF-Blender-IO.git
 [submodule "scripts/GIT/fSpy-Blender"]
 	path = scripts/GIT/fSpy-Blender
 	url = https://github.com/stuffmatic/fSpy-Blender.git
