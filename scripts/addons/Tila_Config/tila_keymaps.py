@@ -63,7 +63,7 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		self.k_context = 'RIGHTMOUSE'
 		self.k_more = 'UP_ARROW'
 		self.k_less = 'DOWN_ARROW'
-		self.k_linked = 'w'
+		self.k_linked = 'W'
 		self.k_vert_mode = 'ONE'
 		self.k_edge_mode = 'TWO'
 		self.k_face_mode = 'THREE'
