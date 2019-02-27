@@ -6,7 +6,7 @@ scripts/addons/Capsule/*
 scripts/addons/animation_nodes/*
 scripts/addons/SimpleAssetManager/*
 scripts/addons/fspy_blender/*
-scripts/addons/glTF_Blender-IO/*
+scripts/addons/glTF-Blender-IO/*
 scripts/addons/mesh_mesh_align_plus/*
 
 scripts/addons/RenderBurst.py
