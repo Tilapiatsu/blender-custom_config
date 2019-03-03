@@ -24,6 +24,10 @@ bl_info = {
 # - UV Pie Menu : Split, sew, mak seam etc
 # - Need to fix the rotate/scaling pivot point in UV context
 # - Create a simple Bevel like Modo Does : Bevel + Inset + Segment count
+# - Script to visualize Texture checker in all objects in the viewport
+# - Fix the uv transform too which is always scaling uniformally
+# - Fix the smart edit mode in UV context
+
 
 # Addon to Enable
 
@@ -60,6 +64,9 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		self.k_select = 'LEFTMOUSE'
 		self.k_lasso = 'EVT_TWEAK_R'
 		self.k_lasso_through = 'EVT_TWEAK_M'
+		self.k_box = 'EVT_TWEAK_L'
+		self.k_box_through = 'EVT_TWEAK_M'
+		self.k_select_attatched = 'EVT_TWEAK_M'
 		self.k_context = 'RIGHTMOUSE'
 		self.k_more = 'UP_ARROW'
 		self.k_less = 'DOWN_ARROW'
@@ -139,6 +146,7 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 	def selection_keys(self,
 						select_tool=None, 
 						lasso_tool=None, select_through_tool=None,
+						box_tool=None, box_through_tool=None,
 						circle_tool=None,
 						shortestpath_tool=None,
 						loop_tool=None, ring_tool=None,
@@ -148,61 +156,73 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 
 		# Select / Deselect / Add
 		if select_tool:
-			self.kmi_set_replace(select_tool, self.k_select, 'CLICK')
-			self.kmi_set_replace(select_tool, self.k_select, 'CLICK', shift=True, properties=[('extend', True)])
-			self.kmi_set_replace(select_tool, self.k_select, 'CLICK', ctrl=True, properties=[('deselect', True)])
+			self.kmi_set_replace(select_tool, self.k_select, 'CLICK', disable_double=True)
+			self.kmi_set_replace(select_tool, self.k_select, 'CLICK', shift=True, properties=[('extend', True)], disable_double=True)
+			self.kmi_set_replace(select_tool, self.k_select, 'CLICK', ctrl=True, properties=[('deselect', True)], disable_double=True)
 		
 		# Lasso Select / Deselect / Add
 		if lasso_tool:
-			self.kmi_set_replace(lasso_tool, self.k_lasso, 'ANY')
-			self.kmi_set_replace(lasso_tool, self.k_lasso, 'ANY', shift=True, properties=[('mode', 'ADD')])
-			self.kmi_set_replace(lasso_tool, self.k_lasso, 'ANY', ctrl=True, properties=[('mode', 'SUB')])
+			self.kmi_set_replace(lasso_tool, self.k_lasso, 'ANY', disable_double=True)
+			self.kmi_set_replace(lasso_tool, self.k_lasso, 'ANY', shift=True, properties=[('mode', 'ADD')], disable_double=True)
+			self.kmi_set_replace(lasso_tool, self.k_lasso, 'ANY', ctrl=True, properties=[('mode', 'SUB')], disable_double=True)
 
 		# Lasso through Select / Deselect / Add
 		if select_through_tool:
-			self.kmi_set_replace(select_through_tool, self.k_lasso_through, 'ANY', properties=[('type', 'LASSO'), ('mode', 'SET')])
-			self.kmi_set_replace(select_through_tool, self.k_lasso_through, 'ANY', shift=True, properties=[('type', 'LASSO'), ('mode', 'ADD')])
-			self.kmi_set_replace(select_through_tool, self.k_lasso_through, 'ANY', ctrl=True, properties=[('type', 'LASSO'), ('mode', 'SUB')])
-
+			self.kmi_set_replace(select_through_tool, self.k_lasso_through, 'ANY', properties=[('type', 'LASSO'), ('mode', 'SET')], disable_double=True)
+			self.kmi_set_replace(select_through_tool, self.k_lasso_through, 'ANY', shift=True, properties=[('type', 'LASSO'), ('mode', 'ADD')], disable_double=True)
+			self.kmi_set_replace(select_through_tool, self.k_lasso_through, 'ANY', ctrl=True, properties=[('type', 'LASSO'), ('mode', 'SUB')], disable_double=True)
+		
+		# Box Select / Deselect / Add
+		if box_tool:
+			self.kmi_set_replace(box_tool, self.k_box, 'ANY', properties=[('extend', False), ('wait_for_input', False), ('tweak', True)], disable_double=True)
+			self.kmi_set_replace(box_tool, self.k_box, 'ANY', shift=True, properties=[('extend', True), ('wait_for_input', False), ('tweak', True)], disable_double=True)
+			self.kmi_set_replace(box_tool, self.k_box, 'ANY', ctrl=True, properties=[('deselect', True), ('wait_for_input', False), ('tweak', True)], disable_double=True)
+		
+		# Box Through Select / Deselect / Add
+		if box_through_tool:
+			self.kmi_set_replace(box_through_tool, self.k_box_through, 'ANY', properties=[('type', 'BOX'), ('mode', 'SET')], disable_double=True)
+			self.kmi_set_replace(box_through_tool, self.k_box_through, 'ANY', shift=True, properties=[('type', 'BOX'), ('mode', 'ADD')], disable_double=True)
+			self.kmi_set_replace(box_through_tool, self.k_box_through, 'ANY', ctrl=True, properties=[('type', 'BOX'), ('mode', 'SUB')], disable_double=True)
+		
 		# Circle
 		if circle_tool:
-			self.kmi_set_replace(circle_tool, self.k_select, 'CLICK_DRAG', shift=True, properties=[('wait_for_input', False), ('radius', 10)])
-			self.kmi_set_replace(circle_tool, self.k_select, 'CLICK_DRAG', ctrl=True, properties=[('wait_for_input', False), ('deselect', True), ('radius', 10)])
+			self.kmi_set_replace(circle_tool, self.k_select, 'CLICK_DRAG', shift=True, properties=[('wait_for_input', False), ('radius', 10)], disable_double=True)
+			self.kmi_set_replace(circle_tool, self.k_select, 'CLICK_DRAG', ctrl=True, properties=[('wait_for_input', False), ('deselect', True), ('radius', 10)], disable_double=True)
 		
 		#  shortest Path Select / Deselect / Add
 		if shortestpath_tool:
-			self.kmi_set_replace(shortestpath_tool, self.k_context, 'CLICK', shift=True)
+			self.kmi_set_replace(shortestpath_tool, self.k_context, 'CLICK', shift=True, disable_double=True)
 
 		# Loop Select / Deselect / Add
 		if loop_tool:
-			self.kmi_set_replace(loop_tool, self.k_select, 'DOUBLE_CLICK')
-			self.kmi_set_replace(loop_tool, self.k_select, 'DOUBLE_CLICK', shift=True, properties=[('extend', True), ('ring', False)])
-			self.kmi_set_replace(loop_tool, self.k_select, 'DOUBLE_CLICK', ctrl=True, properties=[('extend', False), ('deselect', True)])
+			self.kmi_set_replace(loop_tool, self.k_select, 'DOUBLE_CLICK', disable_double=True)
+			self.kmi_set_replace(loop_tool, self.k_select, 'DOUBLE_CLICK', shift=True, properties=[('extend', True), ('ring', False)], disable_double=True)
+			self.kmi_set_replace(loop_tool, self.k_select, 'DOUBLE_CLICK', ctrl=True, properties=[('extend', False), ('deselect', True)], disable_double=True)
 
 		# Ring Select / Deselect / Add
 		if ring_tool:
-			self.kmi_set_replace(ring_tool, self.k_cursor, 'CLICK', ctrl=True, properties=[('ring', True), ('deselect', False), ('extend', False), ('toggle', False)])
-			self.kmi_set_replace(ring_tool, self.k_cursor, 'CLICK', ctrl=True, shift=True, properties=[('ring', True), ('deselect', False), ('extend', True), ('toggle', False)])
-			self.kmi_set_replace(ring_tool, self.k_cursor, 'DOUBLE_CLICK', ctrl=True, shift=True, properties=[('ring', True), ('deselect', True), ('extend', False), ('toggle', False)])
+			self.kmi_set_replace(ring_tool, self.k_cursor, 'CLICK', ctrl=True, properties=[('ring', True), ('deselect', False), ('extend', False), ('toggle', False)], disable_double=True)
+			self.kmi_set_replace(ring_tool, self.k_cursor, 'CLICK', ctrl=True, shift=True, properties=[('ring', True), ('deselect', False), ('extend', True), ('toggle', False)], disable_double=True)
+			self.kmi_set_replace(ring_tool, self.k_cursor, 'DOUBLE_CLICK', ctrl=True, shift=True, properties=[('ring', True), ('deselect', True), ('extend', False), ('toggle', False)], disable_double=True)
 
 		# Select More / Less
 		if more_tool:
-			self.kmi_set_replace(more_tool, self.k_more, 'PRESS', shift=True)
+			self.kmi_set_replace(more_tool, self.k_more, 'PRESS', shift=True, disable_double=True)
 
 		if less_tool:
-			self.kmi_set_replace(less_tool, self.k_less, 'PRESS', shift=True)
+			self.kmi_set_replace(less_tool, self.k_less, 'PRESS', shift=True, disable_double=True)
 		
 		# Select Next / Previous
 		if next_tool:
-			self.kmi_set_replace(next_tool, self.k_more, 'PRESS')
+			self.kmi_set_replace(next_tool, self.k_more, 'PRESS', disable_double=True)
 
 		if previous_tool:
-			self.kmi_set_replace(previous_tool, self.k_less, 'PRESS')
+			self.kmi_set_replace(previous_tool, self.k_less, 'PRESS', disable_double=True)
 
 		# Linked
 		if linked_tool:
-			self.kmi_set_replace(linked_tool, self.k_linked, 'PRESS')
-			self.kmi_set_replace(linked_tool, self.k_linked, 'PRESS', ctrl=True, properties=[('deselect', True)])
+			self.kmi_set_replace(linked_tool, self.k_linked, 'PRESS', disable_double=True)
+			self.kmi_set_replace(linked_tool, self.k_linked, 'PRESS', ctrl=True, properties=[('deselect', True)], disable_double=True)
 
 	def selection_tool(self):
 		select_tool = self.kmi_find(idname='wm.tool_set_by_name', properties=KeymapManager.bProp([('name', 'Select Box')]))
@@ -534,6 +554,15 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		self.kmi_init(name='Node Editor', space_type='NODE_EDITOR', region_type='WINDOW')
 		self.global_keys()
 		self.right_mouse()
+
+		self.selection_keys(box_tool='node.select_box')
+		self.kmi_set_active(False, idname='node.select_box', type=self.k_box)
+		self.kmi_set_active(False, idname='transform.translate', type=self.k_box)
+		self.kmi_set_active(False, idname='transform.translate', type=self.k_box, properties=[('release_confirm', True)])
+		self.kmi_set_active(False, idname='node.translate_attach', type=self.k_box)
+		self.kmi_set_replace('transform.translate', self.k_box, 'ANY')
+		self.kmi_set_replace('node.translate_attach', self.k_select_attatched, 'ANY')
+
 		self.duplicate(duplicate='node.duplicate_move', duplicate_link='node.duplicate_move_keep_inputs')
 		self.snap(snapping='wm.context_menu_enum', snapping_prop=[('data_path', 'tool_settings.snap_node_element')])
 
