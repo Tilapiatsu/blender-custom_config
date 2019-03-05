@@ -48,6 +48,7 @@ bl_info = {
 # -   D-Noise
 # -   Render Burst
 # -   Magic UV
+# -	  Photographer
 
 
 class TilaKeymaps(KeymapManager.KeymapManager):
