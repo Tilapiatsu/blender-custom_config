@@ -239,6 +239,13 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 			print('Cant find right mouse button contextual menu')
 		else:
 			kmi.value = 'RELEASE'
+		
+		kmi = self.kmi_find(idname='wm.call_panel', type='RIGHTMOUSE', value='PRESS')
+
+		if kmi is None:
+			print('Cant find right mouse button contextual menu')
+		else:
+			kmi.value = 'RELEASE'
 
 	def duplicate(self, duplicate=None, duplicate_prop=None, duplicate_link=None, duplicate_link_prop=None):
 		if duplicate:
