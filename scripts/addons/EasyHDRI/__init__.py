@@ -641,13 +641,13 @@ class EASYHDRI_PT_main(Panel):
                 if 'Mapping' in nodes:
                     col = box.column()
                     col.prop(nodes['Mapping'], "rotation")
-                if 'Exposure' in nodes:
-                    col = box.column()
-                    col.prop(nodes['Exposure'].inputs[1], "default_value", text="Exposure")
                 if 'Mix' in nodes:
                     col = box.column(align = True)
                     col.prop(nodes['Mix'].inputs[2], "default_value", text = "Tint")        
-                    col.prop(nodes['Mix'].inputs[0], "default_value", text = "Factor")
+                    col.prop(nodes['Mix'].inputs[0], "default_value", text="Factor")
+                if 'Exposure' in nodes:
+                    col = box.column()
+                    col.prop(nodes['Exposure'].inputs[1], "default_value", text="Exposure")
                 if 'Gamma' in nodes:
                     col = box.column()
                     col.prop(nodes['Gamma'].inputs[1], "default_value", text = "Gamma")
