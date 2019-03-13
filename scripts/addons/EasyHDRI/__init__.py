@@ -161,6 +161,91 @@ def update_favs(self, context):
         scn.previews_dir = favs
     return None
 
+def create_exposure_node(world):
+    # create a group
+    exposure_group = bpy.data.node_groups.new('Exposure', 'ShaderNodeTree')
+    
+    position = (0, 0)
+    incr = 200
+    # create group inputs
+    group_inputs = exposure_group.nodes.new('NodeGroupInput')
+    group_inputs.location = position
+    exposure_group.inputs.new('NodeSocketColor', 'Color')
+    exposure_group.inputs.new('NodeSocketFloat', 'Exposure')
+    exposure_group.inputs[1].default_value = 1
+    exposure_group.inputs[1].min_value = 0
+
+    position = (position[0] + incr, position[1])
+
+    # create three math nodes in a group
+    node_pow = exposure_group.nodes.new('ShaderNodeMath')
+    node_pow.operation = 'POWER'
+    node_pow.inputs[1].default_value = 2
+    node_pow.location = position
+
+    position = (position[0] + incr, position[1])
+
+    node_separate = exposure_group.nodes.new('ShaderNodeSeparateRGB')
+    node_separate.location = position
+
+    position = (position[0] + incr, position[1])
+
+    node_x = exposure_group.nodes.new('ShaderNodeMath')
+    node_x.operation = 'MULTIPLY'
+    node_x.label = 'X'
+    node_x.location = position
+
+    position = (position[0], position[1] + incr)
+
+    node_y = exposure_group.nodes.new('ShaderNodeMath')
+    node_y.operation = 'MULTIPLY'
+    node_y.label = 'Y'
+    node_y.location = position
+
+    position = (position[0], position[1] + incr)
+
+    node_z = exposure_group.nodes.new('ShaderNodeMath')
+    node_z.operation = 'MULTIPLY'
+    node_z.label = 'Z'
+    node_z.location = position
+
+    position = (position[0] + incr, position[1] - incr)
+
+    node_combine = exposure_group.nodes.new('ShaderNodeCombineRGB')
+    node_combine.location = position
+
+    position = (position[0] + incr, position[1])
+
+    # create group outputs
+    group_outputs = exposure_group.nodes.new('NodeGroupOutput')
+    group_outputs.location = position
+
+    exposure_group.outputs.new('NodeSocketColor', 'Output')
+
+    # link nodes together
+    exposure_group.links.new(node_x.inputs[1], node_pow.outputs[0])
+    exposure_group.links.new(node_y.inputs[1], node_pow.outputs[0])
+    exposure_group.links.new(node_z.inputs[1], node_pow.outputs[0])
+
+    exposure_group.links.new(node_x.inputs[0], node_separate.outputs[0])
+    exposure_group.links.new(node_y.inputs[0], node_separate.outputs[1])
+    exposure_group.links.new(node_z.inputs[0], node_separate.outputs[2])
+    
+    exposure_group.links.new(node_x.outputs[0], node_combine.inputs[0])
+    exposure_group.links.new(node_y.outputs[0], node_combine.inputs[1])
+    exposure_group.links.new(node_z.outputs[0], node_combine.inputs[2])
+
+    # link inputs
+    exposure_group.links.new(group_inputs.outputs['Color'], node_separate.inputs[0])
+    exposure_group.links.new(group_inputs.outputs['Exposure'], node_pow.inputs[0])
+
+
+    #link output
+    exposure_group.links.new(node_combine.outputs[0], group_outputs.inputs['Output'])
+    
+    return exposure_group
+
+
 # World nodes setup
 def create_world_nodes():
     
@@ -180,11 +265,19 @@ def create_world_nodes():
     # Delete all the nodes (Start from scratch)
     world.node_tree.nodes.clear()
     
+    if 'Exposure' not in bpy.data.node_groups:
+        exposure_group = create_exposure_node(world)
+    else:
+        exposure_group = bpy.data.node_groups['Exposure']
+    
     #Adding new nodes
     tex_coord = world.node_tree.nodes.new(type="ShaderNodeTexCoord")    
     mapping = world.node_tree.nodes.new(type="ShaderNodeMapping")   
     env = world.node_tree.nodes.new(type="ShaderNodeTexEnvironment")  
     background = world.node_tree.nodes.new(type="ShaderNodeBackground")
+    exposure = world.node_tree.nodes.new(type="ShaderNodeGroup")
+    exposure.node_tree = exposure_group
+    exposure.name = 'Exposure'
     gamma = world.node_tree.nodes.new(type="ShaderNodeGamma")
     saturation = world.node_tree.nodes.new(type="ShaderNodeHueSaturation")
     color = world.node_tree.nodes.new(type="ShaderNodeMixRGB")
@@ -192,7 +285,7 @@ def create_world_nodes():
     math_divide = world.node_tree.nodes.new(type="ShaderNodeMath")
     math_add = world.node_tree.nodes.new(type="ShaderNodeMath")    
     output = world.node_tree.nodes.new(type="ShaderNodeOutputWorld") 
-       
+    # , settings=[{"name": "node_tree", "value": "bpy.data.node_groups['Exposure']"}]
     # Change the parameters
     env.name = 'Environment'
     background.name = 'Background'
@@ -213,7 +306,8 @@ def create_world_nodes():
     # Links
     world.node_tree.links.new(tex_coord.outputs['Generated'], mapping.inputs[0])
     world.node_tree.links.new(mapping.outputs[0], env.inputs[0])
-    world.node_tree.links.new(env.outputs[0], gamma.inputs[0])
+    world.node_tree.links.new(env.outputs[0], exposure.inputs[0])
+    world.node_tree.links.new(exposure.outputs[0], gamma.inputs[0])
     world.node_tree.links.new(gamma.outputs[0], saturation.inputs[4])
     world.node_tree.links.new(saturation.outputs[0], color.inputs[1])
     world.node_tree.links.new(env.outputs[0], math_multiply.inputs[0])
@@ -224,9 +318,10 @@ def create_world_nodes():
     world.node_tree.links.new(background.outputs[0], output.inputs[0])    
     
     # Nodes location    
-    tex_coord.location = (130, 252)
-    mapping.location = (310, 252)
-    env.location = (680, 252)
+    tex_coord.location = (130-200, 252)
+    mapping.location = (310-200, 252)
+    env.location = (680-200, 252)
+    exposure.location = (780, 350) 
     gamma.location = (960, 350)
     saturation.location = (1120, 350)
     color.location = (1290, 350)
@@ -545,7 +640,10 @@ class EASYHDRI_PT_main(Panel):
                     col.prop(nodes['Environment'], "projection", text = '')                                            
                 if 'Mapping' in nodes:
                     col = box.column()
-                    col.prop(nodes['Mapping'], "rotation")                
+                    col.prop(nodes['Mapping'], "rotation")
+                if 'Exposure' in nodes:
+                    col = box.column()
+                    col.prop(nodes['Exposure'].inputs[1], "default_value", text="Exposure")
                 if 'Mix' in nodes:
                     col = box.column(align = True)
                     col.prop(nodes['Mix'].inputs[2], "default_value", text = "Tint")        
