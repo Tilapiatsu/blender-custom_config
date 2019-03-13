@@ -147,8 +147,8 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 	def selection_keys(self,
 						select_tool=None, 
 						lasso_tool=None, select_through_tool=None,
-						box_tool=None, box_through_tool=None,
-						circle_tool=None,
+						box_tool=None, box_through_tool=None, node_box_tool=None,
+                    	circle_tool=None, gp_circle_tool=None,
 						shortestpath_tool=None,
 						loop_tool=None, ring_tool=None,
 						more_tool=None, less_tool=None,
@@ -175,10 +175,15 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		
 		# Box Select / Deselect / Add
 		if box_tool:
-			self.kmi_set_replace(box_tool, self.k_box, 'ANY', properties=[('extend', False), ('wait_for_input', False), ('tweak', True)], disable_double=True)
-			self.kmi_set_replace(box_tool, self.k_box, 'ANY', shift=True, properties=[('extend', True), ('wait_for_input', False), ('tweak', True)], disable_double=True)
-			self.kmi_set_replace(box_tool, self.k_box, 'ANY', ctrl=True, properties=[('deselect', True), ('wait_for_input', False), ('tweak', True)], disable_double=True)
+			self.kmi_set_replace(box_tool, self.k_box, 'ANY', properties=[('mode', 'SET'), ('wait_for_input', False), ('tweak', False)], disable_double=True)
+			self.kmi_set_replace(box_tool, self.k_box, 'ANY', shift=True, properties=[('mode', 'ADD'), ('wait_for_input', False), ('tweak', False)], disable_double=True)
+			self.kmi_set_replace(box_tool, self.k_box, 'ANY', ctrl=True, properties=[('mode', 'SUB'), ('wait_for_input', False), ('tweak', False)], disable_double=True)
 		
+		if node_box_tool:
+			self.kmi_set_replace(node_box_tool, self.k_select, 'CLICK_DRAG', properties=[('mode', 'SET'), ('wait_for_input', False), ('tweak', True)], disable_double=True)
+			self.kmi_set_replace(node_box_tool, self.k_box, 'ANY', shift=True, properties=[('mode', 'ADD'), ('wait_for_input', False), ('tweak', False)], disable_double=True)
+			self.kmi_set_replace(node_box_tool, self.k_box, 'ANY', ctrl=True, properties=[('mode', 'SUB'), ('wait_for_input', False), ('tweak', False)], disable_double=True)
+
 		# Box Through Select / Deselect / Add
 		if box_through_tool:
 			self.kmi_set_replace(box_through_tool, self.k_box_through, 'ANY', properties=[('type', 'BOX'), ('mode', 'SET')], disable_double=True)
@@ -189,7 +194,11 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		if circle_tool:
 			self.kmi_set_replace(circle_tool, self.k_select, 'CLICK_DRAG', shift=True, properties=[('wait_for_input', False), ('radius', 10)], disable_double=True)
 			self.kmi_set_replace(circle_tool, self.k_select, 'CLICK_DRAG', ctrl=True, properties=[('wait_for_input', False), ('deselect', True), ('radius', 10)], disable_double=True)
-		
+
+		if gp_circle_tool:
+			self.kmi_set_replace(gp_circle_tool, self.k_select, 'CLICK_DRAG', shift=True, properties=[('wait_for_input', False), ('mode', 'ADD'), ('radius', 10)], disable_double=True)
+			self.kmi_set_replace(gp_circle_tool, self.k_select, 'CLICK_DRAG', ctrl=True, properties=[('wait_for_input', False), ('mode', 'SUB'), ('radius', 10)], disable_double=True)
+
 		#  shortest Path Select / Deselect / Add
 		if shortestpath_tool:
 			self.kmi_set_replace(shortestpath_tool, self.k_context, 'CLICK', shift=True, disable_double=True)
@@ -563,12 +572,13 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		self.global_keys()
 		self.right_mouse()
 
-		self.selection_keys(box_tool='node.select_box')
+		self.selection_keys(node_box_tool='node.select_box')
 		self.kmi_set_active(False, idname='node.select_box', type=self.k_box)
 		self.kmi_set_active(False, idname='transform.translate', type=self.k_box)
 		self.kmi_set_active(False, idname='transform.translate', type=self.k_box, properties=[('release_confirm', True)])
 		self.kmi_set_active(False, idname='node.translate_attach', type=self.k_box)
-		self.kmi_set_replace('transform.translate', self.k_box, 'ANY')
+
+		self.kmi_set_replace('transform.translate', self.k_box, 'ANY', properties=[('release_confirm', True)])
 		self.kmi_set_replace('node.translate_attach', self.k_select_attatched, 'ANY')
 
 		self.duplicate(duplicate='node.duplicate_move', duplicate_link='node.duplicate_move_keep_inputs')
@@ -606,7 +616,7 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		self.kmi_set_replace('view3d.tila_smart_editmode', 'TAB', 'PRESS', shift=True, properties=[('alt_mode', True)], disable_double=True)
 		self.selection_keys(select_tool='gpencil.select',
 							lasso_tool='gpencil.select_lasso',
-					  		circle_tool='gpencil.select_circle',
+					  		gp_circle_tool='gpencil.select_circle',
 					  		more_tool='gpencil.select_more',
 					  		less_tool='gpencil.select_less',
 					  		next_tool='gpencil.select_first',
@@ -630,10 +640,12 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		self.kmi_set_replace('gpencil.dissolve', 'DEL', 'PRESS', shift=True, properties=[('type', 'POINTS')], disable_double=True)
 		self.kmi_set_replace('gpencil.active_frames_delete_all', 'DEL', 'PRESS', ctrl=True, alt=True, shift=True)
 		self.kmi_set_replace('view3d.tila_smart_editmode', 'TAB', 'PRESS', shift=True, properties=[('alt_mode', True)], disable_double=True)
-		self.selection_keys(more_tool='gpencil.select_more',
+		self.selection_keys(gp_circle_tool='gpencil.select_circle',
+							more_tool='gpencil.select_more',
 					  		less_tool='gpencil.select_less')
 
 		self.kmi_set_replace('view3d.tila_isolate', 'X', 'PRESS', ctrl=True, alt=True, shift=True)
+
 		# Grease Pencil Stroke Paint Mode
 		self.kmi_init(name='Grease Pencil Stroke Paint Mode', space_type='EMPTY', region_type='WINDOW')
 		self.global_keys()
