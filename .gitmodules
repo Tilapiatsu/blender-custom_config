@@ -73,3 +73,9 @@
 [submodule "datafiles/studiolights/matcap"]
 	path = datafiles/studiolights/matcap
 	url = https://github.com/Tilapiatsu/matcap-selection.git
+[submodule "scripts/GIT/ScreenCast-Keys"]
+	path = scripts/GIT/ScreenCast-Keys
+	url = https://github.com/nutti/Screencast-Keys.git
+[submodule "scripts/addons/EdgeFlow"]
+	path = scripts/addons/EdgeFlow
+	url = https://github.com/BenjaminSauder/EdgeFlow.git
