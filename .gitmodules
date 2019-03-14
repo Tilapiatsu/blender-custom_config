@@ -82,3 +82,6 @@
 [submodule "scripts/GIT/TiNA"]
 	path = scripts/GIT/TiNA
 	url = https://gitlab.com/Modanung/TiNA.git
+[submodule "scripts/GIT/RenderBurst"]
+	path = scripts/GIT/RenderBurst
+	url = https://github.com/VertStretch/RenderBurst.git
