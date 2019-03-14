@@ -16,9 +16,6 @@
 [submodule "scripts/addons/BakeMyScan"]
 	path = scripts/addons/BakeMyScan
 	url = https://github.com/norgeotloic/BakeMyScan.git
-[submodule "scripts/addons/object-shake"]
-	path = scripts/addons/object-shake
-	url = https://github.com/thatimster/object-shake.git
 [submodule "scripts/addons/Optix-Denoiser"]
 	path = scripts/addons/Optix-Denoiser
 	url = https://github.com/troopy28/OptiX-Denoiser-for-Blender.git
