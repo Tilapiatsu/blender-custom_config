@@ -61,9 +61,6 @@
 [submodule "scripts/GIT/Capsule"]
 	path = scripts/GIT/Capsule
 	url = https://github.com/Takanu/Capsule.git
-[submodule "scripts/addons/RenderBurst"]
-	path = scripts/addons/RenderBurst
-	url = https://github.com/VertStretch/RenderBurst.git
 [submodule "scripts/GIT/glTF-Blender-IO"]
 	path = scripts/GIT/glTF-Blender-IO
 	url = https://github.com/KhronosGroup/glTF-Blender-IO.git
