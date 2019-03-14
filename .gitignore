@@ -8,6 +8,7 @@ scripts/addons/SimpleAssetManager/*
 scripts/addons/fspy_blender/*
 scripts/addons/glTF-Blender-IO/*
 scripts/addons/mesh_mesh_align_plus/*
+scripts/addons/screencastkeys/*
 
 scripts/addons/RenderBurst.py
 scripts/addons/Object_Shake.py
