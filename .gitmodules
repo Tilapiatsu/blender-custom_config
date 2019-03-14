@@ -82,3 +82,6 @@
 [submodule "scripts/GIT/RenderBurst"]
 	path = scripts/GIT/RenderBurst
 	url = https://github.com/VertStretch/RenderBurst.git
+[submodule "scripts/GIT/object-shake"]
+	path = scripts/GIT/object-shake
+	url = https://github.com/thatimster/object-shake.git

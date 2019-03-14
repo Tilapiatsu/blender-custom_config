@@ -9,8 +9,8 @@ robocopy "..\GIT\mesh_align_plus\mesh_mesh_align_plus" "mesh_mesh_align_plus" %p
 robocopy "..\GIT\glTF-Blender-IO\addons\io_scene_gltf2" "glTF-Blender-IO" %param%
 robocopy "..\GIT\ScreenCast-Keys\src\screencastkeys" "screencastkeys" %param%
 
-copy "RenderBurst\RenderBurst.py" .
-copy "object-shake\Object_Shake.py" .
+copy "..\GIT\RenderBurst\RenderBurst.py" .
+copy "..\GIT\object-shake\Object_Shake.py" .
 copy "..\GIT\TiNA\TiNA.py" .
 
 pause
