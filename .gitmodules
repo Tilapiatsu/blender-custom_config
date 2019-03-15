@@ -85,3 +85,6 @@
 [submodule "scripts/GIT/object-shake"]
 	path = scripts/GIT/object-shake
 	url = https://github.com/thatimster/object-shake.git
+[submodule "scripts/GIT/bpy_photogrametry"]
+	path = scripts/GIT/bpy_photogrametry
+	url = https://github.com/uhlik/bpy.git

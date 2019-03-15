@@ -14,3 +14,10 @@ scripts/addons/screencastkeys/*
 scripts/addons/RenderBurst.py
 scripts/addons/Object_Shake.py
 scripts/addons/TiNA.py
+
+scripts/addons/io_mesh_fast_obj/*
+scripts/addons/carbon_tools.py
+scripts/addons/io_import_photoscan_cameras.py
+scripts/addons/system_time_tracker.py
+scripts/addons/uv_tube_unwrap.py
+scripts/addons/view3d_point_cloud_visualizer.py
