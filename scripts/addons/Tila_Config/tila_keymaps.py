@@ -192,8 +192,8 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		
 		# Circle
 		if circle_tool:
-			self.kmi_set_replace(circle_tool, self.k_select, 'CLICK_DRAG', shift=True, properties=[('wait_for_input', False), ('radius', 10)], disable_double=True)
-			self.kmi_set_replace(circle_tool, self.k_select, 'CLICK_DRAG', ctrl=True, properties=[('wait_for_input', False), ('deselect', True), ('radius', 10)], disable_double=True)
+			self.kmi_set_replace(circle_tool, self.k_select, 'CLICK_DRAG', shift=True, properties=[('wait_for_input', False), ('mode', 'ADD'), ('radius', 10)], disable_double=True)
+			self.kmi_set_replace(circle_tool, self.k_select, 'CLICK_DRAG', ctrl=True, properties=[('wait_for_input', False), ('mode', 'SUB'), ('radius', 10)], disable_double=True)
 
 		if gp_circle_tool:
 			self.kmi_set_replace(gp_circle_tool, self.k_select, 'CLICK_DRAG', shift=True, properties=[('wait_for_input', False), ('mode', 'ADD'), ('radius', 10)], disable_double=True)
@@ -235,11 +235,11 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 			self.kmi_set_replace(linked_tool, self.k_linked, 'PRESS', ctrl=True, properties=[('deselect', True)], disable_double=True)
 
 	def selection_tool(self):
-		select_tool = self.kmi_find(idname='wm.tool_set_by_name', properties=KeymapManager.bProp([('name', 'Select Box')]))
+		select_tool = self.kmi_find(idname='wm.tool_set_by_id', properties=KeymapManager.bProp([('name', 'Select Box')]))
 		if select_tool:
 			self.kmi_prop_setattr(select_tool.properties, "name", 'Select')
 			self.kmi_prop_setattr(select_tool.properties, "cycle", False)
-		self.kmi_set_replace('wm.tool_set_by_name', self.k_menu, "PRESS", properties=[('name', 'Select'), ('cycle', False)])
+		self.kmi_set_replace('wm.tool_set_by_id', self.k_menu, "PRESS", properties=[('name', 'builtin.select'), ('cycle', False)])
 
 	def right_mouse(self):
 		kmi = self.kmi_find(idname='wm.call_menu', type='RIGHTMOUSE', value='PRESS')
@@ -285,7 +285,7 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 			self.kmi_set_replace(sculpt, 'W', 'PRESS', ctrl=True, alt=True, shift=True)
 
 	def tool_smooth(self):
-		self.kmi_set_replace('wm.tool_set_by_name', 'S', 'PRESS', shift=True, properties=[('name', 'Smooth')])
+		self.kmi_set_replace('wm.tool_set_by_id', 'S', 'PRESS', shift=True, properties=[('name', 'Smooth')])
 	
 	def tool_proportional(self):
 		self.modal_set_replace('PROPORTIONAL_SIZE', 'MOUSEMOVE', 'ANY', alt=True)
@@ -323,9 +323,9 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 			self.kmi_set_replace('wm.call_panel', 'X', 'PRESS', ctrl=True, shift=True, properties=[('name', orientation), ('keep_open', False)], disable_double=True)
 	
 	def tool_transform(self):
-		self.kmi_set_replace('wm.tool_set_by_name', self.k_move, 'PRESS', properties=[('name', 'Move')])
-		self.kmi_set_replace('wm.tool_set_by_name', self.k_rotate, 'PRESS', properties=[('name', 'Rotate')])
-		self.kmi_set_replace('wm.tool_set_by_name', self.k_scale, 'PRESS', properties=[('name', 'Scale')])
+		self.kmi_set_replace('wm.tool_set_by_id', self.k_move, 'PRESS', properties=[('name', 'Move')])
+		self.kmi_set_replace('wm.tool_set_by_id', self.k_rotate, 'PRESS', properties=[('name', 'Rotate')])
+		self.kmi_set_replace('wm.tool_set_by_id', self.k_scale, 'PRESS', properties=[('name', 'Scale')])
 
 	# Keymap define
 	def set_tila_keymap(self):
@@ -373,7 +373,6 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		self.kmi_set_replace('view3d.view_persportho', 'NUMPAD_ASTERIX', 'PRESS')
 
 		self.collection_visibility('object.hide_collection')
-		self.kmi_set_replace('bpy.ops.mesh.select_all', 'RIGHTMOUSE', 'CLICK', ctrl=True, alt=True, shift=True, properties=[('action', 'INVERT')])
 
 		self.kmi_set_replace('view3d.view_selected', 'A', 'PRESS', ctrl=True, shift=True)
 
@@ -449,7 +448,7 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		self.kmi_set_active(False, 'view3d.select_box')
 		self.kmi_set_replace('mesh.bevel', 'B', 'PRESS')
 		self.kmi_set_replace('mesh.knife_tool', 'C', 'PRESS')
-		self.kmi_set_replace('wm.tool_set_by_name', 'C', 'PRESS', alt=True, shift=True, properties=[('name', 'Loop Cut')])
+		self.kmi_set_replace('wm.tool_set_by_id', 'C', 'PRESS', alt=True, shift=True, properties=[('name', 'Loop Cut')])
 		self.kmi_set_replace('mesh.bridge_edge_loops', 'B', 'PRESS', shift=True)
 		self.kmi_set_replace('mesh.edge_collapse', 'DEL', 'PRESS', shift=True)
 		self.kmi_set_replace('mesh.fill', 'P', 'PRESS', shift=True, properties=[('use_beauty', True)])
@@ -473,6 +472,7 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 
 		self.kmi_set_replace('mesh.toggle_use_automerge', 'BACK_SLASH', 'PRESS')
 		self.kmi_set_replace('wm.call_menu_pie', 'X', 'PRESS', alt=True, shift=True, properties=[('name', 'pie.symmetry')])
+		self.kmi_set_replace('mesh.select_all', 'RIGHTMOUSE', 'CLICK', ctrl=True, alt=True, shift=True, properties=[('action', 'INVERT')])
 		# self.kmi_set_replace('object.merge_tool', 'M', 'PRESS')
 
 		# Object Mode

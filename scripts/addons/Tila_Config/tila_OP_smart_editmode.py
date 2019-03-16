@@ -19,6 +19,7 @@ bl_info = {
 class TILA_smart_editmode(bpy.types.Operator):
     bl_idname = "view3d.tila_smart_editmode"
     bl_label = "Smart Edit Mode"
+    bl_options = {'REGISTER', 'UNDO'}
 
     mode = bpy.props.IntProperty(name='mode', default=0)
     use_extend = bpy.props.BoolProperty(name='use_extend', default=False)

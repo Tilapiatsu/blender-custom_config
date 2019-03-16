@@ -20,6 +20,7 @@ bl_info = {
 class TILA_isolate(bpy.types.Operator):
     bl_idname = "view3d.tila_isolate"
     bl_label = "Isolate"
+    bl_options = {'REGISTER', 'UNDO'}
 
     force_object_isolate = bpy.props.BoolProperty(name='force_object_isolate', default=False)
 
