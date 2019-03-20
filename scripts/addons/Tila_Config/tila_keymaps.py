@@ -323,9 +323,9 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 			self.kmi_set_replace('wm.call_panel', 'X', 'PRESS', ctrl=True, shift=True, properties=[('name', orientation), ('keep_open', False)], disable_double=True)
 	
 	def tool_transform(self):
-		self.kmi_set_replace('wm.tool_set_by_id', self.k_move, 'PRESS', properties=[('name', 'Move')])
-		self.kmi_set_replace('wm.tool_set_by_id', self.k_rotate, 'PRESS', properties=[('name', 'Rotate')])
-		self.kmi_set_replace('wm.tool_set_by_id', self.k_scale, 'PRESS', properties=[('name', 'Scale')])
+		self.kmi_set_replace('wm.tool_set_by_id', self.k_move, 'PRESS', properties=[('name', 'builtin.move')])
+		self.kmi_set_replace('wm.tool_set_by_id', self.k_rotate, 'PRESS', properties=[('name', 'builtin.rotate')])
+		self.kmi_set_replace('wm.tool_set_by_id', self.k_scale, 'PRESS', properties=[('name', 'builtin.scale')])
 
 	# Keymap define
 	def set_tila_keymap(self):
@@ -364,7 +364,7 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 							lasso_tool='view3d.select_lasso',
 							select_through_tool='view3d.tila_select_through',
 					  		circle_tool='view3d.select_circle')
-		
+
 		self.kmi_set_replace('object.tila_emptymesh', 'N', 'PRESS', ctrl=True, alt=True, shift=True)
 		self.snap(snapping='wm.call_panel', snapping_prop=[('name', 'VIEW3D_PT_snapping')])
 
