@@ -231,8 +231,12 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 
 		# Linked
 		if linked_tool:
-			self.kmi_set_replace(linked_tool, self.k_linked, 'PRESS', disable_double=True)
-			self.kmi_set_replace(linked_tool, self.k_linked, 'PRESS', ctrl=True, properties=[('deselect', True)], disable_double=True)
+			self.kmi_set_replace(linked_tool, self.k_linked, 'PRESS', properties=[('deselect', False), ('delimit', {'SEAM'})], disable_double=True)
+			self.kmi_set_replace(linked_tool, self.k_linked, 'PRESS', ctrl=True, properties=[('deselect', True), ('delimit', {'SEAM'})], disable_double=True)
+			self.kmi_set_replace(linked_tool, self.k_linked, 'PRESS', shift=True, properties=[('deselect', False), ('delimit', {'MATERIAL'})], disable_double = True)
+			self.kmi_set_replace(linked_tool, self.k_linked, 'PRESS', ctrl=True, shift=True, properties=[('deselect', True), ('delimit', {'MATERIAL'})], disable_double=True)
+			self.kmi_set_replace(linked_tool, self.k_linked, 'PRESS', alt=True, properties=[('deselect', False), ('delimit', {'UV'})], disable_double=True)
+			self.kmi_set_replace(linked_tool, self.k_linked, 'PRESS', ctrl=True, alt=True, properties=[('deselect', True), ('delimit', {'UV'})], disable_double=True)
 
 	def selection_tool(self):
 		select_tool = self.kmi_find(idname='wm.tool_set_by_id', properties=KeymapManager.bProp([('name', 'Select Box')]))
@@ -660,14 +664,16 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		# Grease Pencil Stroke Paint (Draw brush)
 		self.kmi_init(name='Grease Pencil Stroke Paint (Draw brush)', space_type='EMPTY', region_type='WINDOW')
 		kmi = self.kmi_find(idname='gpencil.draw', ctrl=False, alt=True, shift=False)
-		kmi.ctrl = True
-		kmi.alt = False
-		kmi.shift = True
+		if kmi:
+			kmi.ctrl = True
+			kmi.alt = False
+			kmi.shift = True
 
 		kmi = self.kmi_find(idname='gpencil.draw', ctrl=False, alt=True, shift=True)
-		kmi.ctrl = True
-		kmi.alt = True
-		kmi.shift = True
+		if kmi:
+			kmi.ctrl = True
+			kmi.alt = True
+			kmi.shift = True
 
 		# Grease Pencil Stroke Sculpt Mode
 		self.kmi_init(name='Grease Pencil Stroke Sculpt Mode', space_type='EMPTY', region_type='WINDOW')
@@ -695,15 +701,18 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		# Knife Tool Modal Map
 		self.kmi_init(name='Knife Tool Modal Map', space_type='EMPTY', region_type='WINDOW')
 		panning = self.kmi_find(propvalue='PANNING')
-		panning.type = self.k_select
-		panning.value = 'ANY'
-		panning.any = True
+		if panning:
+			panning.type = self.k_select
+			panning.value = 'ANY'
+			panning.any = True
 
 		add_cut = self.kmi_find(propvalue='ADD_CUT')
-		add_cut.type = 'RIGHTMOUSE'
+		if add_cut:
+			add_cut.type = 'RIGHTMOUSE'
 
 		end_cut = self.kmi_find(propvalue='NEW_CUT')
-		end_cut.type = 'MIDDLEMOUSE'
+		if end_cut:
+			end_cut.type = 'MIDDLEMOUSE'
 
 		self.modal_set_replace('NEW_CUT', 'SPACE', 'PRESS')
 		
