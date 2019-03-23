@@ -101,13 +101,15 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		self.kmi_set_active(False, type='TAB', ctrl=True, shift=True)
 		self.kmi_set_active(False, idname='wm.call_panel', type='X', ctrl=True)
 
-	def navigation_keys(self, pan=None, orbit=None, dolly=None):
+	def navigation_keys(self, pan=None, orbit=None, dolly=None, roll=None):
 		if orbit:
 			self.kmi_set_replace(orbit, self.k_manip, "PRESS", alt=True)
 		if pan:
 			self.kmi_set_replace(pan, self.k_manip, "PRESS", alt=True, shift=True)
 		if dolly:
 			self.kmi_set_replace(dolly, self.k_manip, "PRESS", alt=True, ctrl=True)
+		if roll:
+			self.kmi_set_replace(roll, self.k_context, "PRESS", alt=True)
 
 	def mode_selection(self):
 		self.kmi_set_replace('view3d.tila_smart_editmode', self.k_vert_mode, 'PRESS', properties=[('mode', 0), ('use_extend', False), ('use_expand', False), ('alt_mode', False)], disable_double=True)
@@ -362,7 +364,8 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 
 		self.navigation_keys(pan='view3d.move',
 							orbit='view3d.rotate',
-							dolly='view3d.dolly')
+							dolly='view3d.dolly',
+                       		roll='view3d.view_roll')
 
 		self.selection_keys(select_tool='view3d.select', 
 							lasso_tool='view3d.select_lasso',
