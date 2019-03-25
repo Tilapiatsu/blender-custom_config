@@ -372,6 +372,8 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 							select_through_tool='view3d.tila_select_through',
 					  		circle_tool='view3d.select_circle')
 
+		self.kmi_set_active(False, idname='view3d.select', shift=True)
+
 		self.kmi_set_replace('object.tila_emptymesh', 'N', 'PRESS', ctrl=True, alt=True, shift=True)
 		self.snap(snapping='wm.call_panel', snapping_prop=[('name', 'VIEW3D_PT_snapping')])
 
