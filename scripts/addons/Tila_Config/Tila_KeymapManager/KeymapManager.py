@@ -65,10 +65,10 @@ class KeymapManager():
     def replace_km_dec(func):
         def func_wrapper(self, idname, type, value, alt=False, any=False, ctrl=False, shift=False, oskey=False, key_modifier=None, disable_double=None, properties=()):
 
+            duplicates = [k for k in self.ukmis if k.idname == idname]
             new_kmi = func(self, idname, type, value, alt=alt, any=any, ctrl=ctrl, shift=shift, oskey=oskey, key_modifier=key_modifier, disable_double=disable_double, properties=properties)
 
             keymlap_List = {'km': self.km, 'kmis': self.ukmis, 'new_kmi': new_kmi}
-            duplicates = [k for k in self.ukmis if k.idname == idname]
 
             if len(duplicates):
                 for k in duplicates:
@@ -82,7 +82,10 @@ class KeymapManager():
                         keymlap_List['old_kmi_id'] = k.id
 
                         # Replace keymap attribute
-                        self.kmi_replace(new_kmi, k)
+                        self.kmi_replace(new_kmi, k, properties)
+
+                        # Remove new keymap
+                        self.km.keymap_items.remove(new_kmi)
 
                         # Store keymap in class variable
                         self.keymap_List["replaced"].append(keymlap_List)
@@ -94,7 +97,7 @@ class KeymapManager():
 
     # Functions
 
-    def kmi_replace(self, km_src, km_dest):
+    def kmi_replace(self, km_src, km_dest, properties):
         km_dest.key_modifier = km_src.key_modifier
         km_dest.map_type = km_src.map_type
         km_dest.type = km_src.type
@@ -108,8 +111,23 @@ class KeymapManager():
             km_dest.shift = km_src.shift
             km_dest.oskey = km_src.oskey
 
+        self.kmi_prop_replace(km_src, km_dest, properties)
+
     def kmi_compare(self, kmi1, kmi2):
         return kmi1.type == kmi2.type and kmi1.ctrl == kmi2.ctrl and kmi1.alt == kmi2.alt and kmi1.shift == kmi2.shift and kmi1.any == kmi2.any and kmi1.oskey == kmi2.oskey and kmi1.key_modifier == kmi2.key_modifier and kmi1.map_type == kmi2.map_type and kmi1.value == kmi2.value
+
+    def kmi_prop_replace(self, kmi_src, kmi_dest, properties):
+        kmi_src_props = self.kmi_prop_list(kmi_src.properties)
+        kmi_dest_props = self.kmi_prop_list(kmi_dest.properties)
+
+        for i in range(len(kmi_src_props)):
+            if kmi_src_props[i] != kmi_dest_props[i]:
+                continue
+            else:
+                prop_list = self.kmi_prop_list(properties)
+                if kmi_src_props[i] in prop_list:
+                    src_prop = self.kmi_prop_getattr(kmi_src.properties, kmi_src_props[i])
+                    self.kmi_prop_setattr(kmi_dest.properties, kmi_src_props[i], src_prop)
 
     def tool_compare(self, kmi1, kmi2):
         kmi1_props = self.kmi_prop_list(kmi1.properties)
@@ -278,7 +296,12 @@ class KeymapManager():
             print("Warning: %r" % e)
 
     def kmi_prop_list(self, kmi_props):
-        prop = dir(kmi_props)[3:]
+        if not isinstance(kmi_props, list):
+            prop = dir(kmi_props)[3:]
+        else:
+            prop = []
+            for p in kmi_props:
+                prop.append(p[0])
         skip = ['path', 'constraint_axis']
         for s in skip:
             if s in prop:

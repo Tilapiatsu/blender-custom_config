@@ -233,12 +233,12 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 
 		# Linked
 		if linked_tool:
-			self.kmi_set_replace(linked_tool, self.k_linked, 'PRESS', properties=[('deselect', False), ('delimit', {'SEAM'})], disable_double=True)
+			self.kmi_set_replace(linked_tool, self.k_linked, 'PRESS', ctrl=False, properties=[('deselect', False), ('delimit', {'SEAM'})], disable_double=True)
 			self.kmi_set_replace(linked_tool, self.k_linked, 'PRESS', ctrl=True, properties=[('deselect', True), ('delimit', {'SEAM'})], disable_double=True)
-			self.kmi_set_replace(linked_tool, self.k_linked, 'PRESS', shift=True, properties=[('deselect', False), ('delimit', {'MATERIAL'})], disable_double = True)
-			self.kmi_set_replace(linked_tool, self.k_linked, 'PRESS', ctrl=True, shift=True, properties=[('deselect', True), ('delimit', {'MATERIAL'})], disable_double=True)
-			self.kmi_set_replace(linked_tool, self.k_linked, 'PRESS', alt=True, properties=[('deselect', False), ('delimit', {'UV'})], disable_double=True)
-			self.kmi_set_replace(linked_tool, self.k_linked, 'PRESS', ctrl=True, alt=True, properties=[('deselect', True), ('delimit', {'UV'})], disable_double=True)
+			self.kmi_set_replace(linked_tool, self.k_linked, 'PRESS', shift=True, properties=[('deselect', False), ('delimit', {'MATERIAL'})])
+			self.kmi_set_replace(linked_tool, self.k_linked, 'PRESS', ctrl=True, shift=True, properties=[('deselect', True), ('delimit', {'MATERIAL'})])
+			self.kmi_set_replace(linked_tool, self.k_linked, 'PRESS', alt=True, properties=[('deselect', False), ('delimit', {'UV'})])
+			self.kmi_set_replace(linked_tool, self.k_linked, 'PRESS', ctrl=True, alt=True, properties=[('deselect', True), ('delimit', {'UV'})])
 
 	def selection_tool(self):
 		select_tool = self.kmi_find(idname='wm.tool_set_by_id', properties=KeymapManager.bProp([('name', 'Select Box')]))
@@ -448,6 +448,9 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 							next_tool='mesh.select_next_item',
 							previous_tool='mesh.select_prev_item',
 							linked_tool='mesh.select_linked_pick')
+
+		# self.kmi_set_active(False, idname='mesh.select_linked_pick', ctrl=False)
+		# self.kmi_set_active(False, idname='mesh.select_linked_pick', ctrl=True, alt=False, shift=False, properties=[('deselect', True)])
 
 		self.duplicate(duplicate='mesh.duplicate_move')
 		self.hide_reveal(hide='mesh.hide', unhide='mesh.reveal')
