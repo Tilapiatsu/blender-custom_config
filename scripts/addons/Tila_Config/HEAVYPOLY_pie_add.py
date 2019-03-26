@@ -102,8 +102,8 @@ class HP_OT_add_primitive(bpy.types.Operator):
     type: bpy.props.StringProperty(name="Type")
 
     def invoke(self, context, event):
-        cur = bpy.context.scene.cursor_location
-        cur = list(cur)
+        cur = bpy.context.scene.cursor.location
+        # cur = list(cur)
         addob = False
         orthomode = False
         for area in bpy.context.screen.areas:
@@ -160,7 +160,7 @@ class HP_OT_add_primitive(bpy.types.Operator):
 
             if self.type == 'Grease_Pencil':
                 bpy.ops.object.gpencil_add()
-                bpy.ops.object.mode_set(mode='GPENCIL_PAINT')
+                bpy.ops.gpencil.paintmode_toggle()
             if self.type == 'Curve':
                 bpy.ops.curve.primitive_nurbs_path_add(view_align=orthomode)
                 bpy.ops.object.editmode_toggle()
@@ -179,33 +179,34 @@ class HP_OT_add_primitive(bpy.types.Operator):
 
         if self.type in {'Light', 'Grease_Pencil'}:
             addob = True
-
-        if bpy.context.object.data.total_vert_sel == 0:
-            print('Creating at Origin')
-            prim(self, type)
-        elif tuple(bpy.context.scene.tool_settings.mesh_select_mode) == (False, False, True):
-            print('Creating Aligned to Faces')
-            o = bpy.context.view_layer.objects.active
-            bpy.ops.view3d.snap_cursor_to_selected()
-            bpy.ops.transform.create_orientation(name="AddAxis", use=True, overwrite=True)
-            bpy.ops.mesh.select_all(action='DESELECT')
-            bpy.ops.object.mode_set(mode='OBJECT')
-            prim(self, type)
-            bpy.ops.transform.transform(mode='ALIGN', value=(0, 0, 0, 0), axis=(0, 0, 0), constraint_axis=(False, False, False), constraint_orientation='AddAxis')
-            if addob == False:
-                o.select_set(state=True)
-                bpy.context.view_layer.objects.active = o
-                bpy.ops.object.join()
-                bpy.ops.object.mode_set(mode='EDIT')
-                bpy.ops.object.face_map_add()
-                bpy.ops.object.face_map_select()
-                bpy.ops.object.face_map_remove_from()
-                bpy.ops.object.face_map_remove()
-        else:
-            bpy.ops.view3d.snap_cursor_to_selected()
-            prim(self, type)
-        bpy.context.scene.cursor_location = cur
-        bpy.data.scenes[0].transform_orientation_slots[0].type = t_axis
+        if bpy.context.object:
+            if bpy.context.object.data.total_vert_sel == 0:
+                print('Creating at Cursor')
+                prim(self, type)
+                bpy.ops.machin3.align(mode='CURSOR')
+            elif tuple(bpy.context.scene.tool_settings.mesh_select_mode) == (False, False, True):
+                print('Creating Aligned to Faces')
+                o = bpy.context.view_layer.objects.active
+                bpy.ops.view3d.snap_cursor_to_selected()
+                bpy.ops.transform.create_orientation(name="AddAxis", use=True, overwrite=True)
+                bpy.ops.mesh.select_all(action='DESELECT')
+                bpy.ops.object.mode_set(mode='OBJECT')
+                prim(self, type)
+                bpy.ops.transform.transform(mode='ALIGN', value=(0, 0, 0, 0), orient_axis='Z', constraint_axis=(False, False, False))
+                if addob == False:
+                    o.select_set(state=True)
+                    bpy.context.view_layer.objects.active = o
+                    bpy.ops.object.join()
+                    bpy.ops.object.mode_set(mode='EDIT')
+                    bpy.ops.object.face_map_add()
+                    bpy.ops.object.face_map_select()
+                    bpy.ops.object.face_map_remove_from()
+                    bpy.ops.object.face_map_remove()
+            else:
+                bpy.ops.view3d.snap_cursor_to_selected()
+                prim(self, type)
+            bpy.context.scene.cursor.location = cur
+            bpy.data.scenes[0].transform_orientation_slots[0].type = t_axis
         return {'FINISHED'}
 
 
