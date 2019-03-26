@@ -17,7 +17,7 @@ bl_info = {
 
 
 class HP_MT_pie_add(Menu):
-    bl_idname = "pie.add"
+    bl_idname = "HP_MT_pie_add"
     bl_label = "Add"
 
     def draw(self, context):

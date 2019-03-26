@@ -62,7 +62,7 @@ def append_copy_ids_editmode(self, context):
 
 class CopySub(bpy.types.Menu):
     bl_label = 'Copy Vert IDs topological'
-    bl_idname = 'view3d.copyid_submenu'
+    bl_idname = 'OBJECT_MT_view3d_copyid_submenu'
 
     def draw(self, context):
         layout = self.layout

@@ -90,9 +90,9 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 
 		self.kmi_set_replace('popup.hp_materials', 'M', 'PRESS')
 		self.kmi_set_replace('popup.hp_render', 'EQUAL', 'PRESS')
-		self.kmi_set_replace('wm.call_menu_pie', 'A', 'PRESS', ctrl=True, alt=True, shift=True, properties=[('name', 'pie.add')])
-		self.kmi_set_replace('wm.call_menu_pie', 'TAB', 'PRESS', ctrl=True, alt=True, shift=True, properties=[('name', 'pie.areas')])
-		self.kmi_set_replace('wm.call_menu_pie', 'X', 'PRESS', alt=True, shift=True, properties=[('name', 'pie.symmetry')])
+		self.kmi_set_replace('wm.call_menu_pie', 'A', 'PRESS', ctrl=True, alt=True, shift=True, properties=[('name', 'HP_MT_pie_add')])
+		self.kmi_set_replace('wm.call_menu_pie', 'TAB', 'PRESS', ctrl=True, alt=True, shift=True, properties=[('name', 'HP_MT_pie_areas')])
+		self.kmi_set_replace('wm.call_menu_pie', 'X', 'PRESS', alt=True, shift=True, properties=[('name', 'HP_MT_pie_symmetry')])
 
 		self.kmi_set_replace('view3d.viewport_rename', 'F2', 'PRESS')
 		# Disable Keymap
@@ -387,7 +387,7 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 
 		self.tool_center(pivot='VIEW3D_PT_pivot_point', orientation='VIEW3D_PT_transform_orientations')
 
-		self.kmi_set_replace('wm.call_menu_pie', 'Q', 'PRESS', ctrl=True, alt=True, shift=True, properties=[('name', 'pie.hp_boolean')])
+		self.kmi_set_replace('wm.call_menu_pie', 'Q', 'PRESS', ctrl=True, alt=True, shift=True, properties=[('name', 'HP_MT_boolean')])
 		
 
 		# 3d Cursor
@@ -483,7 +483,6 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		self.kmi_set_replace('mesh.toggle_x_symetry', 'X', 'PRESS', ctrl=True, alt=True)
 
 		self.kmi_set_replace('mesh.toggle_use_automerge', 'BACK_SLASH', 'PRESS')
-		self.kmi_set_replace('wm.call_menu_pie', 'X', 'PRESS', alt=True, shift=True, properties=[('name', 'pie.symmetry')])
 		self.kmi_set_replace('mesh.select_all', 'RIGHTMOUSE', 'CLICK', ctrl=True, alt=True, shift=True, properties=[('action', 'INVERT')])
 		# self.kmi_set_replace('object.merge_tool', 'M', 'PRESS')
 
@@ -586,12 +585,14 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 
 		self.selection_keys(node_box_tool='node.select_box')
 		self.kmi_set_active(False, idname='node.select_box', type=self.k_box)
-		self.kmi_set_active(False, idname='transform.translate', type=self.k_box)
-		self.kmi_set_active(False, idname='transform.translate', type=self.k_box, properties=[('release_confirm', True)])
-		self.kmi_set_active(False, idname='node.translate_attach', type=self.k_box)
+		# self.kmi_set_active(False, idname='transform.translate', type=self.k_box)
+		# self.kmi_set_active(False, idname='transform.translate', type=self.k_box, properties=[('release_confirm', True)])
+		self.kmi_remove(idname='transform.translate', type=self.k_box)
+		self.kmi_remove(idname='node.translate_attach', type=self.k_box)
+		self.kmi_remove(idname='node.translate_attach', type=self.k_box)
 
 		self.kmi_set_replace('transform.translate', self.k_box, 'ANY', properties=[('release_confirm', True)])
-		self.kmi_set_replace('node.translate_attach', self.k_select_attatched, 'ANY')
+		# self.kmi_set_replace('node.translate_attach', self.k_select_attatched, 'ANY')
 
 		self.duplicate(duplicate='node.duplicate_move', duplicate_link='node.duplicate_move_keep_inputs')
 		self.snap(snapping='wm.context_menu_enum', snapping_prop=[('data_path', 'tool_settings.snap_node_element')])

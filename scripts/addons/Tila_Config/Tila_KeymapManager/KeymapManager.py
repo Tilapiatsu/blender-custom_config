@@ -113,6 +113,15 @@ class KeymapManager():
 
         self.kmi_prop_replace(km_src, km_dest, properties)
 
+    def kmi_remove(self, idname=None, type=None, value=None, alt=None, any=None, ctrl=None, shift=None, oskey=None, key_modifier=None, propvalue=None, properties=None):
+        kmi = self.kmi_find(idname, type, value, alt, any, ctrl, shift, oskey, key_modifier, propvalue, properties)
+        if kmi:
+            print('{} : Removing kmi : {} mapped to {}'.format(self.km.name, kmi.idname, kmi.to_string()))
+            self.km.keymap_items.remove(kmi)
+            return True
+        else:
+            return False
+
     def kmi_compare(self, kmi1, kmi2):
         return kmi1.type == kmi2.type and kmi1.ctrl == kmi2.ctrl and kmi1.alt == kmi2.alt and kmi1.shift == kmi2.shift and kmi1.any == kmi2.any and kmi1.oskey == kmi2.oskey and kmi1.key_modifier == kmi2.key_modifier and kmi1.map_type == kmi2.map_type and kmi1.value == kmi2.value
 

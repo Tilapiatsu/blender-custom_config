@@ -13,8 +13,8 @@ import bpy
 from bpy.types import Menu
 #bpy.context.view_layer.objects.active
 # Boolean Pie
-class VIEW3D_PIE_HP_Boolean(Menu):
-    bl_idname = "pie.hp_boolean"
+class VIEW3D_MT_HP_Boolean(Menu):
+    bl_idname = "HP_MT_boolean"
     bl_label = "HP Boolean"
     def draw(self, context):
 
@@ -351,7 +351,7 @@ class HP_Boolean_Apply(bpy.types.Operator):
         return {'FINISHED'}  
 
 classes = (
-    VIEW3D_PIE_HP_Boolean,
+    VIEW3D_MT_HP_Boolean,
     HP_Boolean_Toggle_Cutters,
     HP_Boolean_Live,
     HP_Boolean_Slice,

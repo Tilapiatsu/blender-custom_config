@@ -12,7 +12,7 @@ from bpy.types import Menu
 # symmetrize, mirror and mirror modifier
 
 class HP_MT_pie_symmetry(Menu):
-    bl_idname = "pie.symmetry"
+    bl_idname = "HP_MT_pie_symmetry"
     bl_label = "Symmetry"
 
     def draw(self, context):
