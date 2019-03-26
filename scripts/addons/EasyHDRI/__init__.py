@@ -603,7 +603,7 @@ class EASYHDRI_PT_main(Panel):
             col = row.column(align=True)
             col.operator("easyhdr.reload_previews", text = '',  icon = 'FILE_REFRESH')
             col.prop(scn, 'favs', text = '', icon = 'SOLO_OFF', icon_only=True)
-            col.menu("easyhdr.settings", text = '', icon = 'TOOL_SETTINGS')
+            col.menu("EASYHDRI_MT_settings", text='', icon='TOOL_SETTINGS')
             if scn.render.engine == 'CYCLES':
                 col.prop(scn.cycles, 'film_transparent', text = '', icon = 'FILE_IMAGE') 
             col = layout.column()                         
@@ -660,7 +660,7 @@ class EASYHDRI_PT_main(Panel):
                     
 # Settings Menu
 class EASYHDRI_MT_settings(Menu):
-    bl_idname = "easyhdr.settings"
+    bl_idname = "EASYHDRI_MT_settings"
     bl_label = "Settings"
     bl_description = "Settings"
 
