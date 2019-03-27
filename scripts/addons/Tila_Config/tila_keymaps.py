@@ -203,7 +203,8 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 
 		#  shortest Path Select / Deselect / Add
 		if shortestpath_tool:
-			self.kmi_set_replace(shortestpath_tool, self.k_context, 'CLICK', shift=True, disable_double=True)
+			self.kmi_remove(idname=shortestpath_tool)
+			self.kmi_set_replace(shortestpath_tool, self.k_context, 'CLICK', shift=True, disable_double=True, properties=[('use_fill', False), ('use_face_step', False), ('use_topology_distance', False)])
 
 		# Loop Select / Deselect / Add
 		if loop_tool:

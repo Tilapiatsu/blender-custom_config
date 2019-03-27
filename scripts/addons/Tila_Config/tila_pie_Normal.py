@@ -3,6 +3,8 @@ from bpy.props import BoolProperty
 from bpy.types import Operator
 from bpy.types import Menu
 import bpy
+import bmesh
+
 bl_info = {
     "name": "Pie Normal",
     "description": "",
@@ -27,44 +29,41 @@ class TILA_MT_pie_normal(Menu):
         pie = layout.menu_pie()
         # Left
         split = pie.split()
-        col = split.column()
-        col.scale_y = 1
-        col.scale_x = 1.5
-        if context.mode == "EDIT_MESH":
-            if bpy.context.scene.tool_settings.mesh_select_mode[1]:
-                col.operator("view3d.tila_smoothnormal", icon='NODE_MATERIAL', text="Smooth")
-            if bpy.context.scene.tool_settings.mesh_select_mode[2]:
-                col.operator("mesh.faces_shade_smooth", icon='NODE_MATERIAL', text="Smooth")
-        elif context.mode == "OBJECT":
-            col.operator("object.shade_smooth", icon='NODE_MATERIAL', text="Smooth")
+        split.scale_y = 3
+        split.scale_x = 1.5
+        if context.mode == "OBJECT":
+            text = 'Smooth'
+        else:
+            text = 'Merge'
+
+        split.operator("view3d.tila_normalsmartmerge", icon='NODE_MATERIAL', text=text)
 
         # Right
         split = pie.split()
-        if context.mode == "EDIT_MESH":
-            if bpy.context.scene.tool_settings.mesh_select_mode[1]:
-                col.operator("view3d.tila_splitnormal", icon='MESH_CUBE', text="Split")
-            if bpy.context.scene.tool_settings.mesh_select_mode[2]:
-                col.operator("mesh.faces_shade_flat", icon='MESH_CUBE', text="Flat")
-        elif context.mode == "OBJECT":
-            col.operator("object.shade_flat", icon='MESH_CUBE', text="Flat")
+        split.scale_y = 3
+        split.scale_x = 1.5
+        split.operator("view3d.tila_normalsmartsplit", icon='MESH_CUBE', text="Split")
 
         # Top
         split = pie.split()
         col = split.column()
-        col.scale_y = 1.5
+        col.scale_y = 3
         col.scale_x = 1
-        col.operator("mesh.average_normals", icon='INVERSESQUARECURVE', text="Average Normal").average_type = 'FACE_AREA'
+        col.operator("mesh.average_normals", icon='META_CUBE', text="Average Normal").average_type = 'FACE_AREA'
+        col = split.column()
+        col.scale_y = 3
+        col.scale_x = 1
+        col.operator("mesh.smoothen_normals", icon='INVERSESQUARECURVE', text="Smoothen Normal").factor = 1
 
         # Bottom
         split = pie.split()
         col = split.column()
         col.scale_y = 1.5
         col.scale_x = 1
-        col.operator("view3d.hp_add_primitive", icon='MESH_CYLINDER', text="6").type = 'Cylinder_6'
+
         col = split.column()
         col.scale_y = 1.5
         col.scale_x = 1
-        col.operator("view3d.hp_add_primitive", icon='MESH_CYLINDER', text="32").type = 'Cylinder_32'
 
         # Top Left
 
@@ -81,17 +80,116 @@ class TILA_MT_pie_normal(Menu):
         col.scale_x = 1
 
         # Bottom Right
+        split = pie.split()
+        col = split.column()
+        col.scale_y = 3
+        col.scale_x = 1
+        col.prop(view.overlay, "show_split_normals", text="Show Vertex Normal", icon='NORMALS_VERTEX_FACE')
+
+        # bpy.context.space_data.overlay.show_split_normals = True
+
+
+def smart_split_smooth(context, func):
+    def element_is_selected(object):
+        bm = bmesh.from_edit_mesh(object.data)
+        if bpy.context.scene.tool_settings.mesh_select_mode[0]:
+            for v in bm.verts:
+                if v.select:
+                    return True
+            else:
+                return False
+        if bpy.context.scene.tool_settings.mesh_select_mode[1]:
+            for e in bm.edges:
+                if e.select:
+                    return True
+            else:
+                return False
+        if bpy.context.scene.tool_settings.mesh_select_mode[2]:
+            for f in bm.faces:
+                if f.select:
+                    return True
+            else:
+                return False
+
+    def run_cmd(object, functions, mode):
+        if element_is_selected(object):
+            for f in functions[mode]:
+                kwargs = f[1]
+                if kwargs:
+                    f[0](**kwargs)
+                else:
+                    f[0]()
+
+    active = bpy.context.active_object
+
+    if active:
+        selection = bpy.context.selected_objects
+        if active not in selection:
+            selection.append(active)
+
+        for o in selection:
+            context.view_layer.objects.active = o
+            if context.mode == "EDIT_MESH":
+                if bpy.context.scene.tool_settings.mesh_select_mode[0]:
+                    run_cmd(o, func, 'VERT')
+                if bpy.context.scene.tool_settings.mesh_select_mode[1]:
+                    run_cmd(o, func, 'VERT')
+                if bpy.context.scene.tool_settings.mesh_select_mode[2]:
+                    try:
+                        if element_is_selected(o):
+                            bpy.ops.mesh.region_to_loop()
+                            if not element_is_selected(o):
+                                bpy.ops.mesh.select_all(action='INVERT')
+                            func['FACE'][0]()
+                    except Exception as e:
+                        print(e)
+            elif context.mode == "OBJECT":
+                func['OBJECT'][0]()
+
+
+class TILA_OT_smartSplit(bpy.types.Operator):
+    bl_idname = "view3d.tila_normalsmartsplit"
+    bl_label = "Tilapiatsu Smartly Split vertex normal"
+    bl_options = {'REGISTER', 'UNDO'}
+
+    func = {'VERT': ((bpy.ops.mesh.normals_tools, {'mode': 'RESET'}), (bpy.ops.view3d.tila_splitnormal, None)),
+            'EDGE': (bpy.ops.view3d.tila_splitnormal, None),
+            'FACE': (bpy.ops.view3d.tila_splitnormal, None),
+            'OBJECT': (bpy.ops.object.shade_flat, None)}
+
+    def execute(self, context):
+
+        smart_split_smooth(context, self.func)
+
+        return {'FINISHED'}
+
+
+class TILA_OT_normalsmartmerge(bpy.types.Operator):
+    bl_idname = "view3d.tila_normalsmartmerge"
+    bl_label = "Tilapiatsu Smartly merge vertex normal"
+    bl_options = {'REGISTER', 'UNDO'}
+
+    func = {'VERT': ((bpy.ops.mesh.smoothen_normals, {'factor': 1}), (bpy.ops.view3d.tila_smoothnormal, None)),
+            'EDGE': (bpy.ops.view3d.tila_smoothnormal, None),
+            'FACE': (bpy.ops.view3d.tila_smoothnormal, None),
+            'OBJECT': (bpy.ops.object.shade_smooth, None)}
+
+    def execute(self, context):
+
+        smart_split_smooth(context, self.func)
+
+        return {'FINISHED'}
 
 
 class TILA_OT_autoSmooth(bpy.types.Operator):
     bl_idname = "view3d.tila_autosmooth"
+
     bl_label = "Tilapiatsu Auto Smooth"
     bl_options = {'REGISTER', 'UNDO'}
 
     value = bpy.props.BoolProperty(name='value', default=True)
 
     def execute(self, context):
-        print('autosmooth')
         active = bpy.context.active_object
 
         if active:
