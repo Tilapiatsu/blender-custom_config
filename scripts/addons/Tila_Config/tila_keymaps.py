@@ -509,6 +509,7 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		
 		self.tool_sculpt('sculpt.sculptmode_toggle')
 		self.kmi_set_replace('transform.tosphere', 'S', 'PRESS', ctrl=True, alt=True, shift=True, disable_double=True)
+		self.kmi_set_replace('wm.call_menu_pie', 'S', 'PRESS', alt=True, shift=True, properties=[('name', 'TILA_MT_pie_normal')], disable_double=True)
 
 		# Sculpt
 		self.kmi_init(name='Sculpt', space_type='EMPTY', region_type='WINDOW')
