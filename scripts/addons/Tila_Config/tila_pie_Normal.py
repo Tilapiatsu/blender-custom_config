@@ -89,7 +89,7 @@ class TILA_MT_pie_normal(Menu):
         # bpy.context.space_data.overlay.show_split_normals = True
 
 
-def smart_split_smooth(context, func):
+def smart_split_smooth(context, functions):
     def element_is_selected(object):
         bm = bmesh.from_edit_mesh(object.data)
         if bpy.context.scene.tool_settings.mesh_select_mode[0]:
@@ -131,16 +131,16 @@ def smart_split_smooth(context, func):
             context.view_layer.objects.active = o
             if context.mode == "EDIT_MESH":
                 if bpy.context.scene.tool_settings.mesh_select_mode[0]:
-                    run_cmd(o, func, 'VERT')
+                    run_cmd(o, functions, 'VERT')
                 if bpy.context.scene.tool_settings.mesh_select_mode[1]:
-                    run_cmd(o, func, 'VERT')
+                    run_cmd(o, functions, 'EDGE')
                 if bpy.context.scene.tool_settings.mesh_select_mode[2]:
                     try:
                         if element_is_selected(o):
                             bpy.ops.mesh.region_to_loop()
                             if not element_is_selected(o):
                                 bpy.ops.mesh.select_all(action='INVERT')
-                            func['FACE'][0]()
+                            functions['FACE'][0][0]()
                     except Exception as e:
                         print(e)
             elif context.mode == "OBJECT":
@@ -153,9 +153,9 @@ class TILA_OT_smartSplit(bpy.types.Operator):
     bl_options = {'REGISTER', 'UNDO'}
 
     func = {'VERT': ((bpy.ops.mesh.normals_tools, {'mode': 'RESET'}), (bpy.ops.view3d.tila_splitnormal, None)),
-            'EDGE': (bpy.ops.view3d.tila_splitnormal, None),
-            'FACE': (bpy.ops.view3d.tila_splitnormal, None),
-            'OBJECT': (bpy.ops.object.shade_flat, None)}
+            'EDGE': ((bpy.ops.view3d.tila_splitnormal, None)),
+            'FACE': ((bpy.ops.view3d.tila_splitnormal, None)),
+            'OBJECT': ((bpy.ops.object.shade_flat, None))}
 
     def execute(self, context):
 
@@ -167,12 +167,13 @@ class TILA_OT_smartSplit(bpy.types.Operator):
 class TILA_OT_normalsmartmerge(bpy.types.Operator):
     bl_idname = "view3d.tila_normalsmartmerge"
     bl_label = "Tilapiatsu Smartly merge vertex normal"
+
     bl_options = {'REGISTER', 'UNDO'}
 
     func = {'VERT': ((bpy.ops.mesh.smoothen_normals, {'factor': 1}), (bpy.ops.view3d.tila_smoothnormal, None)),
-            'EDGE': (bpy.ops.view3d.tila_smoothnormal, None),
-            'FACE': (bpy.ops.view3d.tila_smoothnormal, None),
-            'OBJECT': (bpy.ops.object.shade_smooth, None)}
+            'EDGE': ((bpy.ops.view3d.tila_smoothnormal, None)),
+            'FACE': ((bpy.ops.view3d.tila_smoothnormal, None)),
+            'OBJECT': ((bpy.ops.object.shade_smooth, None))}
 
     def execute(self, context):
 
