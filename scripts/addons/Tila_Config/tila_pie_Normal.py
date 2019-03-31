@@ -85,6 +85,8 @@ class TILA_MT_pie_normal(Menu):
         col.scale_y = 3
         col.scale_x = 1
         col.prop(view.overlay, "show_split_normals", text="Show Vertex Normal", icon='NORMALS_VERTEX_FACE')
+        col = split.column()
+        col.prop(view.overlay, "normals_length", text="Size")
 
         # bpy.context.space_data.overlay.show_split_normals = True
 
