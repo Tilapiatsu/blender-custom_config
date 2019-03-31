@@ -187,9 +187,9 @@ class TILA_OT_normalaverage(bpy.types.Operator):
     bl_label = "Tilapiatsu Average Normals"
     bl_options = {'REGISTER', 'UNDO'}
 
-    func = {'VERT': ((bpy.ops.mesh.average_normals, {'average_type': 'FACE_AREA'}),),
-            'EDGE': ((bpy.ops.mesh.average_normals, {'average_type': 'FACE_AREA'}),),
-            'FACE': ((bpy.ops.mesh.average_normals, {'average_type': 'FACE_AREA'}))}
+    func = {'VERT': ((bpy.ops.view3d.tila_autosmooth, None), (bpy.ops.mesh.average_normals, {'average_type': 'FACE_AREA'}),),
+            'EDGE': ((bpy.ops.view3d.tila_autosmooth, None), (bpy.ops.mesh.average_normals, {'average_type': 'FACE_AREA'}),),
+            'FACE': ((bpy.ops.view3d.tila_autosmooth, None), (bpy.ops.mesh.average_normals, {'average_type': 'FACE_AREA'}))}
 
     def execute(self, context):
 
@@ -203,9 +203,9 @@ class TILA_OT_normalsmoothen(bpy.types.Operator):
     bl_label = "Tilapiatsu Smoothen Normals"
     bl_options = {'REGISTER', 'UNDO'}
 
-    func = {'VERT': ((bpy.ops.mesh.smoothen_normals, {'factor': 1}),),
-            'EDGE': ((bpy.ops.mesh.smoothen_normals, {'factor': 1}),),
-            'FACE': ((bpy.ops.mesh.smoothen_normals, {'factor': 1}))}
+    func = {'VERT': ((bpy.ops.view3d.tila_autosmooth, None), (bpy.ops.mesh.smoothen_normals, {'factor': 1}),),
+            'EDGE': ((bpy.ops.view3d.tila_autosmooth, None), (bpy.ops.mesh.smoothen_normals, {'factor': 1}),),
+            'FACE': ((bpy.ops.view3d.tila_autosmooth, None), (bpy.ops.mesh.smoothen_normals, {'factor': 1}))}
 
     def execute(self, context):
 
