@@ -1,4 +1,4 @@
-from mathutils import Matrix
+from mathutils import Matrix, Vector
 from bpy.props import BoolProperty
 from bpy.types import Operator
 from bpy.types import Menu
@@ -44,7 +44,7 @@ class TILA_MT_pie_normal(Menu):
         split.scale_x = 1.5
         split.operator("view3d.tila_normalsmartsplit", icon='MESH_CUBE', text="Split")
 
-        # Top
+        # Bottom
         split = pie.split()
         col = split.column()
         col.scale_y = 3
@@ -53,17 +53,15 @@ class TILA_MT_pie_normal(Menu):
         col = split.column()
         col.scale_y = 3
         col.scale_x = 1
+        col.operator("mesh.tila_normaluseface", icon='MOD_SOLIDIFY', text="Use Face Normal")
         col.operator("mesh.tila_normalsmoothen", icon='INVERSESQUARECURVE', text="Smoothen Normal")
 
-        # Bottom
+        # Top
         split = pie.split()
         col = split.column()
-        col.scale_y = 1.5
+        col.scale_y = 3
         col.scale_x = 1
-
-        col = split.column()
-        col.scale_y = 1.5
-        col.scale_x = 1
+        col.operator('mesh.tila_normalflatten', icon='NORMALS_FACE', text='Flatten Normal')
 
         # Top Left
 
@@ -150,6 +148,10 @@ def run_on_selection(context, functions):
                 run_cmd(o, functions, 'OBJECT')
 
 
+def flatten_normals(context):
+    pass
+
+
 class TILA_OT_selectBorderEdges(bpy.types.Operator):
     bl_idname = "mesh.tila_selectborderedges"
     bl_label = "Tilapiatsu select border edge of current face selection"
@@ -184,6 +186,66 @@ class TILA_OT_selectBorderEdges(bpy.types.Operator):
         return {'FINISHED'}
 
 
+class TILA_OT_normalflatten(bpy.types.Operator):
+    bl_idname = "mesh.tila_normalflatten"
+    bl_label = "Tilapiatsu Flatten Normals"
+    bl_options = {'REGISTER', 'UNDO'}
+
+    def flatten(self, context, object):
+        me = object.data
+        bm = bmesh.from_edit_mesh(me)
+
+        if bpy.context.scene.tool_settings.mesh_select_mode[0]:
+            bpy.ops.mesh.select_mode(type="FACE")
+        if bpy.context.scene.tool_settings.mesh_select_mode[1]:
+            bpy.ops.mesh.select_mode(type="FACE")
+        if bpy.context.scene.tool_settings.mesh_select_mode[2]:
+            selected = []
+
+            # Get selected faces
+            for f in bm.faces:
+                if f.select:
+                    selected.append(f)
+
+            # sum all selected normals
+            sum = Vector((1, 1, 1))
+            for f in selected:
+                sum = sum + f.normal
+            length = len(selected)
+            sum = (sum.x / length, sum.y / length, sum.z / length)
+
+            sum = Vector(sum)
+            sum.normalize()
+
+            for f in selected:
+                for v in f.verts:
+                    v.normal = sum
+                    v.normal_update()
+                    print(v.normal)
+            bm.normal_update()
+
+            print(dir(bm))
+            bm.to_mesh(me)
+            bmesh.update_edit_mesh(me)
+            bm.free()
+
+    def execute(self, context):
+        active = bpy.context.active_object
+
+        if active:
+            selection = bpy.context.selected_objects
+
+            if active not in selection:
+                selection.append(active)
+
+            for o in selection:
+                context.view_layer.objects.active = o
+
+                self.flatten(context, o)
+
+        return {'FINISHED'}
+
+
 class TILA_OT_normalaverage(bpy.types.Operator):
     bl_idname = "mesh.tila_normalaverage"
     bl_label = "Tilapiatsu Average Normals"
@@ -192,6 +254,22 @@ class TILA_OT_normalaverage(bpy.types.Operator):
     func = {'VERT': ((bpy.ops.view3d.tila_autosmooth, None), (bpy.ops.mesh.average_normals, {'average_type': 'FACE_AREA'}),),
             'EDGE': ((bpy.ops.view3d.tila_autosmooth, None), (bpy.ops.mesh.average_normals, {'average_type': 'FACE_AREA'}),),
             'FACE': ((bpy.ops.view3d.tila_autosmooth, None), (bpy.ops.mesh.average_normals, {'average_type': 'FACE_AREA'}))}
+
+    def execute(self, context):
+
+        run_on_selection(context, self.func)
+
+        return {'FINISHED'}
+
+
+class TILA_OT_normaluseface(bpy.types.Operator):
+    bl_idname = "mesh.tila_normaluseface"
+    bl_label = "Tilapiatsu Use Face Normals"
+    bl_options = {'REGISTER', 'UNDO'}
+
+    func = {'VERT': ((bpy.ops.view3d.tila_autosmooth, None), (bpy.ops.mesh.set_normals_from_faces, None)),
+            'EDGE': ((bpy.ops.view3d.tila_autosmooth, None), (bpy.ops.mesh.set_normals_from_faces, None)),
+            'FACE': ((bpy.ops.view3d.tila_autosmooth, None), (bpy.ops.mesh.set_normals_from_faces, None))}
 
     def execute(self, context):
 
