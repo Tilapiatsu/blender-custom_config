@@ -88,3 +88,6 @@
 [submodule "scripts/GIT/bpy_photogrametry"]
 	path = scripts/GIT/bpy_photogrametry
 	url = https://github.com/uhlik/bpy.git
+[submodule "scripts/GIT/advanced_transform"]
+	path = scripts/GIT/advanced_transform
+	url = https://github.com/Korchy/advanced_transform.git
