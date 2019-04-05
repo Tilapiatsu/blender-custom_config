@@ -7,6 +7,8 @@ from bpy_extras.view3d_utils import location_3d_to_region_2d
 from .help_text import *
 
 
+mouseXoffset = 40
+
 def draw_callback_cube(self, op, context, _uidpi, _uifactor):
     blf.size(0, 14, _uidpi)
     DrawHelp(helpstring_box, _uifactor)
@@ -15,6 +17,7 @@ def draw_callback_cube(self, op, context, _uidpi, _uifactor):
         SliderDraw(op, context, op.snapClass.edgediv)
 
     else:
+        BoolDraw(op.mouse_pos, -40, op.isOriented, "Align", "Oriented", "Axis", _uifactor)
         BoolDraw(op.mouse_pos, -20, op.qObject.isFlat, "Mesh", "Plane", "Cube", _uifactor)
         GroundTypeDraw(op.qObject.basetype, op.mouse_pos, 0, True, _uifactor)
         BoolDraw(op.mouse_pos, 20, op.qObject.isCentered, "Origin", "Center", "Base", _uifactor)
@@ -32,6 +35,7 @@ def draw_callback_cylinder(self, op, context, _uidpi, _uifactor):
         SliderDraw(op, context, op.qObject.meshSegments)
 
     else:
+        BoolDraw(op.mouse_pos, -40, op.isOriented, "Align", "Oriented", "Axis", _uifactor)
         BoolDraw(op.mouse_pos, -20, op.qObject.isFlat, "Mesh", "Circle", "Cylinder", _uifactor)
         GroundTypeDraw(op.qObject.basetype, op.mouse_pos, 0, True, _uifactor)
         BoolDraw(op.mouse_pos, 20, op.qObject.isCentered, "Origin", "Center", "Base", _uifactor)
@@ -51,6 +55,7 @@ def draw_callback_sphere(self, op, context, _uidpi, _uifactor):
         SliderDraw(op, context, op.qObject.meshSegments)
 
     else:
+        BoolDraw(op.mouse_pos, -20, op.isOriented, "Align", "Oriented", "Axis", _uifactor)
         GroundTypeDraw(op.qObject.basetype, op.mouse_pos, 0, True, _uifactor)
         BoolDraw(op.mouse_pos, 20, op.qObject.isCentered, "Origin", "Center", "Base", _uifactor)
         NumberDraw(op.meshSegments, op.mouse_pos, "Segments", 40, _uifactor)
@@ -66,46 +71,50 @@ def DrawHelp(htext, _uifactor):
     columnoffs = 320 * _uifactor
     for line in reversed(htext):
         blf.color(0, 1.0, 1.0, 1.0, 1.0)
-        blf.position(0, 60, offset, 0)
+        blf.position(0, 60 * _uifactor, offset, 0)
         blf.draw(0, line[0])
+
         blf.color(0, 1.0, 0.86, 0.0, 1.0)
         textdim = blf.dimensions(0, line[1])
         coloffset = columnoffs - textdim[0]
         blf.position(0, coloffset, offset, 0)
         blf.draw(0, line[1])
-        offset += 20
+        offset += 20 * _uifactor
 
 
 def BoolDraw(pos, offset, value, textname, text1, text2, _uifactor):
     blf.color(0, 1.0, 1.0, 1.0, 1.0)
-    blf.position(0, pos[0] + 20, pos[1] - offset, 0)
+    offsetfac = offset * _uifactor
+    blf.position(0, pos[0] + mouseXoffset, pos[1] - offsetfac, 0)
     blf.draw(0, textname)
     blf.color(0, 1.0, 0.86, 0.0, 1.0)
     textToDraw = text1 if value else text2
     textdim = blf.dimensions(0, textToDraw)
-    Roffset = (160 * _uifactor) - textdim[0]
-    blf.position(0, pos[0] + 20 + Roffset, pos[1] - offset, 0)
+    Roffset = (180 * _uifactor) - textdim[0]
+    blf.position(0, pos[0] + 20 + Roffset, pos[1] - offsetfac, 0)
     blf.draw(0, textToDraw)
 
 
 def NumberDraw(value, pos, text, offset, _uifactor):
     blf.color(0, 1.0, 1.0, 1.0, 1.0)
-    blf.position(0, pos[0] + 20, pos[1] - offset, 0)
+    offsetfac = offset * _uifactor
+    blf.position(0, pos[0] + mouseXoffset, pos[1] - offsetfac, 0)
     blf.draw(0, text)
     blf.color(0, 1.0, 0.86, 0.0, 1.0)
     textToDraw = str(value)
     textdim = blf.dimensions(0, textToDraw)
-    Roffset = (160 * _uifactor) - textdim[0]
-    blf.position(0, pos[0] + 20 + Roffset, pos[1] - offset, 0)
+    Roffset = (180 * _uifactor) - textdim[0]
+    blf.position(0, pos[0] + 20 + Roffset, pos[1] - offsetfac, 0)
     blf.draw(0, textToDraw)
 
 
 def GroundTypeDraw(basetype, pos, offset, active, _uifactor):
+    offsetfac = offset * _uifactor
     if active:
         blf.color(0, 1.0, 1.0, 1.0, 1.0)
     else:
         blf.color(0, 0.5, 0.5, 0.5, 0.5)
-    blf.position(0, pos[0] + 20, pos[1] - offset, 0)
+    blf.position(0, pos[0] + mouseXoffset, pos[1] - offsetfac, 0)
     blf.draw(0, "BaseType")
     if active:
         blf.color(0, 1.0, 0.86, 0.0, 1.0)
@@ -121,8 +130,8 @@ def GroundTypeDraw(basetype, pos, offset, active, _uifactor):
     elif basetype == 4:
         textToDraw = "Uniform all"
     textdim = blf.dimensions(0, textToDraw)
-    Roffset = (160 * _uifactor) - textdim[0]
-    blf.position(0, pos[0] + 20 + Roffset, pos[1] - offset, 0)
+    Roffset = (180 * _uifactor) - textdim[0]
+    blf.position(0, pos[0] + 20 + Roffset, pos[1] - offsetfac, 0)
     blf.draw(0, textToDraw)
 
 

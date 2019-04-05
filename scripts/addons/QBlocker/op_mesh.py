@@ -1,13 +1,13 @@
 import bpy
-import bmesh
-import gpu
+# import bmesh
+# import gpu
 import math
-import copy
+# import copy
 from .snap_module import *
 from .draw_module import *
 from .utilities.raycast_utils import *
-# from .qobject import *
-
+from .qspace import *
+from .qwplane import *
 
 # box create op new
 class MeshCreateOperator(bpy.types.Operator):
@@ -16,12 +16,11 @@ class MeshCreateOperator(bpy.types.Operator):
     bl_context = "objectmode"
 
     addon_prefs = None
+    isSnapHold = True
 
     drawcallback = None
     mainMouse = None
-
-    # for 0.11
-    qObject = None
+    wMatrix = mathutils.Matrix()
 
     objectType = 1
     basetype = 1
@@ -33,19 +32,24 @@ class MeshCreateOperator(bpy.types.Operator):
 
     mouse_pos = (0, 0)
 
-    lmb = False
-    coordsys = False
-    actMatrix = None
-
-    # snapping variables
+    # classes
+    qObject = None
     snapClass = None
+    coordsysClass = None
+    workingplane = None
+
     snapSegHold = False
+    wPlaneHold = False
+
 
     # for save to reuse
+    isWorkingPlane = False
     isSmooth = False
     isCentered = False
     isIncrement = False
     isFlat = False
+    isOriented = False
+    isWplane = False
     meshSegments = 16
     edgediv = 2
 
@@ -56,7 +60,15 @@ class MeshCreateOperator(bpy.types.Operator):
     segkeyHold = False
 
     # set mouse buttons based on preferences
-    def GetMainMouseButton(self, context):
+    def SetSnapProps(self):
+        addonMpref = self.addon_prefs.snap_enum
+        if addonMpref == 'HOLD':
+            return True
+        elif addonMpref == 'TOGGLE':
+            return False
+
+    # set mouse buttons based on preferences
+    def GetMainMouseButton(self):
         addonMpref = self.addon_prefs.mouse_enum
         if addonMpref == 'LEFT':
             return ('LEFTMOUSE', 'RIGHTMOUSE')
@@ -71,36 +83,76 @@ class MeshCreateOperator(bpy.types.Operator):
     def ChangeMeshSegments(self):
         pass
 
-    # save values for later use
-    def SaveLocalData(self):
-        pass
-
     # create Qobject type
     def CreateQobject(self):
         pass
 
-    def ChangeSnapSegments(self):
+    def ChangeSnapSegments(self, _context):
         allstep = int((self.mouse_pos[0] - self.mouseStart[0]) // self.inc_px)
         prevalue = max(1, min(8, self.snapClass.orig_edgediv + allstep))
         if prevalue != self.snapClass.edgediv:
             self.mouseEnd_x = self.mouseStart[0] + ((prevalue - self.snapClass.orig_edgediv) * self.inc_px)
             self.snapClass.edgediv = prevalue
-            if self.snapClass.targetObject[0]:
-                self.snapClass.UpdateSnapPoints()
-                self.snapClass.closestPoint = None
+            self.snapClass.CheckSnappingTarget(_context, self.mouse_pos)
+            self.snapClass.closestPoint = None
 
+    # Stage One: create object set matrix 
+    def Stage_One(self, _context):
+        self.wMatrix = self.coordsysClass.GetCoordSys(_context, self.mouse_pos, self.isOriented)
+        # check if snap. Set matrix and first point
+        if self.snapClass.isSnapActive and self.snapClass.closestPoint is not None:
+            self.firstPoint = self.snapClass.closestPoint
+            self.wMatrix.translation = self.firstPoint
+        else:           
+            self.firstPoint = self.wMatrix.to_translation()
+        # create object
+        self.qObject.CreateBObject()
+        # set object matrix
+        if self.snapClass.isPolyGridActive and self.snapClass.isSnapActive:
+            self.qObject.SetMatrix(self.wMatrix)
+        else:
+            self.qObject.SetMatrix(self.wMatrix)
+        bpy.context.scene.update()
+        self.qObject.SelectObject()
+        self.qObject.bObject.hide_viewport = True
+
+    # Stage Two: set base
+    def Stage_Two(self, _context):
+        self.qObject.bObject.hide_viewport = False
+        if self.snapClass.isSnapActive and self.snapClass.closestPoint is not None:
+            self.secondPoint = self.snapClass.GetClosestPointOnGrid(self.qObject.bMatrix)
+        else:
+            self.secondPoint = GetPlaneLocation(_context, self.mouse_pos, self.qObject.bMatrix)
+        self.qObject.UpdateBase(self.firstPoint, self.secondPoint)
+
+    # Stage Three: set height
+    def Stage_Height(self, _context):
+        if not self.segkeyHold:
+            if self.snapClass.isSnapActive and self.snapClass.closestPoint is not None:
+                mat_inv = self.qObject.bMatrix.inverted()
+                heightcoord = mat_inv @ self.snapClass.closestPoint
+                heightcoord = heightcoord[2]
+            else:
+                heightcoord = GetHeightLocation(_context, self.mouse_pos, self.qObject.bMatrix, self.secondPoint)
+            if self.isIncrement:
+                gridstep = _context.space_data.overlay.grid_scale
+                heightcoord = math.floor((heightcoord / gridstep)) * gridstep
+            self.qObject.UpdateHeight(heightcoord)
+
+    # main operator loop
     def modal(self, context, event):
         context.area.tag_redraw()
-        if event.type in {'WHEELUPMOUSE', 'WHEELDOWNMOUSE'} and not self.snapClass.isSnapActive:
-            # allow navigation
+        # allow zoom navigation, if not snap set
+        if event.type in {'WHEELUPMOUSE', 'WHEELDOWNMOUSE'} and not self.snapClass.isSnapActive:       
             return {'PASS_THROUGH'}
 
+        # allow navigation
         if event.type == 'MIDDLEMOUSE':
-            # allow navigation
             return {'PASS_THROUGH'}
 
         # click not allowed
         if event.type == self.mainMouse[0] and event.value == 'CLICK':
+            print("mouseclick")
             return {'RUNNING_MODAL'}
 
         # pass through alt for maya camera control keys
@@ -109,87 +161,78 @@ class MeshCreateOperator(bpy.types.Operator):
 
         # snap active
         if self.snapClass.isSnapActive:
-            mcoord = event.mouse_region_x, event.mouse_region_y
-            self.snapClass.CheckSnappingTarget(context, mcoord)
+            if self.toolstage != 0:
+                self.wMatrix = self.coordsysClass.GetCoordSys(context, self.mouse_pos, self.isOriented)
+            self.snapClass.CheckSnappingTarget(context, self.mouse_pos)
 
+        # mouse move event handling
         if event.type == 'MOUSEMOVE':
+            # get act mouse pos
             self.mouse_pos = (event.mouse_region_x, event.mouse_region_y)
+           
             # segments calculation
             if self.segkeyHold:
                 self.ChangeMeshSegments()
+
             # edge div for snapping
-            if self.snapSegHold:
-                self.ChangeSnapSegments()
+            elif self.snapSegHold:
+                self.ChangeSnapSegments(context)
 
-            # left mouse button down
-            if self.lmb:
-                if self.toolstage == 0:
-                    # create object
-                    self.qObject.CreateBObject()
-                    # set object matrix
-                    if self.snapClass.isPolyGridActive and self.snapClass.isSnapActive:
-                        self.qObject.SetObjectMatrix(self.snapClass.gridMatrix, self.firstPoint)
-                    else:
-                        self.qObject.SetObjectMatrixVec(self.coordsys, self.firstPoint)
-                    bpy.context.scene.update()
-                    self.actMatrix = self.qObject.bObject.matrix_world.copy()
-                    bpy.context.scene.update()
-                    self.qObject.SelectObject()
-                    self.qObject.bObject.hide_viewport = True
-                    self.toolstage = 1
+            # refresh matrix while moving mouse in 0 stage
+            elif self.toolstage == 0 and not self.wPlaneHold:
+                self.wMatrix = self.coordsysClass.GetCoordSys(context, self.mouse_pos, self.isOriented)
 
-                elif self.toolstage == 1:
-                    self.qObject.bObject.hide_viewport = False
-                    # set second point
-                    if self.snapClass.isSnapActive and self.snapClass.closestPoint is not None:
-                        self.secondPoint = self.snapClass.GetClosestPointOnGrid(self.actMatrix)
-                    else:
-                        self.secondPoint = GetPlaneLocation(context, self.mouse_pos, self.actMatrix)
-                    self.qObject.UpdateBase(self.firstPoint, self.secondPoint)
-
+            # set second point (mouse move stage)
             elif self.toolstage == 2:
-                # set height
-                if not self.segkeyHold:
-                    if self.snapClass.isSnapActive and self.snapClass.closestPoint is not None:
-                        heightcoord = self.snapClass.closestPoint
-                        mat_inv = self.actMatrix.inverted()
-                        heightcoord = mat_inv @ heightcoord
-                        heightcoord = heightcoord[2]
-                    else:
-                        heightcoord = GetHeightLocation(context, self.mouse_pos, self.actMatrix, self.secondPoint)
-                    if self.isIncrement:
-                        gridstep = context.space_data.overlay.grid_scale
-                        heightcoord = math.floor((heightcoord / gridstep)) * gridstep
-                    self.qObject.UpdateHeight(heightcoord)
+                self.Stage_Two(context)
+
+            # set height (mouse move stage)
+            elif self.toolstage == 3:
+                self.Stage_Height(context)
 
         # left mouse click handling
         elif event.type == self.mainMouse[0]:
-            # start object creation
             if event.value == 'PRESS':
-                coord = event.mouse_region_x, event.mouse_region_y
-                if self.snapClass.isSnapActive and self.snapClass.closestPoint is not None:
-                    self.firstPoint = self.snapClass.closestPoint
-                    self.coordsys = GetCoordSys(context, coord)
-                else:
-                    self.coordsys = GetCoordSys(context, coord)
-                    self.firstPoint = self.coordsys[0]
-                self.lmb = True
+                coord = event.mouse_region_x, event.mouse_region_y       
+                # first stage (create object and matrix)
+                if self.toolstage == 0:
+                    self.Stage_One(context)
+                    self.toolstage = 2
+                # last stage end
+                elif self.toolstage == 3:
+                    self.toolstage = 0
             # set height
             elif event.value == 'RELEASE':
-                if self.toolstage == 1 and not self.qObject.basetype == 4 and not self.qObject.isFlat:
-                    self.toolstage = 2
+                # if just mouseclick reset state
+                if self.toolstage == 2 and not self.secondPoint:
+                    self.qObject.DeleteBObject()
+                    self.secondPoint = None
+                    self.firstPoint = None
+                    self.coordsysClass.ToggleAxis(True)
+                    self.toolstage = 0
+                # skip height stage if Uniform All
+                elif self.toolstage == 2 and not self.qObject.basetype == 4 and not self.qObject.isFlat:
+                    self.coordsysClass.ToggleAxis(False)
+                    self.toolstage = 3
                 else:
                     # finalize mesh scale and normals, create new class instance
                     self.qObject.FinalizeMeshData()
                     self.qObject = self.qObject.copyData(self)
                     bpy.ops.ed.undo_push(message="QObject Create")
+                    self.secondPoint = None
+                    self.firstPoint = None
+                    self.coordsysClass.ToggleAxis(True)
                     self.toolstage = 0
-
-                self.lmb = False
 
         # toggle base type
         if event.type == 'A' and event.value == 'PRESS':
                 self.basetype = self.qObject.UpdateBaseType()
+
+        # toggle matrix orientation
+        if event.type == 'Q' and event.value == 'PRESS':
+                self.isOriented = not self.isOriented
+                self.coordsysClass.ResetResult()
+                self.wMatrix = self.coordsysClass.GetCoordSys(context, self.mouse_pos, self.isOriented)
 
         # toggle centered
         if event.type == 'O' and event.value == 'PRESS':
@@ -213,6 +256,23 @@ class MeshCreateOperator(bpy.types.Operator):
             elif event.value == 'RELEASE':
                 self.snapSegHold = False
 
+        # set working plane
+        if event.type == 'W':
+            if event.value == 'PRESS':
+                if self.isWorkingPlane:
+                    self.workingplane.SetActive(context, False)
+                    self.isWorkingPlane = False
+                else:
+                    hMatrix = self.coordsysClass.GetCoordSys(context, self.mouse_pos, self.isOriented)
+                    if self.snapClass.isSnapActive and self.snapClass.closestPoint is not None:
+                        hMatrix.translation = self.snapClass.closestPoint
+                    self.workingplane.SetMatrix(hMatrix)
+                    self.workingplane.SetActive(context, True)
+                    self.isWorkingPlane = True
+                self.wPlaneHold = True
+            elif event.value == 'RELEASE':
+                self.wPlaneHold = False
+
         # toggle smooth mesh (virtual)
         if event.type == 'D' and event.value == 'PRESS':
             self.ToggleMeshSmooth()
@@ -232,17 +292,15 @@ class MeshCreateOperator(bpy.types.Operator):
             mcoord = event.mouse_region_x, event.mouse_region_y
             if self.snapClass.edgediv < 8:
                 self.snapClass.edgediv += 1
-                if self.snapClass.targetObject[0]:
-                    self.snapClass.UpdateSnapPoints()
-                    self.snapClass.closestPoint = None
+                self.snapClass.CheckSnappingTarget(context, self.mouse_pos)
+                self.snapClass.closestPoint = None
 
         if event.type == 'WHEELDOWNMOUSE' and self.snapClass.isSnapActive:
             mcoord = event.mouse_region_x, event.mouse_region_y
             if self.snapClass.edgediv > 1:
                 self.snapClass.edgediv -= 1
-                if self.snapClass.targetObject[0]:
-                    self.snapClass.UpdateSnapPoints()
-                    self.snapClass.closestPoint = None
+                self.snapClass.CheckSnappingTarget(context, self.mouse_pos)
+                self.snapClass.closestPoint = None
 
         # toggle increments
         if event.type == 'LEFT_SHIFT':
@@ -253,10 +311,14 @@ class MeshCreateOperator(bpy.types.Operator):
 
         # toggle snap
         if event.type in {'LEFT_CTRL', 'RIGHT_CTRL'}:
-            if event.value == 'PRESS':
-                self.snapClass.SetState(True, self.mouse_pos)
-            elif event.value == 'RELEASE':
-                self.snapClass.SetState(False, self.mouse_pos)
+            if self.isSnapHold:
+                if event.value == 'PRESS':
+                    self.snapClass.SetState(True, self.mouse_pos)
+                elif event.value == 'RELEASE':
+                    self.snapClass.SetState(False, self.mouse_pos)
+            else:
+               if event.value == 'PRESS':
+                    self.snapClass.ToggleState(self.mouse_pos)  
 
         # activate snapgrid
         if event.type == 'X':
@@ -281,10 +343,14 @@ class MeshCreateOperator(bpy.types.Operator):
             self.__class__.isSmooth = self.isSmooth
             self.__class__.meshSegments = self.qObject.meshSegments
             self.__class__.basetype = self.basetype
-            self.SaveLocalData()
+            self.__class__.isOriented = self.isOriented
             # remove handlers, cleanup
             bpy.types.SpaceView3D.draw_handler_remove(self._handle, 'WINDOW')
             self.snapClass.CleanUp()
+            self.coordsysClass.CleanUp()
+            self.workingplane.wasActive = self.workingplane.isActive
+            if self.workingplane.isActive:
+                self.workingplane.SetActive(context, False)
             context.area.tag_redraw()
             return {'CANCELLED'}
 
@@ -294,10 +360,20 @@ class MeshCreateOperator(bpy.types.Operator):
         if context.space_data.type == 'VIEW_3D':
             preferences = context.preferences
             self.addon_prefs = preferences.addons[__package__].preferences
-            # build shader for screespace draw
-            self.snapClass = SnappingClass(self, context, self.edgediv)
-            self.mainMouse = self.GetMainMouseButton(context)
-
+            # Instantiate modul classes
+            self.coordsysClass = CoordSysClass(context, self, self.addon_prefs.axis_bool)
+            self.snapClass = SnappingClass(self, self.coordsysClass, context, self.edgediv)
+            self.mainMouse = self.GetMainMouseButton()
+            self.isSnapHold = self.SetSnapProps()
+            # Handle Working Plane
+            if not WorkingPlane.Instance:
+                print("create first WPlane")
+                WorkingPlane.Instance = WorkingPlane(context, mathutils.Matrix())
+            self.workingplane = WorkingPlane.Instance
+            if self.workingplane.wasActive:
+                print("working plane was active")
+                self.isWorkingPlane = True
+                self.workingplane.SetActive(context, True)
             # add draw handler
             uidpi = int((72 * preferences.system.ui_scale))
             args = (self, context, uidpi, preferences.system.ui_scale)

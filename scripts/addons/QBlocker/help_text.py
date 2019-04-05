@@ -1,4 +1,6 @@
 helpstring_sphere = (
+    ("Align", "Q"),
+    ("Set WPlane", "W"),
     ("BaseType", "A"),
     ("Origin", "O"),
     ("Segments", "Hold S"),
@@ -11,6 +13,8 @@ helpstring_sphere = (
 )
 
 helpstring_cylinder = (
+    ("Align", "Q"),
+    ("Set WPlane", "W"),
     ("Circle/Cylinder", "H"),
     ("BaseType", "A"),
     ("Origin", "O"),
@@ -24,6 +28,8 @@ helpstring_cylinder = (
 )
 
 helpstring_box = (
+    ("Align", "Q"),
+    ("Set WPlane", "W"),
     ("Plane/Box", "H"),
     ("BaseType", "A"),
     ("Origin", "O"),

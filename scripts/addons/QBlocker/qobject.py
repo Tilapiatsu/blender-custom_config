@@ -42,7 +42,7 @@ class Qobject:
 
     def CreateBObject(self):
         self.bObject = bpy.data.objects.new("QBlock", self.bMesh)
-        bpy.context.scene.collection.objects.link(self.bObject)
+        bpy.context.collection.objects.link(self.bObject)
         self.bMesh = self.bObject.data
 
         bpy.context.scene.update()
@@ -157,18 +157,9 @@ class Qobject:
 
     # ===== Set Object Matrix ===== #
 
-    # calc matrix from UP vector
-    def SetObjectMatrixVec(self, _coordsys, _position):
-        view_vec = mathutils.Vector(_coordsys[1]).normalized()
-        self.bObject.location = _position
-        self.bObject.rotation_euler = view_vec.to_track_quat('Z', 'X').to_euler()
-        bpy.context.scene.update()
-        self.bMatrix = self.bObject.matrix_world.copy()
-
     # apply matrix and position
-    def SetObjectMatrix(self, _matrix, _position):
+    def SetMatrix(self, _matrix):
         self.bObject.matrix_world = _matrix
-        self.bObject.location = _position
         bpy.context.scene.update()
         self.bMatrix = self.bObject.matrix_world.copy()
 
@@ -178,12 +169,12 @@ class Qobject:
     def TransformPtoP(self, _matrix):
         secondPoint_W = _matrix @ self.secondPoint
         self.bObject.location = (self.firstPoint + secondPoint_W) / 2.0
-        self.bObject.scale = (self.secondPoint.x / 2.0, self.secondPoint.y / 2.0, self.height)
+        self.bObject.scale = (abs(self.secondPoint.x) / 2.0, abs(self.secondPoint.y) / 2.0, self.height)
 
     # center position, separated axis
     def TransformCenter(self):
         self.bObject.location = self.firstPoint
-        self.bObject.scale = (self.secondPoint.x, self.secondPoint.y, self.height)
+        self.bObject.scale = (abs(self.secondPoint.x), abs(self.secondPoint.y), self.height)
 
     # center position, uniform base axis
     def TransformUniformBase(self):

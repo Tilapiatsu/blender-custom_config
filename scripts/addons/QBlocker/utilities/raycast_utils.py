@@ -7,22 +7,6 @@ from .grid_utils import *
 from .math_utils import *
 
 
-# Get Ray on grid or object in scene
-def GetCoordSys(context, coord):
-    scene = context.scene
-    region = context.region
-    rv3d = context.region_data
-    view_vector = region_2d_to_vector_3d(region, rv3d, coord)
-    ray_origin = region_2d_to_origin_3d(region, rv3d, coord)
-    hitresult = scene.ray_cast(context.view_layer, ray_origin, view_vector)
-    if hitresult[0] and hitresult[4].type == 'MESH':
-        hitpoint = hitresult[1], hitresult[2]
-    else:
-        grid_vector = GetGridVector(context)
-        hitpoint = LinePlaneCollision(view_vector, ray_origin, (0.0, 0.0, 0.0), grid_vector), grid_vector
-    return hitpoint
-
-
 # Get location in matrix space
 def GetPlaneLocation(context, coord, matrix):
     matrix_inv = matrix.inverted()
@@ -63,7 +47,6 @@ def GetHeightLocation(context, coord, matrix, secpos):
         return distance
     else:
         ray_direction = ray_target - ray_origin
-        # view_dirnew = -ray_direction
         view_dirnew = -ray_target
         view_dirnew[2] = 0.0
         view_dirnew.normalize()
