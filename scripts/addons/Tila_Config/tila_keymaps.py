@@ -27,6 +27,7 @@ bl_info = {
 # - Script to visualize Texture checker in all objects in the viewport
 # - Fix the uv transform too which is always scaling uniformally
 # - Fix the smart edit mode in UV context
+# - Create an action center pie menu
 
 
 # Addon to Enable
@@ -242,7 +243,7 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 			self.kmi_set_replace(linked_tool, self.k_linked, 'PRESS', ctrl=True, alt=True, properties=[('deselect', True), ('delimit', {'UV'})])
 
 	def selection_tool(self):
-		select_tool = self.kmi_find(idname='wm.tool_set_by_id', properties=KeymapManager.bProp([('name', 'Select Box')]))
+		select_tool = self.kmi_find(idname='wm.tool_set_by_id', properties=KeymapManager.bProp([('name', 'builtin.select_box')]))
 		if select_tool:
 			self.kmi_prop_setattr(select_tool.properties, "name", 'Select')
 			self.kmi_prop_setattr(select_tool.properties, "cycle", False)
@@ -461,7 +462,7 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		self.kmi_set_active(False, 'view3d.select_box')
 		self.kmi_set_replace('mesh.bevel', 'B', 'PRESS')
 		self.kmi_set_replace('mesh.knife_tool', 'C', 'PRESS')
-		self.kmi_set_replace('wm.tool_set_by_id', 'C', 'PRESS', alt=True, shift=True, properties=[('name', 'Loop Cut')])
+		self.kmi_set_replace('wm.tool_set_by_id', 'C', 'PRESS', alt=True, shift=True, properties=[('name', 'builtin.loop_cut')])
 		self.kmi_set_replace('mesh.bridge_edge_loops', 'B', 'PRESS', shift=True)
 		self.kmi_set_replace('mesh.edge_collapse', 'DEL', 'PRESS', shift=True)
 		self.kmi_set_replace('mesh.fill', 'P', 'PRESS', shift=True, properties=[('use_beauty', True)])
