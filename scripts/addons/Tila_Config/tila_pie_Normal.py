@@ -192,8 +192,8 @@ class TILA_OT_normalflatten(bpy.types.Operator):
     bl_options = {'REGISTER', 'UNDO'}
 
     def flatten(self, context, object):
-        me = object.data
-        bm = bmesh.from_edit_mesh(me)
+        mesh = object.data
+        bm = bmesh.from_edit_mesh(mesh)
 
         if bpy.context.scene.tool_settings.mesh_select_mode[0]:
             bpy.ops.mesh.select_mode(type="FACE")
@@ -217,17 +217,16 @@ class TILA_OT_normalflatten(bpy.types.Operator):
             sum = Vector(sum)
             sum.normalize()
 
+            print(sum)
+
             for f in selected:
                 for v in f.verts:
                     v.normal = sum
-                    v.normal_update()
-                    print(v.normal)
-            bm.normal_update()
 
-            print(dir(bm))
-            bm.to_mesh(me)
-            bmesh.update_edit_mesh(me)
-            bm.free()
+                # f.normal_update()
+            # bm.select_flush(True)
+            bmesh.update_edit_mesh(mesh)
+            # bpy.ops.mesh.normals_make_consistent()
 
     def execute(self, context):
         active = bpy.context.active_object
