@@ -237,6 +237,7 @@ class TILA_OT_normalflatten(bpy.types.Operator):
 		return False
 
 	def flatten(self, context, object):
+		# https://github.com/isathar/Blender-Normal-Editing-Tools/blob/master/custom_normals_editor/normeditor_functions.py
 		mesh = object.data
 
 		normalsdata = []
