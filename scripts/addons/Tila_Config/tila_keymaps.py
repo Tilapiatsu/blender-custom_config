@@ -87,10 +87,12 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		self.kmi_set_replace("screen.userpref_show", "TAB", "PRESS", ctrl=True)
 		self.kmi_set_replace("wm.window_fullscreen_toggle", "F11", "PRESS")
 		self.kmi_set_replace('screen.animation_play', self.k_menu, 'PRESS', shift=True)
-		self.kmi_set_replace("popup.hp_properties", 'V', "PRESS")
-
-		self.kmi_set_replace('popup.hp_materials', 'M', 'PRESS')
-		self.kmi_set_replace('popup.hp_render', 'EQUAL', 'PRESS')
+		
+		if self.km.name in ['3D View']:
+			self.kmi_set_replace("popup.hp_properties", 'V', "PRESS")
+			self.kmi_set_replace('popup.hp_materials', 'M', 'PRESS')
+			self.kmi_set_replace('popup.hp_render', 'EQUAL', 'PRESS')
+   
 		self.kmi_set_replace('wm.call_menu_pie', 'A', 'PRESS', ctrl=True, alt=True, shift=True, properties=[('name', 'HP_MT_pie_add')])
 		self.kmi_set_replace('wm.call_menu_pie', 'TAB', 'PRESS', ctrl=True, alt=True, shift=True, properties=[('name', 'HP_MT_pie_areas')])
 		self.kmi_set_replace('wm.call_menu_pie', 'X', 'PRESS', alt=True, shift=True, properties=[('name', 'HP_MT_pie_symmetry')])
@@ -151,7 +153,7 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 						select_tool=None, 
 						lasso_tool=None, select_through_tool=None,
 						box_tool=None, box_through_tool=None, node_box_tool=None,
-                    	circle_tool=None, gp_circle_tool=None,
+						circle_tool=None, gp_circle_tool=None,
 						shortestpath_tool=None,
 						loop_tool=None, ring_tool=None,
 						more_tool=None, less_tool=None,
@@ -367,7 +369,7 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		self.navigation_keys(pan='view3d.move',
 							orbit='view3d.rotate',
 							dolly='view3d.dolly',
-                       		roll='view3d.view_roll')
+					   		roll='view3d.view_roll')
 
 		self.selection_keys(select_tool='view3d.select', 
 							lasso_tool='view3d.select_lasso',

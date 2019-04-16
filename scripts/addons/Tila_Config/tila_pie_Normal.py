@@ -12,9 +12,9 @@ bl_info = {
     "version": (1, 0, 0),
     "blender": (2, 80, 0),
     "location": "",
-                "warning": "",
-                "wiki_url": "",
-                "category": "Pie Menu"
+    "warning": "",
+    "wiki_url": "",
+    "category": "Pie Menu"
 }
 
 
@@ -61,7 +61,8 @@ class TILA_MT_pie_normal(Menu):
         col = split.column()
         col.scale_y = 3
         col.scale_x = 1
-        col.operator('mesh.tila_normalflatten', icon='NORMALS_FACE', text='Flatten Normal')
+        if context.mode == "EDIT_MESH":
+            col.operator('mesh.tila_normalflatten', icon='NORMALS_FACE', text='Flatten Normal')
 
         # Top Left
 
@@ -195,10 +196,18 @@ class TILA_OT_normalflatten(bpy.types.Operator):
         if len(normalslist) > 0:
             if mesh.use_auto_smooth:
                 newnormslist = ()
+                
+                for f in mesh.polygons:
+                    for i in range(len(f.vertices)):
+                        if f.select:
+                            newnormslist = newnormslist + ((normalslist[0][0].x, normalslist[0][0].y, normalslist[0][0].z),)
+                        else:
+                            newnormslist = newnormslist + ((f.normal.x, f.normal.y, f.normal.z),)
 
-                for f in normalslist:
-                    newnormslist = newnormslist + tuple(tuple(n) for n in f)
+                # for f in normalslist:
+                #     newnormslist = tuple([(n.x, n.y, n.z) for n in f])
 
+                print('newnormslist', newnormslist)
                 mesh.calc_normals_split()
 
                 for e in mesh.edges:
@@ -236,7 +245,7 @@ class TILA_OT_normalflatten(bpy.types.Operator):
 
         return False
 
-    def flatten(self, context, object):
+    def flatten_new(self, context, object):
         # https://github.com/isathar/Blender-Normal-Editing-Tools/blob/master/custom_normals_editor/normeditor_functions.py
         mesh = object.data
 
@@ -258,13 +267,14 @@ class TILA_OT_normalflatten(bpy.types.Operator):
         sum = (sum.x / length, sum.y / length, sum.z / length)
 
         fcount = 0
-        for f in mesh.polygons:
-            if f.select:
-                norm = []
-                normalsdata_proc.append(norm)
-                for i in range(len(f.vertices)):
-                    normalsdata_proc[fcount].append((f.normal.copy().normalized()))
-                fcount += 1
+        for f in selected_face:
+            norm = []
+            normalsdata_proc.append(norm)
+            for i in range(len(f.vertices)):
+                normalsdata_proc[fcount].append((f.normal.copy().normalized()))
+            fcount += 1
+
+        print('normalsdata_proc', normalsdata_proc)
 
         if (self.update_customnormals(mesh, normalsdata_proc)):
             context.area.tag_redraw()
@@ -273,7 +283,7 @@ class TILA_OT_normalflatten(bpy.types.Operator):
         # clean up
         del normalsdata_proc[:]
 
-    def flatten_old(self, context, object):
+    def flatten(self, context, object):
         mesh = object.data
         bm = bmesh.from_edit_mesh(mesh)
 
