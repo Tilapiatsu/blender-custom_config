@@ -94,3 +94,6 @@
 [submodule "scripts/addons/yavne"]
 	path = scripts/addons/yavne
 	url = https://github.com/fedackb/yavne.git
+[submodule "scripts/addons/lineup_maker"]
+	path = scripts/addons/lineup_maker
+	url = https://github.com/Tilapiatsu/blender-lineup_maker.git
