@@ -12,9 +12,9 @@ bl_info = {
     "version": (1, 0, 0),
     "blender": (2, 80, 0),
     "location": "",
-                "warning": "",
-                "wiki_url": "",
-                "category": "Pie Menu"
+    "warning": "",
+    "wiki_url": "",
+    "category": "Pie Menu"
 }
 
 
@@ -216,18 +216,18 @@ class TILA_OT_normalflatten(bpy.types.Operator):
                     bm = bmesh.from_edit_mesh(mesh)
                     meshverts = [v for v in bm.verts]
 
-                    for i in range(len(meshverts)):
-                        meshverts[i].normal = normalslist[i].copy()
+                    for v_index, v in enumerate(meshverts):
+                        v.normal = normalslist[v_index].copy()
 
-                    bmesh.update_edit_mesh(mesh, tessface=False, destructive=False)
+                    bmesh.update_edit_mesh(mesh, loop_triangles=False, destructive=False)
                     mesh.update()
                 else:
                     bm = bmesh.new()
                     bm.from_mesh(mesh)
                     meshverts = [v for v in bm.verts]
 
-                    for i in range(len(meshverts)):
-                        meshverts[i].normal = normalslist[i].copy()
+                    for v_index, v in enumerate(meshverts):
+                        v.normal = normalslist[v_index].copy()
 
                     bm.to_mesh(mesh)
 
@@ -239,32 +239,31 @@ class TILA_OT_normalflatten(bpy.types.Operator):
     def flatten(self, context, object):
         # https://github.com/isathar/Blender-Normal-Editing-Tools/blob/master/custom_normals_editor/normeditor_functions.py
         mesh = object.data
+        bm = bmesh.from_edit_mesh(mesh)
 
         normalsdata = []
         normalsdata_proc = []
 
-        selected_face = []
-
         # Get selected faces
-        for f in mesh.polygons:
-            if f.select:
-                selected_face.append(f)
+        selected_face = [f for f in bm.faces if f.select]
 
         # sum all selected normals
         sum = Vector((1, 1, 1))
         for f in selected_face:
-            sum = sum + f.normal
+            sum = sum + f.normal.copy()
         length = len(selected_face)
-        sum = (sum.x / length, sum.y / length, sum.z / length)
+        sum = Vector((sum.x / length, sum.y / length, sum.z / length)).normalized()
 
-        fcount = 0
-        for f in mesh.polygons:
-            if f.select:
-                norm = []
-                normalsdata_proc.append(norm)
-                for i in range(len(f.vertices)):
-                    normalsdata_proc[fcount].append((f.normal.copy().normalized()))
-                fcount += 1
+        for f_index, f in enumerate(bm.faces):
+            normalsdata_proc.append([])
+
+            for i_index, i in enumerate(f.verts):
+                if f.select:
+                    normalsdata_proc[f_index].append(sum)
+                else:
+                    normalsdata_proc[f_index].append((i.normal.copy().normalized()))
+        
+        bmesh.update_edit_mesh(mesh, loop_triangles=False, destructive=False)
 
         if (self.update_customnormals(mesh, normalsdata_proc)):
             context.area.tag_redraw()
