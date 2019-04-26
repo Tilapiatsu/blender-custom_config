@@ -73,9 +73,6 @@
 [submodule "scripts/addons/EdgeFlow"]
 	path = scripts/addons/EdgeFlow
 	url = https://github.com/BenjaminSauder/EdgeFlow.git
-[submodule "scripts/addons/Modifier-Popup-Panel"]
-	path = scripts/addons/Modifier-Popup-Panel
-	url = https://github.com/Symstract/Modifier-Popup-Panel.git
 [submodule "scripts/GIT/TiNA"]
 	path = scripts/GIT/TiNA
 	url = https://gitlab.com/Modanung/TiNA.git
