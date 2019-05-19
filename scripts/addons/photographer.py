@@ -2,7 +2,7 @@ bl_info = {
 	"name": "Photographer",
 	"description": "Adds Exposure, White Balance, Resolution and Autofocus controls to your camera",
 	"author": "Fabien 'chafouin' Christin, @fabienchristin", 
-	"version": (2, 0, 0),
+	"version": (2, 0, 3),
 	"blender": (2, 80, 0),
 	"location": "Properties Editor > Data > Camera",
 	"support": "COMMUNITY",
@@ -26,9 +26,8 @@ from bpy.types import (Panel,
 					   PropertyGroup,
 					   AddonPreferences,
 					   )
-from mathutils.bvhtree import BVHTree
-import bmesh #addbmesh   <<ADD
-
+from mathutils import Vector
+import time
 
 
 # Global variables                       
@@ -45,7 +44,7 @@ color_temperature_red = ((2000, 255),(2200,255),(2400,255),(2700,255),(3000,255)
 color_temperature_green = ((2000,141),(2200,152),(2400,162),(2700,174),(3000,185),(3300,195),(3600,203),(3900,206),(4300,219),(5000,231),(6000,246),(6500, 255),(7000,243),(8000,233),(9000,225),(10000,218),(11000,213),(12000,209),(13000,200),(14000, 100))
 color_temperature_blue = ((2000,11),(2200,41),(2400,60),(2700,84),(3000,105),(3300,124),(3600,141),(3900,159),(4300,175),(5000,204),(6000,237),(6500, 255),(7000,255),(8000,255),(9000,255),(10000,255),(11000,255),(12000,255),(13000,255),(14000,255))
 temperature_ratio = ((23.1818,2000),(6.2195,2200),(4.25,2400),(3.0357,2700),(2.4286,3000),(2.0565,3300),(1.8085,3600),(1.6038,3900),(1.5839,4300),(1.25,5000),(1.0759,6000),(1,6500),(0.8980,8000),(0.851,9000),(0.8118,10000),(0.7843,11000),(0.7647,12000),(0.4706,13000),(0.1176,14000))
-ev_lookup =  ["Starlight","Aurora Borealis","Half Moon","Full Moon","Full Moon in Snowscape","Dim ambient artifical light","Dim ambient artifical light","Distant view of lighted buildings","Total eclipse of Moon","Fireworks","Candle","Campfire","Home interior","Night Street","Office Lighting","Neon Signs","Skyline after Sunset","Sunset","Heavy Overcast","Bright Cloudy","Hazy Sun","Sunny","Bright Sun"]
+ev_lookup =  ["Starlight","Aurora Borealis","Half Moon","Full Moon","Full Moon in Snowscape","Dim artifical light","Dim artifical light","Distant view of lit buildings","Distant view of lit buildings","Fireworks","Candle","Campfire","Home interior","Night Street","Office Lighting","Neon Signs","Skyline after Sunset","Sunset","Heavy Overcast","Bright Cloudy","Hazy Sun","Sunny","Bright Sun"]
 
 class AddonPreferences(bpy.types.AddonPreferences):
 	bl_idname = __name__
@@ -140,8 +139,8 @@ class InterpolatedArray(object):
 		return lower_point[1] + (slope * (x - lower_point[0]))
 
 
-class PHOTOGRAPHER_PT_PhotographerPanel(bpy.types.Panel):
-	bl_idname = "CAMERA_PT_Photographer"
+class PHOTOGRAPHER_PT_Panel(bpy.types.Panel):
+	# bl_idname = "CAMERA_PT_Photographer"
 	bl_label = "Photographer"
 	bl_space_type = 'PROPERTIES'
 	bl_region_type = 'WINDOW'
@@ -159,144 +158,144 @@ class PHOTOGRAPHER_PT_PhotographerPanel(bpy.types.Panel):
 		
 		# UI if camera isn't active
 		if scene.camera != bpy.context.active_object:
-			split = layout.split(0.5,align=True)
-			split.label(text="This is not the Active Camera")
-			col=split.column(align=True)
-			col.alignment = 'RIGHT'
-			col.operator("photographer.makecamactive", text="Make Active Camera")
-			col.operator("photographer.selectactivecam", text="Select Active Camera")
+			layout.label(text="This is not the Active Camera")
 
-		col_full = layout.column(align=True)
+			row = layout.row()
+			row.operator("photographer.makecamactive", text="Make Active Camera")
+			row.operator("photographer.selectactivecam", text="Select Active Camera")
+
+		col = layout.column()
 		# Enable UI if Camera is Active
 		if scene.camera != bpy.context.active_object:
-			col_full.enabled = False
-			
-		row = col_full.row(align=True)
-		row.operator("photographer.updatesettings", text="Apply all Settings")     
-		row = col_full.row(align=True)
-		row.label(text='')
-			
-		row = col_full.row(align=True)
-		split = row.split(factor=0.8, align=True)
-		row = split.row(align=True)
-		split2 = row.split(factor=0.43, align=True)
-		split2.prop(settings, 'exposure_enabled', text='Exposure')
-		col = split2.column(align=True)
-		if not settings.exposure_enabled:
 			col.enabled = False
-		col.prop(settings, 'dof_enabled', text='Depth of Field')
-		col = row.column(align=True)
-		col.prop(settings, 'motionblur_enabled', text='Motion Blur')
-		if not settings.exposure_enabled:
-			col.enabled = False
+
+		col.operator("photographer.updatesettings", text="Apply all Settings")     
+
+class PHOTOGRAPHER_PT_Panel_Exposure(bpy.types.Panel):
+	# bl_idname = "CAMERA_PT_Photographer_Exposure"
+	bl_label = "Exposure"
+	bl_parent_id = "PHOTOGRAPHER_PT_Panel"
+	bl_space_type = 'PROPERTIES'
+	bl_region_type = 'WINDOW'
+	bl_context = "data"
+
+	def draw_header_preset(self, context):
+		layout = self.layout
+		settings = context.camera.photographer
+		layout.enabled = settings.exposure_enabled
+		row = layout.row(align=False)
+		row.alignment = 'RIGHT'
+
+		ev = calc_exposure_value(self, context)
+		ev = str("%.2f" % ev)
+		ev_guide = update_exposure_guide(self, context)
+		row.label(text = ev_guide + " - " + "EV: " + ev )
+
+	def draw_header(self, context):
+
+		settings = context.camera.photographer
+
+		self.layout.prop(settings, "exposure_enabled", text="")
 		
-		# EV info when using Manual Settings
-		if settings.exposure_mode == 'MANUAL':
-			ev = calc_exposure_value(self, context)
-			ev = str(ev)
-			col=split.column(align=True)
-			col.alignment = 'RIGHT'
-			col.label(text = "EV: " + ev)
+
+	def draw(self, context):
+		layout = self.layout
+		settings = context.camera.photographer
+		scene = bpy.context.scene
+
+		layout.use_property_split = True
+		layout.use_property_decorate = False  # No animation.
+		layout.enabled = settings.exposure_enabled
+
+		layout.row().prop(settings, 'exposure_mode',expand=True)
+		if settings.exposure_mode == 'EV':
+			layout.prop(settings, 'ev', slider=True)
+
+
+		# Settings in EV Mode
+		if settings.exposure_mode == 'EV':
+
+			# Shutter Speed parameter
+			row = layout.row(align = True)
+			row.enabled = settings.motionblur_enabled
+			if settings.shutter_mode == 'SPEED':
+				if not settings.shutter_speed_slider_enable:
+					row.prop(settings, 'shutter_speed_preset', text='Shutter Speed')
+				else:
+					row.prop(settings, 'shutter_speed', slider=True)
+				row.operator("photographer.setshutterangle",icon="TIME", text="")
+				row.prop(settings,'shutter_speed_slider_enable', icon='SETTINGS', text='')
+
+			if settings.shutter_mode == 'ANGLE':
+				if not settings.shutter_speed_slider_enable:
+					row.prop(settings, 'shutter_angle_preset', text='Shutter Angle')
+				else:
+					row.prop(settings, 'shutter_angle', slider=True)
+				row.operator("photographer.setshutterspeed",icon="PREVIEW_RANGE", text="")
+				row.prop(settings,'shutter_speed_slider_enable', icon='SETTINGS', text='')
+			
+			# Aperture parameter
+			row = layout.row(align = True)
+			row.enabled = settings.dof_enabled
+			if not settings.aperture_slider_enable:
+				row.prop(settings, 'aperture_preset', text='Aperture')
+			else:
+				row.prop(settings, 'aperture', slider=True, text='Aperture F-stop')
+			row.prop(settings,'aperture_slider_enable', icon='SETTINGS', text='')
+
+		else:
+
+			# Shutter Speed parameter
+			if settings.shutter_mode == 'SPEED':
+				row = layout.row(align = True)
+				if not settings.shutter_speed_slider_enable:
+					row.prop(settings, 'shutter_speed_preset', text='Shutter Speed')
+				else:
+					row.prop(settings, 'shutter_speed', slider=True)
+				row.operator("photographer.setshutterangle",icon="TIME", text="")
+				row.prop(settings,'shutter_speed_slider_enable', icon='SETTINGS', text='')
+
+			if settings.shutter_mode == 'ANGLE':
+				row = layout.row(align = True)
+				if not settings.shutter_speed_slider_enable:
+					row.prop(settings, 'shutter_angle_preset', text='Shutter Angle')
+				else:
+					row.prop(settings, 'shutter_angle', slider=True)
+				row.operator("photographer.setshutterspeed",icon="PREVIEW_RANGE", text="")
+				row.prop(settings,'shutter_speed_slider_enable', icon='SETTINGS', text='')
+				
+			
+			# Aperture parameter
+			row = layout.row(align = True)
+			if not settings.aperture_slider_enable:
+				row.prop(settings, 'aperture_preset', text='Aperture')
+			else:
+				row.prop(settings, 'aperture', slider=True, text='Aperture F-stop / Depth of Field only')
+			row.prop(settings,'aperture_slider_enable', icon='SETTINGS', text='')
+
+			# ISO parameter
+			row = layout.row(align = True)
+
+			if not settings.iso_slider_enable:
+				row.prop(settings, 'iso_preset', text='ISO')
+			else:
+				row.prop(settings, 'iso', slider=True)
+			row.prop(settings,'iso_slider_enable', icon='SETTINGS', text='')
+			
+		col = layout.column(align=False)
+		col.prop(settings, 'motionblur_enabled', text='Affect Motion Blur')
 
 		# Check if the Motion Blur is enabled in the Render Settings    
 		if settings.motionblur_enabled and not scene.render.use_motion_blur:
-			row = col_full.row()
-			split = row.split(factor=0.7)
-			split.label(text="Motion Blur is disabled in the Render Tab")
-			split.operator("photographer.rendermotionblur", text="Enable MB")
-			
-		col_exposure = col_full.column(align=True)
-		col_exposure.enabled = settings.exposure_enabled
- 
-		# Settings in EV Mode
-		if settings.exposure_mode == 'EV':            
-			split = col_exposure.split()
-			col2 = split.column(align=True)
-			row = col2.row(align=True)
-			
-			# Shutter Speed parameter
-			if settings.motionblur_enabled:
-				if settings.shutter_mode == 'SPEED':
-					split=col2.split(factor=0.05,align=True)
-					split.prop(settings,'shutter_speed_slider_enable', icon='SETTINGS', text='')
-					if not settings.shutter_speed_slider_enable:
-						split=split.split(factor=0.95, align=True)
-						split.prop(settings, 'shutter_speed_preset', text='')
-					else:
-						split=split.split(factor=0.95, align=True)
-						split.prop(settings, 'shutter_speed', slider=True)
-					split.operator("photographer.setshutterangle",icon="TIME", text="")
-				if settings.shutter_mode == 'ANGLE':
-					split=col2.split(factor=0.05,align=True)
-					split.prop(settings,'shutter_speed_slider_enable', icon='SETTINGS', text='')
-					if not settings.shutter_speed_slider_enable:
-						split=split.split(factor=0.95, align=True)
-						split.prop(settings, 'shutter_angle_preset', text='')
-					else:
-						split=split.split(factor=0.95, align=True)
-						split.prop(settings, 'shutter_angle', slider=True)
-					split.operator("photographer.setshutterspeed",icon="PREVIEW_RANGE", text="")
-			
-			# Aperture parameter
-			if settings.dof_enabled:
-				split=col2.split(factor=0.05,align=True)
-				split.prop(settings,'aperture_slider_enable', icon='SETTINGS', text='')
-				if not settings.aperture_slider_enable:
-					split.prop(settings, 'aperture_preset', text='')
-				else:
-					split.prop(settings, 'aperture', slider=True, text='Aperture F-stop / Depth of Field only')
-			
-			col2.prop(settings, 'ev', slider=True)
-
-		else:
-			split = col_exposure.split()
-			col2 = split.column(align=True)
-			row = col2.row(align=True)
-			
-			# Shutter Speed parameter
-			if settings.shutter_mode == 'SPEED':
-				split=row.split(factor=0.05,align=True)
-				split.prop(settings,'shutter_speed_slider_enable', icon='SETTINGS', text='')
-				if not settings.shutter_speed_slider_enable:
-					split=split.split(factor=0.95, align=True)
-					split.prop(settings, 'shutter_speed_preset', text='')
-				else:
-					split=split.split(factor=0.95, align=True)
-					split.prop(settings, 'shutter_speed', slider=True)
-				split.operator("photographer.setshutterangle",icon="TIME", text="")
-			if settings.shutter_mode == 'ANGLE':
-				split=col2.split(factor=0.05,align=True)
-				split.prop(settings,'shutter_speed_slider_enable', icon='SETTINGS', text='')
-				if not settings.shutter_speed_slider_enable:
-					split=split.split(factor=0.95, align=True)
-					split.prop(settings, 'shutter_angle_preset', text='')
-				else:
-					split=split.split(factor=0.95, align=True)
-					split.prop(settings, 'shutter_angle', slider=True)
-				split.operator("photographer.setshutterspeed",icon="PREVIEW_RANGE", text="")
-			
-			# Aperture parameter
-			split=col2.split(factor=0.05,align=True)
-			split.prop(settings,'aperture_slider_enable', icon='SETTINGS', text='')
-			if not settings.aperture_slider_enable:
-				split.prop(settings, 'aperture_preset', text='')
-			else:
-				split.prop(settings, 'aperture', slider=True, text='Aperture F-stop / Depth of Field only')
-			
-			# ISO parameter
-			split=col2.split(factor=0.05,align=True)
-			split.prop(settings,'iso_slider_enable', icon='SETTINGS', text='')
-			if not settings.iso_slider_enable:
-				split.prop(settings, 'iso_preset', text='')
-			else:
-				split.prop(settings, 'iso', slider=True)
-
-		row = col_exposure.row(align=True)
-		row.prop(settings, 'exposure_mode',expand=True)
+			row = layout.row()
+			row.label(text="Motion Blur is disabled")
+			row.operator("photographer.rendermotionblur", text="Enable Motion Blur")
 		
-		row = col_exposure.row(align=True)
-		ev_guide = update_exposure_guide(self, context)
-		col=row.column(align=True)
+		col.prop(scene.camera.data.dof, "use_dof", text='Affect Depth of Field')
+			
+		row = layout.row()
+		row.alignment = 'RIGHT'
+
 		framerate_guide = "FPS : " + str(round(scene.render.fps/scene.render.fps_base,2))
 		if settings.shutter_mode == 'ANGLE':
 			shutter_speed_guide = "   -   " + "Shutter Speed : 1/" + str(int(settings.shutter_speed)) + " s"
@@ -304,66 +303,124 @@ class PHOTOGRAPHER_PT_PhotographerPanel(bpy.types.Panel):
 		if settings.shutter_mode == 'SPEED':
 			shutter_angle_guide = "   -   " + "Shutter Angle : " + str(round(settings.shutter_angle,1))
 			framerate_guide += shutter_angle_guide
-		col.label(text=framerate_guide)
-		col=row.column(align=True)
-		col.alignment = 'RIGHT'
-		col.label(text = ev_guide)
-		
-		# If White Balance is disabled, then disable sliders
-		row = col_full.row()
-		row.label(text='')
-		row = col_full.row()
-		row.prop(context.scene.view_settings, 'use_curve_mapping', text='White Balance')
-		
-		col_wb = col_full.column(align=True)
-		col_wb.enabled = context.scene.view_settings.use_curve_mapping
-		row = col_wb.row(align=True)
-		split = row.split(factor=0.85, align=True)
-		split.prop(settings, "color_temperature", slider=True)
-		split.prop(settings, "preview_color", text='')
-		
-		row = col_wb.row(align=True)
-		split = row.split(factor=0.85, align=True)
-		split.prop(settings, "tint", slider=True)
-		split.prop(settings, "preview_color_tint", text='')
+		row.label(text = framerate_guide)
 
-		row = col_wb.row(align=True)
-		split = row.split(factor=0.5, align=True)
-		split.operator("white_balance.picker",text='Picker', icon='EYEDROPPER')
-		split.operator("white_balance.reset", text='Reset')
 
-		row = col_full.row()
-		row.label(text='')
-		row = col_full.row()
-		row.prop(settings, 'resolution_enabled', text='Resolution')
+
+class PHOTOGRAPHER_PT_Panel_WhiteBalance(bpy.types.Panel):
+	# bl_idname = "CAMERA_PT_Photographer_White_Balance"
+	bl_label = "White Balance"
+	bl_parent_id = "PHOTOGRAPHER_PT_Panel"
+	bl_space_type = 'PROPERTIES'
+	bl_region_type = 'WINDOW'
+	bl_context = "data"
+
+	def draw_header_preset(self, context):
+		layout = self.layout
+		row = layout.row(align=True)
+		row.operator("white_balance.picker",text='', icon='EYEDROPPER', emboss=False)
+		row.operator("white_balance.reset", text='', icon='LOOP_BACK', emboss=False)
+
+	def draw_header(self, context):
+
+		self.layout.prop(context.scene.view_settings, "use_curve_mapping", text="")
+
+	def draw(self, context):
+		layout = self.layout
+		settings = context.camera.photographer
+		scene = bpy.context.scene
+
+		layout.use_property_split = True
+		layout.use_property_decorate = False  # No animation.
+		layout.enabled = context.scene.view_settings.use_curve_mapping
+
+		row = layout.row(align=True)
+		row.prop(settings, "color_temperature", slider=True)
+		row.prop(settings, "preview_color", text='')
+
+		row = layout.row(align=True)
+		row.prop(settings, "tint", slider=True)
+		row.prop(settings, "preview_color_tint", text='')
+
+
+class PHOTOGRAPHER_PT_Panel_Resolution(bpy.types.Panel):
+	# bl_idname = "CAMERA_PT_Photographer_Resolution"
+	bl_label = "Resolution"
+	bl_parent_id = "PHOTOGRAPHER_PT_Panel"
+	bl_space_type = 'PROPERTIES'
+	bl_region_type = 'WINDOW'
+	bl_context = "data"
+
+	def draw_header_preset(self, context):
+		layout = self.layout
+		settings = context.camera.photographer
+		layout.enabled = settings.resolution_enabled
 		
-		col_res = col_full.column(align=True)
-		col_res.enabled = settings.resolution_enabled
-		row = col_res.row(align=True)
-		row.prop(settings, 'resolution_mode',expand=True)
-		row = col_res.row(align=True)
-		
-		if settings.resolution_mode == 'CUSTOM':
-			row.prop(settings, "resolution_x", text='')
-			row.prop(settings, "resolution_y", text='')
-			row.prop(context.scene.render, "resolution_percentage", text='')
-			row = col_res.row(align=True)
-			row.prop(settings, 'resolution_rotation',expand=True)
-
-		if not settings.resolution_mode == 'CUSTOM':
-			row.prop(settings, "longedge")
-			row.prop(context.scene.render, "resolution_percentage", text='')
-			if not settings.resolution_mode == '11':
-				row = col_res.row(align=True)
-				row.prop(settings, 'resolution_rotation',expand=True)
-
-		row = col_res.row(align=True)
-		row.alignment='CENTER'
-
+		row = layout.row(align=True)
+		row.alignment = 'RIGHT'
+		# Resolution
 		resolution_x = str(int(context.scene.render.resolution_x * context.scene.render.resolution_percentage/100))
 		resolution_y = str(int(context.scene.render.resolution_y * context.scene.render.resolution_percentage/100))
 		row.label(text = resolution_x + " x " + resolution_y + " pixels")
+
+	def draw_header(self, context):
+
+		settings = context.camera.photographer
+
+		self.layout.prop(settings, "resolution_enabled", text="")
+
+	def draw(self, context):
+		layout = self.layout
+		settings = context.camera.photographer
+		scene = bpy.context.scene
+
+		layout.use_property_split = True
+		layout.use_property_decorate = False  # No animation.
+		layout.enabled = settings.resolution_enabled
+
+		col = layout.column()
+		col.alignment = 'RIGHT'
+
+		col.prop(settings, 'resolution_mode')
+
+		sub = col.column(align=True)
 		
+		if settings.resolution_mode == 'CUSTOM':
+			sub.prop(settings, "resolution_x", text='Resolution X')
+			sub.prop(settings, "resolution_y", text='Y')
+			sub.prop(context.scene.render, "resolution_percentage", text='%')
+			col.row().prop(settings, 'resolution_rotation',expand=True)
+
+		if not settings.resolution_mode == 'CUSTOM':
+			sub.prop(settings, "longedge")
+			sub.prop(context.scene.render, "resolution_percentage", text='%')
+			if not settings.resolution_mode == '11':
+				col.row().prop(settings, 'resolution_rotation',expand=True)
+
+class PHOTOGRAPHER_PT_Panel_Autofocus(bpy.types.Panel):
+	# bl_idname = "CAMERA_PT_Photographer_Autofocus"
+	bl_label = "Continuous Autofocus"
+	bl_parent_id = "PHOTOGRAPHER_PT_Panel"
+	bl_space_type = 'PROPERTIES'
+	bl_region_type = 'WINDOW'
+	bl_context = "data"
+	
+	def draw_header(self, context):
+
+		settings = context.camera.photographer
+		self.layout.prop(settings, "af_continuous_enabled", text="")
+	
+	def draw(self, context):
+			layout = self.layout
+			settings = context.camera.photographer
+			scene = bpy.context.scene
+
+			layout.use_property_split = True
+			layout.use_property_decorate = False  # No animation.
+
+			row = layout.row(align=True)
+			row.prop(settings, "af_continuous_interval", slider=True)
+
 
 def get_addon_preferences():
 	addon_name = os.path.basename(os.path.dirname(os.path.abspath(__file__).split("utils")[0]))
@@ -386,10 +443,10 @@ def update_settings(self, context):
 			update_iso(self, context)
 			update_shutter_angle(self, context)
 		
-			if context.scene.camera.data.dof_distance== 0:
-				context.scene.camera.data.dof_distance = 3
-			if context.scene.render.engine == 'CYCLES' and settings.dof_enabled:
-				context.scene.camera.data.cycles.aperture_type = 'FSTOP'                
+			if context.scene.camera.data.dof.focus_distance == 0:
+				context.scene.camera.data.dof.focus_distance = 3
+			# if context.scene.render.engine == 'CYCLES' and settings.dof_enabled:
+				# context.scene.camera.data.cycles.aperture_type = 'FSTOP'                
 						
 			if settings.resolution_enabled:
 				update_resolution(self,context)
@@ -445,15 +502,14 @@ def update_ev(self, context):
 # Update Aperture
 def update_aperture(self, context):
 	settings = context.scene.camera.data.photographer
-	# if context.scene.render.engine == 'CYCLES' and settings.dof_enabled :
 	if settings.dof_enabled :
 		if context.scene.camera == bpy.context.active_object:
 			if not settings.aperture_slider_enable:
-				context.object.data.cycles.aperture_fstop = float(settings.aperture_preset) * context.scene.unit_settings.scale_length
-				context.object.data.gpu_dof.fstop = float(settings.aperture_preset)
+				context.scene.camera.data.dof.aperture_fstop = float(settings.aperture_preset) * context.scene.unit_settings.scale_length
+				context.scene.camera.data.dof.aperture_fstop = float(settings.aperture_preset)
 			else:
-				context.object.data.cycles.aperture_fstop = settings.aperture * context.scene.unit_settings.scale_length
-				context.object.data.gpu_dof.fstop = settings.aperture
+				context.scene.camera.data.dof.aperture_fstop = settings.aperture * context.scene.unit_settings.scale_length
+				context.scene.camera.data.dof.aperture_fstop = settings.aperture
 	
 	update_ev(self, context)
 	
@@ -701,7 +757,12 @@ def set_tint_color(self, value):
 def set_picked_white_balance(picked_color):
 	convert_RBG_to_whitebalance(picked_color)
 
-			
+def update_af_continuous(self,context):
+	if context.scene.camera.data.photographer.af_continuous_enabled:
+		bpy.app.timers.register(focus_continuous)
+	else:
+		bpy.app.timers.unregister(focus_continuous)
+	
 # Photo Mode parameters ####################################################    
 class PhotographerSettings(bpy.types.PropertyGroup):
 	# bl_idname = __name__
@@ -746,7 +807,7 @@ class PhotographerSettings(bpy.types.PropertyGroup):
 		soft_max = 16,
 		step = 1,
 		precision = 2,
-		default = 10.61,
+		default = 8.0,
 		update = update_ev
 	)
 	
@@ -812,7 +873,7 @@ class PhotographerSettings(bpy.types.PropertyGroup):
 		soft_min = 0.5,
 		soft_max = 32,
 		precision = 1,
-		default = 5.6,
+		default = 2.4,
 		update = update_aperture
 	)
 	aperture_slider_enable : bpy.props.BoolProperty(
@@ -848,9 +909,9 @@ class PhotographerSettings(bpy.types.PropertyGroup):
 	iso_preset : bpy.props.EnumProperty(
 		name = "Iso Presets",
 		description = "Camera Sensitivity",
-		items = [('100','ISO 100',''),('125','ISO 125',''),('160','ISO 160',''),('200','ISO 200',''),('250','ISO 250',''),('320','ISO 320',''),('400','ISO 400',''),('500','ISO 500',''),('640','ISO 640',''),('800','ISO 800',''),('1000','ISO 1000',''),('1250','ISO 1250',''),
-		('1600','ISO 1600',''),('2000','ISO 2000',''),('2500','ISO 2500',''),('3200','ISO 3200',''),('4000','ISO 4000',''),('5000','ISO 5000',''),('6400','ISO 6400',''),('8000','ISO 8000',''),('10000','ISO 10000',''),('12800','ISO 12800',''),('16000','ISO 16000',''),
-		('20000','ISO 20000',''),('25600','ISO 25600',''),('32000','ISO 32000',''),('40000','ISO 40000',''),('51200','ISO 51200','')],
+		items = [('100','100',''),('125','125',''),('160','160',''),('200','200',''),('250','250',''),('320','320',''),('400','400',''),('500','500',''),('640','640',''),('800','800',''),('1000','1000',''),('1250','1250',''),
+		('1600','1600',''),('2000','2000',''),('2500','2500',''),('3200','3200',''),('4000','4000',''),('5000','5000',''),('6400','6400',''),('8000','8000',''),('10000','10000',''),('12800','12800',''),('16000','16000',''),
+		('20000','20000',''),('25600','25600',''),('32000','32000',''),('40000','40000',''),('51200','51200','')],
 		default = '100',
 		update = update_iso
 	)
@@ -907,17 +968,26 @@ class PhotographerSettings(bpy.types.PropertyGroup):
 		update=update_resolution
 	)
 	resolution_rotation : bpy.props.EnumProperty(
-		name = "Resolution Rotation",
+		name = "Orientation",
 		description = "Choose the rotation of the camera",
 		items = [('LANDSCAPE','Landscape',''),('PORTRAIT','Portrait', '')],
 		update=update_resolution
 	)
 	
 	# AF-C property
-	af_continous_enabled : bpy.props.BoolProperty(
+	af_continuous_enabled : bpy.props.BoolProperty(
 		name = "AF-C",
 		description = "Autofocus Continuous",
-		default = False
+		default = False,
+		update = update_af_continuous,
+	)
+	af_continuous_interval : bpy.props.FloatProperty(
+		name="AF-C interval", description="Number of seconds between each autofocus update",
+		min = 0.1,
+		soft_max = 3,
+		precision = 1,
+		default = 0.6,
+		subtype='TIME'
 	)
 	
 class PHOTOGRAPHER_OT_SetShutterAngle(bpy.types.Operator):
@@ -1098,98 +1168,37 @@ class PHOTOGRAPHER_OT_WBPicker(bpy.types.Operator):
 # Focus picker 
 def focus_raycast(context, event, continuous):
 
+	scene = bpy.context.scene
+	cam = scene.camera
+	cam_matrix = cam.matrix_world
+	
+	org = cam_matrix @ Vector((0.0, 0.0, 0.0))
+	
 	if continuous:
-		for window in bpy.context.window_manager.windows:
-			for area in window.screen.areas:
-				if area.type == 'VIEW_3D':
-					scene = bpy.context.scene
-					region = area.regions[4]
-					rv3d = area.spaces.active.region_3d
-					
-					obj = scene.camera
-					cam = obj.data
-					frame = cam.view_frame(scene = scene)
-
-					# move from object-space into world-space 
-					frame = [obj.matrix_world @ v for v in frame]
-
-					# move into pixelspace
-					from bpy_extras.view3d_utils import location_3d_to_region_2d
-					frame_px = [location_3d_to_region_2d(region, rv3d, v) for v in frame]
-					
-					if frame_px != [None, None, None, None]:
-						center = (frame_px[0] - frame_px[2])/2 + frame_px[2]
-					else:
-						center = [960,540] # Center of full HD resolution - better than throwing an error but will need to be fixed
-					coord = center
-		
+		dst = cam_matrix @ Vector((0.0, 0.0, 100.0 * -1))
 	else:
-		scene = context.scene
 		region = context.region
 		rv3d = context.region_data
 		coord = event.mouse_region_x, event.mouse_region_y
 
-	# Get the ray from the viewport and mouse
-	view_vector = view3d_utils.region_2d_to_vector_3d(region, rv3d, coord)
-	ray_origin = view3d_utils.region_2d_to_origin_3d(region, rv3d, coord)
+		# Get the ray from the viewport and mouse
+		view_vector = view3d_utils.region_2d_to_vector_3d(region, rv3d, coord)
+		ray_origin = view3d_utils.region_2d_to_origin_3d(region, rv3d, coord)
+		dst = ray_origin + view_vector
+		
+	dir = dst - org
+	
+	vl = bpy.context.view_layer
 
-	ray_target = ray_origin + view_vector
+	result, location, normal, index, object, matrix = scene.ray_cast(vl, org, dir)
 
-	def visible_objects_and_duplis():
-		"""Loop over (object, matrix) pairs (mesh only)"""
-
-		for obj in context.visible_objects:
-			if obj.type == 'MESH':
-				yield (obj, obj.matrix_world.copy())
-
-			# if obj.dupli_type != 'NONE':
-			# 	obj.dupli_list_create(scene)
-			# 	for dob in obj.dupli_list:
-			# 		obj_dupli = dob.object
-			# 		if obj_dupli.type == 'MESH':
-			# 			yield (obj_dupli, dob.matrix.copy())
-
-			# obj.dupli_list_clear()
-
-	def obj_ray_cast(obj, matrix):
-		"""Wrapper for ray casting that moves the ray into object space"""
-		# bpy.context.scene.update()
-
-		# get the ray relative to the object
-		matrix_inv = matrix.inverted()
-		ray_origin_obj = matrix_inv @ ray_origin
-		ray_target_obj = matrix_inv @ ray_target
-		ray_direction_obj = ray_target_obj - ray_origin_obj
-
-		# cast the ray
-		# success, location, normal, face_index = obj.ray_cast(ray_origin_obj, ray_direction_obj)
-		bm = bmesh.new()
-		bm.from_mesh(obj.data)
-		bvhTreeObject = BVHTree.FromBMesh(bm)
-		location, normal, face_index, distance = bvhTreeObject.ray_cast(ray_origin_obj, ray_direction_obj)
-
-		if location is not None:
-			return location, normal, face_index
-		else:
-			return None, None, None
-
-	# cast rays and find the closest object
-	best_length= -1.0
-	raycast_lengths=[]
-
-	for obj, matrix in visible_objects_and_duplis():
-		if obj.type == 'MESH':
-			# bpy.context.scene.update()
-			hit, normal, face_index = obj_ray_cast(obj, matrix)
-			if hit is not None:
-				hit_world = matrix @ hit
-				length = (hit_world - ray_origin).length
-				raycast_lengths.append(length)
-				
-	if len(raycast_lengths) != 0:
-		context.scene.camera.data.dof_distance = min(raycast_lengths)
+	
+	if result:
+		length = (location - org).length
+		context.scene.camera.data.dof.focus_distance = length
 	else:
-		context.scene.camera.data.dof_distance = 100
+		context.scene.camera.data.dof.focus_distance = 100
+			
 
 class PHOTOGRAPHER_OT_FocusSingle(bpy.types.Operator):
 	"""Autofocus Single: Click where you want to focus"""
@@ -1202,8 +1211,8 @@ class PHOTOGRAPHER_OT_FocusSingle(bpy.types.Operator):
 			return {'PASS_THROUGH'}
 		
 		# Disable AF-C if using AF-C
-		if context.scene.camera.data.photographer.af_continous_enabled:
-			context.scene.camera.data.photographer.af_continous_enabled = False
+		if context.scene.camera.data.photographer.af_continuous_enabled:
+			context.scene.camera.data.photographer.af_continuous_enabled = False
 		
 		# Enter focus picker
 		if event.type == 'LEFTMOUSE':
@@ -1212,7 +1221,7 @@ class PHOTOGRAPHER_OT_FocusSingle(bpy.types.Operator):
 					try:
 						focus_raycast(context, event, False)
 					except:
-						self.report({'ERROR'}, "An error occured during the raycast")
+						self.report({'ERROR'}, "An error occured during the raycast. Is the targeted object a mesh?")
 					context.window.cursor_modal_restore()                 
 					return {'FINISHED'}
 				else:
@@ -1234,89 +1243,64 @@ class PHOTOGRAPHER_OT_FocusSingle(bpy.types.Operator):
 		context.window_manager.modal_handler_add(self)
 		return {'RUNNING_MODAL'}
 
-# class PHOTOGRAPHER_OT_ModalTimerApplySettings(bpy.types.Operator):
-	# bl_idname = "photographer.apply_settings"
-	# bl_label = "Apply camera settings every seconds"
-
-	# _timer = None
-
-	# @classmethod
-	# def running(cls, context):
-		# return (cls._timer)
-	
-	# # @classmethod
-	# # def poll(cls, context):
-		# # return context.scene.camera == context.active_object
-	
-	# def modal(self, context, event):
-		# # if event.type in {'RIGHTMOUSE', 'ESC'}:
-			# # self.cancel(context)
-			# # return {'CANCELLED'}
-
-		# if event.type == 'TIMER':
-			# update_settings(self,context)  
-
-		# return {'PASS_THROUGH'}
-
-	# def execute(self, context):
-		# # print(type(self))
-		# # if context.scene.camera == context.active_object:
-		# wm = context.window_manager
-		# type(self)._timer = wm.event_timer_add(3, window = context.window)
-		# wm.modal_handler_add(self)
-		# return {'RUNNING_MODAL'}
-
-	# # def cancel(self, context):
-		# # wm = context.window_manager
-		# # wm.event_timer_remove(type(self)._timer)
-
-# # Trick to add handler and start the modal timer to reapply panel settings        
-# @persistent
-# def apply_settings_handler2(scene):
-	# bpy.ops.photographer.apply_settings()
-	# bpy.app.handlers.frame_change_post.remove(apply_settings_handler2)
- 
-# @persistent
-# def apply_settings_handler(scene):
-	# bpy.app.handlers.frame_change_post.append(apply_settings_handler2)
-	# bpy.context.scene.frame_current=bpy.context.scene.frame_current
-	# bpy.app.handlers.depsgraph_update_post.remove(apply_settings_handler)        
-
 # Focus continuous handler function    
-@persistent
-def focus_continuous(scene):
+def focus_continuous():
 	context = bpy.context
+	settings = context.scene.camera.data.photographer
+	timer = settings.af_continuous_interval
+	
 	# Do not AF-C if active camera is not a camera
 	if context.scene.camera:
 		if context.scene.camera.type == 'CAMERA':
 			settings = context.scene.camera.data.photographer
-			if settings.af_continous_enabled:
+			if settings.af_continuous_enabled :			
 				focus_raycast(context, None, True)
+				
+				#Little trick to update viewport as the header distance doesn't update automatically
+				exposure = bpy.context.scene.view_settings.exposure
+				bpy.context.scene.view_settings.exposure = exposure
+
+	return timer
+				
+
 		
 def focus_single_button(self, context):
 	# Hide AF buttons if the active camera in the scene isn't a camera
-	if context.scene.camera:
-		if context.scene.camera.type == 'CAMERA':
-			self.layout.operator("photographer.focus_single", text="AF-S", icon='RESTRICT_RENDER_OFF')
+	for area in bpy.context.screen.areas:
+		if area.type == 'VIEW_3D':
+			if area.spaces[0].region_3d.view_perspective == 'CAMERA' :
+				if context.scene.camera:
+					if context.scene.camera.type == 'CAMERA':
+						self.layout.operator("photographer.focus_single", text="AF-S", icon='RESTRICT_RENDER_OFF')
 		
 def focus_continuous_button(self, context):
 	# Hide AF buttons if the active camera in the scene isn't a camera
-	if context.scene.camera:
-		if context.scene.camera.type == 'CAMERA':
-			settings = context.scene.camera.data.photographer
-			self.layout.prop(settings, "af_continous_enabled", text="AF-C", icon='RESTRICT_RENDER_OFF')
+	for area in bpy.context.screen.areas:
+		if area.type == 'VIEW_3D':
+			if area.spaces[0].region_3d.view_perspective == 'CAMERA' :
+				if context.scene.camera:
+					if context.scene.camera.type == 'CAMERA':
+						settings = context.scene.camera.data.photographer
+						self.layout.prop(settings, "af_continuous_enabled", text="AF-C", icon='RESTRICT_RENDER_OFF')
 		
 def focus_distance_header(self, context):
-	if context.scene.camera:
-		if context.scene.camera.type == 'CAMERA' and context.scene.camera.data.photographer.af_continous_enabled == False:
-			dof_distance = str(round(context.scene.camera.data.dof_distance*context.scene.unit_settings.scale_length,2))
-			if not context.scene.unit_settings.system == 'NONE':
-				dof_distance = dof_distance + "m"
-			self.layout.label(text=dof_distance)
+	for area in bpy.context.screen.areas:
+		if area.type == 'VIEW_3D':
+			if area.spaces[0].region_3d.view_perspective == 'CAMERA' :
+				if context.scene.camera:
+					if context.scene.camera.type == 'CAMERA':
+						dof_distance = str(round(context.scene.camera.data.dof.focus_distance*context.scene.unit_settings.scale_length,2))
+						if not context.scene.unit_settings.system == 'NONE':
+							dof_distance = dof_distance + "m"
+						self.layout.label(text=dof_distance)
 
 
 classes = ( 
-	PHOTOGRAPHER_PT_PhotographerPanel,
+	PHOTOGRAPHER_PT_Panel,
+	PHOTOGRAPHER_PT_Panel_Exposure,
+	PHOTOGRAPHER_PT_Panel_WhiteBalance,
+	PHOTOGRAPHER_PT_Panel_Resolution,
+	PHOTOGRAPHER_PT_Panel_Autofocus,
 	PhotographerSettings,
 	PHOTOGRAPHER_OT_SetShutterAngle,
 	PHOTOGRAPHER_OT_SetShutterSpeed,
@@ -1327,7 +1311,6 @@ classes = (
 	PHOTOGRAPHER_OT_SelectActiveCam,
 	PHOTOGRAPHER_OT_WBPicker,
 	PHOTOGRAPHER_OT_FocusSingle,
-	# PHOTOGRAPHER_OT_ModalTimerApplySettings
 )
 
 def register():
@@ -1338,8 +1321,6 @@ def register():
 		register_class(cls)
 
 	bpy.types.Camera.photographer = PointerProperty(type=PhotographerSettings)
-	bpy.app.handlers.depsgraph_update_post.append(focus_continuous)
-	# bpy.app.handlers.depsgraph_update_post.append(apply_settings_handler)
 	bpy.types.VIEW3D_HT_header.append(focus_single_button)
 	bpy.types.VIEW3D_HT_header.append(focus_continuous_button)
 	bpy.types.VIEW3D_HT_header.append(focus_distance_header)
@@ -1348,7 +1329,6 @@ def register():
 def unregister():
 	from bpy.utils import unregister_class
 
-	bpy.app.handlers.depsgraph_update_post.remove(focus_continuous)
 	bpy.types.VIEW3D_HT_header.remove(focus_single_button)
 	bpy.types.VIEW3D_HT_header.remove(focus_continuous_button)
 	bpy.types.VIEW3D_HT_header.remove(focus_distance_header)
