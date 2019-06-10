@@ -33,7 +33,7 @@ bpy.context.preferences.inputs.use_trackpad_natural = True
 bpy.context.preferences.inputs.ndof_view_navigate_method = "FREE"
 bpy.context.preferences.inputs.ndof_view_rotate_method = "TRACKBALL"
 bpy.context.preferences.inputs.view_rotate_method = "TRACKBALL"
-bpy.context.preferences.inputs.use_auto_perspective = False
+bpy.context.preferences.inputs.use_auto_perspective = True
 bpy.context.preferences.inputs.use_mouse_depth_navigate = True
 bpy.context.preferences.inputs.use_zoom_to_mouse = True
 

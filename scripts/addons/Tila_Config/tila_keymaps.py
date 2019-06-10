@@ -162,7 +162,7 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 
 		# Select / Deselect / Add
 		if select_tool:
-			self.kmi_set_replace(select_tool, self.k_select, 'CLICK', disable_double=True)
+			self.kmi_set_replace(select_tool, self.k_select, 'CLICK', properties=[('deselect_all', True)], disable_double=True)
 			self.kmi_set_replace(select_tool, self.k_select, 'CLICK', shift=True, properties=[('extend', True)], disable_double=True)
 			self.kmi_set_replace(select_tool, self.k_select, 'CLICK', ctrl=True, properties=[('deselect', True)], disable_double=True)
 		
@@ -244,12 +244,13 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 			self.kmi_set_replace(linked_tool, self.k_linked, 'PRESS', alt=True, properties=[('deselect', False), ('delimit', {'UV'})])
 			self.kmi_set_replace(linked_tool, self.k_linked, 'PRESS', ctrl=True, alt=True, properties=[('deselect', True), ('delimit', {'UV'})])
 
-	def selection_tool(self):
-		select_tool = self.kmi_find(idname='wm.tool_set_by_id', properties=KeymapManager.bProp([('name', 'builtin.select_box')]))
-		if select_tool:
-			self.kmi_prop_setattr(select_tool.properties, "name", 'Select')
-			self.kmi_prop_setattr(select_tool.properties, "cycle", False)
-		self.kmi_set_replace('wm.tool_set_by_id', self.k_menu, "PRESS", properties=[('name', 'builtin.select'), ('cycle', False)])
+	def selection_tool(self, tool='builtin.select'):
+		# select_tool = self.kmi_find(idname='wm.tool_set_by_id', properties=KeymapManager.bProp([('name', 'builtin.select_box')]))
+		# if select_tool:
+		# 	self.kmi_prop_setattr(select_tool.properties, "name", 'Select')
+		# 	self.kmi_prop_setattr(select_tool.properties, "cycle", False)
+		self.kmi_set_replace('wm.tool_set_by_id', self.k_menu, "PRESS", properties=[('name', tool), ('cycle', False)])
+
 
 	def right_mouse(self):
 		kmi = self.kmi_find(idname='wm.call_menu', type='RIGHTMOUSE', value='PRESS')
@@ -354,7 +355,7 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		
 		self.kmi_set_active(False, idname='wm.call_menu', type='F2')
 		self.kmi_set_active(False, idname='wm.toolbar')
-		self.selection_tool()
+		self.selection_tool(tool='builtin.select_box')
 
 		# 3D View
 		self.kmi_init(name='3D View', space_type='VIEW_3D', region_type='WINDOW')
@@ -515,10 +516,14 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		self.kmi_set_replace('transform.tosphere', 'S', 'PRESS', ctrl=True, alt=True, shift=True, disable_double=True)
 		self.kmi_set_replace('wm.call_menu_pie', 'S', 'PRESS', alt=True, shift=True, properties=[('name', 'TILA_MT_pie_normal')], disable_double=True)
 
+		# 3D View Tool: Select
+		self.kmi_init(name='3D View Tool: Select', space_type='EMPTY', region_type='WINDOW')
+		self.kmi_set_replace('view3d.select', self.k_select, 'PRESS', properties=[('deselect_all', True)], disable_double=True)
+
 		# Sculpt
 		self.kmi_init(name='Sculpt', space_type='EMPTY', region_type='WINDOW')
 		self.global_keys()
-		self.selection_tool()
+		self.selection_tool(tool='builtin.select_box')
 		self.right_mouse()
 		self.tool_sculpt('sculpt.sculptmode_toggle')
 
