@@ -94,3 +94,6 @@
 [submodule "scripts/addons/lineup_maker"]
 	path = scripts/addons/lineup_maker
 	url = https://github.com/Tilapiatsu/blender-lineup_maker.git
+[submodule "scripts/addons/TextTools"]
+	path = scripts/addons/TextTools
+	url = https://github.com/SavMartin/TexTools-Blender.git
