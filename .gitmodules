@@ -97,3 +97,6 @@
 [submodule "scripts/addons/TextTools"]
 	path = scripts/addons/TextTools
 	url = https://github.com/SavMartin/TexTools-Blender.git
+[submodule "scripts/addons/FontSelector"]
+	path = scripts/addons/FontSelector
+	url = https://github.com/samytichadou/FontSelector_blender_addon.git
