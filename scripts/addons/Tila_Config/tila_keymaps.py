@@ -15,7 +15,8 @@ bl_info = {
 	}
 
 
-# TODO 
+# TODO  
+# - Remove double with modal control
 # - Create a rename /batch rename feature
 # 	-- Update the view3d.viewport_rename operator to add batch rename functions
 # - Modify the camera behaviour to slow the dolly speed based on the distance from the object
@@ -296,7 +297,7 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 			self.kmi_set_replace(sculpt, 'W', 'PRESS', ctrl=True, alt=True, shift=True)
 
 	def tool_smooth(self):
-		self.kmi_set_replace('wm.tool_set_by_id', 'S', 'PRESS', shift=True, properties=[('name', 'Smooth')])
+		self.kmi_set_replace('wm.tool_set_by_id', 'S', 'PRESS', shift=True, properties=[('name', 'builtin.smooth')])
 	
 	def tool_proportional(self):
 		self.modal_set_replace('PROPORTIONAL_SIZE', 'MOUSEMOVE', 'ANY', alt=True)
@@ -463,7 +464,8 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 
 		self.tool_smooth()
 		self.kmi_set_active(False, 'view3d.select_box')
-		self.kmi_set_replace('mesh.bevel', 'B', 'PRESS')
+		self.kmi_set_replace('mesh.smart_bevel', 'B', 'PRESS')
+		self.kmi_set_replace('mesh.hp_extrude', 'E', 'PRESS')
 		self.kmi_set_replace('mesh.knife_tool', 'C', 'PRESS')
 		self.kmi_set_replace('wm.tool_set_by_id', 'C', 'PRESS', alt=True, shift=True, properties=[('name', 'builtin.loop_cut')])
 		self.kmi_set_replace('mesh.bridge_edge_loops', 'B', 'PRESS', shift=True)
@@ -475,8 +477,7 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		self.kmi_set_replace('mesh.extrude_region_shrink_fatten', 'E', 'PRESS', disable_double=True)
 
 		self.kmi_set_replace('mesh.remove_doubles', 'M', 'PRESS', ctrl=True, shift=True, disable_double=True)
-		kmi = self.kmi_set_replace('mesh.separate', 'D', 'PRESS', ctrl=True, shift=True, properties=(['type', 'SELECTED']))
-		self.kmi_prop_setattr(kmi.properties, 'type', 'SELECTED')
+		kmi = self.kmi_set_replace('mesh.separate_and_select', 'D', 'PRESS', ctrl=True, shift=True)
 
 		self.tool_subdivision(subdivision='object.subdivision_set')
 
