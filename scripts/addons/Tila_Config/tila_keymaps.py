@@ -395,6 +395,8 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		self.tool_center(pivot='VIEW3D_PT_pivot_point', orientation='VIEW3D_PT_transform_orientations')
 
 		self.kmi_set_replace('wm.call_menu_pie', 'Q', 'PRESS', ctrl=True, alt=True, shift=True, properties=[('name', 'HP_MT_boolean')])
+		self.kmi_set_active(False, 'mesh.rip_move')
+		self.kmi_set_replace("mesh.edge_rotate", 'V', "PRESS", disable_double=True)
 		
 
 		# 3d Cursor
