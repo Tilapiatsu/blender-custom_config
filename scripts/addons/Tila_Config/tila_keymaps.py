@@ -131,12 +131,14 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		self.kmi_set_replace('view3d.tila_smart_editmode', self.k_face_mode, 'PRESS', ctrl=True, properties=[
 							 ('mode', 2), ('use_extend', False), ('use_expand', True), ('alt_mode', False)], disable_double=True)
 
-		self.kmi_set_replace('view3d.tila_smart_editmode', self.k_vert_mode, 'PRESS', ctrl=True, shift=True, properties=[
-							 ('mode', 0), ('use_extend', True), ('use_expand', True), ('alt_mode', False)], disable_double=True)
-		self.kmi_set_replace('view3d.tila_smart_editmode', self.k_edge_mode, 'PRESS', ctrl=True, shift=True, properties=[
-							 ('mode', 1), ('use_extend', True), ('use_expand', True), ('alt_mode', False)], disable_double=True)
-		self.kmi_set_replace('view3d.tila_smart_editmode', self.k_face_mode, 'PRESS', ctrl=True, shift=True, properties=[
-							 ('mode', 2), ('use_extend', True), ('use_expand', True), ('alt_mode', False)], disable_double=True)
+		self.kmi_set_replace('view3d.tila_smart_editmode', self.k_vert_mode, 'PRESS', ctrl=True, shift=True, properties=[('mode', 0), ('use_extend', True), ('use_expand', True), ('alt_mode', False)], disable_double=True)
+		self.kmi_set_replace('view3d.tila_smart_editmode', self.k_edge_mode, 'PRESS', ctrl=True, shift=True, properties=[('mode', 1), ('use_extend', True), ('use_expand', True), ('alt_mode', False)], disable_double=True)
+		self.kmi_set_replace('view3d.tila_smart_editmode', self.k_face_mode, 'PRESS', ctrl=True, shift=True, properties=[('mode', 2), ('use_extend', True), ('use_expand', True), ('alt_mode', False)], disable_double=True)
+		
+		self.kmi_set_replace('view3d.tila_smart_editmode', self.k_vert_mode, 'PRESS', alt=True, properties=[('mode', 0), ('use_extend', False), ('use_expand', False), ('get_border', True)], disable_double=True)
+		self.kmi_set_replace('view3d.tila_smart_editmode', self.k_edge_mode, 'PRESS', alt=True, properties=[('mode', 1), ('use_extend', False), ('use_expand', False), ('get_border', True)], disable_double=True)
+		self.kmi_set_replace('view3d.tila_smart_editmode', self.k_face_mode, 'PRESS', alt=True, properties=[('mode', 2), ('use_extend', False), ('use_expand', False), ('get_border', True)], disable_double=True)
+
 
 	def collection_visibility(self, collection_visibility_tool):
 		self.kmi_set_replace(collection_visibility_tool, 'NUMPAD_1', 'PRESS', any=True, properties=[('collection_index', 1)])
@@ -287,7 +289,6 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 
 	def snap(self, snapping=None, snapping_prop=None):
 		type = 'X'
-
 		self.kmi_set_replace('wm.context_toggle', type, 'PRESS', properties=[('data_path', 'tool_settings.use_snap')])
 		if snapping is not None and snapping_prop is not None:
 			self.kmi_set_replace(snapping, type, 'PRESS', shift=True, properties=snapping_prop)

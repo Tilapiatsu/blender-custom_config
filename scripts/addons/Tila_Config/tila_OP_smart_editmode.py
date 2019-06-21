@@ -24,6 +24,7 @@ class TILA_smart_editmode(bpy.types.Operator):
     mode = bpy.props.IntProperty(name='mode', default=0)
     use_extend = bpy.props.BoolProperty(name='use_extend', default=False)
     use_expand = bpy.props.BoolProperty(name='use_expand', default=False)
+    get_border = bpy.props.BoolProperty(name='get_border', default=False)
     alt_mode = bpy.props.BoolProperty(name='alt_mode', default=False)
 
     mesh_mode = ['VERT', 'EDGE', 'FACE']
@@ -59,6 +60,15 @@ class TILA_smart_editmode(bpy.types.Operator):
                 else:
                     return 0
 
+        def select_border(self, current_mode):
+            # if self.mesh_mode[self.mode] != current_mode:
+            if self.mesh_mode[self.mode] != 'FACE':
+                bpy.ops.mesh.region_to_loop()
+                switch_mesh_mode(self, current_mode)
+            else:
+                pass
+                    
+
         if bpy.context.mode == 'OBJECT':
             if bpy.context.active_object is None:
                 return {'CANCELLED'}
@@ -89,13 +99,22 @@ class TILA_smart_editmode(bpy.types.Operator):
                     elif bpy.context.scene.tool_settings.uv_select_mode == 'ISLAND':
                         method(self, 'ISLAND')
                 else:
-                    method = switch_mesh_mode
-                    if bpy.context.scene.tool_settings.mesh_select_mode[0]:
-                        method(self, 'VERT')
-                    elif bpy.context.scene.tool_settings.mesh_select_mode[1]:
-                        method(self, 'EDGE')
-                    elif bpy.context.scene.tool_settings.mesh_select_mode[2]:
-                        method(self, 'FACE')
+                    if self.get_border:
+                        method = select_border
+                        if bpy.context.scene.tool_settings.mesh_select_mode[0]:
+                            method(self, 'VERT')
+                        elif bpy.context.scene.tool_settings.mesh_select_mode[1]:
+                            method(self, 'EDGE')
+                        elif bpy.context.scene.tool_settings.mesh_select_mode[2]:
+                            method(self, 'FACE')
+                    else:
+                        method = switch_mesh_mode
+                        if bpy.context.scene.tool_settings.mesh_select_mode[0]:
+                            method(self, 'VERT')
+                        elif bpy.context.scene.tool_settings.mesh_select_mode[1]:
+                            method(self, 'EDGE')
+                        elif bpy.context.scene.tool_settings.mesh_select_mode[2]:
+                            method(self, 'FACE')
 
         elif bpy.context.mode in ['EDIT_GPENCIL', 'PAINT_GPENCIL', 'SCULPT_GPENCIL', 'WEIGHT_GPENCIL']:
             if self.alt_mode:
