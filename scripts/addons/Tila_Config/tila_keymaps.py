@@ -16,6 +16,7 @@ bl_info = {
 
 
 # TODO  
+# - Add shortcut to select boundry loops
 # - Remove double with modal control
 # - Create a rename /batch rename feature
 # 	-- Update the view3d.viewport_rename operator to add batch rename functions
@@ -34,7 +35,6 @@ bl_info = {
 # Addon to Enable
 
 # -   Modifier tool
-# -   Mesure It
 # -   Extra Object Mesh and Curve
 # -   Import Image as Plane
 # -   fSpy
@@ -51,6 +51,11 @@ bl_info = {
 # -   Render Burst
 # -   Magic UV
 # -	  Photographer
+# -   TextTool
+# -   Transfer Vert Order
+# -   LineupMaker
+
+
 
 
 class TilaKeymaps(KeymapManager.KeymapManager):
