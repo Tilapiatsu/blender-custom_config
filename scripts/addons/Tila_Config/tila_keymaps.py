@@ -596,6 +596,27 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		self.right_mouse()
 		self.duplicate(duplicate='graph.duplicate_move')
 
+		
+		# Vertex Paint
+		self.kmi_init(name='Vertex Paint', space_type='EMPTY', region_type='WINDOW')
+		self.global_keys()
+		self.right_mouse()
+
+		self.tool_radial_control(radius=[('data_path_primary', 'tool_settings.vertex_paint.brush.size'), ('data_path_secondary', 'tool_settings.unified_paint_settings.size'), ('use_secondary', 'tool_settings.unified_paint_settings.use_unified_size'), ('rotation_path', 'tool_settings.vertex_paint.brush.texture_slot.angle'), ('color_path', 'tool_settings.vertex_paint.brush.cursor_color_add'), ('image_id', 'tool_settings.vertex_paint.brush')],
+						   		opacity=[('data_path_primary', 'tool_settings.vertex_paint.brush.strength'), ('data_path_secondary', 'tool_settings.unified_paint_settings.strength'), ('use_secondary', 'tool_settings.unified_paint_settings.use_unified_strength'), (
+							   'rotation_path', 'tool_settings.vertex_paint.brush.texture_slot.angle'), ('color_path', 'tool_settings.vertex_paint.brush.cursor_color_add'), ('image_id', 'tool_settings.vertex_paint.brush')],
+						   		eraser_radius=[('data_path_primary', 'tool_settings.vertex_paint.brush.texture_slot.angle'), ('rotation_path', 'tool_settings.vertex_paint.brush.texture_slot.angle'), ('color_path', 'tool_settings.vertex_paint.brush.cursor_color_add'), ('image_id', 'tool_settings.vertex_paint.brush')])
+
+		# Weight Paint
+		self.kmi_init(name='Weight Paint', space_type='EMPTY', region_type='WINDOW')
+		self.global_keys()
+		self.right_mouse()
+		
+		self.tool_radial_control(radius=[('data_path_primary', 'tool_settings.weight_paint.brush.size'), ('data_path_secondary', 'tool_settings.unified_paint_settings.size'), ('use_secondary', 'tool_settings.unified_paint_settings.use_unified_size'), ('rotation_path', 'tool_settings.weight_paint.brush.texture_slot.angle'), ('color_path', 'tool_settings.weight_paint.brush.cursor_color_add'), ('image_id', 'tool_settings.weight_paint.brush')],
+						   		opacity=[('data_path_primary', 'tool_settings.weight_paint.brush.strength'), ('data_path_secondary', 'tool_settings.unified_paint_settings.strength'), ('use_secondary', 'tool_settings.unified_paint_settings.use_unified_strength'), (
+							   'rotation_path', 'tool_settings.weight_paint.brush.texture_slot.angle'), ('color_path', 'tool_settings.weight_paint.brush.cursor_color_add'), ('image_id', 'tool_settings.weight_paint.brush')],
+						   		eraser_radius=[('data_path_primary', 'tool_settings.weight_paint.brush.texture_slot.angle'), ('rotation_path', 'tool_settings.weight_paint.brush.texture_slot.angle'), ('color_path', 'tool_settings.weight_paint.brush.cursor_color_add'), ('image_id', 'tool_settings.weight_paint.brush')])
+
 		# Node Editor
 		self.kmi_init(name='Node Editor', space_type='NODE_EDITOR', region_type='WINDOW')
 		self.global_keys()
