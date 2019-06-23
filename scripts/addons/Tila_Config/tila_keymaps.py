@@ -16,6 +16,7 @@ bl_info = {
 
 
 # TODO  
+# - Fix th area pie menu shortcut which dosn't workin in all context
 # - Remove double with modal control
 # - Create a rename /batch rename feature
 # 	-- Update the view3d.viewport_rename operator to add batch rename functions
@@ -29,6 +30,7 @@ bl_info = {
 # - Fix the uv transform too which is always scaling uniformally
 # - Fix the smart edit mode in UV context
 # - Create an action center pie menu
+
 
 
 # Addon to Enable
@@ -85,7 +87,7 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 	# Global Keymap Functions
 
 	def global_keys(self):
-		self.kmi_set_replace("screen.userpref_show", "TAB", "PRESS", ctrl=True)
+		self.kmi_set_replace("wm.call_menu_pie", "TAB", "PRESS", ctrl=True, properties=[('name', 'VIEW3D_MT_object_mode_pie')])
 		self.kmi_set_replace("wm.window_fullscreen_toggle", "F11", "PRESS")
 		self.kmi_set_replace('screen.animation_play', self.k_menu, 'PRESS', shift=True)
 		
@@ -95,7 +97,7 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 			self.kmi_set_replace('popup.hp_render', 'EQUAL', 'PRESS')
    
 		self.kmi_set_replace('wm.call_menu_pie', 'A', 'PRESS', ctrl=True, alt=True, shift=True, properties=[('name', 'HP_MT_pie_add')])
-		self.kmi_set_replace('wm.call_menu_pie', 'TAB', 'PRESS', ctrl=True, alt=True, shift=True, properties=[('name', 'HP_MT_pie_areas')])
+		self.kmi_set_replace('wm.call_menu_pie', 'TAB', 'PRESS', ctrl=True, shift=True, properties=[('name', 'HP_MT_pie_areas')])
 		self.kmi_set_replace('wm.call_menu_pie', 'X', 'PRESS', alt=True, shift=True, properties=[('name', 'HP_MT_pie_symmetry')])
 
 		self.kmi_set_replace('view3d.viewport_rename', 'F2', 'PRESS')
@@ -395,8 +397,6 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		self.tool_center(pivot='VIEW3D_PT_pivot_point', orientation='VIEW3D_PT_transform_orientations')
 
 		self.kmi_set_replace('wm.call_menu_pie', 'Q', 'PRESS', ctrl=True, alt=True, shift=True, properties=[('name', 'HP_MT_boolean')])
-		self.kmi_set_active(False, 'mesh.rip_move')
-		self.kmi_set_replace("mesh.edge_rotate", 'V', "PRESS", disable_double=True)
 		
 
 		# 3d Cursor
@@ -497,6 +497,9 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		# self.kmi_set_replace('transform.tosphere', 'S', 'PRESS', ctrl=True, alt=True, shift=True, disable_double=True)
 		self.kmi_set_replace('wm.call_menu_pie', 'S', 'PRESS', alt=True, shift=True, properties=[('name', 'TILA_MT_pie_normal')], disable_double=True)
 		self.kmi_set_replace('wm.call_menu_pie', 'S', 'PRESS', ctrl=True, alt=True, shift=True, properties=[('name', 'TILA_MT_pie_uv')], disable_double=True)
+
+		self.kmi_set_replace("mesh.edge_rotate", 'V', "PRESS", disable_double=True)
+		self.kmi_set_replace("mesh.edge_rotate", 'V', "PRESS", shift=True, properties=[('use_ccw', True)], disable_double=True)
 
 		# Object Mode
 		self.kmi_init(name='Object Mode', space_type='EMPTY', region_type='WINDOW')
@@ -607,6 +610,13 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 							   'rotation_path', 'tool_settings.vertex_paint.brush.texture_slot.angle'), ('color_path', 'tool_settings.vertex_paint.brush.cursor_color_add'), ('image_id', 'tool_settings.vertex_paint.brush')],
 						   		eraser_radius=[('data_path_primary', 'tool_settings.vertex_paint.brush.texture_slot.angle'), ('rotation_path', 'tool_settings.vertex_paint.brush.texture_slot.angle'), ('color_path', 'tool_settings.vertex_paint.brush.cursor_color_add'), ('image_id', 'tool_settings.vertex_paint.brush')])
 
+		# self.kmi_set_replace('paint.weight_gradient', self.k_manip, 'PRESS', ctrl=True, shift=True, properties=[('type', 'LINEAR')])
+		# self.kmi_set_replace('paint.weight_gradient', self.k_manip, 'PRESS', ctrl=True, shift=True, alt=True, properties=[('type', 'RADIAL')])
+
+		self.kmi_set_replace('wm.tool_set_by_id', self.k_manip, 'PRESS', ctrl=True, shift=True, alt=True, properties=[('name', 'builtin_brush.Draw')])
+		self.kmi_set_replace('paint.tila_brush_select_and_paint', self.k_manip, 'PRESS', shift=True, properties=[('tool', 'VERTEX'), ('brush', 'BLUR')])
+		self.kmi_set_replace('paint.tila_brush_select_and_paint', self.k_manip, 'PRESS', ctrl=True, properties=[('tool', 'VERTEX'), ('brush', 'AVERAGE')])
+
 		# Weight Paint
 		self.kmi_init(name='Weight Paint', space_type='EMPTY', region_type='WINDOW')
 		self.global_keys()
@@ -616,6 +626,13 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 						   		opacity=[('data_path_primary', 'tool_settings.weight_paint.brush.strength'), ('data_path_secondary', 'tool_settings.unified_paint_settings.strength'), ('use_secondary', 'tool_settings.unified_paint_settings.use_unified_strength'), (
 							   'rotation_path', 'tool_settings.weight_paint.brush.texture_slot.angle'), ('color_path', 'tool_settings.weight_paint.brush.cursor_color_add'), ('image_id', 'tool_settings.weight_paint.brush')],
 						   		eraser_radius=[('data_path_primary', 'tool_settings.weight_paint.brush.texture_slot.angle'), ('rotation_path', 'tool_settings.weight_paint.brush.texture_slot.angle'), ('color_path', 'tool_settings.weight_paint.brush.cursor_color_add'), ('image_id', 'tool_settings.weight_paint.brush')])
+
+		self.kmi_set_replace('paint.weight_gradient', self.k_manip, 'PRESS', ctrl=True, shift=True, properties=[('type', 'LINEAR')])
+		self.kmi_set_replace('paint.weight_gradient', self.k_manip, 'PRESS', ctrl=True, shift=True, alt=True, properties=[('type', 'RADIAL')])
+
+		self.kmi_set_replace('wm.tool_set_by_id', self.k_manip, 'PRESS', ctrl=True, shift=True, alt=True, properties=[('name', 'builtin_brush.Draw')])
+		self.kmi_set_replace('paint.tila_brush_select_and_paint', self.k_manip, 'PRESS', shift=True, properties=[('tool', 'WEIGHT'), ('brush', 'BLUR')])
+		self.kmi_set_replace('paint.tila_brush_select_and_paint', self.k_manip, 'PRESS', ctrl=True, properties=[('tool', 'WEIGHT'), ('brush', 'AVERAGE')])
 
 		# Node Editor
 		self.kmi_init(name='Node Editor', space_type='NODE_EDITOR', region_type='WINDOW')

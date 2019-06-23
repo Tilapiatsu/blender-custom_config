@@ -52,7 +52,7 @@ class TILA_smart_editmode(bpy.types.Operator):
                 switch_mesh_mode(self, self.mesh_mode[mesh_mode_link(self, current_mode)])
             else:
                 bpy.context.scene.tool_settings.uv_select_mode = self.uv_mode[self.mode]
-
+        
         def mesh_mode_link(self, mode):
             for m in self.mesh_mode:
                 if mode in m:
@@ -122,6 +122,19 @@ class TILA_smart_editmode(bpy.types.Operator):
             else:
                 switch_gpencil_mode(self, bpy.context.scene.tool_settings.gpencil_selectmode)
 
+        elif bpy.context.mode in ['PAINT_WEIGHT', 'PAINT_VERTEX']:
+            if self.alt_mode:
+                bpy.ops.object.editmode_toggle()
+            else:
+                if self.mode == 0 and not bpy.context.object.data.use_paint_mask_vertex:                   
+                    bpy.context.object.data.use_paint_mask_vertex = True
+                elif self.mode == 2 and not bpy.context.object.data.use_paint_mask:
+                    bpy.context.object.data.use_paint_mask = True
+                elif self.mode == 1:
+                    pass
+                else:
+                    bpy.context.object.data.use_paint_mask_vertex = False
+                    bpy.context.object.data.use_paint_mask = False
         else:
             bpy.ops.object.editmode_toggle()
 

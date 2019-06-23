@@ -23,14 +23,17 @@ class TILA_select_through(bpy.types.Operator):
     mode = bpy.props.StringProperty(name="mode", default='SET')
     type = bpy.props.StringProperty(name="type", default='BORDER')
 
-    compatible_modes = ['EDIT_MESH', 'EDIT_CURVE', 'EDIT_SURFACE', 'EDIT_METABALL', 'EDIT_LATICE', 'OBJECT']
+    compatible_modes = ['EDIT_MESH', 'EDIT_CURVE', 'EDIT_SURFACE', 'EDIT_METABALL', 'EDIT_LATICE', 'OBJECT', 'PAINT_WEIGHT', 'PAINT_VERTEX']
     bypass_modes = ['EDIT_GPENCIL', 'PAINT_GPENCIL', 'SCULPT_GPENCIL']
 
     def run_tool(self):
-        if self.type == 'BORDER':
-            bpy.ops.view3d.select_box('INVOKE_DEFAULT', mode=self.mode, wait_for_input=False)
-        if self.type == 'LASSO':
-            bpy.ops.view3d.select_lasso('INVOKE_DEFAULT', mode=self.mode)
+        try:
+            if self.type == 'BORDER':
+                bpy.ops.view3d.select_box('INVOKE_DEFAULT', mode=self.mode, wait_for_input=False)
+            if self.type == 'LASSO':
+                bpy.ops.view3d.select_lasso('INVOKE_DEFAULT', mode=self.mode)
+        except RuntimeError as e:
+            print('Runtime Error :\n{}'.format(e))
 
     def modal(self, context, event):
         bpy.context.space_data.shading.show_xray = True
