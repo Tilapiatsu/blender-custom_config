@@ -19,7 +19,7 @@
 bl_info = {
     "name": "Transfer Vert Order",
     "author": "Jose Conseco based on UV Transfer from MagicUV Nutti",
-    "version": (2, 0),
+    "version": (2, 1),
     "blender": (2, 80, 0),
     "location": "Sidebar (N) -> Tools panel",
     "description": "Transfer Verts IDs by verts proximity or by selected faces",
@@ -161,17 +161,19 @@ class VOT_OT_PasteVertID(bpy.types.Operator):
     @staticmethod
     def sortOtherVerts(preocessedVertsIdDict, allVerts):
         """Prevet verts on other islands from being all shuffled"""
-        processedVerts = [v for v in preocessedVertsIdDict.keys()]  # faster that for dict.keys()
-        processedIDs = [id for id in preocessedVertsIdDict.values()]
-        notProcessedVerts = [v for v in allVerts if v not in processedVerts]
-        notProcessedVertsIds = [v.index for v in allVerts if
-                                v not in processedVerts]  # it will have duplicated ids from processedIDs that have to be
-        # fixed. The rest of numbers are good as ids.
+        # dicts instead of lists - faster search 4x?
+        processedVerts = {v: id for (v, id) in preocessedVertsIdDict.items()}  # dicts instead of lists
+        processedIDs = {id: 1 for (v, id) in preocessedVertsIdDict.items()}  # dicts instead of lists
 
+        notProcessedVerts = {v: v.index for v in allVerts if v not in processedVerts}  # dicts instead of lists
+        notProcessedVertsIds = {v.index: 1 for v in allVerts if v not in processedVerts}  # it will have duplicated ids from processedIDs that have to be
+        
         spareIDS = [i for i in range(len(allVerts)) if (i not in processedIDs and i not in notProcessedVertsIds)]
+
         for v in notProcessedVerts:
             if v.index in processedIDs:  # if duplicated id found if not processed verts
                 v.index = spareIDS.pop(0)  # what if list is empty??
+        
 
     def execute(self, context):
         props = context.scene.copy_indices.transuv

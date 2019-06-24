@@ -24,6 +24,7 @@ class TILA_smart_editmode(bpy.types.Operator):
     mode = bpy.props.IntProperty(name='mode', default=0)
     use_extend = bpy.props.BoolProperty(name='use_extend', default=False)
     use_expand = bpy.props.BoolProperty(name='use_expand', default=False)
+    get_border = bpy.props.BoolProperty(name='get_border', default=False)
     alt_mode = bpy.props.BoolProperty(name='alt_mode', default=False)
 
     mesh_mode = ['VERT', 'EDGE', 'FACE']
@@ -51,13 +52,22 @@ class TILA_smart_editmode(bpy.types.Operator):
                 switch_mesh_mode(self, self.mesh_mode[mesh_mode_link(self, current_mode)])
             else:
                 bpy.context.scene.tool_settings.uv_select_mode = self.uv_mode[self.mode]
-
+        
         def mesh_mode_link(self, mode):
             for m in self.mesh_mode:
                 if mode in m:
                     return self.mesh_mode.index(m)
                 else:
                     return 0
+
+        def select_border(self, current_mode):
+            # if self.mesh_mode[self.mode] != current_mode:
+            if self.mesh_mode[self.mode] != 'FACE':
+                bpy.ops.mesh.region_to_loop()
+                switch_mesh_mode(self, current_mode)
+            else:
+                pass
+                    
 
         if bpy.context.mode == 'OBJECT':
             if bpy.context.active_object is None:
@@ -89,13 +99,22 @@ class TILA_smart_editmode(bpy.types.Operator):
                     elif bpy.context.scene.tool_settings.uv_select_mode == 'ISLAND':
                         method(self, 'ISLAND')
                 else:
-                    method = switch_mesh_mode
-                    if bpy.context.scene.tool_settings.mesh_select_mode[0]:
-                        method(self, 'VERT')
-                    elif bpy.context.scene.tool_settings.mesh_select_mode[1]:
-                        method(self, 'EDGE')
-                    elif bpy.context.scene.tool_settings.mesh_select_mode[2]:
-                        method(self, 'FACE')
+                    if self.get_border:
+                        method = select_border
+                        if bpy.context.scene.tool_settings.mesh_select_mode[0]:
+                            method(self, 'VERT')
+                        elif bpy.context.scene.tool_settings.mesh_select_mode[1]:
+                            method(self, 'EDGE')
+                        elif bpy.context.scene.tool_settings.mesh_select_mode[2]:
+                            method(self, 'FACE')
+                    else:
+                        method = switch_mesh_mode
+                        if bpy.context.scene.tool_settings.mesh_select_mode[0]:
+                            method(self, 'VERT')
+                        elif bpy.context.scene.tool_settings.mesh_select_mode[1]:
+                            method(self, 'EDGE')
+                        elif bpy.context.scene.tool_settings.mesh_select_mode[2]:
+                            method(self, 'FACE')
 
         elif bpy.context.mode in ['EDIT_GPENCIL', 'PAINT_GPENCIL', 'SCULPT_GPENCIL', 'WEIGHT_GPENCIL']:
             if self.alt_mode:
@@ -103,6 +122,19 @@ class TILA_smart_editmode(bpy.types.Operator):
             else:
                 switch_gpencil_mode(self, bpy.context.scene.tool_settings.gpencil_selectmode)
 
+        elif bpy.context.mode in ['PAINT_WEIGHT', 'PAINT_VERTEX']:
+            if self.alt_mode:
+                bpy.ops.object.editmode_toggle()
+            else:
+                if self.mode == 0 and not bpy.context.object.data.use_paint_mask_vertex:                   
+                    bpy.context.object.data.use_paint_mask_vertex = True
+                elif self.mode == 2 and not bpy.context.object.data.use_paint_mask:
+                    bpy.context.object.data.use_paint_mask = True
+                elif self.mode == 1:
+                    pass
+                else:
+                    bpy.context.object.data.use_paint_mask_vertex = False
+                    bpy.context.object.data.use_paint_mask = False
         else:
             bpy.ops.object.editmode_toggle()
 

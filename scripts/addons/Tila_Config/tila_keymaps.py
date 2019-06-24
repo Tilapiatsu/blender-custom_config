@@ -16,7 +16,7 @@ bl_info = {
 
 
 # TODO  
-# - Add shortcut to select boundry loops
+# - Fix th area pie menu shortcut which dosn't workin in all context
 # - Remove double with modal control
 # - Create a rename /batch rename feature
 # 	-- Update the view3d.viewport_rename operator to add batch rename functions
@@ -30,6 +30,7 @@ bl_info = {
 # - Fix the uv transform too which is always scaling uniformally
 # - Fix the smart edit mode in UV context
 # - Create an action center pie menu
+
 
 
 # Addon to Enable
@@ -90,7 +91,7 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 	# Global Keymap Functions
 
 	def global_keys(self):
-		self.kmi_set_replace("screen.userpref_show", "TAB", "PRESS", ctrl=True)
+		self.kmi_set_replace("wm.call_menu_pie", "TAB", "PRESS", ctrl=True, properties=[('name', 'VIEW3D_MT_object_mode_pie')])
 		self.kmi_set_replace("wm.window_fullscreen_toggle", "F11", "PRESS")
 		self.kmi_set_replace('screen.animation_play', self.k_menu, 'PRESS', shift=True)
 		
@@ -100,7 +101,7 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 			self.kmi_set_replace('popup.hp_render', 'EQUAL', 'PRESS')
    
 		self.kmi_set_replace('wm.call_menu_pie', 'A', 'PRESS', ctrl=True, alt=True, shift=True, properties=[('name', 'HP_MT_pie_add')])
-		self.kmi_set_replace('wm.call_menu_pie', 'TAB', 'PRESS', ctrl=True, alt=True, shift=True, properties=[('name', 'HP_MT_pie_areas')])
+		self.kmi_set_replace('wm.call_menu_pie', 'TAB', 'PRESS', ctrl=True, shift=True, properties=[('name', 'HP_MT_pie_areas')])
 		self.kmi_set_replace('wm.call_menu_pie', 'X', 'PRESS', alt=True, shift=True, properties=[('name', 'HP_MT_pie_symmetry')])
 
 		self.kmi_set_replace('view3d.viewport_rename', 'F2', 'PRESS')
@@ -136,12 +137,14 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		self.kmi_set_replace('view3d.tila_smart_editmode', self.k_face_mode, 'PRESS', ctrl=True, properties=[
 							 ('mode', 2), ('use_extend', False), ('use_expand', True), ('alt_mode', False)], disable_double=True)
 
-		self.kmi_set_replace('view3d.tila_smart_editmode', self.k_vert_mode, 'PRESS', ctrl=True, shift=True, properties=[
-							 ('mode', 0), ('use_extend', True), ('use_expand', True), ('alt_mode', False)], disable_double=True)
-		self.kmi_set_replace('view3d.tila_smart_editmode', self.k_edge_mode, 'PRESS', ctrl=True, shift=True, properties=[
-							 ('mode', 1), ('use_extend', True), ('use_expand', True), ('alt_mode', False)], disable_double=True)
-		self.kmi_set_replace('view3d.tila_smart_editmode', self.k_face_mode, 'PRESS', ctrl=True, shift=True, properties=[
-							 ('mode', 2), ('use_extend', True), ('use_expand', True), ('alt_mode', False)], disable_double=True)
+		self.kmi_set_replace('view3d.tila_smart_editmode', self.k_vert_mode, 'PRESS', ctrl=True, shift=True, properties=[('mode', 0), ('use_extend', True), ('use_expand', True), ('alt_mode', False)], disable_double=True)
+		self.kmi_set_replace('view3d.tila_smart_editmode', self.k_edge_mode, 'PRESS', ctrl=True, shift=True, properties=[('mode', 1), ('use_extend', True), ('use_expand', True), ('alt_mode', False)], disable_double=True)
+		self.kmi_set_replace('view3d.tila_smart_editmode', self.k_face_mode, 'PRESS', ctrl=True, shift=True, properties=[('mode', 2), ('use_extend', True), ('use_expand', True), ('alt_mode', False)], disable_double=True)
+		
+		self.kmi_set_replace('view3d.tila_smart_editmode', self.k_vert_mode, 'PRESS', alt=True, properties=[('mode', 0), ('use_extend', False), ('use_expand', False), ('get_border', True)], disable_double=True)
+		self.kmi_set_replace('view3d.tila_smart_editmode', self.k_edge_mode, 'PRESS', alt=True, properties=[('mode', 1), ('use_extend', False), ('use_expand', False), ('get_border', True)], disable_double=True)
+		self.kmi_set_replace('view3d.tila_smart_editmode', self.k_face_mode, 'PRESS', alt=True, properties=[('mode', 2), ('use_extend', False), ('use_expand', False), ('get_border', True)], disable_double=True)
+
 
 	def collection_visibility(self, collection_visibility_tool):
 		self.kmi_set_replace(collection_visibility_tool, 'NUMPAD_1', 'PRESS', any=True, properties=[('collection_index', 1)])
@@ -292,7 +295,6 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 
 	def snap(self, snapping=None, snapping_prop=None):
 		type = 'X'
-
 		self.kmi_set_replace('wm.context_toggle', type, 'PRESS', properties=[('data_path', 'tool_settings.use_snap')])
 		if snapping is not None and snapping_prop is not None:
 			self.kmi_set_replace(snapping, type, 'PRESS', shift=True, properties=snapping_prop)
@@ -500,6 +502,9 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		self.kmi_set_replace('wm.call_menu_pie', 'S', 'PRESS', alt=True, shift=True, properties=[('name', 'TILA_MT_pie_normal')], disable_double=True)
 		self.kmi_set_replace('wm.call_menu_pie', 'S', 'PRESS', ctrl=True, alt=True, shift=True, properties=[('name', 'TILA_MT_pie_uv')], disable_double=True)
 
+		self.kmi_set_replace("mesh.edge_rotate", 'V', "PRESS", disable_double=True)
+		self.kmi_set_replace("mesh.edge_rotate", 'V', "PRESS", shift=True, properties=[('use_ccw', True)], disable_double=True)
+
 		# Object Mode
 		self.kmi_init(name='Object Mode', space_type='EMPTY', region_type='WINDOW')
 		self.global_keys()
@@ -597,6 +602,41 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		self.global_keys()
 		self.right_mouse()
 		self.duplicate(duplicate='graph.duplicate_move')
+
+		
+		# Vertex Paint
+		self.kmi_init(name='Vertex Paint', space_type='EMPTY', region_type='WINDOW')
+		self.global_keys()
+		self.right_mouse()
+
+		self.tool_radial_control(radius=[('data_path_primary', 'tool_settings.vertex_paint.brush.size'), ('data_path_secondary', 'tool_settings.unified_paint_settings.size'), ('use_secondary', 'tool_settings.unified_paint_settings.use_unified_size'), ('rotation_path', 'tool_settings.vertex_paint.brush.texture_slot.angle'), ('color_path', 'tool_settings.vertex_paint.brush.cursor_color_add'), ('image_id', 'tool_settings.vertex_paint.brush')],
+						   		opacity=[('data_path_primary', 'tool_settings.vertex_paint.brush.strength'), ('data_path_secondary', 'tool_settings.unified_paint_settings.strength'), ('use_secondary', 'tool_settings.unified_paint_settings.use_unified_strength'), (
+							   'rotation_path', 'tool_settings.vertex_paint.brush.texture_slot.angle'), ('color_path', 'tool_settings.vertex_paint.brush.cursor_color_add'), ('image_id', 'tool_settings.vertex_paint.brush')],
+						   		eraser_radius=[('data_path_primary', 'tool_settings.vertex_paint.brush.texture_slot.angle'), ('rotation_path', 'tool_settings.vertex_paint.brush.texture_slot.angle'), ('color_path', 'tool_settings.vertex_paint.brush.cursor_color_add'), ('image_id', 'tool_settings.vertex_paint.brush')])
+
+		# self.kmi_set_replace('paint.weight_gradient', self.k_manip, 'PRESS', ctrl=True, shift=True, properties=[('type', 'LINEAR')])
+		# self.kmi_set_replace('paint.weight_gradient', self.k_manip, 'PRESS', ctrl=True, shift=True, alt=True, properties=[('type', 'RADIAL')])
+
+		self.kmi_set_replace('wm.tool_set_by_id', self.k_manip, 'PRESS', ctrl=True, shift=True, alt=True, properties=[('name', 'builtin_brush.Draw')])
+		self.kmi_set_replace('paint.tila_brush_select_and_paint', self.k_manip, 'PRESS', shift=True, properties=[('tool', 'VERTEX'), ('brush', 'BLUR')])
+		self.kmi_set_replace('paint.tila_brush_select_and_paint', self.k_manip, 'PRESS', ctrl=True, properties=[('tool', 'VERTEX'), ('brush', 'AVERAGE')])
+
+		# Weight Paint
+		self.kmi_init(name='Weight Paint', space_type='EMPTY', region_type='WINDOW')
+		self.global_keys()
+		self.right_mouse()
+		
+		self.tool_radial_control(radius=[('data_path_primary', 'tool_settings.weight_paint.brush.size'), ('data_path_secondary', 'tool_settings.unified_paint_settings.size'), ('use_secondary', 'tool_settings.unified_paint_settings.use_unified_size'), ('rotation_path', 'tool_settings.weight_paint.brush.texture_slot.angle'), ('color_path', 'tool_settings.weight_paint.brush.cursor_color_add'), ('image_id', 'tool_settings.weight_paint.brush')],
+						   		opacity=[('data_path_primary', 'tool_settings.weight_paint.brush.strength'), ('data_path_secondary', 'tool_settings.unified_paint_settings.strength'), ('use_secondary', 'tool_settings.unified_paint_settings.use_unified_strength'), (
+							   'rotation_path', 'tool_settings.weight_paint.brush.texture_slot.angle'), ('color_path', 'tool_settings.weight_paint.brush.cursor_color_add'), ('image_id', 'tool_settings.weight_paint.brush')],
+						   		eraser_radius=[('data_path_primary', 'tool_settings.weight_paint.brush.texture_slot.angle'), ('rotation_path', 'tool_settings.weight_paint.brush.texture_slot.angle'), ('color_path', 'tool_settings.weight_paint.brush.cursor_color_add'), ('image_id', 'tool_settings.weight_paint.brush')])
+
+		self.kmi_set_replace('paint.weight_gradient', self.k_manip, 'PRESS', ctrl=True, shift=True, properties=[('type', 'LINEAR')])
+		self.kmi_set_replace('paint.weight_gradient', self.k_manip, 'PRESS', ctrl=True, shift=True, alt=True, properties=[('type', 'RADIAL')])
+
+		self.kmi_set_replace('wm.tool_set_by_id', self.k_manip, 'PRESS', ctrl=True, shift=True, alt=True, properties=[('name', 'builtin_brush.Draw')])
+		self.kmi_set_replace('paint.tila_brush_select_and_paint', self.k_manip, 'PRESS', shift=True, properties=[('tool', 'WEIGHT'), ('brush', 'BLUR')])
+		self.kmi_set_replace('paint.tila_brush_select_and_paint', self.k_manip, 'PRESS', ctrl=True, properties=[('tool', 'WEIGHT'), ('brush', 'AVERAGE')])
 
 		# Node Editor
 		self.kmi_init(name='Node Editor', space_type='NODE_EDITOR', region_type='WINDOW')
