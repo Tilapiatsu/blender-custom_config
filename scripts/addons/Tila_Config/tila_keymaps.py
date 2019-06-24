@@ -16,12 +16,12 @@ bl_info = {
 
 
 # TODO  
+# - add shortcut for show wireframe ouside of Edit Mode
+# - Create an action center pie menu
 # - Fix th area pie menu shortcut which dosn't workin in all context
 # - Remove double with modal control
 # - Create a rename /batch rename feature
 # 	-- Update the view3d.viewport_rename operator to add batch rename functions
-# - Modify the camera behaviour to slow the dolly speed based on the distance from the object
-#   --Modify the camera bihaviour to be able to rotate around the last point under the mouse
 # - Vertex Normal Pie Menu : Mark Hard, Mark Soft, update normal, Thief
 # - UV Pie Menu : Split, sew, mak seam etc
 # - Need to fix the rotate/scaling pivot point in UV context
@@ -29,7 +29,7 @@ bl_info = {
 # - Script to visualize Texture checker in all objects in the viewport
 # - Fix the uv transform too which is always scaling uniformally
 # - Fix the smart edit mode in UV context
-# - Create an action center pie menu
+
 
 
 
