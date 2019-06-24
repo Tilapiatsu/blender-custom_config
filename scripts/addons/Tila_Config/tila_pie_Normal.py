@@ -28,66 +28,41 @@ class TILA_MT_pie_normal(Menu):
         obj = context.active_object
         pie = layout.menu_pie()
         # Left
-        split = pie.split()
-        split.scale_y = 3
-        split.scale_x = 1.5
         if context.mode == "OBJECT":
             text = 'Smooth'
         else:
             text = 'Merge'
 
-        split.operator("view3d.tila_normalsmartmerge", icon='NODE_MATERIAL', text=text)
+        pie.operator("view3d.tila_normalsmartmerge", icon='NODE_MATERIAL', text=text)
 
         # Right
-        split = pie.split()
-        split.scale_y = 3
-        split.scale_x = 1.5
-        split.operator("view3d.tila_normalsmartsplit", icon='MESH_CUBE', text="Split")
+        pie.operator("view3d.tila_normalsmartsplit", icon='MESH_CUBE', text="Split")
 
         # Bottom
         split = pie.split()
-        col = split.column()
-        col.scale_y = 3
-        col.scale_x = 1
-        col.operator("mesh.tila_normalaverage", icon='META_CUBE', text="Average Normal")
-        col = split.column()
-        col.scale_y = 3
-        col.scale_x = 1
-        col.operator("mesh.tila_normaluseface", icon='MOD_SOLIDIFY', text="Use Face Normal")
-        col.operator("mesh.tila_normalsmoothen", icon='INVERSESQUARECURVE', text="Smoothen Normal")
+        pie.operator("mesh.tila_normalaverage", icon='META_CUBE', text="Average Normal")
+        pie.operator("mesh.tila_normaluseface", icon='MOD_SOLIDIFY', text="Use Face Normal")
+        pie.operator("mesh.tila_normalsmoothen", icon='INVERSESQUARECURVE', text="Smoothen Normal")
 
         # Top
         split = pie.split()
-        col = split.column()
-        col.scale_y = 3
-        col.scale_x = 1
         if context.mode == "EDIT_MESH":
-            col.operator('mesh.tila_normalflatten', icon='NORMALS_FACE', text='Flatten Normal')
-
-        # Top Left
-
-        split = pie.split()
-
-        # Top Right
-        split = pie.split()
-
-        # Bottom Left
-
-        split = pie.split()
-        col = split.column()
-        col.scale_y = 1.5
-        col.scale_x = 1
+            pie.operator('mesh.tila_normalflatten', icon='NORMALS_FACE', text='Flatten Normal')
+        else:
+            pie.split()
+                
 
         # Bottom Right
+        split = pie.split()
+        split = pie.split()
         split = pie.split()
         col = split.column()
         col.scale_y = 3
         col.scale_x = 1
         col.prop(view.overlay, "show_split_normals", text="Show Vertex Normal", icon='NORMALS_VERTEX_FACE')
-        col = split.column()
         col.prop(view.overlay, "normals_length", text="Size")
-
-        # bpy.context.space_data.overlay.show_split_normals = True
+        
+        
 
 
 def element_is_selected(object):
