@@ -16,6 +16,7 @@ bl_info = {
 
 
 # TODO  
+# - Change the default Cliping distance
 # - add shortcut for show wireframe ouside of Edit Mode
 # - Create an action center pie menu
 # - Fix th area pie menu shortcut which dosn't workin in all context
