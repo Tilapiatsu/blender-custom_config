@@ -24,27 +24,28 @@ class HP_MT_pie_rotate90(Menu):
 		layout = self.layout
 		pie = layout.menu_pie()
 		# left
-		pie.operator('view3d.rotate_90_and_flatten', text = 'Side', icon="CENTER_ONLY").direction = 'FX'
+		pie.operator('view3d.rotate_90_and_flatten', text = 'X', icon="CENTER_ONLY").direction = 'FX'
 		# right
-		pie.operator('view3d.rotate_90_and_flatten', text = 'Side', icon="FILE_REFRESH").direction = 'RX'
+		pie.operator('view3d.rotate_90_and_flatten', text = 'X', icon="FILE_REFRESH").direction = 'RX'
 
 		pie.split()
 		pie.split()
 
-		pie.operator('view3d.rotate_90_and_flatten', text = 'Front', icon="CENTER_ONLY").direction = 'FY'
+		pie.operator('view3d.rotate_90_and_flatten', text = 'Y', icon="CENTER_ONLY").direction = 'FY'
 
-		pie.operator('view3d.rotate_90_and_flatten', text = 'Front', icon="FILE_REFRESH").direction = 'RY'
+		pie.operator('view3d.rotate_90_and_flatten', text = 'Y', icon="FILE_REFRESH").direction = 'RY'
 
 		# bottomleft
-		pie.operator('view3d.rotate_90_and_flatten', text = 'Top', icon="CENTER_ONLY").direction = 'FZ'
+		pie.operator('view3d.rotate_90_and_flatten', text = 'Z', icon="CENTER_ONLY").direction = 'FZ'
 		# bottomright
-		pie.operator('view3d.rotate_90_and_flatten', text = 'Top', icon="FILE_REFRESH").direction = 'RZ'
+		pie.operator('view3d.rotate_90_and_flatten', text = 'Z', icon="FILE_REFRESH").direction = 'RZ'
 
 
 class HP_OT_rotate_90_and_flatten(bpy.types.Operator):
 	bl_idname = "view3d.rotate_90_and_flatten"
 	bl_label = ""
 	bl_options = {'REGISTER', 'UNDO'}
+
 	direction: bpy.props.StringProperty(name="Direction")
 
 	def execute(self, context):
@@ -74,19 +75,22 @@ class HP_OT_rotate_90_and_flatten(bpy.types.Operator):
 					print('Object Mode')
 #Rotate 90
 		if self.direction == 'RZ':
-			bpy.ops.transform.rotate(value=1.5708, axis=(0, 0, 1), constraint_axis=(False, False, True), constraint_orientation='GLOBAL')
+			bpy.ops.transform.rotate(value=1.5708, orient_axis='Z', constraint_axis=(False, False, True))
 		if self.direction == 'RY':
-			bpy.ops.transform.rotate(value=1.5708, axis=(0, 1, 0), constraint_axis=(False, True, False), constraint_orientation='GLOBAL')
+			bpy.ops.transform.rotate(value=1.5708, orient_axis='Y', constraint_axis=(False, True, False))
 		if self.direction == 'RX':
-			bpy.ops.transform.rotate(value=1.5708, axis=(1, 0, 0), constraint_axis=(True, False, False), constraint_orientation='GLOBAL')
+			bpy.ops.transform.rotate(value=1.5708, orient_axis='X', constraint_axis=(True, False, False))
 
 #Flattens
 		if self.direction == 'FX':
-			bpy.ops.transform.resize(value=(0, 1, 1), constraint_axis=(True, False, False), constraint_orientation='GLOBAL')
+			# bpy.ops.transform.translate(value=(0, 0, 0), constraint_axis=(True, False, False))
+			bpy.ops.transform.resize(value=(0, 1, 1), constraint_axis=(True, False, False))
 		if self.direction == 'FY':
-			bpy.ops.transform.resize(value=(1, 0, 1), constraint_axis=(False, True, False), constraint_orientation='GLOBAL')
+			# bpy.ops.transform.translate(value=(0, 0, 0), constraint_axis=(True, False, False))
+			bpy.ops.transform.resize(value=(1, 0, 1), constraint_axis=(False, True, False))
 		if self.direction == 'FZ':
-			bpy.ops.transform.resize(value=(1, 1, 0), constraint_axis=(False, False, True), constraint_orientation='GLOBAL')
+			# bpy.ops.transform.translate(value=(0, 0, 0), constraint_axis=(True, False, False))
+			bpy.ops.transform.resize(value=(1, 1, 0), constraint_axis=(False, False, True))
 		if vertmode == True:
 			bpy.ops.mesh.select_all(action='DESELECT')
 			bpy.ops.object.vertex_group_select()

@@ -16,9 +16,24 @@ bl_info = {
 
 
 # TODO  
+#  Need to read : https://wiki.blender.org/wiki/Source/Depsgraph
 # - Change the default Cliping distance
 # - add shortcut for show wireframe ouside of Edit Mode
-# - Create an action center pie menu
+# - Create an action center pie menu : https://blenderartists.org/t/modo-me-the-modo-action-centers-in-blender-and-more-2-80-2-79/1145899
+# 		- Automatic
+# 		- Selection
+# 		- Selection Border
+# 		- Selection Center Auto Axis
+# 		- Element
+# 		- Screen
+# 		- Origin
+# 		- Parent
+# 		- Local
+# 		- Pivot
+# 		- Pivot Center Parent Axis
+# 		- Pivot Wold Axis
+# 		- Cursor
+# 		- Custom
 # - Fix th area pie menu shortcut which dosn't workin in all context
 # - Remove double with modal control
 # - Create a rename /batch rename feature
@@ -100,6 +115,7 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 			self.kmi_set_replace("popup.hp_properties", 'V', "PRESS")
 			self.kmi_set_replace('popup.hp_materials', 'M', 'PRESS')
 			self.kmi_set_replace('popup.hp_render', 'EQUAL', 'PRESS')
+			self.kmi_set_replace('wm.call_menu_pie', 'D', 'PRESS', alt=True, shift=True, properties=[('name', 'HP_MT_pie_rotate90')])
    
 		self.kmi_set_replace('wm.call_menu_pie', 'A', 'PRESS', ctrl=True, alt=True, shift=True, properties=[('name', 'HP_MT_pie_add')])
 		self.kmi_set_replace('wm.call_menu_pie', 'TAB', 'PRESS', ctrl=True, shift=True, properties=[('name', 'HP_MT_pie_areas')])
@@ -405,9 +421,8 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		
 
 		# 3d Cursor
-		kmi = self.kmi_set_replace('view3d.cursor3d', self.k_cursor, 'CLICK', ctrl=True, alt=True, shift=True, properties=[('use_depth', True)])
-		self.kmi_prop_setattr(kmi.properties, 'orientation', 'GEOM')
-		self.kmi_set_replace('transform.translate', 'EVT_TWEAK_M', 'ANY', ctrl=True, alt=True, shift=True, properties=[('cursor_transform', True), ('release_confirm', True)])
+		self.kmi_set_replace('view3d.cursor3d', self.k_cursor, 'CLICK', ctrl=True, alt=True, shift=True, properties=[('use_depth', True), ('orientation','GEOM')])
+		self.kmi_set_replace('transform.translate', 'EVT_TWEAK_M', 'ANY', ctrl=True, alt=True, shift=True, properties=[('cursor_transform', True), ('release_confirm', True), ('orient_type', 'NORMAL'), ('snap', True), ('snap_align', True)])
 
 		# View2D
 		self.kmi_init(name='View2D', space_type='EMPTY', region_type='WINDOW')

@@ -26,56 +26,13 @@ class TILA_MT_pie_uv(Menu):
         view = context.space_data
         obj = context.active_object
         pie = layout.menu_pie()
-        # Left
-        split = pie.split()
-        split.scale_y = 3
-        split.scale_x = 1.5
+
         if context.mode == "EDIT_MESH":
-            split.operator("mesh.mark_seam", icon='ADD', text='Mark Seam')
+            pie.operator("mesh.mark_seam", icon='ADD', text='Mark Seam')
 
-        # Right
-        split = pie.split()
-        split.scale_y = 3
-        split.scale_x = 1.5
         if context.mode == "EDIT_MESH":
-            split.operator("mesh.mark_seam", icon='REMOVE', text="Clear Seam").clear=True
+            pie.operator("mesh.mark_seam", icon='REMOVE', text="Clear Seam").clear=True
 
-        # Bottom
-        split = pie.split()
-        col = split.column()
-        col.scale_y = 3
-        col.scale_x = 1
-
-
-        # Top
-        split = pie.split()
-        col = split.column()
-        col.scale_y = 3
-        col.scale_x = 1
-        # if context.mode == "EDIT_MESH":
-        #     col.operator('mesh.tila_normalflatten', icon='NORMALS_FACE', text='Flatten Normal')
-
-        # Top Left
-
-        split = pie.split()
-
-        # Top Right
-        split = pie.split()
-
-        # Bottom Left
-
-        split = pie.split()
-        col = split.column()
-        col.scale_y = 1.5
-        col.scale_x = 1
-
-        # Bottom Right
-        split = pie.split()
-        col = split.column()
-        col.scale_y = 3
-        col.scale_x = 1
-
-        # bpy.context.space_data.overlay.show_split_normals = True
 
 
 

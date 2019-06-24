@@ -19,7 +19,7 @@ class EmptyMeshOperator(bpy.types.Operator):
         if currentMode == "EDIT":
             bpy.ops.object.mode_set(mode='OBJECT')
 
-        plane = bpy.ops.mesh.primitive_plane_add(view_align=False, enter_editmode=False, location=(0.0, 0.0, 0.0))
+        plane = bpy.ops.mesh.primitive_plane_add(align='WORLD', enter_editmode=False, location=(0.0, 0.0, 0.0))
         bpy.ops.object.mode_set(mode='EDIT')
         bpy.ops.mesh.select_all(action='SELECT')
         bpy.ops.mesh.delete(type='FACE')
