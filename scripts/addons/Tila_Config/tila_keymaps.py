@@ -351,12 +351,14 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		self.kmi_set_replace(subdivision, 'NUMPAD_PLUS', 'PRESS', properties=[('level', 1), ('relative', True)])
 		self.kmi_set_replace(subdivision, 'NUMPAD_MINUS', 'PRESS', disable_double=True, properties=[('level', -1), ('relative', True)])
 
-	def tool_center(self, pivot=None, orientation=None):
+	def tool_center(self, pivot=None, orientation=None, action_center_context=None):
 		print(pivot, orientation)
 		if pivot:
 			self.kmi_set_replace('wm.call_panel', 'X', 'PRESS', ctrl=True, properties=[('name', pivot), ('keep_open', False)], disable_double=True)
 		if orientation:
 			self.kmi_set_replace('wm.call_panel', 'X', 'PRESS', ctrl=True, shift=True, properties=[('name', orientation), ('keep_open', False)], disable_double=True)
+		if action_center_context:
+			self.kmi_set_replace('wm.call_menu', 'X', 'PRESS', alt=True, properties=[('name', 'TILA_MT_action_center')], disable_double=True)
 	
 	def tool_transform(self):
 		self.kmi_set_replace('wm.tool_set_by_id', self.k_move, 'PRESS', properties=[('name', 'builtin.move')])
@@ -415,10 +417,10 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 
 		self.kmi_set_replace('view3d.view_selected', 'A', 'PRESS', ctrl=True, shift=True)
 
-		self.tool_center(pivot='VIEW3D_PT_pivot_point', orientation='VIEW3D_PT_transform_orientations')
+		self.tool_center(pivot='VIEW3D_PT_pivot_point', orientation='VIEW3D_PT_transform_orientations', action_center_context='VIEW3D')
 
 		self.kmi_set_replace('wm.call_menu_pie', 'Q', 'PRESS', ctrl=True, alt=True, shift=True, properties=[('name', 'HP_MT_boolean')])
-		
+
 
 		# 3d Cursor
 		self.kmi_set_replace('view3d.cursor3d', self.k_cursor, 'CLICK', ctrl=True, alt=True, shift=True, properties=[('use_depth', True), ('orientation','GEOM')])
