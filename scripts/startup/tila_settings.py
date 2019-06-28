@@ -38,11 +38,9 @@ bpy.context.preferences.inputs.use_mouse_depth_navigate = True
 bpy.context.preferences.inputs.use_zoom_to_mouse = True
 
 # Theme tweak
-ui = bpy.context.preferences.themes[0]
-
-ui.outliner.selected_highlight = (0.29, 0.38, 0.29)
-ui.outliner.space.text = (0.6, 0.6, 0.6)
-ui.outliner.space.text_hi = (0.733, 1.0, 0.584)
+root_path = os.path.join(os.path.realpath(__file__), os.pardir)
+theme_filepath = os.path.join(root_path, 'presets', 'interface_theme', 'tila.xml')
+bpy.ops.script.execute_preset(filepath=theme_filepath)
 
 # Enabling addon
 addon_utils.enable('space_view3d_modifier_tools')
