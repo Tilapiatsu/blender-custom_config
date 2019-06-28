@@ -106,3 +106,6 @@
 [submodule "scripts/addons/CommandRecorder"]
 	path = scripts/addons/CommandRecorder
 	url = https://github.com/Muthird/CommandRecorder2.8.git
+[submodule "scripts/addons/MeasureIt-ARCH"]
+	path = scripts/addons/MeasureIt-ARCH
+	url = https://github.com/kevancress/MeasureIt-ARCH.git
