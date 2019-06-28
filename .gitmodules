@@ -100,3 +100,9 @@
 [submodule "scripts/addons/FontSelector"]
 	path = scripts/addons/FontSelector
 	url = https://github.com/samytichadou/FontSelector_blender_addon.git
+[submodule "scripts/addons/CommandRecorder/"]
+	path = scripts/addons/CommandRecorder/
+	url = https://github.com/Muthird/CommandRecorder2.8.git
+[submodule "scripts/addons/CommandRecorder"]
+	path = scripts/addons/CommandRecorder
+	url = https://github.com/Muthird/CommandRecorder2.8.git
