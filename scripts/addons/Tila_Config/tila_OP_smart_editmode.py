@@ -78,14 +78,14 @@ class TILA_smart_editmode(bpy.types.Operator):
 
             elif bpy.context.active_object.type == 'GPENCIL':
                 if self.alt_mode:
-                    bpy.ops.gpencil.paintmode_toggle()
+                    bpy.ops.object.mode_set(mode='OBJECT')
                 else:
                     bpy.ops.gpencil.editmode_toggle()
                     bpy.context.scene.tool_settings.gpencil_selectmode = self.gpencil_mode[self.mode]
 
         elif bpy.context.mode == 'EDIT_MESH':
             if self.alt_mode:
-                bpy.ops.object.editmode_toggle()
+                bpy.ops.object.mode_set(mode='OBJECT')
             else:
                 method = None
                 if bpy.context.space_data.type == 'IMAGE_EDITOR':
@@ -118,13 +118,13 @@ class TILA_smart_editmode(bpy.types.Operator):
 
         elif bpy.context.mode in ['EDIT_GPENCIL', 'PAINT_GPENCIL', 'SCULPT_GPENCIL', 'WEIGHT_GPENCIL']:
             if self.alt_mode:
-                bpy.ops.gpencil.paintmode_toggle()
+                bpy.ops.object.mode_set(mode='OBJECT')
             else:
                 switch_gpencil_mode(self, bpy.context.scene.tool_settings.gpencil_selectmode)
 
         elif bpy.context.mode in ['PAINT_WEIGHT', 'PAINT_VERTEX']:
             if self.alt_mode:
-                bpy.ops.object.editmode_toggle()
+                bpy.ops.object.mode_set(mode='OBJECT')
             else:
                 if self.mode == 0 and not bpy.context.object.data.use_paint_mask_vertex:                   
                     bpy.context.object.data.use_paint_mask_vertex = True
@@ -136,7 +136,7 @@ class TILA_smart_editmode(bpy.types.Operator):
                     bpy.context.object.data.use_paint_mask_vertex = False
                     bpy.context.object.data.use_paint_mask = False
         else:
-            bpy.ops.object.editmode_toggle()
+            bpy.ops.object.mode_set(mode='OBJECT')
 
         return {'FINISHED'}
 

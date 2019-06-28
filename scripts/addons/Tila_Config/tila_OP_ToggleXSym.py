@@ -10,12 +10,12 @@ bl_info = {
 
 
 class ToggleXSymOperator(bpy.types.Operator):
-    bl_idname = "mesh.toggle_x_symetry"
+    bl_idname = "view3d.toggle_x_symetry"
     bl_label = "TILA: Toggle Use Automerge"
     bl_options = {'REGISTER', 'UNDO'}
 
     def execute(self, context):
-        bpy.context.object.data.use_mirror_x = not bpy.context.object.data.use_mirror_x
+        bpy.context.scene.tool_settings.sculpt.use_symmetry_x = not bpy.context.scene.tool_settings.sculpt.use_symmetry_x
         return {'FINISHED'}
 
 

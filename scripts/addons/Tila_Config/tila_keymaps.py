@@ -119,7 +119,7 @@ class TilaKeymaps(KeymapManager.KeymapManager):
    
 		self.kmi_set_replace('wm.call_menu_pie', 'A', 'PRESS', ctrl=True, alt=True, shift=True, properties=[('name', 'HP_MT_pie_add')])
 		self.kmi_set_replace('wm.call_menu_pie', 'TAB', 'PRESS', ctrl=True, shift=True, properties=[('name', 'HP_MT_pie_areas')])
-		self.kmi_set_replace('wm.call_menu_pie', 'X', 'PRESS', alt=True, shift=True, properties=[('name', 'HP_MT_pie_symmetry')])
+		self.kmi_set_replace('wm.call_menu_pie', 'X', 'PRESS', alt=True, shift=True, properties=[('name', 'HP_MT_pie_symmetry')], disable_double=True)
 
 		self.kmi_set_replace('view3d.viewport_rename', 'F2', 'PRESS')
 		# Disable Keymap
@@ -161,7 +161,7 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		self.kmi_set_replace('view3d.tila_smart_editmode', self.k_vert_mode, 'PRESS', alt=True, properties=[('mode', 0), ('use_extend', False), ('use_expand', False), ('get_border', True)], disable_double=True)
 		self.kmi_set_replace('view3d.tila_smart_editmode', self.k_edge_mode, 'PRESS', alt=True, properties=[('mode', 1), ('use_extend', False), ('use_expand', False), ('get_border', True)], disable_double=True)
 		self.kmi_set_replace('view3d.tila_smart_editmode', self.k_face_mode, 'PRESS', alt=True, properties=[('mode', 2), ('use_extend', False), ('use_expand', False), ('get_border', True)], disable_double=True)
-
+		self.kmi_set_replace('view3d.tila_smart_editmode', 'TAB', 'PRESS', properties=[('alt_mode', True)], disable_double=True)
 
 	def collection_visibility(self, collection_visibility_tool):
 		self.kmi_set_replace(collection_visibility_tool, 'NUMPAD_1', 'PRESS', any=True, properties=[('collection_index', 1)])
@@ -378,7 +378,6 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		self.right_mouse()
 		# self.kmi_set_replace("wm.call_menu_pie", self.k_menu, "PRESS", ctrl=True, shift=True, alt=True)
 		self.kmi_set_replace("wm.revert_without_prompt", "N", "PRESS", shift=True)
-		self.kmi_set_replace('wm.console_toggle', 'TAB', 'PRESS', ctrl=True, shift=True)
 		
 		self.kmi_set_active(False, idname='wm.call_menu', type='F2')
 		self.kmi_set_active(False, idname='wm.toolbar')
@@ -410,6 +409,8 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		self.snap(snapping='wm.call_panel', snapping_prop=[('name', 'VIEW3D_PT_snapping')])
 
 		self.mode_selection()
+		
+		self.kmi_set_replace('view3d.toggle_x_symetry', 'X', 'PRESS', disable_double=True)
 
 		self.kmi_set_replace('view3d.view_persportho', 'NUMPAD_ASTERIX', 'PRESS')
 
@@ -511,7 +512,6 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		self.tool_center(pivot='VIEW3D_PT_pivot_point', orientation='VIEW3D_PT_transform_orientations')
 
 		self.kmi_set_replace('view3d.tila_isolate', 'X', 'PRESS', ctrl=True, alt=True, shift=True)
-		self.kmi_set_replace('mesh.toggle_x_symetry', 'X', 'PRESS', ctrl=True, alt=True)
 
 		self.kmi_set_replace('mesh.toggle_use_automerge', 'BACK_SLASH', 'PRESS')
 		self.kmi_set_replace('mesh.select_all', 'RIGHTMOUSE', 'CLICK', ctrl=True, alt=True, shift=True, properties=[('action', 'INVERT')])
@@ -540,7 +540,6 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		# Set collection visibility shortcut
 		self.collection_visibility('object.hide_collection')
 		self.mode_selection()
-		self.kmi_set_replace('view3d.tila_smart_editmode', 'TAB', 'PRESS', shift=True, properties=[('alt_mode', True)], disable_double=True)
 		
 		self.tool_sculpt('sculpt.sculptmode_toggle')
 		self.kmi_set_replace('transform.tosphere', 'S', 'PRESS', ctrl=True, alt=True, shift=True, disable_double=True)
@@ -704,7 +703,6 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		self.right_mouse()
 		self.mode_selection()
 		self.duplicate(duplicate='gpencil.duplicate_move')
-		self.kmi_set_replace('view3d.tila_smart_editmode', 'TAB', 'PRESS', shift=True, properties=[('alt_mode', True)], disable_double=True)
 		self.selection_keys(select_tool='gpencil.select',
 							lasso_tool='gpencil.select_lasso',
 					  		gp_circle_tool='gpencil.select_circle',
@@ -730,7 +728,6 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		self.kmi_set_active(False, idname='gpencil.active_frames_delete_all')
 		self.kmi_set_replace('gpencil.dissolve', 'DEL', 'PRESS', shift=True, properties=[('type', 'POINTS')], disable_double=True)
 		self.kmi_set_replace('gpencil.active_frames_delete_all', 'DEL', 'PRESS', ctrl=True, alt=True, shift=True)
-		self.kmi_set_replace('view3d.tila_smart_editmode', 'TAB', 'PRESS', shift=True, properties=[('alt_mode', True)], disable_double=True)
 		self.selection_keys(gp_circle_tool='gpencil.select_circle',
 							more_tool='gpencil.select_more',
 					  		less_tool='gpencil.select_less')
@@ -744,7 +741,6 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		self.duplicate(duplicate='gpencil.duplicate_move')
 		self.collection_visibility('object.hide_collection')
 		self.mode_selection()
-		self.kmi_set_replace('view3d.tila_smart_editmode', 'TAB', 'PRESS', shift=True, properties=[('alt_mode', True)], disable_double=True)
 		self.tool_radial_control(radius=[('data_path_primary', 'tool_settings.gpencil_paint.brush.size')], opacity=[('data_path_primary', 'tool_settings.gpencil_paint.brush.gpencil_settings.pen_strength')],
 								 eraser_radius=[('data_path_primary', 'preferences.edit.grease_pencil_eraser_radius')])
 		
