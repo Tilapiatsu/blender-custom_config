@@ -30,6 +30,8 @@ class TILA_action_center(bpy.types.Operator):
                 self.report({'INFO'}, 'Automatic Action Center')
             if self.action_center == 'SELECTION':
                 self.report({'INFO'}, 'Selection Action Center')
+                context.scene.transform_orientation_slots[0].type = 'NORMAL'
+                context.scene.tool_settings.transform_pivot_point = 'MEDIAN_POINT'
             if self.action_center == 'SELECTION_BORDER':
                 self.report({'INFO'}, 'Selection Border Action Center')
             if self.action_center == 'SELECTION_CENTER_AUTO_AXIS':
@@ -52,6 +54,8 @@ class TILA_action_center(bpy.types.Operator):
                 self.report({'INFO'}, 'Pivot Wold Axis Action Center')
             if self.action_center == 'CURSOR':
                 self.report({'INFO'}, 'Cursor Action Center')
+                context.scene.transform_orientation_slots[0].type = 'CURSOR'
+                context.scene.tool_settings.transform_pivot_point = 'CURSOR'
             if self.action_center == 'CUSTOM':
                 self.report({'INFO'}, 'Custom Action Center')
         except RuntimeError as e:

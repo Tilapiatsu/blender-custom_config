@@ -18,17 +18,16 @@ bl_info = {
 # TODO  
 #  Need to read : https://wiki.blender.org/wiki/Source/Depsgraph
 # - Change the default Cliping distance
-# - add shortcut for show wireframe ouside of Edit Mode
 # - Create an action center pie menu : https://blenderartists.org/t/modo-me-the-modo-action-centers-in-blender-and-more-2-80-2-79/1145899
 # 		- Automatic
 # 		- Selection
 # 		- Selection Border
 # 		- Selection Center Auto Axis
 # 		- Element
-# 		- Screen
+# 		- View --> OK
 # 		- Origin
 # 		- Parent
-# 		- Local
+# 		- Local --> OK
 # 		- Pivot
 # 		- Pivot Center Parent Axis
 # 		- Pivot Wold Axis
