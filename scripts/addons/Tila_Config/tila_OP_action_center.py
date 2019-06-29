@@ -41,10 +41,19 @@ class TILA_action_center(bpy.types.Operator):
             if self.action_center == 'VIEW':
                 self.report({'INFO'}, 'View Action Center')
                 context.scene.transform_orientation_slots[0].type = 'VIEW'
+                context.scene.tool_settings.transform_pivot_point = 'MEDIAN_POINT'
             if self.action_center == 'ORIGIN':
                 self.report({'INFO'}, 'Origin Action Center')
+                context.scene.transform_orientation_slots[0].type = 'CURSOR'
+                context.scene.tool_settings.transform_pivot_point = 'CURSOR'
+                context.scene.cursor.location[0] = 0
+                context.scene.cursor.location[1] = 0
+                context.scene.cursor.location[2] = 0
+                context.scene.cursor.rotation_euler[0] = 0
+                context.scene.cursor.rotation_euler[1] = 0
+                context.scene.cursor.rotation_euler[2] = 0
             if self.action_center == 'PARENT':
-                self.report({'INFO'}, 'Parent Action Center')
+                self.report({'INFO'}, 'Parent Action Center')   
             if self.action_center == 'LOCAL':
                 self.report({'INFO'}, 'Local Action Center')
                 context.scene.transform_orientation_slots[0].type = 'LOCAL'
