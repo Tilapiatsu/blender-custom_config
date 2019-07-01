@@ -34,20 +34,30 @@ class TILA_action_center(bpy.types.Operator):
     def get_face_selection(self, context):
         pass
 
-    def run_tool(self, context, event=None):
+    def run_tool(self, context, event=None, update=False):
         try:
             event_type = None if event is None else event.type
             
             if self.action_center == 'AUTO':
                 self.report({'INFO'}, 'Automatic Action Center')
-                context.scene.transform_orientation_slots[0].type = 'GLOBAL'
-                context.scene.tool_settings.transform_pivot_point = 'CURSOR'
-                bpy.ops.view3d.snap_cursor_to_selected()
+                if event_type is None:
+                    context.scene.transform_orientation_slots[0].type = 'GLOBAL'
+                    context.scene.tool_settings.transform_pivot_point = 'CURSOR'
+                    bpy.ops.view3d.snap_cursor_to_selected()
                 if event_type == 'RIGHTMOUSE' and event.value == 'PRESS':
+                    context.scene.transform_orientation_slots[0].type = 'GLOBAL'
+                    context.scene.tool_settings.transform_pivot_point = 'CURSOR'
+                    bpy.ops.view3d.snap_cursor_to_selected()
                     bpy.ops.view3d.cursor3d('INVOKE_DEFAULT', use_depth=False, orientation='NONE')
                 if event_type == 'MOUSEMOVE' and  event.value == 'PRESS':
+                    context.scene.transform_orientation_slots[0].type = 'GLOBAL'
+                    context.scene.tool_settings.transform_pivot_point = 'CURSOR'
+                    bpy.ops.view3d.snap_cursor_to_selected()
                     self.set_snapping_settings(context)
                     bpy.ops.transform.translate('INVOKE_DEFAULT', snap=True, snap_align=True, cursor_transform=True, release_confirm=True, orient_type='NORMAL')
+                
+
+                
             if self.action_center == 'SELECTION':
                 self.report({'INFO'}, 'Selection Action Center')
                 context.scene.transform_orientation_slots[0].type = 'NORMAL'
@@ -152,9 +162,10 @@ class TILA_action_center(bpy.types.Operator):
         #     bpy.ops.wm.tool_set_by_id('INVOKE_DEFAULT', name='builtin.scale')
         #     self.revert_state(context)
         #     return {'FINISHED'}
-        # if event.type == 'RIGHTMOUSE' and event.value == 'PRESS' or event.type == 'MOUSEMOVE' and event.value == 'PRESS':
-        #     self.run_tool(context, event)
-        #     return {'FINISHED'}
+        if event.type == 'RIGHTMOUSE' and event.value == 'PRESS' or event.type == 'MOUSEMOVE' and event.value == 'PRESS':
+            self.run_tool(context, event)
+        if event.type == 'LEFTMOUSE' and event.value == 'RELEASE':
+            self.run_tool(context, event, update=True)
         # if event.type == 'X' and event.value == 'PRESS' and event.alt and not event.ctrl and not event.shift:
         #     bpy.ops.wm.call_menu(name='TILA_MT_action_center')
         #     return {'FINISHED'}
@@ -180,7 +191,7 @@ class TILA_action_center(bpy.types.Operator):
             # context.window_manager.modal_handler_add(self)
         else:
             return{'FINISHED'}
-        return {'FINISHED'}
+        return {'RUNNING_MODAL'}
 
     def revert_state(self, context):
         context.scene.tool_settings.use_snap = False
