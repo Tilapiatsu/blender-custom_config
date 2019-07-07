@@ -109,3 +109,6 @@
 [submodule "scripts/addons/MeasureIt-ARCH"]
 	path = scripts/addons/MeasureIt-ARCH
 	url = https://github.com/kevancress/MeasureIt-ARCH.git
+[submodule "scripts/GIT/mifthtools"]
+	path = scripts/GIT/mifthtools
+	url = https://github.com/mifth/mifthtools.git
