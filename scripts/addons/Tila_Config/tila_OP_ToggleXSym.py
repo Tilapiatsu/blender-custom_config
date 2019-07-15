@@ -11,11 +11,25 @@ bl_info = {
 
 class ToggleXSymOperator(bpy.types.Operator):
     bl_idname = "view3d.toggle_x_symetry"
-    bl_label = "TILA: Toggle Use Automerge"
+    bl_label = "TILA: Toggle X Symetry"
     bl_options = {'REGISTER', 'UNDO'}
 
     def execute(self, context):
-        bpy.context.scene.tool_settings.sculpt.use_symmetry_x = not bpy.context.scene.tool_settings.sculpt.use_symmetry_x
+        if context.mode == 'SCULPT':
+            context.scene.tool_settings.sculpt.use_symmetry_x = not context.scene.tool_settings.sculpt.use_symmetry_x
+            self.report({'INFO'}, 'X Symetry {}'.format('ON' if context.scene.tool_settings.sculpt.use_symmetry_x else 'OFF'))
+        elif context.mode == 'EDIT_MESH':
+            context.object.data.use_mirror_x = not context.object.data.use_mirror_x
+            self.report({'INFO'}, 'X Symetry {}'.format('ON' if context.object.data.use_mirror_x else 'OFF'))
+        elif context.mode == 'PAINT_WEIGHT':
+            context.object.data.use_mirror_x = not context.object.data.use_mirror_x
+            self.report({'INFO'}, 'X Symetry {}'.format('ON' if context.object.data.use_mirror_x else 'OFF'))
+        elif context.mode == 'PAINT_VERTEX':
+            context.scene.tool_settings.vertex_paint.use_symmetry_x = not context.scene.tool_settings.vertex_paint.use_symmetry_x
+            self.report({'INFO'}, 'X Symetry {}'.format('ON' if context.scene.tool_settings.vertex_paint.use_symmetry_x else 'OFF'))
+        elif context.mode == 'PAINT_TEXTURE':
+            context.scene.tool_settings.image_paint.use_symmetry_x = not context.scene.tool_settings.image_paint.use_symmetry_x
+            self.report({'INFO'}, 'X Symetry {}'.format('ON' if context.scene.tool_settings.image_paint.use_symmetry_x else 'OFF'))
         return {'FINISHED'}
 
 
