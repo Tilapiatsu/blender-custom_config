@@ -86,6 +86,12 @@ class TILA_smart_editmode(bpy.types.Operator):
             else:
                 bpy.ops.object.editmode_toggle()
 
+        elif bpy.context.mode == 'EDIT_CURVE':
+            if self.alt_mode:
+                bpy.ops.object.mode_set(mode='OBJECT')
+            else:
+                pass
+        
         elif bpy.context.mode == 'EDIT_MESH':
             if self.alt_mode:
                 bpy.ops.object.mode_set(mode='OBJECT')
