@@ -82,6 +82,9 @@ class TILA_smart_editmode(bpy.types.Operator):
                 else:
                     bpy.ops.gpencil.editmode_toggle()
                     bpy.context.scene.tool_settings.gpencil_selectmode = self.gpencil_mode[self.mode]
+            
+            else:
+                bpy.ops.object.editmode_toggle()
 
         elif bpy.context.mode == 'EDIT_MESH':
             if self.alt_mode:
