@@ -819,6 +819,7 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 					  		less_tool='gpencil.select_less')
 
 		self.kmi_set_replace('view3d.tila_isolate', 'X', 'PRESS', ctrl=True, alt=True, shift=True)
+		
 
 		# Grease Pencil Stroke Paint Mode
 		self.kmi_init(name='Grease Pencil Stroke Paint Mode', space_type='EMPTY', region_type='WINDOW')
@@ -844,12 +845,14 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 			kmi.alt = True
 			kmi.shift = True
 
+		
 		# Grease Pencil Stroke Sculpt Mode
 		self.kmi_init(name='Grease Pencil Stroke Sculpt Mode', space_type='EMPTY', region_type='WINDOW')
 		self.global_keys()
 		self.right_mouse()
 		self.tool_radial_control(radius=[('data_path_primary', 'tool_settings.gpencil_sculpt.brush.size')], opacity=[('data_path_primary', 'tool_settings.gpencil_sculpt.brush.strength')])
-
+		self.kmi_set_replace('wm.tool_set_by_id', 'G', 'PRESS', properties=[('name', 'builtin_brush.Grab')])
+		
 		# Frames
 		self.kmi_init(name='Frames', space_type='EMPTY', region_type='WINDOW')
 		self.global_keys()
@@ -862,6 +865,11 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		self.right_mouse()
 		self.kmi_set_replace('screen.screen_full_area', 'SPACE', 'PRESS', ctrl=True, alt=True)
 		self.kmi_set_replace('screen.screen_full_area', 'SPACE', 'PRESS', ctrl=True, alt=True, shift=True, properties=[('use_hide_panels', True)])
+
+		# Particle
+		self.kmi_init(name='Particle', space_type='EMPTY', region_type='WINDOW')
+		self.tool_radial_control(radius=[('data_path_primary', 'tool_settings.particle_edit.brush.size')],
+		opacity=[('data_path_primary', 'tool_settings.particle_edit.brush.strength')])
 
 		# Transform Modal Map
 		self.kmi_init(name='Transform Modal Map', space_type='EMPTY', region_type='WINDOW')
