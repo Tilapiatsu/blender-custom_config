@@ -596,6 +596,14 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		self.kmi_set_replace('curve.shortest_path_pick', self.k_select, 'PRESS', ctrl=True, shift=True)
 		self.kmi_set_replace('curve.draw', 'LEFTMOUSE', 'PRESS', alt=True, ctrl=True, shift=True, properties=[('wait_for_input', False)])
 
+		# self.selection_keys(select_tool='curve.select',
+		# 			  		lasso_tool='curve.select_lasso',
+		# 			  		circle_tool='curve.select_circle',
+		# 			  		loop_tool='curve.select_loop',
+		# 			  		more_tool='curve.select_more',
+		# 			  		less_tool='curve.select_less',
+		# 			  		linked_tool='curve.select_linked')
+
 		# Outliner
 		self.kmi_init(name='Outliner', space_type='OUTLINER', region_type='WINDOW')
 		self.global_keys()
@@ -630,6 +638,11 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		self.right_mouse()
 		self.duplicate(duplicate='graph.duplicate_move')
 
+		# Property Editor
+		self.kmi_init(name='Property Editor', space_type='PROPERTIES', region_type='WINDOW')
+		self.global_keys()
+		self.right_mouse()
+		self.navigation_keys(pan='view2d.pan', orbit=None, dolly='view2d.zoom')
 		
 		# Vertex Paint
 		self.kmi_init(name='Vertex Paint', space_type='EMPTY', region_type='WINDOW')
@@ -868,8 +881,18 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 
 		# Particle
 		self.kmi_init(name='Particle', space_type='EMPTY', region_type='WINDOW')
+		self.global_keys()
 		self.tool_radial_control(radius=[('data_path_primary', 'tool_settings.particle_edit.brush.size')],
 		opacity=[('data_path_primary', 'tool_settings.particle_edit.brush.strength')])
+
+		kmi = self.kmi_find(idname='wm.call_menu', type=self.k_context)
+		kmi.value = 'RELEASE'
+		self.selection_keys(lasso_tool='view3d.select_lasso',
+							select_through_tool='view3d.tila_select_through',
+							more_tool='particle.select_more',
+					  		less_tool='particle.select_less',
+					  		linked_tool='particle.select_linked')
+		
 
 		# Transform Modal Map
 		self.kmi_init(name='Transform Modal Map', space_type='EMPTY', region_type='WINDOW')
