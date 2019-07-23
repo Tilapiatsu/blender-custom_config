@@ -882,6 +882,7 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		# Particle
 		self.kmi_init(name='Particle', space_type='EMPTY', region_type='WINDOW')
 		self.global_keys()
+		self.mode_selection()
 		self.tool_radial_control(radius=[('data_path_primary', 'tool_settings.particle_edit.brush.size')],
 		opacity=[('data_path_primary', 'tool_settings.particle_edit.brush.strength')])
 

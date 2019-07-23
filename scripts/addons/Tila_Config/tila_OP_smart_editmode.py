@@ -30,6 +30,7 @@ class TILA_smart_editmode(bpy.types.Operator):
     mesh_mode = ['VERT', 'EDGE', 'FACE']
     gpencil_mode = ['POINT', 'STROKE', 'SEGMENT']
     uv_mode = ['VERTEX', 'EDGE', 'FACE', 'ISLAND']
+    particle_mode = ['PATH', 'POINT', 'TIP']
 
     def modal(self, context, event):
         pass
@@ -67,6 +68,12 @@ class TILA_smart_editmode(bpy.types.Operator):
                 switch_mesh_mode(self, current_mode)
             else:
                 pass
+
+        def switch_particle_mode(self, current_mode):
+            if self.particle_mode[self.mode] == current_mode:
+                bpy.ops.object.mode_set(mode='OBJECT')
+            else:
+                bpy.context.scene.tool_settings.particle_edit.select_mode = self.particle_mode[self.mode] 
                     
 
         if bpy.context.mode == 'OBJECT':
@@ -144,6 +151,18 @@ class TILA_smart_editmode(bpy.types.Operator):
                 else:
                     bpy.context.object.data.use_paint_mask_vertex = False
                     bpy.context.object.data.use_paint_mask = False
+        
+        elif bpy.context.mode in ['PARTICLE']:
+            if self.alt_mode:
+                bpy.ops.object.mode_set(mode='OBJECT')
+            else:
+                if self.mode == 0:
+                    switch_particle_mode(self, 'PATH')
+                if self.mode == 1:
+                    switch_particle_mode(self, 'POINT')
+                if self.mode == 2:
+                    switch_particle_mode(self, 'TIP')
+
         else:
             bpy.ops.object.mode_set(mode='OBJECT')
 
