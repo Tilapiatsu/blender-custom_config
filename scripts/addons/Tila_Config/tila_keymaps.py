@@ -460,7 +460,7 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 					  		loop_tool='uv.select_loop',
 					  		more_tool='uv.select_more',
 					  		less_tool='uv.select_less',
-					  		linked_tool='uv.select_linked_pick')
+					  		linked_tool='uv.select_linked')
 		
 		self.kmi_set_replace('uv.cursor_set', self.k_cursor, 'PRESS', ctrl=True, alt=True, shift=True)
 		self.tool_smooth()
@@ -485,7 +485,7 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 							less_tool='mesh.select_less',
 							next_tool='mesh.select_next_item',
 							previous_tool='mesh.select_prev_item',
-							linked_tool='mesh.select_linked_pick')
+							linked_tool='mesh.select_linked')
 
 		# self.kmi_set_active(False, idname='mesh.select_linked_pick', ctrl=False)
 		# self.kmi_set_active(False, idname='mesh.select_linked_pick', ctrl=True, alt=False, shift=False, properties=[('deselect', True)])
