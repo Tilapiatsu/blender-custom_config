@@ -795,6 +795,16 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		self.global_keys()
 		self.right_mouse()
 		self.duplicate(duplicate='nla.duplicate', duplicate_link='nla.duplicate', duplicate_link_prop=('linked', True))
+		
+		# Lattice
+		self.kmi_init(name='Lattice', space_type='EMPTY', region_type='WINDOW')
+		self.global_keys()
+		self.right_mouse()
+		self.tool_transform()
+		self.selection_keys(select_tool='view3d.select', 
+							lasso_tool='view3d.select_lasso',
+							select_through_tool='view3d.tila_select_through',
+					  		circle_tool='view3d.select_circle')
 
 		# Grease Pencil
 		self.kmi_init(name='Grease Pencil', space_type='EMPTY', region_type='WINDOW')

@@ -23,7 +23,7 @@ class TILA_select_through(bpy.types.Operator):
     mode = bpy.props.StringProperty(name="mode", default='SET')
     type = bpy.props.StringProperty(name="type", default='BORDER')
 
-    compatible_modes = ['EDIT_MESH', 'EDIT_CURVE', 'EDIT_SURFACE', 'EDIT_METABALL', 'EDIT_LATICE', 'OBJECT', 'PAINT_WEIGHT', 'PAINT_VERTEX']
+    compatible_modes = ['EDIT_MESH', 'EDIT_CURVE', 'EDIT_SURFACE', 'EDIT_METABALL', 'EDIT_LATTICE', 'OBJECT', 'PAINT_WEIGHT', 'PAINT_VERTEX', 'PARTICLE']
     bypass_modes = ['EDIT_GPENCIL', 'PAINT_GPENCIL', 'SCULPT_GPENCIL']
 
     def run_tool(self):
