@@ -32,6 +32,10 @@ class TILA_smart_editmode(bpy.types.Operator):
     uv_mode = ['VERTEX', 'EDGE', 'FACE', 'ISLAND']
     particle_mode = ['PATH', 'POINT', 'TIP']
 
+    @classmethod
+    def poll(cls, context):
+        return context.space_data.type in ['VIEW_3D']
+
     def modal(self, context, event):
         pass
 

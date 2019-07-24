@@ -183,7 +183,7 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 						loop_tool=None, ring_tool=None,
 						more_tool=None, less_tool=None,
 						next_tool=None, previous_tool=None, 
-						linked_tool=None):
+						linked_tool=None, linked_pick_tool=None):
 
 		# Select / Deselect / Add
 		if select_tool:
@@ -262,12 +262,17 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 
 		# Linked
 		if linked_tool:
-			self.kmi_set_replace(linked_tool, self.k_linked, 'PRESS', ctrl=False, properties=[('deselect', False), ('delimit', {'SEAM'})], disable_double=True)
-			self.kmi_set_replace(linked_tool, self.k_linked, 'PRESS', ctrl=True, properties=[('deselect', True), ('delimit', {'SEAM'})], disable_double=True)
+			self.kmi_set_replace(linked_tool, self.k_linked, 'PRESS', ctrl=False, properties=[('deselect', False), ('delimit', {'SEAM'})])
+			# self.kmi_set_replace(linked_tool, self.k_linked, 'PRESS', ctrl=True, properties=[('deselect', True), ('delimit', {'SEAM'})], disable_double=True)
 			self.kmi_set_replace(linked_tool, self.k_linked, 'PRESS', shift=True, properties=[('deselect', False), ('delimit', {'MATERIAL'})])
 			self.kmi_set_replace(linked_tool, self.k_linked, 'PRESS', ctrl=True, shift=True, properties=[('deselect', True), ('delimit', {'MATERIAL'})])
 			self.kmi_set_replace(linked_tool, self.k_linked, 'PRESS', alt=True, properties=[('deselect', False), ('delimit', {'UV'})])
 			self.kmi_set_replace(linked_tool, self.k_linked, 'PRESS', ctrl=True, alt=True, properties=[('deselect', True), ('delimit', {'UV'})])
+		
+		if linked_pick_tool:
+			self.kmi_set_replace(linked_pick_tool, self.k_linked, 'PRESS', ctrl=True, properties=[('deselect', True), ('delimit', {'SEAM'})])
+			self.kmi_set_replace(linked_pick_tool, self.k_select, 'DOUBLE_CLICK', ctrl=False, properties=[('deselect', False), ('delimit', {'SEAM'})])
+			self.kmi_set_replace(linked_pick_tool, self.k_select, 'DOUBLE_CLICK', ctrl=True, properties=[('deselect', True), ('delimit', {'SEAM'})])
 
 	def selection_tool(self, tool='builtin.select'):
 		# select_tool = self.kmi_find(idname='wm.tool_set_by_id', properties=KeymapManager.bProp([('name', 'builtin.select_box')]))
@@ -460,7 +465,8 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 					  		loop_tool='uv.select_loop',
 					  		more_tool='uv.select_more',
 					  		less_tool='uv.select_less',
-					  		linked_tool='uv.select_linked')
+					  		linked_tool='uv.select_linked',
+							linked_tool='uv.select_linked_pick')
 		
 		self.kmi_set_replace('uv.cursor_set', self.k_cursor, 'PRESS', ctrl=True, alt=True, shift=True)
 		self.tool_smooth()
@@ -485,7 +491,8 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 							less_tool='mesh.select_less',
 							next_tool='mesh.select_next_item',
 							previous_tool='mesh.select_prev_item',
-							linked_tool='mesh.select_linked')
+							linked_tool='mesh.select_linked',
+							linked_tool='mesh.select_linked_pick')
 
 		# self.kmi_set_active(False, idname='mesh.select_linked_pick', ctrl=False)
 		# self.kmi_set_active(False, idname='mesh.select_linked_pick', ctrl=True, alt=False, shift=False, properties=[('deselect', True)])
@@ -595,14 +602,18 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		self.kmi_set_replace('curve.reveal', 'H', 'PRESS', ctrl=True, shift=True)
 		self.kmi_set_replace('curve.shortest_path_pick', self.k_select, 'PRESS', ctrl=True, shift=True)
 		self.kmi_set_replace('curve.draw', 'LEFTMOUSE', 'PRESS', alt=True, ctrl=True, shift=True, properties=[('wait_for_input', False)])
+		self.kmi_set_replace('curve.draw', 'LEFTMOUSE', 'PRESS', alt=True, ctrl=True, shift=True, properties=[('wait_for_input', False)])
+		self.kmi_set_replace('curve.separate', 'D', 'PRESS', ctrl=True, shift=True)
 
-		# self.selection_keys(select_tool='curve.select',
-		# 			  		lasso_tool='curve.select_lasso',
-		# 			  		circle_tool='curve.select_circle',
-		# 			  		loop_tool='curve.select_loop',
-		# 			  		more_tool='curve.select_more',
-		# 			  		less_tool='curve.select_less',
-		# 			  		linked_tool='curve.select_linked')
+
+		self.selection_keys(select_tool='curve.select',
+					  		lasso_tool='curve.select_lasso',
+					  		circle_tool='curve.select_circle',
+					  		loop_tool='curve.select_loop',
+					  		more_tool='curve.select_more',
+					  		less_tool='curve.select_less',
+					  		linked_tool='curve.select_linked',
+							linked_pick_tool='curve.select_linked_pick')
 
 		# Outliner
 		self.kmi_init(name='Outliner', space_type='OUTLINER', region_type='WINDOW')
@@ -819,7 +830,8 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 					  		less_tool='gpencil.select_less',
 					  		next_tool='gpencil.select_first',
 					  		previous_tool='gpencil.select_last',
-					  		linked_tool='gpencil.select_linked')
+					  		linked_tool='gpencil.select_linked',
+							linked_pick_tool='gpencil.select_linked_pick')
 
 		self.tool_sculpt('gpencil.sculptmode_toggle')
 
@@ -902,7 +914,8 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 							select_through_tool='view3d.tila_select_through',
 							more_tool='particle.select_more',
 					  		less_tool='particle.select_less',
-					  		linked_tool='particle.select_linked')
+					  		linked_tool='particle.select_linked',
+							linked_pick_tool='gpencil.select_linked_pick')
 		
 
 		# Transform Modal Map
