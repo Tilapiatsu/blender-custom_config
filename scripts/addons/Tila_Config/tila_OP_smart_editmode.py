@@ -69,10 +69,7 @@ class TILA_smart_editmode(bpy.types.Operator):
             else:
                 pass
 
-        def switch_particle_mode(self, current_mode):
-            if self.particle_mode[self.mode] == current_mode:
-                bpy.ops.object.mode_set(mode='OBJECT')
-            else:
+        def switch_particle_mode(self):
                 bpy.context.scene.tool_settings.particle_edit.select_mode = self.particle_mode[self.mode] 
                     
 
@@ -156,12 +153,7 @@ class TILA_smart_editmode(bpy.types.Operator):
             if self.alt_mode:
                 bpy.ops.object.mode_set(mode='OBJECT')
             else:
-                if self.mode == 0:
-                    switch_particle_mode(self, 'PATH')
-                if self.mode == 1:
-                    switch_particle_mode(self, 'POINT')
-                if self.mode == 2:
-                    switch_particle_mode(self, 'TIP')
+                switch_particle_mode(self)
 
         else:
             bpy.ops.object.mode_set(mode='OBJECT')
