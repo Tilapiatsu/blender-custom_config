@@ -263,17 +263,21 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 
 		# Linked
 		if linked_tool:
-			self.kmi_set_replace(linked_tool, self.k_linked, 'PRESS', ctrl=False, properties=[('deselect', False), ('delimit', {'SEAM'})])
-			# self.kmi_set_replace(linked_tool, self.k_linked, 'PRESS', ctrl=True, properties=[('deselect', True), ('delimit', {'SEAM'})], disable_double=True)
-			self.kmi_set_replace(linked_tool, self.k_linked, 'PRESS', shift=True, properties=[('deselect', False), ('delimit', {'MATERIAL'})])
-			self.kmi_set_replace(linked_tool, self.k_linked, 'PRESS', ctrl=True, shift=True, properties=[('deselect', True), ('delimit', {'MATERIAL'})])
-			self.kmi_set_replace(linked_tool, self.k_linked, 'PRESS', alt=True, properties=[('deselect', False), ('delimit', {'UV'})])
-			self.kmi_set_replace(linked_tool, self.k_linked, 'PRESS', ctrl=True, alt=True, properties=[('deselect', True), ('delimit', {'UV'})])
+			self.kmi_set_replace(linked_tool, self.k_linked, 'DOUBLE_CLICK', ctrl=False, properties=[('deselect', False), ('delimit', {'SEAM'})])
+			
 		
 		if linked_pick_tool:
-			self.kmi_set_replace(linked_pick_tool, self.k_linked, 'PRESS', ctrl=True, properties=[('deselect', True), ('delimit', {'SEAM'})])
-			self.kmi_set_replace(linked_pick_tool, self.k_select, 'DOUBLE_CLICK', ctrl=False, properties=[('deselect', False), ('delimit', {'SEAM'})])
-			self.kmi_set_replace(linked_pick_tool, self.k_select, 'DOUBLE_CLICK', ctrl=True, properties=[('deselect', True), ('delimit', {'SEAM'})])
+			if self.km.name in ['Curve', 'Lattice', 'Grease Pencil', 'Particle']:
+				self.kmi_set_replace(linked_pick_tool, self.k_linked, 'PRESS', ctrl=False, properties=[('deselect', False)])
+				self.kmi_set_replace(linked_pick_tool, self.k_linked, 'PRESS', ctrl=True, properties=[('deselect', True)])
+
+			else:
+				self.kmi_set_replace(linked_pick_tool, self.k_linked, 'PRESS', ctrl=False, properties=[('deselect', False), ('delimit', {'SEAM'})])
+				self.kmi_set_replace(linked_pick_tool, self.k_linked, 'PRESS', ctrl=True, properties=[('deselect', True), ('delimit', {'SEAM'})])
+				self.kmi_set_replace(linked_pick_tool, self.k_linked, 'PRESS', shift=True, properties=[('deselect', False), ('delimit', {'MATERIAL'})])
+				self.kmi_set_replace(linked_pick_tool, self.k_linked, 'PRESS', ctrl=True, shift=True, properties=[('deselect', True), ('delimit', {'MATERIAL'})])
+				self.kmi_set_replace(linked_pick_tool, self.k_linked, 'PRESS', alt=True, properties=[('deselect', False), ('delimit', {'UV'})])
+				self.kmi_set_replace(linked_pick_tool, self.k_linked, 'PRESS', ctrl=True, alt=True, properties=[('deselect', True), ('delimit', {'UV'})])
 
 		if invert_tool:
 			self.kmi_set_replace(invert_tool, self.k_context, 'CLICK', ctrl=True, alt=True, shift=True, properties=[('action', 'INVERT')])
@@ -604,14 +608,10 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		self.right_mouse()
 		self.duplicate(duplicate='curve.duplicate_move')
 		self.tool_smart_delete()
-		self.kmi_set_replace('curve.select_linked', self.k_select, 'DOUBLE_CLICK', shift=True)
-		self.kmi_set_replace('curve.select_linked_pick', self.k_select, 'DOUBLE_CLICK')
 		self.kmi_set_replace('curve.reveal', 'H', 'PRESS', ctrl=True, shift=True)
 		self.kmi_set_replace('curve.shortest_path_pick', self.k_select, 'PRESS', ctrl=True, shift=True)
 		self.kmi_set_replace('curve.draw', 'LEFTMOUSE', 'PRESS', alt=True, ctrl=True, shift=True, properties=[('wait_for_input', False)])
-		self.kmi_set_replace('curve.draw', 'LEFTMOUSE', 'PRESS', alt=True, ctrl=True, shift=True, properties=[('wait_for_input', False)])
 		self.kmi_set_replace('curve.separate', 'D', 'PRESS', ctrl=True, shift=True)
-
 
 		self.selection_keys(select_tool='curve.select',
 					  		lasso_tool='curve.select_lasso',
