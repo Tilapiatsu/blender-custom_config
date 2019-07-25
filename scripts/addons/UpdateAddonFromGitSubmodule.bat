@@ -9,6 +9,7 @@ robocopy "..\GIT\mesh_align_plus\mesh_mesh_align_plus" "mesh_mesh_align_plus" %p
 robocopy "..\GIT\glTF-Blender-IO\addons\io_scene_gltf2" "glTF-Blender-IO" %param%
 robocopy "..\GIT\ScreenCast-Keys\src\screencastkeys" "screencastkeys" %param%
 robocopy "..\GIT\mifthtools\blender\addons\2.8\mira_tools" "mira_tools" %param%
+robocopy "..\GIT\PolyQuilt\Addons\PolyQuilt" "PolyQuil" %param%
 
 copy "..\GIT\RenderBurst\RenderBurst.py" .
 copy "..\GIT\object-shake\Object_Shake.py" .
