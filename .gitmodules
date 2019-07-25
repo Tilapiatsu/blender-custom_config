@@ -112,3 +112,6 @@
 [submodule "scripts/GIT/mifthtools"]
 	path = scripts/GIT/mifthtools
 	url = https://github.com/mifth/mifthtools.git
+[submodule "script/GIT/PolyQuilt"]
+	path = script/GIT/PolyQuilt
+	url = https://github.com/sakana3/PolyQuilt.git
