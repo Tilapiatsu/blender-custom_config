@@ -524,6 +524,7 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		self.kmi_set_replace('mesh.flip_normals', 'F', 'PRESS')
 		self.kmi_set_replace('mesh.subdivide', 'D', 'PRESS')
 		self.kmi_set_replace('mesh.extrude_region_shrink_fatten', 'E', 'PRESS', disable_double=True)
+		self.kmi_set_replace('transform.vert_slide', 'S', 'PRESS', ctrl=True, alt=True, properties=[('correct_uv', True)])
 
 		self.kmi_set_replace('mesh.remove_doubles', 'M', 'PRESS', ctrl=True, shift=True, disable_double=True)
 		kmi = self.kmi_set_replace('mesh.separate_and_select', 'D', 'PRESS', ctrl=True, shift=True)
