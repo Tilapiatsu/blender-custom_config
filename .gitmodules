@@ -22,9 +22,6 @@
 [submodule "scripts/addons/fake-bpy-module"]
 	path = scripts/addons/fake-bpy-module
 	url = https://github.com/nutti/fake-bpy-module.git
-[submodule "scripts/addons/tissue"]
-	path = scripts/addons/tissue
-	url = https://github.com/alessandro-zomparelli/tissue.git
 [submodule "scripts/addons/curve_cad"]
 	path = scripts/addons/curve_cad
 	url = https://github.com/Lichtso/curve_cad.git
