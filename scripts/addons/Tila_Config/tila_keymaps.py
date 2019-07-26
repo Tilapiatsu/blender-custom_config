@@ -613,6 +613,7 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		self.kmi_set_replace('curve.shortest_path_pick', self.k_select, 'PRESS', ctrl=True, shift=True)
 		self.kmi_set_replace('curve.draw', 'LEFTMOUSE', 'PRESS', alt=True, ctrl=True, shift=True, properties=[('wait_for_input', False)])
 		self.kmi_set_replace('curve.separate', 'D', 'PRESS', ctrl=True, shift=True)
+		self.kmi_set_replace('curve.subdivide', 'D', 'PRESS')
 
 		self.selection_keys(select_tool='curve.select',
 					  		lasso_tool='curve.select_lasso',
