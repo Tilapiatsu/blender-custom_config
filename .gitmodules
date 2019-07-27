@@ -112,3 +112,6 @@
 [submodule "scripts/GIT/PolyQuilt"]
 	path = scripts/GIT/PolyQuilt
 	url = https://github.com/sakana3/PolyQuilt.git
+[submodule "scripts/addons/uv_highlight"]
+	path = scripts/addons/uv_highlight
+	url = https://github.com/BenjaminSauder/uv_highlight.git
