@@ -793,6 +793,8 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 
 		self.duplicate(duplicate='node.duplicate_move', duplicate_link='node.duplicate_move_keep_inputs')
 		self.snap(snapping='wm.context_menu_enum', snapping_prop=[('data_path', 'tool_settings.snap_node_element')])
+		self.kmi_set_replace('node.view_selected', 'A', 'PRESS', ctrl=True, shift=True)
+		self.kmi_set_replace('node.add_search', self.k_menu, 'PRESS')
 
 		# Animation
 		self.kmi_init(name='Animation', space_type='EMPTY', region_type='WINDOW')
