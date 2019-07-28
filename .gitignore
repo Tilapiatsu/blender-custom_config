@@ -11,6 +11,7 @@ scripts/addons/mesh_mesh_align_plus/*
 scripts/addons/screencastkeys/*
 scripts/addons/mira_tools/*
 scripts/addons/PolyQuilt/*
+scripts/addons/vertex_color_master/*
 .vscode/settings.json
 
 scripts/addons/RenderBurst.py
