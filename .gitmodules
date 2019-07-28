@@ -115,3 +115,6 @@
 [submodule "scripts/addons/uv_highlight"]
 	path = scripts/addons/uv_highlight
 	url = https://github.com/BenjaminSauder/uv_highlight.git
+[submodule "scripts/GIT/vertex_color_master"]
+	path = scripts/GIT/vertex_color_master
+	url = https://github.com/andyp123/blender_vertex_color_master.git
