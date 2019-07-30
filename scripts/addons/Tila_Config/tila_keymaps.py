@@ -184,7 +184,7 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 						more_tool=None, less_tool=None,
 						next_tool=None, previous_tool=None, 
 						linked_tool=None, linked_pick_tool=None,
-						invert_tool=None):
+						invert_tool=None, inner_tool=None):
 
 		# Select / Deselect / Add
 		if select_tool:
@@ -281,6 +281,9 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 
 		if invert_tool:
 			self.kmi_set_replace(invert_tool, self.k_context, 'CLICK', ctrl=True, alt=True, shift=True, properties=[('action', 'INVERT')])
+
+		if inner_tool:
+			self.kmi_set_replace(inner_tool, self.k_select, 'CLICK', ctrl=True, alt=True, shift=True, disable_double=True)
 
 	def selection_tool(self, tool='builtin.select'):
 		# select_tool = self.kmi_find(idname='wm.tool_set_by_id', properties=KeymapManager.bProp([('name', 'builtin.select_box')]))
@@ -408,6 +411,7 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		# Disabling zoom key
 		self.kmi_set_replace('view3d.zoom', self.k_manip, 'PRESS', ctrl=True, alt=True)
 		self.kmi_set_active(False, idname='view3d.select_circle', type="C")
+		self.kmi_set_active(False, idname='view3d.cursor3d', type="RIGHTMOUSE")
 
 		self.navigation_keys(pan='view3d.move',
 							orbit='view3d.rotate',
@@ -502,7 +506,7 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 							previous_tool='mesh.select_prev_item',
 							linked_tool='mesh.select_linked',
 							linked_pick_tool='mesh.select_linked_pick',
-							invert_tool='mesh.select_all')
+							invert_tool='mesh.select_all', inner_tool='mesh.loop_to_region')
 
 		# self.kmi_set_active(False, idname='mesh.select_linked_pick', ctrl=False)
 		# self.kmi_set_active(False, idname='mesh.select_linked_pick', ctrl=True, alt=False, shift=False, properties=[('deselect', True)])
