@@ -118,3 +118,6 @@
 [submodule "scripts/GIT/vertex_color_master"]
 	path = scripts/GIT/vertex_color_master
 	url = https://github.com/andyp123/blender_vertex_color_master.git
+[submodule "scripts/GIT/ProTheme"]
+	path = scripts/GIT/ProTheme
+	url = https://github.com/paulcoops/blender_pro-theme.git
