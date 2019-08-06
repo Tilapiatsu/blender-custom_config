@@ -249,17 +249,17 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 
 		# Select More / Less
 		if more_tool:
-			self.kmi_set_replace(more_tool, self.k_more, 'PRESS', shift=True, disable_double=True)
+			self.kmi_set_replace(more_tool, self.k_more, 'PRESS', shift=True)
 
 		if less_tool:
-			self.kmi_set_replace(less_tool, self.k_less, 'PRESS', shift=True, disable_double=True)
+			self.kmi_set_replace(less_tool, self.k_less, 'PRESS', shift=True)
 		
 		# Select Next / Previous
 		if next_tool:
-			self.kmi_set_replace(next_tool, self.k_more, 'PRESS', disable_double=True)
+			self.kmi_set_replace(next_tool, self.k_more, 'PRESS')
 
 		if previous_tool:
-			self.kmi_set_replace(previous_tool, self.k_less, 'PRESS', disable_double=True)
+			self.kmi_set_replace(previous_tool, self.k_less, 'PRESS')
 
 		# Linked
 		if linked_tool:

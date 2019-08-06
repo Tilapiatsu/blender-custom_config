@@ -24,7 +24,7 @@ class SmartDeleteOperator(bpy.types.Operator):
 
                 # if vertex mode on
                 if current_mesh_mode[1]:
-                    bpy.ops.mesh.dissolve_edges(use_verts=False)
+                    bpy.ops.mesh.dissolve_edges(use_verts=True)
 
                 # if vertex mode on
                 if current_mesh_mode[2]:
