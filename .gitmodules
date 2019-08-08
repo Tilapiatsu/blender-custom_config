@@ -121,3 +121,6 @@
 [submodule "scripts/GIT/ProTheme"]
 	path = scripts/GIT/ProTheme
 	url = https://github.com/paulcoops/blender_pro-theme.git
+[submodule "scripts/addons/bezier_utils"]
+	path = scripts/addons/bezier_utils
+	url = https://github.com/Shriinivas/blenderbezierutils.git
