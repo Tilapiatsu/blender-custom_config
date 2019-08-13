@@ -124,6 +124,3 @@
 [submodule "scripts/addons/bezier_utils"]
 	path = scripts/addons/bezier_utils
 	url = https://github.com/Shriinivas/blenderbezierutils.git
-[submodule "scripts/addons/flexi-besier"]
-	path = scripts/addons/flexi-besier
-	url = https://github.com/Shriinivas/blenderbezierutils.git
