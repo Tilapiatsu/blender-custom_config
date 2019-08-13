@@ -27,3 +27,5 @@ scripts/addons/uv_tube_unwrap.py
 scripts/addons/view3d_point_cloud_visualizer.py
 scripts/addons/advanced_transform_2_8.py
 scripts/presets/bkit.json
+
+scripts/addons/blenderbezierutils.py

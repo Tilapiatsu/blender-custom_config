@@ -12,8 +12,10 @@ robocopy "..\GIT\mifthtools\blender\addons\2.8\mira_tools" "mira_tools" %param%
 robocopy "..\GIT\PolyQuilt\Addons\PolyQuilt" "PolyQuilt" %param%
 robocopy "addon_common" "retopoflow\addon_common" %param%
 robocopy "..\GIT\vertex_color_master\vertex_color_master" "vertex_color_master" %param%
+
 copy "..\GIT\ProTheme\blender_pro.xml" "..\presets\interface_theme"
 
+copy "..\GIT\flexi-bezier\blenderbezierutils.py" .
 copy "..\GIT\RenderBurst\RenderBurst.py" .
 copy "..\GIT\object-shake\Object_Shake.py" .
 copy "..\GIT\TiNA\TiNA.py" .
