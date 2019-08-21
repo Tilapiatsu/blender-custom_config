@@ -28,4 +28,5 @@ class Qcube(Qobject):
 
         bmeshNew.to_mesh(self.bMesh)
         self.bMesh.update()
-        bpy.context.scene.update()
+        bpy.context.view_layer.update()
+        bmeshNew.free()

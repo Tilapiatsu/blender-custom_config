@@ -37,6 +37,7 @@ class CoordSysClass:
     mesh_data = None
     wMatrix = mathutils.Matrix()
     isPropAxis = True
+    object_eval = None
 
     def __init__(self, _context, _op, _isAxis):
         self.operator = _op
@@ -106,18 +107,22 @@ class CoordSysClass:
         cSysMatrix = None
         # if object hit
         if hitresult[0] and hitresult[4].type == 'MESH':
-            # if oriented
+            if hitresult[4] != self.lastHitresult[4]:
+                # check if modified object
+                if len(hitresult[4].modifiers) != 0:
+                    depsgraph = context.evaluated_depsgraph_get()
+                    self.object_eval = hitresult[4].evaluated_get(depsgraph)
+                    self.mesh_data = self.object_eval.to_mesh()
+                    # self.mesh_data.name = "TempMesh"
+                    self.isModifiedMesh = True
+                elif self.isModifiedMesh:
+                    # bpy.data.meshes.remove(self.mesh_data)
+                    self.object_eval.to_mesh_clear()
+                    self.mesh_data = None
+                    self.isModifiedMesh = False           
+            # GET Working Matrix
+            # if oriented          
             if isoriented:
-                if hitresult[4] != self.lastHitresult[4]:
-                    # check if modified object
-                    if len(hitresult[4].modifiers) != 0:
-                        self.mesh_data = hitresult[4].to_mesh(context.depsgraph, apply_modifiers=True)
-                        self.mesh_data.name = "TempMesh"
-                        self.isModifiedMesh = True
-                    elif self.isModifiedMesh:
-                        bpy.data.meshes.remove(self.mesh_data)
-                        self.mesh_data = None
-                        self.isModifiedMesh = False
                 if self.isModifiedMesh:
                     cSysMatrix = self.GetOrientedAlign(hitresult, self.mesh_data)
                 else:
@@ -129,7 +134,8 @@ class CoordSysClass:
         # if gridhit       
         else:     
             if self.isModifiedMesh:
-                bpy.data.meshes.remove(self.mesh_data, do_unlink=True)
+                # bpy.data.meshes.remove(self.mesh_data, do_unlink=True)
+                self.object_eval.to_mesh_clear()
                 self.isModifiedMesh = False
                 self.mesh_data = None
             if self.operator.isWorkingPlane:

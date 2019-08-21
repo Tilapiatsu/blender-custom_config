@@ -45,9 +45,13 @@ class Qobject:
         bpy.context.collection.objects.link(self.bObject)
         self.bMesh = self.bObject.data
 
-        bpy.context.scene.update()
+        bpy.context.view_layer.update()
         self.bMatrix = self.bObject.matrix_world.copy()
         self.UpdateMesh()
+        # put in local view
+        spacedata = bpy.context.space_data
+        if spacedata.local_view:
+            self.bObject.local_view_set(spacedata, True)
 
     def DeleteBObject(self):
         if self.bObject:
@@ -82,6 +86,11 @@ class Qobject:
 
         if self.bObject:
             self.UpdateBase(self.firstPoint, self.secondPoint)
+        return self.basetype
+
+    # set base type
+    def SetBaseType(self, _type):
+        self.basetype = _type
         return self.basetype
 
     # switch to alternative mesh type
@@ -160,7 +169,8 @@ class Qobject:
     # apply matrix and position
     def SetMatrix(self, _matrix):
         self.bObject.matrix_world = _matrix
-        bpy.context.scene.update()
+        # bpy.context.scene.update()
+        bpy.context.view_layer.update()
         self.bMatrix = self.bObject.matrix_world.copy()
 
     # ===== Object Base Positioning ===== #

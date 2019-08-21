@@ -1,10 +1,8 @@
 import bpy
-import gpu
-import mathutils
 from mathutils import Vector
 import numpy
 import math
-from bpy_extras.view3d_utils import region_2d_to_vector_3d, region_2d_to_origin_3d, location_3d_to_region_2d
+from bpy_extras.view3d_utils import location_3d_to_region_2d
 from .utilities.raycast_utils import *
 from .utilities.grid_utils import *
 from .utilities.draw_utils import *
@@ -19,16 +17,18 @@ def SnapDrawHandler(snapClass, context):
         for pos in snapClass.snaptargets:
             pos2D = location_3d_to_region_2d(region, rv3d, pos, default=None)
             posBatch.append(pos2D)
-        if snapClass.isPolyGridActive:
+        if snapClass.snapState == 2:
             cColor = (0.12, 0.56, 1.0, 0.7)
         else:
             cColor = (1.0, 0.56, 0.0, 0.7)
         draw_multicircles_fill_2d(positions=posBatch, color=cColor, radius=5, segments=12, alpha=True)
+        # draw snap radius
+        draw_circle_fill_2d(position=snapClass.mousePos, color=(1.0, 1.0, 1.0, 0.2), radius=snapClass.minDist, segments=16, alpha=True)
         # draw closest target
         if snapClass.closestPoint is not None:
-            pos = snapClass.closestPoint
+            pos = snapClass.closestPoint 
             pos2D = location_3d_to_region_2d(region, rv3d, pos, default=None)
-            draw_circle_fill_2d(position=pos2D, color=(1.0, 1.0, 1.0, 1.0), radius=6, segments=12, alpha=True)
+            draw_circle_fill_2d(position=pos2D, color=(1.0, 1.0, 1.0, 1.0), radius=6, segments=12, alpha=False)
 
 
 class SnappingClass:
@@ -39,10 +39,13 @@ class SnappingClass:
     orig_edgediv = 1
     closestPoint = None
     isSnapActive = False
-    isPolyGridActive = False
     gridMatrix = None
+    snapState = 0
+    minDist = 20
+    mousePos = None
 
-    def __init__(self, _operator, _qspace,  _context, _edgediv):
+    def __init__(self, _operator, _qspace,  _context, _edgediv, _snapDist):
+        self.minDist = _snapDist
         self.edgediv = _edgediv
         self.context = _context
         self.operator = _operator
@@ -55,43 +58,37 @@ class SnappingClass:
         bpy.types.SpaceView3D.draw_handler_remove(self._handle, 'WINDOW')
         print("SnappingClass cleaned!")
 
-    # set snapping active
-    def SetState(self, _state, _mousepos):
-        if _state:
-            self.isSnapActive = True
-            self.CheckSnappingTarget(self.context, _mousepos)
-        else:
-            self.isSnapActive = False
-            self.snaptargets = []
-
-    # set snapping active
-    def ToggleState(self, _mousepos):
-        if self.isSnapActive:
+    # toggle snapping state
+    # 0 : no snap, 1: vert/edge, 2: polygrid
+    def ToggleState(self, _mousepos, _state):
+        if self.snapState == _state:
+            self.snapState = 0
             self.isSnapActive = False
             self.snaptargets = []
         else:
+            self.snapState = _state
             self.isSnapActive = True
-            self.CheckSnappingTarget(self.context, _mousepos)
+            self.CheckSnappingTarget(_mousepos)   
 
-
-    def SetPolyGrid(self, _state, _mousepos):
-        if _state:
-            self.isPolyGridActive = True
-        else:
-            self.isPolyGridActive = False
-        if self.isSnapActive:
-            self.CheckSnappingTarget(self.context, _mousepos)
+    # change snap point counts
+    def ChangeSnapPoints(self,mouse_pos, val):
+        if val == 1 and self.edgediv < 10:
+            self.edgediv += 1
+        if val == -1 and self.edgediv > 1:
+            self.edgediv -= 1
+        self.CheckSnappingTarget(mouse_pos)
+        self.closestPoint = None         
 
     # check snapping target and update list
-    def CheckSnappingTarget(self, context, coord):
+    def CheckSnappingTarget(self, coord):
+        self.mousePos = coord
         if self.coordsys.isGridhit:
             if self.operator.isWorkingPlane:
-                self.GetGridVerts(context, self.operator.workingplane.matrix.translation, self.operator.workingplane.gridstep )
+                self.GetGridVerts(self.operator.workingplane.matrix.translation, self.operator.workingplane.gridstep )
             else:
-                self.GetGridVerts(context, mathutils.Vector((0, 0, 0)), context.space_data.overlay.grid_scale_unit )
+                self.GetGridVerts(Vector((0, 0, 0)), self.context.space_data.overlay.grid_scale_unit )
         else:
             self.UpdateSnapPoints()
-
 
     # recalculate points at edge divison user input
     def UpdateSnapPoints(self):
@@ -102,28 +99,38 @@ class SnappingClass:
         else:
             meshdata = self.coordsys.lastHitresult[4].data
 
-        if self.isPolyGridActive:
-            self.GeneratePolyPoints(self.coordsys.lastHitresult[4], self.coordsys.lastHitresult[3], self.edgediv, meshdata)
+        if self.snapState == 2:
+            self.GeneratePolyPoints(self.coordsys.lastHitresult[4], self.coordsys.lastHitresult[3], meshdata)
         else:
-            self.AddTargetPolyVerts(self.coordsys.lastHitresult[4], self.coordsys.lastHitresult[3], meshdata)
-            self.AddTargetPolyEdges(self.coordsys.lastHitresult[4], self.coordsys.lastHitresult[3], self.edgediv, meshdata)
-        self.GetClosestPoint(self.coordsys.lastHitresult[1])
+            self.AddTargetPolyPoints(self.coordsys.lastHitresult[4], self.coordsys.lastHitresult[3], meshdata)
+        self.GetClosestPoint2D(self.coordsys.lastHitresult[1])
 
-    # get closest point to a given position WP
-    def GetClosestPoint(self, point):
+    def distance(self, pointA, pointB, _norm=numpy.linalg.norm):
+        return _norm(pointA - pointB)
+
+    def GetClosestPoint2D(self, _point):
+        region = self.context.region
+        rv3d = self.context.region_data
+        point2D = location_3d_to_region_2d(region, rv3d, _point, default=None)
         if len(self.snaptargets) != 0:
-            actDist = numpy.linalg.norm(self.snaptargets[0]-point)
+            pos2D = location_3d_to_region_2d(region, rv3d, self.snaptargets[0], default=None)
+            actDist = self.distance(pos2D, point2D)
             actID = 0
             counter = 1
             itertargets = iter(self.snaptargets)
             next(itertargets)
             for pos in itertargets:
-                dist = numpy.linalg.norm(pos-point)
+                pos2D = location_3d_to_region_2d(region, rv3d, pos, default=None)
+                dist = self.distance(pos2D, point2D)
                 if dist < actDist:
                     actID = counter
                     actDist = dist
                 counter += 1
-            self.closestPoint = self.snaptargets[actID]
+            if actDist < self.minDist:
+                self.closestPoint = self.snaptargets[actID]
+            else:
+                self.closestPoint = None
+
 
     def GetClosestPointOnGrid(self, matrix):
         matrix_inv = matrix.inverted()
@@ -131,7 +138,7 @@ class SnappingClass:
         pointS[2] = 0.0
         return pointS
 
-    def GetGridVerts(self, context, _position, _girdsize):
+    def GetGridVerts(self, _position, _girdsize):
         self.snaptargets = []
         gridhit = self.operator.wMatrix.translation
         matW = self.operator.wMatrix.copy()
@@ -139,13 +146,13 @@ class SnappingClass:
         gridcorners = self.GetGridBRect(_girdsize, matW, gridhit)
         gridpointsall = self.GeneratePoints(gridcorners[0], gridcorners[1], matW, self.edgediv)
         self.snaptargets.extend(gridpointsall)
-        self.GetClosestPoint(gridhit)
+        self.GetClosestPoint2D(gridhit)
 
     # get target grid bounding rect corners in GridSpace
     def GetGridBRect(self, gridstep, gridmatrix, position):
         mat = gridmatrix.copy()
         mat_inv = mat.inverted()
-        pos = mathutils.Vector(position)
+        pos = Vector(position)
         pos = mat_inv @ pos
         Xf = math.floor(pos.x / gridstep) * gridstep
         Yf = math.floor(pos.y / gridstep) * gridstep
@@ -155,7 +162,7 @@ class SnappingClass:
 
     # generate sub-grid points on grid
     def GeneratePoints(self, p1, p2, matrix, _steps):
-        if self.isPolyGridActive:
+        if self.snapState == 2:
             steps = _steps
         else:
             steps = 1
@@ -166,8 +173,7 @@ class SnappingClass:
             for y in range(steps+1):
                 posX = p1.x + x * stepX
                 posY = p1.y + y * stepY
-                point = Vector((posX, posY, 0.0))
-                point = matrix @ point
+                point = matrix @ (Vector((posX, posY, 0.0)))
                 points.append(point)
         return points
 
@@ -175,7 +181,7 @@ class SnappingClass:
     # get target grid corner points in GridSpace
     def GetGridCorners(self, gridstep, gridmatrix, position):
         mat_inv = gridmatrix.inverted()
-        pos = mathutils.Vector(position)
+        pos = Vector(position)
         pos = mat_inv @ pos
         Xf = math.floor(pos.x / gridstep) * gridstep
         Yf = math.floor(pos.y / gridstep) * gridstep
@@ -185,68 +191,57 @@ class SnappingClass:
         return points
 
     # get target polygon data on object for snap
-    def AddTargetPolyVerts(self, object, faceID, meshData):
-        meshFace = meshData.polygons[faceID]
-        matrix = object.matrix_world.copy()
-        for v in meshFace.vertices:
-            pos = matrix @ (meshData.vertices[v].co)
-            self.snaptargets.append(pos)
-
-    # get target polygon data on object for snap
-    def AddTargetPolyEdges(self, object, faceID, edgeDiv, meshData):
-        mesh_data = meshData
+    def AddTargetPolyPoints(self, object, faceID, mesh_data):
+        md_verts = mesh_data.vertices
+        md_edges = mesh_data.edges
         meshFace = mesh_data.polygons[faceID]
+        meshFace_verts = meshFace.vertices
         matrix = object.matrix_world.copy()
+        # add verts
+        self.snaptargets = [(matrix @ md_verts[item].co) for item in meshFace_verts] 
+        # add edges
+        snap_append = self.snaptargets.append
+        edgeDiv = self.edgediv
         for ek in meshFace.edge_keys:
-            edge = mesh_data.edges[mesh_data.edge_keys.index(ek)]
-            vert1 = mesh_data.vertices[edge.vertices[0]].co
-            vert2 = mesh_data.vertices[edge.vertices[1]].co
-            vertc = (vert1 + vert2) / 2
+            edge = md_edges[mesh_data.edge_keys.index(ek)]
+            vert1 = md_verts[edge.vertices[0]].co
+            vert2 = md_verts[edge.vertices[1]].co
+            vertdif = (vert2 - vert1)
             for d in range(1, edgeDiv):
                 div = d / edgeDiv
-                dPoint_X = vert1[0] + div * (vert2[0] - vert1[0])
-                dPoint_Y = vert1[1] + div * (vert2[1] - vert1[1])
-                dPoint_Z = vert1[2] + div * (vert2[2] - vert1[2])
-                # transform to world space
-                vec = mathutils.Vector((dPoint_X, dPoint_Y, dPoint_Z))
-                vec = matrix @ vec
-                self.snaptargets.append(vec)
+                vec = matrix @ (vert1 + (vertdif * div))
+                snap_append(vec)
 
     # generate sub-grid points on grid
-    def GeneratePolyPoints(self, object, faceID, steps, meshData):
-        points = []
-        bbox = self.GetPolyOBB(object, faceID, meshData)
-        centerX = (bbox[0].x + bbox[1].x) / 2
-        centerY = (bbox[0].y + bbox[1].y) / 2
-        stepX = (bbox[1].x - bbox[0].x) / steps
-        stepY = (bbox[1].y - bbox[0].y) / steps
+    def GeneratePolyPoints(self, object, faceID, mesh_data):
+        snap_append = self.snaptargets.append
+        steps = self.edgediv
+        bbox = self.GetPolyOBB(object, faceID, mesh_data)
+        stepXY = (bbox[1] - bbox[0] ) / steps
         for x in range(steps+1):
             for y in range(steps+1):
-                posX = bbox[0].x + x * stepX
-                posY = bbox[0].y + y * stepY
-                point = Vector((posX, posY, 0.0))
-                point = self.coordsys.wMatrix @ point
-                self.snaptargets.append(point)
+                posX = bbox[0].x + x * stepXY[0]
+                posY = bbox[0].y + y * stepXY[1]
+                point = self.coordsys.wMatrix @ Vector((posX, posY, 0.0))
+                snap_append(point)
 
     # get oriented bbox for poly
-    def GetPolyOBB(self, object, faceID, meshData):
-        verts = self.GetTargetPolyVerts(object, faceID, meshData)
+    def GetPolyOBB(self, object, faceID, mesh_data):
+        # get target polygon verts in polyspace
+        meshFace_verts = mesh_data.polygons[faceID].vertices
+        md_verts = mesh_data.vertices
         mat_inv = self.coordsys.wMatrix.inverted()
-        # transform verts to poly space
+        matrix = object.matrix_world.copy()
+        matrix_poly = mat_inv @ matrix
+        verts = [(matrix_poly @ md_verts[item].co) for item in meshFace_verts] 
+        # flatten verts to polyspace
         vertsL = []
+        vertsL_append = vertsL.append
         for v in verts:
-            v2 = mat_inv @ v
-            v2[2] = 0.0
-            vertsL.append(v2)
+            v[2] = 0.0
+            vertsL_append(v)
         # calc brect
         LocBrect = GetBRect(vertsL)
         return LocBrect
 
-    # get target polygon data on object for snap
-    def GetTargetPolyVerts(self, object, faceID, meshData):
-        verts = []
-        meshFace = meshData.polygons[faceID]
-        for v in meshFace.vertices:
-            pos = object.matrix_world @ (meshData.vertices[v].co)
-            verts.append(pos)
-        return verts
+        

@@ -16,7 +16,7 @@ class CylinderCreateOperator(MeshCreateOperator):
     isSmooth = True
     isCentered = False
 
-    meshSegments = 16
+    #meshSegments = 16
     originalSegments = 16
 
     # create Qobject tpye

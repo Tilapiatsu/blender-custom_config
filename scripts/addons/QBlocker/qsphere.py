@@ -26,4 +26,5 @@ class QSphere(Qobject):
         self.bMesh.auto_smooth_angle = 1.386
         self.SetSmoothFaces()
         self.bMesh.update()
-        bpy.context.scene.update()
+        # bpy.context.scene.update()
+        bpy.context.view_layer.update()

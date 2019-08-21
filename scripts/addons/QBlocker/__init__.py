@@ -15,17 +15,21 @@ import bpy
 from .op_cube import *
 from .op_cylinder import *
 from .op_sphere import *
+from .op_pyramid import *
+
+from .tools.turn_cylinder import *
 
 
 bl_info = {
     "name": "QBlocker",
     "author": "Balazs Szeleczki",
-    "version": (0, 1, 2),
+    "version": (0, 1, 3, 0),
     "description": "",
     "blender": (2, 80, 0),
     "location": "View3D > Add > QBlocker",
     "warning": "",
-    "category": "Add Mesh"
+    "category": "Add Mesh",
+    "wiki_url": "https://qblockerdocs.readthedocs.io/"
 }
 
 
@@ -38,16 +42,7 @@ class QBlockerAddonPreferences(bpy.types.AddonPreferences):
         ('LEFT', 'Left', ""),
         ('RIGHT', 'Right', "")
         ),
-        default='LEFT',
-    )
-
-    snap_enum : bpy.props.EnumProperty(
-        name="Snap behaviour",
-        items=(
-        ('HOLD', 'Hold', ""),
-        ('TOGGLE', 'Toggle', "")
-        ),
-        default='HOLD',
+        default='LEFT'
     )
 
     axis_bool : bpy.props.BoolProperty(
@@ -56,17 +51,34 @@ class QBlockerAddonPreferences(bpy.types.AddonPreferences):
         default = True
     ) 
 
+    segs_int : bpy.props.IntProperty(
+        name="Default segments",
+        description="Default segments count for cylinder and sphere.",
+        default = 16,
+        min = 4,
+        max = 128
+    )
+
+    snap_dist : bpy.props.IntProperty(
+        name="Snap Distance",
+        description="Default distance between mouse and the vertices in.",
+        default = 30,
+        min = 5,
+        max = 500
+    )
+
     def draw(self, context):
         layout = self.layout
         layout.label(text="Active mouse button for the addon:")
         layout.row().prop(self, "mouse_enum", expand=True)
-        layout.label(text="Set Snap key behaviour:")
-        layout.row().prop(self, "snap_enum", expand=True)
         layout.row().prop(self, "axis_bool", expand=True)
+        layout.row().prop(self, "segs_int", expand=True)
+        layout.row().prop(self, "snap_dist", expand=True)
 
 
 # right click menu button
-class VIEW3D_MT_bstools(bpy.types.Menu):
+class VIEW3D_MT_qbtools(bpy.types.Menu):
+    bl_idname = "VIEW3D_MT_qbtools"
     bl_label = "QBlocker"
 
     def draw(self, context):
@@ -74,10 +86,13 @@ class VIEW3D_MT_bstools(bpy.types.Menu):
         layout.operator("object.box_create", text="Plane / Cube", icon='MESH_CUBE')
         layout.operator("object.cylinder_create", text="Circle / Cylinder", icon='MESH_CYLINDER')
         layout.operator("object.sphere_create", text="Sphere", icon='MESH_UVSPHERE')
+        #layout.operator("object.pyramid_create", text="Pyramid", icon='MESH_UVSPHERE')
+        layout.separator()
+        layout.operator("object.turn_to_cylinder", text="Turn into Cylinder", icon='MESH_UVSPHERE')
 
            
 def qblocker_menu(self, context):
-    self.layout.menu("VIEW3D_MT_bstools")
+    self.layout.menu("VIEW3D_MT_qbtools")
     self.layout.separator()
 
 
@@ -85,13 +100,14 @@ classes = (
     BoxCreateOperator,
     CylinderCreateOperator,
     SphereCreateOperator,
-    VIEW3D_MT_bstools,
+    #PyramidCreateOperator,
+    Turn_Sphere,
+    VIEW3D_MT_qbtools,
 )
 
 
 def register():
     for cls in classes:
-        print(cls.bl_label)
         bpy.utils.register_class(cls)
     bpy.types.VIEW3D_MT_object_context_menu.prepend(qblocker_menu)
     bpy.types.VIEW3D_MT_add.prepend(qblocker_menu)
