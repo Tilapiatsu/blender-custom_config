@@ -130,3 +130,6 @@
 [submodule "scripts/addons/optiloops"]
 	path = scripts/addons/optiloops
 	url = https://github.com/vilemduha/optiloops.git
+[submodule "scripts/addons/SimpleLattice"]
+	path = scripts/addons/SimpleLattice
+	url = https://github.com/BenjaminSauder/SimpleLattice.git
