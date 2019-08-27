@@ -550,6 +550,9 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		self.kmi_set_replace("mesh.edge_rotate", 'V', "PRESS", disable_double=True)
 		self.kmi_set_replace("mesh.edge_rotate", 'V', "PRESS", shift=True, properties=[('use_ccw', True)], disable_double=True)
 
+		self.kmi_set_replace('mesh.quads_convert_to_tris', 'T', "PRESS", ctrl=True, properties=[('quad_method','BEAUTY'), ('ngon_method','BEAUTY')])
+		self.kmi_set_replace('mesh.tris_convert_to_quads', 'T', "PRESS", alt=True, shift=True)
+
 		# Object Mode
 		self.kmi_init(name='Object Mode', space_type='EMPTY', region_type='WINDOW')
 		self.global_keys()
