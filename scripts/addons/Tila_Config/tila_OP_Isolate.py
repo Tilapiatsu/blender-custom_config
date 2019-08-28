@@ -32,12 +32,12 @@ class TILA_isolate(bpy.types.Operator):
 
     def isolate(self, context,  isolate=None, reveal=None, sel_count=0):
         if sel_count == 0 or self.is_isolated:
-            reveal()
+            reveal[0](**reveal[1])
             self.is_isolated = False
             self.isolated_items = []
             return 'REVEAL'
         else:
-            isolate(unselected=True)
+            isolate[0](**isolate[1])
             self.is_isolated = True
             self.isolated_items.append(self.selected_objects)
             return 'ISOLATE'
@@ -47,8 +47,9 @@ class TILA_isolate(bpy.types.Operator):
         if context.space_data.type == 'VIEW_3D':
 
             if bpy.context.mode == 'OBJECT':
-                if self.isolate(context, isolate=bpy.ops.object.hide_view_set, reveal=bpy.ops.object.hide_view_clear, sel_count=len(self.selected_objects)) == 'REVEAL':
-                    bpy.ops.object.select_all(action='INVERT')
+                if self.isolate(context, isolate=(bpy.ops.view3d.localview, {'frame_selected':False}), reveal=(bpy.ops.view3d.localview, {'frame_selected':False}), sel_count=len(self.selected_objects)) == 'REVEAL':
+                    pass
+                    # bpy.ops.object.select_all(action='INVERT')
             elif bpy.context.mode == 'EDIT_MESH':
                 selected_face = []
                 for obj in self.selected_objects:
@@ -57,7 +58,7 @@ class TILA_isolate(bpy.types.Operator):
                     for f in bm.faces:
                         if f.select:
                             selected_face.append(f)
-                if self.isolate(context, isolate=bpy.ops.mesh.hide, reveal=bpy.ops.mesh.reveal, sel_count=len(selected_face)) == 'REVEAL':
+                if self.isolate(context, isolate=(bpy.ops.mesh.hide, {'unselected': True}), reveal=(bpy.ops.mesh.reveal, {}), sel_count=len(selected_face)) == 'REVEAL':
                     bpy.ops.mesh.select_all(action='INVERT')
             elif bpy.context.mode in ['EDIT_CURVE', 'EDIT_SURFACE']:
                 pass
