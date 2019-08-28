@@ -124,6 +124,9 @@
 [submodule "scripts/addons/bezier_utils"]
 	path = scripts/addons/bezier_utils
 	url = https://github.com/Shriinivas/blenderbezierutils.git
+[submodule "scripts/GIT/flexi-bezier"]
+	path = scripts/GIT/flexi-bezier
+	url = https://github.com/Shriinivas/blenderbezierutils.git
 [submodule "scripts/addons/optiloops"]
 	path = scripts/addons/optiloops
 	url = https://github.com/vilemduha/optiloops.git
