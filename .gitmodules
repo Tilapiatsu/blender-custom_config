@@ -136,3 +136,6 @@
 [submodule "scripts/addons/fast-sculpt"]
 	path = scripts/addons/fast-sculpt
 	url = https://github.com/jayanam/fast-sculpt.git
+[submodule "scripts/addons/Export-Paper-Model"]
+	path = scripts/addons/Export-Paper-Model
+	url = https://github.com/addam/Export-Paper-Model-from-Blender.git
