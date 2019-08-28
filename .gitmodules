@@ -133,3 +133,6 @@
 [submodule "scripts/addons/SimpleLattice"]
 	path = scripts/addons/SimpleLattice
 	url = https://github.com/BenjaminSauder/SimpleLattice.git
+[submodule "scripts/addons/fast-sculpt"]
+	path = scripts/addons/fast-sculpt
+	url = https://github.com/jayanam/fast-sculpt.git
