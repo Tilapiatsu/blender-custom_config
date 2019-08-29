@@ -473,6 +473,7 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		self.selection_tool()
 		self.selection_keys(select_tool='uv.select',
 					  		lasso_tool='uv.select_lasso',
+							box_through_tool='uv.select_box',
 					  		circle_tool='uv.select_circle',
 					  		loop_tool='uv.select_loop',
 					  		more_tool='uv.select_more',
