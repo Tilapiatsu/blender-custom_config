@@ -29,9 +29,8 @@ class TILA_MT_pie_uv(Menu):
 
         if context.mode == "EDIT_MESH":
             pie.operator("mesh.mark_seam", icon='ADD', text='Mark Seam')
-
-        if context.mode == "EDIT_MESH":
             pie.operator("mesh.mark_seam", icon='REMOVE', text="Clear Seam").clear=True
+            pie.operator('uv.unwrap', icon='MOD_UVPROJECT', text='Unwrap')
 
 
 
