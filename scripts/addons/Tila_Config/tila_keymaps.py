@@ -35,8 +35,6 @@ bl_info = {
 # 		- Custom
 # - Fix th area pie menu shortcut which dosn't workin in all context
 # - Remove double with modal control
-# - Create a rename /batch rename feature
-# 	-- Update the view3d.viewport_rename operator to add batch rename functions
 # - Vertex Normal Pie Menu : Mark Hard, Mark Soft, update normal, Thief
 # - UV Pie Menu : Split, sew, mak seam etc
 # - Need to fix the rotate/scaling pivot point in UV context
@@ -119,8 +117,6 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		self.kmi_set_replace('wm.call_menu_pie', 'A', 'PRESS', ctrl=True, alt=True, shift=True, properties=[('name', 'HP_MT_pie_add')])
 		self.kmi_set_replace('wm.call_menu_pie', 'TAB', 'PRESS', ctrl=True, shift=True, properties=[('name', 'HP_MT_pie_areas')])
 		self.kmi_set_replace('wm.call_menu_pie', 'X', 'PRESS', alt=True, shift=True, properties=[('name', 'HP_MT_pie_symmetry')], disable_double=True)
-
-		self.kmi_set_replace('view3d.viewport_rename', 'F2', 'PRESS')
 		# Disable Keymap
 		self.kmi_set_active(False, type='X')
 		self.kmi_set_active(False, type='X', shift=True)
