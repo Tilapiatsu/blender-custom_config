@@ -577,9 +577,9 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		self.kmi_set_replace('wm.call_menu_pie', 'S', 'PRESS', alt=True, shift=True, properties=[('name', 'TILA_MT_pie_normal')], disable_double=True)
 
 		# 3D View Tool: Select
-		self.kmi_init(name='3D View Tool: Select', space_type='EMPTY', region_type='WINDOW')
+		self.kmi_init(name='3D View Tool: Tweak', space_type='EMPTY', region_type='WINDOW')
 		self.kmi_set_replace('view3d.select', self.k_select, 'PRESS', properties=[('deselect_all', True)], disable_double=True)
-
+		
 		# Sculpt
 		self.kmi_init(name='Sculpt', space_type='EMPTY', region_type='WINDOW')
 		self.global_keys()
