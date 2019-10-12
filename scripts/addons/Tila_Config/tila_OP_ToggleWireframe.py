@@ -11,7 +11,7 @@ bl_info = {
 
 class ToggleXSymOperator(bpy.types.Operator):
     bl_idname = "view3d.toggle_wireframe"
-    bl_label = "TILA: Toggle Use Automerge"
+    bl_label = "TILA: Toggle Wireframe"
     bl_options = {'REGISTER', 'UNDO'}
 
     selected : bpy.props.BoolProperty(name='selected', default=False)
