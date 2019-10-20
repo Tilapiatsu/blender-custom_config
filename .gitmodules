@@ -139,3 +139,6 @@
 [submodule "scripts/GIT/Blender-Addons"]
 	path = scripts/GIT/Blender-Addons
 	url = https://github.com/baldingwizard/Blender-Addons.git
+[submodule "scripts/addons/atomic-data-manager"]
+	path = scripts/addons/atomic-data-manager
+	url = https://github.com/grantwilk/atomic-data-manager.git
