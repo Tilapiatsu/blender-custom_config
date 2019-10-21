@@ -136,3 +136,9 @@
 [submodule "scripts/addons/Export-Paper-Model"]
 	path = scripts/addons/Export-Paper-Model
 	url = https://github.com/addam/Export-Paper-Model-from-Blender.git
+[submodule "scripts/GIT/Blender-Addons"]
+	path = scripts/GIT/Blender-Addons
+	url = https://github.com/baldingwizard/Blender-Addons.git
+[submodule "scripts/addons/atomic_data_manager"]
+	path = scripts/addons/atomic_data_manager
+	url = https://github.com/grantwilk/atomic-data-manager.git
