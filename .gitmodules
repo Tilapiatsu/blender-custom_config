@@ -142,3 +142,6 @@
 [submodule "scripts/addons/atomic_data_manager"]
 	path = scripts/addons/atomic_data_manager
 	url = https://github.com/grantwilk/atomic-data-manager.git
+[submodule "scripts/addons/mesh-check"]
+	path = scripts/addons/mesh-check
+	url = https://github.com/bookyakuno/mesh-check-b28.git
