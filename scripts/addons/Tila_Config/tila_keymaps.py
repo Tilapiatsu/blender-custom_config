@@ -190,15 +190,15 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		
 		# Lasso Select / Deselect / Add
 		if lasso_tool:
-			self.kmi_set_replace(lasso_tool, self.k_lasso, 'ANY')
-			self.kmi_set_replace(lasso_tool, self.k_lasso, 'ANY', shift=True, properties=[('mode', 'ADD')])
-			self.kmi_set_replace(lasso_tool, self.k_lasso, 'ANY', ctrl=True, properties=[('mode', 'SUB')])
+			self.kmi_set_replace(lasso_tool, self.k_lasso, 'ANY', disable_double=True)
+			self.kmi_set_replace(lasso_tool, self.k_lasso, 'ANY', shift=True, properties=[('mode', 'ADD')], disable_double=True)
+			self.kmi_set_replace(lasso_tool, self.k_lasso, 'ANY', ctrl=True, properties=[('mode', 'SUB')], disable_double=True)
 
 		# Lasso through Select / Deselect / Add
 		if select_through_tool:
-			self.kmi_set_replace(select_through_tool, self.k_lasso_through, 'ANY', properties=[('type', 'LASSO'), ('mode', 'SET')])
-			self.kmi_set_replace(select_through_tool, self.k_lasso_through, 'ANY', shift=True, properties=[('type', 'LASSO'), ('mode', 'ADD')])
-			self.kmi_set_replace(select_through_tool, self.k_lasso_through, 'ANY', ctrl=True, properties=[('type', 'LASSO'), ('mode', 'SUB')])
+			self.kmi_set_replace(select_through_tool, self.k_lasso_through, 'ANY', properties=[('type', 'LASSO'), ('mode', 'SET')], disable_double=True)
+			self.kmi_set_replace(select_through_tool, self.k_lasso_through, 'ANY', shift=True, properties=[('type', 'LASSO'), ('mode', 'ADD')], disable_double=True)
+			self.kmi_set_replace(select_through_tool, self.k_lasso_through, 'ANY', ctrl=True, properties=[('type', 'LASSO'), ('mode', 'SUB')], disable_double=True)
 		
 		# Box Select / Deselect / Add
 		if box_tool:
@@ -404,14 +404,12 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		self.right_mouse()
 		self.selection_tool()
 		self.tool_smart_delete()
-		# Disabling zoom key
-		self.kmi_set_replace('view3d.zoom', self.k_manip, 'PRESS', ctrl=True, alt=True)
 		self.kmi_set_active(False, idname='view3d.select_circle', type="C")
 		self.kmi_set_active(False, idname='view3d.cursor3d', type="RIGHTMOUSE")
 
 		self.navigation_keys(pan='view3d.move',
 							orbit='view3d.rotate',
-							dolly='view3d.dolly',
+							dolly='view3d.zoom',
 					   		roll='view3d.view_roll')
 
 		self.selection_keys(select_tool='view3d.select', 
@@ -419,7 +417,7 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 							select_through_tool='view3d.tila_select_through',
 					  		circle_tool='view3d.select_circle')
 
-		self.kmi_set_active(False, idname='view3d.select', shift=True)
+		# self.kmi_set_active(False, idname='view3d.select', shift=True)
 
 		self.kmi_set_replace('object.tila_emptymesh', 'N', 'PRESS', ctrl=True, alt=True, shift=True)
 		self.snap(snapping='wm.call_panel', snapping_prop=[('name', 'VIEW3D_PT_snapping')])

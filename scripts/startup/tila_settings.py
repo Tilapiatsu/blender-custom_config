@@ -23,6 +23,7 @@ print("Loading Tilapiatu's user preferences")
 # View Settings
 bpy.context.preferences.view.show_tooltips = True
 bpy.context.preferences.view.show_tooltips_python = True
+bpy.context.preferences.view.render_display_type = "NONE"
 
 # Edit Settings
 bpy.context.preferences.edit.undo_steps = 200
@@ -35,6 +36,7 @@ bpy.context.preferences.inputs.ndof_view_rotate_method = "TRACKBALL"
 bpy.context.preferences.inputs.view_rotate_method = "TRACKBALL"
 bpy.context.preferences.inputs.use_auto_perspective = True
 bpy.context.preferences.inputs.use_mouse_depth_navigate = True
+# bpy.context.preferences.inputs.use_mouse_emulate_3_button = True
 bpy.context.preferences.inputs.use_zoom_to_mouse = True
 
 # Theme tweak
