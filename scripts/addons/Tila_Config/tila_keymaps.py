@@ -240,9 +240,8 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 
 		# Ring Select / Deselect / Add
 		if ring_tool:
-			self.kmi_set_replace(ring_tool, self.k_cursor, 'CLICK', ctrl=True, properties=[('ring', True), ('deselect', False), ('extend', False), ('toggle', False)], disable_double=True)
-			self.kmi_set_replace(ring_tool, self.k_cursor, 'CLICK', ctrl=True, shift=True, properties=[('ring', True), ('deselect', False), ('extend', True), ('toggle', False)], disable_double=True)
-			self.kmi_set_replace(ring_tool, self.k_cursor, 'DOUBLE_CLICK', ctrl=True, shift=True, properties=[('ring', True), ('deselect', True), ('extend', False), ('toggle', False)], disable_double=True)
+			self.kmi_set_replace(ring_tool, self.k_cursor, 'CLICK', ctrl=True, properties=[('ring', True), ('deselect', True), ('extend', True), ('toggle', False)], disable_double=True)
+			self.kmi_set_replace(ring_tool, self.k_cursor, 'CLICK', shift=True, properties=[('ring', True), ('deselect', False), ('extend', True), ('toggle', False)], disable_double=True)
 
 		# Select More / Less
 		if more_tool:
