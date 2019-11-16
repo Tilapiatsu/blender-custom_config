@@ -68,6 +68,7 @@ bl_info = {
 # -   TextTool
 # -   Transfer Vert Order
 # -   LineupMaker
+# -   Optiloop : Optimize mesh by removing edge loops that doesn't contribute to curvature
 
 
 
