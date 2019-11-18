@@ -147,11 +147,11 @@ class HP_OT_extrude(Operator):
             return {'FINISHED'}
         if selvert > 0 and seledge == 0:
             print('EXTRUDING VERTS')
-            bpy.ops.mesh.extrude_region_move('INVOKE_DEFAULT')
+            bpy.ops.mesh.extrude_context_move('INVOKE_DEFAULT')
             return {'FINISHED'}
         if seledge > 0 and selface == 0:
             print('EXTRUDING EDGES')
-            bpy.ops.mesh.extrude_region_move('INVOKE_DEFAULT')
+            bpy.ops.mesh.extrude_context_move('INVOKE_DEFAULT')
             return {'FINISHED'}
 
         # Save Selection
@@ -165,11 +165,11 @@ class HP_OT_extrude(Operator):
         bpy.ops.object.face_map_select()
         bpy.ops.object.face_map_remove()
 
-        bpy.ops.mesh.extrude_region_move('EXEC_DEFAULT')
+        bpy.ops.mesh.extrude_context_move('EXEC_DEFAULT')
         print('EXTRUDING FACES')
 
         if linkedface != selface:
-            bpy.ops.transform.shrink_fatten('INVOKE_DEFAULT')
+            bpy.ops.mesh.extrude_region_shrink_fatten('INVOKE_DEFAULT')
             return {'FINISHED'}
 
         context.window_manager.modal_handler_add(self)
@@ -177,7 +177,7 @@ class HP_OT_extrude(Operator):
         if selface > 0:
             bpy.ops.object.vertex_group_add()
             bpy.ops.object.vertex_group_assign()
-            bpy.ops.transform.shrink_fatten('INVOKE_DEFAULT')
+            bpy.ops.mesh.extrude_region_shrink_fatten('INVOKE_DEFAULT')
             print('FIXING NORMALS')
             return {'RUNNING_MODAL'}
         return {'RUNNING_MODAL'}
