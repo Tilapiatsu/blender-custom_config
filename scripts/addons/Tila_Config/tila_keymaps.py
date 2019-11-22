@@ -286,7 +286,10 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		# if select_tool:
 		# 	self.kmi_prop_setattr(select_tool.properties, "name", 'Select')
 		# 	self.kmi_prop_setattr(select_tool.properties, "cycle", False)
-		self.kmi_set_replace('wm.tool_set_by_id', self.k_menu, "PRESS", properties=[('name', tool), ('cycle', False)])
+		if self.km.name in ['Sculpt']:
+			self.kmi_set_replace('paint.brush_select', self.k_menu, "PRESS", properties=[('name', tool)])
+		else:
+			self.kmi_set_replace('wm.tool_set_by_id', self.k_menu, "PRESS", properties=[('name', tool), ('cycle', False)])
 
 
 	def right_mouse(self):
@@ -584,7 +587,8 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		self.selection_tool(tool='builtin.select_box')
 		self.right_mouse()
 		self.tool_sculpt('sculpt.sculptmode_toggle')
-
+		self.selection_tool('GRAB')
+		
 		self.kmi_set_replace('view3d.toggle_x_symetry', 'X', 'PRESS', disable_double=True)
 
 		self.tool_radial_control(radius=[('data_path_primary', 'tool_settings.sculpt.brush.size'), ('data_path_secondary', 'tool_settings.unified_paint_settings.size'), ('use_secondary', 'tool_settings.unified_paint_settings.use_unified_size'), ('rotation_path', 'tool_settings.sculpt.brush.texture_slot.angle'), ('color_path', 'tool_settings.sculpt.brush.cursor_color_add'), ('image_id', 'tool_settings.sculpt.brush')],
@@ -837,6 +841,7 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		self.global_keys()
 		self.right_mouse()
 		self.mode_selection()
+		self.selection_tool('builtin_brush.Draw')
 		self.duplicate(duplicate='gpencil.duplicate_move')
 		self.selection_keys(select_tool='gpencil.select',
 							lasso_tool='gpencil.select_lasso',
