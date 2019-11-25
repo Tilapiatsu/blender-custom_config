@@ -317,12 +317,14 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 			if duplicate_link_prop:
 				self.kmi_prop_setattr(kmi.properties, duplicate_link_prop[0], duplicate_link_prop[1])
 
-	def hide_reveal(self, hide=None, unhide=None):
+	def hide_reveal(self, hide=None, unhide=None, inverse=None):
 		if hide:
 			self.kmi_set_replace(hide, 'H', 'PRESS', properties=[('unselected', False)])
 			self.kmi_set_replace(hide, 'H', 'PRESS', ctrl=True, properties=[('unselected', True)])
 		if unhide:
 			self.kmi_set_replace(unhide, 'H', 'PRESS', alt=True, shift=True, properties=[('select', False)])
+		if inverse:
+			self.kmi_set_replace(inverse, 'H', 'PRESS', ctrl=True, alt=True, shift=True)
 
 	def snap(self, snapping=None, snapping_prop=None):
 		type = 'X'
@@ -510,7 +512,7 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		# self.kmi_set_active(False, idname='mesh.select_linked_pick', ctrl=True, alt=False, shift=False, properties=[('deselect', True)])
 
 		self.duplicate(duplicate='mesh.duplicate_move')
-		self.hide_reveal(hide='mesh.hide', unhide='mesh.reveal')
+		self.hide_reveal(hide='mesh.hide', unhide='mesh.reveal', inverse='view3d.inverse_visibility')
 		self.tool_smart_delete()
 
 		self.tool_smooth()
@@ -603,10 +605,14 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		
 		self.kmi_set_replace('paint.mask_lasso_gesture', self.k_context, 'PRESS', ctrl=True, properties=[('value', 1.0), ('mode', 'VALUE')])
 		self.kmi_set_replace('paint.mask_lasso_gesture', self.k_context, 'PRESS', shift=True, properties=[('value', 0.0), ('mode', 'VALUE')])
+		self.kmi_set_replace('paint.mask_flood_fill', self.k_context, 'PRESS', ctrl=True, alt=True, shift=True, properties=[('mode', 'INVERT')])
 
-		self.kmi_set_replace('paint.hide_show', self.k_nav, 'CLICK_DRAG',  properties=[('action', 'HIDE'), ('wait_for_input', False), ('area', 'INSIDE')], disable_double=True)
-		self.kmi_set_replace('paint.hide_show', self.k_nav, 'CLICK_DRAG', shift=True, properties=[('action', 'SHOW'), ('wait_for_input', False), ('area', 'OUTSIDE')], disable_double=True)
+		self.kmi_set_replace('paint.hide_show', self.k_nav, 'CLICK_DRAG', ctrl=True,  properties=[('action', 'HIDE'), ('wait_for_input', False), ('area', 'INSIDE')], disable_double=True)
+		self.kmi_set_replace('paint.hide_show', self.k_nav, 'CLICK_DRAG', shift=True, properties=[('action', 'HIDE'), ('wait_for_input', False), ('area', 'OUTSIDE')], disable_double=True)
+		self.kmi_set_replace('paint.hide_show', self.k_nav, 'PRESS', ctrl=True, alt=True, shift=True, properties=[('action', 'SHOW'), ('wait_for_input', False), ('area', 'ALL')], disable_double=True)
+		self.kmi_set_replace('view3d.inverse_visibility', self.k_nav, 'PRESS', alt=True, shift=True)
 		
+
 		# Curve
 		self.kmi_init(name='Curve', space_type='EMPTY', region_type='WINDOW')
 		self.global_keys()
@@ -841,7 +847,7 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		self.global_keys()
 		self.right_mouse()
 		self.mode_selection()
-		self.selection_tool('builtin_brush.Draw')
+		# self.selection_tool('builtin_brush.Draw')
 		self.duplicate(duplicate='gpencil.duplicate_move')
 		self.selection_keys(select_tool='gpencil.select',
 							lasso_tool='gpencil.select_lasso',
