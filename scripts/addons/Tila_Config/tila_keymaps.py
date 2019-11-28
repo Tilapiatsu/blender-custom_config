@@ -430,6 +430,9 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		self.mode_selection()
 		
 		self.kmi_set_replace('view3d.toggle_x_symetry', 'X', 'PRESS', disable_double=True)
+		# self.kmi_set_replace('wm.context_toggle', 'X', 'PRESS', alt=True, shift=True, properties=[('data_path', 'tool_settings.use_snap')], disable_double=True)
+
+		self.kmi_set_replace('wm.tool_set_by_id', 'F', 'PRESS', shift=True, properties=[('name', 'mesh_tool.poly_quilt')], disable_double=True)
 
 		self.kmi_set_replace('view3d.view_persportho', 'NUMPAD_ASTERIX', 'PRESS')
 
@@ -972,6 +975,11 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		self.kmi_init(name='Gesture Box', space_type='EMPTY', region_type='WINDOW')
 		self.modal_set_replace('SELECT', self.k_cursor, 'RELEASE', any=True)
 
+		# 3D View Tool: Edit Mesh, PolyQuilt
+		self.kmi_init(name='3D View Tool: Edit Mesh, PolyQuilt', space_type='VIEW_3D', region_type='WINDOW')
+		self.kmi_set_replace('mesh.poly_quilt', self.k_manip, 'PRESS', ctrl=True, shift=True, properties=[('tool_mode', 'EXTRUDE')], disable_double=True)
+		self.kmi_set_replace('mesh.poly_quilt', self.k_manip, 'PRESS', ctrl=True, properties=[('lock_hold', True)], disable_double=True)
+		
 		print("----------------------------------------------------------------")
 		print("Assignment complete")
 		print("----------------------------------------------------------------")

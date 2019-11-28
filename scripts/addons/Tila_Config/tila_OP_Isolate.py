@@ -43,7 +43,7 @@ class TILA_isolate(bpy.types.Operator):
             return 'ISOLATE'
 
     def invoke(self, context, event):
-        self.selected_objects = bpy.context.selected_objects
+        self.selected_objects = context.selected_objects if len(context.selected_objects) else [context.active_object]
         if context.space_data.type == 'VIEW_3D':
 
             if bpy.context.mode == 'OBJECT':
@@ -58,6 +58,7 @@ class TILA_isolate(bpy.types.Operator):
                     for f in bm.faces:
                         if f.select:
                             selected_face.append(f)
+                    
                 if self.isolate(context, isolate=(bpy.ops.mesh.hide, {'unselected': True}), reveal=(bpy.ops.mesh.reveal, {}), sel_count=len(selected_face)) == 'REVEAL':
                     bpy.ops.mesh.select_all(action='INVERT')
             elif bpy.context.mode in ['EDIT_CURVE', 'EDIT_SURFACE']:
