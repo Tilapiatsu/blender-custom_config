@@ -69,6 +69,8 @@ bl_info = {
 # -   Transfer Vert Order
 # -   LineupMaker
 # -   Optiloop : Optimize mesh by removing edge loops that doesn't contribute to curvature
+# -	  Pro Renderer : https://www.amd.com/en/technologies/radeon-prorender-downloads
+
 
 
 
