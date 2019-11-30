@@ -145,3 +145,6 @@
 [submodule "scripts/addons/mesh-check"]
 	path = scripts/addons/mesh-check
 	url = https://github.com/bookyakuno/mesh-check-b28.git
+[submodule "scripts/GIT/MapsModelsImporter"]
+	path = scripts/GIT/MapsModelsImporter
+	url = https://github.com/eliemichel/MapsModelsImporter.git
