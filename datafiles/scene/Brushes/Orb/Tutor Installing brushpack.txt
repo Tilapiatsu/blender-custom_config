@@ -1,0 +1,31 @@
+For full and correct install of this pack use following instructions:
+
+1) Copy everything from folder OrbBrushes (You should copy: folder Icons, folder textures and file OrbBrushes.blend)
+
+2) Go to:
+C:\Users\{Username}\AppData\Roaming\Blender Foundation\Blender\2.78\config 
+WINDoWS
+
+~/.config/blender/2.78/config
+Linux
+
+Paste all files in this folder
+
+3) Run new blender project
+
+4) Press File -> Append
+
+5) Go to C:\Users\{Username}\AppData\Roaming\Blender Foundation\Blender\2.78\config (WINDOWS) 
+~/.config/blender/2.78/config (Linux, I guess) and press OrbBrushes.blend
+
+6) After this open folder named "Brush"
+
+7) Select every file with mark "A| Orb " you could use box select (Press B and choose files)
+
+8) Press Append from Library
+
+9) After this press File -> Save Startup File
+
+Done! Blender should catch all the brushes and youse set in your next projects.
+
+Happy blending, comrades!

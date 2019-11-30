@@ -1,4 +1,3 @@
-import bgl
 import blf
 import bpy
 
@@ -29,10 +28,10 @@ bl_info = {
     "name": "ExtraInfo",
     "description": "Show Extra Information in Viewport",
     "author": "zebus3d",
-    "version": (0, 0, 1),
-    "blender": (2, 80, 0),
+    "version": (0, 0, 8),
+    "blender": (2, 81, 0),
     "location": "View3D",
-    "wiki_url": "",
+    "wiki_url": "https://github.com/zebus3d/ExtraInfo",
     "category": "3D View" 
 }
 
@@ -43,25 +42,100 @@ font_info = {
 }
 
 
+def keep_proportions(new_min, new_max, ui_scale):
+    # los valores en los que pondre el size del ui
+    # para ir probando los new_min y new_max que funcionen bien con estos
+    # valor de partida minimo
+    old_min = 0.5
+    # valor de partida maximo
+    old_max = 2
 
+    old_range = (old_max - old_min)
+    old_value = ui_scale
+
+    if old_range == 0:
+        new_value = new_min
+    else:
+        new_range = (new_max - new_min)
+        result = (((old_value - old_min) * new_range) / old_range) + new_min
+
+    return result
+
+
+# this is calculated every drawing pass of the viewport:
 def draw_callback_px(self, context):
-    # esto se calcula cada pasada de dibujado del viewport:
 
     display = []
-
     font_id = font_info["font_id"]
     
-    x = 19
-    toolbarWidth = bpy.context.area.regions[1].width
+    ui_scale = bpy.context.preferences.view.ui_scale
 
-    offsetTextInTop = 86
-    yOffset = bpy.context.area.height - offsetTextInTop
+    areas = list(bpy.context.window.screen.areas)
+    regions = {}
 
-    fontSize = 11
-    blf.size(font_id, fontSize, 72)
+    for a in areas:
+        if a.type == "VIEW_3D":
+            for r in a.regions:
+                regions[r.type] = r
+
+    active_tools_panel = regions["TOOLS"]
+    n_panel = regions["UI"]
+
+    left_margin = 20
+
+    # horizonatl:
+    # si esta colapsado el active tool es = 1:
+    if active_tools_panel.width == 1:
+        x_offset = left_margin * ui_scale
+    else:
+        # si las active tools esta a la izquierda y el panel n a la derecha:
+        if active_tools_panel.alignment == "LEFT" and n_panel.alignment == "RIGHT":
+            # x_offset = left_margin + active_tools_panel.width * ui_scale
+            new_min = active_tools_panel.width + 12
+            new_max = active_tools_panel.width + 40
+            x_offset = keep_proportions(new_min, new_max, ui_scale)
+
+        # si las active tools esta a la derecha y el panel n a la derecha:
+        elif active_tools_panel.alignment == "RIGHT" and n_panel.alignment == "RIGHT":
+            x_offset = left_margin * ui_scale
+
+        # si el panel n esta a la izquierda y las active tools a la derecha:
+        elif n_panel.alignment == "LEFT" and active_tools_panel.alignment == "RIGHT":
+            # x_offset = left_margin + n_panel.width * ui_scale
+            new_min = n_panel.width + 12
+            new_max = n_panel.width + 40
+            x_offset = keep_proportions(new_min, new_max, ui_scale)
+
+        # si estan todas a la izquierda:
+        elif n_panel.alignment == "LEFT" and active_tools_panel.alignment == "LEFT":
+            # x_offset = left_margin + n_panel.width + active_tools_panel.width * ui_scale
+            new_min = (n_panel.width + active_tools_panel.width) + 12
+            new_max = (n_panel.width + active_tools_panel.width) + 40
+            x_offset = keep_proportions(new_min, new_max, ui_scale)
+
+    header_height = getattr(regions["HEADER"], 'height')
+    window_height = getattr(regions["WINDOW"], 'height')
+
+    # por si esta colapsado el header o no:
+    # vertical:
+    if header_height == 1:
+        new_min = 35
+        new_max = 130
+        y_static_offest = keep_proportions(new_min, new_max, ui_scale)
+    else:
+        new_min = 50
+        new_max = 180
+        y_static_offest = keep_proportions(new_min, new_max, ui_scale)
+
+    y_offset = window_height - y_static_offest
+
+
+
+    font_size = int(12 * ui_scale)
+    blf.size(font_id, font_size, 72)
     
-    # sombra:
-    # el level tiene que ser 3, 5 o 0
+    # shadows:
+    # the level has to be 3, 5 o 0
     level = 5
     r = 0.0
     g = 0.0
@@ -118,11 +192,12 @@ def draw_callback_px(self, context):
                 value = value.replace(" ","")
                 value = value.replace(":",": ")
                 # print(value)
-                increment = (20*counter)
-                blf.position(font_id, x+toolbarWidth, yOffset-increment-rendered, 0)
+                increment = (20*counter*ui_scale)
+                blf.position(font_id, x_offset, y_offset - increment - rendered * ui_scale, 0)
                 blf.draw(font_id, value)
-
-
+    
+    # fix de la sombra en el navigation simple y en los botones de preferencias de la izquierda.
+    blf.disable(font_id, blf.SHADOW)
 
 def init():
     font_info["font_id"] = 0
@@ -133,8 +208,10 @@ def init():
 def register():
     init()
 
+
 def unregister():
     pass
+
 
 if __name__ == "__main__":
     register()

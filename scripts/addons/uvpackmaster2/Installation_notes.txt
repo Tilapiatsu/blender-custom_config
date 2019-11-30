@@ -1,0 +1,26 @@
+If you want to use the UVPackmaster engine together with Blender follow the steps:
+
+
+1. If you are upgrading from an older add-on version go to Blender preferences and uninstall the previous version of the UVPackmaster add-on. After uninstalling it is recommended to restart Blender.
+
+2. Download the latest version of the UVPackmaster add-on for Blender (2.79 or 2.80 variant) from http://bit.ly/uvp2-downloads (note the add-on zip file names end with 'blend-2.79' and 'blend-2.80').
+
+3. Install the add-on using the standard procedure for Blender add-ons.
+
+4. Download an UVP engine package from gumroad. Note that the engine is required to use the add-on packing features in Blender. If you didn't buy the product you can always use the free demo version available at http://bit.ly/uvp2-downloads. The name of the engine package follows a pattern: uvp-{EDITION}-{VERSION}.zip. Make sure you use the correct engine version. You can use any engine edition, but it will determine a set of packing features which will be available.
+
+5. Extract the engine package at any location convenient for you.
+
+6. At the top of the UVPackmaster add-on interface in Blender press the 'Select UVP Engine' button (a small button next to the engine path field). A file browser will pop up.
+
+7. In the file browser navigate to the path where you extraced the engine package and localize a file named 'release-{VERSION}.uvpini' - select the file in the browser.
+
+8. The engine will be automatically initialized and you can immediatelly start using UVP packing features in Blender.
+
+9. In order to make sure the new engine path will be preserved after Blender is closed go to the Blender Preferences window and click 'Save Preferences'.
+
+
+
+If you experiance any issues with the procedure contact us at glukoz@glukoz.dev.
+
+
