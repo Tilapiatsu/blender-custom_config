@@ -15,6 +15,7 @@ scripts/addons/vertex_color_master/*
 scripts/addons/MathsExpressionLiteBlender28/*
 scripts/addons/MapsModelsImporter/*
 scripts/addons/uvpackmaster2/Engine/*
+scripts/addons/Polycount/*
 scripts/presets/interface_theme/blender_pro.xml
 .vscode/settings.json
 

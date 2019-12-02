@@ -14,6 +14,7 @@ robocopy "addon_common" "retopoflow\addon_common" %param%
 robocopy "..\GIT\vertex_color_master\vertex_color_master" "vertex_color_master" %param%
 robocopy "..\GIT\Blender-Addons\MathsExpressionLiteBlender28" "MathsExpressionLiteBlender28" %param%
 robocopy "..\GIT\MapsModelsImporter\blender\MapsModelsImporter" "MapsModelsImporter" %param%
+robocopy "..\GIT\Polycount\polycount" "Polycount" %param%
 
 copy "..\GIT\ProTheme\blender_pro.xml" "..\presets\interface_theme"
 
