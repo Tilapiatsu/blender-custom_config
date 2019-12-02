@@ -148,3 +148,6 @@
 [submodule "scripts/GIT/MapsModelsImporter"]
 	path = scripts/GIT/MapsModelsImporter
 	url = https://github.com/eliemichel/MapsModelsImporter.git
+[submodule "scripts/addons/Extra-Image-List"]
+	path = scripts/addons/Extra-Image-List
+	url = https://github.com/schroef/Extra-Image-List.git
