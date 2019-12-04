@@ -154,3 +154,6 @@
 [submodule "scripts/GIT/Polycount"]
 	path = scripts/GIT/Polycount
 	url = https://github.com/Vinc3r/Polycount.git
+[submodule "scripts/addons/W_Mesh"]
+	path = scripts/addons/W_Mesh
+	url = https://github.com/WiresoulStudio/W_Mesh_28x.git
