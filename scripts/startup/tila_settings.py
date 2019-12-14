@@ -38,9 +38,4 @@ bpy.context.preferences.inputs.use_mouse_depth_navigate = True
 # bpy.context.preferences.inputs.use_mouse_emulate_3_button = True
 bpy.context.preferences.inputs.use_zoom_to_mouse = True
 
-# Theme tweak
-root_path = os.path.join(os.path.realpath(__file__), os.pardir)
-theme_filepath = os.path.join(root_path, 'presets', 'interface_theme', 'tila.xml')
-bpy.ops.script.execute_preset(filepath=theme_filepath)
-
 print("Loading Tilapiatu's user preferences Completed")

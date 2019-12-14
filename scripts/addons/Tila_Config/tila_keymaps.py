@@ -109,7 +109,10 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		if orbit:
 			self.kmi_set_replace(orbit, self.k_manip, "PRESS", alt=True)
 		if pan:
-			self.kmi_set_replace(pan, self.k_manip, "PRESS", alt=True, shift=True)
+			if self.km.name in ['3D View']:
+				self.kmi_set_replace(pan, self.k_manip, "CLICK", alt=True, shift=True)
+			else:
+				self.kmi_set_replace(pan, self.k_manip, "CLICK_DRAG", alt=True, shift=True)
 		if dolly:
 			self.kmi_set_replace(dolly, self.k_manip, "PRESS", alt=True, ctrl=True)
 		if roll:
@@ -425,7 +428,9 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 
 		self.kmi_set_replace('wm.call_menu_pie', 'Q', 'PRESS', ctrl=True, alt=True, shift=True, properties=[('name', 'HP_MT_boolean')])
 		self.kmi_set_replace('view3d.toggle_wireframe', 'F5', 'PRESS', properties=[('selected', False)], disable_double=True)
-		self.kmi_set_replace('view3d.toggle_wireframe', 'F5', 'PRESS',shift=True, properties=[('selected', True)], disable_double=True)
+		self.kmi_set_replace('view3d.toggle_wireframe', 'F5', 'PRESS', shift=True, properties=[('selected', True)], disable_double=True)
+
+		self.kmi_set_replace('wm.call_menu_pie', 'F', 'PRESS', alt=True, shift=True, properties=[('name', 'UVTOOLKIT_MT_pie')])
 
 		# 3d Cursor
 		self.kmi_set_replace('view3d.cursor3d', self.k_cursor, 'CLICK', ctrl=True, alt=True, shift=True, properties=[('use_depth', True), ('orientation','GEOM')], disable_double=True)
@@ -629,6 +634,7 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 
 		self.tool_smart_delete()
 		self.kmi_set_replace('object.tila_emptymesh', 'N', 'PRESS', ctrl=True, alt=True, shift=True)
+		self.kmi_set_replace('view3d.tila_isolate', 'X', 'PRESS', ctrl=True, alt=True, shift=True)
 
 		# File Browser
 		self.kmi_init(name='File Browser', space_type='FILE_BROWSER', region_type='WINDOW')

@@ -1,4 +1,4 @@
-import bpy
+import bpy, os
 
 modules =   (
             'mesh_f2',
@@ -56,6 +56,11 @@ def register():
         bpy.ops.preferences.addon_enable(module=m)
         bpy.context.window_manager.keyconfigs.update()
     
+    # Set Theme to Tila
+    root_path = bpy.utils.resource_path('USER')
+    theme_filepath = os.path.join(root_path, 'scripts', 'presets', 'interface_theme', 'tila.xml')
+    bpy.ops.script.execute_preset(filepath=theme_filepath, menu_idname='USERPREF_MT_interface_theme_presets')
+    
 
 def unregister():
     # disabling addons
@@ -63,6 +68,6 @@ def unregister():
         bpy.ops.preferences.addon_disable(module=m)
         bpy.context.window_manager.keyconfigs.update()
 
-
-if __name__ == '__main__':
+if __name__ == "__main__":
     register()
+    # unregister()

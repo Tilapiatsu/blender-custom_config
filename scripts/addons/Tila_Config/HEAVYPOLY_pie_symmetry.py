@@ -151,11 +151,11 @@ class HP_OT_mirror_toggle(bpy.types.Operator):
                 if all(i != 'Mirror Origin' for i in obslist):
                     if bpy.context.object.mode == 'EDIT':
                         bpy.ops.object.mode_set(mode='OBJECT')
-                        bpy.ops.object.empty_add(type='PLAIN_AXES', view_align=False, location=(0, 0, 0))
+                        bpy.ops.object.empty_add(type='PLAIN_AXES', align='WORLD', location=(0, 0, 0))
                         bpy.context.object.name = "Mirror Origin"
                         bpy.context.object.select_set(state=False)
                     else:
-                        bpy.ops.object.empty_add(type='PLAIN_AXES', view_align=False, location=(0, 0, 0))
+                        bpy.ops.object.empty_add(type='PLAIN_AXES', align='WORLD', location=(0, 0, 0))
                         bpy.context.object.name = "Mirror Origin"
                         bpy.context.object.select_set(state=False)
             if len([a for a in selobs if a.name.startswith("Bool_Cutter")]) > 0:
