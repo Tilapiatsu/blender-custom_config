@@ -48,28 +48,6 @@ bl_info = {
 
 # Addon to Enable
 
-# -   Modifier tool
-# -   Extra Object Mesh and Curve
-# -   Import Image as Plane
-# -   fSpy
-# -   3d print
-# -   F2
-# -   LoopTool
-# -   MachineTool
-# -   Mesh Align Plus
-# -   Snaap_utility Line
-# -   Node Wrangle
-# -   Principled Bake
-# -   BoolTool
-# -   D-Noise
-# -   Render Burst
-# -   Magic UV
-# -	  Photographer
-# -   TextTool
-# -   Transfer Vert Order
-# -   LineupMaker
-# -   PolyQuilt
-# -   Optiloop : Optimize mesh by removing edge loops that doesn't contribute to curvature
 # -	  Pro Renderer : https://www.amd.com/en/technologies/radeon-prorender-downloads
 
 
