@@ -44,14 +44,14 @@
         <wcol_tool>
           <ThemeWidgetColors
             outline="#161616"
-            inner="#161616ff"
+            inner="#0f0f0fff"
             inner_sel="#274961ff"
             item="#ffffffff"
             text="#e7e7e7"
             text_sel="#ffffff"
             show_shaded="TRUE"
             shadetop="1"
-            shadedown="0"
+            shadedown="1"
             roundness="0.33"
             >
           </ThemeWidgetColors>
@@ -67,14 +67,14 @@
             show_shaded="TRUE"
             shadetop="1"
             shadedown="0"
-            roundness="0.33"
+            roundness="1"
             >
           </ThemeWidgetColors>
         </wcol_toolbar_item>
         <wcol_radio>
           <ThemeWidgetColors
             outline="#161616"
-            inner="#161616ff"
+            inner="#181818ff"
             inner_sel="#274961ff"
             item="#ffffffff"
             text="#cfcfcf"

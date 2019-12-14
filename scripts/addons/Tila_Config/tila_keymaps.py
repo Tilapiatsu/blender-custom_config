@@ -110,7 +110,7 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 			self.kmi_set_replace(orbit, self.k_manip, "PRESS", alt=True)
 		if pan:
 			if self.km.name in ['3D View']:
-				self.kmi_set_replace(pan, self.k_manip, "CLICK", alt=True, shift=True)
+				self.kmi_set_replace(pan, self.k_manip, "PRESS", alt=True, shift=True)
 			else:
 				self.kmi_set_replace(pan, self.k_manip, "CLICK_DRAG", alt=True, shift=True)
 		if dolly:
@@ -376,7 +376,7 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		print("----------------------------------------------------------------")
 		print("")
 
-		# Window
+		##### Window
 		self.kmi_init(name='Window', space_type='EMPTY', region_type='WINDOW')
 		self.global_keys()
 		self.right_mouse()
@@ -386,8 +386,12 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		self.kmi_set_active(False, idname='wm.call_menu', type='F2')
 		self.kmi_set_active(False, idname='wm.toolbar')
 		self.selection_tool(tool='builtin.select_box')
+		
+		# MACHINE3tools
+		self.kmi_set_replace('wm.call_menu_pie', 'S', "PRESS", ctrl=True, shift=True, properties=[('name', 'MACHIN3_MT_save_pie')])
 
-		# 3D View
+
+		##### 3D View
 		self.kmi_init(name='3D View', space_type='VIEW_3D', region_type='WINDOW')
 		self.global_keys()
 		self.right_mouse()
@@ -432,29 +436,32 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 
 		self.kmi_set_replace('wm.call_menu_pie', 'F', 'PRESS', alt=True, shift=True, properties=[('name', 'UVTOOLKIT_MT_pie')])
 
-		# 3d Cursor
+		# MACHINE3tools
+		self.kmi_set_replace('wm.call_menu_pie', 'Z', "PRESS", properties=[('name', 'MACHIN3_MT_shading_pie')])
+
+		###### 3d Cursor
 		self.kmi_set_replace('view3d.cursor3d', self.k_cursor, 'CLICK', ctrl=True, alt=True, shift=True, properties=[('use_depth', True), ('orientation','GEOM')], disable_double=True)
 		self.kmi_set_replace('transform.translate', 'EVT_TWEAK_M', 'ANY', ctrl=True, alt=True, shift=True, properties=[('cursor_transform', True), ('release_confirm', True), ('orient_type', 'NORMAL'), ('snap', True), ('snap_align', True)])
 
-		# View2D
+		###### View2D
 		self.kmi_init(name='View2D', space_type='EMPTY', region_type='WINDOW')
 		self.global_keys()
 		self.right_mouse()
 		self.navigation_keys(pan='view2d.pan', orbit=None, dolly='view2d.zoom')
 
-		# View2D buttons List
+		###### View2D buttons List
 		self.kmi_init(name='View2D Buttons List', space_type='EMPTY', region_type='WINDOW')
 		self.global_keys()
 		self.right_mouse()
 		self.navigation_keys(pan='view2d.pan', orbit=None, dolly='view2d.zoom')
 
-		# Image
+		###### Image
 		self.kmi_init(name='Image', space_type='IMAGE_EDITOR', region_type='WINDOW')
 		self.global_keys()
 		self.right_mouse()
 		self.navigation_keys(pan='image.view_pan', orbit=None, dolly='image.view_zoom')
 
-		# UV Editor
+		###### UV Editor
 		self.kmi_init(name='UV Editor', space_type='EMPTY', region_type='WINDOW')
 		self.global_keys()
 		self.right_mouse()
@@ -476,7 +483,7 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		self.snap(snapping='wm.context_menu_enum', snapping_prop=[('data_path', 'tool_settings.snap_uv_element')])
 		self.tool_center(pivot='SpaceImageEditor.pivot_point')
 
-		# Mesh
+		###### Mesh
 		self.kmi_init(name='Mesh', space_type='EMPTY', region_type='WINDOW')
 		self.global_keys()
 		self.selection_tool()
@@ -542,7 +549,10 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		self.kmi_set_replace('mesh.quads_convert_to_tris', 'T', "PRESS", ctrl=True, properties=[('quad_method','BEAUTY'), ('ngon_method','BEAUTY')])
 		self.kmi_set_replace('mesh.tris_convert_to_quads', 'T', "PRESS", alt=True, shift=True)
 
-		# Object Mode
+		# MACHINE3tools
+		self.kmi_set_replace('machin3.clean_up', 'TNUMPAD_MINUS', "PRESS", ctrl=True, alt=True, shift=True)
+
+		###### Object Mode
 		self.kmi_init(name='Object Mode', space_type='EMPTY', region_type='WINDOW')
 		self.global_keys()
 		self.selection_tool()
@@ -568,11 +578,11 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		self.kmi_set_replace('transform.tosphere', 'S', 'PRESS', ctrl=True, alt=True, shift=True, disable_double=True)
 		self.kmi_set_replace('wm.call_menu_pie', 'S', 'PRESS', alt=True, shift=True, properties=[('name', 'TILA_MT_pie_normal')], disable_double=True)
 
-		# 3D View Tool: Select
+		###### 3D View Tool: Select
 		self.kmi_init(name='3D View Tool: Tweak', space_type='EMPTY', region_type='WINDOW')
 		self.kmi_set_replace('view3d.select', self.k_select, 'PRESS', properties=[('deselect_all', True)], disable_double=True)
 		
-		# Sculpt
+		###### Sculpt
 		self.kmi_init(name='Sculpt', space_type='EMPTY', region_type='WINDOW')
 		self.global_keys()
 		self.selection_tool(tool='builtin.select_box')
@@ -602,7 +612,7 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		self.kmi_set_replace('view3d.inverse_visibility', self.k_nav, 'PRESS', alt=True, shift=True)
 		
 
-		# Curve
+		###### Curve
 		self.kmi_init(name='Curve', space_type='EMPTY', region_type='WINDOW')
 		self.global_keys()
 		self.selection_tool()
@@ -626,7 +636,7 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 							linked_pick_tool='curve.select_linked_pick',
 							invert_tool='curve.select_all')
 
-		# Outliner
+		###### Outliner
 		self.kmi_init(name='Outliner', space_type='OUTLINER', region_type='WINDOW')
 		self.global_keys()
 		self.right_mouse()
@@ -636,38 +646,38 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		self.kmi_set_replace('object.tila_emptymesh', 'N', 'PRESS', ctrl=True, alt=True, shift=True)
 		self.kmi_set_replace('view3d.tila_isolate', 'X', 'PRESS', ctrl=True, alt=True, shift=True)
 
-		# File Browser
+		###### File Browser
 		self.kmi_init(name='File Browser', space_type='FILE_BROWSER', region_type='WINDOW')
 		self.global_keys()
 		self.right_mouse()
 		self.tool_smart_delete()
 		self.kmi_set_replace('object.tila_emptymesh', 'N', 'PRESS', ctrl=True, alt=True, shift=True)
 
-		# Dopesheet
+		###### Dopesheet
 		self.kmi_init(name='Dopesheet', space_type='DOPESHEET_EDITOR', region_type='WINDOW')
 		self.global_keys()
 		self.right_mouse()
 		self.duplicate(duplicate='node.duplicate_move', duplicate_link='node.duplicate_move_keep_inputs')
 
-		# Mask Editing
+		###### Mask Editing
 		self.kmi_init(name='Mask Editing', space_type='EMPTY', region_type='WINDOW')
 		self.global_keys()
 		self.right_mouse()
 		self.kmi_set_replace('mask.duplicate_move', 'D', 'PRESS', ctrl=True)
 
-		# Graph Editor
+		###### Graph Editor
 		self.kmi_init(name='Graph Editor', space_type='GRAPH_EDITOR', region_type='WINDOW')
 		self.global_keys()
 		self.right_mouse()
 		self.duplicate(duplicate='graph.duplicate_move')
 
-		# Property Editor
+		###### Property Editor
 		self.kmi_init(name='Property Editor', space_type='PROPERTIES', region_type='WINDOW')
 		self.global_keys()
 		self.right_mouse()
 		self.navigation_keys(pan='view2d.pan', orbit=None, dolly='view2d.zoom')
 		
-		# Vertex Paint
+		###### Vertex Paint
 		self.kmi_init(name='Vertex Paint', space_type='EMPTY', region_type='WINDOW')
 		self.global_keys()
 		self.right_mouse()
@@ -701,7 +711,7 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		self.kmi_set_replace('paint.tila_brush_select_and_paint', self.k_manip, 'PRESS', shift=True, properties=[('tool', 'VERTEX'), ('brush', 'BLUR')])
 		self.kmi_set_replace('paint.tila_brush_select_and_paint', self.k_manip, 'PRESS', ctrl=True, properties=[('tool', 'VERTEX'), ('brush', 'AVERAGE')])
 
-		# Weight Paint
+		###### Weight Paint
 		self.kmi_init(name='Weight Paint', space_type='EMPTY', region_type='WINDOW')
 		self.global_keys()
 		self.right_mouse()
@@ -735,7 +745,7 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		self.kmi_set_replace('paint.tila_brush_select_and_paint', self.k_manip, 'PRESS', shift=True, properties=[('tool', 'WEIGHT'), ('brush', 'BLUR')])
 		self.kmi_set_replace('paint.tila_brush_select_and_paint', self.k_manip, 'PRESS', ctrl=True, properties=[('tool', 'WEIGHT'), ('brush', 'AVERAGE')])
 		
-		# Image Paint
+		###### Image Paint
 		self.kmi_init(name='Image Paint', space_type='EMPTY', region_type='WINDOW')
 		self.global_keys()
 		self.selection_tool(tool='builtin.select_box')
@@ -777,7 +787,7 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 
 		self.tool_sample_color('paint.sample_color')
 
-		# Node Editor
+		###### Node Editor
 		self.kmi_init(name='Node Editor', space_type='NODE_EDITOR', region_type='WINDOW')
 		self.global_keys()
 		self.right_mouse()
@@ -798,30 +808,30 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		self.kmi_set_replace('node.view_selected', 'A', 'PRESS', ctrl=True, shift=True)
 		self.kmi_set_replace('node.add_search', self.k_menu, 'PRESS')
 
-		# Animation
+		###### Animation
 		self.kmi_init(name='Animation', space_type='EMPTY', region_type='WINDOW')
 		self.global_keys()
 		self.right_mouse()
 
-		# Armature
+		###### Armature
 		self.kmi_init(name='Armature', space_type='EMPTY', region_type='WINDOW')
 		self.global_keys()
 		self.right_mouse()
 		self.duplicate(duplicate='armature.duplicate_move')
 
-		# Metaball
+		###### Metaball
 		self.kmi_init(name='Metaball', space_type='EMPTY', region_type='WINDOW')
 		self.global_keys()
 		self.right_mouse()
 		self.duplicate(duplicate='mball.duplicate_move')
 
-		# NLA Editor
+		###### NLA Editor
 		self.kmi_init(name='NLA Editor', space_type='EMPTY', region_type='WINDOW')
 		self.global_keys()
 		self.right_mouse()
 		self.duplicate(duplicate='nla.duplicate', duplicate_link='nla.duplicate', duplicate_link_prop=('linked', True))
 		
-		# Lattice
+		###### Lattice
 		self.kmi_init(name='Lattice', space_type='EMPTY', region_type='WINDOW')
 		self.global_keys()
 		self.right_mouse()
@@ -832,7 +842,7 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 					  		circle_tool='view3d.select_circle',
 							invert_tool='lattice.select_all')
 
-		# Grease Pencil
+		###### Grease Pencil
 		self.kmi_init(name='Grease Pencil', space_type='EMPTY', region_type='WINDOW')
 		self.global_keys()
 		self.right_mouse()
@@ -853,7 +863,7 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 
 		self.kmi_set_replace('view3d.tila_isolate', 'X', 'PRESS', ctrl=True, alt=True, shift=True)
 
-		# Grease Pencil Stroke Edit Mode
+		###### Grease Pencil Stroke Edit Mode
 		self.kmi_init(name='Grease Pencil Stroke Edit Mode', space_type='EMPTY', region_type='WINDOW')
 		self.global_keys()
 		self.right_mouse()
@@ -873,7 +883,7 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		self.kmi_set_replace('view3d.tila_isolate', 'X', 'PRESS', ctrl=True, alt=True, shift=True)
 		
 
-		# Grease Pencil Stroke Paint Mode
+		###### Grease Pencil Stroke Paint Mode
 		self.kmi_init(name='Grease Pencil Stroke Paint Mode', space_type='EMPTY', region_type='WINDOW')
 		self.global_keys()
 		self.right_mouse()
@@ -883,7 +893,7 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		self.tool_radial_control(radius=[('data_path_primary', 'tool_settings.gpencil_paint.brush.size')], opacity=[('data_path_primary', 'tool_settings.gpencil_paint.brush.gpencil_settings.pen_strength')],
 								 eraser_radius=[('data_path_primary', 'preferences.edit.grease_pencil_eraser_radius')])
 		
-		# Grease Pencil Stroke Paint (Draw brush)
+		###### Grease Pencil Stroke Paint (Draw brush)
 		self.kmi_init(name='Grease Pencil Stroke Paint (Draw brush)', space_type='EMPTY', region_type='WINDOW')
 		kmi = self.kmi_find(idname='gpencil.draw', ctrl=False, alt=True, shift=False)
 		if kmi:
@@ -898,27 +908,27 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 			kmi.shift = True
 
 		
-		# Grease Pencil Stroke Sculpt Mode
+		###### Grease Pencil Stroke Sculpt Mode
 		self.kmi_init(name='Grease Pencil Stroke Sculpt Mode', space_type='EMPTY', region_type='WINDOW')
 		self.global_keys()
 		self.right_mouse()
 		self.tool_radial_control(radius=[('data_path_primary', 'tool_settings.gpencil_sculpt.brush.size')], opacity=[('data_path_primary', 'tool_settings.gpencil_sculpt.brush.strength')])
 		self.kmi_set_replace('wm.tool_set_by_id', 'G', 'PRESS', properties=[('name', 'builtin_brush.Grab')])
 		
-		# Frames
+		###### Frames
 		self.kmi_init(name='Frames', space_type='EMPTY', region_type='WINDOW')
 		self.global_keys()
 		self.right_mouse()
 		self.kmi_set_replace('screen.animation_play', 'SPACE', 'PRESS', ctrl=True, shift=True,  properties=[('reverse', True)])
 
-		# Screen
+		###### Screen
 		self.kmi_init(name='Screen', space_type='EMPTY', region_type='WINDOW')
 		self.global_keys()
 		self.right_mouse()
 		self.kmi_set_replace('screen.screen_full_area', 'SPACE', 'PRESS', ctrl=True, alt=True)
 		self.kmi_set_replace('screen.screen_full_area', 'SPACE', 'PRESS', ctrl=True, alt=True, shift=True, properties=[('use_hide_panels', True)])
 
-		# Particle
+		###### Particle
 		self.kmi_init(name='Particle', space_type='EMPTY', region_type='WINDOW')
 		self.global_keys()
 		self.mode_selection()
@@ -936,11 +946,11 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 							invert_tool='particle.select_all')
 		
 
-		# Transform Modal Map
+		###### Transform Modal Map
 		self.kmi_init(name='Transform Modal Map', space_type='EMPTY', region_type='WINDOW')
 		self.tool_proportional()
 		
-		# Knife Tool Modal Map
+		###### Knife Tool Modal Map
 		self.kmi_init(name='Knife Tool Modal Map', space_type='EMPTY', region_type='WINDOW')
 		panning = self.kmi_find(propvalue='PANNING')
 		if panning:
@@ -958,11 +968,11 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 
 		self.modal_set_replace('NEW_CUT', 'SPACE', 'PRESS')
 		
-		# Gesture Box Modal Map
+		###### Gesture Box Modal Map
 		self.kmi_init(name='Gesture Box', space_type='EMPTY', region_type='WINDOW')
 		self.modal_set_replace('SELECT', self.k_cursor, 'RELEASE', any=True)
 
-		# 3D View Tool: Edit Mesh, PolyQuilt
+		###### 3D View Tool: Edit Mesh, PolyQuilt
 		self.kmi_init(name='3D View Tool: Edit Mesh, PolyQuilt', space_type='VIEW_3D', region_type='WINDOW')
 		self.kmi_set_replace('mesh.poly_quilt', self.k_manip, 'PRESS', ctrl=True, shift=True, properties=[('tool_mode', 'EXTRUDE')], disable_double=True)
 		self.kmi_set_replace('mesh.poly_quilt', self.k_manip, 'PRESS', ctrl=True, properties=[('lock_hold', True)], disable_double=True)

@@ -105,7 +105,7 @@ class HP_OT_add_primitive(bpy.types.Operator):
         cur = bpy.context.scene.cursor.location
         # cur = list(cur)
         addob = False
-        orthomode = False
+        align = 'WORLD'
         for area in bpy.context.screen.areas:
             if area.type == 'VIEW_3D':
                 for space in area.spaces:
@@ -115,55 +115,54 @@ class HP_OT_add_primitive(bpy.types.Operator):
                             pass
                         else:
                             print("Ortho")
-                            orthomode = True
+                            align = 'VIEW'
 
         def prim(self, type):
             if self.type == 'Cube':
-                bpy.ops.mesh.primitive_cube_add(size=.5, view_align=orthomode)
+                bpy.ops.mesh.primitive_cube_add(size=.5, align=align)
             if self.type == 'Cube_Small':
-                bpy.ops.mesh.primitive_cube_add(size=.05, view_align=orthomode)
+                bpy.ops.mesh.primitive_cube_add(size=.05, align=align)
             if self.type == 'Plane':
-                bpy.ops.mesh.primitive_plane_add(view_align=orthomode)
+                bpy.ops.mesh.primitive_plane_add(align=align)
             if self.type == 'Plane_Small':
-                bpy.ops.mesh.primitive_plane_add(size=.1, view_align=orthomode)
+                bpy.ops.mesh.primitive_plane_add(size=.1, align=align)
             if self.type == 'Circle_6':
-                bpy.ops.mesh.primitive_circle_add(vertices=6, radius=0.08, fill_type='NGON', view_align=orthomode)
+                bpy.ops.mesh.primitive_circle_add(vertices=6, radius=0.08, fill_type='NGON', align=align)
             if self.type == 'Circle_8':
-                bpy.ops.mesh.primitive_circle_add(fill_type='NGON', radius=.25, vertices=8, view_align=orthomode)
+                bpy.ops.mesh.primitive_circle_add(fill_type='NGON', radius=.25, vertices=8, align=align)
             if self.type == 'Circle_12':
-                bpy.ops.mesh.primitive_circle_add(fill_type='NGON', radius=.25, vertices=12, view_align=orthomode)
+                bpy.ops.mesh.primitive_circle_add(fill_type='NGON', radius=.25, vertices=12, align=align)
             if self.type == 'Circle_24':
-                bpy.ops.mesh.primitive_circle_add(fill_type='NGON', radius=.25, vertices=24, view_align=orthomode)
+                bpy.ops.mesh.primitive_circle_add(fill_type='NGON', radius=.25, vertices=24, align=align)
             if self.type == 'Circle_32':
-                bpy.ops.mesh.primitive_circle_add(fill_type='NGON', vertices=32, view_align=orthomode)
+                bpy.ops.mesh.primitive_circle_add(fill_type='NGON', vertices=32, align=align)
 
             if self.type == 'Cylinder_6':
-                bpy.ops.mesh.primitive_cylinder_add(radius=.08, depth=.1, vertices=6, view_align=orthomode)
+                bpy.ops.mesh.primitive_cylinder_add(radius=.08, depth=.1, vertices=6, align=align)
             if self.type == 'Cylinder_8':
-                bpy.ops.mesh.primitive_cylinder_add(radius=.25, depth=.5, vertices=8, view_align=orthomode)
+                bpy.ops.mesh.primitive_cylinder_add(radius=.25, depth=.5, vertices=8, align=align)
             if self.type == 'Cylinder_12':
-                bpy.ops.mesh.primitive_cylinder_add(radius=.25, depth=.5, vertices=12, view_align=orthomode)
+                bpy.ops.mesh.primitive_cylinder_add(radius=.25, depth=.5, vertices=12, align=align)
             if self.type == 'Cylinder_24':
-                bpy.ops.mesh.primitive_cylinder_add(radius=.25, depth=.5, vertices=24, enter_editmode=False, view_align=orthomode)
+                bpy.ops.mesh.primitive_cylinder_add(radius=.25, depth=.5, vertices=24, enter_editmode=False, align=align)
             if self.type == 'Cylinder_32':
-                bpy.ops.mesh.primitive_cylinder_add(vertices=32, view_align=orthomode)
+                bpy.ops.mesh.primitive_cylinder_add(vertices=32, align=align)
             if self.type == 'Cylinder_64':
-                bpy.ops.mesh.primitive_cylinder_add(vertices=64, view_align=orthomode)
+                bpy.ops.mesh.primitive_cylinder_add(vertices=64, align=align)
             if self.type == 'Cylinder_128':
-                bpy.ops.mesh.primitive_cylinder_add(vertices=128, view_align=orthomode)
+                bpy.ops.mesh.primitive_cylinder_add(vertices=128, align=align)
             if self.type == 'Sphere_12':
-                bpy.ops.mesh.primitive_uv_sphere_add(segments=12, ring_count=6, radius=0.1, view_align=orthomode)
+                bpy.ops.mesh.primitive_uv_sphere_add(segments=12, ring_count=6, radius=0.1, align=align)
             if self.type == 'Sphere_24':
-                bpy.ops.mesh.primitive_uv_sphere_add(segments=24, ring_count=12, view_align=orthomode)
+                bpy.ops.mesh.primitive_uv_sphere_add(segments=24, ring_count=12, align=align)
             if self.type == 'Sphere_32':
-                bpy.ops.mesh.primitive_uv_sphere_add(view_align=orthomode)
+                bpy.ops.mesh.primitive_uv_sphere_add(align=align)
 
             if self.type == 'Grease_Pencil':
                 bpy.ops.object.gpencil_add()
                 bpy.ops.gpencil.paintmode_toggle()
             if self.type == 'Curve':
-                bpy.ops.curve.primitive_nurbs_path_add(view_align=orthomode)
-                bpy.ops.object.editmode_toggle()
+                bpy.ops.curve.primitive_nurbs_path_add(align=align, enter_editmode=True)
             if self.type == 'Light':
                 bpy.ops.object.mode_set(mode='OBJECT')
                 bpy.ops.object.light_add(type='POINT', radius=.05)
