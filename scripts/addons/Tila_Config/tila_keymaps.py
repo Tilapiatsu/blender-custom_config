@@ -550,7 +550,7 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		self.kmi_set_replace('mesh.tris_convert_to_quads', 'T', "PRESS", alt=True, shift=True)
 
 		# MACHINE3tools
-		self.kmi_set_replace('machin3.clean_up', 'TNUMPAD_MINUS', "PRESS", ctrl=True, alt=True, shift=True)
+		self.kmi_set_replace('machin3.clean_up', 'NUMPAD_MINUS', "PRESS", ctrl=True, alt=True, shift=True)
 
 		###### Object Mode
 		self.kmi_init(name='Object Mode', space_type='EMPTY', region_type='WINDOW')
