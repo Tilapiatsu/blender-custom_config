@@ -157,3 +157,6 @@
 [submodule "scripts/addons/W_Mesh"]
 	path = scripts/addons/W_Mesh
 	url = https://github.com/WiresoulStudio/W_Mesh_28x.git
+[submodule "scripts/addons/BlendShell"]
+	path = scripts/addons/BlendShell
+	url = https://github.com/oormicreations/BlendShell.git
