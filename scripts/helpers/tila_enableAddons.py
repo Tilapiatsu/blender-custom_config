@@ -54,11 +54,14 @@ def register():
     # Enabling addons
     for m in modules:
         bpy.ops.preferences.addon_enable(module=m)
+        bpy.context.window_manager.keyconfigs.update()
+    
 
 def unregister():
     # disabling addons
     for m in modules:
         bpy.ops.preferences.addon_disable(module=m)
+        bpy.context.window_manager.keyconfigs.update()
 
 
 if __name__ == '__main__':
