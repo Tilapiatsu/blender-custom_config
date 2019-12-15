@@ -29,14 +29,16 @@ class TILA_MT_pie_normal(Menu):
         pie = layout.menu_pie()
         # Left
         if context.mode == "OBJECT":
-            text = 'Smooth'
+            smooth_text = 'Shade Smooth'
+            sharp_text = 'Shade Sharp'
         else:
-            text = 'Merge'
+            smooth_text = 'Merge'
+            sharp_text = 'Split'
 
-        pie.operator("view3d.tila_normalsmartmerge", icon='NODE_MATERIAL', text=text)
+        pie.operator("view3d.tila_normalsmartmerge", icon='NODE_MATERIAL', text=smooth_text)
 
         # Right
-        pie.operator("view3d.tila_normalsmartsplit", icon='MESH_CUBE', text="Split")
+        pie.operator("view3d.tila_normalsmartsplit", icon='MESH_CUBE', text=sharp_text)
 
         # Bottom
         split = pie.split()
@@ -45,16 +47,17 @@ class TILA_MT_pie_normal(Menu):
         pie.operator("mesh.tila_normalsmoothen", icon='INVERSESQUARECURVE', text="Smoothen Normal")
 
         # Top
-        split = pie.split()
         if context.mode == "EDIT_MESH":
+            pie.operator('mesh.normals_make_consistent', text='Calculate Normal Outside').inside = False
             pie.operator('mesh.tila_normalflatten', icon='NORMALS_FACE', text='Flatten Normal')
         else:
+            pie.split()
             pie.split()
                 
 
         # Bottom Right
         split = pie.split()
-        split = pie.split()
+        split = pie.split() 
         split = pie.split()
         col = split.column()
         col.scale_y = 3

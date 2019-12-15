@@ -436,8 +436,12 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 
 		self.kmi_set_replace('wm.call_menu_pie', 'F', 'PRESS', alt=True, shift=True, properties=[('name', 'UVTOOLKIT_MT_pie')])
 
+
+		##### 3D View Generic
+		self.kmi_init(name='3D View Generic', space_type='VIEW_3D', region_type='WINDOW')
+
 		# MACHINE3tools
-		self.kmi_set_replace('wm.call_menu_pie', 'Z', "PRESS", properties=[('name', 'MACHIN3_MT_shading_pie')])
+		self.kmi_set_replace('wm.call_menu_pie', 'Z', "PRESS", properties=[('name', 'MACHIN3_MT_shading_pie')], disable_double=True)
 
 		###### 3d Cursor
 		self.kmi_set_replace('view3d.cursor3d', self.k_cursor, 'CLICK', ctrl=True, alt=True, shift=True, properties=[('use_depth', True), ('orientation','GEOM')], disable_double=True)
@@ -550,7 +554,11 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		self.kmi_set_replace('mesh.tris_convert_to_quads', 'T', "PRESS", alt=True, shift=True)
 
 		# MACHINE3tools
-		self.kmi_set_replace('machin3.clean_up', 'NUMPAD_MINUS', "PRESS", ctrl=True, alt=True, shift=True)
+		kmi = self.kmi_set_replace('machin3.clean_up', 'NUMPAD_MINUS', "PRESS", ctrl=True, alt=True, shift=True)
+		kmi.active = True
+
+		# F2
+		self.kmi_set_replace('mesh.f2', 'P', 'PRESS', disable_double=True)
 
 		###### Object Mode
 		self.kmi_init(name='Object Mode', space_type='EMPTY', region_type='WINDOW')

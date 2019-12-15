@@ -27,6 +27,7 @@ modules =   (
             'MeasureIt-ARCH',
             'retopoflow',
             'add_curve_extra_objects',
+            'add_mesh_extra_objects',
             'io_scene_fbx',
             'io_scene_obj',
             'io_scene_x3d',
@@ -44,6 +45,8 @@ modules =   (
             'cycles',
             'Polycount',
             'mira_tools',
+            # 'ZWeightTools-1_0_1',
+            'W_Mesh',
             'uvpackmaster2',
             'uv_toolkit',
             'lineup_maker',
@@ -75,7 +78,7 @@ def register():
     addon.preferences.activate_smart_face = False
     addon.preferences.activate_focus = False
     addon.preferences.activate_mirror = False
-    addon.preferences.activate_mode_pie = False
+    addon.preferences.activate_modes_pie = False
     addon.preferences.activate_views_pie = False
     addon.preferences.activate_transform_pie = False
     addon.preferences.activate_collections_pie = False
