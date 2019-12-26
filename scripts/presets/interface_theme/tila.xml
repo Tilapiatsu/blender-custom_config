@@ -89,7 +89,7 @@
         <wcol_text>
           <ThemeWidgetColors
             outline="#161616"
-            inner="#141414ff"
+            inner="#212121ff"
             inner_sel="#141414ff"
             item="#274961ff"
             text="#cfcfcf"
@@ -163,8 +163,8 @@
         </wcol_numslider>
         <wcol_box>
           <ThemeWidgetColors
-            outline="#232323"
-            inner="#232323ff"
+            outline="#323232"
+            inner="#0f0f0f80"
             inner_sel="#274961ff"
             item="#274961ff"
             text="#c4c4c4"
