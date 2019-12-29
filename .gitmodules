@@ -169,3 +169,6 @@
 [submodule "scripts/addons/Neltulz_Edge_Curve_Plus"]
 	path = scripts/addons/Neltulz_Edge_Curve_Plus
 	url = https://github.com/Neltulz/Neltulz_Edge_Curve_Plus.git
+[submodule "scripts/addons/Workplane"]
+	path = scripts/addons/Workplane
+	url = https://github.com/BenjaminSauder/Workplane.git
