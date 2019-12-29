@@ -163,3 +163,6 @@
 [submodule "scripts/addons/Neltulz_Smart_Sharpen"]
 	path = scripts/addons/Neltulz_Smart_Sharpen
 	url = https://github.com/Neltulz/Neltulz_Smart_Sharpen.git
+[submodule "scripts/addons/Neltulz_Symmetry"]
+	path = scripts/addons/Neltulz_Symmetry
+	url = https://github.com/Neltulz/Neltulz_Symmetry.git
