@@ -44,7 +44,7 @@
         <wcol_tool>
           <ThemeWidgetColors
             outline="#161616"
-            inner="#0f0f0fff"
+            inner="#2a2a2aff"
             inner_sel="#274961ff"
             item="#ffffffff"
             text="#e7e7e7"
@@ -89,7 +89,7 @@
         <wcol_text>
           <ThemeWidgetColors
             outline="#161616"
-            inner="#212121ff"
+            inner="#212121cc"
             inner_sel="#141414ff"
             item="#274961ff"
             text="#cfcfcf"
@@ -445,8 +445,8 @@
             </gradients>
             <panelcolors>
               <ThemePanelColors
-                header="#1b1b1bff"
-                back="#222222ff"
+                header="#1d1d1dff"
+                back="#262626ff"
                 sub_back="#292929ff"
                 >
               </ThemePanelColors>
@@ -747,14 +747,14 @@
         >
         <space>
           <ThemeSpaceGeneric
-            back="#161616"
+            back="#0d0d0d"
             title="#eeeeee"
             text="#808080"
             text_hi="#ffffff"
             header="#222222ff"
             header_text="#808080"
             header_text_hi="#ffffff"
-            button="#161616ff"
+            button="#16161600"
             button_title="#ffffff"
             button_text="#e5e5e5"
             button_text_hi="#ffffff"
@@ -767,9 +767,9 @@
             >
             <panelcolors>
               <ThemePanelColors
-                header="#252525cc"
-                back="#161616b3"
-                sub_back="#0000003e"
+                header="#252525ff"
+                back="#1d1d1dff"
+                sub_back="#00000038"
                 >
               </ThemePanelColors>
             </panelcolors>

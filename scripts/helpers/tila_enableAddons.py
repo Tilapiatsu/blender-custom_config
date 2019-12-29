@@ -45,6 +45,8 @@ modules =   (
             'cycles',
             'Polycount',
             'mira_tools',
+            'Neltulz_Smart_Sharpen',
+            'keentools_facebuilder',
             # 'ZWeightTools-1_0_1',
             'W_Mesh',
             'uvpackmaster2',
