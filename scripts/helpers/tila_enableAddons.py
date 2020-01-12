@@ -46,6 +46,7 @@ modules =   (
             'Polycount',
             'mira_tools',
             'Neltulz_Smart_Sharpen',
+            'Neltulz_Symmetry',
             'MeshDataTransfer',
             'keentools_facebuilder',
             # 'ZWeightTools-1_0_1',
