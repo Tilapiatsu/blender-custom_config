@@ -86,6 +86,13 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 	# Global Keymap Functions
 
 	def global_keys(self):
+		# Disable Keymap
+		self.kmi_set_active(False, type='X')
+		self.kmi_set_active(False, type='X', shift=True)
+		self.kmi_set_active(False, type='TAB', ctrl=True, shift=True)
+		self.kmi_set_active(False, idname='wm.call_panel', type='X', ctrl=True)
+		
+		# Set global Keymap
 		self.kmi_set_replace("wm.call_menu_pie", "TAB", "PRESS", ctrl=True, properties=[('name', 'VIEW3D_MT_object_mode_pie')])
 		self.kmi_set_replace("wm.window_fullscreen_toggle", "F11", "PRESS")
 		self.kmi_set_replace('screen.animation_play', self.k_menu, 'PRESS', shift=True)
@@ -99,11 +106,7 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		self.kmi_set_replace('wm.call_menu_pie', 'A', 'PRESS', ctrl=True, alt=True, shift=True, properties=[('name', 'HP_MT_pie_add')])
 		self.kmi_set_replace('wm.call_menu_pie', 'TAB', 'PRESS', ctrl=True, shift=True, properties=[('name', 'HP_MT_pie_areas')])
 		self.kmi_set_replace('wm.call_menu_pie', 'X', 'PRESS', alt=True, shift=True, properties=[('name', 'HP_MT_pie_symmetry')], disable_double=True)
-		# Disable Keymap
-		self.kmi_set_active(False, type='X')
-		self.kmi_set_active(False, type='X', shift=True)
-		self.kmi_set_active(False, type='TAB', ctrl=True, shift=True)
-		self.kmi_set_active(False, idname='wm.call_panel', type='X', ctrl=True)
+		
 
 	def navigation_keys(self, pan=None, orbit=None, dolly=None, roll=None):
 		if orbit:

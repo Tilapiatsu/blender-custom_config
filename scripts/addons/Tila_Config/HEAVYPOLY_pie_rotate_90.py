@@ -23,20 +23,44 @@ class HP_MT_pie_rotate90(Menu):
 	def draw(self, context):
 		layout = self.layout
 		pie = layout.menu_pie()
+
 		# left
-		pie.operator('view3d.rotate_90_and_flatten', text = 'X', icon="CENTER_ONLY").direction = 'FX'
+		if context.mode == "OBJECT":
+			pie.operator('view3d.rotate_90_and_flatten', text = 'X', icon="CENTER_ONLY").direction = 'FX'
+		else:
+			split = pie.split()
+			col = split.column()
+			col.operator('view3d.rotate_90_and_flatten', text = 'X', icon="CENTER_ONLY").direction = 'FX'
+			op = col.operator('machin3.align_editmesh', text = 'X Absolute', icon="CENTER_ONLY")
+			op.type ='ZERO'
+			op.direction = 'HORIZONTAL'
+
 		# right
 		pie.operator('view3d.rotate_90_and_flatten', text = 'X', icon="FILE_REFRESH").direction = 'RX'
 
-		pie.split()
+		# up
 		pie.split()
 
+		# down
+		pie.split()
+
+		# upperleft
 		pie.operator('view3d.rotate_90_and_flatten', text = 'Y', icon="CENTER_ONLY").direction = 'FY'
 
+		# upperright
 		pie.operator('view3d.rotate_90_and_flatten', text = 'Y', icon="FILE_REFRESH").direction = 'RY'
 
 		# bottomleft
-		pie.operator('view3d.rotate_90_and_flatten', text = 'Z', icon="CENTER_ONLY").direction = 'FZ'
+		if context.mode == "OBJECT":
+			pie.operator('view3d.rotate_90_and_flatten', text = 'Z', icon="CENTER_ONLY").direction = 'FZ'
+		else:
+			split = pie.split()
+			col = split.column()
+			col.operator('view3d.rotate_90_and_flatten', text = 'Z', icon="CENTER_ONLY").direction = 'FZ'
+			op = col.operator('machin3.align_editmesh', text = 'Z Absolute', icon="CENTER_ONLY")
+			op.type ='ZERO'
+			op.direction = 'VERTICAL'
+			
 		# bottomright
 		pie.operator('view3d.rotate_90_and_flatten', text = 'Z', icon="FILE_REFRESH").direction = 'RZ'
 
