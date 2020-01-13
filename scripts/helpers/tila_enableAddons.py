@@ -9,7 +9,7 @@ modules =   (
             'object_print3d_utils',
             'mesh_looptools',
             'MACHIN3tools',
-            'mesh_mesh_align_plus',
+            # 'mesh_mesh_align_plus',
             'node_wrangler',
             'node_presets',
             'mesh_snap_utilities_line',
@@ -49,6 +49,7 @@ modules =   (
             'Neltulz_Symmetry',
             'MeshDataTransfer',
             'keentools_facebuilder',
+            'kekit',
             # 'ZWeightTools-1_0_1',
             'W_Mesh',
             'uvpackmaster2',
@@ -86,6 +87,10 @@ def register():
     addon.preferences.activate_views_pie = False
     addon.preferences.activate_transform_pie = False
     addon.preferences.activate_collections_pie = False
+
+    # # kekit
+    # addon = context.preferences.addons.get('kekit')
+    # addon.preferences.category = 'Tools'
 
 def unregister():
     # disabling addons

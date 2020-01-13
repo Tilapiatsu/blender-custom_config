@@ -440,6 +440,9 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 
 		self.kmi_set_replace('wm.call_menu_pie', 'F', 'PRESS', alt=True, shift=True, properties=[('name', 'UVTOOLKIT_MT_pie')])
 
+		# KE_Kit
+		self.kmi_set_replace('view3d.ke_get_set_editmesh', self.k_manip, 'DOUBLE_CLICK', alt=True)
+		self.kmi_set_replace('view3d.ke_get_set_material', 'M', 'PRESS', shift=True)
 
 		##### 3D View Generic
 		self.kmi_init(name='3D View Generic', space_type='VIEW_3D', region_type='WINDOW')
@@ -555,9 +558,23 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		self.kmi_set_replace('mesh.quads_convert_to_tris', 'T', "PRESS", ctrl=True, properties=[('quad_method','BEAUTY'), ('ngon_method','BEAUTY')])
 		self.kmi_set_replace('mesh.tris_convert_to_quads', 'T', "PRESS", alt=True, shift=True)
 
+		# KE_Kit
+		kmi = self.kmi_find(idname='wm.call_menu', type='C', ctrl=True)
+		if kmi:
+			kmi.shift = True
+
+		kmi = self.kmi_find(idname='wm.call_menu', type='V', ctrl=True)
+		if kmi:
+			kmi.shift = True
+			
+		self.kmi_set_replace('mesh.copyplus', 'C', "PRESS", ctrl=True)
+		self.kmi_set_replace('mesh.pasteplus', 'V', "PRESS", ctrl=True)
+		
+
 		# MACHINE3tools
 		kmi = self.kmi_set_replace('machin3.clean_up', 'NUMPAD_MINUS', "PRESS", ctrl=True, alt=True, shift=True)
-		kmi.active = True
+		if kmi:
+			kmi.active = True
 
 		# F2
 		self.kmi_set_replace('mesh.f2', 'P', 'PRESS', disable_double=True)
