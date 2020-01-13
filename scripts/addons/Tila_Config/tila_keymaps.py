@@ -91,7 +91,7 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		self.kmi_set_active(False, type='X', shift=True)
 		self.kmi_set_active(False, type='TAB', ctrl=True, shift=True)
 		self.kmi_set_active(False, idname='wm.call_panel', type='X', ctrl=True)
-		
+
 		# Set global Keymap
 		self.kmi_set_replace("wm.call_menu_pie", "TAB", "PRESS", ctrl=True, properties=[('name', 'VIEW3D_MT_object_mode_pie')])
 		self.kmi_set_replace("wm.window_fullscreen_toggle", "F11", "PRESS")
@@ -317,7 +317,8 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		type = 'X'
 		self.kmi_set_replace('wm.context_toggle', type, 'PRESS', properties=[('data_path', 'tool_settings.use_snap')])
 		if snapping is not None and snapping_prop is not None:
-			self.kmi_set_replace(snapping, type, 'PRESS', shift=True, properties=snapping_prop)
+			self.kmi_set_replace(snapping, type, 'PRESS', ctrl=True, shift=True, properties=snapping_prop)
+		self.kmi_set_replace('view3d.toggle_snapping', type, 'PRESS', shift=True)
 
 	def tool_sculpt(self, sculpt=None):
 		if sculpt:
@@ -362,8 +363,8 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		print(pivot, orientation)
 		if pivot:
 			self.kmi_set_replace('wm.call_panel', 'X', 'PRESS', ctrl=True, properties=[('name', pivot), ('keep_open', False)], disable_double=True)
-		if orientation:
-			self.kmi_set_replace('wm.call_panel', 'X', 'PRESS', ctrl=True, shift=True, properties=[('name', orientation), ('keep_open', False)], disable_double=True)
+		# if orientation:
+		# 	self.kmi_set_replace('wm.call_panel', 'X', 'PRESS', ctrl=True, shift=True, properties=[('name', orientation), ('keep_open', False)], disable_double=True)
 		if action_center_context:
 			self.kmi_set_replace('wm.call_menu', 'X', 'PRESS', alt=True, properties=[('name', 'TILA_MT_action_center')], disable_double=True)
 	
@@ -498,8 +499,6 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		self.mode_selection()
 		self.tool_transform()
 
-		self.kmi_set_replace('view3d.toggle_x_symetry', 'X', 'PRESS', disable_double=True)
-
 		self.selection_keys(shortestpath_tool='mesh.shortest_path_pick',
 							loop_tool='mesh.loop_select',
 					  		ring_tool='mesh.edgering_select',
@@ -573,8 +572,6 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 
 		self.selection_keys(invert_tool='object.select_all')
 
-		self.kmi_set_replace('view3d.toggle_x_symetry', 'X', 'PRESS', disable_double=True)
-
 		self.tool_subdivision(subdivision='object.subdivision_set')
 		self.kmi_set_replace('object.delete', 'DEL', 'PRESS', ctrl=True, alt=True, shift=True, properties=[('use_global', True), ('confirm', True)])
 
@@ -600,8 +597,6 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		self.right_mouse()
 		self.tool_sculpt('sculpt.sculptmode_toggle')
 		self.selection_tool('GRAB')
-		
-		self.kmi_set_replace('view3d.toggle_x_symetry', 'X', 'PRESS', disable_double=True)
 
 		self.tool_radial_control(radius=[('data_path_primary', 'tool_settings.sculpt.brush.size'), ('data_path_secondary', 'tool_settings.unified_paint_settings.size'), ('use_secondary', 'tool_settings.unified_paint_settings.use_unified_size'), ('rotation_path', 'tool_settings.sculpt.brush.texture_slot.angle'), ('color_path', 'tool_settings.sculpt.brush.cursor_color_add'), ('image_id', 'tool_settings.sculpt.brush')],
 						   		opacity=[('data_path_primary', 'tool_settings.sculpt.brush.strength'), ('data_path_secondary', 'tool_settings.unified_paint_settings.strength'), ('use_secondary', 'tool_settings.unified_paint_settings.use_unified_strength'), (
@@ -693,8 +688,6 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		self.global_keys()
 		self.right_mouse()
 
-		self.kmi_set_replace('view3d.toggle_x_symetry', 'X', 'PRESS', disable_double=True)
-
 		self.tool_radial_control(
 		radius=[('data_path_primary', 'tool_settings.vertex_paint.brush.size'), 
 		('data_path_secondary', 'tool_settings.unified_paint_settings.size'), 
@@ -726,8 +719,6 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		self.kmi_init(name='Weight Paint', space_type='EMPTY', region_type='WINDOW')
 		self.global_keys()
 		self.right_mouse()
-
-		self.kmi_set_replace('view3d.toggle_x_symetry', 'X', 'PRESS', disable_double=True)
 		
 		self.tool_radial_control(
 		radius=[('data_path_primary', 'tool_settings.weight_paint.brush.size'), 
@@ -761,8 +752,6 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		self.global_keys()
 		self.selection_tool(tool='builtin.select_box')
 		self.right_mouse()
-		
-		self.kmi_set_replace('view3d.toggle_x_symetry', 'X', 'PRESS', disable_double=True)
 
 		self.tool_radial_control(radius=[('data_path_primary', 'tool_settings.image_paint.brush.size'), 
 		('data_path_secondary', 'tool_settings.unified_paint_settings.size'), 
