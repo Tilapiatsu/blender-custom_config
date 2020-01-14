@@ -440,6 +440,12 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 
 		self.kmi_set_replace('wm.call_menu_pie', 'F', 'PRESS', alt=True, shift=True, properties=[('name', 'UVTOOLKIT_MT_pie')])
 
+		kmi = self.kmi_find(idname='view3d.toggle_shading', type='Z', shift=True)
+		if kmi:
+			kmi.active = False
+		
+		self.kmi_set_replace('view3d.toggle_shading', 'Z', 'PRESS', shift=True, properties=[('type', 'RENDERED')], disable_double=True)
+
 		# KE_Kit
 		self.kmi_set_replace('view3d.ke_get_set_editmesh', self.k_manip, 'DOUBLE_CLICK', alt=True)
 		self.kmi_set_replace('view3d.ke_get_set_material', 'M', 'PRESS', shift=True)
