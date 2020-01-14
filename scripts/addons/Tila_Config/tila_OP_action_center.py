@@ -17,6 +17,8 @@ class TILA_action_center(bpy.types.Operator):
                                 'VIEW',
                                 'ORIGIN',
                                 'PARENT',
+                                'GLOBAL',
+                                'GLOBAL_INDIVIDUAL',
                                 'LOCAL',
                                 'PIVOT',
                                 'PIVOT_CENTER_PARENT_AXIS',
@@ -108,6 +110,14 @@ class TILA_action_center(bpy.types.Operator):
                 context.scene.cursor.rotation_euler[0] = parent.rotation_euler[0]
                 context.scene.cursor.rotation_euler[1] = parent.rotation_euler[1]
                 context.scene.cursor.rotation_euler[2] = parent.rotation_euler[2]
+            if self.action_center == 'GLOBAL':
+                self.report({'INFO'}, 'Global Action Center')
+                context.scene.transform_orientation_slots[0].type = 'GLOBAL'
+                context.scene.tool_settings.transform_pivot_point = 'MEDIAN_POINT'
+            if self.action_center == 'GLOBAL_INDIVIDUAL':
+                self.report({'INFO'}, 'Global Individual Action Center')
+                context.scene.transform_orientation_slots[0].type = 'GLOBAL'
+                context.scene.tool_settings.transform_pivot_point = 'INDIVIDUAL_ORIGINS'
             if self.action_center == 'LOCAL':
                 self.report({'INFO'}, 'Local Action Center')
                 context.scene.transform_orientation_slots[0].type = 'NORMAL'
@@ -213,6 +223,8 @@ class TILA_MT_action_center(bpy.types.Menu):
         layout.operator("view3d.tila_action_center", icon='SELECT_SET', text='Selection Center Auto Axis').action_center = 'SELECTION_CENTER_AUTO_AXIS'
         layout.operator("view3d.tila_action_center", icon='VERTEXSEL', text='Element').action_center = 'ELEMENT'
         layout.operator("view3d.tila_action_center", icon='LOCKVIEW_ON', text='View').action_center = 'VIEW'
+        layout.operator("view3d.tila_action_center", icon='OBJECT_ORIGIN', text='Global').action_center = 'GLOBAL'
+        layout.operator("view3d.tila_action_center", icon='OBJECT_ORIGIN', text='Global Individual').action_center = 'GLOBAL_INDIVIDUAL'
         layout.operator("view3d.tila_action_center", icon='OUTLINER_DATA_EMPTY', text='Origin').action_center = 'ORIGIN'
         layout.operator("view3d.tila_action_center", icon='OUTLINER_DATA_EMPTY', text='Parent').action_center = 'PARENT'
         layout.operator("view3d.tila_action_center", icon='OUTLINER_DATA_EMPTY', text='Local').action_center = 'LOCAL'
