@@ -20,7 +20,7 @@ bl_info = {
     "name": "Retopo MT",
     "category": "Mesh",
     "author": "Will Souloumiac aka Pixivore, Cédric Lepiller aka Pitiwazou, Blenderlounge, Vladimir Spivak(cwolf3d)",
-    "version": (2, 0, 8),
+    "version": (2, 1, 0),
     "blender": (2, 80, 0),
     "location": "Editmode > Ctrl+Shift+Alt+X",
     "description": "Multiple tools for retopology.",
@@ -127,9 +127,6 @@ global g_PosSize2d
 global g_PosCut2d
 
 global g_bAutoMerge
-
-#global g_SavLens
-global g_SavPersp
 
 global print_help
 print_help = False
@@ -245,8 +242,15 @@ class cCursor:
         
         NormalObject = Vector((0.0, 0.0, 1.0))
         if(g_normal == None):
-            return  
-        qRot = self.RBenVe(NormalObject, g_normal)
+            # for area in bpy.context.screen.areas:
+                # if area.type == 'VIEW_3D':
+                   # r3d = area.spaces.active.region_3d # fine for right-upper quadview view
+                   # view_matrix = r3d.view_matrix
+            # inv = view_matrix.inverted()
+            # qRot = inv.to_quaternion()
+            return
+        else:
+            qRot = self.RBenVe(NormalObject, g_normal)
 
         if(qRot != None):
             self.CLR_C.clear()
@@ -310,7 +314,7 @@ class cCursor:
 
     #---------------------------------------------------------------------------------------------------
     def Draw(self):
-        
+        #print(self.bHide)
         if(self.bHide == False):  
             global g_region
             global g_rv3d
@@ -399,26 +403,6 @@ class cCursor:
                 vertices.append(vector2d)
             batch = batch_for_shader(shader, 'POINTS', {"pos": vertices})
             batch.draw(shader)
-
-            # if(ShowCut):
-                # font_id = 0
-                # blf.size(font_id, 25, 35)
-                # blf.color(font_id, 0.0, 0.0, 0.0, 1.0)
-                # vector3d = (self.CurLoc.x, self.CurLoc.y, self.CurLoc.z)
-                # vector2d = bpy_extras.view3d_utils.location_3d_to_region_2d(g_region, g_rv3d, vector3d)
-                # dim = blf.dimensions(font_id, str(int(g_Cursor.BSize)))
-                # blf.position(font_id, vector2d.x - dim[0]/2.0, vector2d.y + dim[1]/2.0, 0)
-                # blf.draw(font_id, str(int(g_Cursor.BSize)))
-
-            # if(CT):
-                # font_id = 0
-                # blf.size(font_id, 25, 35)
-                # blf.color(font_id, 1.0, 0.0, 0.0, 1.0)
-                # vector3d = (self.CurLoc.x, self.CurLoc.y, self.CurLoc.z)
-                # vector2d = bpy_extras.view3d_utils.location_3d_to_region_2d(g_region, g_rv3d, vector3d)
-                # dim = blf.dimensions(font_id, str(int(g_rObject.CTNCut)))
-                # blf.position(font_id, vector2d.x - dim[0]/2.0, vector2d.y + dim[1]/2.0, 0)
-                # blf.draw(font_id, str(int(g_rObject.CTNCut)))
 
 #########################################################################################################
 
@@ -1184,6 +1168,28 @@ class cObject:
                         self.Vertices.list[v].numFaces = 0
                         self.MergePointsInHit(self.Vertices.list[0].Get())
                         self.Update()
+        self.Update()
+    #---------------------------------------------------------------------------------------------------
+    
+    #---------------------------------------------------------------------------------------------------
+    def SwetchFaceNormal(self):
+        look_at, camera_pos = camera(bpy.context.space_data.region_3d)
+
+        select_face = None
+        
+        for iface in range(self.Faces.TotalFaces):
+            face = self.Faces.list[iface]
+            vision = camera_pos - self.Vertices.Get(face.VertexIdx[0])
+            face.ps = vision.dot(face.Normal)
+            if(not g_rv3d.is_perspective):
+                face.ps = -face.ps
+            if(face.ps < 0):
+                if(face.select == True):
+                    face.Inverse()
+                    face.Normal, face.mirror_Normal = face.mirror_Normal, face.Normal
+                    face.CalculateNormal()
+                    
+        self.Update()
     #---------------------------------------------------------------------------------------------------
 
                 
@@ -1368,7 +1374,7 @@ class cObject:
                                     ps = vs.dot(fc.Normal)
                                     if(not g_rv3d.is_perspective):
                                         ps = -ps
-                                    if(ps > 0):
+                                    if(ps < 0):
                                         fc.Inverse()
                                         fc.CalculateNormal()
                                     self.AddFace(fc)
@@ -1441,6 +1447,7 @@ class cObject:
                 vec = self.Vertices.Get(vStart1) - self.Vertices.Get(vEnd1)
                 if(vec.length <= self.AM_dist):
                     self.Merge(vStart1, vEnd1)
+        self.Update()
     #---------------------------------------------------------------------------------------------------
                 
 
@@ -1874,7 +1881,7 @@ class cObject:
                             
                             if(vert0 and vert1 and vert2):
                                 ret = geometry.intersect_point_tri_2d(Vector((g_mouse_x, g_mouse_y, 0.0)), vert0, vert1, vert2)
-                                if(ret !=0):
+                                if(ret != 0):
                                     face.Select(True)
                                     self.SelectedFace = i
                         else:
@@ -1885,10 +1892,23 @@ class cObject:
                             vert3 = self.Vertices.Get2d(VertList[3])
                             
                             if(vert0 and vert1 and vert2 and vert3):
-                                ret = geometry.intersect_point_quad_2d(Vector((g_mouse_x, g_mouse_y, 0.0)), vert0, vert1, vert2, vert3)
+                                ret = geometry.intersect_point_tri_2d(Vector((g_mouse_x, g_mouse_y, 0.0)), vert0, vert1, vert2)
                                 if(ret != 0):
                                     face.Select(True)
                                     self.SelectedFace = i
+                                ret = geometry.intersect_point_tri_2d(Vector((g_mouse_x, g_mouse_y, 0.0)), vert0, vert2, vert3)
+                                if(ret != 0):
+                                    face.Select(True)
+                                    self.SelectedFace = i
+                                ret = geometry.intersect_point_tri_2d(Vector((g_mouse_x, g_mouse_y, 0.0)), vert0, vert1, vert3)
+                                if(ret != 0):
+                                    face.Select(True)
+                                    self.SelectedFace = i
+                                ret = geometry.intersect_point_tri_2d(Vector((g_mouse_x, g_mouse_y, 0.0)), vert1, vert2, vert3)
+                                if(ret != 0):
+                                    face.Select(True)
+                                    self.SelectedFace = i
+                                    
         else:
             # Moving point
             if(g_bPtMoving):
@@ -1925,7 +1945,6 @@ class cObject:
             self.Merge(self.MergeIdx, self.PointIdx[0])
             self.MergeIdx = -1
             g_bMerge = False
-
         self.PointIdx.clear()
     #---------------------------------------------------------------------------------------------------
 
@@ -2060,11 +2079,22 @@ class cObject:
                 sCTFace = sface
             if(face.ps < 0):
                 if(face.select == True):
+                    red = False
                     for i in range(face.NbVertices):
                         vertex = self.Vertices.list[face.VertexIdx[i]]
+                        if len(vertices_select_face) > 0:
+                            for v in vertices_select_face:
+                                if v == vertex.Get2d():
+                                    red = True
                         vertices_select_face.append(vertex.Get2d())
+                    if len(vertices_select_face) == 3:
+                        vertices_select_face.append(vertices_select_face[0])
+                        red = True
                     shader.bind()
-                    shader.uniform_float("color", (g_face_sel_color[0], g_face_sel_color[1], g_face_sel_color[2], g_face_sel_color[3]))
+                    if red:
+                        shader.uniform_float("color", (1, 0, 0, 1))
+                    else:
+                        shader.uniform_float("color", (g_face_sel_color[0], g_face_sel_color[1], g_face_sel_color[2], g_face_sel_color[3]))
                     indices = ((0, 1, 2), (0, 2, 3))
                     batch = batch_for_shader(shader, 'TRIS', {"pos": vertices_select_face}, indices=indices)
                     batch.draw(shader)
@@ -2216,9 +2246,9 @@ def Picking(context, self, ray_max = 10000.0, _ray_origin = None, _CTRetopo = Fa
     # get the ray from the viewport and mouse
     view_vector = bpy_extras.view3d_utils.region_2d_to_vector_3d(region, rv3d, coord)
     ray_origin = bpy_extras.view3d_utils.region_2d_to_origin_3d(region, rv3d, coord)
-    if not rv3d.is_perspective:
-        if(abs(view_vector.y) < 1):
-            view_vector = -view_vector
+    # if not rv3d.is_perspective:
+        # if(abs(view_vector.y) < 1):
+            # view_vector = -view_vector
     if(_ray_origin != None):
         ray_origin = _ray_origin + view_vector * 0.05
     ray_target = ray_origin + (view_vector * ray_max)
@@ -2338,7 +2368,7 @@ def draw_callback_px(self, context):
         blf.position(font_id, 20, 280, 0)
         blf.draw(font_id, "Extrude selecting: Space+LMB | AutoMerge: U") 
         blf.position(font_id, 20, 250, 0)
-        blf.draw(font_id, "Delete face: D | Mirror: M") 
+        blf.draw(font_id, "Delete face: D | Mirror: M | Flip normal: N") 
         blf.position(font_id, 20, 220, 0)
         blf.draw(font_id, "Brush Size: F | Brush Cut Size: SHIFT+F")
         blf.position(font_id, 20, 190, 0)
@@ -2629,6 +2659,12 @@ class RetopoMT(bpy.types.Operator):
                 g_rObject.RemoveSelectFace()
                 g_rObject.Undo('G_SET')
         #---------------------------------------------------------------------------------------------------
+        if event.type == 'N':
+            if(event.value == 'PRESS'):
+                g_rObject.Undo('G_SET')
+                g_rObject.SwetchFaceNormal()
+                g_rObject.Undo('G_SET')
+        #---------------------------------------------------------------------------------------------------
         if event.type == 'X':
             if(event.value == 'RELEASE'):
                 if(g_PosCutCTIcon != None):
@@ -2718,8 +2754,8 @@ class RetopoMT(bpy.types.Operator):
                                 g_Curve.Update()
                                 g_rObject.PinUpdate()
                 else:
-                    g_Cursor.Hide()
                     # If [space] is pressed, a line is created according to the cursor position
+                    g_Cursor.Hide()
                     if((g_SPACE == 'PRESS') and (g_bLeftBM == True) and (g_CTNLines >= 0)):
                         mouse_loc_2d = Vector((g_mouse_x, g_mouse_y))
                         mouse_loc_3d = bpy_extras.view3d_utils.region_2d_to_location_3d(g_region, g_rv3d, mouse_loc_2d, self.depth_location)
@@ -2906,6 +2942,7 @@ class RetopoMT(bpy.types.Operator):
                 g_bDrawing = False                
                 g_bLeftBM = False
                 g_bPtMoving = False
+            return {'PASS_THROUGH'}
         #---------------------------------------------------------------------------------------------------
         if(event.type == 'RIGHTMOUSE'):
             if(event.value == 'PRESS'):
@@ -3011,10 +3048,19 @@ class RetopoMT(bpy.types.Operator):
                     g_Cursor.BrushSize(event)
             else:
                 if(g_Cursor.bBrushSize == False):
-                    g_Cursor.CutSize(event)                
+                    g_Cursor.CutSize(event)                    
         #---------------------------------------------------------------------------------------------------
         if(event.type == 'LEFT_SHIFT'):
             g_SHIFT = event.value
+        #---------------------------------------------------------------------------------------------------
+        if event.type[:6] == 'NUMPAD':
+            return {'PASS_THROUGH'}
+        #---------------------------------------------------------------------------------------------------
+        if event.type in {'PEN', 'ERASER', 'HOME'}:
+            return {'PASS_THROUGH'}
+        #---------------------------------------------------------------------------------------------------
+        if event.type[:11] == 'NDOF_BUTTON':
+            return {'PASS_THROUGH'}
         #---------------------------------------------------------------------------------------------------
         if event.type in {'Q'}:
             self.finish(context)
@@ -3095,11 +3141,10 @@ class RetopoMT(bpy.types.Operator):
                     if(len(f.vertices) == 4):
                         g_rObject.AddFace(cFace((f.vertices[0], f.vertices[3], f.vertices[2], f.vertices[1]))) 
                     if(len(f.vertices) == 3):
-                        g_rObject.AddFace(cFace((f.vertices[0], f.vertices[1], f.vertices[2]))) 
+                        g_rObject.AddFace(cFace((f.vertices[0], f.vertices[2], f.vertices[1]))) 
                         
                 bpy.ops.object.mode_set(mode='OBJECT')
                 bpy.data.objects[self.OBName].select_set(True)
-                #bpy.ops.object.delete(use_global = False)
                 bpy.ops.object.hide_view_set(unselected=False)
             except:
                 self.report({'WARNING'}, "Error in execution")
@@ -3220,27 +3265,9 @@ class RetopoMT(bpy.types.Operator):
             g_CTRL = "RELEASE"
             global g_SHIFT
             g_SHIFT = "RELEASE"
-            #global g_SavLens
-            #g_SavLens = 85.0
-
-            global g_SavPersp
-            g_SavPersp = bpy.context.space_data.region_3d.is_perspective
-            if(bpy.context.space_data.region_3d.is_perspective == False):
-                #g_SavLens = bpy.context.space_data.lens
-
-                for area in bpy.context.screen.areas:
-                    if area.type == "VIEW_3D":
-                        break
-
-                for region in area.regions:
-                    if region.type == "WINDOW":
-                        break
-                space = area.spaces[0]
-                contextc = bpy.context.copy()
-                contextc['area'] = area
-                contextc['region'] = region
-                contextc['space_data'] = space
-                bpy.ops.view3d.view_persportho(contextc, 'EXEC_DEFAULT')
+            
+            global ii
+            ii = 1
         
             #---------------------------------------------------------------------------------------------------
             theme = bpy.context.preferences.themes['Default']
@@ -3291,7 +3318,6 @@ class RetopoMT(bpy.types.Operator):
     def finish(self, context):
         # Create mesh
         mesh = bpy.data.meshes.new(self.OBName)
-        #ob = object_data_add(context, mesh)
         ob = self.object
         oldmesh = ob.data
         oldmeshname = ob.data.name
@@ -3350,25 +3376,6 @@ class RetopoMT(bpy.types.Operator):
         bpy.context.object.CTNCut       = g_rObject.CTNCut
         bpy.context.object.AutoMerge    = g_bAutoMerge
 
-        #global g_SavPersp
-        #bpy.context.space_data.lens = g_SavLens
-
-        if(g_SavPersp == False):
-            for area in bpy.context.screen.areas:
-                if area.type == "VIEW_3D":
-                    break
-
-            for region in area.regions:
-                if region.type == "WINDOW":
-                    break
-            space = area.spaces[0]
-            context = bpy.context.copy()
-            context['area'] = area
-            context['region'] = region
-            context['space_data'] = space
-            bpy.ops.view3d.view_persportho(context, 'EXEC_DEFAULT')
-
-        
         bpy.types.SpaceView3D.draw_handler_remove(self._handle, 'WINDOW')
         bpy.context.window.cursor_modal_set("DEFAULT")
 
