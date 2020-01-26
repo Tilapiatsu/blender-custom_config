@@ -1,10 +1,16 @@
+
+import bpy
+from bpy.types import (PropertyGroup)
+from bpy.props import (PointerProperty)
+from .operators import (TransferShapeData, TransferShapeKeyData, TransferVertexGroupsData, TransferUVData)
+
 bl_info = {
     "name" : "MeshDataTransfer",
     "author" : "Maurizio Memoli",
     "description" : "This add on will transfer geometry data from one mesh to another based on 3 different spaces:"
                     " 'world, object, uv' also will tranfer UVs based on topology",
     "blender" : (2, 80, 0),
-    "version" : (1, 1, 0,),
+    "version" : (1, 1, 1,),
     "location" : "(Object Mode) Mesh > ObjectData > Mesh Data Transfer ",
     "warning" : "",
     "wiki_url": "",
@@ -12,10 +18,7 @@ bl_info = {
 }
 
 
-import bpy
-from bpy.types import (PropertyGroup)
-from bpy.props import (PointerProperty)
-from .operators import (TransferShapeData, TransferShapeKeyData, TransferVertexGroupsData, TransferUVData)
+
 
 def scene_chosenobject_poll(self , object):
     if bpy.context.active_object == object:
@@ -70,8 +73,7 @@ class DATA_PT_mesh_data_transfer(bpy.types.Panel):
 
     @classmethod
     def poll(cls, context):
-        engine = context.engine
-        return context.mesh and (engine in {'BLENDER_RENDER', 'BLENDER_EEVEE', 'BLENDER_WORKBENCH'})
+        return context.mesh
 
 
     def draw(self, context):
@@ -125,74 +127,6 @@ class DATA_PT_mesh_data_transfer(bpy.types.Panel):
         right_bottom_row_box_layout = right_top_row_box_layout.row()
         right_bottom_row_box_layout.operator("object.transfer_shape_key_data" , text="Transfer Shape Keys" ,
                                                 icon="SHAPEKEY_DATA")
-        # bottom row
-
-        #
-        # #transfer shape layout
-        # transfer_shape_box_layout = main_box_layout.box()
-        # icon = 'TRIA_DOWN' if ob_prop.transfer_shape else 'TRIA_RIGHT'
-        # transfer_shape_box_layout.prop(ob_prop, "transfer_shape", text="Transfer Shape" , icon=icon)
-        # if ob_prop.transfer_shape:
-        #     transfer_shape_box_layout.prop(ob_prop, "transfer_shape_as_key", text="Transfer as shape key")
-        #     transfer_shape_box_layout.operator("object.transfer_shape_data", text="Transfer", icon="MOD_DATA_TRANSFER")
-        #
-        # #transfer shapekeys layout
-        # transfer_shapekeys_box_layout = main_box_layout.box()
-        # icon = 'TRIA_DOWN' if ob_prop.transfer_shapekeys else 'TRIA_RIGHT'
-        # transfer_shapekeys_box_layout.prop(ob_prop, "transfer_shapekeys" , text="Transfer Shapekeys", icon=icon)
-        # if ob_prop.transfer_shapekeys:
-        #     transfer_shapekeys_box_layout.operator("object.transfer_shape_key_data" , text="Transfer" ,
-        #                                         icon="MOD_DATA_TRANSFER")
-        #
-        # #transfer vertex groups layout
-        # transfer_vertex_group_box_layout = main_box_layout.box()
-        # icon = 'TRIA_DOWN' if ob_prop.transfer_vertex_groups else 'TRIA_RIGHT'
-        # transfer_vertex_group_box_layout.prop(ob_prop, "transfer_vertex_groups" , text="Transfer Vertex Groups", icon=icon)
-        # if ob_prop.transfer_vertex_groups:
-        #     transfer_vertex_group_box_layout.operator("object.transfer_vertex_groups_data" , text="Transfer" ,
-        #                                         icon="MOD_DATA_TRANSFER")
-        #
-        #
-        # #transfer uv layout
-        # transfer_uv_box_layout = main_box_layout.box()
-        # icon = 'TRIA_DOWN' if ob_prop.transfer_uv_data else 'TRIA_RIGHT'
-        # transfer_uv_box_layout.prop(ob_prop, "transfer_uv_data" , text="Transfer UVs", icon=icon)
-        # if ob_prop.transfer_uv_data:
-        #     transfer_uv_box_layout.operator("object.transfer_uv_data" , text="Transfer" ,
-        #                                         icon="MOD_DATA_TRANSFER")
-        #
-
-
-        #split = box_layout.split()
-        #box_layout = split.column(align=True)
-        # option_main_row = box_layout.row()
-
-
-        # flow = box_layout.grid_flow(row_major=True, columns=2, even_columns=True, even_rows=False, align=False)
-        # box_layout.separator()
-        #split = box_layout.row()
-        # mesh_picker_row = box_layout.row()
-        # mesh_picker_box = mesh_picker_row.box()
-        # mesh_picker_box.label(text="Target Mesh:")
-        # mesh_picker_box.prop(ob_prop, "mesh_target", text="")
-        # mesh_picker_box.separator()
-        # mesh_picker_box.separator ()
-        # transfer_mod_target = mesh_picker_box.row ()
-        # transfer_mod_target.prop(sc_prop , 'transfer_modified_target' , text="Sample Modified Target" , icon='BLANK1')
-        # if ob_prop.mesh_object_space in {'WORLD', 'LOCAL'}:
-        #     pass
-        #
-        # elif ob_prop.mesh_object_space == 'LOCAL':
-        #     pass
-        # if ob_prop.mesh_object_space != 'UVS' or ob.particle_systems:
-        #     pass
-        # col = split.column ()
-        # source_box = col.box()
-        # source_box.prop (ob_prop , "transfer_shape" , text="Transfer Shape" , icon='MESH_DATA')
-        # source_box.prop (ob_prop , "transfer_shapekeys" , text="Transfer Shapekeys" , icon='SHAPEKEY_DATA')
-        # source_box.prop (ob_prop , "transfer_vertex_groups" , text="Transfer Vertex Groups" , icon='GROUP_VERTEX')
-        # transfer_mod_source =source_box.row()
-        # transfer_mod_source.prop (sc_prop , 'transfer_modified_source' , text="Sample Modified Source" , icon='BLANK1')
 
 
 #=================================================================================================================
