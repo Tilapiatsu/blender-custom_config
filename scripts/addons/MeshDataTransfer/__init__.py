@@ -10,7 +10,7 @@ bl_info = {
     "description" : "This add on will transfer geometry data from one mesh to another based on 3 different spaces:"
                     " 'world, object, uv' also will tranfer UVs based on topology",
     "blender" : (2, 80, 0),
-    "version" : (1, 1, 1,),
+    "version" : (1, 2, 1,),
     "location" : "(Object Mode) Mesh > ObjectData > Mesh Data Transfer ",
     "warning" : "",
     "wiki_url": "",
@@ -45,23 +45,22 @@ class MeshDataSettings(PropertyGroup):
 
     mesh_source: bpy.props.PointerProperty(type=bpy.types.Object, poll=scene_chosenobject_poll)
 
+    vertex_group_filter: bpy.props.StringProperty (name="Vertex Group")
+
     transfer_shape_as_key : bpy.props.BoolProperty ()
 
     transfer_modified_target : bpy.props.BoolProperty ()
     transfer_modified_source : bpy.props.BoolProperty ()
 
 class MeshDataGlobalSettings(PropertyGroup):
-
     transfer_modified_target : bpy.props.BoolProperty ()
     transfer_modified_source : bpy.props.BoolProperty ()
-
-
 
 class ShapeKeysProp(bpy.types.PropertyGroup):
     name : bpy.props.StringProperty()
     enabled : bpy.props.BoolProperty()
 
-#========================================================================================================
+#=========================================UI===============================================================
 
 class DATA_PT_mesh_data_transfer(bpy.types.Panel):
     bl_label = "Mesh Data Transfer"
@@ -79,6 +78,7 @@ class DATA_PT_mesh_data_transfer(bpy.types.Panel):
     def draw(self, context):
         active = bpy.context.active_object
         ob_prop = context.object.mesh_data_transfer_object
+        vg_prop = context.object.mesh_data_transfer_object
         sc_prop = context.scene.mesh_data_transfer_global
         ob = context.object
 
@@ -97,7 +97,7 @@ class DATA_PT_mesh_data_transfer(bpy.types.Panel):
         #option_row.use_property_split = True
         # sample_target_mod = main_box_layout.row ()
         # sample_target_mod.prop(ob_prop, 'transfer_modified_target', text="Sample Modified Target", icon='MESH_DATA')
-        sample_source_mod =  main_box_layout.row ()
+        sample_source_mod = main_box_layout.row()
         sample_source_mod.prop(ob_prop, 'transfer_modified_source', text="Sample Modified Source", icon='MESH_DATA')
 
         if ob_prop.mesh_object_space not in {'WORLD', 'LOCAL', 'UVS'}:
@@ -107,6 +107,8 @@ class DATA_PT_mesh_data_transfer(bpy.types.Panel):
         #mesh picker layout
         mesh_picker_box_layout = main_box_layout.box()
         mesh_picker_box_layout.prop_search(ob_prop, "mesh_source", context.scene, "objects", text="Source: ")
+
+
 
         #top row
         top_row_layout = main_box_layout.row()
@@ -127,7 +129,9 @@ class DATA_PT_mesh_data_transfer(bpy.types.Panel):
         right_bottom_row_box_layout = right_top_row_box_layout.row()
         right_bottom_row_box_layout.operator("object.transfer_shape_key_data" , text="Transfer Shape Keys" ,
                                                 icon="SHAPEKEY_DATA")
-
+        #mesh picker layout
+        vgroup_picker_box_layout = main_box_layout.box()
+        vgroup_picker_box_layout.prop_search(ob_prop, "vertex_group_filter", active, "vertex_groups")
 
 #=================================================================================================================
 

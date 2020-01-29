@@ -2,7 +2,7 @@ bl_info = {
     "name": "keUnbevel",
     "author": "Kjell Emanuelsson",
     "category": "Modeling",
-    "version": (1, 0, 0),
+    "version": (1, 1, 0),
     "blender": (2, 80, 0),
 }
 
@@ -22,54 +22,51 @@ class MESH_OT_ke_unbevel(Operator):
 
     @classmethod
     def poll(cls, context):
-        return context.active_object is not None
+        return (context.object is not None and
+                context.object.type == 'MESH' and
+                context.object.data.is_editmode)
 
     def execute(self, context):
-
-        mode = bpy.context.mode
         obj = bpy.context.active_object
+        od = obj.data
+        bm = bmesh.from_edit_mesh(od)
+        sel_mode = bpy.context.tool_settings.mesh_select_mode[:]
 
-        if mode == "EDIT_MESH":
-            od = obj.data
-            bm = bmesh.from_edit_mesh(od)
-            sel_mode = bpy.context.tool_settings.mesh_select_mode
+        if sel_mode[1]:
+            bm.edges.ensure_lookup_table()
+            sel_edges = [e for e in bm.edges if e.select]
+            vert_pairs = []
+            for e in sel_edges:
+                vp = [v for v in e.verts]
+                vert_pairs.append(vp)
 
-            if sel_mode[1]:
+            loops = get_loops(vert_pairs, legacy=True)
 
-                bm.edges.ensure_lookup_table()
-                sel_edges = [e for e in bm.edges if e.select]
-                vert_pairs = []
-                for e in sel_edges:
-                    vp = [v for v in e.verts]
-                    vert_pairs.append(vp)
+            bpy.ops.mesh.select_mode(type='VERT')
 
-                loops = get_loops(vert_pairs, legacy=True)
+            for loop in loops:
+                bm.verts.ensure_lookup_table()
+                bpy.ops.mesh.select_all(action='DESELECT')
 
-                bpy.ops.mesh.select_mode(type='VERT')
+                v1, v2, v3, v4 = loop[0].co, loop[1].co, loop[-1].co, loop[-2].co
+                xpoint = intersect_line_line(v1, v2, v3, v4)[0]
+                merge_point = loop[1]
+                merge_point.co = xpoint
 
-                for loop in loops:
-                    bm.verts.ensure_lookup_table()
-                    bpy.ops.mesh.select_all(action='DESELECT')
+                merge_verts = loop[1:-1]
+                for v in merge_verts:
+                    bm.verts[v.index].select = True
 
-                    v1, v2, v3, v4 = loop[0].co, loop[1].co, loop[-1].co, loop[-2].co
-                    xpoint = intersect_line_line(v1, v2, v3, v4)[0]
-                    merge_point = loop[1]
-                    merge_point.co = xpoint
+                bm.select_history.add(merge_point)
+                bm.verts[merge_point.index].select = True
+                bpy.ops.mesh.merge(type='LAST', uvs=True)
 
-                    merge_verts = loop[1:-1]
-                    for v in merge_verts:
-                        bm.verts[v.index].select = True
+            bm.normal_update()
+            bmesh.update_edit_mesh(od, True)
+            bpy.ops.mesh.select_mode(type='EDGE')
 
-                    bm.select_history.add(merge_point)
-                    bm.verts[merge_point.index].select = True
-                    bpy.ops.mesh.merge(type='LAST', uvs=True)
-
-                bm.normal_update()
-                bmesh.update_edit_mesh(od, True)
-                bpy.ops.mesh.select_mode(type='EDGE')
-
-            else:
-                self.report({"INFO"}, "Selection Mode Error: Please use EDGE selection.")
+        else:
+            self.report({"INFO"}, "Selection Mode Error: Please use EDGE selection.")
 
         return {"FINISHED"}
 

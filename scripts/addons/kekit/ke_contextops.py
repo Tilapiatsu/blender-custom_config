@@ -21,18 +21,18 @@ class MESH_OT_ke_contextbevel(Operator):
 
 	@classmethod
 	def poll(cls, context):
-		return context.active_object is not None
+		return (context.object is not None and
+				context.object.type == 'MESH' and
+				context.object.data.is_editmode)
 
 	def execute(self, context):
-		if bpy.context.mode == "EDIT_MESH":
-			sel_mode = bpy.context.tool_settings.mesh_select_mode
-
-			if sel_mode[0]:
-				bpy.ops.mesh.bevel('INVOKE_DEFAULT', vertex_only=True)
-			elif sel_mode[1]:
-				bpy.ops.mesh.bevel('INVOKE_DEFAULT', vertex_only=False)
-			elif sel_mode[2]:
-				bpy.ops.mesh.inset('INVOKE_DEFAULT', use_outset=False, )
+		sel_mode = bpy.context.tool_settings.mesh_select_mode[:]
+		if sel_mode[0]:
+			bpy.ops.mesh.bevel('INVOKE_DEFAULT', vertex_only=True)
+		elif sel_mode[1]:
+			bpy.ops.mesh.bevel('INVOKE_DEFAULT', vertex_only=False)
+		elif sel_mode[2]:
+			bpy.ops.mesh.inset('INVOKE_DEFAULT', use_outset=False, )
 
 		return {'FINISHED'}
 
@@ -44,19 +44,18 @@ class MESH_OT_ke_contextextrude(Operator):
 
 	@classmethod
 	def poll(cls, context):
-		return context.active_object is not None
+		return (context.object is not None and
+				context.object.type == 'MESH' and
+				context.object.data.is_editmode)
 
 	def execute(self, context):
-		if bpy.context.mode == "EDIT_MESH":
-			sel_mode = bpy.context.tool_settings.mesh_select_mode
-
-			if sel_mode[0]:
-				bpy.ops.mesh.extrude_vertices_move('INVOKE_DEFAULT')
-			elif sel_mode[1]:
-				bpy.ops.mesh.extrude_edges_move('INVOKE_DEFAULT')
-			elif sel_mode[2]:
-				bpy.ops.view3d.edit_mesh_extrude_move_normal('INVOKE_DEFAULT')
-
+		sel_mode = bpy.context.tool_settings.mesh_select_mode[:]
+		if sel_mode[0]:
+			bpy.ops.mesh.extrude_vertices_move('INVOKE_DEFAULT')
+		elif sel_mode[1]:
+			bpy.ops.mesh.extrude_edges_move('INVOKE_DEFAULT')
+		elif sel_mode[2]:
+			bpy.ops.view3d.edit_mesh_extrude_move_normal('INVOKE_DEFAULT')
 		return {'FINISHED'}
 
 
@@ -95,19 +94,19 @@ class MESH_OT_ke_contextdissolve(Operator):
 
 	@classmethod
 	def poll(cls, context):
-		return context.active_object is not None
+		return (context.object is not None and
+				context.object.type == 'MESH' and
+				context.object.data.is_editmode)
 
 	def execute(self, context):
-		if bpy.context.mode == "EDIT_MESH":
-			sel_mode = bpy.context.tool_settings.mesh_select_mode
-
-			if sel_mode[0]:
-				bpy.ops.mesh.dissolve_verts()
-			elif sel_mode[1]:
-				bpy.ops.mesh.dissolve_edges()
-			elif sel_mode[2]:
-				bpy.ops.mesh.dissolve_faces()
-
+		bpy.ops.mesh.dissolve_mode('INVOKE_DEFAULT')
+		# sel_mode = bpy.context.tool_settings.mesh_select_mode[:]
+		# if sel_mode[0]:
+		# 	bpy.ops.mesh.dissolve_verts()
+		# elif sel_mode[1]:
+		# 	bpy.ops.mesh.dissolve_edges()
+		# elif sel_mode[2]:
+		# 	bpy.ops.mesh.dissolve_faces()
 		return {'FINISHED'}
 
 
@@ -164,7 +163,7 @@ class VIEW3D_OT_ke_contextselect_extend(Operator):
 				bpy.ops.mesh.region_to_loop()
 				bpy.ops.mesh.select_mode(use_extend=False, use_expand=False, type='EDGE')
 			elif sel_mode[1]:
-				bpy.ops.mesh.loop_select('INVOKE_DEFAULT', extend=True)
+				bpy.ops.mesh.loop_multi_select(ring=False)
 
 			elif sel_mode[2]:
 				bpy.ops.mesh.select_linked(delimit=set())
@@ -235,33 +234,50 @@ class VIEW3D_OT_ke_selmode(Operator):
 class MESH_OT_ke_bridge_or_fill(Operator):
 	bl_idname = "mesh.ke_bridge_or_fill"
 	bl_label = "Bridge or Fill"
-	bl_description = "Bridge, except when ONE continous border edge-loop is selected: Grid Fill"
+	bl_description = "Bridge, except when ONE continous border edge-loop is selected: Grid Fill. " \
+					 "Also, F2 mode with 1 EDGE or 1 VERT selected."
 
 	@classmethod
 	def poll(cls, context):
-		return context.active_object is not None
+		return (context.object is not None and
+				context.object.type == 'MESH' and
+				context.object.data.is_editmode)
 
 	def execute(self, context):
+		sel_mode = bpy.context.tool_settings.mesh_select_mode[:]
+
 		obj = bpy.context.active_object
 		mesh = obj.data
 		bm = bmesh.from_edit_mesh(mesh)
-		bm.edges.ensure_lookup_table()
 
-		vert_pairs = []
-		for e in bm.edges:
-			if e.select:
+		if sel_mode[0]:
+			sel_verts = [v for v in bm.verts if v.select]
+			if len(sel_verts) == 1:
+				try: bpy.ops.mesh.f2('INVOKE_DEFAULT')
+				except: bpy.ops.mesh.fill('INVOKE_DEFAULT')
+
+		if sel_mode[1]:
+			bm.edges.ensure_lookup_table()
+			vert_pairs = []
+			sel_edges = [e for e in bm.edges if e.select]
+			for e in sel_edges:
 				vp = [v for v in e.verts]
 				vert_pairs.append(vp)
 
-		if vert_pairs:
-			check_loops = get_loops(vert_pairs, legacy=True)
-			if len(check_loops) == 1 and check_loops[0][0] == check_loops[-1][-1]:
-				try: bpy.ops.mesh.fill_grid('INVOKE_DEFAULT', True)
-				except:
-					try: bpy.ops.mesh.f2('INVOKE_DEFAULT')
-					except: bpy.ops.mesh.fill('INVOKE_DEFAULT')
-			else:
-				bpy.ops.mesh.bridge_edge_loops('INVOKE_DEFAULT', True)
+			if len(sel_edges) == 1:
+				try: bpy.ops.mesh.f2('INVOKE_DEFAULT')
+				except: bpy.ops.mesh.fill('INVOKE_DEFAULT')
+
+			if vert_pairs:
+				check_loops = get_loops(vert_pairs, legacy=True)
+				if len(check_loops) == 1 and check_loops[0][0] == check_loops[-1][-1]:
+					try: bpy.ops.mesh.fill_grid('INVOKE_DEFAULT', True)
+					except:
+						try: bpy.ops.mesh.f2('INVOKE_DEFAULT')
+						except: bpy.ops.mesh.fill('INVOKE_DEFAULT')
+				else:
+					try: bpy.ops.mesh.bridge_edge_loops('INVOKE_DEFAULT', True)
+					except: pass
 
 		return {'FINISHED'}
 
@@ -273,16 +289,16 @@ class MESH_OT_ke_maya_connect(Operator):
 
 	@classmethod
 	def poll(cls, context):
-		return context.active_object is not None
+		return (context.object is not None and
+				context.object.type == 'MESH' and
+				context.object.data.is_editmode)
 
 	def execute(self, context):
-		if bpy.context.mode == "EDIT_MESH":
-			sel_mode = [m for m in bpy.context.tool_settings.mesh_select_mode]
-			if sel_mode[0]:
-				bpy.ops.mesh.vert_connect_path('INVOKE_DEFAULT')
-			elif sel_mode[1] or sel_mode[2]:
-				bpy.ops.mesh.subdivide('INVOKE_DEFAULT')
-
+		sel_mode = bpy.context.tool_settings.mesh_select_mode[:]
+		if sel_mode[0]:
+			bpy.ops.mesh.vert_connect_path('INVOKE_DEFAULT')
+		elif sel_mode[1] or sel_mode[2]:
+			bpy.ops.mesh.subdivide('INVOKE_DEFAULT')
 		return {'FINISHED'}
 
 
@@ -293,18 +309,18 @@ class MESH_OT_ke_triple_connect_spin(Operator):
 
 	@classmethod
 	def poll(cls, context):
-		return context.active_object is not None
+		return (context.object is not None and
+				context.object.type == 'MESH' and
+				context.object.data.is_editmode)
 
 	def execute(self, context):
-		if bpy.context.mode == "EDIT_MESH":
-			sel_mode = [m for m in bpy.context.tool_settings.mesh_select_mode]
-			if sel_mode[0]:
-				bpy.ops.mesh.vert_connect_path('INVOKE_DEFAULT')
-			elif sel_mode[1]:
-				bpy.ops.mesh.edge_rotate(use_ccw=False)
-			elif sel_mode[2]:
-				bpy.ops.mesh.quads_convert_to_tris(quad_method='BEAUTY', ngon_method='BEAUTY')
-
+		sel_mode = bpy.context.tool_settings.mesh_select_mode[:]
+		if sel_mode[0]:
+			bpy.ops.mesh.vert_connect_path('INVOKE_DEFAULT')
+		elif sel_mode[1]:
+			bpy.ops.mesh.edge_rotate(use_ccw=False)
+		elif sel_mode[2]:
+			bpy.ops.mesh.quads_convert_to_tris(quad_method='BEAUTY', ngon_method='BEAUTY')
 		return {'FINISHED'}
 
 

@@ -270,3 +270,48 @@ def get_closest_midpoint(first_island_pos1, first_island_pos2, second_island_pos
     position = get_midpoint(newEndPos, second_island_pos)
 
     return distance, position
+
+
+def mouse_over_element(bm, mouse_pos):
+    # selection or mouse over
+    verts_sel = [v.select for v in bm.verts]
+    edges_sel = [e.select for e in bm.edges]
+    faces_sel = [f.select for f in bm.faces]
+
+    try:
+        geom = bm.select_history[-1]
+    except IndexError:
+        geom = None
+
+    ret = bpy.ops.view3d.select(extend=True, location=mouse_pos)
+    if ret == {'PASS_THROUGH'}:
+        print("no close-by geom")
+        return {'CANCELLED'}
+
+    try:
+        geom2 = bm.select_history[-1]
+        print("geom2 sel 1st", geom2.select)
+    except IndexError:
+        geom2 = None
+
+    if geom is None:
+        geom = geom2
+
+    if isinstance(geom, bmesh.types.BMVert):
+        geom_sel = verts_sel
+        bm_geom = bm.verts
+    elif isinstance(geom, bmesh.types.BMEdge):
+        geom_sel = edges_sel
+        bm_geom = bm.edges
+    elif isinstance(geom, bmesh.types.BMFace):
+        geom_sel = faces_sel
+        bm_geom = bm.faces
+
+    for sel, g in zip(geom_sel, bm_geom):
+        if sel != g.select:
+            g.select_set(False)
+            bm.select_history.remove(g)
+            bm.select_flush_mode()
+            break
+
+    return geom

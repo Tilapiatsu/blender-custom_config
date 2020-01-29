@@ -2,7 +2,7 @@ bl_info = {
     "name": "Merge To Mouse",
     "author": "Kjell Emanuelsson 2019",
     "wiki_url": "http://artbykjell.com",
-    "version": (1, 0, 0),
+    "version": (1, 1, 0),
     "blender": (2, 80, 0),
 }
 
@@ -22,6 +22,12 @@ class MESH_OT_merge_to_mouse(Operator):
     merge_point = []
     nearest = 100000
 
+    @classmethod
+    def poll(cls, context):
+        return (context.object is not None and
+                context.object.type == 'MESH' and
+                context.object.data.is_editmode)
+
     def invoke(self, context, event):
         self.mouse_pos[0] = event.mouse_region_x
         self.mouse_pos[1] = event.mouse_region_y
@@ -32,7 +38,7 @@ class MESH_OT_merge_to_mouse(Operator):
         obj = bpy.context.active_object
         mesh = obj.data
         bm = bmesh.from_edit_mesh(mesh)
-        sel_mode = [b for b in bpy.context.tool_settings.mesh_select_mode]
+        sel_mode = bpy.context.tool_settings.mesh_select_mode[:]
 
         sel = [v for v in bm.verts if v.select]
         if sel:

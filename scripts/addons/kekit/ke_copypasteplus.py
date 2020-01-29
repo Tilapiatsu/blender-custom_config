@@ -25,8 +25,15 @@ from bpy.props import (
 class MESH_OT_copyplus(Operator):
     bl_idname = "mesh.copyplus"
     bl_label = "Copy+"
-    bl_description = "Macro-hack Copy replacement that can copy faces object-to-object (with Paste+)"
+    bl_description = "Macro-hack Copy replacement that can copy faces object-to-object (with Paste+)" \
+                     "--- Note: You cant delete the original geo before paste+ ---"
     bl_options = {'REGISTER', 'UNDO'}
+
+    @classmethod
+    def poll(cls, context):
+        return (context.object is not None and
+                context.object.type == 'MESH' and
+                context.object.data.is_editmode)
 
     def invoke(self, context, event):
         return self.execute(context)
@@ -55,6 +62,12 @@ class MESH_OT_pasteplus(Operator):
     bl_label = "Paste+"
     bl_description = "Macro-hack Paste replacement that can paste faces object-to-object (after using Copy+). Duplicate if in same object"
     bl_options = {'REGISTER', 'UNDO'}
+
+    @classmethod
+    def poll(cls, context):
+        return (context.object is not None and
+                context.object.type == 'MESH' and
+                context.object.data.is_editmode)
 
     def invoke(self, context, event):
         return self.execute(context="VIEW_3D")

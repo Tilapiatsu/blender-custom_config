@@ -2,7 +2,7 @@ bl_info = {
 	"name": "keGround",
 	"author": "Kjell Emanuelsson",
 	"category": "Modeling",
-	"version": (1, 0, 0),
+	"version": (1, 1, 0),
 	"blender": (2, 80, 0),
 }
 import bpy
@@ -21,7 +21,7 @@ def zmove(value, zonly=True):
 class MESH_OT_ke_ground(bpy.types.Operator):
 	bl_idname = "mesh.ke_ground"
 	bl_label = "Ground (or Center)"
-	bl_description = "EDIT MODE: Ground (or Center) selected elements (Auto-connects), OBJECT(S): zeroes zloc (mostly)"
+	bl_description = "Ground (or Center) selected elements (Auto-connects)"
 	bl_options = {'REGISTER', 'UNDO'}
 
 	ke_ground_option: bpy.props.EnumProperty(
@@ -39,63 +39,64 @@ class MESH_OT_ke_ground(bpy.types.Operator):
 
 	@classmethod
 	def poll(cls, context):
-		return context.active_object is not None
+		return (context.object is not None and
+				context.object.type == 'MESH' and
+				context.object.data.is_editmode)
 
 	def execute(self, context):
-		mode = bpy.context.mode
 		obj = bpy.context.active_object
 		mat = obj.matrix_world.copy()
 		offset = 0
 
-		if mode == "EDIT_MESH":
+		# Grab bbox & settings
+		bm = bmesh.from_edit_mesh(obj.data)
+		vc = [mat @ v.co for v in bm.verts if v.select]
+		zs = sorted([c[2] for c in vc])
 
-			# Grab bbox & settings
-			bm = bmesh.from_edit_mesh(obj.data)
-			vc = [mat @ v.co for v in bm.verts if v.select]
-			zs = sorted([c[2] for c in vc])
+		# Process
+		if vc:
+			if self.ke_ground_option == "GROUND":
+				offset = round(zs[0], 4) * -1
 
-			# Process
-			if vc:
-				if self.ke_ground_option == "GROUND":
-					offset = round(zs[0], 4) * -1
+			elif self.ke_ground_option == "CENTER":
+				offset = round(zs[0] + ((zs[-1] - zs[0]) / 2), 4) * -1
 
-				elif self.ke_ground_option == "CENTER":
-					offset = round(zs[0] + ((zs[-1] - zs[0]) / 2), 4) * -1
+			elif self.ke_ground_option == "CENTER_ALL":
+				zx = sorted([c[0] for c in vc])
+				zy = sorted([c[1] for c in vc])
+				xo = round(zx[0] + ((zx[-1] - zx[0]) / 2), 4) * -1
+				yo = round(zy[0] + ((zy[-1] - zy[0]) / 2), 4) * -1
+				zo = round(zs[0] + ((zs[-1] - zs[0]) / 2), 4) * -1
+				zmove((xo,yo,zo), zonly=False)
 
-				elif self.ke_ground_option == "CENTER_ALL":
-					zx = sorted([c[0] for c in vc])
-					zy = sorted([c[1] for c in vc])
-					xo = round(zx[0] + ((zx[-1] - zx[0]) / 2), 4) * -1
-					yo = round(zy[0] + ((zy[-1] - zy[0]) / 2), 4) * -1
-					zo = round(zs[0] + ((zs[-1] - zs[0]) / 2), 4) * -1
-					zmove((xo,yo,zo), zonly=False)
+			elif self.ke_ground_option == "UNDER":
+				offset = round(zs[-1], 4) * -1
 
-				elif self.ke_ground_option == "UNDER":
-					offset = round(zs[-1], 4) * -1
+			elif self.ke_ground_option == "CUSTOM":
+				offset = (round(zs[0], 4) - self.ke_ground_custom) * -1
 
-				elif self.ke_ground_option == "CUSTOM":
-					offset = (round(zs[0], 4) - self.ke_ground_custom) * -1
+			elif self.ke_ground_option == "CUSTOM_CENTER":
+				offset = (round(zs[0] + ((zs[-1] - zs[0]) / 2), 4) - self.ke_ground_custom)* -1
 
-				elif self.ke_ground_option == "CUSTOM_CENTER":
-					offset = (round(zs[0] + ((zs[-1] - zs[0]) / 2), 4) - self.ke_ground_custom)* -1
+			if offset and self.ke_ground_option != "CENTER_ALL":
+				zmove(offset)
+		else:
+			self.report({"INFO"}, "Ground: Selection Error?")
 
-				if offset and self.ke_ground_option != "CENTER_ALL":
-					zmove(offset)
-			else:
-				self.report({"INFO"}, "Ground: Selection Error?")
+		# elif mode == "OBJECT":
+		# Todo: MEH! Maybe something more useful in the future...removing to save me some hotkey trouble
 
-		elif mode == "OBJECT":
-			for o in bpy.context.selected_objects:
-				if o.type == "MESH":
-
-					if self.ke_ground_option == "CENTER_ALL":
-						o.location = (0, 0, 0)
-
-					elif self.ke_ground_option == "CUSTOM" or self.ke_ground_option == "CUSTOM_CENTER":
-						o.location[2] = self.ke_ground_custom
-
-					else:
-						o.location[2] = 0
+		# 	for o in bpy.context.selected_objects:
+		# 		if o.type == "MESH":
+		#
+		# 			if self.ke_ground_option == "CENTER_ALL":
+		# 				o.location = (0, 0, 0)
+		#
+		# 			elif self.ke_ground_option == "CUSTOM" or self.ke_ground_option == "CUSTOM_CENTER":
+		# 				o.location[2] = self.ke_ground_custom
+		#
+		# 			else:
+		# 				o.location[2] = 0
 
 		return {"FINISHED"}
 

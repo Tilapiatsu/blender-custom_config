@@ -91,22 +91,23 @@ def get_shortest(wmat, edges):
 # -------------------------------------------------------------------------------------------------------------------
 
 
-class MESH_OT_ke_fitprim(bpy.types.Operator):
-    bl_idname = "mesh.ke_fitprim"
+class VIEW3D_OT_ke_fitprim(bpy.types.Operator):
+    bl_idname = "view3d.ke_fitprim"
     bl_label = "ke_fitprim"
     bl_description = "Creates (unit or unit+height) box or cylinder primitve based on selection." \
                      "VERTEX: Fits *along* 2 Selected verts. EDGE: Fits *in* selection/s. POLY: Fits *on* selection/s."
-    bl_options = {'REGISTER'}
+    bl_options = {'REGISTER'}  # TODO: undo/panel not gonna work in this setup...
 
     ke_fitprim_option: bpy.props.EnumProperty(
         items=[("BOX", "Box Mode", "", "BOX_MODE", 1),
                ("CYL", "Cylinder Mode", "", "CYL_MODE", 2),
-               ("BOX_WORLD", "Box World Align", "", "BOX_WORLD", 3),
-               ("CYL_WORLD", "Cylinder World Align", "", "CYL_WORLD", 4)],
-        name="FitPrim Options",
+               ("SPHERE", "UV Sphere", "", "SPHERE", 5)],
+    name="FitPrim Options",
         default="BOX")
 
+    itemize = True
     boxmode = True
+    sphere = False
     world = False
     settings = (0, 0, 0)
     _handle = None
@@ -115,7 +116,10 @@ class MESH_OT_ke_fitprim(bpy.types.Operator):
     modal = True
     select = True
     screen_x = 0
+    sphere_seg = 32
+    sphere_ring = 16
     mouse_pos = Vector((0, 0))
+    edit_mode = ""
 
     def invoke(self, context, event):
         self.screen_x = int(bpy.context.region.width *.5)
@@ -150,11 +154,17 @@ class MESH_OT_ke_fitprim(bpy.types.Operator):
             context.area.tag_redraw()
             bpy.types.SpaceView3D.draw_handler_remove(self._handle, 'WINDOW')
 
-            if not self.select:
+            if self.itemize or self.edit_mode == "OBJECT":
+                bpy.ops.object.mode_set(mode='OBJECT')
+                bpy.ops.object.shade_smooth()
+                bpy.context.object.data.use_auto_smooth = True
+                bpy.ops.view3d.snap_cursor_to_center()
+
+            if not self.select and not self.itemize and not self.edit_mode == "OBJECT":
                 bpy.ops.mesh.select_all(action='DESELECT')
 
-            return {'CANCELLED'}
-            # return {'FINISHED'}  # TODO: undo/panel not gonna work in this setup...
+            bpy.context.space_data.overlay.show_cursor = True
+            return {'FINISHED'}
 
         return {'RUNNING_MODAL'}
 
@@ -164,22 +174,24 @@ class MESH_OT_ke_fitprim(bpy.types.Operator):
             self.boxmode, self.world = True, False
         elif self.ke_fitprim_option == "CYL":
             self.boxmode, self.world = False, False
-        elif self.ke_fitprim_option == "BOX_WORLD":
-            self.boxmode, self.world = True, True
-        elif self.ke_fitprim_option == "CYL_WORLD":
-            self.boxmode, self.world = False, True
+        elif self.ke_fitprim_option == "SPHERE":
+            self.boxmode, self.world, self.sphere = False, False, True
 
+        self.itemize = bpy.context.scene.kekit.fitprim_item
         self.modal = bpy.context.scene.kekit.fitprim_modal
         self.cyl_sides = bpy.context.scene.kekit.fitprim_sides
         self.select = bpy.context.scene.kekit.fitprim_select
         self.unit = bpy.context.scene.kekit.fitprim_unit
-        edit_mode = bpy.context.mode
+        self.sphere_ring = bpy.context.scene.kekit.fitprim_sphere_ring
+        self.sphere_seg = bpy.context.scene.kekit.fitprim_sphere_seg
 
+        self.edit_mode = bpy.context.mode
+        sel_verts = []
+        multi_object_mode = False
         # -----------------------------------------------------------------------------------------
         # MULTI OBJECT CHECK & SETUP
         # -----------------------------------------------------------------------------------------
-        if edit_mode == "EDIT_MESH":
-
+        if self.edit_mode == "EDIT_MESH":
             sel_mode = [b for b in bpy.context.tool_settings.mesh_select_mode]
             multi_object_mode = False
             other_side = []
@@ -240,24 +252,25 @@ class MESH_OT_ke_fitprim(bpy.types.Operator):
         # -----------------------------------------------------------------------------------------
         # NO SELECTION MODE
         # -----------------------------------------------------------------------------------------
-        if not sel_verts:
+        if not sel_verts or self.edit_mode == "OBJECT":
             self.world = True
             screenpos = region_2d_to_location_3d(context.region, context.space_data.region_3d, self.mouse_pos, (0,0,0))
             setpos = screenpos
             side = self.unit
             distance = side
+            sel_mode = (True,False,False)
 
         # -----------------------------------------------------------------------------------------
         # VERT MODE(s)
         # -----------------------------------------------------------------------------------------
-        elif edit_mode == "EDIT_MESH" and sel_mode[0] and len(sel_verts) == 1 and not multi_object_mode:
+        elif sel_mode[0] and len(sel_verts) == 1 and not multi_object_mode:
             # 1-VERT MODE
             self.world = True
             side = get_shortest(obj_mtx, sel_verts[0].link_edges[:])
             distance = side
             setpos = obj_mtx @ sel_verts[0].co
 
-        elif edit_mode == "EDIT_MESH" and sel_mode[0]:
+        elif sel_mode[0]:
             # 2+ Vert mode
             if multi_object_mode:
                 p1 = obj_mtx @ sel_verts[0].co
@@ -287,7 +300,7 @@ class MESH_OT_ke_fitprim(bpy.types.Operator):
         # -----------------------------------------------------------------------------------------
         # EDGE MODE
         # -----------------------------------------------------------------------------------------
-        elif edit_mode == "EDIT_MESH" and sel_mode[1]:
+        elif sel_mode[1]:
 
             one_line, loops, loops2 = False, [], []
             sel_edges = [e for e in bm.edges if e.select]
@@ -373,22 +386,24 @@ class MESH_OT_ke_fitprim(bpy.types.Operator):
                     distance = spacing
 
                 elif len(loops) == 1 or len(sel_edges) == 1:
-                    # print ("single obj - single loop")
+                    print ("single obj - single loop")
                     vecs = [(obj_mtx @ vp[0].co) - (obj_mtx @ vp[1].co) for vp in vps]
                     start_vec = vecs[-1]
                     side, sides, center = get_sides(obj_mtx, start_vec, vecs, vps)
+                    if len(sel_edges) == 4:
+                        print("FIX")
 
                     # ONE LINE (ONE EDGE or SINGLE STRAIGHT LINE) MODE------------------------------
                     if len(sides) == 1 and len(sides[0]) == len(sel_verts):
-                        # print("1 side --> one line:", sides[0])
+                        print("1 side --> one line:", sides[0])
                         one_line = sides[0][0], sides[0][-1]
 
                     elif len(sel_edges) == 1:
-                        # print("1 edge --> one line", one_line)
+                        print("1 edge --> one line", one_line)
                         one_line = sel_verts
 
                     if one_line:
-                        # print ("one line. center, points, normal:", center, one_line, active_edge_normal)
+                        print ("one line. center, points, normal:", center, one_line, active_edge_normal)
                         p1, p2 = obj_mtx @ one_line[0].co, obj_mtx @ one_line[1].co
                         t_v = Vector(p1 - p2).normalized()
                         n_v = active_edge_normal
@@ -400,7 +415,7 @@ class MESH_OT_ke_fitprim(bpy.types.Operator):
 
                     else:
                         # RECT CHECK SIDES OR NGON MODE--------------------------------------------
-                        # print("Edge Rect/Ngon mode. Sides:", len(sides))
+                        print("Edge Rect/Ngon mode. Sides:", len(sides))
                         b_candidate = sides[0][0].link_edges
                         b_candidate = [e.verts for e in b_candidate]
                         b = [v for vp in b_candidate for v in vp if v not in sides[0] and v in sel_verts]
@@ -422,7 +437,7 @@ class MESH_OT_ke_fitprim(bpy.types.Operator):
         # -----------------------------------------------------------------------------------------
         # FACE MODE
         # -----------------------------------------------------------------------------------------
-        elif edit_mode == "EDIT_MESH" and sel_mode[2] and active_face and sel_poly:
+        elif sel_mode[2] and active_face and sel_poly:
 
             # GET ISLANDS
             if multi_object_mode and active_face:
@@ -506,19 +521,25 @@ class MESH_OT_ke_fitprim(bpy.types.Operator):
             if len(sel_verts) == 0 or sel_mode[0] or sel_mode[1]:
                 side *= .5
                 distance = distance / 2
+                if self.sphere and sel_mode[0]:
+                    if not len(sel_verts) == 0:
+                        side = distance
 
             elif sel_mode[2]:
                 if island_mode:
                     side *= .5
                     offset = normal * distance / 2
                     distance *= .5
-
+                    if self.sphere:
+                        side = distance
                 else:
                     side *= .5
                     distance = side
                     offset = normal * side
 
                 setpos = center + offset
+                if not island_mode and self.sphere:
+                    setpos = setpos - offset
 
             # SET FINAL ROTATION
             if self.world:
@@ -527,45 +548,69 @@ class MESH_OT_ke_fitprim(bpy.types.Operator):
                 setrot = setrot.to_euler()
 
             # RUN OP
-            bpy.ops.mesh.select_mode(type='FACE')
+            if not self.edit_mode == "OBJECT":
+                bpy.ops.mesh.select_mode(type='FACE')
+
+            if self.itemize:
+                bpy.ops.object.mode_set(mode="OBJECT")
+                cursor = bpy.context.scene.cursor
+                bpy.ops.transform.select_orientation(orientation='GLOBAL')
+                cursor.location = setpos
+                cursor.rotation_euler = setrot
 
             if self.boxmode:
                 bpy.ops.mesh.primitive_box_add(width=side, depth=side, height=distance,
                                                align='WORLD', location=setpos, rotation=setrot)
 
+                if self.itemize or self.edit_mode == "OBJECT":
+                    bpy.ops.object.shade_smooth()
+                    bpy.context.object.data.use_auto_smooth = True
+
+            elif self.sphere:
+                bpy.ops.mesh.primitive_uv_sphere_add(segments=self.sphere_seg, ring_count=self.sphere_ring, radius=side,
+                                                     align='WORLD', location=setpos, rotation=setrot)
+
+                if self.itemize or self.edit_mode == "OBJECT":
+                    bpy.ops.object.shade_smooth()
+                    bpy.context.object.data.use_auto_smooth = True
+
             else:
                 bpy.ops.mesh.primitive_cylinder_add(vertices=self.cyl_sides, radius=side, depth=distance * 2,
                                                     enter_editmode=False, align='WORLD',
                                                     location=setpos, rotation=setrot)
-
                 if self.modal:
+                    if self.itemize or self.edit_mode == "OBJECT":
+                        bpy.ops.object.mode_set(mode="EDIT")
+
                     self.settings = (side, distance, setpos, setrot)
                     context.window_manager.modal_handler_add(self)
 
                     args = (self, context, self.screen_x)
                     self._handle = bpy.types.SpaceView3D.draw_handler_add(draw_callback_px, args, 'WINDOW','POST_PIXEL')
-
+                    bpy.context.space_data.overlay.show_cursor = False
                     return {'RUNNING_MODAL'}
 
-            if multi_object_mode:
+            if multi_object_mode and not self.itemize:
                 second_obj.select_set(state=True)
                 obj.select_set(state=True)
                 bpy.ops.object.editmode_toggle()
                 bpy.ops.object.editmode_toggle()
 
         else:
-            self.report({"INFO"}, "FitPrim: Incorrect Selection / Edit Mode / No Active Element ?")
+            self.report({"INFO"}, "FitPrim: Incorrect Selection? / Edit Mode? / No Active Element?")
 
-        if not self.select:
+        if not self.select and not self.itemize and not self.edit_mode == "OBJECT":
             bpy.ops.mesh.select_all(action='DESELECT')
 
-        return {"FINISHED"}
+        if self.itemize:
+            bpy.ops.view3d.snap_cursor_to_center()
 
+        return {"FINISHED"}
 
 # -------------------------------------------------------------------------------------------------
 # Class Registration & Unregistration
 # -------------------------------------------------------------------------------------------------
-classes = (MESH_OT_ke_fitprim,
+classes = (VIEW3D_OT_ke_fitprim,
            )
 
 
