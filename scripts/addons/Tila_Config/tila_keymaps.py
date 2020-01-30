@@ -451,6 +451,10 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		self.kmi_set_replace('view3d.ke_get_set_editmesh', self.k_cursor, 'CLICK', alt=True, disable_double=True)
 		self.kmi_set_replace('view3d.ke_get_set_material', 'M', 'PRESS', shift=True)
 
+		# MouseLook_Navigation
+		self.kmi_set_replace('mouselook_navigation.navigate', self.k_cursor, 'CLICK_DRAG', ctrl=False, alt=True, shift=False,  disable_double=True)
+
+
 		##### 3D View Generic
 		self.kmi_init(name='3D View Generic', space_type='VIEW_3D', region_type='WINDOW')
 
