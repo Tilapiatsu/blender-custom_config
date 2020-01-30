@@ -50,6 +50,7 @@ modules =   (
             'MeshDataTransfer',
             'keentools_facebuilder',
             'kekit',
+            'mouselook_navigation',
             # 'ZWeightTools-1_0_1',
             'W_Mesh',
             'uvpackmaster2',
