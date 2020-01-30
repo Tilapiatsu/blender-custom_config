@@ -445,7 +445,7 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 			kmi.active = False
 		
 		self.kmi_set_replace('view3d.toggle_shading', 'Z', 'PRESS', shift=True, properties=[('type', 'MATERIAL')], disable_double=True)
-		self.kmi_set_replace('view3d.toggle_shading', 'Z', 'PRESS', ctrl=True, shift=True, properties=[('type', 'RENDERED')], disable_double=True)
+		self.kmi_set_replace('view3d.toggle_shading', 'Z', 'PRESS', ctrl=True, alt=True, properties=[('type', 'RENDERED')], disable_double=True)
 
 		# KE_Kit
 		self.kmi_set_replace('view3d.ke_get_set_editmesh', self.k_cursor, 'CLICK', alt=True, disable_double=True)
