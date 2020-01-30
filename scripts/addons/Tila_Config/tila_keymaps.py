@@ -883,7 +883,7 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 					  		linked_tool='gpencil.select_linked',
 							linked_pick_tool='gpencil.select_linked_pick')
 
-		self.tool_sculpt('gpencil.sculptmode_toggle')
+		# self.tool_sculpt('gpencil.sculptmode_toggle')
 
 		self.kmi_set_replace('view3d.tila_isolate', 'X', 'PRESS', ctrl=True, alt=True, shift=True)
 
