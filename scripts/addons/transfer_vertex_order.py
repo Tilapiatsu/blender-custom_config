@@ -19,7 +19,7 @@
 bl_info = {
     "name": "Transfer Vert Order",
     "author": "Jose Conseco based on UV Transfer from MagicUV Nutti",
-    "version": (2, 1),
+    "version": (2, 2),
     "blender": (2, 80, 0),
     "location": "Sidebar (N) -> Tools panel",
     "description": "Transfer Verts IDs by verts proximity or by selected faces",
@@ -41,7 +41,9 @@ class CopyIDs():
         self.transuv = ID_DATA()
 
 class ID_DATA():
-    topology_copied = []
+    face_vert_ids = []
+    face_edge_ids = []
+    faces_id = []
 
 
 class VOT_PT_CopyVertIds(bpy.types.Panel):
@@ -71,39 +73,67 @@ class VOT_OT_TransferVertId(bpy.types.Operator):
     bl_label = "Transfer IDs  by location"
     bl_idname = "object.vert_id_transfer_proximity"
     bl_description = "Transfer verts IDs by vert positions (for meshes with exactly same shape)\nTwo mesh objects have to be selected"
-    bl_options = {'REGISTER', 'UNDO'}
+    bl_options = {'REGISTER'}
 
     delta: bpy.props.FloatProperty(name="Delta", description="SearchDistance", default=0.1, min=0, max=1, precision = 4)
     def execute(self, context):
         sourceObj = context.active_object
-
         TargetObjs = [obj for obj in context.selected_objects if obj!=sourceObj and obj.type=='MESH']
+
         if not TargetObjs:
             self.report({'ERROR'}, 'You seed to select two mesh objects (source then target that will receive vert order)! Cancelling')
             return {'CANCELLED'}
 
-        mesh = sourceObj.data
-        size = len(mesh.vertices)
-        kdSourceObj = kdtree.KDTree(size)
+        bm = bmesh.new()  # load mesh
+        bm.from_mesh(sourceObj.data)
+        src_obj_kd_verts = kdtree.KDTree(len(bm.verts))
+        for i, v in enumerate(bm.verts):
+            src_obj_kd_verts.insert(v.co, i)
+        src_obj_kd_verts.balance()
 
-        for i, v in enumerate(mesh.vertices):
-            kdSourceObj.insert(v.co, i)
+        src_obj_kd_edges = kdtree.KDTree(len(bm.edges))
+        for i, edge in enumerate(bm.edges):
+            src_obj_kd_edges.insert((edge.verts[0].co+edge.verts[1].co)/2, i)
+        src_obj_kd_edges.balance()
 
-        kdSourceObj.balance()
-        preocessedVertsIdDict = {}
+        src_obj_kd_faces = kdtree.KDTree(len(bm.faces))
+        for i, f in enumerate(bm.faces):
+            src_obj_kd_faces.insert(f.calc_center_median(), i)
+        src_obj_kd_faces.balance()
+        bm.free()
+        processedVertsIdDict = {}
+        processedEdgesIdDict = {}
+        processedFacesIdDict = {}
         for target in TargetObjs:
             copiedCount = 0
-            preocessedVertsIdDict.clear()
+            processedVertsIdDict.clear()
             bm = bmesh.new()  # load mesh
             bm.from_mesh(target.data)
-            for targetVert in bm.verts:
-                co, index, dist = kdSourceObj.find(targetVert.co)
+            for vert in bm.verts:
+                co, index, dist = src_obj_kd_verts.find(vert.co)
+                if dist < self.delta:  # delta
+                    copiedCount += 1
+                    vert.index = index
+                    processedVertsIdDict[vert] = index
+
+            for edge in bm.edges:
+                co, index, dist = src_obj_kd_edges.find((edge.verts[0].co+edge.verts[1].co)/2)
                 if dist<self.delta:  #delta
                     copiedCount+=1
-                    targetVert.index = index
-                    preocessedVertsIdDict[targetVert]=index
-            VOT_OT_PasteVertID.sortOtherVerts(preocessedVertsIdDict, bm.verts)
+                    edge.index = index
+                    processedEdgesIdDict[edge] = index
+
+            for face in bm.faces:
+                co, index, dist = src_obj_kd_faces.find(face.calc_center_median())
+                if dist<self.delta:  #delta
+                    copiedCount+=1
+                    face.index = index
+                    processedFacesIdDict[face] = index
+
+            VOT_OT_PasteVertID.sortOtherVerts(processedVertsIdDict, processedEdgesIdDict, processedFacesIdDict, bm)
             bm.verts.sort()
+            bm.edges.sort()
+            bm.faces.sort()
             bm.to_mesh(target.data)
             bm.free()
             self.report({'INFO'}, 'Pasted '+str(copiedCount)+' vert id\'s ')
@@ -121,9 +151,12 @@ class VOT_OT_CopyVertID(bpy.types.Operator):
         active_obj = context.active_object
         self.obj = active_obj
         bm = bmesh.from_edit_mesh(active_obj.data)
+        bm.edges.ensure_lookup_table()
         bm.faces.ensure_lookup_table()
 
-        props.topology_copied.clear()
+        props.face_vert_ids.clear()
+        props.face_edge_ids.clear()
+        props.faces_id.clear()
 
         # get selected faces
         active_face = bm.faces.active
@@ -139,11 +172,12 @@ class VOT_OT_CopyVertID(bpy.types.Operator):
         active_face_nor = active_face.normal.copy()
         all_sorted_faces = main_parse(self, sel_faces, active_face, active_face_nor)
         if all_sorted_faces:
-            for face_data in all_sorted_faces.values():
-                # ipdb.set_trace()
+            for face, face_data in all_sorted_faces.items():
                 verts = face_data[0]
-                vertIndices = [vert.index for vert in verts]
-                props.topology_copied.append(vertIndices)
+                edges = face_data[1]
+                props.face_vert_ids.append([vert.index for vert in verts])
+                props.face_edge_ids.append([e.index for e in edges])
+                props.faces_id.append(face.index)
 
         bmesh.update_edit_mesh(active_obj.data)
 
@@ -159,26 +193,35 @@ class VOT_OT_PasteVertID(bpy.types.Operator):
     invert_normals: BoolProperty(name="Invert Normals", description="Invert Normals", default=False)
 
     @staticmethod
-    def sortOtherVerts(preocessedVertsIdDict, allVerts):
+    def sortOtherVerts(processedVertsIdDict, preocessedEdgesIsDict, preocessedFaceIsDict, bm):
         """Prevet verts on other islands from being all shuffled"""
         # dicts instead of lists - faster search 4x?
-        processedVerts = {v: id for (v, id) in preocessedVertsIdDict.items()}  # dicts instead of lists
-        processedIDs = {id: 1 for (v, id) in preocessedVertsIdDict.items()}  # dicts instead of lists
+        if len(bm.verts) == len(processedVertsIdDict) and len(bm.faces) == len(preocessedFaceIsDict): 
+            return #all verts, and faces were processed - > no other Islands -> quit
 
-        notProcessedVerts = {v: v.index for v in allVerts if v not in processedVerts}  # dicts instead of lists
-        notProcessedVertsIds = {v.index: 1 for v in allVerts if v not in processedVerts}  # it will have duplicated ids from processedIDs that have to be
-        
-        spareIDS = [i for i in range(len(allVerts)) if (i not in processedIDs and i not in notProcessedVertsIds)]
+        def fix_islands(processed_items, bm_element): #face, verts, or edges
+            processedItems = {item: id for (item, id) in processed_items.items()}  # dicts instead of lists
+            processedIDs = {id: 1 for (item, id) in processed_items.items()}  # dicts instead of lists
 
-        for v in notProcessedVerts:
-            if v.index in processedIDs:  # if duplicated id found if not processed verts
-                v.index = spareIDS.pop(0)  # what if list is empty??
-        
+            notProcessedItemsIds = {ele.index: 1 for ele in bm_element if ele not in processedItems}  # it will have duplicated ids from processedIDs that have to be
+
+            spareIDS = [i for i in range(len(bm_element)) if (i not in processedIDs and i not in notProcessedItemsIds)]
+
+            notProcessedElements = [item for item in bm_element if item not in processedItems]
+            for item in notProcessedElements:
+                if item.index in processedIDs:  # if duplicated id found in not processed verts
+                    item.index = spareIDS.pop(0)  # what if list is empty??
+
+        fix_islands(processedVertsIdDict, bm.verts)
+        fix_islands(preocessedEdgesIsDict, bm.edges)
+        fix_islands(preocessedFaceIsDict, bm.faces)
+
 
     def execute(self, context):
         props = context.scene.copy_indices.transuv
         active_obj = context.active_object
         bm = bmesh.from_edit_mesh(active_obj.data)
+        bm.edges.ensure_lookup_table()
         bm.faces.ensure_lookup_table()
 
         # get selection history
@@ -191,6 +234,8 @@ class VOT_OT_PasteVertID(bpy.types.Operator):
 
         # parse selection history
         vertID_dict = {}
+        edgeID_dict = {}
+        faceID_dict = {}
         for i, _ in enumerate(all_sel_faces):
             if (i == 0) or (i % 2 == 0):
                 continue
@@ -205,18 +250,20 @@ class VOT_OT_PasteVertID(bpy.types.Operator):
             # ipdb.set_trace()
             if all_sorted_faces:
                 # check amount of copied/pasted faces
-                if len(all_sorted_faces) != len(props.topology_copied):
+                if len(all_sorted_faces) != len(props.face_vert_ids):
                     self.report(
                         {'WARNING'},
                         "Mesh has different amount of faces"
                     )
                     return {'FINISHED'}
 
-                for j, face_data in enumerate(all_sorted_faces.values()):
-                    copied_data = props.topology_copied[j]
+                for j,(face, face_data) in enumerate(all_sorted_faces.items()):
+                    vert_ids_cache = props.face_vert_ids[j]
+                    edge_ids_cache = props.face_edge_ids[j]
+                    face_id_cache = props.faces_id[j]
 
                     # check amount of copied/pasted verts
-                    if len(copied_data) != len(face_data[0]):
+                    if len(vert_ids_cache) != len(face_data[0]):
                         bpy.ops.mesh.select_all(action='DESELECT')
                         # select problematic face
                         list(all_sorted_faces.keys())[j].select = True
@@ -228,10 +275,17 @@ class VOT_OT_PasteVertID(bpy.types.Operator):
 
 
                     for k, vert in enumerate(face_data[0]):
-                        vert.index = copied_data[k]  #index
-                        vertID_dict[vert]=vert.index
-        self.sortOtherVerts(vertID_dict, bm.verts)
+                        vert.index = vert_ids_cache[k]  #index
+                        vertID_dict[vert] = vert.index
+                    face.index = face_id_cache
+                    faceID_dict[face] = face_id_cache
+                    for k, edge in enumerate(face_data[1]): #edges
+                        edge.index = edge_ids_cache[k]  # index
+                        edgeID_dict[edge] = edge.index
+        self.sortOtherVerts(vertID_dict, edgeID_dict, faceID_dict, bm)
         bm.verts.sort()
+        bm.edges.sort()
+        bm.faces.sort()
         bmesh.update_edit_mesh(active_obj.data)
 
         return {'FINISHED'}
