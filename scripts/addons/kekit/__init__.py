@@ -2,7 +2,7 @@ bl_info = {
 	"name": "keKIT",
 	"author": "Kjell Emanuelsson",
 	"category": "Modeling",
-	"version": (1, 2, 7),
+	"version": (1, 2, 81),
 	"blender": (2, 80, 0),
 	"location": "View3D > Sidebar",
 	"warning": "",
@@ -34,7 +34,7 @@ from . import ke_direct_loop_cut
 import bpy
 from bpy.types import Panel
 
-nfo = "keKit v1.271"
+nfo = "keKit v1.281"
 
 # -------------------------------------------------------------------------------------------------
 # SUB MENU PANELS

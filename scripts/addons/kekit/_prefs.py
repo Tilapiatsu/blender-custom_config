@@ -24,7 +24,7 @@ from bpy.props import (
 
 def write_prefs(data):
 	path = bpy.utils.script_path_user()
-	file_name = path + "//addons/kekit/ke_prefs"
+	file_name = path + "/ke_prefs"
 	with open(file_name, "w") as text_file:
 		text_file.write(str(data))
 
@@ -32,7 +32,7 @@ def write_prefs(data):
 def read_prefs():
 	try:
 		path = bpy.utils.script_path_user()
-		file_name = path + "//addons/kekit/ke_prefs"
+		file_name = path + "/ke_prefs"
 		f = open(file_name, "r")
 		prefs = f.read()
 	except:
@@ -66,6 +66,9 @@ def get_prefs(): # Everything down here floats
 
 # WIP props ---------------------------------------------------------------------------------------
 # Todo: Just use JSON...?
+
+path = bpy.utils.script_path_user()
+print("keKit Prefs location:", path)
 
 prefs_data = read_prefs()
 prefs_data_default = 0, 1, 0, 16, 32, 16, 0.2, 1, 1, 0, 1111, 2335, 1315, 6464
