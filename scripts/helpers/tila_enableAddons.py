@@ -51,6 +51,8 @@ modules =   (
             'keentools_facebuilder',
             'kekit',
             'mouselook_navigation',
+            'BakeWrangler',
+            'atomic_data_manager',
             # 'ZWeightTools-1_0_1',
             'W_Mesh',
             'uvpackmaster2',
