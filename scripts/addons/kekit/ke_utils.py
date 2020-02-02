@@ -1,7 +1,6 @@
 import bpy
 from mathutils import Matrix, Vector
-from bpy_extras.view3d_utils import region_2d_to_vector_3d
-from bpy_extras.view3d_utils import region_2d_to_origin_3d
+from bpy_extras.view3d_utils import region_2d_to_vector_3d, region_2d_to_origin_3d, location_3d_to_region_2d
 from math import radians, sqrt
 
 
@@ -315,3 +314,16 @@ def mouse_over_element(bm, mouse_pos):
             break
 
     return geom
+
+
+def get_vert_nearest_mouse(context, mousepos, verts, mtx):
+    nearest = 100000
+    merge_point = []
+    for v in verts:
+        vpos = mtx @ Vector(v.co)
+        vscreenpos = location_3d_to_region_2d(context.region, context.space_data.region_3d, vpos)
+        dist = (mousepos - vscreenpos).length
+        if dist < nearest:
+            merge_point = v
+            nearest = dist
+    return merge_point
