@@ -17,21 +17,12 @@ class UVP2_DeviceDesc(bpy.types.PropertyGroup):
     supports_groups_together = bpy.props.BoolProperty(name="", default=False)
 
 class UVP2_PackStats(bpy.types.PropertyGroup):
+    dev_name = bpy.props.StringProperty(name="", default='')
     iter_count = bpy.props.IntProperty(name="", default=0)
     total_time = bpy.props.IntProperty(name="", default=0)
     avg_time = bpy.props.IntProperty(name="", default=0)
 
 class UVP2_SceneProps(bpy.types.PropertyGroup):
-
-    overlap_check = BoolProperty(
-        name=UvpLabels.OVERLAP_CHECK_NAME,
-        description=UvpLabels.OVERLAP_CHECK_DESC,
-        default=True)
-
-    area_measure = BoolProperty(
-        name=UvpLabels.AREA_MEASURE_NAME,
-        description=UvpLabels.AREA_MEASURE_DESC,
-        default=True)
 
     precision = IntProperty(
         name=UvpLabels.PRECISION_NAME,
@@ -77,9 +68,9 @@ class UVP2_SceneProps(bpy.types.PropertyGroup):
         description=UvpLabels.PREROT_DISABLE_DESC,
         default=False)
 
-    postscale_disable = BoolProperty(
-        name=UvpLabels.POSTSCALE_DISABLE_NAME,
-        description=UvpLabels.POSTSCALE_DISABLE_DESC,
+    fixed_scale = BoolProperty(
+        name=UvpLabels.FIXED_SCALE_NAME,
+        description=UvpLabels.FIXED_SCALE_DESC,
         default=False)
 
     rot_step = IntProperty(
@@ -123,9 +114,23 @@ class UVP2_SceneProps(bpy.types.PropertyGroup):
         items=(UvGroupingMethod.MATERIAL.to_blend_enum(),
                UvGroupingMethod.SIMILARITY.to_blend_enum(),
                UvGroupingMethod.MESH.to_blend_enum(),
-               UvGroupingMethod.OBJECT.to_blend_enum()),
+               UvGroupingMethod.OBJECT.to_blend_enum(),
+               UvGroupingMethod.MANUAL.to_blend_enum()),
         name=UvpLabels.GROUP_METHOD_NAME,
         description=UvpLabels.GROUP_METHOD_DESC)
+
+    manual_group_num = IntProperty(
+        name=UvpLabels.MANUAL_GROUP_NUM_NAME,
+        description=UvpLabels.MANUAL_GROUP_NUM_DESC,
+        default=0,
+        min=0,
+        max=100)
+
+    tile_count = IntProperty(
+        name=UvpLabels.TILE_COUNT_NAME,
+        description=UvpLabels.TILE_COUNT_DESC,
+        default=2,
+        min=0)
 
     tiles_in_row = IntProperty(
         name=UvpLabels.TILES_IN_ROW_NAME,
@@ -222,8 +227,8 @@ class UVP2_Preferences(AddonPreferences):
     def pixel_padding_enabled(self, scene_props):
         return scene_props.pixel_padding > 0
 
-    def pack_to_tiles_fixed_scale(self, scene_props):
-        return self.FEATURE_pack_to_tiles and scene_props.pack_mode == UvPackingMode.TILES_FIXED_SCALE.code
+    def pack_to_tiles(self, scene_props):
+        return self.FEATURE_pack_to_tiles and scene_props.pack_mode == UvPackingMode.TILES.code
 
     def grouping_enabled(self, scene_props):
         return self.FEATURE_grouping and (scene_props.pack_mode == UvPackingMode.GROUPS_TOGETHER.code or scene_props.pack_mode == UvPackingMode.GROUPS_TO_TILES.code)
@@ -234,15 +239,28 @@ class UVP2_Preferences(AddonPreferences):
     def pack_groups_to_tiles(self, scene_props):
         return self.grouping_enabled(scene_props) and (scene_props.pack_mode == UvPackingMode.GROUPS_TO_TILES.code)
 
-    def pack_to_tiles(self, scene_props):
-        return self.pack_to_tiles_fixed_scale(scene_props) or self.pack_groups_to_tiles(scene_props)
+    def tiles_enabled(self, scene_props):
+        return self.pack_to_tiles(scene_props) or self.pack_groups_to_tiles(scene_props)
 
     def multi_device_enabled(self, scene_props):
-        return (self.FEATURE_multi_device_pack and scene_props.multi_device_pack) and\
-                (self.heuristic_enabled(scene_props) or self.pack_groups_to_tiles(scene_props))
+        return (self.FEATURE_multi_device_pack and scene_props.multi_device_pack)
                  
+    def heuristic_supported(self, scene_props):
+        if not self.FEATURE_heuristic_search:
+            return False , UvpLabels.FEATURE_NOT_SUPPORTED_MSG
+
+        pack_mode = UvPackingMode.get_mode(scene_props.pack_mode)
+
+        if not pack_mode.supports_heuristic:
+            return False, UvpLabels.FEATURE_NOT_SUPPORTED_BY_PACKING_MODE_MSG
+
+        if self.fixed_scale_enabled(scene_props):
+            return False, "(Not supported with 'Fixed Scale' enabled)"
+
+        return True, ''
+
     def heuristic_enabled(self, scene_props):
-        return self.FEATURE_heuristic_search and scene_props.heuristic_enable
+        return self.heuristic_supported(scene_props)[0] and scene_props.heuristic_enable
 
     def heuristic_timeout_enabled(self, scene_props):
         return self.heuristic_enabled(scene_props) and scene_props.heuristic_search_time > 0
@@ -250,8 +268,19 @@ class UVP2_Preferences(AddonPreferences):
     def advanced_heuristic_available(self, scene_props):
         return self.FEATURE_advanced_heuristic and self.heuristic_enabled(scene_props)
 
+    def pack_to_others_supported(self, scene_props):
+        if not self.FEATURE_pack_to_others:
+            return False, UvpLabels.FEATURE_NOT_SUPPORTED_MSG
+
+        pack_mode = UvPackingMode.get_mode(scene_props.pack_mode)
+
+        if not pack_mode.supports_pack_to_others:
+            return False, UvpLabels.FEATURE_NOT_SUPPORTED_BY_PACKING_MODE_MSG
+
+        return True, ''
+
     def pack_to_others_enabled(self, scene_props):
-        return self.FEATURE_pack_to_others and scene_props.pack_to_others
+        return self.pack_to_others_supported(scene_props)[0] and scene_props.pack_to_others
 
     def pack_ratio_supported(self):
         return self.FEATURE_pack_ratio and self.FEATURE_target_box
@@ -259,8 +288,16 @@ class UVP2_Preferences(AddonPreferences):
     def pack_ratio_enabled(self, scene_props):
         return self.pack_ratio_supported() and scene_props.tex_ratio
 
-    def packing_scales_islands(self, scene_props):
-        return not self.pack_to_others_enabled(scene_props) and not self.pack_to_tiles_fixed_scale(scene_props) and not scene_props.postscale_disable
+    def fixed_scale_supported(self, scene_props):
+        pack_mode = UvPackingMode.get_mode(scene_props.pack_mode)
+
+        if not pack_mode.supports_fixed_scale:
+            return False, UvpLabels.FEATURE_NOT_SUPPORTED_BY_PACKING_MODE_MSG
+
+        return True, ''
+
+    def fixed_scale_enabled(self, scene_props):
+        return self.fixed_scale_supported(scene_props)[0] and scene_props.fixed_scale
 
     # Supporeted features
     FEATURE_demo = BoolProperty(
@@ -341,51 +378,6 @@ class UVP2_Preferences(AddonPreferences):
     FEATURE_pack_to_tiles = BoolProperty(
         name='',
         description='',
-        default=False)
-
-    DISABLED_rot_enable = BoolProperty(
-        name=UvpLabels.ROT_ENABLE_NAME,
-        description=UvpLabels.ROT_ENABLE_DESC,
-        default=False)
-
-    DISABLED_overlap_check = BoolProperty(
-        name=UvpLabels.OVERLAP_CHECK_NAME,
-        description=UvpLabels.OVERLAP_CHECK_DESC,
-        default=False)
-
-    DISABLED_pre_validate = BoolProperty(
-        name=UvpLabels.PRE_VALIDATE_NAME,
-        description=UvpLabels.PRE_VALIDATE_DESC,
-        default=False)
-
-    DISABLED_heuristic_enable = BoolProperty(
-        name=UvpLabels.HEURISTIC_ENABLE_NAME,
-        description=UvpLabels.HEURISTIC_ENABLE_DESC,
-        default=False)
-
-    DISABLED_advanced_heuristic = BoolProperty(
-        name=UvpLabels.ADVANCED_HEURISTIC_NAME,
-        description=UvpLabels.ADVANCED_HEURISTIC_DESC,
-        default=False)
-
-    DISABLED_multi_device_pack = BoolProperty(
-        name=UvpLabels.MULTI_DEVICE_PACK_NAME,
-        description=UvpLabels.MULTI_DEVICE_PACK_DESC,
-        default=False)
-
-    DISABLED_tex_ratio = BoolProperty(
-        name=UvpLabels.TEX_RATIO_NAME,
-        description=UvpLabels.TEX_RATIO_DESC,
-        default=False)
-
-    DISABLED_pack_to_others = BoolProperty(
-        name=UvpLabels.PACK_TO_OTHERS_NAME,
-        description=UvpLabels.PACK_TO_OTHERS_DESC,
-        default=False)
-
-    DISABLED_lock_overlapping = BoolProperty(
-        name=UvpLabels.LOCK_OVERLAPPING_NAME,
-        description=UvpLabels.LOCK_OVERLAPPING_DESC,
         default=False)
 
     target_box_enable = BoolProperty(

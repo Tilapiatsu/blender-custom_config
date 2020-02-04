@@ -114,7 +114,42 @@ PRESET_PROPERTIES_V3 = [
     'target_box_p2_y'
 ]
 
-PRESET_PROPERTIES_LATEST = PRESET_PROPERTIES_V3
+PRESET_PROPERTIES_V4 = [
+    'precision',
+    'margin',
+    'pixel_margin',
+    'pixel_padding',
+    'pixel_margin_tex_size',
+    'rot_enable',
+    'prerot_disable',
+    'fixed_scale',
+    'rot_step',
+    'island_rot_step_enable',
+    'island_rot_step',
+    'tex_ratio',
+    'pack_to_others',
+    'pack_mode',
+    'group_method',
+    'manual_group_num',
+    'tile_count',
+    'tiles_in_row',
+    'lock_overlapping',
+    'pre_validate',
+    'heuristic_enable',
+    'heuristic_search_time',
+    'pixel_margin_adjust_time',
+    'advanced_heuristic',
+    'similarity_threshold',
+    'multi_device_pack',
+    'target_box_tile_x',
+    'target_box_tile_y',
+    'target_box_p1_x',
+    'target_box_p1_y',
+    'target_box_p2_x',
+    'target_box_p2_y'
+]
+
+PRESET_PROPERTIES_LATEST = PRESET_PROPERTIES_V4
 
 
 class UVP2_OT_SavePreset(bpy.types.Operator, ExportHelper):
@@ -198,6 +233,9 @@ class UVP2_OT_LoadPresetBase(bpy.types.Operator):
         if addon_version == (2,2,7):
             return 3
 
+        if addon_version in {(2,3,0), (2,3,1)}:
+            return 4
+
         raise RuntimeError('Unsupported preset version')
 
     def translate_props_1to2(self, props_dict):
@@ -227,9 +265,23 @@ class UVP2_OT_LoadPresetBase(bpy.types.Operator):
 
         props_dict['pixel_padding'] = 0
 
+    def translate_props_3to4(self, props_dict):
+
+        for prop_name in PRESET_PROPERTIES_V3:
+            if prop_name not in props_dict:
+                self.raise_invalid_format()
+
+        del props_dict['overlap_check']
+        del props_dict['area_measure']
+        del props_dict['postscale_disable']
+
+        props_dict['fixed_scale'] = False
+        props_dict['manual_group_num'] = 0
+        props_dict['tile_count'] = 2
+
     def translate_props(self, preset_version, props_dict):
 
-        translate_array = [ self.translate_props_1to2, self.translate_props_2to3 ]
+        translate_array = [ self.translate_props_1to2, self.translate_props_2to3, self.translate_props_3to4 ]
 
         for i in range(preset_version-1, len(translate_array)):
             translate_array[i](props_dict)

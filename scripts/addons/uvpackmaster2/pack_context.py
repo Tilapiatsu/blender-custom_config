@@ -29,25 +29,6 @@ class IslandParamInfo:
 
         return param_array
 
-
-class GroupIslandParamInfo(IslandParamInfo):
-
-    NAME = 'Material'
-
-class RotStepIslandParamInfo(IslandParamInfo):
-
-    NAME = 'Rotation Step'
-    VCOLOR_CHNAME_SUFFIX = 'rot_step'
-    MIN_VALUE = -1
-    MAX_VALUE = 180
-    USE_GLOBAL_VALUE = -1
-    PARAM_IDX = UvIslandIntParams.ROTATION_STEP
-
-    @classmethod
-    def get_vcolor_default_value(cls):
-        default_value = cls.USE_GLOBAL_VALUE
-        return cls.VALUE_TO_VCOLOR(default_value)
-
     @classmethod
     def vcolor_to_param(cls, vcolor):
         f_value = vcolor[0]
@@ -55,18 +36,52 @@ class RotStepIslandParamInfo(IslandParamInfo):
         return int(round((cls.MAX_VALUE - cls.MIN_VALUE) * f_value + cls.MIN_VALUE))
 
     @classmethod
-    def param_value_to_text(cls, value):
+    def param_to_vcolor(cls, param_value):
+        value = (float(param_value) - cls.MIN_VALUE) / (cls.MAX_VALUE - cls.MIN_VALUE)
+        return cls.VALUE_TO_VCOLOR(value)
+
+    @classmethod
+    def get_default_vcolor(cls):
+        return cls.param_to_vcolor(cls.DEFAULT_VALUE)
+
+    @classmethod
+    def param_to_text(cls, value):
+        return str(value)
+
+
+class GroupIslandParamInfo(IslandParamInfo):
+
+    NAME = 'Group'
+    VCOLOR_CHNAME_SUFFIX = 'group'
+
+    MIN_VALUE = 0
+    MAX_VALUE = 100
+    DEFAULT_VALUE = MIN_VALUE
+    
+    PARAM_IDX = UvIslandIntParams.GROUP
+    PROP_NAME = 'manual_group_num'
+
+
+class RotStepIslandParamInfo(IslandParamInfo):
+
+    NAME = 'Rotation Step'
+    VCOLOR_CHNAME_SUFFIX = 'rot_step'
+    USE_GLOBAL_VALUE = -1
+
+    MIN_VALUE = -1
+    MAX_VALUE = 180
+    DEFAULT_VALUE = USE_GLOBAL_VALUE
+    
+    PARAM_IDX = UvIslandIntParams.ROTATION_STEP
+    PROP_NAME = 'island_rot_step'
+
+    @classmethod
+    def param_to_text(cls, value):
         if value == cls.USE_GLOBAL_VALUE:
             return 'G'
 
         return str(value)
-
-    @classmethod
-    def param_to_vcolor(cls, param_value):
-        value = (float(param_value) - cls.MIN_VALUE) / (cls.MAX_VALUE - cls.MIN_VALUE)
-        return cls.VALUE_TO_VCOLOR(value)
     
-
 
 class PackContext:
     # b_context = None
@@ -159,7 +174,7 @@ class PackContext:
             rot_step_array = []
             rot_step_layers = []
             for bm in self.bms:
-                rot_step_layers.append(self.get_or_create_vcolor_layer(bm, RotStepIslandParamInfo.get_vcolor_chname(), RotStepIslandParamInfo.get_vcolor_default_value()))
+                rot_step_layers.append(self.get_or_create_vcolor_layer(bm, RotStepIslandParamInfo.get_vcolor_chname(), RotStepIslandParamInfo.get_default_vcolor()))
 
         for bm_idx, bm in enumerate(self.bms):
             obj = self.objs[bm_idx]
@@ -184,7 +199,7 @@ class PackContext:
                     face_groups_array.append(self.get_face_group(group_method, bm_idx, obj, face))
 
                 if send_rot_step:
-                    rot_step_array.append(RotStepIslandParamInfo.vcolor_to_param(self.get_vcolor(bm, rot_step_layers[bm_idx], face)))
+                    rot_step_array.append(RotStepIslandParamInfo.vcolor_to_param(self.get_vcolor(rot_step_layers[bm_idx], face)))
 
                 for loop in face.loops:
                     uv_tuple = loop[uv_layer].uv.to_tuple(5)
@@ -267,10 +282,14 @@ class PackContext:
         if group_method == UvGroupingMethod.MATERIAL.code:
 
             mat_idx = face.material_index
+
+            if not (mat_idx >= 0 and mat_idx < len(obj.material_slots)):
+                raise RuntimeError('Grouping by material error: invalid material id')
+
             mat = obj.material_slots[mat_idx]
 
             if mat is None:
-                raise RuntimeError('Some faces belong to an empty material slot')
+                raise RuntimeError('Grouping by material error: some faces belong to an empty material slot')
 
             return self.material_map[mat.name]
 
@@ -281,6 +300,10 @@ class PackContext:
         elif group_method == UvGroupingMethod.OBJECT.code:
 
             return bm_idx
+
+        elif group_method == UvGroupingMethod.MANUAL.code:
+
+            return GroupIslandParamInfo.vcolor_to_param(self.get_vcolor(self.manual_group_layers[bm_idx], face))
 
         raise RuntimeError('Unexpected grouping method encountered')
 
@@ -293,6 +316,9 @@ class PackContext:
             # bm_idx = self.island_bm_map[idx]
             bm = self.bms[bm_idx]
             obj = self.objs[bm_idx]
+
+            if len(obj.material_slots) == 0:
+                raise RuntimeError('Grouping by material error: object does not have a material assigned')
 
             for mat in obj.material_slots:
                 if mat is None:
@@ -352,6 +378,11 @@ class PackContext:
 
         elif group_method == UvGroupingMethod.OBJECT.code:
             pass
+
+        elif group_method == UvGroupingMethod.MANUAL.code:
+            self.manual_group_layers = []
+            for bm in self.bms:
+                self.manual_group_layers.append(self.get_or_create_vcolor_layer(bm, GroupIslandParamInfo.get_vcolor_chname(), GroupIslandParamInfo.get_default_vcolor()))
 
         else:
             raise RuntimeError('Unexpected grouping method encountered')
@@ -504,18 +535,19 @@ class PackContext:
             matrix = matrix_multiply(matrix, Matrix.Translation(i_solution.pivot))
             matrix = matrix_multiply(matrix, Matrix.Rotation(i_solution.angle, 4, 'Z'))
             matrix = matrix_multiply(matrix, Matrix.Translation(-i_solution.pivot))
+            matrix = matrix_multiply(matrix, Matrix.Scale(i_solution.pre_scale, 4, (0.0, 1.0, 0.0)))
+            matrix = matrix_multiply(matrix, Matrix.Scale(i_solution.pre_scale, 4, (1.0, 0.0, 0.0)))
             matrix = matrix_multiply(matrix, Matrix.Scale(pack_ratio, 4, (1.0, 0.0, 0.0)))
 
             island_faces = self.uv_island_faces_list[i_solution.island_idx]
 
             for face_idx in island_faces:
-                orig_face_idx = face_idx - face_idx_offset;
+                orig_face_idx = face_idx - face_idx_offset
                 face = bm.faces[orig_face_idx]
                 for loop in face.loops:
                     uv = loop[uv_layer].uv
                     transformed_uv = matrix_multiply(matrix, Vector((uv[0], uv[1], 0.0)))
-                    loop[uv_layer].uv = (
-                        transformed_uv[0], transformed_uv[1])
+                    loop[uv_layer].uv = (transformed_uv[0], transformed_uv[1])
 
     def get_or_create_vcolor_layer(self, bm, vcolor_chname, default_value):
         
@@ -544,6 +576,6 @@ class PackContext:
                 for loop in face.loops:
                     loop[vcolor_layer] = value
 
-    def get_vcolor(self, bm, vcolor_layer, face):
+    def get_vcolor(self, vcolor_layer, face):
 
         return face.loops[0][vcolor_layer]

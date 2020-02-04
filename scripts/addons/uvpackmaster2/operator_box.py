@@ -4,6 +4,7 @@ from .utils import *
 from .prefs import *
 from .register import reset_target_box_params
 # from .operator import UVP2_OT_PackOperatorGeneric
+from bpy.props import IntProperty
 
 import bmesh
 import bpy
@@ -313,5 +314,44 @@ class UVP2_OT_SetTargetBoxTile(bpy.types.Operator):
 
         self.scene_props.target_box_p2_x = self.scene_props.target_box_tile_x + 1
         self.scene_props.target_box_p2_y = self.scene_props.target_box_tile_y + 1
+
+        return {'FINISHED'}
+
+class UVP2_OT_MoveTargetBoxTile(bpy.types.Operator):
+
+    bl_idname = 'uvpackmaster2.move_target_box_tile'
+    bl_label = 'Move Packing Box'
+    bl_description = "Move the packing box to an adjacent tile"
+
+    dir_x = IntProperty(
+        name="Direction X",
+        description='',
+        default=0)
+
+    dir_y = IntProperty(
+        name="Direction Y",
+        description='',
+        default=0)
+
+    @classmethod
+    def poll(cls, context):
+        prefs = get_prefs()
+        return prefs.target_box_enable
+
+    def execute(self, context):
+
+        self.scene_props = context.scene.uvp2_props
+
+        tbox_width = abs(self.scene_props.target_box_p1_x - self.scene_props.target_box_p2_x)
+        tbox_height = abs(self.scene_props.target_box_p1_y - self.scene_props.target_box_p2_y)
+
+        delta_x = self.dir_x * tbox_width
+        delta_y = self.dir_y * tbox_height
+
+        self.scene_props.target_box_p1_x += delta_x
+        self.scene_props.target_box_p2_x += delta_x
+
+        self.scene_props.target_box_p1_y += delta_y
+        self.scene_props.target_box_p2_y += delta_y
 
         return {'FINISHED'}

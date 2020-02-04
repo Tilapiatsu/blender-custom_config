@@ -3,6 +3,7 @@ import subprocess
 import queue
 import threading
 import signal
+import webbrowser
 
 from .utils import *
 from .pack_context import *
@@ -45,10 +46,16 @@ class UVP2_OT_PackOperatorGeneric(bpy.types.Operator):
             raise OpCancelledException()
 
         if retcode == UvPackerErrorCode.NO_VALID_STATIC_ISLAND:
-            raise RuntimeError("'Pack To Others' option enabled, but no unselected island found in the texture space")
+            raise RuntimeError("'Pack To Others' option enabled, but no unselected island found in the packing box")
 
         if retcode == UvPackerErrorCode.MAX_GROUP_COUNT_EXCEEDED:
             raise RuntimeError("Maximal group count exceeded")
+
+        if retcode == UvPackerErrorCode.DEVICE_NOT_SUPPORTED:
+            raise RuntimeError("Selected device is not supported")
+
+        if retcode == UvPackerErrorCode.DEVICE_DOESNT_SUPPORT_GROUPS_TOGETHER:
+            raise RuntimeError("Selected device doesn't support packing groups together")
 
         raise RuntimeError('Pack process returned an error')
 
@@ -59,6 +66,9 @@ class UVP2_OT_PackOperatorGeneric(bpy.types.Operator):
         wm = self.p_context.context.window_manager
         wm.event_timer_remove(self._timer)
         self.p_context.update_meshes()
+
+        if in_debug_mode():
+            print('UVP operation time: ' + str(time.time() - self.start_time))
 
     def read_islands(self):
         if self.islands_msg is None:
@@ -213,13 +223,16 @@ class UVP2_OT_PackOperatorGeneric(bpy.types.Operator):
 
         if msg_code == UvPackMessageCode.PROGRESS_REPORT:
             self.curr_phase = force_read_int(msg)
-            bucket_num = force_read_int(msg)
+            progress_size = force_read_int(msg)
             
-            if bucket_num >= len(self.progress_array):
-                self.progress_array += [0] * (bucket_num - len(self.progress_array) + 1)
+            if progress_size > len(self.progress_array):
+                self.progress_array = [0] * (progress_size)
 
-            self.progress_array[bucket_num] = force_read_int(msg)
+            for i in range(progress_size):
+                self.progress_array[i] = force_read_int(msg)
+
             self.progress_sec_left = force_read_int(msg)
+            self.progress_iter_done = force_read_int(msg)
 
             # Inform the upper layer wheter it should finish
             if self.curr_phase == UvPackingPhaseCode.DONE:
@@ -404,10 +417,10 @@ class UVP2_OT_PackOperatorGeneric(bpy.types.Operator):
             self.pre_op_initialize()
 
             send_unselected = self.send_unselected_islands()
-            send_groups = self.send_groups()
             send_rot_step = self.send_rot_step()
+            send_groups = self.grouping_enabled() and (to_uvp_group_method(self.get_group_method()) == UvGroupingMethodUvp.EXTERNAL)
 
-            face_cnt = self.p_context.serialize_uv_maps(send_unselected, send_groups, send_rot_step, self.scene_props.group_method)
+            face_cnt = self.p_context.serialize_uv_maps(send_unselected, send_groups, send_rot_step, self.get_group_method() if send_groups else None)
 
             if face_cnt == 0:
                 self.report({'WARNING'}, 'No UV face selected')
@@ -425,6 +438,9 @@ class UVP2_OT_PackOperatorGeneric(bpy.types.Operator):
 
             if send_unselected:
                 uvp_args_final.append('-s')
+
+            if self.grouping_enabled():
+                uvp_args_final += ['-a', str(to_uvp_group_method(self.get_group_method()))]
 
             if in_debug_mode():
                 if self.prefs.seed > 0:
@@ -455,9 +471,9 @@ class UVP2_OT_PackOperatorGeneric(bpy.types.Operator):
             out_stream.write(self.p_context.serialized_maps)
             out_stream.flush()
 
-            self.packing_start_time = time.time()
+            self.start_time = time.time()
 
-            self.last_msg_time = self.packing_start_time
+            self.last_msg_time = self.start_time
             self.hang_detected = False
             self.hang_timeout = 10.0
 
@@ -469,7 +485,8 @@ class UVP2_OT_PackOperatorGeneric(bpy.types.Operator):
             self.connection_thread.start()
             self.progress_array = [0]
             self.progress_msg = ''
-            self.progress_sec_left = 0
+            self.progress_sec_left = -1
+            self.progress_iter_done = -1
             self.progress_last_update_time = 0.0
             self.curr_phase = UvPackingPhaseCode.INITIALIZATION
 
@@ -534,8 +551,11 @@ class UVP2_OT_PackOperatorGeneric(bpy.types.Operator):
     def send_unselected_islands(self):
         return False
 
-    def send_groups(self):
+    def grouping_enabled(self):
         return False
+
+    def get_group_method(self):
+        raise RuntimeError('Unexpected grouping requested')
 
     def send_rot_step(self):
         return False
@@ -558,22 +578,20 @@ class UVP2_OT_PackOperator(UVP2_OT_PackOperatorGeneric):
         if platform.system() == 'Darwin':
             cuda_warning_msg = 'WARNING: Cuda support on MacOS is experimental. Click OK to continue'
 
-            if self.prefs.multi_device_enabled(self.scene_props):
-                for dev in self.prefs.dev_array:
-                    if dev.supported and dev.id.startswith('cuda'):
-                        return cuda_warning_msg
-            else:
-                active_dev = self.prefs.dev_array[self.prefs.sel_dev_idx] if self.prefs.sel_dev_idx < len(self.prefs.dev_array) else None
-                if active_dev is not None and active_dev.id.startswith('cuda'):
-                    return cuda_warning_msg
+            active_dev = self.prefs.dev_array[self.prefs.sel_dev_idx] if self.prefs.sel_dev_idx < len(self.prefs.dev_array) else None
+            if active_dev is not None and active_dev.id.startswith('cuda'):
+                return cuda_warning_msg
 
         return ''
 
     def send_unselected_islands(self):
         return self.prefs.pack_to_others_enabled(self.scene_props)
 
-    def send_groups(self):
-        return self.prefs.grouping_enabled(self.scene_props) and (to_uvp_group_method(self.scene_props.group_method) == UvGroupingMethodUvp.EXTERNAL)
+    def grouping_enabled(self):
+        return self.prefs.grouping_enabled(self.scene_props)
+
+    def get_group_method(self):
+        return self.scene_props.group_method
 
     def send_rot_step(self):
         return self.prefs.FEATURE_island_rotation_step and self.scene_props.rot_enable and self.scene_props.island_rot_step_enable
@@ -582,27 +600,36 @@ class UVP2_OT_PackOperator(UVP2_OT_PackOperatorGeneric):
 
         if self.curr_phase in { UvPackingPhaseCode.PACKING, UvPackingPhaseCode.PIXEL_MARGIN_ADJUSTMENT }:
 
+            if self.curr_phase == UvPackingPhaseCode.PIXEL_MARGIN_ADJUSTMENT:
+                header_str = 'Pixel margin adjustment. '
+            elif self.prefs.heuristic_enabled(self.scene_props):
+                header_str = 'Current area: {}. '.format(self.area if self.area is not None else 'none')
+            else:
+                header_str = ''
+
+            if self.progress_iter_done >= 0:
+                iter_str = 'Iter. done: {}. '.format(self.progress_iter_done)
+            else:
+                iter_str = ''
+
+            if self.progress_sec_left >= 0:
+                time_left_str = "Time left: {} sec. ".format(self.progress_sec_left)
+            else:
+                time_left_str = ''
+
             percent_progress_str = ''       
             for prog in self.progress_array:
                 percent_progress_str += str(prog).rjust(3, ' ') + '%, '
             percent_progress_str = percent_progress_str[:-2]
 
-            progress_str = 'Iteration progress: ' + percent_progress_str
-            time_left_str = "Time left: {} sec".format(self.progress_sec_left)
-            cancel_str = '(press ESC to cancel)'
-            apply_str =  '(press ESC to apply result)'
+            progress_str = 'Pack progress: {} '.format(percent_progress_str)
 
-            if self.curr_phase == UvPackingPhaseCode.PIXEL_MARGIN_ADJUSTMENT:
-                return "Pixel margin adjustment. {}. {} {}".format(time_left_str, progress_str, cancel_str)
+            if self.area is not None:
+                end_str = '(press ESC to apply result) '
+            else:
+                end_str = '(press ESC to cancel) '
 
-            if self.prefs.heuristic_enabled(self.scene_props):
-                area_str = "Current area: " + (str(self.area) if self.area is not None else 'none')
-                time_str = (time_left_str + '. ') if self.prefs.heuristic_timeout_enabled(self.scene_props) else ''
-                end_str = apply_str if self.area is not None else cancel_str
-
-                return "{}{}. {} {}".format(time_str, area_str, progress_str, end_str)
-
-            return "Pack progress: {:3} {}".format(percent_progress_str, cancel_str)
+            return header_str + iter_str + time_left_str + progress_str + end_str
 
         return False
 
@@ -616,6 +643,10 @@ class UVP2_OT_PackOperator(UVP2_OT_PackOperatorGeneric):
         elif msg_code == UvPackMessageCode.BENCHMARK:
 
             stats = self.prefs.stats_array.add()
+
+            dev_name_len = force_read_int(msg)
+            stats.dev_name = msg.read(dev_name_len).decode('ascii')
+
             stats.iter_count = force_read_int(msg)
             stats.total_time = force_read_int(msg)
             stats.avg_time = force_read_int(msg)
@@ -676,8 +707,7 @@ class UVP2_OT_PackOperator(UVP2_OT_PackOperatorGeneric):
             overlap_detected = handle_island_flags(self.p_context, self.p_context.uv_island_faces_list, island_flags)
 
         if (self.uvp_proc.returncode == UvPackerErrorCode.NO_SPACE):
-            self.report({'WARNING'}, 'No enough space to pack all islands' + (
-            ' (overlap check skipped)' if self.scene_props.overlap_check else ''))
+            self.report({'WARNING'}, 'No enough space to pack all islands (overlap check skipped)')
         elif overlap_detected:
             self.report({'WARNING'}, 'Overlapping islands detected after packing, increase the Precision parameter')
         else:
@@ -702,28 +732,9 @@ class UVP2_OT_PackOperator(UVP2_OT_PackOperatorGeneric):
         if pack_mode.req_feature != '' and not getattr(self.prefs, 'FEATURE_' + pack_mode.req_feature):
             raise RuntimeError('Selected packing mode is not supported in this add-on edition')
 
-        if self.prefs.pack_to_others_enabled(self.scene_props) and not pack_mode.supports_pack_to_others:
-            raise RuntimeError("Selected packing mode does not support 'Pack To Others'")
+        if self.grouping_enabled():
 
-        if self.prefs.heuristic_enabled(self.scene_props) and not pack_mode.supports_heuristic:
-            raise RuntimeError("Selected packing mode does not support heuristic search")
-
-
-        if self.prefs.pack_to_others_enabled(self.scene_props) and self.prefs.heuristic_enabled(self.scene_props):
-            raise RuntimeError("'Pack To Others' is not supported with the 'Heuristic Search' option")
-
-        if self.prefs.grouping_enabled(self.scene_props):
-
-            if self.prefs.pack_groups_together(self.scene_props):
-                if self.prefs.multi_device_enabled(self.scene_props):
-                    for dev in self.prefs.dev_array:
-                        if dev.supported and not dev.supports_groups_together:
-                            raise RuntimeError("'Use All Devices' option is on, but one of the devices doesn't support packing groups together")
-                else:
-                    if not active_dev.supports_groups_together:
-                        raise RuntimeError("Selected packing device doesn't support packing groups together")
-
-            if self.scene_props.group_method == UvGroupingMethod.SIMILARITY.code:
+            if self.get_group_method() == UvGroupingMethod.SIMILARITY.code:
                 if self.prefs.pack_to_others_enabled(self.scene_props):
                     raise RuntimeError("'Pack To Others' is not supported with grouping by similarity")
 
@@ -753,6 +764,11 @@ class UVP2_OT_PackOperator(UVP2_OT_PackOperatorGeneric):
 
         uvp_args += ['-d', self.prefs.dev_array[self.prefs.sel_dev_idx].id]
 
+        # Overlap check
+        uvp_args.append('-c')
+        # Area measure
+        uvp_args.append('-A')
+
         if self.prefs.pixel_margin_enabled(self.scene_props):
             pixel_margin = get_pixel_margin(self.p_context.context)
             uvp_args += ['-M', str(pixel_margin)]
@@ -763,7 +779,7 @@ class UVP2_OT_PackOperator(UVP2_OT_PackOperatorGeneric):
 
             uvp_args += ['-Y', str(self.scene_props.pixel_margin_adjust_time)]
 
-        if self.scene_props.postscale_disable:
+        if self.prefs.fixed_scale_enabled(self.scene_props):
             uvp_args += ['-O']
 
         if self.prefs.FEATURE_island_rotation and self.scene_props.rot_enable:
@@ -785,12 +801,15 @@ class UVP2_OT_PackOperator(UVP2_OT_PackOperatorGeneric):
                 uvp_args.append('-H')
 
         uvp_args += ['-g', self.scene_props.pack_mode]
-        uvp_args += ['-C', str(self.scene_props.tiles_in_row)]
 
-        if self.prefs.grouping_enabled(self.scene_props):
-            uvp_args += ['-a', str(to_uvp_group_method(self.scene_props.group_method))]
+        if self.prefs.pack_to_tiles(self.scene_props):
+            uvp_args += ['-V', str(self.scene_props.tile_count)]
 
-            if self.scene_props.group_method == UvGroupingMethod.SIMILARITY.code:
+        if self.prefs.tiles_enabled(self.scene_props):
+            uvp_args += ['-C', str(self.scene_props.tiles_in_row)]
+
+        if self.grouping_enabled():
+            if to_uvp_group_method(self.get_group_method()) == UvGroupingMethodUvp.SIMILARITY:
                 uvp_args += ['-I', str(self.scene_props.similarity_threshold)]
 
         if self.prefs.multi_device_enabled(self.scene_props):
@@ -801,12 +820,6 @@ class UVP2_OT_PackOperator(UVP2_OT_PackOperatorGeneric):
 
         if self.prefs.pack_to_others_enabled(self.scene_props):
             uvp_args += ['-x']
-
-        if self.scene_props.overlap_check:
-            uvp_args.append('-c')
-
-        if self.scene_props.area_measure:
-            uvp_args.append('-A')
 
         if self.prefs.FEATURE_validation and self.scene_props.pre_validate:
             uvp_args.append('-v')
@@ -941,7 +954,7 @@ class UVP2_OT_ValidateOperator(UVP2_OT_PackOperatorGeneric):
 class UVP2_OT_SelectSimilarOperator(UVP2_OT_PackOperatorGeneric):
     bl_idname = 'uvpackmaster2.uv_select_similar'
     bl_label = 'Select Similar'
-    bl_description = "Select all islands which have a similar shape to already selected islands. For more info regarding similarity detection click the help button"
+    bl_description = "Selects all islands which have similar shape to islands which are already selected. For more info regarding similarity detection click the help button"
 
     def get_confirmation_msg(self):
 
@@ -998,7 +1011,7 @@ class UVP2_OT_SelectSimilarOperator(UVP2_OT_PackOperatorGeneric):
 class UVP2_OT_AlignSimilarOperator(UVP2_OT_PackOperatorGeneric):
     bl_idname = 'uvpackmaster2.uv_align_similar'
     bl_label = 'Align Similar'
-    bl_description = "Align selected islands so islands which are similar are placed on top of each other. For more info regarding similarity detection click the help button"
+    bl_description = "Align selected islands, so islands which are similar are placed on top of each other. For more info regarding similarity detection click the help button"
 
 
     def process_result(self):
@@ -1100,40 +1113,10 @@ class UVP2_OT_UndoIslandsAdjustemntToTexture(UVP2_OT_ScaleIslands):
 
 class UVP2_OT_Help(bpy.types.Operator):
     bl_label = 'Help'
-    CHARS_IN_LINE = 100
-
-    def draw_paragraph(self, layout, par):
-        par_split = split_by_chars(par, self.CHARS_IN_LINE)
-
-        for str in par_split:
-            layout.label(text=str)
-
-        layout.separator()
-        layout.separator()
-
-    def draw_list_elem(self, layout, str, lvl=1):
-
-        if lvl == 1:
-            marker = '*'
-        elif lvl == 2:
-            marker = '-'
-        else:
-            return
-
-        align_spaces = ' ' * (4 * (lvl - 1))
-        str_split = split_by_chars(str, self.CHARS_IN_LINE - (len(align_spaces) + 3))
-
-        if len(str_split) > 0:
-            layout.label(text=align_spaces + marker + ' ' + str_split[0])
-
-        for s in str_split[1:]:
-            layout.label(text=align_spaces + '   ' + s)
-
-    def invoke(self, context, event):
-        wm = context.window_manager
-        return wm.invoke_props_dialog(self, width=750)
 
     def execute(self, context):
+
+        webbrowser.open(UvpLabels.HELP_BASEURL + self.URL_SUFFIX)
         return {'FINISHED'}
 
 
@@ -1142,14 +1125,15 @@ class UVP2_OT_UvpSetupHelp(UVP2_OT_Help):
     bl_idname = 'uvpackmaster2.uv_uvp_setup_help'
     bl_description = "Show help for UVP setup"
 
-    def draw(self, context):
-        layout = self.layout
-        col = layout.column()
+    URL_SUFFIX = "setup"
 
-        self.draw_paragraph(col, UvpLabels.UVP_SETUP_HELP_P1)
 
-        for str in UvpLabels.UVP_SETUP_HELP_LIST:
-            self.draw_list_elem(col, str)
+class UVP2_OT_HeuristicSearchHelp(UVP2_OT_Help):
+    bl_label = 'Non-Square Packing Help'
+    bl_idname = 'uvpackmaster2.uv_heuristic_search_help'
+    bl_description = "Show help for heuristic search"
+
+    URL_SUFFIX = "heuristic-search"
 
 
 class UVP2_OT_NonSquarePackingHelp(UVP2_OT_Help):
@@ -1157,20 +1141,7 @@ class UVP2_OT_NonSquarePackingHelp(UVP2_OT_Help):
     bl_idname = 'uvpackmaster2.uv_nonsquare_packing_help'
     bl_description = "Show help for non-square packing"
 
-    def draw(self, context):
-        layout = self.layout
-        col = layout.column()
-
-        self.draw_paragraph(col, UvpLabels.NONSQUARE_PACKING_HELP_P1)
-
-        for str in UvpLabels.NONSQUARE_PACKING_HELP_STEPS:
-            self.draw_list_elem(col, str)
-
-        col.separator()
-        col.separator()
-
-        self.draw_paragraph(col, UvpLabels.NONSQUARE_PACKING_HELP_P2)
-        self.draw_paragraph(col, UvpLabels.NONSQUARE_PACKING_HELP_P3)
+    URL_SUFFIX = "non-square-packing"
 
 
 class UVP2_OT_SimilarityDetectionHelp(UVP2_OT_Help):
@@ -1178,14 +1149,7 @@ class UVP2_OT_SimilarityDetectionHelp(UVP2_OT_Help):
     bl_idname = 'uvpackmaster2.uv_similarity_detection_help'
     bl_description = "Show help for similarity detection"
 
-    def draw(self, context):
-        layout = self.layout
-        col = layout.column()
-
-        self.draw_paragraph(col, UvpLabels.SIMILARITY_DETECTION_HELP_P1)
-
-        for str in UvpLabels.SIMILARITY_DETECTION_HELP_LIST:
-            self.draw_list_elem(col, str)
+    URL_SUFFIX = "similarity-detection"
 
 
 class UVP2_OT_InvalidTopologyHelp(UVP2_OT_Help):
@@ -1193,14 +1157,7 @@ class UVP2_OT_InvalidTopologyHelp(UVP2_OT_Help):
     bl_idname = 'uvpackmaster2.uv_invalid_topology_help'
     bl_description = "Show help for handling invalid topology errors"
 
-    def draw(self, context):
-        layout = self.layout
-        col = layout.column()
-
-        self.draw_paragraph(col, UvpLabels.INVALID_TOPOLOGY_HELP_P1)
-
-        for str in UvpLabels.INVALID_TOPOLOGY_HELP_LIST:
-            self.draw_list_elem(col, str)
+    URL_SUFFIX = "invalid-topology"
 
 
 class UVP2_OT_PixelMarginHelp(UVP2_OT_Help):
@@ -1208,13 +1165,7 @@ class UVP2_OT_PixelMarginHelp(UVP2_OT_Help):
     bl_idname = 'uvpackmaster2.uv_pixel_margin_help'
     bl_description = "Show help for setting margin in pixels"
 
-    def draw(self, context):
-        layout = self.layout
-        col = layout.column()
-
-        self.draw_paragraph(col, UvpLabels.PIXEL_MARGIN_HELP_P1)
-        self.draw_paragraph(col, UvpLabels.PIXEL_MARGIN_HELP_P2)
-        self.draw_paragraph(col, UvpLabels.PIXEL_MARGIN_HELP_P3)
+    URL_SUFFIX = "pixel-margin"
 
 
 class UVP2_OT_IslandRotStepHelp(UVP2_OT_Help):
@@ -1222,21 +1173,20 @@ class UVP2_OT_IslandRotStepHelp(UVP2_OT_Help):
     bl_idname = 'uvpackmaster2.uv_island_rot_step_help'
     bl_description = "Show help for setting rotation step on per-island level"
 
-    def draw(self, context):
-        layout = self.layout
-        col = layout.column()
-
-        self.draw_paragraph(col, UvpLabels.ISLAND_ROT_STEP_HELP_P1)
-        self.draw_paragraph(col, UvpLabels.ISLAND_ROT_STEP_HELP_P2)
-
-        for str in UvpLabels.ISLAND_ROT_STEP_HELP_LIST:
-            self.draw_list_elem(col, str)
-
-        col.separator()
-        col.separator()
-            
-        self.draw_paragraph(col, UvpLabels.ISLAND_ROT_STEP_HELP_P3)
-        self.draw_paragraph(col, UvpLabels.ISLAND_ROT_STEP_HELP_P4)
-        self.draw_paragraph(col, UvpLabels.ISLAND_ROT_STEP_HELP_P5)
+    URL_SUFFIX = "island-rot-step"
 
 
+class UVP2_OT_UdimSupportHelp(UVP2_OT_Help):
+    bl_label = 'UDIM Support Help'
+    bl_idname = 'uvpackmaster2.uv_udim_support_help'
+    bl_description = "Show help for UDIM support"
+
+    URL_SUFFIX = "udim-support"
+
+
+class UVP2_OT_ManualGroupingHelp(UVP2_OT_Help):
+    bl_label = 'Manual Grouping Help'
+    bl_idname = 'uvpackmaster2.uv_manual_grouping_help'
+    bl_description = "Show help for manual grouping"
+
+    URL_SUFFIX = "udim-support#manual-grouping"

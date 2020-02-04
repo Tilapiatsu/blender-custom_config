@@ -30,7 +30,7 @@ def island_param_draw_callback(self, context):
             blf.position(font_id, region_coord[0], region_coord[1], 0)
             blf.draw(font_id, i_metadata.param_text)
 
-        editor_draw_msg(self.text_color, 'Press any key to hide rotation step values')
+        editor_draw_msg(self.text_color, "Press any key to hide '{}' values".format(self.param_info.NAME))
 
     except Exception as ex:
         if in_debug_mode():
@@ -74,7 +74,7 @@ class UVP2_OT_ShowIslandParam(UVP2_OT_PackOperatorGeneric):
             # Calculate bbox center
             bbox = self.p_context.calc_island_bbox(idx)
             i_metadata.text_coords = (bbox[1] + bbox[0]) / 2.0
-            i_metadata.param_text = self.param_info.param_value_to_text(i_metadata.int_params[self.param_info.PARAM_IDX])
+            i_metadata.param_text = self.param_info.param_to_text(i_metadata.int_params[self.param_info.PARAM_IDX])
 
             self.island_metadata.append(i_metadata)
 
@@ -105,50 +105,33 @@ class UVP2_OT_ShowIslandParam(UVP2_OT_PackOperatorGeneric):
         return True
 
 
-class UVP2_OT_ShowRotStepIslandParam(UVP2_OT_ShowIslandParam):
-
-    bl_idname = 'uvpackmaster2.uv_show_rot_step_island_param'
-    bl_label = 'Show Island Rotation Step'
-    bl_description = "Show rotation step assigned to the selected islands"
-
-    param_info = RotStepIslandParamInfo()
-
-    def send_rot_step(self):
-        return True
-
-    
 class UVP2_OT_SetIslandParam(UVP2_OT_ShowIslandParam):
 
     bl_options = {'UNDO'}
 
     def pre_op_initialize(self):
 
-        # self.scene_props = context.scene.uvp2_props
-        # self.p_context = PackContext(context)
-
-        try:
-            self.p_context.set_vcolor(
-                self.param_info.get_vcolor_chname(),
-                self.get_vcolor_value(),
-                self.param_info.get_vcolor_default_value())
-            
-        except RuntimeError as ex:
-            if in_debug_mode():
-                print_backtrace(ex)
-
-            self.report({'ERROR'}, str(ex))
-
-        except Exception as ex:
-            if in_debug_mode():
-                print_backtrace(ex)
-
-            self.report({'ERROR'}, 'Unexpected error')
-
+        self.p_context.set_vcolor(
+            self.param_info.get_vcolor_chname(),
+            self.get_vcolor_value(),
+            self.param_info.get_default_vcolor())
+        
         self.p_context.update_meshes()
-        return {'FINISHED'}
+
+    def get_vcolor_value(self):
+        return self.param_info.param_to_vcolor(getattr(self.scene_props, self.param_info.PROP_NAME))
 
 
-class UVP2_OT_SetRotStepIslandParamGeneric(UVP2_OT_SetIslandParam):
+class UVP2_OT_ResetIslandParam(UVP2_OT_SetIslandParam):
+
+    def get_vcolor_value(self):
+        return self.param_info.get_default_vcolor()
+
+
+
+# ROTATION STEP
+
+class UVP2_OT_RotStepIslandParamGeneric:
 
     param_info = RotStepIslandParamInfo()
 
@@ -156,23 +139,58 @@ class UVP2_OT_SetRotStepIslandParamGeneric(UVP2_OT_SetIslandParam):
         return True
 
 
-class UVP2_OT_SetRotStepIslandParam(UVP2_OT_SetRotStepIslandParamGeneric):
+class UVP2_OT_ShowRotStepIslandParam(UVP2_OT_RotStepIslandParamGeneric, UVP2_OT_ShowIslandParam):
+
+    bl_idname = 'uvpackmaster2.uv_show_rot_step_island_param'
+    bl_label = 'Show Rotation Step'
+    bl_description = "Show rotation step assigned to the selected islands"
+
+
+class UVP2_OT_SetRotStepIslandParam(UVP2_OT_RotStepIslandParamGeneric, UVP2_OT_SetIslandParam):
 
     bl_idname = 'uvpackmaster2.set_island_rot_step'
-    bl_label = 'Set Island Rotation Step'
+    bl_label = 'Set Rotation Step'
     bl_description = "Set rotation step value for the selected islands. The value to be set is defined by the 'Rotation Step Value' parameter"
 
 
-    def get_vcolor_value(self):
-        return self.param_info.param_to_vcolor(self.scene_props.island_rot_step)
-
-
-class UVP2_OT_ResetRotStepIslandParam(UVP2_OT_SetRotStepIslandParamGeneric):
+class UVP2_OT_ResetRotStepIslandParam(UVP2_OT_RotStepIslandParamGeneric, UVP2_OT_ResetIslandParam):
 
     bl_idname = 'uvpackmaster2.reset_island_rot_step'
-    bl_label = 'Reset Island Rotation Step'
+    bl_label = 'Reset Rotation Step'
     bl_description = "Reset rotation step value for the selected islands. After reset the 'G' value will be assigned to the islands, which means they will use the global 'Rotation Step' parameter when generating orientations"
 
 
-    def get_vcolor_value(self):
-        return self.param_info.get_vcolor_default_value()
+
+# MANUAL GROUP
+
+class UVP2_OT_ManualGroupIslandParamGeneric:
+
+    param_info = GroupIslandParamInfo()
+
+    def grouping_enabled(self):
+        return True
+
+    def get_group_method(self):
+        return UvGroupingMethod.MANUAL.code
+
+
+class UVP2_OT_ShowManualGroupIslandParam(UVP2_OT_ManualGroupIslandParamGeneric, UVP2_OT_ShowIslandParam):
+
+    bl_idname = 'uvpackmaster2.uv_show_manual_group_island_param'
+    bl_label = 'Show Groups'
+    bl_description = "Show manual group numbers the selected islands are assigned to"
+
+
+class UVP2_OT_SetManualGroupIslandParam(UVP2_OT_ManualGroupIslandParamGeneric, UVP2_OT_SetIslandParam):
+
+    bl_idname = 'uvpackmaster2.set_island_manual_group'
+    bl_label = 'Assign Islands To Group'
+    bl_description = "Assign the selected islands to a manual group determined by the 'Group Number' parameter"
+
+
+class UVP2_OT_ResetManualGroupIslandParam(UVP2_OT_ManualGroupIslandParamGeneric, UVP2_OT_ResetIslandParam):
+
+    bl_idname = 'uvpackmaster2.reset_island_manual_group'
+    bl_label = 'Reset Groups'
+    bl_description = "Reset the manual group assignment for the selected islands"
+

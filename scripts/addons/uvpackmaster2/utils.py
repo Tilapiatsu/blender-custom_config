@@ -67,6 +67,7 @@ def print_backtrace(ex):
 
 class IslandSolution:
     island_idx = None
+    pre_scale = None
     angle = None
     pivot = None
     offset = None
@@ -87,20 +88,21 @@ def read_pack_solution(pack_solution_msg):
         i_solution = IslandSolution()
         i_solution.island_idx = force_read_int(pack_solution_msg)
 
-        float_array = force_read_floats(pack_solution_msg, 8)
+        float_array = force_read_floats(pack_solution_msg, 9)
 
-        i_solution.angle = float_array[0]
+        i_solution.pre_scale = float_array[0]
+        i_solution.angle = float_array[1]
         i_solution.pivot = mathutils.Vector(
-            (float_array[1], float_array[2],
+            (float_array[2], float_array[3],
              0.0))
         i_solution.offset = mathutils.Vector(
-            (float_array[3], float_array[4],
+            (float_array[4], float_array[5],
              0.0))
 
-        i_solution.scale = float_array[5]
+        i_solution.scale = float_array[6]
 
         i_solution.post_scale_offset = mathutils.Vector(
-            (float_array[6], float_array[7],
+            (float_array[7], float_array[8],
              0.0))
 
         pack_solution.island_solutions.append(i_solution)
@@ -108,7 +110,7 @@ def read_pack_solution(pack_solution_msg):
     return pack_solution
 
 def to_uvp_group_method(group_method):
-    if group_method in {UvGroupingMethod.MATERIAL.code, UvGroupingMethod.MESH.code, UvGroupingMethod.OBJECT.code}:
+    if group_method in {UvGroupingMethod.MATERIAL.code, UvGroupingMethod.MESH.code, UvGroupingMethod.OBJECT.code, UvGroupingMethod.MANUAL.code}:
 
         return UvGroupingMethodUvp.EXTERNAL
 
@@ -151,10 +153,10 @@ def get_active_image_size(context):
             img = area.spaces.active.image
 
     if img is None:
-        raise RuntimeError("'Use Texture Ratio' option is on, but no active texture was found")
+        raise RuntimeError("Active texture in the UV editor required for the operation")
 
     if img.size[0] == 0 or img.size[1] == 0:
-        raise RuntimeError("'Use Texture Ratio' option is on, but a texture with invalid dimensions was found in the UV editor")
+        raise RuntimeError("Active texture in the UV editor has invalid dimensions")
 
     return (img.size[0], img.size[1])
 

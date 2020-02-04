@@ -18,12 +18,12 @@ class UvpEditionInfo:
 
 class UvpVersionInfo:
     ADDON_VERSION_MAJOR = 2
-    ADDON_VERSION_MINOR = 2
-    ADDON_VERSION_PATCH = 7
+    ADDON_VERSION_MINOR = 3
+    ADDON_VERSION_PATCH = 1
 
     UVP_VERSION_MAJOR = 2
-    UVP_VERSION_MINOR = 2
-    UVP_VERSION_PATCH = 7
+    UVP_VERSION_MINOR = 3
+    UVP_VERSION_PATCH = 1
 
     RELEASE_SUFFIX = get_release_suffix()
 
@@ -58,8 +58,8 @@ class UvpVersionInfo:
     def uvp_edition_array(cls):
         edition_array = [
             UvpEditionInfo(1, 's', 'std', 'standard', 'UVP_EDITION_STANDARD', []),
-            UvpEditionInfo(2, 'p', 'pro', 'professional', 'UVP_EDITION_PRO', ['UVP_FEATURE_CUDA']),
-            UvpEditionInfo(3, 'd', 'demo', 'DEMO', 'UVP_EDITION_DEMO', ['UVP_FEATURE_CUDA'])
+            UvpEditionInfo(2, 'p', 'pro', 'professional', 'UVP_EDITION_PRO', []),
+            UvpEditionInfo(3, 'd', 'demo', 'DEMO', 'UVP_EDITION_DEMO', [])
         ]
 
         return edition_array

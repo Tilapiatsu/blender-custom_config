@@ -19,8 +19,8 @@ if "bpy" in locals():
 bl_info = {
     "name": "UVPackmaster2",
     "author": "glukoz",
-    "version": (2, 2, 7),
-    "blender": (2, 80, 0),
+    "version": (2, 3, 1),
+    "blender": (2, 81, 0),
     "location": "",
     "description": "",
     "warning": "",
@@ -69,20 +69,28 @@ if inside_blender:
         UVP2_OT_UndoIslandsAdjustemntToTexture,
 
         UVP2_OT_UvpSetupHelp,
+        UVP2_OT_HeuristicSearchHelp,
         UVP2_OT_NonSquarePackingHelp,
         UVP2_OT_SimilarityDetectionHelp,
         UVP2_OT_InvalidTopologyHelp,
         UVP2_OT_PixelMarginHelp,
         UVP2_OT_IslandRotStepHelp,
+        UVP2_OT_UdimSupportHelp,
+        UVP2_OT_ManualGroupingHelp,
 
         UVP2_OT_ShowRotStepIslandParam,
         UVP2_OT_SetRotStepIslandParam,
         UVP2_OT_ResetRotStepIslandParam,
 
+        UVP2_OT_ShowManualGroupIslandParam,
+        UVP2_OT_SetManualGroupIslandParam,
+        UVP2_OT_ResetManualGroupIslandParam,
+
         UVP2_OT_EnableTargetBox,
         UVP2_OT_DisableTargetBox,
         UVP2_OT_DrawTargetBox,
         UVP2_OT_SetTargetBoxTile,
+        UVP2_OT_MoveTargetBoxTile,
 
         UVP2_OT_SavePreset,
         UVP2_OT_LoadPreset,
@@ -96,6 +104,7 @@ if inside_blender:
         UVP2_PT_NonSquarePacking,
         UVP2_PT_TargetBox,
         UVP2_PT_IslandRotStep,
+        UVP2_PT_ManualGrouping,
         UVP2_PT_Warnings,
         UVP2_PT_Statistics,
         UVP2_PT_Help

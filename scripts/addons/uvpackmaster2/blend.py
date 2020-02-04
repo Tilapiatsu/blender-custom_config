@@ -14,4 +14,4 @@ def is_blender28():
     return True
 
 def get_release_suffix():
-    return 'blend2.8'
+    return 'blend2.8x'

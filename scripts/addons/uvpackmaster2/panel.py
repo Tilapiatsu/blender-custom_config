@@ -29,6 +29,12 @@ class UVP2_PT_IslandRotStep(UVP2_PT_IslandRotStepBase):
     bl_parent_id = UVP2_PT_Main.bl_idname
     bl_category = uvp_panel_category
 
+class UVP2_PT_ManualGrouping(UVP2_PT_ManualGroupingBase):
+    bl_space_type = 'IMAGE_EDITOR'
+    bl_region_type = uvp_region_type
+    bl_parent_id = UVP2_PT_Main.bl_idname
+    bl_category = uvp_panel_category
+
 class UVP2_PT_Heuristic(UVP2_PT_HeuristicBase):
     bl_space_type = 'IMAGE_EDITOR'
     bl_region_type = uvp_region_type

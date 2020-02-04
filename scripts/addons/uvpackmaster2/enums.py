@@ -68,6 +68,8 @@ class UvPackerErrorCode:
     MAX_GROUP_COUNT_EXCEEDED = 5
     CANCELLED = 6
     PRE_VALIDATION_FAILED = 7
+    DEVICE_NOT_SUPPORTED = 8
+    DEVICE_DOESNT_SUPPORT_GROUPS_TOGETHER = 9
 
 class UvPackingPhaseCode:
     INITIALIZATION = 0
@@ -125,12 +127,13 @@ class EnumValue:
 
 class UvPackingModeEntry:
 
-    def __init__(self, code, name, desc, req_feature, supports_heuristic, supports_pack_to_others):
+    def __init__(self, code, name, desc, req_feature, supports_heuristic, supports_pack_to_others, supports_fixed_scale):
         self.code = code
         self.name = name
         self.req_feature = req_feature
         self.supports_heuristic = supports_heuristic
         self.supports_pack_to_others = supports_pack_to_others
+        self.supports_fixed_scale = supports_fixed_scale
         self.enum_val = EnumValue(code, name, desc, req_feature)
 
 class UvPackingMode:
@@ -140,7 +143,7 @@ class UvPackingMode:
 
         enum_values = \
             (cls.SINGLE_TILE.enum_val,
-             cls.TILES_FIXED_SCALE.enum_val,
+             cls.TILES.enum_val,
              cls.GROUPS_TOGETHER.enum_val,
              cls.GROUPS_TO_TILES.enum_val)
 
@@ -161,15 +164,17 @@ class UvPackingMode:
                     UvpLabels.PACK_MODE_SINGLE_TILE_DESC,
                     '',
                     supports_heuristic=True,
-                    supports_pack_to_others=True)
+                    supports_pack_to_others=True,
+                    supports_fixed_scale=True)
 
-    TILES_FIXED_SCALE = UvPackingModeEntry(\
+    TILES = UvPackingModeEntry(\
                     '1',
-                    UvpLabels.PACK_MODE_TILES_FIXED_SCALE_NAME,
-                    UvpLabels.PACK_MODE_TILES_FIXED_SCALE_DESC,
+                    UvpLabels.PACK_MODE_TILES_NAME,
+                    UvpLabels.PACK_MODE_TILES_DESC,
                     'pack_to_tiles',
-                    supports_heuristic=False,
-                    supports_pack_to_others=True)
+                    supports_heuristic=True,
+                    supports_pack_to_others=True,
+                    supports_fixed_scale=True)
 
     GROUPS_TOGETHER = UvPackingModeEntry(\
                     '2',
@@ -177,7 +182,8 @@ class UvPackingMode:
                     UvpLabels.PACK_MODE_GROUPS_TOGETHER_DESC,
                     'grouping',
                     supports_heuristic=True,
-                    supports_pack_to_others=True)
+                    supports_pack_to_others=True,
+                    supports_fixed_scale=True)
 
     GROUPS_TO_TILES = UvPackingModeEntry(\
                     '3',
@@ -185,9 +191,10 @@ class UvPackingMode:
                     UvpLabels.PACK_MODE_GROUPS_TO_TILES_DESC,
                     'grouping',
                     supports_heuristic=True,
-                    supports_pack_to_others=False)
+                    supports_pack_to_others=False,
+                    supports_fixed_scale=False)
 
-    MODES = [SINGLE_TILE, TILES_FIXED_SCALE, GROUPS_TOGETHER, GROUPS_TO_TILES]
+    MODES = [SINGLE_TILE, TILES, GROUPS_TOGETHER, GROUPS_TO_TILES]
 
 
 class UvGroupingMode_Legacy:
@@ -200,11 +207,12 @@ class UvGroupingMethod:
     SIMILARITY = EnumValue('1', 'Similarity')
     MESH = EnumValue('2', 'Mesh Parts')
     OBJECT = EnumValue('3', 'Object')
-
+    MANUAL = EnumValue('4', 'Manual')
 
 class UvGroupingMethodUvp:
-    EXTERNAL = 0
-    SIMILARITY = 1
+    DISABLED = 0
+    EXTERNAL = 1
+    SIMILARITY = 2
 
 class UvMapSerializationFlags:
     CONTAINS_FLAGS = 1

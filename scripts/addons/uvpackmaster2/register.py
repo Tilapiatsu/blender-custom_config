@@ -200,10 +200,16 @@ def register_specific(bl_info):
 
     bpy.app.handlers.load_post.append(load_post_handler)
 
-    try:
-        register_uvp(get_prefs().uvp_path)
-    except:
-        pass
+    addon_uvp_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'uvp')
+    paths_to_check = [get_prefs().uvp_path, addon_uvp_path]
+
+    for path in paths_to_check:
+        try:
+            register_uvp(path)
+        except:
+            continue
+
+        break
 
 
 def check_uvp():
