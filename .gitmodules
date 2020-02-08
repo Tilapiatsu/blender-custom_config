@@ -175,3 +175,6 @@
 [submodule "scripts/addons/array_tools"]
 	path = scripts/addons/array_tools
 	url = https://github.com/Elreenys/array_tools.git
+[submodule "scripts/addons/BlenderGIS"]
+	path = scripts/addons/BlenderGIS
+	url = https://github.com/domlysz/BlenderGIS.git
