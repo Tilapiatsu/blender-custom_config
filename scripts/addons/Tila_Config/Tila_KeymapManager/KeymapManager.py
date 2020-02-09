@@ -207,8 +207,9 @@ class KeymapManager():
             key_modifier = 'NONE'
         kmi = self.km.keymap_items.new(idname, type, value, alt=alt, any=any, ctrl=ctrl, shift=shift, oskey=oskey, key_modifier=key_modifier)
         kmi.active = True
-        for p in properties:
-            self.kmi_prop_setattr(kmi.properties, p[0], p[1])
+        if properties:
+            for p in properties:
+                self.kmi_prop_setattr(kmi.properties, p[0], p[1])
         print("{} : assigning new tool '{}' to keymap '{}'".format(self.km.name, kmi.idname, kmi.to_string()))
 
         # Store keymap in class variable
@@ -224,8 +225,9 @@ class KeymapManager():
             key_modifier = 'NONE'
         kmi = self.km.keymap_items.new_modal(propvalue, type, value, alt=alt, any=any, ctrl=ctrl, shift=shift, oskey=oskey, key_modifier=key_modifier)
         kmi.active = True
-        for p in properties:
-            self.kmi_prop_setattr(kmi.properties, p[0], p[1])
+        if properties:
+            for p in properties:
+                self.kmi_prop_setattr(kmi.properties, p[0], p[1])
         print("{} : assigning new tool '{}' to keymap '{}'".format(self.km.name, kmi.idname, kmi.to_string()))
 
         # Store keymap in class variable

@@ -172,9 +172,12 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 
 		# Select / Deselect / Add
 		if select_tool:
-			self.kmi_set_replace(select_tool, self.k_select, 'CLICK', properties=[('deselect_all', True)], disable_double=True)
-			self.kmi_set_replace(select_tool, self.k_select, 'CLICK', shift=True, properties=[('extend', True)], disable_double=True)
-			self.kmi_set_replace(select_tool, self.k_select, 'CLICK', ctrl=True, properties=[('deselect', True)], disable_double=True)
+			self.kmi_set_active(False ,select_tool, self.k_select, 'CLICK', ctrl=False, shift=False)
+			self.kmi_set_replace(select_tool, self.k_select, 'CLICK', properties=[('deselect_all', True), ('center',False), ('toggle', False), ('object', False)], disable_double=True)
+			self.kmi_set_active(False ,select_tool, self.k_select, 'CLICK', ctrl=False, shift=True)
+			self.kmi_set_replace(select_tool, self.k_select, 'CLICK', shift=True, properties=[('extend', True), ('center',False), ('toggle', False), ('object', False)], disable_double=True)
+			self.kmi_set_active(False ,select_tool, self.k_select, 'CLICK', ctrl=True, shift=False)
+			self.kmi_set_replace(select_tool, self.k_select, 'CLICK', ctrl=True, properties=[('deselect', True), ('center',False), ('toggle', False), ('object', False)], disable_double=True)
 		
 		# Lasso Select / Deselect / Add
 		if lasso_tool:
@@ -296,13 +299,9 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 
 	def duplicate(self, duplicate=None, duplicate_prop=None, duplicate_link=None, duplicate_link_prop=None):
 		if duplicate:
-			kmi = self.kmi_set_replace(duplicate, 'D', 'PRESS', ctrl=True)
-			if duplicate_prop:
-				self.kmi_prop_setattr(kmi.properties, duplicate_prop[0], duplicate_prop[1])
+			self.kmi_set_replace(duplicate, 'D', 'PRESS', ctrl=True, properties=duplicate_prop, disable_double=True)
 		if duplicate_link:
-			kmi = self.kmi_set_replace(duplicate_link, 'D', 'PRESS', ctrl=True, shift=True)
-			if duplicate_link_prop:
-				self.kmi_prop_setattr(kmi.properties, duplicate_link_prop[0], duplicate_link_prop[1])
+			self.kmi_set_replace(duplicate_link, 'D', 'PRESS', ctrl=True, shift=True, properties=duplicate_link_prop, disable_double=True)
 
 	def hide_reveal(self, hide=None, unhide=None, inverse=None):
 		if hide:
@@ -600,7 +599,9 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		self.selection_tool()
 		self.right_mouse()
 		self.tool_transform()
-		self.duplicate(duplicate='object.duplicate_move', duplicate_link='object.duplicate_move_linked')
+
+
+		self.duplicate(duplicate='object.duplicate', duplicate_link='object.duplicate', duplicate_link_prop=[('linked', True)])
 
 		self.selection_keys(invert_tool='object.select_all')
 
@@ -861,7 +862,7 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		self.kmi_init(name='NLA Editor', space_type='EMPTY', region_type='WINDOW')
 		self.global_keys()
 		self.right_mouse()
-		self.duplicate(duplicate='nla.duplicate', duplicate_link='nla.duplicate', duplicate_link_prop=('linked', True))
+		self.duplicate(duplicate='nla.duplicate', duplicate_link='nla.duplicate', duplicate_link_prop=[('linked', True)])
 		
 		###### Lattice
 		self.kmi_init(name='Lattice', space_type='EMPTY', region_type='WINDOW')
