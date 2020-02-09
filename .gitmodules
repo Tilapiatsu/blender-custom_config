@@ -1,6 +1,3 @@
-[submodule "datafiles/colormanagement"]
-	path = datafiles/colormanagement
-	url = https://github.com/sobotka/filmic-blender.git
 [submodule "scripts/addons/addon_common"]
 	path = scripts/addons/addon_common
 	url = https://github.com/CGCookie/addon_common.git
