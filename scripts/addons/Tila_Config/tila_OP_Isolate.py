@@ -22,7 +22,7 @@ class TILA_isolate(bpy.types.Operator):
     bl_label = "Isolate"
     bl_options = {'REGISTER', 'UNDO'}
 
-    force_object_isolate = bpy.props.BoolProperty(name='force_object_isolate', default=False)
+    force_object_isolate : bpy.props.BoolProperty(name='force_object_isolate', default=False)
 
     is_isolated = False
     isolated_items = []
@@ -45,6 +45,10 @@ class TILA_isolate(bpy.types.Operator):
     def invoke(self, context, event):
         self.selected_objects = context.selected_objects if len(context.selected_objects) else [context.active_object]
         if context.space_data.type == 'VIEW_3D':
+
+            if self.force_object_isolate:
+                self.isolate(context, isolate=(bpy.ops.view3d.localview, {'frame_selected':False}), reveal=(bpy.ops.view3d.localview, {'frame_selected':False}), sel_count=len(self.selected_objects)) == 'REVEAL'
+                return {'FINISHED'}
 
             if bpy.context.mode in ['OBJECT', 'SCULPT']:
                 if self.isolate(context, isolate=(bpy.ops.view3d.localview, {'frame_selected':False}), reveal=(bpy.ops.view3d.localview, {'frame_selected':False}), sel_count=len(self.selected_objects)) == 'REVEAL':

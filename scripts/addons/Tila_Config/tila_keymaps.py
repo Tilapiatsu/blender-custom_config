@@ -372,6 +372,10 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		self.kmi_set_replace('wm.tool_set_by_id', self.k_rotate, 'PRESS', properties=[('name', 'builtin.rotate')])
 		self.kmi_set_replace('wm.tool_set_by_id', self.k_scale, 'PRESS', properties=[('name', 'builtin.scale')])
 
+	def isolate(self):
+		self.kmi_set_replace('view3d.tila_isolate', 'X', 'PRESS', ctrl=True, alt=True, properties=[('force_object_isolate', False)])
+		self.kmi_set_replace('view3d.tila_isolate', 'X', 'PRESS', ctrl=True, alt=True, shift=True, properties=[('force_object_isolate', True)])
+
 	# Keymap define
 	def set_tila_keymap(self):
 		print("----------------------------------------------------------------")
@@ -558,7 +562,7 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		
 		self.tool_center(pivot='VIEW3D_PT_pivot_point', orientation='VIEW3D_PT_transform_orientations')
 
-		self.kmi_set_replace('view3d.tila_isolate', 'X', 'PRESS', ctrl=True, alt=True, shift=True)
+		self.isolate()
 
 		self.kmi_set_replace('mesh.toggle_use_automerge', 'BACK_SLASH', 'PRESS')
 		# self.kmi_set_replace('object.merge_tool', 'M', 'PRESS')
@@ -608,7 +612,7 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		self.tool_subdivision(subdivision='object.subdivision_set')
 		self.kmi_set_replace('object.delete', 'DEL', 'PRESS', ctrl=True, alt=True, shift=True, properties=[('use_global', True), ('confirm', True)])
 
-		self.kmi_set_replace('view3d.tila_isolate', 'X', 'PRESS', ctrl=True, alt=True, shift=True)
+		self.isolate()
 		
 		self.kmi_set_replace('object.move_to_collection', 'M', 'PRESS', ctrl=True, alt=True, disable_double=True)
 		# Set collection visibility shortcut
@@ -685,7 +689,8 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 
 		self.tool_smart_delete()
 		self.kmi_set_replace('object.tila_emptymesh', 'N', 'PRESS', ctrl=True, alt=True, shift=True)
-		self.kmi_set_replace('view3d.tila_isolate', 'X', 'PRESS', ctrl=True, alt=True, shift=True)
+
+		self.isolate()
 
 		###### File Browser
 		self.kmi_init(name='File Browser', space_type='FILE_BROWSER', region_type='WINDOW')
@@ -896,7 +901,7 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 
 		# self.tool_sculpt('gpencil.sculptmode_toggle')
 
-		self.kmi_set_replace('view3d.tila_isolate', 'X', 'PRESS', ctrl=True, alt=True, shift=True)
+		self.isolate()
 
 		###### Grease Pencil Stroke Edit Mode
 		self.kmi_init(name='Grease Pencil Stroke Edit Mode', space_type='EMPTY', region_type='WINDOW')
@@ -915,7 +920,7 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 					  		less_tool='gpencil.select_less',
 							invert_tool='gpencil.select_all')
 
-		self.kmi_set_replace('view3d.tila_isolate', 'X', 'PRESS', ctrl=True, alt=True, shift=True)
+		self.isolate()
 		
 
 		###### Grease Pencil Stroke Paint Mode
