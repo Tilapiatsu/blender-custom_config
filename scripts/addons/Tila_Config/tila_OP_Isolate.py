@@ -46,7 +46,7 @@ class TILA_isolate(bpy.types.Operator):
         self.selected_objects = context.selected_objects if len(context.selected_objects) else [context.active_object]
         if context.space_data.type == 'VIEW_3D':
 
-            if bpy.context.mode == 'OBJECT':
+            if bpy.context.mode in ['OBJECT', 'SCULPT']:
                 if self.isolate(context, isolate=(bpy.ops.view3d.localview, {'frame_selected':False}), reveal=(bpy.ops.view3d.localview, {'frame_selected':False}), sel_count=len(self.selected_objects)) == 'REVEAL':
                     pass
                     # bpy.ops.object.select_all(action='INVERT')
