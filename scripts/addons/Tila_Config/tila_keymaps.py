@@ -681,6 +681,8 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		self.right_mouse()
 		self.kmi_set_replace('outliner.item_rename', 'F2', 'PRESS')
 
+		self.duplicate(duplicate='outliner.tila_duplicate', duplicate_link='outliner.tila_duplicate', duplicate_link_prop=[('linked', True)])
+
 		self.tool_smart_delete()
 		self.kmi_set_replace('object.tila_emptymesh', 'N', 'PRESS', ctrl=True, alt=True, shift=True)
 		self.kmi_set_replace('view3d.tila_isolate', 'X', 'PRESS', ctrl=True, alt=True, shift=True)
