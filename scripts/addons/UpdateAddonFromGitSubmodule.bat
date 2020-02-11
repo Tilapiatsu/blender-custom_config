@@ -27,7 +27,7 @@ copy "..\GIT\bpy_photogrametry\carbon_tools.py" .
 copy "..\GIT\bpy_photogrametry\io_import_photoscan_cameras.py" .
 copy "..\GIT\bpy_photogrametry\system_time_tracker.py" .
 copy "..\GIT\bpy_photogrametry\uv_tube_unwrap.py" .
-copy "..\GIT\bpy_photogrametry\view3d_point_cloud_visualizer.py" .
+copy "..\GIT\bpy_photogrametry\space_view3d_point_cloud_visualizer.py" .
 copy "..\GIT\advanced_transform\advanced_transform_2_8.py" .
 robocopy "..\GIT\bpy_photogrametry\io_mesh_fast_obj" "io_mesh_fast_obj" %param%
 

@@ -28,7 +28,7 @@ scripts/addons/carbon_tools.py
 scripts/addons/io_import_photoscan_cameras.py
 scripts/addons/system_time_tracker.py
 scripts/addons/uv_tube_unwrap.py
-scripts/addons/view3d_point_cloud_visualizer.py
+scripts/addons/space_view3d_point_cloud_visualizer.py
 scripts/addons/advanced_transform_2_8.py
 scripts/presets/bkit.json
 
