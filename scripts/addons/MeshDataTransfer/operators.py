@@ -19,10 +19,11 @@ class TransferShapeData(bpy.types.Operator):
         active = context.active_object
         active_prop = context.object.mesh_data_transfer_object
         deformed_source = active_prop.transfer_modified_source
-        sc_prop = context.scene.mesh_data_transfer_global
+        # sc_prop = context.scene.mesh_data_transfer_global
         as_shape_key = active_prop.transfer_shape_as_key
         source = active.mesh_data_transfer_object.mesh_source
         mask_vertex_group = active_prop.vertex_group_filter
+        invert_mask = active_prop.invert_vertex_group_filter
         # target_prop = target.mesh_data_transfer_global
 
         world_space = False
@@ -39,7 +40,7 @@ class TransferShapeData(bpy.types.Operator):
         if sample_space == 'WORLD':
             world_space = True
         transfer_data = MeshDataTransfer(target=active, source =source, world_space=world_space,
-                                         deformed_source=deformed_source,
+                                         deformed_source=deformed_source,invert_vertex_group = invert_mask,
                                          uv_space=uv_space, search_method=search_method, vertex_group=mask_vertex_group)
         transferred = transfer_data.transfer_vertex_position(as_shape_key=as_shape_key)
         transfer_data.free()
@@ -69,10 +70,11 @@ class TransferShapeKeyData(bpy.types.Operator):
         active_prop = context.object.mesh_data_transfer_object
 
         deformed_source = active_prop.transfer_modified_source
-        sc_prop = context.scene.mesh_data_transfer_global
+        # sc_prop = context.scene.mesh_data_transfer_global
         as_shape_key = active_prop.transfer_shape_as_key
         source = active.mesh_data_transfer_object.mesh_source
         mask_vertex_group = active_prop.vertex_group_filter
+        invert_mask = active_prop.invert_vertex_group_filter
         # target_prop = target.mesh_data_transfer_global
 
         world_space = False
@@ -89,7 +91,7 @@ class TransferShapeKeyData(bpy.types.Operator):
         if sample_space == 'WORLD':
             world_space = True
         transfer_data = MeshDataTransfer(target=active, source =source, world_space=world_space,
-                                         uv_space=uv_space,deformed_source= deformed_source ,
+                                         uv_space=uv_space,deformed_source= deformed_source , invert_vertex_group= invert_mask,
                                          search_method=search_method, vertex_group=mask_vertex_group)
         transferred = transfer_data.transfer_shape_keys()
         transfer_data.free()
@@ -120,10 +122,11 @@ class TransferVertexGroupsData(bpy.types.Operator):
         active = context.active_object
         active_prop = context.object.mesh_data_transfer_object
 
-        sc_prop = context.scene.mesh_data_transfer_global
+        # sc_prop = context.scene.mesh_data_transfer_global
         as_shape_key = active_prop.transfer_shape_as_key
         source = active.mesh_data_transfer_object.mesh_source
         mask_vertex_group = active_prop.vertex_group_filter
+        invert_mask = active_prop.invert_vertex_group_filter
         # target_prop = target.mesh_data_transfer_global
 
         world_space = False
@@ -140,7 +143,8 @@ class TransferVertexGroupsData(bpy.types.Operator):
         if sample_space == 'WORLD':
             world_space = True
         transfer_data = MeshDataTransfer(target=active, source =source, world_space=world_space,
-                                         uv_space=uv_space, search_method=search_method, vertex_group=mask_vertex_group)
+                                         invert_vertex_group = invert_mask, uv_space=uv_space, search_method=search_method,
+                                         vertex_group=mask_vertex_group)
         transferred = transfer_data.transfer_vertex_groups()
         transfer_data.free()
         if not transferred:
@@ -166,15 +170,15 @@ class TransferUVData(bpy.types.Operator):
         active = context.active_object
         active_prop = context.object.mesh_data_transfer_object
 
-        sc_prop = context.scene.mesh_data_transfer_global
+        # sc_prop = context.scene.mesh_data_transfer_global
         as_shape_key = active_prop.transfer_shape_as_key
         source = active.mesh_data_transfer_object.mesh_source
         # target_prop = target.mesh_data_transfer_global
         mask_vertex_group = active_prop.vertex_group_filter
+        invert_mask = active_prop.invert_vertex_group_filter
 
         world_space = False
         topology = False
-
         search_method = active_prop.search_method
         sample_space = active_prop.mesh_object_space
         if sample_space == 'UVS':
@@ -191,7 +195,8 @@ class TransferUVData(bpy.types.Operator):
 
         #transfer_uvs(active, target, world_space)
         transfer_data = MeshDataTransfer(target=active, source =source, world_space=world_space,
-                                         search_method=search_method, topology=topology, vertex_group=mask_vertex_group)
+                                         invert_vertex_group = invert_mask, search_method=search_method,
+                                         topology=topology, vertex_group=mask_vertex_group)
         transfer_data.transfer_uvs()
         transfer_data.free()
 

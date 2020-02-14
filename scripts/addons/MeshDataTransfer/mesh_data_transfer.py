@@ -122,7 +122,7 @@ class MeshData (object):
                 self.vertex_groups.remove(v_group)
             group_weights = weights[:, i]
             v_ids = np.nonzero(group_weights)[0]
-            v_group = self.obj.vertex_groups.new()
+            v_group = self.obj.vertex_groups.new(name=group_name)
             for v_id in v_ids:
                 value = group_weights[v_id]
                 v_group.add((int(v_id),), value, "REPLACE")
@@ -319,7 +319,8 @@ class MeshData (object):
 
 class MeshDataTransfer (object):
     def __init__(self, source, target, uv_space=False, deformed_source=False,
-                 deformed_target=False, world_space=False, search_method="RAYCAST", topology=False, vertex_group = None):
+                 deformed_target=False, world_space=False, search_method="RAYCAST",
+                 topology=False, vertex_group = None, invert_vertex_group = False):
         self.vertex_group = vertex_group
         self.uv_space = uv_space
         self.topology = topology
@@ -331,6 +332,7 @@ class MeshDataTransfer (object):
         self.source.get_mesh_data()
         self.target = MeshData(target, uv_space=uv_space, deformed=deformed_target , world_space=world_space)
         self.target.get_mesh_data()
+        self.invert_vertex_group = invert_vertex_group
 
 
         self.missed_projections = None
@@ -347,7 +349,10 @@ class MeshDataTransfer (object):
         :return:
         """
         if self.vertex_group:
-            return self.target.get_vertex_group_weights(self.vertex_group)
+            v_group = self.target.get_vertex_group_weights(self.vertex_group)
+            if self.invert_vertex_group:
+                v_group = 1.0 - v_group
+            return v_group
 
 
     def free(self):
@@ -493,6 +498,7 @@ class MeshDataTransfer (object):
 
 
         transfer_source = self.source.obj
+        transfer_target = self.target.obj
         loop_mapping =  'POLYINTERP_NEAREST'
         poly_mapping = 'POLYINTERP_PNORPROJ'
         if self.topology:
@@ -510,11 +516,16 @@ class MeshDataTransfer (object):
         data_transfer.data_types_loops = {"UV" , }
         data_transfer.use_poly_data = True
 
-        active_uv = transfer_source.data.uv_layers.active
-        data_transfer.layers_uv_select_src = active_uv.name
+        source_active_uv = transfer_source.data.uv_layers.active
+        data_transfer.layers_uv_select_src = source_active_uv.name
+
+        dest_active_uv = transfer_target.data.uv_layers.active
+        data_transfer.layers_uv_select_dst = dest_active_uv.name
+
         # options: ('TOPOLOGY', 'NEAREST', 'NORMAL', 'POLYINTERP_PNORPROJ')
         if self.vertex_group:
             data_transfer.vertex_group = self.vertex_group
+            data_transfer.invert_vertex_group = self.invert_vertex_group
         data_transfer.poly_mapping = poly_mapping
         bpy.ops.object.datalayout_transfer (modifier=data_transfer.name)
         bpy.ops.object.modifier_apply(apply_as="DATA", modifier=data_transfer.name)

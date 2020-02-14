@@ -10,7 +10,7 @@ bl_info = {
     "description" : "This add on will transfer geometry data from one mesh to another based on 3 different spaces:"
                     " 'world, object, uv' also will tranfer UVs based on topology",
     "blender" : (2, 80, 0),
-    "version" : (1, 2, 1,),
+    "version" : (1, 3, 0,),
     "location" : "(Object Mode) Mesh > ObjectData > Mesh Data Transfer ",
     "warning" : "",
     "wiki_url": "",
@@ -46,8 +46,10 @@ class MeshDataSettings(PropertyGroup):
     mesh_source: bpy.props.PointerProperty(type=bpy.types.Object, poll=scene_chosenobject_poll)
 
     vertex_group_filter: bpy.props.StringProperty (name="Vertex Group")
+    invert_vertex_group_filter: bpy.props.BoolProperty ()
 
     transfer_shape_as_key : bpy.props.BoolProperty ()
+    transfer_to_new_uv : bpy.props.BoolProperty ()
 
     transfer_modified_target : bpy.props.BoolProperty ()
     transfer_modified_source : bpy.props.BoolProperty ()
@@ -56,9 +58,9 @@ class MeshDataGlobalSettings(PropertyGroup):
     transfer_modified_target : bpy.props.BoolProperty ()
     transfer_modified_source : bpy.props.BoolProperty ()
 
-class ShapeKeysProp(bpy.types.PropertyGroup):
-    name : bpy.props.StringProperty()
-    enabled : bpy.props.BoolProperty()
+# class ShapeKeysProp(bpy.types.PropertyGroup):
+#     name : bpy.props.StringProperty()
+#     enabled : bpy.props.BoolProperty()
 
 #=========================================UI===============================================================
 
@@ -79,7 +81,7 @@ class DATA_PT_mesh_data_transfer(bpy.types.Panel):
         active = bpy.context.active_object
         ob_prop = context.object.mesh_data_transfer_object
         vg_prop = context.object.mesh_data_transfer_object
-        sc_prop = context.scene.mesh_data_transfer_global
+        # sc_prop = context.scene.mesh_data_transfer_global
         ob = context.object
 
         # mesh_object_space layout
@@ -113,10 +115,10 @@ class DATA_PT_mesh_data_transfer(bpy.types.Panel):
         #top row
         top_row_layout = main_box_layout.row()
         left_top_row_box_layout = top_row_layout.box ()
-        shape_cols_layout = left_top_row_box_layout.row()
+        shape_cols_layout = left_top_row_box_layout.row(align=True)
         shape_cols_layout.operator ("object.transfer_shape_data" , text="Transfer Shape" , icon="MOD_DATA_TRANSFER")
-        split = shape_cols_layout.split()
-        split.prop (ob_prop , "transfer_shape_as_key" , text="", toggle=True, icon='SHAPEKEY_DATA')
+        # split = shape_cols_layout.split()
+        shape_cols_layout.prop (ob_prop , "transfer_shape_as_key" , text="", toggle=True, icon='SHAPEKEY_DATA')
         left_bottom_row_box_layout = left_top_row_box_layout.row()
         left_bottom_row_box_layout.operator("object.transfer_vertex_groups_data" , text="Transfer Vertex Groups" ,
                                                 icon="GROUP_VERTEX")
@@ -131,7 +133,9 @@ class DATA_PT_mesh_data_transfer(bpy.types.Panel):
                                                 icon="SHAPEKEY_DATA")
         #mesh picker layout
         vgroup_picker_box_layout = main_box_layout.box()
-        vgroup_picker_box_layout.prop_search(ob_prop, "vertex_group_filter", active, "vertex_groups")
+        vgroup_row = vgroup_picker_box_layout.row(align=True)
+        vgroup_row.prop_search(ob_prop, "vertex_group_filter", active, "vertex_groups")
+        vgroup_row.prop (ob_prop , "invert_vertex_group_filter" , text="" , toggle=True , icon='ARROW_LEFTRIGHT')
 
 #=================================================================================================================
 
@@ -144,16 +148,16 @@ def register():
         bpy.utils.register_class(cl)
 
     bpy.types.Object.mesh_data_transfer_object = PointerProperty (type=MeshDataSettings)
-    bpy.types.Scene.mesh_data_transfer_global = PointerProperty (type=MeshDataGlobalSettings)
+    # bpy.types.Scene.mesh_data_transfer_global = PointerProperty (type=MeshDataGlobalSettings)
 
 def unregister():
     global classes
     for cl in classes:
-        print (cl)
+        # print (cl)
         bpy.utils.unregister_class (cl)
 
     del bpy.types.Object.mesh_data_transfer_object
-    del bpy.types.Scene.mesh_data_transfer_global
+    # del bpy.types.Scene.mesh_data_transfer_global
 
 if __name__ == "__main__":
     register()
