@@ -1,9 +1,6 @@
 [submodule "scripts/addons/addon_common"]
 	path = scripts/addons/addon_common
 	url = https://github.com/CGCookie/addon_common.git
-[submodule "scripts/addons/DNoise"]
-	path = scripts/addons/DNoise
-	url = https://github.com/grantwilk/DNOISE.git
 [submodule "scripts/addons/MACHIN3tools"]
 	path = scripts/addons/MACHIN3tools
 	url = https://github.com/machin3io/MACHIN3tools.git

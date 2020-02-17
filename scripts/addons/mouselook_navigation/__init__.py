@@ -19,13 +19,13 @@
 bl_info = {
     "name": "Mouselook Navigation",
     "author": "dairin0d, moth3r",
-    "version": (1, 2, 0),
+    "version": (1, 2, 2),
     "blender": (2, 80, 0),
     "location": "View3D > orbit/pan/dolly/zoom/fly/walk",
     "description": "Provides extra 3D view navigation options (ZBrush mode) and customizability",
     "warning": "Beta version",
-    "wiki_url": "",
-    "tracker_url": "",
+    "wiki_url": "https://github.com/dairin0d/blender-2.8-scripts/blob/master/docs/mouselook_navigation/mouselook_navigation.md",
+    "tracker_url": "https://github.com/dairin0d/blender-2.8-scripts/issues/new?labels=mouselook+navigation",
     "category": "3D View"
 }
 
@@ -189,39 +189,44 @@ class MouselookNavigation_InputSettings:
     def draw(self, layout):
         with layout.split(factor=0.15):
             with layout.column():
-                layout.prop(self, "allowed_transitions")
-            with layout.row():
+                layout.label(text="Transitions:")
                 with layout.column():
-                    layout.prop(self, "default_mode")
-                    layout.prop(self, "ortho_unrotate", toggle=True)
-                    layout.prop(self, "independent_modes", toggle=True)
-                    layout.prop(self, "zbrush_mode", toggle=True)
-                    #layout.label() # just an empty line
-                    layout.prop(self, "keys_rotmode_switch")
-                    layout.prop(self, "keys_origin_mouse")
-                    layout.prop(self, "keys_origin_selection")
-                    layout.prop(self, "keys_orbit")
-                    layout.prop(self, "keys_orbit_snap")
-                    layout.prop(self, "keys_pan")
-                    layout.prop(self, "keys_dolly")
-                    layout.prop(self, "keys_zoom")
-                    layout.prop(self, "keys_fly")
-                    layout.prop(self, "keys_fps")
-                with layout.column():
-                    layout.prop(self, "keys_confirm")
-                    layout.prop(self, "keys_cancel")
-                    layout.label() # just an empty line
-                    layout.prop(self, "keys_FPS_forward")
-                    layout.prop(self, "keys_FPS_back")
-                    layout.prop(self, "keys_FPS_left")
-                    layout.prop(self, "keys_FPS_right")
-                    layout.prop(self, "keys_FPS_up")
-                    layout.prop(self, "keys_FPS_down")
-                    layout.prop(self, "keys_fps_acceleration")
-                    layout.prop(self, "keys_fps_slowdown")
-                    layout.prop(self, "keys_fps_crouch")
-                    layout.prop(self, "keys_fps_jump")
-                    layout.prop(self, "keys_fps_teleport")
+                    layout.prop(self, "allowed_transitions")
+            
+            with layout.column():
+                layout.label(text="Navigation shortcuts:")
+                with layout.row():
+                    with layout.column():
+                        layout.prop(self, "default_mode")
+                        layout.prop(self, "ortho_unrotate", toggle=True)
+                        layout.prop(self, "independent_modes", toggle=True)
+                        layout.prop(self, "zbrush_mode", toggle=True)
+                        #layout.label() # just an empty line
+                        layout.prop(self, "keys_rotmode_switch")
+                        layout.prop(self, "keys_origin_mouse")
+                        layout.prop(self, "keys_origin_selection")
+                        layout.prop(self, "keys_orbit")
+                        layout.prop(self, "keys_orbit_snap")
+                        layout.prop(self, "keys_pan")
+                        layout.prop(self, "keys_dolly")
+                        layout.prop(self, "keys_zoom")
+                        layout.prop(self, "keys_fly")
+                        layout.prop(self, "keys_fps")
+                    with layout.column():
+                        layout.prop(self, "keys_confirm")
+                        layout.prop(self, "keys_cancel")
+                        layout.label() # just an empty line
+                        layout.prop(self, "keys_FPS_forward")
+                        layout.prop(self, "keys_FPS_back")
+                        layout.prop(self, "keys_FPS_left")
+                        layout.prop(self, "keys_FPS_right")
+                        layout.prop(self, "keys_FPS_up")
+                        layout.prop(self, "keys_FPS_down")
+                        layout.prop(self, "keys_fps_acceleration")
+                        layout.prop(self, "keys_fps_slowdown")
+                        layout.prop(self, "keys_fps_crouch")
+                        layout.prop(self, "keys_fps_jump")
+                        layout.prop(self, "keys_fps_teleport")
 
 @addon.Operator(idname="mouselook_navigation.navigate", label="Mouselook navigation", description="Mouselook navigation", options={'GRAB_CURSOR', 'BLOCKING'})
 class MouselookNavigation:
@@ -456,6 +461,7 @@ class MouselookNavigation:
                             if flips.orbit_y:
                                 mouse_delta.y *= -1
                             self.change_rot_mouse(mouse_delta, mouse, speed_rot, trackball_mode)
+                        self.sync_view_orientation(False)
                     elif mode == 'PAN':
                         self.change_pos_mouse(mouse_delta, False)
                 
@@ -515,6 +521,8 @@ class MouselookNavigation:
                         
                         if is_orbit_snap:
                             self.snap_rotation(self.rotation_snap_subdivs)
+                        elif self.sv.is_perspective:
+                            self.sync_view_orientation(False)
                     elif mode == 'PAN':
                         self.change_pos_mouse(mouse_delta, False)
                     elif mode == 'DOLLY':
@@ -760,6 +768,14 @@ class MouselookNavigation:
     def detect_numpad_orientation(self, q):
         for name, nq in self.numpad_orientations:
             if abs(q.rotation_difference(nq).angle) < 1e-6: return name
+    
+    def sync_view_orientation(self, snap):
+        numpad_orientation = self.detect_numpad_orientation(self.sv.rotation)
+        if numpad_orientation and snap:
+            bpy.ops.view3d.view_axis(type=numpad_orientation, align_active=False)
+        else:
+            bpy.ops.view3d.view_orbit(angle=0.0, type='ORBITUP')
+    
     def snap_rotation(self, n=1):
         grid = math.pi*0.5 / n
         euler = self.euler.copy()
@@ -768,11 +784,7 @@ class MouselookNavigation:
         euler.z = round(euler.z / grid) * grid
         self.sv.turntable_euler = euler
         self.rot = self.sv.rotation
-        numpad_orientation = self.detect_numpad_orientation(self.rot)
-        if numpad_orientation:
-            bpy.ops.view3d.view_axis(type=numpad_orientation, align_active=False)
-        else:
-            bpy.ops.view3d.view_orbit(angle=0.0, type='ORBITUP')
+        self.sync_view_orientation(True)
     
     def change_euler(self, ex, ey, ez, always_up=False):
         self.euler.x += ex
@@ -1468,8 +1480,11 @@ class ThisAddonPreferences:
     # However, since zbuffer is a much less viable option in Blender 2.80,
     # we have to use raycasts (which are slow at big zbrush_radius) or selection.
     zbrush_radius: 0 | prop("ZBrush radius", "Minimal required distance (in pixels) to the nearest geometry", min=0, max=64)
-    zbrush_method: 'SELECTION' | prop("ZBrush method", "Which method to use to determine if mouse is over empty space",
-        items=[('RAYCAST', "Raycast"), ('ZBUFFER', "Z-buffer"), ('SELECTION', "Selection")])
+    zbrush_method: 'SELECTION' | prop("ZBrush method", "Which method to use to determine if mouse is over empty space", items=[
+        ('RAYCAST', "Raycast"),
+        ('SELECTION', "Selection"),
+        # ('ZBUFFER', "Z-buffer"),
+    ])
     
     flips: NavigationDirectionFlip | prop()
     
@@ -1478,7 +1493,11 @@ class ThisAddonPreferences:
     fps_speed_modifier: 1.0 | prop("FPS speed", "FPS movement speed")
     fps_horizontal: False | prop("FPS horizontal", "Force forward/backward to be in horizontal plane, and up/down to be vertical")
     zoom_to_selection: True | prop("Zoom to selection", "Zoom to selection when Rotate Around Selection is enabled")
-    trackball_mode: 'WRAPPED' | prop("Trackball mode", "Rotation algorithm used in trackball mode", items=[('BLENDER', 'Blender', 'Blender (buggy!)', 'ERROR'), ('WRAPPED', 'Wrapped'), ('CENTER', 'Center')])
+    trackball_mode: 'WRAPPED' | prop("Trackball mode", "Rotation algorithm used in trackball mode", items=[
+        ('BLENDER', 'Blender', 'Blender (buggy!)', 'ERROR'),
+        ('WRAPPED', 'Wrapped'),
+        ('CENTER', 'Center'),
+    ])
     rotation_snap_subdivs: 2 | prop("Orbit snap subdivs", "Intermediate angles used when snapping (1: 90°, 2: 45°, 3: 30°, etc.)", min=1)
     rotation_snap_autoperspective: True | prop("Orbit snap->ortho", "If Auto Perspective is enabled, rotation snapping will automatically switch the view to Ortho")
     autolevel_trackball: False | prop("Trackball Autolevel", "Autolevel in Trackball mode")
@@ -1500,7 +1519,7 @@ class ThisAddonPreferences:
         col = row.column()
         col.label(text="Official:")
         col.operator("wm.url_open", text="BATCH TOOLS™ 2 Store").url = "https://www.moth3r.com"
-        col.operator("wm.url_open", text="Documentation").url = ""
+        col.operator("wm.url_open", text="Documentation").url = "http://gum.co/mouselook"
         col = row.column()
         col.label(text="Recommended:")
         col.operator("wm.url_open", text="MasterXeon1001 addons").url = "https://gumroad.com/masterxeon1001"
@@ -1511,36 +1530,40 @@ class ThisAddonPreferences:
         
         use_universal_input_settings = (self.use_universal_input_settings or len(self.autoreg_keymaps) == 0)
         
-        with layout.row()(alignment='LEFT'):
-            layout.prop(self, "is_enabled", text="Enabled")
-            layout.prop(self, "show_in_shelf")
-            layout.prop(self, "show_in_header")
-            layout.prop(self, "pass_through")
-            layout.prop(self, "animation_fps", text="FPS")
+        layout.label(text="General settings:")
         
-        with layout.row():
-            with layout.column():
-                layout.prop(self, "zbrush_radius")
-                layout.prop(self, "show_zbrush_border")
-                layout.prop(self, "show_crosshair")
-                layout.prop(self, "show_focus")
-            with layout.column():
-                with layout.row():
-                    layout.prop_menu_enum(self, "zbrush_method")
-                    layout.prop(self, "use_blender_colors")
-                with layout.column()(active=not self.use_blender_colors):
-                    layout.row().prop(self, "color_zbrush_border")
-                    layout.row().prop(self, "color_crosshair_visible")
-                    layout.row().prop(self, "color_crosshair_obscured")
+        with layout.box():
+            with layout.row()(alignment='LEFT'):
+                layout.prop(self, "is_enabled", text="Enabled")
+                layout.prop(self, "show_in_shelf")
+                layout.prop(self, "show_in_header")
+                layout.prop(self, "pass_through")
+                layout.prop(self, "animation_fps", text="FPS")
+            
+            with layout.row():
+                with layout.column():
+                    layout.prop(self, "zbrush_radius")
+                    layout.prop(self, "show_zbrush_border")
+                    layout.prop(self, "show_crosshair")
+                    layout.prop(self, "show_focus")
+                with layout.column():
+                    with layout.row():
+                        layout.prop_menu_enum(self, "zbrush_method")
+                        layout.prop(self, "use_blender_colors")
+                    with layout.column()(active=not self.use_blender_colors):
+                        layout.row().prop(self, "color_zbrush_border")
+                        layout.row().prop(self, "color_crosshair_visible")
+                        layout.row().prop(self, "color_crosshair_obscured")
+            
+            with layout.row(align=True):
+                self.flips.draw(layout)
         
-        with layout.row(align=True):
-            self.flips.draw(layout)
+        layout.label(text="Auto-registered keymaps:")
         
         with layout.box():
             with layout.row():
-                layout.label(text="Auto-registered keymaps:")
-                layout.operator("mouselook_navigation.autoreg_keymap_add", text="Add", icon='ADD')
-                layout.operator("mouselook_navigation.autoreg_keymaps_update", text="Update", icon='FILE_REFRESH')
+                layout.operator("mouselook_navigation.autoreg_keymap_add", text="Add Keymap", icon='ADD')
+                layout.operator("mouselook_navigation.autoreg_keymaps_update", text="Update Keymaps", icon='FILE_REFRESH')
                 AutoregKeymapPreset.draw_popup(layout, text="Load Preset", icon='PRESET')
             
             autoreg_keymaps = self.autoreg_keymaps
@@ -1567,6 +1590,8 @@ class ThisAddonPreferences:
                         layout.prop(ark, "insert_after", text="")
                         layout.label(icon='ARROW_LEFTRIGHT')
                         layout.prop(ark, "insert_before", text="")
+        
+        layout.label(text="Transitions and navigation shortcuts:")
         
         with layout.box():
             if use_universal_input_settings:
