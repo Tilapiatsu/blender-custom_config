@@ -16,7 +16,7 @@ modules =   (
             'Principled-Baker',
             'object_boolean_tools',
             'optiloops',
-            'DNoise',
+            # 'DNoise',
             'RenderBurst',
             'magic_uv',
             'photographer',

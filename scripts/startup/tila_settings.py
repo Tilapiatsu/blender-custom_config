@@ -38,4 +38,7 @@ bpy.context.preferences.inputs.use_mouse_depth_navigate = True
 # bpy.context.preferences.inputs.use_mouse_emulate_3_button = True
 bpy.context.preferences.inputs.use_zoom_to_mouse = True
 
+# System Settings
+bpy.context.preferences.system.legacy_compute_device_type = "CUDA"
+
 print("Loading Tilapiatu's user preferences Completed")
