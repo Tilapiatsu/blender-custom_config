@@ -50,7 +50,7 @@ modules =   (
             'MeshDataTransfer',
             'keentools_facebuilder',
             'kekit',
-            'mouselook_navigation',
+            # 'mouselook_navigation',
             'BakeWrangler',
             'atomic_data_manager',
             # 'ZWeightTools-1_0_1',
@@ -90,6 +90,12 @@ def register():
     addon.preferences.activate_views_pie = False
     addon.preferences.activate_transform_pie = False
     addon.preferences.activate_collections_pie = False
+
+    # # mouselook_navigation
+    # addon = context.preferences.addons.get('mouselook_navigation')
+    # addon.preferences.show_zbrush_border = False
+    # addon.preferences.show_crosshair = False
+    # addon.preferences.show_focus = False
 
     # # kekit
     # addon = context.preferences.addons.get('kekit')

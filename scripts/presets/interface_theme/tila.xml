@@ -346,7 +346,7 @@
     </user_interface>
     <view_3d>
       <ThemeView3D
-        grid="#83838339"
+        grid="#83838315"
         clipping_border_3d="#202020ff"
         wire="#bfbfbf"
         wire_edit="#333333"
@@ -405,6 +405,7 @@
         bone_pose="#00c5ff"
         bone_pose_active="#ffffff"
         bone_solid="#00c5ff"
+        bone_locked_weight="#ff000080"
         bundle_solid="#00c5ff"
         camera_path="#6b6b6b"
         skin_root="#00c5ff"
@@ -437,9 +438,9 @@
             >
             <gradients>
               <ThemeGradientColors
-                show_grad="TRUE"
-                high_gradient="#1f1f1f"
-                gradient="#161616"
+                background_type="RADIAL"
+                high_gradient="#2a2a2a"
+                gradient="#111111"
                 >
               </ThemeGradientColors>
             </gradients>
@@ -1026,14 +1027,18 @@
       <ThemeInfo
         info_selected="#282f35"
         info_selected_text="#abadc3"
-        info_error="#232729"
+        info_error="#232729ff"
         info_error_text="#974f4f"
-        info_warning="#232729"
+        info_warning="#232729ff"
         info_warning_text="#c3a356"
-        info_info="#1d4383"
+        info_info="#1d4383ff"
         info_info_text="#6a879e"
-        info_debug="#7a7a7a"
+        info_debug="#7a7a7aff"
         info_debug_text="#000000"
+        info_property="#3ace87ff"
+        info_property_text="#ffffff"
+        info_operator="#3ace87ff"
+        info_operator_text="#ffffff"
         >
         <space>
           <ThemeSpaceGeneric
