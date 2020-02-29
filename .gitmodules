@@ -178,3 +178,6 @@
 [submodule "scripts/addons/scene_strip_tools"]
 	path = scripts/addons/scene_strip_tools
 	url = https://github.com/tin2tin/scene_strip_tools.git
+[submodule "scripts/GIT/Asset-Creation-Toolset"]
+	path = scripts/GIT/Asset-Creation-Toolset
+	url = https://github.com/mrven/Blender-Asset-Creation-Toolset.git
