@@ -175,3 +175,6 @@
 [submodule "scripts/GIT/Texel-Density-Checker"]
 	path = scripts/GIT/Texel-Density-Checker
 	url = https://github.com/mrven/Blender-Texel-Density-Checker.git
+[submodule "scripts/addons/scene_strip_tools"]
+	path = scripts/addons/scene_strip_tools
+	url = https://github.com/tin2tin/scene_strip_tools.git
