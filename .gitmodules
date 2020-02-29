@@ -172,3 +172,6 @@
 [submodule "scripts/addons/BlenderGIS"]
 	path = scripts/addons/BlenderGIS
 	url = https://github.com/domlysz/BlenderGIS.git
+[submodule "scripts/GIT/Texel-Density-Checker"]
+	path = scripts/GIT/Texel-Density-Checker
+	url = https://github.com/mrven/Blender-Texel-Density-Checker.git
