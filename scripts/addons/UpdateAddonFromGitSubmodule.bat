@@ -30,6 +30,7 @@ copy "..\GIT\bpy_photogrametry\uv_tube_unwrap.py" .
 copy "..\GIT\bpy_photogrametry\space_view3d_point_cloud_visualizer.py" .
 copy "..\GIT\advanced_transform\advanced_transform_2_8.py" .
 copy "..\GIT\Texel-Density-Checker\Texel_Density_2_2_1_281.py" .
+copy "..\GIT\Asset-Creation-Toolset\Asset_Creation_Toolset_2_6_1_281.py" .
 robocopy "..\GIT\bpy_photogrametry\io_mesh_fast_obj" "io_mesh_fast_obj" %param%
 
 pause
