@@ -1,4 +1,5 @@
 import bpy, os
+# from addon_utils import check,paths,enable
 
 modules =   (
             'mesh_f2',
@@ -64,6 +65,12 @@ modules =   (
 def register():
     # Enabling addons
     for m in modules:
+        # is_enabled, _ = check(m)
+        # print(is_enabled, m)
+        # if is_enabled:
+        #     bpy.ops.preferences.addon_disable(module=m)
+        #     bpy.context.window_manager.keyconfigs.update()
+        #     print("disableing addon {}".format(m))
         bpy.ops.preferences.addon_enable(module=m)
         bpy.context.window_manager.keyconfigs.update()
     
