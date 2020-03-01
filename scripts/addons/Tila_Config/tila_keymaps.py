@@ -98,9 +98,9 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		self.kmi_set_replace('screen.animation_play', self.k_menu, 'PRESS', shift=True)
 		
 		if self.km.name in ['3D View']:
-			self.kmi_set_replace("popup.hp_properties", 'V', "PRESS")
-			self.kmi_set_replace('popup.hp_materials', 'M', 'PRESS')
-			self.kmi_set_replace('popup.hp_render', 'EQUAL', 'PRESS')
+			self.kmi_set_replace("popup.hp_properties", 'Q', 'PRESS', disable_double=True)
+			self.kmi_set_replace('popup.hp_materials', 'M', 'PRESS', disable_double=True)
+			self.kmi_set_replace('popup.hp_render', 'EQUAL', 'PRESS', disable_double=True)
 			self.kmi_set_replace('wm.call_menu_pie', 'D', 'PRESS', alt=True, shift=True, properties=[('name', 'HP_MT_pie_rotate90')])
    
 		self.kmi_set_replace('wm.call_menu_pie', 'A', 'PRESS', ctrl=True, alt=True, shift=True, properties=[('name', 'HP_MT_pie_add')])
@@ -430,6 +430,7 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		self.kmi_set_replace('wm.tool_set_by_id', 'F', 'PRESS', shift=True, properties=[('name', 'mesh_tool.poly_quilt')], disable_double=True)
 
 		self.kmi_set_replace('view3d.view_persportho', 'NUMPAD_ASTERIX', 'PRESS')
+		self.kmi_set_replace('view3d.collection_manager', 'M', 'PRESS', shift=True, disable_double=True)
 
 		self.collection_visibility('object.hide_collection')
 
@@ -570,7 +571,7 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		self.kmi_set_replace('wm.call_menu_pie', 'S', 'PRESS', alt=True, shift=True, properties=[('name', 'TILA_MT_pie_normal')], disable_double=True)
 		self.kmi_set_replace('wm.call_menu_pie', 'S', 'PRESS', ctrl=True, alt=True, shift=True, properties=[('name', 'TILA_MT_pie_uv')], disable_double=True)
 
-		self.kmi_set_replace("mesh.edge_rotate", 'V', "PRESS", disable_double=True)
+		self.kmi_set_replace("mesh.edge_rotate", 'V', "PRESS", properties=[('use_ccw', False)], disable_double=True)
 		self.kmi_set_replace("mesh.edge_rotate", 'V', "PRESS", shift=True, properties=[('use_ccw', True)], disable_double=True)
 
 		self.kmi_set_replace('mesh.quads_convert_to_tris', 'T', "PRESS", ctrl=True, properties=[('quad_method','BEAUTY'), ('ngon_method','BEAUTY')])
@@ -615,6 +616,8 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		self.isolate()
 		
 		self.kmi_set_replace('object.move_to_collection', 'M', 'PRESS', ctrl=True, alt=True, disable_double=True)
+		self.kmi_set_replace('view3d.collection_manager', 'M', 'PRESS', shift=True, disable_double=True)
+		
 		# Set collection visibility shortcut
 		self.collection_visibility('object.hide_collection')
 		self.mode_selection()

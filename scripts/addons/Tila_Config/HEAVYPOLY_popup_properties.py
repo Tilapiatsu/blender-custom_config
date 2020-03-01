@@ -6,35 +6,122 @@ from bpy_extras.node_utils import find_node_input
 
 class HP_MT_popup_properties(bpy.types.Operator):
     bl_idname = "popup.hp_properties"
-    bl_label = "Heavypoly Material Popup"
+    bl_label = "Heavypoly Properties Popup"
     type: bpy.props.StringProperty(name="Type")
+    mode: bpy.props.StringProperty(name="Mode")
+
     def execute(self, context):
         return {'FINISHED'}
- 
+
     def invoke(self, context, event):
         ob = context.object
         wm = context.window_manager
-        return wm.invoke_popup(self, width=350, height=200)
-
-
+        return wm.invoke_popup(self, width=500)
 
     def draw(self, context):
-        ob = context.object
         layout = self.layout
-        actdat = bpy.context.active_object.data
+
 
         row = layout.row()
         col = row.column(align=True)
         col2 = row.column()
+        if self.mode == 'Draw':
+            col.label(text='DRAW PROPERTIES')
+
+
         col.operator('popup.hp_render',text = 'Render Settings')
-        
-        if len(bpy.context.selected_objects) == 0 or self.type == 'WORLD':
+        try:
+            ob = context.object
+            actdat = bpy.context.active_object.data
+        except:
+            pass
+
+        def cam_props(cam):
+            camdat = cam.data
+            scene = context.scene
+            rd = scene.render
+            col.separator()
+            col.prop(scene, "camera", text = '')
+            col.separator()
+            col.prop(camdat, "type", text = '', expand = False)
+            if camdat.type == 'PERSP':
+                col.prop(camdat, "lens")
+            elif camdat.type == 'ORTHO':
+                col.prop(camdat, "ortho_scale")
+            elif camdat.type == 'PANO':
+                engine = context.engine
+                if engine == 'CYCLES':
+                    ccam = camdat.cycles
+                    col.prop(ccam, "panorama_type")
+                    if ccam.panorama_type == 'FISHEYE_EQUIDISTANT':
+                        col.prop(ccam, "fisheye_fov")
+                    elif ccam.panorama_type == 'FISHEYE_EQUISOLID':
+                        col.prop(ccam, "fisheye_lens", text="Lens")
+                        col.prop(ccam, "fisheye_fov")
+                    elif ccam.panorama_type == 'EQUIRECTANGULAR':
+                        sub = col.column(align=True)
+                        sub.prop(ccam, "latitude_min", text="Latitute Min")
+                        sub.prop(ccam, "latitude_max", text="Max")
+                        sub = col.column(align=True)
+                        sub.prop(ccam, "longitude_min", text="Longiture Min")
+                        sub.prop(ccam, "longitude_max", text="Max")
+                elif engine in {'BLENDER_RENDER', 'BLENDER_EEVEE', 'BLENDER_OPENGL'}:
+                    col.prop(camdat, "lens")
+            row = col.row()
+
+            dof_options = camdat.dof
+            if context.engine == 'BLENDER_EEVEE':
+                row = col.row(align = True)
+                row.prop(dof_options, "aperture_fstop")
+                row.prop(dof_options, "aperture_blades")
+                row = col.row(align = True)
+                row.prop(dof_options, "focus_distance")
+                row.prop(dof_options, "focus_object", text = "")
+
+
+
+            else:
+                col.label(text="Viewport")
+                col.prop(dof_options, "aperture_fstop")
+                col.prop(dof_options, "aperture_blades")
+            #SECOND COLUMN##############################################################
+
+
+
+            col2.prop(rd, "resolution_x", text="Res X")
+            col2.prop(rd, "resolution_y", text="Res Y")
+            col2.prop(rd, "resolution_percentage", text="Res %")
+            #col2.prop(scene, "frame_current", text="Current Frame")
+            row = col2.row(align = True)
+            row.prop(scene, "frame_start", text="F Start")
+            row.prop(scene, "frame_end", text="F End")
+            row = col2.row(align = True)
+            row.prop(scene, "frame_step", text="Step")
+            row.prop(rd, "fps", text = 'FPS')
+
+            row = col2.row(align = True)
+            row.prop(actdat, "clip_start", text="Clip Start")
+            row.prop(actdat, "clip_end", text="Clip End")
+        # if bpy.context.space_data.region_3d.view_perspective == 'CAMERA':
+            # cam_props(bpy.context.scene.camera)
+
+        if ob.type == 'CAMERA':
+            col.prop(ob, 'name', text = '')
+            col.separator()
+            cam_props(ob)
+        elif ob.type == 'EMPTY':
+            col.label(text='EMPTY PROPERTIES')
+            col.prop(ob, 'name', text = '')
+            col.prop(ob, "empty_display_size", text='Display Size')
+            col.prop(ob, "empty_display_type", text='')
+
+
+        elif len(bpy.context.selected_objects) == 0 or self.type == 'WORLD':
+            if bpy.context.scene.camera:
+                cam_props(bpy.context.scene.camera)
+
             col.label(text='WORLD PROPERTIES')
             world = bpy.context.scene.world
-
-#           col.prop(world, "use_nodes", icon='NODETREE')
-#           col.separator()
-
             if world.use_nodes:
                 ntree = world.node_tree
                 node = ntree.get_output_node('EEVEE')
@@ -57,79 +144,28 @@ class HP_MT_popup_properties(bpy.types.Operator):
             scene = bpy.context.scene
             props = scene.eevee
             box = col.box().column()
+
             box.active = props.use_bloom
+            box.label(text = 'Bloom')
             box.prop(props, "bloom_threshold")
             box.prop(props, "bloom_knee")
             box.prop(props, "bloom_radius")
             box.prop(props, "bloom_color")
             box.prop(props, "bloom_intensity")
             box.prop(props, "bloom_clamp")
+            scene = context.scene
+            rd = scene.render
+            row = col2.row(align = True)
+            row.prop(actdat, "clip_start", text="Clip Start")
+            row.prop(actdat, "clip_end", text="Clip End")
 
-            col2.label(text='RENDER SETTINGS')
             col2.prop(bpy.context.scene.render, "engine",text='')
             col2.prop(bpy.context.scene.view_settings, 'view_transform', text='')
             col2.prop(bpy.context.scene.view_settings, 'look', text='')
-            col2.template_curve_mapping(bpy.context.scene.view_settings, "curve_mapping", levels=True)
-            
-            
-        elif ob.type == 'CAMERA':
-            cam = actdat
-            scene = context.scene
-            col.label(text='CAMERA PROPERTIES')
-            col.prop(bpy.context.active_object, 'name', text = '')
-            col.prop(actdat, "type", expand = True)
-            if actdat.type == 'PERSP':
-                col.prop(actdat, "lens")
-            elif actdat.type == 'ORTHO':
-                col.prop(actdat, "ortho_scale")
-            elif actdat.type == 'PANO':
-                engine = context.engine
-                if engine == 'CYCLES':
-                    ccam = actdat.cycles
-                    col.prop(ccam, "panorama_type")
-                    if ccam.panorama_type == 'FISHEYE_EQUIDISTANT':
-                        col.prop(ccam, "fisheye_fov")
-                    elif ccam.panorama_type == 'FISHEYE_EQUISOLID':
-                        col.prop(ccam, "fisheye_lens", text="Lens")
-                        col.prop(ccam, "fisheye_fov")
-                    elif ccam.panorama_type == 'EQUIRECTANGULAR':
-                        sub = col.column(align=True)
-                        sub.prop(ccam, "latitude_min", text="Latitute Min")
-                        sub.prop(ccam, "latitude_max", text="Max")
-                        sub = col.column(align=True)
-                        sub.prop(ccam, "longitude_min", text="Longiture Min")
-                        sub.prop(ccam, "longitude_max", text="Max")
-                elif engine in {'BLENDER_RENDER', 'BLENDER_EEVEE', 'BLENDER_OPENGL'}:
-                    col.prop(actdat, "lens")
-            col.prop(actdat, "clip_start", text="Clip Start")
-            col.prop(actdat, "clip_end", text="Clip End")
-            col.prop(cam, "dof_object", text="Focus on Object")
-            col.active = (cam.dof_object is None)
-            col.prop(cam, "dof_distance", text="Focus Distance")
 
-            dof_options = cam.gpu_dof       
-            if context.engine == 'BLENDER_EEVEE':
-                col.prop(dof_options, "fstop")
-                col.prop(dof_options, "blades")
-                col.prop(dof_options, "rotation")
-                col.prop(dof_options, "ratio")
-            else:
-                col.label(text="Viewport")
-                col.prop(dof_options, "fstop")
-                col.prop(dof_options, "blades")
-                #SECOND COLUMN##############################################################
-            
-            scene = context.scene
-            rd = scene.render
-            col2.label(text='RENDER CAMERA')
-            col2.prop(scene, "camera")
-            col2.prop(rd, "resolution_x", text="Resolution X")
-            col2.prop(rd, "resolution_y", text="Resolution Y")
-            col2.prop(rd, "resolution_percentage", text="Resolution %")
-            col2.prop(scene, "frame_start", text="Frame Start")
-            col2.prop(scene, "frame_end", text="Frame End")
-            col2.prop(scene, "frame_step", text="Frame Step")
-            col2.prop(rd, "fps", text = 'Frame Rate')
+            col2.template_curve_mapping(bpy.context.scene.view_settings, "curve_mapping", type='COLOR', levels=True)
+
+
 
         elif ob.type == 'LIGHT':
             col.label(text='LIGHT PROPERTIES')
@@ -148,7 +184,7 @@ class HP_MT_popup_properties(bpy.types.Operator):
                 if actdat.shape in {'RECTANGLE', 'ELLIPSE'}:
                     col.prop(actdat, "size", text="Size X")
                     col.prop(actdat, "size_y", text="Size Y")
-            if actdat.type == 'SUN':                
+            if actdat.type == 'SUN':
                 col.prop(actdat, "shadow_cascade_count", text="Count")
                 col.prop(actdat, "shadow_cascade_fade", text="Fade")
                 col.prop(actdat, "shadow_cascade_max_distance", text="Max Distance")
@@ -173,7 +209,7 @@ class HP_MT_popup_properties(bpy.types.Operator):
             # col.prop(actdat, "contact_shadow_thickness", text="Thickness")
             scene = context.scene
             props = scene.eevee
-            
+
             col2.label(text='GLOBAL LIGHT PROPERTIES')
             row=col2.row()
             row.scale_x=.2
@@ -184,7 +220,7 @@ class HP_MT_popup_properties(bpy.types.Operator):
             col2.prop(props, "use_soft_shadows")
             col2.prop(props, "taa_samples")
             col2.prop(props, "taa_render_samples")
-            
+
         elif ob.type == 'LIGHT_PROBE':
             col.label(text='LIGHT PROBE PROPERTIES')
             col.prop(bpy.context.active_object, 'name', text = '')
@@ -209,15 +245,15 @@ class HP_MT_popup_properties(bpy.types.Operator):
                 col.prop(probe, "intensity")
             col2.operator('scene.light_cache_bake')
             col2.operator('scene.light_cache_free')
-            
+
 
         elif ob.type == 'MESH':
             if bpy.context.object.mode == 'SCULPT':
                 toolsettings = bpy.context.tool_settings
                 sculpt = toolsettings.sculpt
-                
+
                 brush = toolsettings.unified_paint_settings
-                col.label(text='SCULPT PROPERTIES')         
+                col.label(text='SCULPT PROPERTIES')
                 col.prop(bpy.context.active_object, 'name', text = '')
                 col.separator()
                 col.prop(brush, "size")
@@ -228,15 +264,14 @@ class HP_MT_popup_properties(bpy.types.Operator):
                 sub2 = row.column()
                 sub2.scale_x=.1
 
-                sub.operator('wm.tool_set_by_name',text = 'Draw').name='Draw'
-                sub.operator('wm.tool_set_by_name',text = 'Inflate').name='Inflate'
-                sub.operator('wm.tool_set_by_name',text = 'Flatten').name='Flatten'
-                sub.operator('wm.tool_set_by_name',text = 'Crease').name='Crease'
-
-                sub2.operator('wm.tool_set_by_name',text = 'Clay').name='Clay'
-                sub2.operator('wm.tool_set_by_name',text = 'Fill').name='Fill'
-                sub2.operator('wm.tool_set_by_name',text = 'Grab').name='Grab'
-                sub2.operator('wm.tool_set_by_name',text = 'Snake Hook').name='Snake Hook'
+                sub.operator('wm.tool_set_by_id',text = 'Draw').name='builtin_brush.Draw'
+                sub.operator('wm.tool_set_by_id',text = 'Inflate').name='builtin_brush.Inflate'
+                sub.operator('wm.tool_set_by_id',text = 'Flatten').name='builtin_brush.Flatten'
+                sub.operator('wm.tool_set_by_id',text = 'Crease').name='builtin_brush.Crease'
+                sub2.operator('wm.tool_set_by_id',text = 'Clay').name='builtin_brush.Clay'
+                sub2.operator('wm.tool_set_by_id',text = 'Fill').name='builtin_brush.Fill'
+                sub2.operator('wm.tool_set_by_id',text = 'Grab').name='builtin_brush.Grab'
+                sub2.operator('wm.tool_set_by_id',text = 'Snake Hook').name='builtin_brush.Snake Hook'
 #               col.operator('sculpt.dynamic_topology_toggle', text = 'Dynotopo')
                 col.prop(sculpt.brush, "use_frontface")
                 if sculpt.detail_type_method in {'CONSTANT','MANUAL'}:
@@ -248,17 +283,26 @@ class HP_MT_popup_properties(bpy.types.Operator):
                 #col.prop(sculpt, "detail_refine_method",text='')
                 col.prop(sculpt, "detail_type_method",text='')
                 col.operator("sculpt.detail_flood_fill",text='Detail Flood Fill')
-                col.operator("sculpt.dynamic_topology_toggle")
-                
-                #bpy.ops.wm.tool_set_by_name(name="Draw", space_type = 'VIEW_3D')
+                col.operator(
+                    "sculpt.dynamic_topology_toggle",
+                    icon='CHECKBOX_HLT' if bpy.context.sculpt_object.use_dynamic_topology_sculpting else 'CHECKBOX_DEHLT',
+                    text="Dynotopo",
+                )
+
+                col.prop(sculpt, "use_symmetry_x")
+
+                #bpy.ops.wm.tool_set_by_id(name="Draw", space_type = 'VIEW_3D')
             else:
+                col.scale_x = 0.7
                 col.label(text='MESH PROPERTIES')
                 col.prop(bpy.context.active_object, 'name', text = '')
+
                 col.separator()
                 ob = context.object
                 group = ob.vertex_groups.active
                 rows = 3
                 row = col.row(align=True)
+                row2 = col.row(align=True)
                 sub = row.row(align=True)
 
                 sub.template_list("MESH_UL_vgroups", "", ob, "vertex_groups", ob.vertex_groups, "active_index", rows=rows)
@@ -268,23 +312,31 @@ class HP_MT_popup_properties(bpy.types.Operator):
                 sub.operator("object.vertex_group_remove", icon='REMOVE', text="")
                 sub.operator("object.vertex_group_assign", text="A")
                 sub.operator("object.vertex_group_remove_from", text="R")
-                col.prop(ob, "rotation_euler", text="Rotation")
-                col.prop(ob, "scale")
-                col.prop(ob, "dimensions")
+                subcol = row2.column(align=True)
+                subcol.scale_x = 0.5
+                subcol.prop(ob, "location", text="Location")
+                subcol.prop(ob, "rotation_euler", text="Rotation")
+                subcol = row2.column(align=True)
+                subcol.scale_x = 0.5
+                subcol.prop(ob, "scale")
+                subcol.prop(ob, "dimensions")
                 col.use_property_decorate = False
+                
+                col.prop(bpy.context.active_object.data, "auto_smooth_angle")
             ##SECOND COLUMN##############################################################
 
             col2.label(text='MODIFIERS')
             col2.operator_menu_enum("object.modifier_add", "type")
             for md in ob.modifiers:
-                        box = col2.template_modifier(md)
-                        if box:
-                            getattr(self, md.type)(box, ob, md)
-                            
+                box = col2.template_modifier(md)
+                box.scale_x = 0.1
+                if box:
+                    getattr(self, md.type)(box, ob, md)
+
         elif ob.type == 'GPENCIL':
             col.label(text='GREASE PENCIL PROPERTIES')
             col.prop(bpy.context.active_object, 'name', text = '')
-            
+
             toolsettings = bpy.context.tool_settings
             sculpt = toolsettings.sculpt
 
@@ -297,15 +349,15 @@ class HP_MT_popup_properties(bpy.types.Operator):
             sub.scale_x=.1
             sub2 = row.column()
             sub2.scale_x=.1
-            sub.operator('wm.tool_set_by_name',text = 'Draw').name='Draw'
-            sub.operator('wm.tool_set_by_name',text = 'Erase').name='Erase'
-            sub.operator('wm.tool_set_by_name',text = 'Fill').name='Fill'
-
-            sub2.operator('wm.tool_set_by_name',text = 'Box').name='Box'
-            sub2.operator('wm.tool_set_by_name',text = 'Circle').name='Circle'
+            sub.operator('wm.tool_set_by_id',text = 'Draw').name='builtin_brush.Draw'
+            sub.operator('wm.tool_set_by_id',text = 'Erase').name='builtin_brush.Erase'
+            sub.operator('wm.tool_set_by_id',text = 'Fill').name='builtin_brush.Fill'
+            sub2.operator('wm.tool_set_by_id',text = 'Box').name='builtin.box'
+            sub2.operator('wm.tool_set_by_id',text = 'Circle').name='builtin.circle'
+            sub2.operator('wm.tool_set_by_id',text = 'Line').name='builtin.line'
             col.prop(bpy.context.tool_settings.gpencil_sculpt, "lock_axis", text = '')
             col.prop(bpy.context.tool_settings, "gpencil_stroke_placement_view3d", text = '')
-            
+
             # col.operator('view3d.gp_canvas', text = 'Side', icon='NONE').type = 'X'
             # col.operator('view3d.gp_canvas', text = 'Front', icon='NONE').type = 'Y'
             # col.operator('view3d.gp_canvas', text = 'Top', icon='NONE').type = 'Z'
@@ -314,34 +366,36 @@ class HP_MT_popup_properties(bpy.types.Operator):
             for md in ob.grease_pencil_modifiers:
                 box = col2.template_greasepencil_modifier(md)
                 if box:
-                    getattr(self, md.type)(box, ob, md)                 
+                    getattr(self, md.type)(box, ob, md)
 
         elif ob.type == 'META':
             col2.label(text='META PROPERTIES')
             col.prop(bpy.context.active_object, 'name', text = '')
-            col.prop(actdat.elements.active, "type", text='')
-            col.prop(actdat.elements.active, "radius", text = 'Size')
-            if actdat.elements.active.type == 'CAPSULE':
-                col.prop(actdat.elements.active, "size_x", text = 'X')
-            if actdat.elements.active.type == 'PLANE':
-                col.prop(actdat.elements.active, "size_x", text = 'X')
-                col.prop(actdat.elements.active, "size_y", text = 'Y')          
-            if actdat.elements.active.type in {'CUBE','ELLIPSOID'}:
-                col.prop(actdat.elements.active, "size_x", text = 'X')
-                col.prop(actdat.elements.active, "size_y", text = 'Y')
-                col.prop(actdat.elements.active, "size_z", text = 'Z')
-            col.prop(actdat.elements.active, "stiffness", text = 'Stiffness')
-            col.prop(actdat.elements.active, "use_negative", text = 'Subtract')
-            col.prop(actdat.elements.active, "hide", text = 'Hide')
-            
-            
+            try:
+                col.prop(actdat.elements.active, "type", text='')
+                col.prop(actdat.elements.active, "radius", text = 'Size')
+                if actdat.elements.active.type == 'CAPSULE':
+                    col.prop(actdat.elements.active, "size_x", text = 'X')
+                if actdat.elements.active.type == 'PLANE':
+                    col.prop(actdat.elements.active, "size_x", text = 'X')
+                    col.prop(actdat.elements.active, "size_y", text = 'Y')
+                if actdat.elements.active.type in {'CUBE','ELLIPSOID'}:
+                    col.prop(actdat.elements.active, "size_x", text = 'X')
+                    col.prop(actdat.elements.active, "size_y", text = 'Y')
+                    col.prop(actdat.elements.active, "size_z", text = 'Z')
+                col.prop(actdat.elements.active, "stiffness", text = 'Stiffness')
+                col.prop(actdat.elements.active, "use_negative", text = 'Subtract')
+                col.prop(actdat.elements.active, "hide", text = 'Hide')
+
+            except:
+                pass
             col2.prop(actdat, "resolution", text = 'Resolution')
             col2.prop(actdat, "render_resolution", text = 'Render Resolution')
             col2.prop(actdat, "threshold")
             col2.label(text='Update Method')
             col2.prop(actdat, "update_method", text = '')
             col2.operator('object.convert', text= 'Convert To Mesh').target = 'MESH'
-            
+
         elif ob.type == 'LATTICE':
             col.label(text='LATTICE PROPERTIES')
             col.prop(bpy.context.active_object, 'name', text = '')
@@ -379,7 +433,7 @@ class HP_MT_popup_properties(bpy.types.Operator):
             # row.prop(char, "use_bold", toggle=True)
             # row.prop(char, "use_italic", toggle=True)
             # row.prop(char, "use_underline", toggle=True)
-            # row.prop(char, "use_small_caps", toggle=True)         
+            # row.prop(char, "use_small_caps", toggle=True)
 
             col.prop(text, "size", text="Size")
             col.prop(text, "shear")
@@ -388,7 +442,7 @@ class HP_MT_popup_properties(bpy.types.Operator):
             col.prop(text, "space_line", text="Line Spacing")
 
 #           col.prop(text, "family")
-            
+
             # sub = col.column(align=True)
             # sub.prop(text, "underline_position", text="Underline Position")
             # sub.prop(text, "underline_height", text="Underline Thickness")
@@ -398,7 +452,7 @@ class HP_MT_popup_properties(bpy.types.Operator):
             col.prop(text, "offset_x", text="Offset X")
             col.prop(text, "offset_y", text="Offset Y")
             col.prop(text, "follow_curve")
-            
+
             col2.label(text='3D TEXT PROPERTIES')
             col2.prop(text, "offset")
             col2.prop(text, "extrude")
@@ -407,11 +461,11 @@ class HP_MT_popup_properties(bpy.types.Operator):
             col2.operator('object.convert', text = 'Convert to Curves').target = 'CURVE'
             col2.operator('object.convert', text = 'Convert to Mesh').target = 'MESH'
 
-            
-        elif ob.type == 'CURVE':    
+
+        elif ob.type == 'CURVE':
             col.label(text='CURVE PROPERTIES')
             col.prop(bpy.context.active_object, 'name', text = '')
-            
+
             curve = actdat
             col.label(text='Extrusion Shape')
             col.prop(curve, "fill_mode", text='')
@@ -2551,15 +2605,11 @@ class HP_MT_popup_properties(bpy.types.Operator):
 
 
 classes = (
-    HP_MT_popup_properties,
+    # HP_MT_popup_properties,
 
 )
-# register, unregister = bpy.utils.register_classes_factory(classes)
+register, unregister = bpy.utils.register_classes_factory(classes)
 
-def register():
-	pass
-def unregister():
-	pass
 
 if __name__ == "__main__":
     register()

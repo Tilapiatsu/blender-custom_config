@@ -8,16 +8,19 @@ class HP_MT_popup_materials(bpy.types.Operator):
 
 	def execute(self, context):
 		return {'FINISHED'}
- 
+
 	def invoke(self, context, event):
 		ob = context.object
 		wm = context.window_manager
-		return wm.invoke_popup(self, width=400, height=500)
+        
+		# return bpy.context.window_manager.popup_menu(
+		return wm.invoke_popup(self, width=400)
 	def check(self, context):
 		return True
-	@classmethod
-	def poll(cls, context):
-		return (context.material or context.object) and CyclesButtonsPanel.poll(context)
+	# @classmethod
+	# def poll(cls, context):
+		# return (context.object) and CyclesButtonsPanel.poll(context)
+		# return (context.material or context.object) and CyclesButtonsPanel.poll(context)
 	# def find_node_input(node, name):
 		# for input in node.inputs:
 			# if input.name == name:
@@ -28,102 +31,142 @@ class HP_MT_popup_materials(bpy.types.Operator):
 		row = layout.row()
 		col = row.column(align=True)
 		col2 = row.column(align=True)
+		col2.operator('popup.hp_render',icon='NONE',text='Render Settings')
+		col2.separator()
 		 #Vertex Color
 		ob = context.object
-		ts = context.tool_settings
-		ups = ts.unified_paint_settings
-		ptr = ups if ups.use_unified_color else ts.vertex_paint.brush
-		col.template_color_picker(ptr, 'color', value_slider=True)
+		box = col.box()
+		box.label(text = 'MATERIAL LIBRARY')
+		box.template_ID(ob, "active_material")
+		# box.template_ID(self.paint_settings(context), "palette", new="palette.new")
 
-		col.prop(ptr, 'color', text='')
-	
-		if bpy.context.object.type == 'MESH':
-			col.operator("mesh.material_apply", text='Apply Material and Vertex Color')
-			me = bpy.context.active_object.data
-			col.template_list("MESH_UL_vcols", "vcols", me, "vertex_colors", me.vertex_colors, "active_index", rows=1)
-		col.separator()		   
-		col.template_ID(ob, "active_material")
+
+
+    #    def poll(cls, context):
+    #        settings = cls.paint_settings(context)
+    #        brush = settings.brush
+    #        if context.image_paint_object:
+    #            capabilities = brush.image_paint_capabilities
+    #            return capabilities.has_color
+
+    #        elif context.vertex_paint_object:
+    #            capabilities = brush.vertex_paint_capabilities
+    #            return capabilities.has_color
+
+
+        # layout = self.layout
+        # settings = self.paint_settings(context)
+
+        # box.template_ID(settings, "palette", new="palette.new")
+        # if settings.palette:
+        #     layout.template_palette(settings, "palette", color=True)
+
+
+
+
+#   	col.template_list("", "vcols", me, "vertex_colors", me.vertex_colors, "active_index", rows=1)
+#   	 col.operator("mesh.vertex_color_add", icon='ZOOMIN', text="")
+#   	 col.operator("mesh.vertex_color_remove", icon='ZOOMOUT', text="")
 		col.separator()
-#		col.template_list("", "vcols", me, "vertex_colors", me.vertex_colors, "active_index", rows=1)
-#		 col.operator("mesh.vertex_color_add", icon='ZOOMIN', text="")
-#		 col.operator("mesh.vertex_color_remove", icon='ZOOMOUT', text="")
-
 		#Material Slots
 		rows=6
 
 		actob = context.active_object
-		
-		row = col.row()
-		
+		box = col.box()
+		box.label(text = 'MATERIAL SLOTS')
+		row = box.row()
+
 		sub = row.column()
 		sub.template_list("MATERIAL_UL_matslots", "", ob, "material_slots", ob, "active_material_index", rows=rows)
 		sub = row.column()
-  
 
+
+		sub.operator("3dview.material_slot_add", icon='ADD', text="")
+		sub.operator("3dview.material_slot_remove", icon='REMOVE', text="")
 		sub.operator("object.material_slot_move", icon='TRIA_UP', text="").direction='UP'
 		sub.operator("object.material_slot_move", icon='TRIA_DOWN', text="").direction='DOWN'
+		box.operator("object.material_slot_assign", text="Assign Selection to Slot")
+
 		col.separator()
-		col.operator("object.material_slot_assign", text="Assign")
-		col.operator("3dview.material_slot_add", icon='ADD', text="Add Slot")	
-		col.operator("3dview.material_slot_remove", icon='REMOVE', text="Remove Slot")
+
+
 		if actob.type == 'GPENCIL':
 			col.operator('gpencil.stroke_change_color', icon='NONE', text='Apply')
 		else:
-			col.operator('3dview.material_new', icon='NONE', text='New')
-		col.operator('3dview.material_copy', icon='NONE', text='Copy')
-		col.operator('3dview.material_delete', icon='NONE', text='Delete')
+			col.operator('3dview.material_new', icon='NONE', text='New Material')
+		col.operator('3dview.material_copy', icon='NONE', text='Duplicate Material')
+		col.operator('3dview.material_delete', icon='NONE', text='Delete Material')
 
-		if tuple(bpy.context.scene.tool_settings.mesh_select_mode) == (False, False, True):
-			col.operator("mesh.select_similar", text='Select By Material').type = 'MATERIAL'
+		# if tuple(bpy.context.scene.tool_settings.mesh_select_mode) == (False, False, True):
+			# col.operator("mesh.select_similar", text='Select Elements by Slot').type = 'MATERIAL'
 		mat = bpy.context.object.active_material
+
+
+
+
+
+
+
 		col.separator()
-		col.prop(mat, "blend_method",text='')
-		col.separator()
+#   	 col.prop(mat, "blend_method",text='')
+		# col.prop(mat, "shadow_method",text='')
 		col.prop(mat, "refraction_depth",text='')
 		col.row().prop(mat, "use_screen_refraction")
 		col.row().prop(mat, "use_sss_translucency")
-		
-		
-		
 		col.separator()
-		col.operator('popup.hp_render',icon='NONE',text='Render Settings')
-		#Nodes 
+		col.label(text = 'VERTEX COLOR (for _V materials)')
+		ts = context.tool_settings
+		ups = ts.unified_paint_settings
+		ptr = ups if ups.use_unified_color else ts.vertex_paint.brush
+		col.template_color_picker(ptr, 'color', value_slider=True)
+		col.prop(ptr, 'color', text='')
 
 		if bpy.context.object.type == 'MESH':
-			box = col2.box()
-			sub = box.column(align=True)
-			ntree = bpy.context.object.active_material.node_tree
-			node = ntree.get_output_node('EEVEE')
-			if node:
-				input = find_node_input(node, 'Surface')
-				inputvolume = find_node_input(node, 'Volume')
-				inputdisplacement = find_node_input(node, 'Displacement')
-				if input:
-					sub.template_node_view(ntree, node, input)
-				if inputvolume:
-					sub.template_node_view(ntree, node, inputvolume)
-				if inputdisplacement:
-					sub.template_node_view(ntree, node, inputdisplacement)
-				
-				else:
-					sub.label(text="Incompatible output node")
-			else:
-				sub.label(text="No output node")
+			col.operator("mesh.material_apply", text='Apply Vertex Color')
+			col.operator("mesh.select_vertex_color", text='Select by Vertex Color')
+			col.operator("ui.eyedropper_id", text='Eyedropper')
 
-			# actnode = bpy.context.active_object.active_material.node_tree.nodes.active
-			# col2.prop(actnode, 'type', text='Shader')
-			# for x in bpy.context.active_object.active_material.node_tree.nodes.active.inputs:
-				# if x.name != 'Normal' and x.name != 'Clearcoat Normal' and x.name != 'Tangent':
-					# col2.prop(x,'default_value', text = x.name)
+			me = bpy.context.active_object.data
+			col.template_list("MESH_UL_vcols", "vcols", me, "vertex_colors", me.vertex_colors, "active_index", rows=1)
+		col.separator()
+
+		#Nodes
+
+		if bpy.context.object.type == 'MESH':
+			# box = col2.box()
+			# sub = box.column(align=True)
+			# ntree = bpy.context.object.active_material.node_tree
+			# node = ntree.get_output_node('EEVEE')
+			# if node:
+				# input = find_node_input(node, 'Surface')
+				# inputvolume = find_node_input(node, 'Volume')
+				# inputdisplacement = find_node_input(node, 'Displacement')
+				# if input:
+					# sub.template_node_view(ntree, node, input)
+				# if inputvolume:
+					# sub.template_node_view(ntree, node, inputvolume)
+				# if inputdisplacement:
+					# sub.template_node_view(ntree, node, inputdisplacement)
+
+				# else:
+					# sub.label(text="Incompatible output node")
+			# else:
+				# sub.label(text="No output node")
+
+			actnode = bpy.context.active_object.active_material.node_tree.nodes.active
+			col2.prop(actnode, 'type', text='Shader')
+			for x in bpy.context.active_object.active_material.node_tree.nodes.active.inputs:
+				if x.name != 'Normal' and x.name != 'Clearcoat Normal' and x.name != 'Tangent':
+					col2.prop(x,'default_value', text = x.name)
 
 
 
-					
-####Grease Pencil Material Props			
+
+####Grease Pencil Material Props
 		ma = bpy.context.object.active_material
 		if ma is not None and ma.grease_pencil is not None:
 			gpcolor = ma.grease_pencil
-			col2.label(text='                               ++STROKE++')
+			col2.label(text='   							++STROKE++')
 			col2.active = not gpcolor.lock
 			col2.operator('3dview.gp_stroketoggle', text='Toggle Stroke')
 			col2.prop(gpcolor, "mode", text="")
@@ -139,7 +182,7 @@ class HP_MT_popup_materials(bpy.types.Operator):
 				col2.prop(gpcolor, "color", text="")
 			col2.label(text='')
 			col2.active = not gpcolor.lock
-			col2.label(text='                                 ++FILL++')
+			col2.label(text='   							  ++FILL++')
 			col2.operator('3dview.gp_filltoggle', text='Toggle Fill')
 			col2.prop(gpcolor, "fill_style", text="")
 			if gpcolor.fill_style == 'GRADIENT':
@@ -182,7 +225,7 @@ class HP_MT_popup_materials(bpy.types.Operator):
 
 
 			col2.label(text='')
-			col2.label(text='                                  /// LAYERS')
+			col2.label(text='   							   /// LAYERS')
 			gpd = context.gpencil_data
 			row = col2.row()
 			sub = row.column()
@@ -191,7 +234,7 @@ class HP_MT_popup_materials(bpy.types.Operator):
 							  rows=layer_rows, reverse=True)
 			sub = row.column()
 			sub.operator("gpencil.layer_add", icon='ADD', text="")
-			
+
 			sub.operator("gpencil.layer_remove", icon='REMOVE', text="")
 			sub.operator("gpencil.layer_move", icon='TRIA_UP', text="").type = 'UP'
 			sub.operator("gpencil.layer_move", icon='TRIA_DOWN', text="").type = 'DOWN'
@@ -252,19 +295,19 @@ class HP_OT_material_copy(bpy.types.Operator):
 			bpy.ops.object.material_slot_move(direction='UP')
 		bpy.ops.object.material_slot_assign()
 		return {'FINISHED'}
-	
+
 class HP_OT_material_slot_add(bpy.types.Operator):
 	bl_idname = '3dview.material_slot_add'
 	bl_label = 'Add Material Slot'
 	def execute(self, context):
 		i = bpy.context.object.active_material_index
-		bpy.ops.object.material_slot_add()			 
+		bpy.ops.object.material_slot_add()
 		bpy.context.object.active_material_index=len(bpy.context.object.data.materials)-1
 		move = len(bpy.context.object.data.materials)-i-2
 		for m in range(move):
 			bpy.ops.object.material_slot_move(direction='UP')
 		bpy.ops.object.material_slot_assign()
-		return {'FINISHED'} 
+		return {'FINISHED'}
 class HP_OT_material_slot_remove(bpy.types.Operator):
 	bl_idname = '3dview.material_slot_remove'
 	bl_label = 'Remove Material Slot'
@@ -280,15 +323,25 @@ class HP_OT_material_new(bpy.types.Operator):
 	bl_idname = '3dview.material_new'
 	bl_label = 'Assign New Material'
 	def execute(self, context):
-		newmat = bpy.data.materials.new('Material')
-		bpy.context.active_object.data.materials.append(newmat)
-		bpy.context.object.active_material_index=len(bpy.context.object.data.materials)-1
-		bpy.context.active_object.active_material.use_nodes=True
-		bpy.ops.object.material_slot_assign()
+		if bpy.context.object.active_material:
+			print('Active Material - Creating New Slot')
+			newmat = bpy.data.materials.new('Material')
+			bpy.context.active_object.data.materials.append(newmat)
+			bpy.context.object.active_material_index=len(bpy.context.object.data.materials)-1
+			bpy.context.active_object.active_material.use_nodes=True
+			bpy.ops.object.material_slot_assign()
+		else:
+			print('No Active Material')
+			newmat = bpy.data.materials.new('Material')
+			bpy.context.active_object.active_material = newmat
+			bpy.context.active_object.active_material.use_nodes=True
+
+
+
 		return {'FINISHED'}
 class HP_OT_apply(bpy.types.Operator):
-	bl_idname = "mesh.material_apply"		 # unique identifier for buttons and menu items to reference.
-	bl_label = "Fill Color"			# display name in the interface.
+	bl_idname = "mesh.material_apply"   	 # unique identifier for buttons and menu items to reference.
+	bl_label = "Fill Color" 		# display name in the interface.
 	bl_options = {'REGISTER', 'UNDO'}  # enable undo for the operator.
 	def execute(self, context):
 		obj = bpy.context.object
@@ -300,13 +353,13 @@ class HP_OT_apply(bpy.types.Operator):
 			bpy.ops.object.material_slot_assign()
 			bpy.ops.object.editmode_toggle()
 			return {'FINISHED'}
-#		 totface = mesh.total_face_sel
-#		 totedge = mesh.total_edge_sel
+#   	 totface = mesh.total_face_sel
+#   	 totedge = mesh.total_edge_sel
 		totvert = mesh.total_vert_sel
 		nothingselected = False
 		if totvert == 0:
 			nothingselected = True
-			bpy.ops.mesh.select_all(action='SELECT')			
+			bpy.ops.mesh.select_all(action='SELECT')
 		if tuple(bpy.context.scene.tool_settings.mesh_select_mode) == (False, False, True):
 			bpy.ops.object.editmode_toggle()
 			bpy.ops.paint.vertex_paint_toggle()
@@ -321,29 +374,44 @@ class HP_OT_apply(bpy.types.Operator):
 			bpy.ops.object.editmode_toggle()
 
 		bpy.ops.object.material_slot_assign()
-		
+
 		if nothingselected == True:
 			bpy.ops.mesh.select_all(action='DESELECT')
 
 		return {'FINISHED'}
 
-classes = (
-	HP_MT_popup_materials,
-	HP_OT_material_delete,
-	HP_OT_material_copy,
-	HP_OT_material_slot_add,
-	HP_OT_material_slot_remove,
-	HP_OT_material_new,
-	HP_OT_apply,
-	HP_OT_gp_stroketoggle,
-	HP_OT_gp_filltoggle
-)
-# register, unregister = bpy.utils.register_classes_factory(classes)
+class HP_OT_select_vertex_color(bpy.types.Operator):
+	bl_idname = "mesh.select_vertex_color"  	  # unique identifier for buttons and menu items to reference.
+	bl_label = "Select By Vertex Color" 		# display name in the interface.
+	bl_options = {'REGISTER', 'UNDO'}  # enable undo for the operator.
+	def execute(self, context):
+		ob = bpy.context.object
+		colors_list = []
+		for ipoly in range(len(ob.data.polygons)):
+			for ivertex in ob.data.polygons[ipoly].loop_indices:
+				color_list = []
+				for i in range(4):
+					color_list.append(str(ob.data.vertex_colors["Col"].data[ivertex].color[i]))
+				colors_list.append(color_list)
 
-def register():
-	pass
-def unregister():
-	pass
+
+		print(colors_list)
+		return {'FINISHED'}
+
+classes = (
+	# HP_MT_popup_materials,
+	# HP_OT_material_delete,
+	# HP_OT_material_copy,
+	# HP_OT_material_slot_add,
+	# HP_OT_material_slot_remove,
+	# HP_OT_material_new,
+	# HP_OT_apply,
+	# HP_OT_select_vertex_color,
+	# HP_OT_gp_stroketoggle,
+	# HP_OT_gp_filltoggle
+)
+register, unregister = bpy.utils.register_classes_factory(classes)
+
 
 if __name__ == "__main__":
 	register()

@@ -4,20 +4,17 @@ from bpy.props import *
 from bpy_extras.node_utils import find_node_input
 
 class HP_MT_popup_render(bpy.types.Operator):
-    bl_idname = "popup.hp_render"
+    bl_idname = "popup.hp_render" 
     bl_label = "Heavypoly Render Popup"
     def execute(self, context):
         return {'FINISHED'}
  
     def invoke(self, context, event):
-        ob = context.object
         wm = context.window_manager
-        return wm.invoke_popup(self, width=450, height=200)
+        return wm.invoke_popup(self, width=450)
         
     def draw(self, context):
-        ob = context.object
         layout = self.layout
-        actdat = bpy.context.active_object.data
         row = layout.row()
         col = row.column()
         col2 = row.column()
@@ -55,11 +52,12 @@ class HP_MT_popup_render(bpy.types.Operator):
         col.label(text='WORLD')
         world = bpy.context.scene.world
         col.prop(scene.eevee, "use_soft_shadows")
-        col.prop(scene.eevee, "use_volumetric", text="Use Volumetric")
         if world.use_nodes:
             ntree = world.node_tree
             node = ntree.get_output_node('EEVEE')
 
+        
+        
             if node:
                 input = find_node_input(node, 'Surface')
                 inputvol = find_node_input(node, 'Volume')
@@ -68,6 +66,7 @@ class HP_MT_popup_render(bpy.types.Operator):
                 if input:
                     col.separator()
                     col.separator()
+                    col.prop(scene.eevee, "use_volumetric", text="Use Volumetric")
                     col.template_node_view(ntree, node, inputvol)
                 else:
                     col.label(text="Incompatible output node")
@@ -124,15 +123,11 @@ class HP_MT_popup_render(bpy.types.Operator):
         col2.prop(props, "use_taa_reprojection")
 
 classes = (
-    HP_MT_popup_render,
+    # HP_MT_popup_render,
 
 )
-# register, unregister = bpy.utils.register_classes_factory(classes)
+register, unregister = bpy.utils.register_classes_factory(classes)
 
-def register():
-	pass
-def unregister():
-	pass
 
 if __name__ == "__main__":
     register()
