@@ -181,3 +181,6 @@
 [submodule "scripts/GIT/Asset-Creation-Toolset"]
 	path = scripts/GIT/Asset-Creation-Toolset
 	url = https://github.com/mrven/Blender-Asset-Creation-Toolset.git
+[submodule "scripts/addons/BakeLab2"]
+	path = scripts/addons/BakeLab2
+	url = https://github.com/Shahzod114/Blender-BakeLab2.git
