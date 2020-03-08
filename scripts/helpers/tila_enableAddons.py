@@ -51,6 +51,8 @@ modules =   (
             'MeshDataTransfer',
             'keentools_facebuilder',
             'kekit',
+            'Poly_Source',
+            'maxivz_tools',
             # 'mouselook_navigation',
             'BakeWrangler',
             'atomic_data_manager',
