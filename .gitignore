@@ -1,5 +1,6 @@
 config/bookmarks.txt
 config/recent-files.txt
+config/userpref.blend
 *__pycache__*
 scripts/addons/retopoflow-master/*
 scripts/addons/Capsule/*
