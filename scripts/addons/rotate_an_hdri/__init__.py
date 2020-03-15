@@ -66,6 +66,7 @@ def draw_callback_px(self, context):
 def get_hdri_rotation_angle(context):
     shading = context.space_data.shading
     hdri = get_hdri(context)
+    hdri_angle = 0
     if hdri == 'MAT_PREVIEW':
         current_angle_z = shading.studiolight_rotate_z
         if current_angle_z > 0:
