@@ -3,7 +3,7 @@ import bpy
 from mathutils import Vector
 import numpy as np
 from mathutils.bvhtree import BVHTree
-from mathutils import(Vector, Matrix )
+from mathutils import(Vector, Matrix, kdtree )
 from mathutils.geometry import (intersect_line_line, intersect_line_line_2d, intersect_point_line,
                                 intersect_line_plane, intersect_ray_tri, distance_point_to_plane, barycentric_transform )
 import sys
@@ -61,12 +61,26 @@ class MeshData (object):
     def v_count(self):
         return len(self.mesh.vertices)
 
-    def get_vertex_groups_names(self):
+    def get_locked_vertex_groups_array(self):
+        v_groups =self.vertex_groups
+        if not v_groups:
+            return
+        array = []
+        for g in v_groups:
+            array.append(not g.lock_weight)
+        return array
+
+    def get_vertex_groups_names(self, ignore_locked = False):
         if not self.vertex_groups:
             return
         group_names=list()
         for group in self.vertex_groups:
             group_names.append(group.name)
+        if ignore_locked:
+            filter_array = self.get_locked_vertex_groups_array()
+            for i in range(len(filter_array)):
+                if not filter_array[i]:
+                    group_names.pop(i)
         return group_names
 
 
@@ -76,7 +90,7 @@ class MeshData (object):
         for group in v_groups:
             if group.name == vertex_group_name:
                 v_group = group.index
-                print("{} id is {}".format(group.name, group.index))
+                # print("{} id is {}".format(group.name, group.index))
         if v_group is None:
             return
         v_count = len(self.mesh.vertices)
@@ -89,11 +103,11 @@ class MeshData (object):
                     v_index = v.index
                     weight = group.weight
                     weights[v_index] = weight
-        weights.shape = (v_count , 1)
+        weights.shape = (v_count, 1)
         return weights
 
 
-    def get_vertex_groups_weights(self):
+    def get_vertex_groups_weights(self, ignore_locked = False):
         v_groups = self.vertex_groups
         if not v_groups:
             return
@@ -102,7 +116,7 @@ class MeshData (object):
         v_groups_count = len(v_groups)
 
         weights = np.zeros ((v_count * v_groups_count) , dtype=np.float32)
-        weights.shape = (v_count , v_groups_count)
+        weights.shape = (v_groups_count, v_count)
 
         for v in self.mesh.vertices:
             groups = v.groups
@@ -110,17 +124,20 @@ class MeshData (object):
                 i = group.group
                 v_index = v.index
                 weight = group.weight
-                weights[v_index , i] = weight
+                weights[i , v_index] = weight
+        if ignore_locked:
+            array = self.get_locked_vertex_groups_array()
+            return weights[array]
         return weights
 
     def set_vertex_groups_weights(self, weights, group_names):
-        for i in range(weights.shape[1]):
+        for i in range(weights.shape[0]):
             #remove existing vertex group
             group_name = group_names[i]
             v_group = self.vertex_groups.get(group_name)
             if v_group:
                 self.vertex_groups.remove(v_group)
-            group_weights = weights[:, i]
+            group_weights = weights[i]
             v_ids = np.nonzero(group_weights)[0]
             v_group = self.obj.vertex_groups.new(name=group_name)
             for v_id in v_ids:
@@ -247,7 +264,7 @@ class MeshData (object):
 
         return bm
 
-    def get_shape_keys_vert_pos(self):
+    def get_shape_keys_vert_pos(self, exclude_muted = False):
         if not self.shape_keys:
             return
         if self.deformed:
@@ -257,6 +274,9 @@ class MeshData (object):
         for sk in self.shape_keys:
             if sk.name == "Basis":
                 continue
+            if exclude_muted:
+                if sk.mute:
+                    continue
             array = self.convert_shape_key_to_array(sk)
             shape_arrays[sk.name]=(array)
         if self.deformed:
@@ -320,7 +340,8 @@ class MeshData (object):
 class MeshDataTransfer (object):
     def __init__(self, source, target, uv_space=False, deformed_source=False,
                  deformed_target=False, world_space=False, search_method="RAYCAST",
-                 topology=False, vertex_group = None, invert_vertex_group = False):
+                 topology=False, vertex_group = None, invert_vertex_group = False, exclude_locked_groups = False,
+                 exclude_muted_shapekeys=False, snap_to_closest = False):
         self.vertex_group = vertex_group
         self.uv_space = uv_space
         self.topology = topology
@@ -333,7 +354,9 @@ class MeshDataTransfer (object):
         self.target = MeshData(target, uv_space=uv_space, deformed=deformed_target , world_space=world_space)
         self.target.get_mesh_data()
         self.invert_vertex_group = invert_vertex_group
-
+        self.exclude_muted_shapekeys = exclude_muted_shapekeys
+        self.exclude_locked_groups = exclude_locked_groups
+        self.snap_to_closest = snap_to_closest
 
         self.missed_projections = None
         self.ray_casted = None
@@ -364,9 +387,30 @@ class MeshDataTransfer (object):
             self.target.free()
         if self.source:
             self.source.free()
+    def snap_coords_to_source_verts(self, coords, source_coords):
+        """
+        Find the closest vertex on source coordinates to the target coordinates
+        :param coords: target transformed coordinates
+        :param source_coords: source coordinates
+        :return: snapped coordinates
+        """
+        source_size = len(self.source.mesh.vertices)
+        kd = kdtree.KDTree(source_size)
+        snapped_coords = coords
+        for i, co in enumerate(source_coords):
+            kd.insert(co, i)
+        kd.balance()
+        for i in range(len(coords)):
+            co = coords[i]
+            snapped = kd.find(co)
+
+            snapped_coords[i] = snapped[0]
+        return snapped_coords
+
+
 
     def transfer_shape_keys(self):
-        shape_keys = self.source.get_shape_keys_vert_pos()
+        shape_keys = self.source.get_shape_keys_vert_pos(exclude_muted=self.exclude_muted_shapekeys)
         if not shape_keys:
             return
         undeformed_verts = self.target.get_verts_position()
@@ -383,12 +427,18 @@ class MeshDataTransfer (object):
                 mat =np.array(self.source.obj.matrix_world)
                 sk_points = self.transform_vertices_array(sk_points, mat)
             transferred_sk = self.get_transferred_vert_coords(sk_points)
+            #snap to vertices
+            if self.snap_to_closest:
+                transferred_sk = self.snap_coords_to_source_verts(transferred_sk, sk_points)
             if self.world_space:
                 mat = np.array(self.target.obj.matrix_world.inverted())
                 transferred_sk = self.transform_vertices_array (transferred_sk , mat)
+
             transferred_sk = np.where(self.missed_projections, undeformed_verts, transferred_sk)
             # extracting deltas
             transferred_sk = transferred_sk - base_transferred_position
+
+
             # filter on vertex group
             if isinstance (masked_vertices , (np.ndarray , np.generic)):
                 delta = transferred_sk * masked_vertices
@@ -399,28 +449,28 @@ class MeshDataTransfer (object):
         return True
 
     def transfer_vertex_groups(self):
-        source_weights = self.source.get_vertex_groups_weights()
-        weights_names = self.source.get_vertex_groups_names()
+        source_weights = self.source.get_vertex_groups_weights(ignore_locked=self.exclude_locked_groups)
+        weights_names = self.source.get_vertex_groups_names(ignore_locked=self.exclude_locked_groups)
         if not weights_names:
             return
         #setting up destination array
-        target_weights_shape = (self.target.v_count, len(weights_names))
+        target_weights_shape = ( len(weights_names), self.target.v_count)
         target_weights = np.zeros((target_weights_shape[0] * target_weights_shape[1]), dtype=np.float32)
         target_weights.shape = target_weights_shape
         masked_vertices = self.get_vertices_mask ()
         #unpacking array
         for i in range(len(weights_names)):
-            source_weight = np.zeros((source_weights[:, i].shape[0]*3), dtype=np.float32)
-            source_weight.shape = (source_weights[:, i].shape[0], 3)
-            source_weight[:, 0] = source_weights[:, i]
-            source_weight[:, 1] = source_weights[:, i]
-            source_weight[:, 2] = source_weights[:, i]
+            source_weight = np.zeros((source_weights[i].shape[0]*3), dtype=np.float32)
+            source_weight.shape = (source_weights[i].shape[0], 3)
+            source_weight[:, 0] = source_weights[i]
+            source_weight[:, 1] = source_weights[i]
+            source_weight[:, 2] = source_weights[i]
             transferred_weights = self.get_transferred_vert_coords(source_weight)
             # filter on vertex group
             if isinstance (masked_vertices , (np.ndarray , np.generic)):
                 transferred_weights = transferred_weights * masked_vertices
 
-            target_weights[:, i] = transferred_weights[:, 0]
+            target_weights[i] = transferred_weights[:, 0]
         self.target.set_vertex_groups_weights(target_weights, weights_names)
         return True
 
@@ -433,6 +483,9 @@ class MeshDataTransfer (object):
 
         #transferred_position = self.calculate_barycentric_location(sorted_coords, self.barycentric_coords)
         transferred_position = self.get_transferred_vert_coords(transfer_coord)
+        if self.snap_to_closest:
+            transferred_position = self.snap_coords_to_source_verts (transferred_position , transfer_coord)
+
         if self.world_space: #inverting the matrix
             mat = np.array(self.target.obj.matrix_world.inverted()) @  np.array(self.source.obj.matrix_world)
             transferred_position = self.transform_vertices_array(transferred_position, mat)
@@ -443,14 +496,12 @@ class MeshDataTransfer (object):
         transferred_position = np.where(self.missed_projections, undeformed_verts, transferred_position )
         # filtering through vertex
         masked_vertices = self.get_vertices_mask ()
+
+
         if isinstance(masked_vertices, (np.ndarray, np.generic)):
             delta =transferred_position - undeformed_verts
             delta = delta * masked_vertices
             transferred_position = undeformed_verts + delta
-
-
-
-
 
 
         return transferred_position

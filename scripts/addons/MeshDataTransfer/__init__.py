@@ -10,7 +10,7 @@ bl_info = {
     "description" : "This add on will transfer geometry data from one mesh to another based on 3 different spaces:"
                     " 'world, object, uv' also will tranfer UVs based on topology",
     "blender" : (2, 80, 0),
-    "version" : (1, 3, 0,),
+    "version" : (1, 3, 2,),
     "location" : "(Object Mode) Mesh > ObjectData > Mesh Data Transfer ",
     "warning" : "",
     "wiki_url": "",
@@ -43,16 +43,29 @@ class MeshDataSettings(PropertyGroup):
     #
     # transfer_uv_data: bpy.props.BoolProperty ()
 
-    mesh_source: bpy.props.PointerProperty(type=bpy.types.Object, poll=scene_chosenobject_poll)
+    mesh_source: bpy.props.PointerProperty(name="Source mesh", description= "Pick a source mesh for transfer."
+                                           ,type=bpy.types.Object, poll=scene_chosenobject_poll)
 
-    vertex_group_filter: bpy.props.StringProperty (name="Vertex Group")
-    invert_vertex_group_filter: bpy.props.BoolProperty ()
+    vertex_group_filter: bpy.props.StringProperty (name="Vertex Group",
+                                                   description="Filter transfer using a vertex group.")
+    invert_vertex_group_filter: bpy.props.BoolProperty (name= "Invert vertex group values")
 
-    transfer_shape_as_key : bpy.props.BoolProperty ()
+    transfer_shape_as_key : bpy.props.BoolProperty (name="Transfer as shape key",
+                                                    description="Transfer vertices position as a shape key.")
     transfer_to_new_uv : bpy.props.BoolProperty ()
 
     transfer_modified_target : bpy.props.BoolProperty ()
     transfer_modified_source : bpy.props.BoolProperty ()
+
+    exclude_muted_shapekeys : bpy.props.BoolProperty (name= "Exclude muted",
+                                                      description="Muted shape keys will be not transferred.")
+
+    exclude_locked_groups: bpy.props.BoolProperty (name= "Exclude locked",
+                                                   description="Locked vertex groups will be not transferred.")
+    snap_to_closest_shape: bpy.props.BoolProperty (name="Snap shape to closest vertex",
+                                                   description="Snap transferred vertices to closest vertex on source mesh")
+    snap_to_closest_shapekey: bpy.props.BoolProperty (name="Snap shape key to closest vertex",
+                                                   description="Snap transferred shape keys vertices to closest vertex on source shape key")
 
 class MeshDataGlobalSettings(PropertyGroup):
     transfer_modified_target : bpy.props.BoolProperty ()
@@ -118,19 +131,35 @@ class DATA_PT_mesh_data_transfer(bpy.types.Panel):
         shape_cols_layout = left_top_row_box_layout.row(align=True)
         shape_cols_layout.operator ("object.transfer_shape_data" , text="Transfer Shape" , icon="MOD_DATA_TRANSFER")
         # split = shape_cols_layout.split()
+        snap_shape_icon =  "SNAP_OFF"
+        if ob_prop.snap_to_closest_shape:
+            snap_shape_icon = "SNAP_ON"
+        shape_cols_layout.prop (ob_prop , "snap_to_closest_shape" , text="" , toggle=True , icon=snap_shape_icon)
         shape_cols_layout.prop (ob_prop , "transfer_shape_as_key" , text="", toggle=True, icon='SHAPEKEY_DATA')
-        left_bottom_row_box_layout = left_top_row_box_layout.row()
-        left_bottom_row_box_layout.operator("object.transfer_vertex_groups_data" , text="Transfer Vertex Groups" ,
-                                                icon="GROUP_VERTEX")
+
+        left_bottom_row_box_layout = left_top_row_box_layout.row(align=True)
+        left_bottom_row_box_layout.operator("object.transfer_shape_key_data" , text="Transfer Shape Keys" ,
+                                                icon="SHAPEKEY_DATA")
+        snap_key_icon = "SNAP_OFF"
+        if ob_prop.snap_to_closest_shapekey:
+            snap_key_icon = "SNAP_ON"
+        left_bottom_row_box_layout.prop(ob_prop , "snap_to_closest_shapekey" , text="",
+                                         toggle=True, icon=snap_key_icon)
+        left_bottom_row_box_layout.prop(ob_prop , "exclude_muted_shapekeys" , text="",
+                                         toggle=True, icon='CHECKMARK')
+
 
 
         top_row_layout.split()
         right_top_row_box_layout = top_row_layout.box()
         right_top_row_box_layout.operator ("object.transfer_uv_data" , text="Transfer UV" ,
                                          icon="UV_DATA")
-        right_bottom_row_box_layout = right_top_row_box_layout.row()
-        right_bottom_row_box_layout.operator("object.transfer_shape_key_data" , text="Transfer Shape Keys" ,
-                                                icon="SHAPEKEY_DATA")
+        right_bottom_row_box_layout = right_top_row_box_layout.row(align=True)
+        right_bottom_row_box_layout.operator("object.transfer_vertex_groups_data" , text="Transfer Vertex Groups" ,
+                                                icon="GROUP_VERTEX")
+        right_bottom_row_box_layout.prop(ob_prop , "exclude_locked_groups" , text="",
+                                         toggle=True, icon='UNLOCKED')
+
         #mesh picker layout
         vgroup_picker_box_layout = main_box_layout.box()
         vgroup_row = vgroup_picker_box_layout.row(align=True)
