@@ -462,6 +462,10 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		# MouseLook_Navigation
 		self.kmi_set_replace('mouselook_navigation.navigate', self.k_cursor, 'CLICK_DRAG', ctrl=False, alt=True, shift=False,  disable_double=True)
 
+		# Rotate an HDRI
+		self.kmi_set_replace('rotate.hdri', self.k_context, 'PRESS', ctrl=True, alt=True, shift=False,  disable_double=True)
+		
+
 
 		##### 3D View Generic
 		self.kmi_init(name='3D View Generic', space_type='VIEW_3D', region_type='WINDOW')

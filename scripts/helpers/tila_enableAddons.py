@@ -53,6 +53,7 @@ modules =   (
             'kekit',
             'Poly_Source',
             'maxivz_tools',
+            'rotate_an_hdri',
             # 'mouselook_navigation',
             'BakeWrangler',
             'atomic_data_manager',
