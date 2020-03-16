@@ -50,10 +50,13 @@ class TILA_isolate(bpy.types.Operator):
                 self.isolate(context, isolate=(bpy.ops.view3d.localview, {'frame_selected':False}), reveal=(bpy.ops.view3d.localview, {'frame_selected':False}), sel_count=len(self.selected_objects)) == 'REVEAL'
                 return {'FINISHED'}
 
-            if bpy.context.mode in ['OBJECT', 'SCULPT']:
+            if bpy.context.mode in ['OBJECT']:          
                 if self.isolate(context, isolate=(bpy.ops.view3d.localview, {'frame_selected':False}), reveal=(bpy.ops.view3d.localview, {'frame_selected':False}), sel_count=len(self.selected_objects)) == 'REVEAL':
                     pass
                     # bpy.ops.object.select_all(action='INVERT')
+            elif bpy.context.mode in ['SCULPT']:
+                bpy.ops.sculpt.face_set_change_visibility('INVOKE_DEFAULT', mode='TOGGLE')
+
             elif bpy.context.mode == 'EDIT_MESH':
                 selected_face = []
                 for obj in self.selected_objects:
