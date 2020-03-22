@@ -101,6 +101,10 @@ def register():
     addon.preferences.activate_transform_pie = False
     addon.preferences.activate_collections_pie = False
 
+    # object_collection_manager
+    addon = context.preferences.addons.get('object_collection_manager')
+    addon.preferences.enable_qcd = False
+
     # # mouselook_navigation
     # addon = context.preferences.addons.get('mouselook_navigation')
     # addon.preferences.show_zbrush_border = False
