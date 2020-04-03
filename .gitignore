@@ -23,6 +23,7 @@ scripts/presets/interface_theme/blender_pro.xml
 scripts/addons/RenderBurst.py
 scripts/addons/Object_Shake.py
 scripts/addons/TiNA.py
+scripts/addons/blenderbezierutils.py
 
 scripts/addons/io_mesh_fast_obj/*
 scripts/addons/carbon_tools.py

@@ -22,6 +22,7 @@ copy "..\GIT\flexi-bezier\blenderbezierutils.py" .
 copy "..\GIT\RenderBurst\RenderBurst.py" .
 copy "..\GIT\object-shake\Object_Shake.py" .
 copy "..\GIT\TiNA\TiNA.py" .
+copy "..\GIT\bezierutils\blenderbezierutils.py" .
 
 copy "..\GIT\bpy_photogrametry\carbon_tools.py" .
 copy "..\GIT\bpy_photogrametry\io_import_photoscan_cameras.py" .
