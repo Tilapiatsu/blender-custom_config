@@ -54,6 +54,7 @@ modules =   (
             'Poly_Source',
             'maxivz_tools',
             'rotate_an_hdri',
+            'blenderbezierutils',
             # 'mouselook_navigation',
             'BakeWrangler',
             'atomic_data_manager',
