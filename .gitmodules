@@ -184,3 +184,9 @@
 [submodule "scripts/addons/BakeLab2"]
 	path = scripts/addons/BakeLab2
 	url = https://github.com/Shahzod114/Blender-BakeLab2.git
+[submodule "scripts/GIT/blenderbezierutils/"]
+	path = scripts/GIT/blenderbezierutils/
+	url = https://github.com/Shriinivas/blenderbezierutils.git
+[submodule "scripts/GIT/bezierutils"]
+	path = scripts/GIT/bezierutils
+	url = https://github.com/Shriinivas/blenderbezierutils.git
