@@ -190,3 +190,6 @@
 [submodule "scripts/GIT/bezierutils"]
 	path = scripts/GIT/bezierutils
 	url = https://github.com/Shriinivas/blenderbezierutils.git
+[submodule "scripts/GIT/oscuart"]
+	path = scripts/GIT/oscuart
+	url = https://github.com/oscurart/Blender-28-Addons.git

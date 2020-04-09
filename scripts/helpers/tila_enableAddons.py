@@ -55,6 +55,7 @@ modules =   (
             'maxivz_tools',
             'rotate_an_hdri',
             'blenderbezierutils',
+            'oscurart_edit_split_normals',
             # 'mouselook_navigation',
             'BakeWrangler',
             'atomic_data_manager',
