@@ -193,3 +193,6 @@
 [submodule "scripts/GIT/oscuart"]
 	path = scripts/GIT/oscuart
 	url = https://github.com/oscurart/Blender-28-Addons.git
+[submodule "scripts/addons/abnormal"]
+	path = scripts/addons/abnormal
+	url = https://github.com/BlenderNPR/Abnormal.git
