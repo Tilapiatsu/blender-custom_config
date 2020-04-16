@@ -97,8 +97,8 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		self.kmi_set_replace("wm.window_fullscreen_toggle", "F11", "PRESS")
 		self.kmi_set_replace('screen.animation_play', self.k_menu, 'PRESS', shift=True)
 		
-		if self.km.name in ['3D View']:
-			self.kmi_set_replace("popup.hp_properties", 'Q', 'PRESS', disable_double=True)
+		if self.km.name in ['3D View', 'Mesh']:
+			# self.kmi_set_replace("popup.hp_properties", 'Q', 'PRESS', disable_double=True)
 			self.kmi_set_replace('popup.hp_materials', 'M', 'PRESS', disable_double=True)
 			self.kmi_set_replace('popup.hp_render', 'EQUAL', 'PRESS', disable_double=True)
 			self.kmi_set_replace('wm.call_menu_pie', 'D', 'PRESS', alt=True, shift=True, properties=[('name', 'HP_MT_pie_rotate90')])
@@ -230,7 +230,7 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 
 		# Ring Select / Deselect / Add
 		if ring_tool:
-			self.kmi_set_replace(ring_tool, self.k_cursor, 'CLICK', ctrl=True, properties=[('ring', True), ('deselect', True), ('extend', True), ('toggle', False)], disable_double=True)
+			self.kmi_set_replace(ring_tool, self.k_cursor, 'CLICK', ctrl=True, properties=[('ring', True), ('deselect', True), ('extend', False), ('toggle', False)], disable_double=True)
 			self.kmi_set_replace(ring_tool, self.k_cursor, 'CLICK', shift=True, properties=[('ring', True), ('deselect', False), ('extend', True), ('toggle', False)], disable_double=True)
 
 		# Select More / Less
@@ -430,7 +430,7 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		self.kmi_set_replace('wm.tool_set_by_id', 'F', 'PRESS', shift=True, properties=[('name', 'mesh_tool.poly_quilt')], disable_double=True)
 
 		self.kmi_set_replace('view3d.view_persportho', 'NUMPAD_ASTERIX', 'PRESS')
-		self.kmi_set_replace('view3d.collection_manager', 'M', 'PRESS', shift=True, disable_double=True)
+		self.kmi_set_replace('view3d.collection_manager', 'M', 'PRESS',  ctrl=True, alt=True, shift=True, disable_double=True)
 
 		self.collection_visibility('object.hide_collection')
 
@@ -697,6 +697,7 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		self.tool_smart_delete()
 		self.kmi_set_replace('object.tila_emptymesh', 'N', 'PRESS', ctrl=True, alt=True, shift=True)
 		self.kmi_set_replace('outliner.collection_objects_select', self.k_select, 'DOUBLE_CLICK', disable_double=True)
+		self.kmi_set_replace('outliner.show_active', 'A', 'PRESS', ctrl=True, shift=True, disable_double=True)
 
 		self.isolate()
 

@@ -57,6 +57,7 @@ modules =   (
             'blenderbezierutils',
             'oscurart_edit_split_normals',
             # 'mouselook_navigation',
+            'vertex_color_master',
             'BakeWrangler',
             'atomic_data_manager',
             # 'ZWeightTools-1_0_1',
