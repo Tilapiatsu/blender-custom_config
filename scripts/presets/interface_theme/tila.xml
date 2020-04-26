@@ -359,7 +359,7 @@
         gp_vertex_size="3"
         text_grease_pencil="#00c5ff"
         object_selected="#ffffff"
-        object_active="#ffd28f"
+        object_active="#8ffaff"
         text_keyframe="#ffd28f"
         camera="#6b6b6b"
         empty="#6b6b6b"
