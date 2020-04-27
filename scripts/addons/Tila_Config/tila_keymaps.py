@@ -377,7 +377,7 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		self.kmi_set_replace('view3d.tila_isolate', 'X', 'PRESS', ctrl=True, alt=True, shift=True, properties=[('force_object_isolate', True)])
 	
 	def join(self):
-		self.kmi_set_replace('object.join', 'J', 'PRESS', disable_double=True)
+		self.kmi_set_replace('object.join', 'J', 'PRESS', ctrl=True, disable_double=True)
 
 	# Keymap define
 	def set_tila_keymap(self):

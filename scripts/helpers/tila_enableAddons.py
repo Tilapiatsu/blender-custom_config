@@ -14,7 +14,7 @@ modules =   (
             'node_wrangler',
             'node_presets',
             'mesh_snap_utilities_line',
-            'Principled-Baker',
+            # 'Principled-Baker',
             'object_boolean_tools',
             'optiloops',
             # 'DNoise',
