@@ -375,6 +375,9 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 	def isolate(self):
 		self.kmi_set_replace('view3d.tila_isolate', 'X', 'PRESS', ctrl=True, alt=True, properties=[('force_object_isolate', False)])
 		self.kmi_set_replace('view3d.tila_isolate', 'X', 'PRESS', ctrl=True, alt=True, shift=True, properties=[('force_object_isolate', True)])
+	
+	def join(self):
+		self.kmi_set_replace('object.join', 'J', 'PRESS', disable_double=True)
 
 	# Keymap define
 	def set_tila_keymap(self):
@@ -568,6 +571,7 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		self.tool_center(pivot='VIEW3D_PT_pivot_point', orientation='VIEW3D_PT_transform_orientations')
 
 		self.isolate()
+		self.join()
 
 		self.kmi_set_replace('mesh.toggle_use_automerge', 'BACK_SLASH', 'PRESS')
 		# self.kmi_set_replace('object.merge_tool', 'M', 'PRESS')
@@ -692,7 +696,7 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		self.right_mouse()
 		self.kmi_set_replace('outliner.item_rename', 'F2', 'PRESS')
 
-		self.duplicate(duplicate='outliner.tila_duplicate', duplicate_link='outliner.tila_duplicate', duplicate_link_prop=[('linked', True)])
+		self.duplicate(duplicate='outliner.tila_duplicate', duplicate_prop=[('linked', False)], duplicate_link='outliner.tila_duplicate', duplicate_link_prop=[('linked', True)])
 
 		self.tool_smart_delete()
 		self.kmi_set_replace('object.tila_emptymesh', 'N', 'PRESS', ctrl=True, alt=True, shift=True)
@@ -700,6 +704,7 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		self.kmi_set_replace('outliner.show_active', 'A', 'PRESS', ctrl=True, shift=True, disable_double=True)
 
 		self.isolate()
+		self.join()
 
 		###### File Browser
 		self.kmi_init(name='File Browser', space_type='FILE_BROWSER', region_type='WINDOW')

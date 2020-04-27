@@ -12,6 +12,8 @@ class OutlinerDuplicateOperator(bpy.types.Operator):
     def execute(self, context):
         if context.space_data.type == 'OUTLINER':
             bpy.ops.object.duplicate(linked=self.linked)
+            if self.linked:
+                bpy.ops.outliner.collection_instance()
 
         return {'FINISHED'}
 
