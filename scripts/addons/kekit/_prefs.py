@@ -59,7 +59,13 @@ def get_prefs(): # Everything down here floats
 		float(bpy.context.scene.kekit.opc3_obj_o[0] + bpy.context.scene.kekit.opc3_obj_p[0] +
 			  bpy.context.scene.kekit.opc3_edit_o[0] + bpy.context.scene.kekit.opc3_edit_p[0]),
 		float(bpy.context.scene.kekit.opc4_obj_o[0] + bpy.context.scene.kekit.opc4_obj_p[0] +
-			  bpy.context.scene.kekit.opc4_edit_o[0] + bpy.context.scene.kekit.opc4_edit_p[0]))
+			  bpy.context.scene.kekit.opc4_edit_o[0] + bpy.context.scene.kekit.opc4_edit_p[0]),
+		float(bpy.context.scene.kekit.unrotator_nosnap),
+		float(bpy.context.scene.kekit.selmode_mouse),
+		float(bpy.context.scene.kekit.fitprim_quadsphere_seg),
+		float(bpy.context.scene.kekit.quickmeasure),
+		float(bpy.context.scene.kekit.unrotator_invert),
+	)
 	# print (set_values)
 	return set_values
 
@@ -68,19 +74,29 @@ def get_prefs(): # Everything down here floats
 # Todo: Just use JSON...?
 
 path = bpy.utils.script_path_user()
-print("keKit Prefs location:", path)
-
 prefs_data = read_prefs()
-prefs_data_default = 0, 1, 0, 16, 32, 16, 0.2, 1, 1, 0, 1111, 2335, 1315, 6464
+prefs_data_default = 0, 1, 0, 16, 32, 16, 0.2, 1, 1, 0, 1111, 2335, 1315, 6464, 1, 0, 8, 1, 0
 o_dict = {1: "1GLOBAL", 2: "2LOCAL", 3: "3NORMAL", 4: "4GIMBAL", 5: "5VIEW", 6: "6CURSOR"}
 p_dict = {1: "1MEDIAN_POINT", 2: "2BOUNDING_BOX_CENTER", 3: "3INDIVIDUAL_ORIGINS", 4: "4CURSOR", 5: "5ACTIVE_ELEMENT"}
 
 if prefs_data:
 	values = [float(v) for v in re.findall(r'-?\d+\.?\d*', prefs_data)]
+
+	# UPDATE NEW VALUES IF OLD PREFS
+	if len(values) < len(prefs_data_default):
+		missing = len(prefs_data_default) - len(values)
+		update = prefs_data_default[-missing:]
+		for i in update:
+			values.append(float(i))
+		write_prefs(values)
+
 	print("keKit Prefs file found - File settings applied")
+
 else:
 	values = prefs_data_default
 	print("keKit Prefs file not found - Default settings applied")
+
+print("keKit Prefs location:", path)
 
 # Enumprop hack...
 opc1_nrs = [int(i) for i in str(int(values[10]))]
@@ -130,6 +146,16 @@ class kekit_properties(PropertyGroup):
 	opc4_obj_p: bpy.props.EnumProperty(items=[("1MEDIAN_POINT", "Median Point", ""),("2BOUNDING_BOX_CENTER", "Bounding Box Center", ""),("3INDIVIDUAL_ORIGINS", "Individual Origins", ""),("4CURSOR", "Cursor", ""),("5ACTIVE_ELEMENT", "Active Element", "")],name="Pivot Transform",default=p_dict.get(opc4_nrs[1]))
 	opc4_edit_o: bpy.props.EnumProperty(items=[("1GLOBAL", "Global", ""),("2LOCAL", "Local", ""),("3NORMAL", "Normal", ""),("4GIMBAL", "Gimbal", ""),("5VIEW", "View", ""),("6CURSOR", "Cursor", "")],name="Orientation",default=o_dict.get(opc4_nrs[2]))
 	opc4_edit_p: bpy.props.EnumProperty(items=[("1MEDIAN_POINT", "Median Point", ""),("2BOUNDING_BOX_CENTER", "Bounding Box Center", ""),("3INDIVIDUAL_ORIGINS", "Individual Origins", ""),("4CURSOR", "Cursor", ""),("5ACTIVE_ELEMENT", "Active Element", "")],name="Pivot Transform",default=p_dict.get(opc4_nrs[3]))
+	# 14 - default: 1
+	unrotator_nosnap : BoolProperty(default=bool(values[14]))
+	# 15 - default: 0
+	selmode_mouse : BoolProperty(default=bool(values[15]))
+	# 16 - default: 8
+	fitprim_quadsphere_seg : IntProperty(min=1, max=128, default=int(values[16]))
+	# 17 - default: 1
+	quickmeasure : BoolProperty(default=bool(values[17]))
+	# 18 - default : 0
+	unrotator_invert : BoolProperty(default=bool(values[18]))
 
 
 class VIEW3D_OT_ke_prefs_save(Operator):

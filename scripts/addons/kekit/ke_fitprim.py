@@ -2,7 +2,7 @@ bl_info = {
     "name": "keFitPrim",
     "author": "Kjell Emanuelsson",
     "category": "Modeling",
-    "version": (1, 1, 0),
+    "version": (1, 1, 1),
     "blender": (2, 80, 0),
 }
 import bpy
@@ -31,11 +31,13 @@ def draw_callback_px(self, context, pos):
         blf.draw(font_id, "Cylinder Sides: " + str(val))
         blf.size(font_id, 15, 72)
         blf.position(font_id, hpos, vpos + 40, 0)
+        blf.color(font_id, 0.8, 0.8, 0.8, 1)
         blf.draw(font_id, "Increment: Mouse Wheel Up / Down")
         blf.position(font_id, hpos, vpos + 20, 0)
         blf.draw(font_id, "Apply:        LMB, RMB, Esc, Enter or Spacebar")
         blf.size(font_id, 10, 72)
         blf.position(font_id, hpos, vpos, 0)
+        blf.color(font_id, 0.5, 0.5, 0.5, 1)
         blf.draw(font_id, "Navigation: Blender (-MMB) or Ind.Std (Alt-) Defaults Pass-Through")
     else:
         return {'CANCELLED'}
@@ -88,7 +90,7 @@ def get_shortest(wmat, edges):
         d = round(get_distance(v1, v2), 4)
         s.append(d)
     return sorted(s)[0]
-# -------------------------------------------------------------------------------------------------------------------
+# ---------------------------------------------------------------- ---------------------------------------------------
 
 
 class VIEW3D_OT_ke_fitprim(bpy.types.Operator):
@@ -101,7 +103,9 @@ class VIEW3D_OT_ke_fitprim(bpy.types.Operator):
     ke_fitprim_option: bpy.props.EnumProperty(
         items=[("BOX", "Box Mode", "", "BOX_MODE", 1),
                ("CYL", "Cylinder Mode", "", "CYL_MODE", 2),
-               ("SPHERE", "UV Sphere", "", "SPHERE", 5)],
+               ("SPHERE", "UV Sphere", "", "SPHERE", 3),
+               ("QUADSPHERE", "QuadSphere", "", "QUADSPHERE", 4),
+               ],
     name="FitPrim Options",
         default="BOX")
 
@@ -118,6 +122,7 @@ class VIEW3D_OT_ke_fitprim(bpy.types.Operator):
     screen_x = 0
     sphere_seg = 32
     sphere_ring = 16
+    quadsphere_seg = 4
     mouse_pos = Vector((0, 0))
     edit_mode = ""
 
@@ -176,6 +181,8 @@ class VIEW3D_OT_ke_fitprim(bpy.types.Operator):
             self.boxmode, self.world = False, False
         elif self.ke_fitprim_option == "SPHERE":
             self.boxmode, self.world, self.sphere = False, False, True
+        elif self.ke_fitprim_option == "QUADSPHERE":
+            self.boxmode, self.world, self.sphere = False, False, True
 
         self.itemize = bpy.context.scene.kekit.fitprim_item
         self.modal = bpy.context.scene.kekit.fitprim_modal
@@ -184,6 +191,7 @@ class VIEW3D_OT_ke_fitprim(bpy.types.Operator):
         self.unit = bpy.context.scene.kekit.fitprim_unit
         self.sphere_ring = bpy.context.scene.kekit.fitprim_sphere_ring
         self.sphere_seg = bpy.context.scene.kekit.fitprim_sphere_seg
+        self.quadsphere_seg = bpy.context.scene.kekit.fitprim_quadsphere_seg
 
         self.edit_mode = bpy.context.mode
         sel_verts = []
@@ -386,24 +394,24 @@ class VIEW3D_OT_ke_fitprim(bpy.types.Operator):
                     distance = spacing
 
                 elif len(loops) == 1 or len(sel_edges) == 1:
-                    print ("single obj - single loop")
+                    # print ("single obj - single loop")
                     vecs = [(obj_mtx @ vp[0].co) - (obj_mtx @ vp[1].co) for vp in vps]
                     start_vec = vecs[-1]
                     side, sides, center = get_sides(obj_mtx, start_vec, vecs, vps)
-                    if len(sel_edges) == 4:
-                        print("FIX")
+                    # if len(sel_edges) == 4:
+                        # print("FIX")
 
                     # ONE LINE (ONE EDGE or SINGLE STRAIGHT LINE) MODE------------------------------
                     if len(sides) == 1 and len(sides[0]) == len(sel_verts):
-                        print("1 side --> one line:", sides[0])
+                        # print("1 side --> one line:", sides[0])
                         one_line = sides[0][0], sides[0][-1]
 
                     elif len(sel_edges) == 1:
-                        print("1 edge --> one line", one_line)
+                        # print("1 edge --> one line", one_line)
                         one_line = sel_verts
 
                     if one_line:
-                        print ("one line. center, points, normal:", center, one_line, active_edge_normal)
+                        # print ("one line. center, points, normal:", center, one_line, active_edge_normal)
                         p1, p2 = obj_mtx @ one_line[0].co, obj_mtx @ one_line[1].co
                         t_v = Vector(p1 - p2).normalized()
                         n_v = active_edge_normal
@@ -415,7 +423,7 @@ class VIEW3D_OT_ke_fitprim(bpy.types.Operator):
 
                     else:
                         # RECT CHECK SIDES OR NGON MODE--------------------------------------------
-                        print("Edge Rect/Ngon mode. Sides:", len(sides))
+                        # print("Edge Rect/Ngon mode. Sides:", len(sides))
                         b_candidate = sides[0][0].link_edges
                         b_candidate = [e.verts for e in b_candidate]
                         b = [v for vp in b_candidate for v in vp if v not in sides[0] and v in sel_verts]
@@ -453,7 +461,7 @@ class VIEW3D_OT_ke_fitprim(bpy.types.Operator):
                     if distance:
                         distance = abs(distance)
                     else:
-                        print("Multi obj Point to plane failed for some reason - using single island mode.")
+                        # print("Multi obj Point to plane failed for some reason - using single island mode.")
                         island_mode = False
 
             else: # same (active) obj island selections
@@ -475,7 +483,7 @@ class VIEW3D_OT_ke_fitprim(bpy.types.Operator):
                     if distance:
                         distance = abs(distance)
                     else:
-                        print("Point to plane failed for some reason - using single island mode.")
+                        # print("Point to plane failed for some reason - using single island mode.")
                         island_mode = False
                 else:
                     # Ngon mode
@@ -561,14 +569,20 @@ class VIEW3D_OT_ke_fitprim(bpy.types.Operator):
             if self.boxmode:
                 bpy.ops.mesh.primitive_box_add(width=side, depth=side, height=distance,
                                                align='WORLD', location=setpos, rotation=setrot)
-
                 if self.itemize or self.edit_mode == "OBJECT":
                     bpy.ops.object.shade_smooth()
                     bpy.context.object.data.use_auto_smooth = True
 
-            elif self.sphere:
+            elif self.sphere and not self.ke_fitprim_option == "QUADSPHERE":
                 bpy.ops.mesh.primitive_uv_sphere_add(segments=self.sphere_seg, ring_count=self.sphere_ring, radius=side,
                                                      align='WORLD', location=setpos, rotation=setrot)
+                if self.itemize or self.edit_mode == "OBJECT":
+                    bpy.ops.object.shade_smooth()
+                    bpy.context.object.data.use_auto_smooth = True
+
+            elif self.ke_fitprim_option == "QUADSPHERE":
+                bpy.ops.mesh.primitive_round_cube_add(align='WORLD', location=setpos, rotation=setrot, radius=side,
+                                                      size=(0, 0, 0), arc_div=self.quadsphere_seg, lin_div=0, div_type='CORNERS')
 
                 if self.itemize or self.edit_mode == "OBJECT":
                     bpy.ops.object.shade_smooth()
@@ -578,6 +592,7 @@ class VIEW3D_OT_ke_fitprim(bpy.types.Operator):
                 bpy.ops.mesh.primitive_cylinder_add(vertices=self.cyl_sides, radius=side, depth=distance * 2,
                                                     enter_editmode=False, align='WORLD',
                                                     location=setpos, rotation=setrot)
+
                 if self.modal:
                     if self.itemize or self.edit_mode == "OBJECT":
                         bpy.ops.object.mode_set(mode="EDIT")
@@ -604,6 +619,7 @@ class VIEW3D_OT_ke_fitprim(bpy.types.Operator):
 
         if self.itemize:
             bpy.ops.view3d.snap_cursor_to_center()
+            bpy.context.active_object.select_set(state=True)
 
         return {"FINISHED"}
 

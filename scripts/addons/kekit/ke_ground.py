@@ -6,7 +6,7 @@ bl_info = {
 	"blender": (2, 80, 0),
 }
 import bpy
-import bmesh
+from mathutils import Vector
 
 def zmove(value, zonly=True):
 	if zonly: values = (0, 0, value)
@@ -18,8 +18,8 @@ def zmove(value, zonly=True):
 								use_proportional_projected=False, release_confirm=True)
 
 
-class MESH_OT_ke_ground(bpy.types.Operator):
-	bl_idname = "mesh.ke_ground"
+class VIEW3D_OT_ke_ground(bpy.types.Operator):
+	bl_idname = "view3d.ke_ground"
 	bl_label = "Ground (or Center)"
 	bl_description = "Ground (or Center) selected elements (Auto-connects)"
 	bl_options = {'REGISTER', 'UNDO'}
@@ -40,17 +40,20 @@ class MESH_OT_ke_ground(bpy.types.Operator):
 	@classmethod
 	def poll(cls, context):
 		return (context.object is not None and
-				context.object.type == 'MESH' and
-				context.object.data.is_editmode)
+				context.object.type == 'MESH')
 
 	def execute(self, context):
 		obj = bpy.context.active_object
 		mat = obj.matrix_world.copy()
 		offset = 0
 
-		# Grab bbox & settings
-		bm = bmesh.from_edit_mesh(obj.data)
-		vc = [mat @ v.co for v in bm.verts if v.select]
+		# Grab bbox
+		vc = []
+		for v in obj.bound_box:
+			vco = []
+			for i in v:
+				vco.append(i)
+			vc.append(mat @ Vector(vco))
 		zs = sorted([c[2] for c in vc])
 
 		# Process
@@ -67,7 +70,7 @@ class MESH_OT_ke_ground(bpy.types.Operator):
 				xo = round(zx[0] + ((zx[-1] - zx[0]) / 2), 4) * -1
 				yo = round(zy[0] + ((zy[-1] - zy[0]) / 2), 4) * -1
 				zo = round(zs[0] + ((zs[-1] - zs[0]) / 2), 4) * -1
-				zmove((xo,yo,zo), zonly=False)
+				zmove((xo, yo, zo), zonly=False)
 
 			elif self.ke_ground_option == "UNDER":
 				offset = round(zs[-1], 4) * -1
@@ -76,36 +79,21 @@ class MESH_OT_ke_ground(bpy.types.Operator):
 				offset = (round(zs[0], 4) - self.ke_ground_custom) * -1
 
 			elif self.ke_ground_option == "CUSTOM_CENTER":
-				offset = (round(zs[0] + ((zs[-1] - zs[0]) / 2), 4) - self.ke_ground_custom)* -1
+				offset = (round(zs[0] + ((zs[-1] - zs[0]) / 2), 4) - self.ke_ground_custom) * -1
 
 			if offset and self.ke_ground_option != "CENTER_ALL":
 				zmove(offset)
 		else:
 			self.report({"INFO"}, "Ground: Selection Error?")
 
-		# elif mode == "OBJECT":
-		# Todo: MEH! Maybe something more useful in the future...removing to save me some hotkey trouble
-
-		# 	for o in bpy.context.selected_objects:
-		# 		if o.type == "MESH":
-		#
-		# 			if self.ke_ground_option == "CENTER_ALL":
-		# 				o.location = (0, 0, 0)
-		#
-		# 			elif self.ke_ground_option == "CUSTOM" or self.ke_ground_option == "CUSTOM_CENTER":
-		# 				o.location[2] = self.ke_ground_custom
-		#
-		# 			else:
-		# 				o.location[2] = 0
-
-		return {"FINISHED"}
+		return {'FINISHED'}
 
 
 # -------------------------------------------------------------------------------------------------
 # Class Registration & Unregistration
 # -------------------------------------------------------------------------------------------------
 classes = (
-	MESH_OT_ke_ground,
+	VIEW3D_OT_ke_ground,
 )
 
 def register():

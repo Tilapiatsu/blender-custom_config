@@ -2,7 +2,7 @@ bl_info = {
     "name": "keItemize",
     "author": "Kjell Emanuelsson",
     "category": "Modeling",
-    "version": (1, 1, 0),
+    "version": (1, 2, 0),
     "blender": (2, 80, 0),
 }
 import bpy
@@ -41,6 +41,13 @@ class MESH_OT_ke_itemize(bpy.types.Operator):
 
     def execute(self, context):
         obj = bpy.context.active_object
+
+        ouc = obj.users_collection
+        if len(ouc) > 0:
+            coll = ouc[0]
+        else:
+            coll = context.scene.collection
+
         bm = bmesh.from_edit_mesh(obj.data)
         obj_mtx = obj.matrix_world.copy()
         sel_mode = bpy.context.tool_settings.mesh_select_mode[:]
@@ -140,24 +147,27 @@ class MESH_OT_ke_itemize(bpy.types.Operator):
             # Create new mesh and apply settings
             new_mesh = bpy.data.meshes.new(obj.name + '_itemized_mesh')
             new_obj = bpy.data.objects.new(obj.name + '_itemized', new_mesh)
-            bpy.context.collection.objects.link(new_obj)
+            coll.objects.link(new_obj)
 
             new_obj.location = loc
             new_obj.rotation_euler = rot
+            new_obj.data.use_auto_smooth = True
 
             if self.mode == "DUPE":
                 bpy.ops.mesh.duplicate()
 
             bpy.ops.mesh.separate(type='SELECTED')
-            temp_dupe = bpy.context.scene.objects[-1]
+            temp_dupe = bpy.context.selected_objects[-1]
 
             bpy.ops.object.mode_set(mode='OBJECT')
             bpy.ops.object.select_all(action="DESELECT")
 
             temp_dupe.select_set(True)
             new_obj.select_set(True)
+
+            bpy.context.view_layer.objects.active = temp_dupe
             bpy.context.view_layer.objects.active = new_obj
-            bpy.ops.object.join()
+            bpy.ops.object.join('INVOKE_DEFAULT')
 
             bpy.ops.transform.select_orientation(orientation='LOCAL')
             bpy.context.tool_settings.transform_pivot_point = 'INDIVIDUAL_ORIGINS'

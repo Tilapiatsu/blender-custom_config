@@ -2,7 +2,7 @@ bl_info = {
     "name": "Merge To Mouse",
     "author": "Kjell Emanuelsson 2019",
     "wiki_url": "http://artbykjell.com",
-    "version": (1, 3, 0),
+    "version": (1, 3, 1),
     "blender": (2, 80, 0),
 }
 import bpy
@@ -42,13 +42,20 @@ class MESH_OT_merge_to_mouse(Operator):
         edge_mode = False
 
         if sel_mode[1]:
-            # Check for multiple edgeloops - or just vertcollapse
+            # Check for multiple edgeloops - or just vertcollapse, also tris...
             sel_edges = [e for e in bm.edges if e.select]
+
             if len(sel_edges) > 1:
-                vps = [e.verts[:] for e in sel_edges]
+                vps, tris = [], []
+                for e in sel_edges:
+                    vps.append(e.verts[:])
+                    for f in e.link_faces:
+                        if f not in tris:
+                            if len(f.verts[:]) < 4:
+                                tris.append(f)
                 edge_loops = get_loops(vps)
                 edge_loops = [i for i in edge_loops if i]
-                if len(edge_loops) > 1:
+                if len(edge_loops) > 1 and not tris:
                     edge_mode = True
 
         if edge_mode:

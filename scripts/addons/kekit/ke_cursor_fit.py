@@ -54,7 +54,7 @@ class VIEW3D_OT_cursor_fit_selected_and_orient(bpy.types.Operator):
                 tangent = correct_normal(obj.matrix_world, face.calc_tangent_edge())
 
                 rot_mtx = rotation_from_vector(normal, tangent)
-                # rot_mtx = obj.matrix_world @ rot_mtx
+                rot_mtx = obj.matrix_world @ rot_mtx
                 q = rot_mtx.to_quaternion()
 
                 cursor.rotation_mode = "QUATERNION"

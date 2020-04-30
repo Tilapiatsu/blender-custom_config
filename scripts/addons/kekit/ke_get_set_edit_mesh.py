@@ -18,18 +18,26 @@ class VIEW3D_OT_ke_get_set_editmesh(Operator):
         return self.execute(context)
 
     def execute(self, context):
+        sel_mode = bpy.context.mode
         og_obj = bpy.context.active_object
-        bpy.ops.object.mode_set(mode='OBJECT')
+        if og_obj:
+            bpy.ops.object.mode_set(mode='OBJECT')
 
         best_obj, hit_wloc, hit_normal, hit_face = mouse_raycast(context, self.mouse_pos)
 
         if best_obj is not None:
             best_original = best_obj.original
             best_original.select_set(True)
-            og_obj.select_set(False)
+            if og_obj:
+                og_obj.select_set(False)
             context.view_layer.objects.active = best_original
+            bpy.ops.object.mode_set(mode='EDIT')
+        else:
+            if sel_mode == "EDIT_MESH":
+                bpy.ops.object.mode_set(mode='EDIT')
+            else:
+                bpy.ops.object.mode_set(mode='OBJECT')
 
-        bpy.ops.object.mode_set(mode='EDIT')
         return {'FINISHED'}
 
 
@@ -93,6 +101,7 @@ class VIEW3D_OT_ke_get_set_material(Operator):
 
         if sel_mode == "EDIT_MESH":
             bpy.ops.object.mode_set(mode='EDIT')
+
         return {'FINISHED'}
 
 # -------------------------------------------------------------------------------------------------

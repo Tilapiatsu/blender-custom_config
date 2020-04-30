@@ -7,11 +7,13 @@ bl_info = {
 }
 import bpy
 import bmesh
-
+from mathutils import Vector
+from bpy.types import Operator
+from .ke_utils import mouse_raycast
 # -------------------------------------------------------------------------------------------------
 # Selection
 # -------------------------------------------------------------------------------------------------
-class MESH_OT_ke_select_boundary(bpy.types.Operator):
+class MESH_OT_ke_select_boundary(Operator):
 	bl_idname = "mesh.ke_select_boundary"
 	bl_label = "select boundary(+active)"
 	bl_description = " Select Boundary ('region_to_loop') that also sets one edge to active. "
@@ -37,7 +39,7 @@ class MESH_OT_ke_select_boundary(bpy.types.Operator):
 		return {"FINISHED"}
 
 
-class VIEW3D_OT_origin_to_selected(bpy.types.Operator):
+class VIEW3D_OT_origin_to_selected(Operator):
 	bl_idname = "view3d.origin_to_selected"
 	bl_label = "Origin To Selected Elements"
 	bl_description = "Places origin(s) at element (or object(s)) selection (average)"
@@ -60,7 +62,7 @@ class VIEW3D_OT_origin_to_selected(bpy.types.Operator):
 		return {'FINISHED'}
 
 
-class VIEW3D_OT_ke_overlays(bpy.types.Operator):
+class VIEW3D_OT_ke_overlays(Operator):
 	bl_idname = "view3d.ke_overlays"
 	bl_label = "Overlay Options & Toggles"
 	bl_description = "Overlay Options & Toggles"
@@ -93,7 +95,7 @@ class VIEW3D_OT_ke_overlays(bpy.types.Operator):
 		return {'FINISHED'}
 
 
-class VIEW3D_OT_ke_frame_view(bpy.types.Operator):
+class VIEW3D_OT_ke_frame_view(Operator):
 	bl_idname = "view3d.ke_frame_view"
 	bl_label = "Frame All or Selected in View"
 	bl_description = "Frame Selection in View, or everything if nothing is selected."
@@ -133,6 +135,43 @@ class VIEW3D_OT_ke_frame_view(bpy.types.Operator):
 
 		return {'FINISHED'}
 
+
+
+
+class VIEW3D_OT_ke_spacetoggle(Operator):
+	bl_idname = "view3d.ke_spacetoggle"
+	bl_label = "Space Toggle"
+	bl_description = "Toggle between Edit Mesh and Object modes when mouse pointer is over -nothing-."
+	bl_space_type = 'VIEW_3D'
+	bl_region_type = 'UI'
+	bl_options = {'REGISTER'}
+
+	mouse_pos = Vector((0, 0))
+
+	@classmethod
+	def poll(cls, context):
+		return (context.object is not None and
+				context.object.type == 'MESH')
+
+	def invoke(self, context, event):
+		self.mouse_pos[0] = event.mouse_region_x
+		self.mouse_pos[1] = event.mouse_region_y
+		return self.execute(context)
+
+	def execute(self, context):
+		sel_mode = bpy.context.mode
+		bpy.ops.object.mode_set(mode='OBJECT')
+		obj, hit_wloc, hit_normal, face_index = mouse_raycast(context, self.mouse_pos)
+
+		if not face_index:
+			if sel_mode == "OBJECT":
+				bpy.ops.object.mode_set(mode="EDIT")
+			elif sel_mode == "EDIT_MESH":
+				bpy.ops.object.mode_set(mode="OBJECT")
+
+		return {'FINISHED'}
+
+
 # -------------------------------------------------------------------------------------------------
 # Class Registration & Unregistration
 # -------------------------------------------------------------------------------------------------
@@ -141,6 +180,7 @@ classes = (
 	VIEW3D_OT_origin_to_selected,
 	VIEW3D_OT_ke_overlays,
 	VIEW3D_OT_ke_frame_view,
+	VIEW3D_OT_ke_spacetoggle,
 )
 
 def register():

@@ -2,7 +2,7 @@ bl_info = {
 	"name": "keKIT",
 	"author": "Kjell Emanuelsson",
 	"category": "Modeling",
-	"version": (1, 2, 81),
+	"version": (1, 2, 90),
 	"blender": (2, 80, 0),
 	"location": "View3D > Sidebar",
 	"warning": "",
@@ -13,8 +13,9 @@ bl_info = {
 # -------------------------------------------------------------------------------------------------
 # Note: This kit is very much WIP - ..and experimental.
 # -------------------------------------------------------------------------------------------------
-from ._prefs import get_prefs, write_prefs, VIEW3D_OT_ke_prefs_save
+# from ._prefs import get_prefs, write_prefs, VIEW3D_OT_ke_prefs_save
 
+from . import _prefs
 from . import ke_orient_and_pivot
 from . import ke_cursor_fit
 from . import ke_copypasteplus
@@ -30,16 +31,18 @@ from . import ke_fitprim
 from . import ke_misc
 from . import ke_ground
 from . import ke_direct_loop_cut
+from . import ke_mouse_flip
+from . import ke_mouse_mirror
+from . import ke_quickmeasure
 
 import bpy
 from bpy.types import Panel
 
-nfo = "keKit v1.281"
+nfo = "keKit v1.290"
 
 # -------------------------------------------------------------------------------------------------
 # SUB MENU PANELS
 # -------------------------------------------------------------------------------------------------
-
 class VIEW3D_PT_Context_Tools(Panel):
 	bl_label = "Context Tools"
 	bl_space_type = 'VIEW_3D'
@@ -66,52 +69,7 @@ class VIEW3D_PT_Context_Tools(Panel):
 		col.separator()
 
 
-class VIEW3D_PT_FitPrim(Panel):
-	bl_label = "FitPrim"
-	bl_space_type = 'VIEW_3D'
-	bl_region_type = 'UI'
-	bl_category = 'keKIT'
-	bl_parent_id = "VIEW3D_PT_kekit"
-	bl_options = {'DEFAULT_CLOSED'}
-
-	def draw(self, context):
-		layout = self.layout
-		col = layout.column(align=True)
-		col.operator('VIEW3D_OT_ke_fitprim', text="FitPrim Cube", icon="MESH_CUBE").ke_fitprim_option = "BOX"
-		col.operator('VIEW3D_OT_ke_fitprim', text="FitPrim Cylinder", icon="MESH_CYLINDER").ke_fitprim_option = "CYL"
-		col.operator('VIEW3D_OT_ke_fitprim', text="FitPrim Sphere", icon="MESH_UVSPHERE").ke_fitprim_option = "SPHERE"
-		col.separator()
-		col.label(text="Options")
-		col.prop(context.scene.kekit, "fitprim_unit", text="No-sel Unit Size")
-		col.separator()
-		col.prop(context.scene.kekit, "fitprim_sides", text="Cylinder Default Sides:")
-		col.prop(context.scene.kekit, "fitprim_modal", text="Modal Cylinder")
-		col.prop(context.scene.kekit, "fitprim_sphere_seg", text="Sphere Segments")
-		col.prop(context.scene.kekit, "fitprim_sphere_ring", text="Sphere Rings")
-		col.prop(context.scene.kekit, "fitprim_select", text="Select Result")
-		col.prop(context.scene.kekit, "fitprim_item", text="Make Object")
-
-
-class VIEW3D_PT_Unrotator(Panel):
-	bl_label = "Unrotator"
-	bl_space_type = 'VIEW_3D'
-	bl_region_type = 'UI'
-	bl_category = 'keKIT'
-	bl_parent_id = "VIEW3D_PT_kekit"
-	bl_options = {'DEFAULT_CLOSED'}
-
-	def draw(self, context):
-		layout = self.layout
-		col = layout.column(align=True)
-		col.operator('VIEW3D_OT_ke_unrotator', text="Unrotator", icon="ORIENTATION_NORMAL").ke_unrotator_option = "DEFAULT"
-		col.operator('VIEW3D_OT_ke_unrotator', text="Unrotator Duplicate", icon="LINKED").ke_unrotator_option = "DUPE"
-		col.operator('VIEW3D_OT_ke_unrotator', text="Unrotator RotOnly", icon="ORIENTATION_LOCAL").ke_unrotator_option = "NO_LOC"
-		col.separator()
-		col.label(text="Options")
-		col.prop(context.scene.kekit, "unrotator_reset", text="Auto-Reset")
-		col.prop(context.scene.kekit, "unrotator_connect", text="Auto-Select Linked")
-		col.prop(context.scene.kekit, "unrotator_nolink", text="Object Duplicate Unlinked")
-
+# PIE MENUS
 
 class VIEW3D_PT_BlenderPieMenus(Panel):
 	bl_label = "Blender Default Pie Menus"
@@ -137,6 +95,22 @@ class VIEW3D_PT_BlenderPieMenus(Panel):
 		pie.operator("wm.call_menu_pie", text="Clip: Marker", icon="DOT").name = "CLIP_MT_marker_pie"
 		pie.operator("wm.call_menu_pie", text="Clip: Reconstruction", icon="DOT").name = "CLIP_MT_reconstruction_pie"
 
+
+class VIEW3D_PT_PieMenus(Panel):
+	bl_label = "Pie Menus"
+	bl_space_type = 'VIEW_3D'
+	bl_region_type = 'UI'
+	bl_category = 'keKIT'
+	bl_options = {'DEFAULT_CLOSED'}
+
+	def draw(self, context):
+		layout = self.layout
+		layout.label(text="ke Pie Menus")
+		pie = layout.menu_pie().column()
+		pie.operator("wm.call_menu_pie", text="keSnapping", icon="DOT").name = "VIEW3D_MT_ke_pie_snapping"
+
+
+# Orientation & Pivot combo panels
 
 class VIEW3D_PT_OPC(Panel):
 	bl_label = "Orientation & Pivot Combos"
@@ -230,18 +204,92 @@ class VIEW3D_PT_OPC4(Panel):
 		col.prop(context.scene.kekit, 'opc4_edit_p', text="Pivot")
 
 
-class VIEW3D_PT_PieMenus(Panel):
-	bl_label = "Pie Menus"
+# -------------------------------------------------------------------------------------------------
+# SUB TOOL PANELS (NOT SEPARATE PANEL MENU TABS)
+# -------------------------------------------------------------------------------------------------
+class VIEW3D_PT_Mouse_Mirror(Panel):
+	bl_label = "Mouse Mirror"
 	bl_space_type = 'VIEW_3D'
 	bl_region_type = 'UI'
 	bl_category = 'keKIT'
+	bl_parent_id = "VIEW3D_PT_kekit"
 	bl_options = {'DEFAULT_CLOSED'}
 
 	def draw(self, context):
 		layout = self.layout
-		layout.label(text="ke Pie Menus")
-		pie = layout.menu_pie().column()
-		pie.operator("wm.call_menu_pie", text="keSnapping", icon="DOT").name = "VIEW3D_MT_ke_pie_snapping"
+		col = layout.column(align=True)
+		col.operator('VIEW3D_OT_ke_mouse_mirror', icon="MOUSE_MOVE", text="MouseMirror").center = "BBOX"
+		col.operator('VIEW3D_OT_ke_mouse_mirror', icon="MOUSE_MOVE", text="MouseMirror Active/World").center = "ACTIVE"
+		col.operator('VIEW3D_OT_ke_mouse_mirror', icon="MOUSE_MOVE", text="MouseMirror Cursor").center = "CURSOR"
+		col.separator()
+
+
+class VIEW3D_PT_Mouse_Flip(Panel):
+	bl_label = "Mouse Flip"
+	bl_space_type = 'VIEW_3D'
+	bl_region_type = 'UI'
+	bl_category = 'keKIT'
+	bl_parent_id = "VIEW3D_PT_kekit"
+	bl_options = {'DEFAULT_CLOSED'}
+
+	def draw(self, context):
+		layout = self.layout
+		col = layout.column(align=True)
+		col.operator('VIEW3D_OT_ke_mouse_flip', icon="MOUSE_MOVE", text="MouseFlip").center = "MEDIAN"
+		col.operator('VIEW3D_OT_ke_mouse_flip', icon="MOUSE_MOVE", text="MouseFlip Active").center = "ACTIVE"
+		col.operator('VIEW3D_OT_ke_mouse_flip', icon="MOUSE_MOVE", text="MouseFlip Cursor").center = "CURSOR"
+		col.separator()
+
+
+class VIEW3D_PT_FitPrim(Panel):
+	bl_label = "FitPrim"
+	bl_space_type = 'VIEW_3D'
+	bl_region_type = 'UI'
+	bl_category = 'keKIT'
+	bl_parent_id = "VIEW3D_PT_kekit"
+	bl_options = {'DEFAULT_CLOSED'}
+
+	def draw(self, context):
+		layout = self.layout
+		col = layout.column(align=True)
+		col.operator('VIEW3D_OT_ke_fitprim', text="FitPrim Cube", icon="MESH_CUBE").ke_fitprim_option = "BOX"
+		col.operator('VIEW3D_OT_ke_fitprim', text="FitPrim Cylinder", icon="MESH_CYLINDER").ke_fitprim_option = "CYL"
+		col.operator('VIEW3D_OT_ke_fitprim', text="FitPrim Sphere", icon="MESH_UVSPHERE").ke_fitprim_option = "SPHERE"
+		col.operator('VIEW3D_OT_ke_fitprim', text="FitPrim QuadSphere", icon="SPHERE").ke_fitprim_option = "QUADSPHERE"
+		col.separator()
+		col.label(text="Options")
+		col.prop(context.scene.kekit, "fitprim_unit", text="No-sel Unit Size")
+		col.separator()
+		col.prop(context.scene.kekit, "fitprim_sides", text="Cylinder Default Sides:")
+		col.prop(context.scene.kekit, "fitprim_modal", text="Modal Cylinder")
+		col.prop(context.scene.kekit, "fitprim_sphere_seg", text="Sphere Segments")
+		col.prop(context.scene.kekit, "fitprim_sphere_ring", text="Sphere Rings")
+		col.prop(context.scene.kekit, "fitprim_quadsphere_seg", text="QuadSphere Div")
+		col.prop(context.scene.kekit, "fitprim_select", text="Select Result (Edit Mesh)")
+		col.prop(context.scene.kekit, "fitprim_item", text="Make Object")
+
+
+class VIEW3D_PT_Unrotator(Panel):
+	bl_label = "Unrotator"
+	bl_space_type = 'VIEW_3D'
+	bl_region_type = 'UI'
+	bl_category = 'keKIT'
+	bl_parent_id = "VIEW3D_PT_kekit"
+	bl_options = {'DEFAULT_CLOSED'}
+
+	def draw(self, context):
+		layout = self.layout
+		col = layout.column(align=True)
+		col.operator('VIEW3D_OT_ke_unrotator', text="Unrotator", icon="ORIENTATION_NORMAL").ke_unrotator_option = "DEFAULT"
+		col.operator('VIEW3D_OT_ke_unrotator', text="Unrotator Duplicate", icon="LINKED").ke_unrotator_option = "DUPE"
+		col.operator('VIEW3D_OT_ke_unrotator', text="Unrotator RotOnly", icon="ORIENTATION_LOCAL").ke_unrotator_option = "NO_LOC"
+		col.separator()
+		col.label(text="Options")
+		col.prop(context.scene.kekit, "unrotator_reset", text="Auto-Reset")
+		col.prop(context.scene.kekit, "unrotator_connect", text="Auto-Select Linked")
+		col.prop(context.scene.kekit, "unrotator_nolink", text="Object Duplicate Unlinked")
+		col.prop(context.scene.kekit, "unrotator_nosnap", text="Object Place Only (No snapping)")
+		col.prop(context.scene.kekit, "unrotator_invert", text="Invert Rotation")
 
 
 # -------------------------------------------------------------------------------------------------
@@ -268,10 +316,13 @@ class VIEW3D_PT_kekit(Panel):
 		row.operator('VIEW3D_OT_ke_selmode', text="Edge").edit_mode = "EDGE"
 		row.operator('VIEW3D_OT_ke_selmode', text="Face").edit_mode = "FACE"
 		row.operator('VIEW3D_OT_ke_selmode', text="Object").edit_mode = "OBJECT"
+		col = layout.column(align=True)
+		col.prop(context.scene.kekit, "selmode_mouse", text="Mouse Over Select & Set Mode")
 		row = layout.row(align=True)
 		row.operator('MESH_OT_copyplus', text="Copy+")
 		row.operator('MESH_OT_pasteplus', text="Paste+")
 		col = layout.column(align=True)
+		col.operator('VIEW3D_OT_ke_spacetoggle', icon="MOUSE_MOVE", text="SpaceToggle")
 		col.operator("VIEW3D_OT_cursor_fit_selected_and_orient", text="Cursor Fit & Align")
 		col.operator("MESH_OT_ke_select_boundary", text="Select Boundary (+Active)")
 		col.operator('VIEW3D_OT_ke_get_set_editmesh', icon="MOUSE_MOVE", text="Get & Set Edit Mode")
@@ -283,7 +334,7 @@ class VIEW3D_PT_kekit(Panel):
 		col.operator('MESH_OT_primitive_box_add', text="Add Box Primitive", icon = 'MESH_CUBE')
 		col.operator('VIEW3D_OT_origin_to_selected', text="Object Origin(s) to Selection")
 		col.operator('MESH_OT_merge_to_mouse',icon="MOUSE_MOVE", text="Merge To Mouse")
-		col.operator('MESH_OT_ke_ground', text="Ground (or Center)")
+		col.operator('VIEW3D_OT_ke_ground', text="Ground (or Center)")
 		row = layout.row(align=True)
 		row.operator('MESH_OT_ke_itemize', text="Itemize").mode = "DEFAULT"
 		row.operator('MESH_OT_ke_itemize', text="Itemize-Copy").mode = "DUPE"
@@ -295,6 +346,9 @@ class VIEW3D_PT_kekit(Panel):
 		col = layout.column(align=True)
 		col.operator('VIEW3D_OT_ke_overlays', text="Object Wireframe Toggle").overlay = "WIRE"
 		col.operator('VIEW3D_OT_ke_overlays', text="Extras Toggle").overlay = "EXTRAS"
+		col = layout.column(align=True)
+		col.operator('VIEW3D_OT_ke_quickmeasure', text="Quick Measure")
+		col.prop(context.scene.kekit, "quickmeasure", text="QM Auto-Update Default")
 
 
 # -------------------------------------------------------------------------------------------------
@@ -337,6 +391,8 @@ classes = (
 	VIEW3D_PT_OPC4,
 	VIEW3D_PT_PieMenus,
 	VIEW3D_PT_BlenderPieMenus,
+	VIEW3D_PT_Mouse_Flip,
+	VIEW3D_PT_Mouse_Mirror,
 	)
 
 modules = (
@@ -356,6 +412,9 @@ modules = (
 	ke_misc,
 	ke_ground,
 	ke_direct_loop_cut,
+	ke_mouse_flip,
+	ke_mouse_mirror,
+	ke_quickmeasure,
 )
 
 

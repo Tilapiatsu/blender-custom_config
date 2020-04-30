@@ -8,8 +8,10 @@ bl_info = {
 
 import bpy
 import bmesh
+from mathutils import Vector
 from bpy.types import Operator
-from .ke_utils import get_loops
+from .ke_utils import get_loops, mouse_raycast
+
 # from bpy.props import EnumProperty
 # import rna_keymap_ui
 
@@ -125,15 +127,22 @@ class VIEW3D_OT_ke_contextselect(Operator):
 			sel_mode = bpy.context.tool_settings.mesh_select_mode
 
 			if sel_mode[0]:
+				bm = bmesh.from_edit_mesh(bpy.context.active_object.data)
+				og = [v for v in bm.verts if v.select]
 				bpy.ops.mesh.select_linked(delimit=set())
 				bpy.ops.mesh.region_to_loop()
-				sel_verts = [v for v in bmesh.from_edit_mesh(bpy.context.active_object.data).verts if v.select]
+				sel_verts = [v for v in bm.verts if v.select]
 				if sel_verts:
 					bpy.ops.mesh.select_mode(use_extend=False, use_expand=False, type='EDGE')
 				else:
-					bpy.ops.mesh.select_all(action='DESELECT')
-					fail_info = "ContextSelect(Vertex) Found no open borders - Nothing selected."
-					self.report({'INFO'}, fail_info)
+					bpy.context.tool_settings.mesh_select_mode = (True,False,False)
+					for v in og:
+						v.select = True
+					bpy.ops.mesh.select_linked(delimit=set())
+
+				# bpy.ops.mesh.select_all(action='DESELECT')
+					# fail_info = "ContextSelect(Vertex) Found no open borders - Nothing selected."
+					# self.report({'INFO'}, fail_info)
 
 			elif sel_mode[1]:
 				bpy.ops.mesh.loop_select('INVOKE_DEFAULT')
@@ -211,15 +220,39 @@ class VIEW3D_OT_ke_selmode(Operator):
 		name="Edit Mode",
 		default="FACE")
 
-	@classmethod
-	def poll(cls, context):
-		return context.active_object is not None
+	mouse_pos = Vector((0, 0))
+
+	def invoke(self, context, event):
+		self.mouse_pos[0] = event.mouse_region_x
+		self.mouse_pos[1] = event.mouse_region_y
+		return self.execute(context)
 
 	def execute(self, context):
+		em = self.edit_mode
 		sel_mode = bpy.context.mode
 		obj = bpy.context.active_object
-		if obj.type == 'MESH':
-			em = self.edit_mode
+		hit_obj = False
+		mouse_over = bpy.context.scene.kekit.selmode_mouse
+
+		if mouse_over:
+			bpy.ops.object.mode_set(mode="OBJECT")
+			hit_obj, hit_wloc, hit_normal, hit_face = mouse_raycast(context, self.mouse_pos)
+
+			if hit_obj:
+				layer_objects = context.view_layer.objects[:]
+
+				for o in context.selected_objects:
+					o.select_set(False)
+
+				for o in layer_objects:
+					if o.name == hit_obj.name:
+						o.select_set(True)
+						context.view_layer.objects.active = o
+						break
+			else:
+				bpy.ops.object.mode_set(mode='EDIT')
+
+		if obj.type == 'MESH' and not hit_obj:
 			if em != 'OBJECT':
 				if sel_mode == 'OBJECT':
 					bpy.ops.object.mode_set(mode='EDIT')
@@ -228,6 +261,11 @@ class VIEW3D_OT_ke_selmode(Operator):
 					bpy.ops.mesh.select_mode(type=em)
 			else:
 				bpy.ops.object.editmode_toggle()
+
+		elif mouse_over and hit_obj and em != 'OBJECT':
+			bpy.ops.object.mode_set(mode='EDIT')
+			bpy.ops.mesh.select_mode(type=em)
+
 		return {'FINISHED'}
 
 

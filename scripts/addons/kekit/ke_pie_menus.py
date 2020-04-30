@@ -4,6 +4,20 @@ from bpy.types import Menu, Operator
 # -------------------------------------------------------------------------------------------------
 # Operators
 # -------------------------------------------------------------------------------------------------
+class VIEW3D_OT_ke_pieops(Operator):
+    bl_idname = "ke.pieops"
+    bl_label = "Pie Operators"
+    bl_options = {'REGISTER'}
+
+    pop: bpy.props.IntProperty(default=0)
+
+    def execute(self, context):
+
+        # 0 - ABSOLUTE GRID TOGGLE
+        if self.pop == 0:
+            context.tool_settings.use_snap_grid_absolute = not context.tool_settings.use_snap_grid_absolute
+
+        return {'FINISHED'}
 
 class VIEW3D_OT_ke_snap_target(Operator):
     bl_idname = "ke.snap_target"
@@ -86,6 +100,14 @@ class VIEW3D_MT_PIE_ke_snapping(Menu):
         c = pie.column()
         cbox = c.box().column()
         cbox.scale_y = 1.3
+
+        if not ct.use_snap_grid_absolute:
+            cbox.operator("ke.pieops", text="Absolute Grid", icon="SNAP_GRID", depress=False).pop = 0
+        else:
+            cbox.operator("ke.pieops", text="Absolute Grid", icon="SNAP_GRID", depress=True).pop = 0
+
+        cbox.separator()
+
         if not ct.use_snap_self:
             cbox.operator("ke.snap_target", text="Project Self", icon="PROP_PROJECTED",depress=False).ke_snaptarget = "PROJECT"
         else:
@@ -115,8 +137,8 @@ class VIEW3D_MT_PIE_ke_snapping(Menu):
 
         # gap = pie.column()
         # gap.scale_y = 7
-
         pie = layout.menu_pie()
+
         pie.operator("ke.snap_element", text="Vertex", icon="SNAP_VERTEX").ke_snapelement = "VERTEX"
         pie.operator("ke.snap_element", text="Element Mix", icon="SNAP_ON").ke_snapelement = "MIX"
         pie.operator("ke.snap_element", text="Increment/Grid", icon="SNAP_GRID").ke_snapelement = "INCREMENT"
@@ -130,6 +152,10 @@ class VIEW3D_MT_PIE_ke_snapping(Menu):
         cbox = c.box().column()
 
 
+# class VIEW3D_MT_PIE_ke_shading(Menu):
+#     bl_label = "keShading"
+#     bl_idname = "VIEW3D_MT_ke_pie_shading"
+
 
 # -------------------------------------------------------------------------------------------------
 # Class Registration & Unregistration
@@ -138,6 +164,7 @@ classes = (
     VIEW3D_OT_ke_snap_element,
     VIEW3D_OT_ke_snap_target,
     VIEW3D_MT_PIE_ke_snapping,
+    VIEW3D_OT_ke_pieops,
     )
 
 def register():

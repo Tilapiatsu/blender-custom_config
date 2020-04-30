@@ -2,7 +2,7 @@ bl_info = {
     "name": "keUnrotator",
     "author": "Kjell Emanuelsson",
     "category": "Modeling",
-    "version": (1, 0, 0),
+    "version": (1, 2, 9),
     "blender": (2, 80, 0),
 }
 import bpy
@@ -36,7 +36,7 @@ def tri_points_order(vcoords):
     return r
 
 
-def unrotate(n_v, v_1, v_2, inv=False):
+def unrotate(n_v, v_1, v_2, inv=False, set_inv=False):
     # find the better up/tangent rot
     c1 = n_v.cross(v_1).normalized()
     c2 = n_v.cross(v_2).normalized()
@@ -50,7 +50,11 @@ def unrotate(n_v, v_1, v_2, inv=False):
     else:
         rot = Matrix((t_v, u_v, n_v)).to_4x4()
     rot = rot.to_euler()
-    rx, ry, rz = rot.x * -1, rot.y * -1, rot.z * -1
+    if not set_inv:
+        rx, ry, rz = rot.x * -1, rot.y * -1, rot.z * -1
+    else:
+        rx, ry, rz = rot.x, rot.y, rot.z
+
     # oldskool modo-kit method to avoid non-uniform scale issues...slow, but works.
     bpy.ops.transform.rotate(value=rx, orient_axis='X', orient_type='GLOBAL', use_proportional_edit=False,
                              snap=False, orient_matrix_type='GLOBAL')
@@ -79,6 +83,7 @@ class VIEW3D_OT_ke_unrotator(bpy.types.Operator):
         default="DEFAULT")
 
     mouse_pos = Vector((0, 0))
+    set_invert = False
 
     def invoke(self, context, event):
         self.mouse_pos[0] = event.mouse_region_x
@@ -101,6 +106,8 @@ class VIEW3D_OT_ke_unrotator(bpy.types.Operator):
         reset = bpy.context.scene.kekit.unrotator_reset
         connect = bpy.context.scene.kekit.unrotator_connect
         nolink = bpy.context.scene.kekit.unrotator_nolink
+        nosnap = bpy.context.scene.kekit.unrotator_nosnap
+        self.set_invert = bpy.context.scene.kekit.unrotator_invert
 
         # Check mouse over target
         bpy.ops.object.mode_set(mode="OBJECT")
@@ -135,7 +142,7 @@ class VIEW3D_OT_ke_unrotator(bpy.types.Operator):
                 linked_verts = sel_verts
 
             # Check mouse over target - place check
-            if hit_face and sel_check:
+            if type(hit_face) == int and sel_check:
                 if hit_obj.name == obj.name:
                     bm.faces.ensure_lookup_table()
                     hit_face_verts = [v for v in bm.faces[hit_face].verts]
@@ -245,7 +252,7 @@ class VIEW3D_OT_ke_unrotator(bpy.types.Operator):
                     v_1.negate()
                     v_2.negate()
 
-                unrotate(n_v, v_1, v_2, inv=False)
+                unrotate(n_v, v_1, v_2, inv=False, set_inv=self.set_invert)
 
             if place:
                 # Orient and place
@@ -262,7 +269,7 @@ class VIEW3D_OT_ke_unrotator(bpy.types.Operator):
                     v_2.negate()
 
                 # ..again!
-                unrotate(n_v, v_1, v_2, inv=True)
+                unrotate(n_v, v_1, v_2, inv=True, set_inv=self.set_invert)
 
                 if not noloc:
                     # Place - just using ops & cursor here...
@@ -295,7 +302,7 @@ class VIEW3D_OT_ke_unrotator(bpy.types.Operator):
                     dobj = bpy.context.active_object
                     dobj.select_set(True)
 
-                if noloc:
+                if noloc or nosnap:
                     pe = [e for e in hit_obj.data.polygons[hit_face].edge_keys]
                     vt = tri_sort(pe)
                     for v in vt:
@@ -314,25 +321,29 @@ class VIEW3D_OT_ke_unrotator(bpy.types.Operator):
                         v_2.negate()
 
                     bpy.ops.object.rotation_clear()
-                    unrotate(n_v, v_1, v_2, inv=True)
+                    unrotate(n_v, v_1, v_2, inv=True, set_inv=self.set_invert)
 
                 if not noloc:
-                    bpy.context.scene.tool_settings.use_snap = True
-                    bpy.context.scene.tool_settings.snap_elements = {'FACE'}
-                    bpy.context.scene.tool_settings.use_snap_align_rotation = True
-                    bpy.context.scene.tool_settings.snap_target = 'ACTIVE'
-                    bpy.context.scene.tool_settings.use_snap_project = False
-                    bpy.context.scene.tool_settings.use_snap_translate = True
+                    if not nosnap:
+                        bpy.context.scene.tool_settings.use_snap = True
+                        bpy.context.scene.tool_settings.snap_elements = {'FACE'}
+                        bpy.context.scene.tool_settings.use_snap_align_rotation = True
+                        bpy.context.scene.tool_settings.snap_target = 'ACTIVE'
+                        bpy.context.scene.tool_settings.use_snap_project = False
+                        bpy.context.scene.tool_settings.use_snap_translate = True
+
                     if dupe:
                         dobj.location = hit_wloc
                     else:
                         obj.location = hit_wloc
-                    bpy.ops.transform.translate('INVOKE_DEFAULT')
+
+                    if not nosnap:
+                        bpy.ops.transform.translate('INVOKE_DEFAULT')
 
         if reset:
             self.ke_unrotator_option = "DEFAULT"
 
-        if sel_mode[1]:
+        if sel_mode[1] and mode != "OBJECT":
             bm.edges.ensure_lookup_table()
             bpy.ops.mesh.select_all(action='DESELECT')
             for v in sel_edges:
