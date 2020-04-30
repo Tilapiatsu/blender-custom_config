@@ -606,6 +606,9 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		# F2
 		self.kmi_set_replace('mesh.f2', 'P', 'PRESS', disable_double=True)
 
+		# MAXVIZ
+		self.kmi_set_replace('mesh.quick_pivot', 'S', 'PRESS', alt=True, disable_double=True)
+
 		###### Object Mode
 		self.kmi_init(name='Object Mode', space_type='EMPTY', region_type='WINDOW')
 		self.global_keys()
