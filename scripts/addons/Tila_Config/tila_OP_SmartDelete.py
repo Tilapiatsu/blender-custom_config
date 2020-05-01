@@ -42,8 +42,7 @@ class SmartDeleteOperator(bpy.types.Operator):
                 bpy.ops.object.delete(use_global=False, confirm=False)
 
         elif context.space_data.type == 'OUTLINER':
-            bpy.ops.outliner.collection_delete(hierarchy=False)
-            bpy.ops.outliner.object_operation(type='DELETE')
+            bpy.ops.outliner.delete()
 
         # elif context.space_data.type == 'IMAGE_EDITOR':
         #     layout.label("No Context! image editor")

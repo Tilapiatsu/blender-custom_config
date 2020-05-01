@@ -346,17 +346,32 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		if tool:
 			self.kmi_set_replace(tool, 'C', 'PRESS', disable_double=True)
 
-	def tool_subdivision(self, subdivision=None):
+	def tool_subdivision(self):
 		#  Disabling subdivision_set shortcut
-		self.kmi_set_active(False, subdivision, type='ZERO')
-		self.kmi_set_active(False, subdivision, type='ONE')
-		self.kmi_set_active(False, subdivision, type='TWO')
-		self.kmi_set_active(False, subdivision, type='THREE')
-		self.kmi_set_active(False, subdivision, type='FOUR')
-		self.kmi_set_active(False, subdivision, type='FIVE')
+		self.kmi_set_active(False, 'object.subdivision_set', type='ZERO')
+		self.kmi_set_active(False, 'object.subdivision_set', type='ONE')
+		self.kmi_set_active(False, 'object.subdivision_set', type='TWO')
+		self.kmi_set_active(False, 'object.subdivision_set', type='THREE')
+		self.kmi_set_active(False, 'object.subdivision_set', type='FOUR')
+		self.kmi_set_active(False, 'object.subdivision_set', type='FIVE')
 
-		self.kmi_set_replace(subdivision, 'NUMPAD_PLUS', 'PRESS', properties=[('level', 1), ('relative', True)])
-		self.kmi_set_replace(subdivision, 'NUMPAD_MINUS', 'PRESS', disable_double=True, properties=[('level', -1), ('relative', True)])
+		self.kmi_set_replace('sculpt.tila_multires_subdiv_level', 'NUMPAD_PLUS', 'PRESS', properties=[('subd', 1), ('relative', True), ('force_subd', False), ('mode', 'CATMULL_CLARK')], disable_double=True)
+		self.kmi_set_replace('sculpt.tila_multires_subdiv_level', 'NUMPAD_PLUS', 'PRESS', shift=True, properties=[('subd', 1), ('relative', True), ('force_subd', True), ('mode', 'CATMULL_CLARK')], disable_double=True)
+		self.kmi_set_replace('sculpt.tila_multires_subdiv_level', 'NUMPAD_PLUS', 'PRESS', ctrl=True, properties=[('subd', 1), ('relative', True), ('force_subd', False), ('mode', 'LINEAR')], disable_double=True)
+		self.kmi_set_replace('sculpt.tila_multires_subdiv_level', 'NUMPAD_PLUS', 'PRESS', ctrl=True, shift=True, properties=[('subd', 1), ('relative', True), ('force_subd', True), ('mode', 'LINEAR')], disable_double=True)
+		self.kmi_set_replace('sculpt.tila_multires_delete_subdiv', 'NUMPAD_PLUS', 'PRESS', ctrl=True, alt=True, shift=True, properties=[('delete_target', 'HIGHER')], disable_double=True)
+
+		self.kmi_set_replace('sculpt.tila_multires_subdiv_level', 'NUMPAD_MINUS', 'PRESS', properties=[('subd', -1), ('relative', True), ('force_subd', False), ('mode', 'CATMULL_CLARK')], disable_double=True)
+		self.kmi_set_replace('sculpt.tila_multires_subdiv_level', 'NUMPAD_MINUS', 'PRESS', shift=True, properties=[('subd', -1), ('relative', True), ('force_subd', True), ('mode', 'CATMULL_CLARK')], disable_double=True)
+		self.kmi_set_replace('sculpt.tila_multires_subdiv_level', 'NUMPAD_MINUS', 'PRESS', ctrl=True, properties=[('subd', -1), ('relative', True), ('force_subd', False), ('mode', 'LINEAR')], disable_double=True)
+		self.kmi_set_replace('sculpt.tila_multires_subdiv_level', 'NUMPAD_MINUS', 'PRESS', ctrl=True, shift=True, properties=[('subd', -1), ('relative', True), ('force_subd', True), ('mode', 'LINEAR')], disable_double=True)
+		self.kmi_set_replace('sculpt.tila_multires_delete_subdiv', 'NUMPAD_MINUS', 'PRESS', ctrl=True, alt=True, shift=True, properties=[('delete_target', 'LOWER')], disable_double=True)
+
+		self.kmi_set_replace('sculpt.tila_multires_rebuild_subdiv', 'NUMPAD_ASTERIX', 'PRESS', ctrl=True, alt=True, shift=True)
+		self.kmi_set_replace('sculpt.tila_multires_apply_base', 'NUMPAD_ENTER', 'PRESS', ctrl=True, alt=True, shift=True)
+
+		
+
 
 	def tool_center(self, pivot=None, orientation=None, action_center_context=None):
 		print(pivot, orientation)
@@ -564,7 +579,7 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		self.kmi_set_replace('mesh.remove_doubles', 'M', 'PRESS', ctrl=True, shift=True, disable_double=True)
 		kmi = self.kmi_set_replace('mesh.separate_and_select', 'D', 'PRESS', ctrl=True, shift=True)
 
-		self.tool_subdivision(subdivision='object.subdivision_set')
+		self.tool_subdivision()
 
 		self.tool_sculpt('sculpt.sculptmode_toggle')
 		
@@ -621,7 +636,7 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 
 		self.selection_keys(invert_tool='object.select_all')
 
-		self.tool_subdivision(subdivision='object.subdivision_set')
+		self.tool_subdivision()
 		self.kmi_set_replace('object.delete', 'DEL', 'PRESS', ctrl=True, alt=True, shift=True, properties=[('use_global', True), ('confirm', True)])
 
 		self.isolate()
@@ -648,6 +663,8 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		self.right_mouse()
 		self.tool_sculpt('sculpt.sculptmode_toggle')
 		self.selection_tool('GRAB')
+
+		self.tool_subdivision()
 
 		self.tool_radial_control(radius=[('data_path_primary', 'tool_settings.sculpt.brush.size'), ('data_path_secondary', 'tool_settings.unified_paint_settings.size'), ('use_secondary', 'tool_settings.unified_paint_settings.use_unified_size'), ('rotation_path', 'tool_settings.sculpt.brush.texture_slot.angle'), ('color_path', 'tool_settings.sculpt.brush.cursor_color_add'), ('image_id', 'tool_settings.sculpt.brush')],
 						   		opacity=[('data_path_primary', 'tool_settings.sculpt.brush.strength'), ('data_path_secondary', 'tool_settings.unified_paint_settings.strength'), ('use_secondary', 'tool_settings.unified_paint_settings.use_unified_strength'), (
