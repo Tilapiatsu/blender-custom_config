@@ -1,188 +1,260 @@
-
-from bpy.props import IntProperty, BoolProperty, EnumProperty
-from mathutils import Vector
-import bgl
 import bpy
+
 bl_info = {
-    "name": "Multires Subdivision",
-    "description": "Facilitate the use of multires subdivision",
-    "author": ("Tilapiatsu"),
-    "version": (1, 0, 0),
-    "blender": (2, 80, 0),
-    "location": "",
-    "warning": "",
-    "wiki_url": "",
-    "category": "3D View"
+	"name": "Multires Subdivision",
+	"description": "Facilitate the use of multires subdivision",
+	"author": ("Tilapiatsu"),
+	"version": (1, 0, 0),
+	"blender": (2, 80, 0),
+	"location": "",
+	"warning": "",
+	"wiki_url": "",
+	"category": "3D View"
 }
 
 
 class TILA_multires_subdiv_level(bpy.types.Operator):
-    bl_idname = "sculpt.tila_multires_subdiv_level"
-    bl_label = "TILA : Multires Set Subdivision Level"
+	bl_idname = "sculpt.tila_multires_subdiv_level"
+	bl_label = "TILA : Multires Set Subdivision Level"
 
-    subd = bpy.props.IntProperty(name='subd', default=0)
-    relative = bpy.props.BoolProperty(name='relative', default=False)
-    force_subd = bpy.props.BoolProperty(name='force_subd', default=False)
-    mode = bpy.props.StringProperty(name='mode', default='CATMULL_CLARK')
+	subd : bpy.props.IntProperty(name='subd', default=0)
+	mode : bpy.props.EnumProperty(items=[("ABSOLUTE", "Absolute", ""), ("RELATIVE", "Relative", ""), ("MIN", "Minimum", ""), ("MAX", "Maximum", "")])
+	force_subd : bpy.props.BoolProperty(name='force_subd', default=False)
+	algorithm : bpy.props.EnumProperty(items=[("CATMULL_CLARK", "Catmull Clark", ""), ("SIMPLE", "Simple", ""), ("LINEAR", "Linear", "")])
 
-    multires_modifier = None
-    active_object = None
-    modifier_name = 'Multires'
-    modifier_type = 'MULTIRES'
 
-    def modal(self, context, event):
-        pass
+	multires_modifier = None
+	active_object = None
+	modifier_name = 'Multires'
+	modifier_type = 'MULTIRES'
+	compatible_type = ['MESH']
+	processing = None
 
-    def offset_subdivision(self):
-        if self.multires_modifier.render_levels < self.multires_modifier.sculpt_levels + self.subd:
-            if self.force_subd:
-                bpy.ops.object.multires_subdivide(modifier=self.multires_modifier.name, mode=self.mode)
-        elif self.multires_modifier.sculpt_levels + self.subd < 0:
-            if self.force_subd:
-                try:
-                    bpy.ops.object.multires_unsubdivide(modifier=self.multires_modifier.name)
-                except RuntimeError:
-                    self.report({'INFO'}, 'Tila Multires subdiv : Can\'t unsubdivide more')
-                    return {'CANCELLED'}
-        else:
-            self.multires_modifier.sculpt_levels = self.multires_modifier.sculpt_levels + self.subd
+	cancelling = False
 
-        self.multires_modifier.levels = self.multires_modifier.levels + self.subd
+	def init_default(self):
+		self.cancelling = False
+		self.processing = None
 
-    def set_subdivision(self):
-        if self.multires_modifier.render_levels < self.subd:
-            if self.force_subd:
-                for l in range(self.subd - self.multires_modifier.render_levels):
-                    bpy.ops.object.multires_subdivide(modifier=self.multires_modifier.name, mode=self.mode)
+	def modal(self, context, event):
+		if event.type == 'ESC':
+			self.cancelling = True
 
-        self.multires_modifier.sculpt_levels = self.subd
-        self.multires_modifier.levels = self.subd
+		if event.type == 'TIMER':
+			if self.cancelling:
+				self.report({'INFO'}, 'TILA Multires Set Subdivision Level : Cancelled')
+				return {"FINISHED"}
 
-    def invoke(self, context, event):
+			elif self.processing is not None:
+				return {"PASS_THROUGH"}
 
-        self.active_object = bpy.context.active_object
+			elif self.processing is None and len(self.object_to_process):
+				self.processing = self.object_to_process.pop()
+				self.change_subdivision(context, self.processing)
+				self.processing = None
 
-        if self.active_object is None:
-            return {'CANCELLED'}
+			else:
+				self.report({'INFO'}, 'TILA Multires Set Subdivision Level : Complete')
+				bpy.context.window_manager.event_timer_remove(self._timer)
+				self.init_default()
+				return {"FINISHED"}
 
-        self.multires_modifier = [m for m in self.active_object.modifiers if m.type == self.modifier_type]
+		return {"PASS_THROUGH"}
 
-        if not len(self.multires_modifier):
-            self.multires_modifier = self.active_object.modifiers.new(name=self.modifier_name, type=self.modifier_type)
-        else:
-            self.multires_modifier = self.multires_modifier[0]
+	def offset_subdivision(self):
+		if self.multires_modifier.render_levels < self.multires_modifier.sculpt_levels + self.subd:
+			if self.force_subd:
+				bpy.ops.object.multires_subdivide(modifier=self.multires_modifier.name, mode=self.mode)
+		elif self.multires_modifier.sculpt_levels + self.subd < 0:
+			if self.force_subd:
+				try:
+					bpy.ops.object.multires_unsubdivide(modifier=self.multires_modifier.name)
+				except RuntimeError:
+					self.report({'INFO'}, 'Tila Multires subdiv : Lowest subdivision level reached')
+					return {'CANCELLED'}
+		else:
+			self.multires_modifier.sculpt_levels = self.multires_modifier.sculpt_levels + self.subd
 
-        if self.relative:
-            self.offset_subdivision()
-        else:
-            self.set_subdivision()
+		self.multires_modifier.levels = self.multires_modifier.levels + self.subd
 
-        return {'FINISHED'}
+	def set_subdivision(self):
+		if self.multires_modifier.render_levels < self.subd:
+			if self.force_subd:
+				for l in range(self.subd - self.multires_modifier.render_levels):
+					bpy.ops.object.multires_subdivide(modifier=self.multires_modifier.name, mode=self.mode)
+
+		self.multires_modifier.sculpt_levels = self.subd
+		self.multires_modifier.levels = self.subd
+
+	def change_subdivision(self, context, ob):
+		self.multires_modifier = [m for m in ob.modifiers if m.type == self.modifier_type]
+
+		if not len(self.multires_modifier):
+			self.multires_modifier = ob.modifiers.new(name=self.modifier_name, type=self.modifier_type)
+		else:
+			self.multires_modifier = self.multires_modifier[0]
+
+
+		if self.mode == 'RELATIVE':
+			self.offset_subdivision()
+		elif self.mode == 'ABSOLUTE':
+			self.set_subdivision()
+		elif self.mode == 'MIN':
+			self.subd = 0
+			self.set_subdivision()
+		elif self.mode == 'MAX':
+			 self.subd = self.multires_modifier.render_levels
+			 self.set_subdivision()
+
+	def invoke(self, context, event):
+
+		self.object_to_process = [o for o in bpy.context.selected_objects if o.type in self.compatible_type]
+
+		self._timer = bpy.context.window_manager.event_timer_add(0.1, window=bpy.context.window)
+		bpy.context.window_manager.modal_handler_add(self)
+
+		return {"RUNNING_MODAL"}
 
 class TILA_multires_rebuild_subdiv(bpy.types.Operator):
-    bl_idname = "sculpt.tila_multires_rebuild_subdiv"
-    bl_label = "TILA : Multires Rebuild Subdivision"
+	bl_idname = "sculpt.tila_multires_rebuild_subdiv"
+	bl_label = "TILA : Multires Rebuild Subdivision"
 
-    multires_modifier = None
-    active_object = None
-    modifier_name = 'Multires'
-    modifier_type = 'MULTIRES'
+	modifier_name = 'Multires'
+	modifier_type = 'MULTIRES'
+	compatible_type = ['MESH']
+	processing = None
 
-    def invoke(self, context, event):
+	cancelling = False
 
-        self.active_object = bpy.context.active_object
+	def init_default(self):
+		self.cancelling = False
+		self.processing = None
 
-        if self.active_object is None:
-            return {'CANCELLED'}
+	def modal(self, context, event):
+		if event.type == 'ESC':
+			self.cancelling = True
 
-        self.multires_modifier = [m for m in self.active_object.modifiers if m.type == self.modifier_type]
+		if event.type == 'TIMER':
+			if self.cancelling:
+				self.report({'INFO'}, 'TILA Multires Rebuild : Rebuild Cancelled')
+				return {"FINISHED"}
 
-        if not len(self.multires_modifier):
-            self.multires_modifier = self.active_object.modifiers.new(name=self.modifier_name, type=self.modifier_type)
-        else:
-            self.multires_modifier = self.multires_modifier[0]
+			elif self.processing is not None:
+				return {"PASS_THROUGH"}
 
-        bpy.ops.object.multires_rebuild_subdiv(modifier=self.multires_modifier.name)
+			elif self.processing is None and len(self.object_to_process):
+				self.processing = self.object_to_process.pop()
+				self.rebuild(context, self.processing)
+				self.processing = None
 
-        return {'FINISHED'}
+			else:
+				self.report({'INFO'}, 'TILA Multires Rebuild : Rebuild Complete')
+				bpy.context.window_manager.event_timer_remove(self._timer)
+				self.init_default()
+				return {"FINISHED"}
+
+		return {"PASS_THROUGH"}
+
+	def rebuild(self, context, ob):
+		self.report({'INFO'}, 'Rebuild in progress : {}'.format(ob.name))
+		bpy.context.view_layer.objects.active = ob
+		multires_modifier = [m for m in ob.modifiers if m.type == self.modifier_type]
+
+		if not len(multires_modifier):
+			multires_modifier = ob.modifiers.new(name=self.modifier_name, type=self.modifier_type)
+		else:
+			multires_modifier = multires_modifier[0]
+
+		bpy.ops.object.multires_rebuild_subdiv(modifier=multires_modifier.name)
+
+		multires_modifier.levels = 0
+		multires_modifier.sculpt_levels = 0
+
+	def invoke(self, context, event):
+		self.object_to_process = [o for o in bpy.context.selected_objects if o.type in self.compatible_type]
+
+		self._timer = bpy.context.window_manager.event_timer_add(0.1, window=bpy.context.window)
+		bpy.context.window_manager.modal_handler_add(self)
+
+		return {"RUNNING_MODAL"}
 
 class TILA_multires_delete_subdiv(bpy.types.Operator):
-    bl_idname = "sculpt.tila_multires_delete_subdiv"
-    bl_label = "TILA : Multires Delete Subdivision"
+	bl_idname = "sculpt.tila_multires_delete_subdiv"
+	bl_label = "TILA : Multires Delete Subdivision"
 
-    delete_target = bpy.props.StringProperty(name='subd', default='HIGHER')
+	delete_target = bpy.props.StringProperty(name='subd', default='HIGHER')
 
-    multires_modifier = None
-    active_object = None
-    modifier_name = 'Multires'
-    modifier_type = 'MULTIRES'
-    targets = ['HIGHER', 'LOWER']
+	multires_modifier = None
+	active_object = None
+	modifier_name = 'Multires'
+	modifier_type = 'MULTIRES'
+	targets = ['HIGHER', 'LOWER']
 
-    def invoke(self, context, event):
+	def invoke(self, context, event):
 
-        self.active_object = bpy.context.active_object
+		self.active_object = bpy.context.active_object
 
-        if self.active_object is None or self.delete_target not in self.targets:
-            return {'CANCELLED'}
+		if self.active_object is None or self.delete_target not in self.targets:
+			return {'CANCELLED'}
 
-        self.multires_modifier = [m for m in self.active_object.modifiers if m.type == self.modifier_type]
+		self.multires_modifier = [m for m in self.active_object.modifiers if m.type == self.modifier_type]
 
-        if not len(self.multires_modifier):
-            self.multires_modifier = self.active_object.modifiers.new(name=self.modifier_name, type=self.modifier_type)
-        else:
-            self.multires_modifier = self.multires_modifier[0]
+		if not len(self.multires_modifier):
+			self.multires_modifier = self.active_object.modifiers.new(name=self.modifier_name, type=self.modifier_type)
+		else:
+			self.multires_modifier = self.multires_modifier[0]
 
-        if self.delete_target == self.targets[0] and self.multires_modifier.render_levels > 0:
-            bpy.ops.object.multires_higher_levels_delete(modifier=self.multires_modifier.name)
-        elif self.delete_target == self.targets[1] and self.multires_modifier.levels < self.multires_modifier.render_levels:
-            bpy.ops.object.multires_lower_levels_delete(modifier=self.multires_modifier.name)
+		if self.delete_target == self.targets[0] and self.multires_modifier.render_levels > 0:
+			bpy.ops.object.multires_higher_levels_delete(modifier=self.multires_modifier.name)
+		elif self.delete_target == self.targets[1] and self.multires_modifier.levels < self.multires_modifier.render_levels:
+			bpy.ops.object.multires_lower_levels_delete(modifier=self.multires_modifier.name)
 
-        return {'FINISHED'}
+		return {'FINISHED'}
 
 class TILA_multires_apply_base(bpy.types.Operator):
-    bl_idname = "sculpt.tila_multires_apply_base"
-    bl_label = "TILA : Multires Apply Base"
+	bl_idname = "sculpt.tila_multires_apply_base"
+	bl_label = "TILA : Multires Apply Base"
 
-    multires_modifier = None
-    active_object = None
-    modifier_name = 'Multires'
-    modifier_type = 'MULTIRES'
+	multires_modifier = None
+	active_object = None
+	modifier_name = 'Multires'
+	modifier_type = 'MULTIRES'
 
-    def invoke(self, context, event):
+	def invoke(self, context, event):
 
-        self.active_object = bpy.context.active_object
+		self.active_object = bpy.context.active_object
 
-        if self.active_object is None:
-            return {'CANCELLED'}
+		if self.active_object is None:
+			return {'CANCELLED'}
 
-        self.multires_modifier = [m for m in self.active_object.modifiers if m.type == self.modifier_type]
+		self.multires_modifier = [m for m in self.active_object.modifiers if m.type == self.modifier_type]
 
-        if not len(self.multires_modifier):
-            self.multires_modifier = self.active_object.modifiers.new(name=self.modifier_name, type=self.modifier_type)
-        else:
-            self.multires_modifier = self.multires_modifier[0]
+		if not len(self.multires_modifier):
+			self.multires_modifier = self.active_object.modifiers.new(name=self.modifier_name, type=self.modifier_type)
+		else:
+			self.multires_modifier = self.multires_modifier[0]
 
-        bpy.ops.object.multires_base_apply(modifier=self.multires_modifier.name)
+		bpy.ops.object.multires_base_apply(modifier=self.multires_modifier.name)
 
-        return {'FINISHED'}
+		return {'FINISHED'}
 
 
 classes = (
-    TILA_multires_subdiv_level,
-    TILA_multires_rebuild_subdiv,
-    TILA_multires_delete_subdiv,
-    TILA_multires_apply_base
+	TILA_multires_subdiv_level,
+	TILA_multires_rebuild_subdiv,
+	TILA_multires_delete_subdiv,
+	TILA_multires_apply_base
 )
 # register, unregister = bpy.utils.register_classes_factory(classes)
 
 
 def register():
-    pass
+	pass
 
 
 def unregister():
-    pass
+	pass
 
 
 if __name__ == "__main__":
-    register()
+	register()

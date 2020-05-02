@@ -355,16 +355,16 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		self.kmi_set_active(False, 'object.subdivision_set', type='FOUR')
 		self.kmi_set_active(False, 'object.subdivision_set', type='FIVE')
 
-		self.kmi_set_replace('sculpt.tila_multires_subdiv_level', 'NUMPAD_PLUS', 'PRESS', properties=[('subd', 1), ('relative', True), ('force_subd', False), ('mode', 'CATMULL_CLARK')], disable_double=True)
-		self.kmi_set_replace('sculpt.tila_multires_subdiv_level', 'NUMPAD_PLUS', 'PRESS', shift=True, properties=[('subd', 1), ('relative', True), ('force_subd', True), ('mode', 'CATMULL_CLARK')], disable_double=True)
-		self.kmi_set_replace('sculpt.tila_multires_subdiv_level', 'NUMPAD_PLUS', 'PRESS', ctrl=True, properties=[('subd', 1), ('relative', True), ('force_subd', False), ('mode', 'LINEAR')], disable_double=True)
-		self.kmi_set_replace('sculpt.tila_multires_subdiv_level', 'NUMPAD_PLUS', 'PRESS', ctrl=True, shift=True, properties=[('subd', 1), ('relative', True), ('force_subd', True), ('mode', 'LINEAR')], disable_double=True)
+		self.kmi_set_replace('sculpt.tila_multires_subdiv_level', 'NUMPAD_PLUS', 'PRESS', properties=[('subd', 1), ('mode', 'RELATIVE'), ('force_subd', False), ('algorithm', 'CATMULL_CLARK')], disable_double=True)
+		self.kmi_set_replace('sculpt.tila_multires_subdiv_level', 'NUMPAD_PLUS', 'PRESS', shift=True, properties=[('subd', 1), ('mode', 'RELATIVE'), ('force_subd', True), ('algorithm', 'CATMULL_CLARK')], disable_double=True)
+		self.kmi_set_replace('sculpt.tila_multires_subdiv_level', 'NUMPAD_PLUS', 'PRESS', ctrl=True, properties=[('subd', 1), ('mode', 'RELATIVE'), ('force_subd', False), ('algorithm', 'LINEAR')], disable_double=True)
+		self.kmi_set_replace('sculpt.tila_multires_subdiv_level', 'NUMPAD_PLUS', 'PRESS', ctrl=True, shift=True, properties=[('subd', 1), ('mode', 'RELATIVE'), ('force_subd', True), ('algorithm', 'LINEAR')], disable_double=True)
 		self.kmi_set_replace('sculpt.tila_multires_delete_subdiv', 'NUMPAD_PLUS', 'PRESS', ctrl=True, alt=True, shift=True, properties=[('delete_target', 'HIGHER')], disable_double=True)
 
-		self.kmi_set_replace('sculpt.tila_multires_subdiv_level', 'NUMPAD_MINUS', 'PRESS', properties=[('subd', -1), ('relative', True), ('force_subd', False), ('mode', 'CATMULL_CLARK')], disable_double=True)
-		self.kmi_set_replace('sculpt.tila_multires_subdiv_level', 'NUMPAD_MINUS', 'PRESS', shift=True, properties=[('subd', -1), ('relative', True), ('force_subd', True), ('mode', 'CATMULL_CLARK')], disable_double=True)
-		self.kmi_set_replace('sculpt.tila_multires_subdiv_level', 'NUMPAD_MINUS', 'PRESS', ctrl=True, properties=[('subd', -1), ('relative', True), ('force_subd', False), ('mode', 'LINEAR')], disable_double=True)
-		self.kmi_set_replace('sculpt.tila_multires_subdiv_level', 'NUMPAD_MINUS', 'PRESS', ctrl=True, shift=True, properties=[('subd', -1), ('relative', True), ('force_subd', True), ('mode', 'LINEAR')], disable_double=True)
+		self.kmi_set_replace('sculpt.tila_multires_subdiv_level', 'NUMPAD_MINUS', 'PRESS', properties=[('subd', -1), ('mode', 'RELATIVE'), ('force_subd', False), ('algorithm', 'CATMULL_CLARK')], disable_double=True)
+		self.kmi_set_replace('sculpt.tila_multires_subdiv_level', 'NUMPAD_MINUS', 'PRESS', shift=True, properties=[('subd', -1), ('mode', 'RELATIVE'), ('force_subd', True), ('algorithm', 'CATMULL_CLARK')], disable_double=True)
+		self.kmi_set_replace('sculpt.tila_multires_subdiv_level', 'NUMPAD_MINUS', 'PRESS', ctrl=True, properties=[('subd', -1), ('mode', 'RELATIVE'), ('force_subd', False), ('algorithm', 'LINEAR')], disable_double=True)
+		self.kmi_set_replace('sculpt.tila_multires_subdiv_level', 'NUMPAD_MINUS', 'PRESS', ctrl=True, shift=True, properties=[('subd', -1), ('mode', 'RELATIVE'), ('force_subd', True), ('algorithm', 'LINEAR')], disable_double=True)
 		self.kmi_set_replace('sculpt.tila_multires_delete_subdiv', 'NUMPAD_MINUS', 'PRESS', ctrl=True, alt=True, shift=True, properties=[('delete_target', 'LOWER')], disable_double=True)
 
 		self.kmi_set_replace('sculpt.tila_multires_rebuild_subdiv', 'NUMPAD_ASTERIX', 'PRESS', ctrl=True, alt=True, shift=True)
@@ -671,9 +671,9 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 							   'rotation_path', 'tool_settings.sculpt.brush.texture_slot.angle'), ('color_path', 'tool_settings.sculpt.brush.cursor_color_add'), ('image_id', 'tool_settings.sculpt.brush')],
 						   		eraser_radius=[('data_path_primary', 'tool_settings.sculpt.brush.texture_slot.angle'), ('rotation_path', 'tool_settings.sculpt.brush.texture_slot.angle'), ('color_path', 'tool_settings.sculpt.brush.cursor_color_add'), ('image_id', 'tool_settings.sculpt.brush')])
 
-		self.kmi_set_replace('sculpt.tila_multires_subdivision', 'D', 'PRESS', properties=[('subd', 1), ('relative', True), ('increase_subd', False)])
-		self.kmi_set_replace('sculpt.tila_multires_subdivision', 'D', 'PRESS', ctrl=True, properties=[('subd', 1), ('relative', True), ('increase_subd', True)])
-		self.kmi_set_replace('sculpt.tila_multires_subdivision', 'D', 'PRESS', shift=True, properties=[('subd', -1), ('relative', True), ('increase_subd', False)])
+		self.kmi_set_replace('sculpt.tila_multires_subdivision', 'D', 'PRESS', properties=[('subd', 1), ('mode', 'RELATIVE'), ('force_subd', False)])
+		self.kmi_set_replace('sculpt.tila_multires_subdivision', 'D', 'PRESS', ctrl=True, properties=[('subd', 1), ('mode', 'RELATIVE'), ('force_subd', True)])
+		self.kmi_set_replace('sculpt.tila_multires_subdivision', 'D', 'PRESS', shift=True, properties=[('subd', -1), ('mode', 'RELATIVE'), ('force_subd', False)])
 		self.kmi_set_replace('sculpt.dynamic_topology_toggle', 'D', 'PRESS', ctrl=True, alt=True, shift=True)
 		
 		self.kmi_set_replace('paint.mask_lasso_gesture', self.k_context, 'PRESS', ctrl=True, properties=[('value', 1.0), ('mode', 'VALUE')])
