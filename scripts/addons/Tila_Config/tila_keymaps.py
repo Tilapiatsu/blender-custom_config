@@ -370,8 +370,9 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		self.kmi_set_replace('sculpt.tila_multires_rebuild_subdiv', 'NUMPAD_ASTERIX', 'PRESS', ctrl=True, alt=True, shift=True)
 		self.kmi_set_replace('sculpt.tila_multires_apply_base', 'NUMPAD_ENTER', 'PRESS', ctrl=True, alt=True, shift=True)
 
+		self.kmi_set_replace('object.subdivision_set', 'NUMPAD_PLUS', 'PRESS', alt=True, properties=[('level', 1), ('relative', True)], disable_double=True)
+		self.kmi_set_replace('object.subdivision_set', 'NUMPAD_MINUS', 'PRESS', alt=True, properties=[('level', -1), ('relative', True)], disable_double=True)
 		
-
 
 	def tool_center(self, pivot=None, orientation=None, action_center_context=None):
 		print(pivot, orientation)
