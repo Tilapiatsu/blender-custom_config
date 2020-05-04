@@ -15,6 +15,7 @@ robocopy "..\GIT\vertex_color_master\vertex_color_master" "vertex_color_master" 
 robocopy "..\GIT\Blender-Addons\MathsExpressionLiteBlender28" "MathsExpressionLiteBlender28" %param%
 robocopy "..\GIT\MapsModelsImporter\blender\MapsModelsImporter" "MapsModelsImporter" %param%
 robocopy "..\GIT\Polycount\polycount" "Polycount" %param%
+robocopy "..\GIT\Texel-Density-Checker\Texel_Density_3_1_281" "Texel_Density" %param%
 
 copy "..\GIT\ProTheme\blender_pro.xml" "..\presets\interface_theme"
 
@@ -30,7 +31,6 @@ copy "..\GIT\bpy_photogrametry\system_time_tracker.py" .
 copy "..\GIT\bpy_photogrametry\uv_tube_unwrap.py" .
 copy "..\GIT\bpy_photogrametry\space_view3d_point_cloud_visualizer.py" .
 copy "..\GIT\advanced_transform\advanced_transform_2_8.py" .
-copy "..\GIT\Texel-Density-Checker\Texel_Density_2_2_1_281.py" .
 copy "..\GIT\Asset-Creation-Toolset\Asset_Creation_Toolset_2_6_1_281.py" .
 copy "..\GIT\oscuart\oscurart_edit_split_normals.py" .
 robocopy "..\GIT\bpy_photogrametry\io_mesh_fast_obj" "io_mesh_fast_obj" %param%
