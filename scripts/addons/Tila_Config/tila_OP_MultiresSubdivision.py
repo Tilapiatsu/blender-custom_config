@@ -64,7 +64,7 @@ class TILA_multires_subdiv_level(bpy.types.Operator):
 	def offset_subdivision(self):
 		if self.multires_modifier.render_levels < self.multires_modifier.sculpt_levels + self.subd:
 			if self.force_subd:
-				bpy.ops.object.multires_subdivide(modifier=self.multires_modifier.name, mode=self.mode)
+				bpy.ops.object.multires_subdivide(modifier=self.multires_modifier.name, mode=self.algorithm)
 		elif self.multires_modifier.sculpt_levels + self.subd < 0:
 			if self.force_subd:
 				try:
@@ -81,7 +81,7 @@ class TILA_multires_subdiv_level(bpy.types.Operator):
 		if self.multires_modifier.render_levels < self.subd:
 			if self.force_subd:
 				for l in range(self.subd - self.multires_modifier.render_levels):
-					bpy.ops.object.multires_subdivide(modifier=self.multires_modifier.name, mode=self.mode)
+					bpy.ops.object.multires_subdivide(modifier=self.multires_modifier.name, mode=self.algorithm)
 
 		self.multires_modifier.sculpt_levels = self.subd
 		self.multires_modifier.levels = self.subd

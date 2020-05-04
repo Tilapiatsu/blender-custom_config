@@ -1,13 +1,14 @@
 import bpy
 import bmesh
 import os
-from bpy.types import Operator, Panel
+from bpy.types import Operator, Panel, Menu
 import bpy.utils.previews
 
 def activate():
     if bpy.context.active_object != None:
-        if bpy.context.active_object.select_get():
-            return bpy.context.object.type == 'MESH'
+        #if bpy.context.active_object.select_get():
+        return bpy.context.object.type == 'MESH'
+
 
 class PS_PT_settings_draw_mesh(Panel):
     bl_idname = 'PS_PT_settings_draw_mesh'
@@ -24,12 +25,12 @@ class PS_PT_settings_draw_mesh(Panel):
         settings = bpy.context.scene.polySource_set
 
         layout = self.layout
-        layout.prop(settings, "draw", toggle=True)
+        layout.prop(settings, "draw_advance", toggle=True)
 
         
         
 
-        if settings.draw == True: 
+        if settings.draw_advance == True: 
             box = layout.box()
             box.prop(props, "retopo_mode", toggle=True)
 
@@ -67,7 +68,7 @@ class PS_PT_settings_draw_mesh(Panel):
 
 
 def draw_panel(self, context, row):
-    layout = self.layout
+    #layout = self.layout
     pcoll = preview_collections["main"]
 
     obj = context.active_object
@@ -81,7 +82,7 @@ def draw_panel(self, context, row):
             ngon = 0
             
 
-            if context.mode == 'OBJECT': 
+            if context.mode != 'EDIT_MESH': 
                 for loop in obj.data.polygons:
                     count = loop.loop_total
                     if count == 3:
@@ -90,11 +91,13 @@ def draw_panel(self, context, row):
                         quad += 1
                     else:
                         ngon += 1 
-            else:
+
+
+            else: 
                 bm = bmesh.from_edit_mesh(obj.data)
                 for face in bm.faces:
                     verts = 0
-                    for v in face.verts:
+                    for i in face.verts:
                         verts += 1
 
                     if verts == 3:
@@ -103,6 +106,10 @@ def draw_panel(self, context, row):
                         quad += 1
                     else:
                         ngon += 1 
+
+
+            
+
                 #bmesh.update_edit_mesh(obj.data) 
 
             polyNGon = str(ngon)
@@ -112,7 +119,7 @@ def draw_panel(self, context, row):
 
             
             #layout = self.layout
-            layout.separator()
+            #layout.separator()
             #row = layout.row(align=True) 
             #row.alignment='LEFT'
             ngon_icon = pcoll["ngon_icon"] 
@@ -159,14 +166,24 @@ def viewHeader_R_panel(self, context):
             row.popover(panel='PS_PT_settings_draw_mesh', text="")
 
 
+
+
+
 def tool_panel(self, context):
     props = bpy.context.preferences.addons[__package__.split(".")[0]].preferences
     if activate():
+        layout = self.layout
+        row = layout.row(align=True) 
+        """ # Gizmo PRO
+        if hasattr(bpy.types, bpy.ops.gizmopro.reset_location_object.idname()):
+            draw_panel(self, context, row)
+            row.popover(panel='PS_PT_settings_draw_mesh', text="") """
+
         if props.toolHeader == True:
-            layout = self.layout
-            row = layout.row(align=True) 
             draw_panel(self, context, row)
             row.popover(panel='PS_PT_settings_draw_mesh', text="")
+
+        
 
 
 

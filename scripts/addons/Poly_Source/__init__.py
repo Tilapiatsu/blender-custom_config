@@ -1,7 +1,7 @@
 bl_info = {
     'name': 'Poly Source',
     "author": "Max Derksen",
-    'version': (1, 3, 1),
+    'version': (1, 3, 2),
     'blender': (2, 80, 0),
     'location': 'VIEW 3D > Top Bar',
     'category': 'Mesh',
@@ -20,10 +20,10 @@ from bpy.props import EnumProperty, FloatVectorProperty, BoolProperty, FloatProp
 class PS_settings(PropertyGroup):
 
     def run_draw(self, context):
-        if self.draw == True:
+        if self.draw_advance == True:
             bpy.ops.ps.draw_mesh('INVOKE_DEFAULT')
     
-    draw: BoolProperty(name="Advance Draw Mesh", default=False, update=run_draw)
+    draw_advance: BoolProperty(name="Advance Draw Mesh", default=False, update=run_draw)
 
 
 
@@ -41,7 +41,7 @@ class PS_preferences(AddonPreferences):
     draw: BoolProperty(name="Advance Draw Mesh", default=False, update=run_draw) """
 
 
-
+    #draw_advance: BoolProperty(name="Advance Draw Mesh", default=False)
 
 
 
@@ -64,6 +64,11 @@ class PS_preferences(AddonPreferences):
     z_bias: FloatProperty(name="Z-Bias", description="Z-Bias", min=0.0001, soft_max=1.0, default=0.5, subtype='FACTOR')
     opacity: FloatProperty(name="Opacity", description="Face Opacity", min=0.0, max=1.0, default=0.8, subtype='PERCENTAGE')
 
+
+
+
+
+
     vertex_color: FloatVectorProperty(name="Vertex Color", subtype='COLOR', default=(0.0, 0.0, 0.0), min=0.0, max=1.0, description="Select color for Vertex")
     edge_color: FloatVectorProperty(name="Edge & Vertex Color", subtype='COLOR', default=(0.0, 0.0, 0.0), min=0.0, max=1.0, description="Select color for Edges & Vertex")
     face_color: FloatVectorProperty(name="Face Color", subtype='COLOR', default=(0.0, 0.3, 1.0), min=0.0, max=1.0, description="Select color for Face")
@@ -82,6 +87,10 @@ class PS_preferences(AddonPreferences):
 
     tris_col: FloatVectorProperty(name="Tris Color", subtype='COLOR', default=(0.0, 0.5, 0.9), min=0.0, max=1.0)
     ngone_col: FloatVectorProperty(name="NGone Color", subtype='COLOR', default=(1.0, 0.1, 0.0), min=0.0, max=1.0)
+
+
+
+
 
 
 
@@ -202,6 +211,9 @@ from . import PS_panel
 
 
 
+
+
+
 classes = [
     PS_settings,
     PS_preferences,
@@ -214,6 +226,8 @@ def register():
     PS_panel.register()
     PS_draw_mesh.register()
  
+
+
 
 
     bpy.types.Scene.polySource_set = bpy.props.PointerProperty(type=PS_settings)
@@ -262,6 +276,7 @@ def unregister():
 
     PS_panel.unregister()
     PS_draw_mesh.unregister()
+
 
 
 

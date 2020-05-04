@@ -277,7 +277,7 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		# 	self.kmi_prop_setattr(select_tool.properties, "name", 'Select')
 		# 	self.kmi_prop_setattr(select_tool.properties, "cycle", False)
 		if self.km.name in ['Sculpt']:
-			self.kmi_set_replace('paint.brush_select', self.k_menu, "PRESS", properties=[('name', tool)])
+			self.kmi_set_replace('wm.tool_set_by_id', self.k_menu, "PRESS", properties=[('name', tool)])
 		else:
 			self.kmi_set_replace('wm.tool_set_by_id', self.k_menu, "PRESS", properties=[('name', tool), ('cycle', False)])
 
@@ -660,10 +660,9 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		###### Sculpt
 		self.kmi_init(name='Sculpt', space_type='EMPTY', region_type='WINDOW')
 		self.global_keys()
-		self.selection_tool(tool='builtin.select_box')
 		self.right_mouse()
 		self.tool_sculpt('sculpt.sculptmode_toggle')
-		self.selection_tool('GRAB')
+		self.selection_tool(tool='builtin_brush.Grab')
 
 		self.tool_subdivision()
 
@@ -672,9 +671,6 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 							   'rotation_path', 'tool_settings.sculpt.brush.texture_slot.angle'), ('color_path', 'tool_settings.sculpt.brush.cursor_color_add'), ('image_id', 'tool_settings.sculpt.brush')],
 						   		eraser_radius=[('data_path_primary', 'tool_settings.sculpt.brush.texture_slot.angle'), ('rotation_path', 'tool_settings.sculpt.brush.texture_slot.angle'), ('color_path', 'tool_settings.sculpt.brush.cursor_color_add'), ('image_id', 'tool_settings.sculpt.brush')])
 
-		self.kmi_set_replace('sculpt.tila_multires_subdivision', 'D', 'PRESS', properties=[('subd', 1), ('mode', 'RELATIVE'), ('force_subd', False)])
-		self.kmi_set_replace('sculpt.tila_multires_subdivision', 'D', 'PRESS', ctrl=True, properties=[('subd', 1), ('mode', 'RELATIVE'), ('force_subd', True)])
-		self.kmi_set_replace('sculpt.tila_multires_subdivision', 'D', 'PRESS', shift=True, properties=[('subd', -1), ('mode', 'RELATIVE'), ('force_subd', False)])
 		self.kmi_set_replace('sculpt.dynamic_topology_toggle', 'D', 'PRESS', ctrl=True, alt=True, shift=True)
 		
 		self.kmi_set_replace('paint.mask_lasso_gesture', self.k_context, 'PRESS', ctrl=True, properties=[('value', 1.0), ('mode', 'VALUE')])
@@ -685,7 +681,6 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		self.kmi_set_replace('paint.hide_show', self.k_nav, 'CLICK_DRAG', shift=True, properties=[('action', 'HIDE'), ('wait_for_input', False), ('area', 'OUTSIDE')], disable_double=True)
 		self.kmi_set_replace('paint.hide_show', self.k_nav, 'PRESS', ctrl=True, alt=True, shift=True, properties=[('action', 'SHOW'), ('wait_for_input', False), ('area', 'ALL')], disable_double=True)
 		self.kmi_set_replace('view3d.inverse_visibility', self.k_nav, 'PRESS', alt=True, shift=True)
-		
 
 		###### Curve
 		self.kmi_init(name='Curve', space_type='EMPTY', region_type='WINDOW')
