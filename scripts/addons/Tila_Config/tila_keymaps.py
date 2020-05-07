@@ -393,7 +393,9 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		self.kmi_set_replace('view3d.tila_isolate', 'X', 'PRESS', ctrl=True, alt=True, shift=True, properties=[('force_object_isolate', True)])
 	
 	def join(self):
-		self.kmi_set_replace('object.join', 'J', 'PRESS', ctrl=True, disable_double=True)
+		self.kmi_set_replace('object.tila_smart_join', 'J', 'PRESS', ctrl=True, shift=False, alt=False, properties=[('apply_modifiers', False), ('duplicate', False)], disable_double=True)
+		self.kmi_set_replace('object.tila_smart_join', 'J', 'PRESS', ctrl=True, shift=True, alt=False, properties=[('apply_modifiers', True), ('duplicate', False)], disable_double=True)
+		self.kmi_set_replace('object.tila_smart_join', 'J', 'PRESS', ctrl=True, shift=True, alt=True, properties=[('apply_modifiers', True), ('duplicate', True)], disable_double=True)
 
 	# Keymap define
 	def set_tila_keymap(self):
@@ -641,6 +643,8 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		self.kmi_set_replace('object.delete', 'DEL', 'PRESS', ctrl=True, alt=True, shift=True, properties=[('use_global', True), ('confirm', True)])
 
 		self.isolate()
+
+		self.join()
 		
 		self.kmi_set_replace('object.move_to_collection', 'M', 'PRESS', ctrl=True, alt=True, disable_double=True)
 		self.kmi_set_replace('view3d.collection_manager', 'M', 'PRESS', shift=True, disable_double=True)
