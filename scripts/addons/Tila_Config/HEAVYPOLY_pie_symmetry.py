@@ -28,9 +28,9 @@ class HP_MT_pie_symmetry(Menu):
 		op.cutLocation = 'GLOBAL'
 		op.cutRotation = 'GLOBAL'
 		op.axis = 'X'
-		op.axisDir = 'PLUS'
+		op.axisDir = 'FORWARD'
 		op.use_fill = False
-		op.keepMirrorModifier = False
+		op.keepModifiers = False
 
 		# right
 		split = pie.split()
@@ -42,9 +42,9 @@ class HP_MT_pie_symmetry(Menu):
 		op.cutLocation = 'GLOBAL'
 		op.cutRotation = 'GLOBAL'
 		op.axis = 'X'
-		op.axisDir = 'MINUS'
+		op.axisDir = 'BACKWARD'
 		op.use_fill = False
-		op.keepMirrorModifier = False
+		op.keepModifiers = False
 
 		# bottom
 		split = pie.split()
@@ -56,9 +56,9 @@ class HP_MT_pie_symmetry(Menu):
 		op.cutLocation = 'GLOBAL'
 		op.cutRotation = 'GLOBAL'
 		op.axis = 'Z'
-		op.axisDir = 'PLUS'
+		op.axisDir = 'FORWARD'
 		op.use_fill = False
-		op.keepMirrorModifier = False
+		op.keepModifiers = False
 
 		# top
 		split = pie.split()
@@ -70,9 +70,9 @@ class HP_MT_pie_symmetry(Menu):
 		op.cutLocation = 'GLOBAL'
 		op.cutRotation = 'GLOBAL'
 		op.axis = 'Z'
-		op.axisDir = 'MINUS'
+		op.axisDir = 'BACKWARD'
 		op.use_fill = False
-		op.keepMirrorModifier = False
+		op.keepModifiers = False
 
 		# topleft
 		split = pie.split()
@@ -84,9 +84,9 @@ class HP_MT_pie_symmetry(Menu):
 		op.cutLocation = 'GLOBAL'
 		op.cutRotation = 'GLOBAL'
 		op.axis = 'Y'
-		op.axisDir = 'MINUS'
+		op.axisDir = 'BACKWARD'
 		op.use_fill = False
-		op.keepMirrorModifier = False
+		op.keepModifiers = False
 
 		# topright
 		pie.operator("view3d.mirror_toggle", text="Live Mirror").type = 'Mirror Base'
