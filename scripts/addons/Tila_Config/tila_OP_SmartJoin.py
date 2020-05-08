@@ -16,6 +16,7 @@ bl_info = {
 class TILA_smart_join(bpy.types.Operator):
 	bl_idname = "object.tila_smart_join"
 	bl_label = "TILA : Smart Join"
+	bl_options = {'REGISTER', 'UNDO'}
 
 	apply_modifiers : bpy.props.BoolProperty(name='Apply Modifiers', default=False)
 	duplicate : bpy.props.BoolProperty(name='Duplicate Objects', default=False)

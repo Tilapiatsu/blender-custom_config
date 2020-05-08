@@ -372,6 +372,11 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 
 		self.kmi_set_replace('object.subdivision_set', 'NUMPAD_PLUS', 'PRESS', alt=True, properties=[('level', 1), ('relative', True)], disable_double=True)
 		self.kmi_set_replace('object.subdivision_set', 'NUMPAD_MINUS', 'PRESS', alt=True, properties=[('level', -1), ('relative', True)], disable_double=True)
+
+		if self.km.name in ['Sculpt']:
+			self.kmi_set_replace('sculpt.tila_multires_subdiv_level', 'D', 'PRESS', properties=[('subd', 1), ('mode', 'RELATIVE'), ('force_subd', False), ('algorithm', 'CATMULL_CLARK')])
+			self.kmi_set_replace('sculpt.tila_multires_subdiv_level', 'D', 'PRESS', ctrl=True,  properties=[('subd', 1), ('mode', 'RELATIVE'), ('force_subd', True), ('algorithm', 'CATMULL_CLARK')])
+			self.kmi_set_replace('sculpt.tila_multires_subdiv_level', 'D', 'PRESS', shift=True,  properties=[('subd', -1), ('mode', 'RELATIVE'), ('force_subd', False), ('algorithm', 'CATMULL_CLARK')])
 		
 
 	def tool_center(self, pivot=None, orientation=None, action_center_context=None):
@@ -670,6 +675,8 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 
 		self.tool_subdivision()
 
+		self.kmi_set_replace('object.tila_duplicate', self.k_manip, 'CLICK_DRAG', ctrl=True, alt=True, shift=True, properties=[('linked', False), ('move', True)])
+
 		self.tool_radial_control(radius=[('data_path_primary', 'tool_settings.sculpt.brush.size'), ('data_path_secondary', 'tool_settings.unified_paint_settings.size'), ('use_secondary', 'tool_settings.unified_paint_settings.use_unified_size'), ('rotation_path', 'tool_settings.sculpt.brush.texture_slot.angle'), ('color_path', 'tool_settings.sculpt.brush.cursor_color_add'), ('image_id', 'tool_settings.sculpt.brush')],
 						   		opacity=[('data_path_primary', 'tool_settings.sculpt.brush.strength'), ('data_path_secondary', 'tool_settings.unified_paint_settings.strength'), ('use_secondary', 'tool_settings.unified_paint_settings.use_unified_strength'), (
 							   'rotation_path', 'tool_settings.sculpt.brush.texture_slot.angle'), ('color_path', 'tool_settings.sculpt.brush.cursor_color_add'), ('image_id', 'tool_settings.sculpt.brush')],
@@ -716,7 +723,7 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		self.right_mouse()
 		self.kmi_set_replace('outliner.item_rename', 'F2', 'PRESS')
 
-		self.duplicate(duplicate='outliner.tila_duplicate', duplicate_prop=[('linked', False)], duplicate_link='outliner.tila_duplicate', duplicate_link_prop=[('linked', True)])
+		self.duplicate(duplicate='object.tila_duplicate', duplicate_prop=[('linked', False), ('move', False)], duplicate_link='object.tila_duplicate', duplicate_link_prop=[('linked', True), ('move', False)])
 
 		self.tool_smart_delete()
 		self.kmi_set_replace('object.tila_emptymesh', 'N', 'PRESS', ctrl=True, alt=True, shift=True)

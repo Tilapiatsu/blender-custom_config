@@ -16,6 +16,7 @@ bl_info = {
 class TILA_multires_subdiv_level(bpy.types.Operator):
 	bl_idname = "sculpt.tila_multires_subdiv_level"
 	bl_label = "TILA : Multires Set Subdivision Level"
+	bl_options = {'REGISTER', 'UNDO'}
 
 	subd : bpy.props.IntProperty(name='subd', default=0)
 	mode : bpy.props.EnumProperty(items=[("ABSOLUTE", "Absolute", ""), ("RELATIVE", "Relative", ""), ("MIN", "Minimum", ""), ("MAX", "Maximum", "")])
@@ -118,6 +119,7 @@ class TILA_multires_subdiv_level(bpy.types.Operator):
 class TILA_multires_rebuild_subdiv(bpy.types.Operator):
 	bl_idname = "sculpt.tila_multires_rebuild_subdiv"
 	bl_label = "TILA : Multires Rebuild Subdivision"
+	bl_options = {'REGISTER', 'UNDO'}
 
 	modifier_name = 'Multires'
 	modifier_type = 'MULTIRES'
@@ -181,6 +183,7 @@ class TILA_multires_rebuild_subdiv(bpy.types.Operator):
 class TILA_multires_delete_subdiv(bpy.types.Operator):
 	bl_idname = "sculpt.tila_multires_delete_subdiv"
 	bl_label = "TILA : Multires Delete Subdivision"
+	bl_options = {'REGISTER', 'UNDO'}
 
 	delete_target = bpy.props.StringProperty(name='subd', default='HIGHER')
 
@@ -189,52 +192,55 @@ class TILA_multires_delete_subdiv(bpy.types.Operator):
 	modifier_name = 'Multires'
 	modifier_type = 'MULTIRES'
 	targets = ['HIGHER', 'LOWER']
+	compatible_type = ['MESH']
 
 	def invoke(self, context, event):
+		self.object_to_process = [o for o in bpy.context.selected_objects if o.type in self.compatible_type]
 
-		self.active_object = bpy.context.active_object
-
-		if self.active_object is None or self.delete_target not in self.targets:
+		if not len(self.object_to_process) or self.delete_target not in self.targets:
 			return {'CANCELLED'}
+		
+		for o in self.object_to_process:
+			self.multires_modifier = [m for m in o.modifiers if m.type == self.modifier_type]
 
-		self.multires_modifier = [m for m in self.active_object.modifiers if m.type == self.modifier_type]
+			if not len(self.multires_modifier):
+				self.multires_modifier = o.modifiers.new(name=self.modifier_name, type=self.modifier_type)
+			else:
+				self.multires_modifier = self.multires_modifier.pop()
 
-		if not len(self.multires_modifier):
-			self.multires_modifier = self.active_object.modifiers.new(name=self.modifier_name, type=self.modifier_type)
-		else:
-			self.multires_modifier = self.multires_modifier[0]
-
-		if self.delete_target == self.targets[0] and self.multires_modifier.render_levels > 0:
-			bpy.ops.object.multires_higher_levels_delete(modifier=self.multires_modifier.name)
-		elif self.delete_target == self.targets[1] and self.multires_modifier.levels < self.multires_modifier.render_levels:
-			bpy.ops.object.multires_lower_levels_delete(modifier=self.multires_modifier.name)
+			if self.delete_target == self.targets[0] and self.multires_modifier.render_levels > 0:
+				bpy.ops.object.multires_higher_levels_delete(modifier=self.multires_modifier.name)
+			elif self.delete_target == self.targets[1] and self.multires_modifier.levels < self.multires_modifier.render_levels:
+				bpy.ops.object.multires_lower_levels_delete(modifier=self.multires_modifier.name)
 
 		return {'FINISHED'}
 
 class TILA_multires_apply_base(bpy.types.Operator):
 	bl_idname = "sculpt.tila_multires_apply_base"
 	bl_label = "TILA : Multires Apply Base"
+	bl_options = {'REGISTER', 'UNDO'}
 
 	multires_modifier = None
 	active_object = None
 	modifier_name = 'Multires'
 	modifier_type = 'MULTIRES'
+	compatible_type = ['MESH']
 
 	def invoke(self, context, event):
+		self.object_to_process = [o for o in bpy.context.selected_objects if o.type in self.compatible_type]
 
-		self.active_object = bpy.context.active_object
-
-		if self.active_object is None:
+		if not len(self.object_to_process):
 			return {'CANCELLED'}
 
-		self.multires_modifier = [m for m in self.active_object.modifiers if m.type == self.modifier_type]
+		for o in self.object_to_process:
+			self.multires_modifier = [m for m in o.modifiers if m.type == self.modifier_type]
 
-		if not len(self.multires_modifier):
-			self.multires_modifier = self.active_object.modifiers.new(name=self.modifier_name, type=self.modifier_type)
-		else:
-			self.multires_modifier = self.multires_modifier[0]
+			if not len(self.multires_modifier):
+				self.multires_modifier = o.modifiers.new(name=self.modifier_name, type=self.modifier_type)
+			else:
+				self.multires_modifier = self.multires_modifier.pop()
 
-		bpy.ops.object.multires_base_apply(modifier=self.multires_modifier.name)
+			bpy.ops.object.multires_base_apply(modifier=self.multires_modifier.name)
 
 		return {'FINISHED'}
 
