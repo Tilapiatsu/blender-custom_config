@@ -23,6 +23,7 @@ modules =   (
             'photographer',
             'transfer_vertex_order',
             'PolyQuilt',
+            'slcad_transform',
             'EasyHDRI',
             'MeasureIt-ARCH',
             'retopoflow',
