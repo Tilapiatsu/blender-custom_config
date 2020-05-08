@@ -196,3 +196,6 @@
 [submodule "scripts/addons/abnormal"]
 	path = scripts/addons/abnormal
 	url = https://github.com/BlenderNPR/Abnormal.git
+[submodule "scripts/addons/BlendLuxCore"]
+	path = scripts/addons/BlendLuxCore
+	url = https://github.com/LuxCoreRender/BlendLuxCore.git
