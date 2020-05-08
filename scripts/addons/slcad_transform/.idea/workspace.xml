@@ -1,0 +1,778 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ChangeListManager">
+    <list default="true" id="fb73432b-425c-4bf0-a1fd-e5f27b3ee859" name="Default Changelist" comment="" />
+    <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="FUSProjectUsageTrigger">
+    <session id="-598611023">
+      <usages-collector id="statistics.lifecycle.project">
+        <counts>
+          <entry key="project.open.time.0" value="1" />
+          <entry key="project.opened" value="1" />
+        </counts>
+      </usages-collector>
+      <usages-collector id="statistics.file.extensions.open">
+        <counts>
+          <entry key="py" value="14" />
+        </counts>
+      </usages-collector>
+      <usages-collector id="statistics.file.types.open">
+        <counts>
+          <entry key="Python" value="13" />
+          <entry key="Scratch" value="1" />
+        </counts>
+      </usages-collector>
+      <usages-collector id="statistics.file.extensions.edit">
+        <counts>
+          <entry key="dummy" value="5" />
+          <entry key="py" value="46663" />
+        </counts>
+      </usages-collector>
+      <usages-collector id="statistics.file.types.edit">
+        <counts>
+          <entry key="PLAIN_TEXT" value="5" />
+          <entry key="Python" value="44928" />
+          <entry key="Scratch" value="1735" />
+        </counts>
+      </usages-collector>
+    </session>
+  </component>
+  <component name="FavoritesManager">
+    <favorites_list name="slcad_transform" />
+  </component>
+  <component name="FileEditorManager">
+    <leaf>
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/slcad_transform.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="216">
+              <caret line="1458" lean-forward="true" selection-start-line="1458" selection-end-line="1458" />
+              <folding>
+                <element signature="e#998#1008#0" expanded="true" />
+                <element signature="e#2161#4391#0" />
+                <element signature="e#2241#3265#0" />
+                <element signature="e#2965#3103#0" />
+                <element signature="e#3103#3259#0" />
+                <element signature="e#3338#3875#0" />
+                <element signature="e#3828#6249#0" />
+                <element signature="e#3874#4588#0" />
+                <element signature="e#4927#4973#0" />
+                <element signature="e#5209#5365#0" />
+                <element signature="e#5579#6249#0" />
+                <element signature="e#7632#8071#0" />
+                <element signature="e#6981#7196#0" />
+                <element signature="e#7662#8421#0" />
+                <element signature="e#7668#8990#0" />
+                <element signature="e#7275#7698#0" />
+                <element signature="e#8193#8481#0" />
+                <element signature="e#8446#8568#0" />
+                <element signature="e#8975#9077#0" />
+                <element signature="e#9503#9843#0" />
+                <element signature="e#10070#14992#0" />
+                <element signature="e#9939#10919#0" />
+                <element signature="e#10216#10283#0" />
+                <element signature="e#10324#10444#0" />
+                <element signature="e#10514#10606#0" />
+                <element signature="e#10659#10792#0" />
+                <element signature="e#10953#10988#0" />
+                <element signature="e#10710#10863#0" />
+                <element signature="e#11960#12127#0" />
+                <element signature="e#12196#12621#0" />
+                <element signature="e#11862#12315#0" />
+                <element signature="e#14658#14667#0" />
+                <element signature="e#18613#18785#0" />
+                <element signature="e#20366#30115#0" />
+                <element signature="e#20416#21080#0" />
+                <element signature="e#21121#21271#0" />
+                <element signature="e#21216#21366#0" />
+                <element signature="e#19505#19640#0" />
+                <element signature="e#19880#19938#0" />
+                <element signature="e#21405#22501#0" />
+                <element signature="e#21768#22430#0" />
+                <element signature="e#23295#23492#0" />
+                <element signature="e#23553#24164#0" />
+                <element signature="e#23569#23747#0" />
+                <element signature="e#24058#24173#0" />
+                <element signature="e#24013#25114#0" />
+                <element signature="e#24229#25114#0" />
+                <element signature="e#27953#28559#0" />
+                <element signature="e#24662#25858#0" />
+                <element signature="e#30852#30978#0" />
+                <element signature="e#31050#31418#0" />
+                <element signature="e#32538#37432#0" />
+                <element signature="e#33266#34334#0" />
+                <element signature="e#26341#26748#0" />
+                <element signature="e#38163#38463#0" />
+                <element signature="e#37793#39655#0" />
+                <element signature="e#31207#32017#0" />
+                <element signature="e#32073#32488#0" />
+                <element signature="e#29452#34457#0" />
+                <element signature="e#29587#30168#0" />
+                <element signature="e#29682#29952#0" />
+                <element signature="e#30478#30708#0" />
+                <element signature="e#31062#32262#0" />
+                <element signature="e#35614#36925#0" />
+                <element signature="e#36995#37163#0" />
+                <element signature="e#32349#32528#0" />
+                <element signature="e#35529#35668#0" />
+                <element signature="e#40186#40682#0" />
+                <element signature="e#49204#49865#0" />
+                <element signature="e#40149#40523#0" />
+                <element signature="e#40225#40376#0" />
+                <element signature="e#36743#36830#0" />
+                <element signature="e#48257#48354#0" />
+                <element signature="e#40695#40792#0" />
+                <element signature="e#40531#40648#0" />
+                <element signature="e#40707#40821#0" />
+                <element signature="e#45017#45364#0" />
+                <marker date="1588838700406" expanded="true" signature="5769:6181" ph="..." />
+                <marker date="1588838700406" expanded="true" signature="8733:10584" ph="..." />
+                <marker date="1588838700406" expanded="true" signature="9431:9506" ph="..." />
+                <marker date="1588838700406" expanded="true" signature="9961:10019" ph="..." />
+                <marker date="1588838700406" expanded="true" signature="11385:11532" ph="..." />
+                <marker date="1588838700406" expanded="true" signature="11656:11803" ph="..." />
+                <marker date="1588838700406" expanded="true" signature="11834:11843" ph="..." />
+                <marker date="1588838700406" expanded="true" signature="13501:13568" ph="..." />
+                <marker date="1588838700406" expanded="true" signature="13957:13962" ph="..." />
+                <marker date="1588838700406" expanded="true" signature="14465:14747" ph="..." />
+                <marker date="1588838700406" expanded="true" signature="17517:17621" ph="..." />
+                <marker date="1588838700406" expanded="true" signature="18845:18862" ph="..." />
+                <marker date="1588838700406" expanded="true" signature="18893:19067" ph="..." />
+                <marker date="1588838700406" expanded="true" signature="21521:21530" ph="..." />
+                <marker date="1588838700406" expanded="true" signature="21641:21646" ph="..." />
+                <marker date="1588838700406" expanded="true" signature="33942:33951" ph="..." />
+                <marker date="1588838700406" expanded="true" signature="47171:47176" ph="..." />
+                <marker date="1588838700406" expanded="true" signature="47227:47818" ph="..." />
+                <marker date="1588838700406" expanded="true" signature="48734:49912" ph="..." />
+                <marker date="1588838700406" expanded="true" signature="49948:50337" ph="..." />
+                <marker date="1588838700406" expanded="true" signature="51101:51203" ph="..." />
+                <marker date="1588838700406" expanded="true" signature="52721:52726" ph="..." />
+                <marker date="1588838700406" expanded="true" signature="55469:55840" ph="..." />
+                <marker date="1588838700406" expanded="true" signature="59316:59319" ph="..." />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/__init__.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="422">
+              <caret line="36" column="71" selection-start-line="36" selection-start-column="71" selection-end-line="36" selection-end-column="71" />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/utils/gpu_draw.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="324">
+              <caret line="263" column="21" selection-start-line="263" selection-start-column="6" selection-end-line="263" selection-end-column="21" />
+              <folding>
+                <element signature="e#999#1028#0" expanded="true" />
+                <element signature="e#3581#3872#0" />
+                <element signature="e#4026#4412#0" />
+                <element signature="e#4455#4696#0" />
+                <element signature="e#6185#6634#0" />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/slcad_snap.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="761">
+              <caret line="220" lean-forward="true" selection-start-line="220" selection-end-line="220" />
+              <folding>
+                <element signature="e#929#940#0" expanded="true" />
+                <element signature="e#3931#4064#0" />
+                <element signature="e#4115#4174#0" />
+                <element signature="e#6478#6503#0" />
+                <element signature="e#6557#6690#1" />
+                <element signature="e#6905#7461#0" />
+                <element signature="e#7552#7839#0" />
+                <element signature="e#7857#7965#0" />
+                <element signature="e#8663#9850#0" />
+                <element signature="e#9293#9553#0" />
+                <element signature="e#9617#9797#0" />
+                <element signature="e#10163#11583#0" />
+                <element signature="e#11101#12117#0" />
+                <element signature="e#12967#13782#0" />
+                <element signature="e#13873#14444#0" />
+                <element signature="e#14541#15477#0" />
+                <element signature="e#15531#15761#0" />
+                <element signature="e#15811#15881#0" />
+                <element signature="e#16248#16476#0" />
+                <element signature="e#16124#16282#0" />
+                <element signature="e#17406#17447#0" />
+                <element signature="e#17493#17534#0" />
+                <element signature="e#17221#17261#0" />
+                <element signature="e#18078#18448#0" />
+                <marker date="1588718450591" expanded="true" signature="1917:2043" ph="..." />
+                <marker date="1588718450591" expanded="true" signature="3796:3899" ph="..." />
+                <marker date="1588718450591" expanded="true" signature="3924:3934" ph="..." />
+                <marker date="1588718450591" expanded="true" signature="7456:7500" ph="..." />
+                <marker date="1588718450591" expanded="true" signature="18181:18237" ph="..." />
+                <marker date="1588718450591" expanded="true" signature="18281:18499" ph="..." />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/snap_context/utils_projection.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="258">
+              <caret line="37" lean-forward="true" selection-start-line="37" selection-end-line="37" />
+              <folding>
+                <element signature="e#840#868#0" expanded="true" />
+                <element signature="e#966#1016#0" />
+                <element signature="e#1799#2021#0" />
+                <element signature="e#2126#6037#0" />
+                <element signature="e#6110#6531#0" />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/snap_context/curve_drawing.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="109">
+              <caret line="52" lean-forward="true" selection-start-line="52" selection-end-line="52" />
+              <folding>
+                <element signature="e#839#849#0" expanded="true" />
+                <element signature="e#984#1168#0" />
+                <element signature="e#1190#1325#0" />
+                <element signature="e#1169#1583#0" />
+                <element signature="e#1626#2045#0" />
+                <element signature="e#2080#2482#0" />
+                <element signature="e#2527#2951#0" />
+                <element signature="e#4044#10205#0" />
+                <element signature="e#5037#5962#0" />
+                <element signature="e#5989#6077#0" />
+                <element signature="e#6165#6968#0" />
+                <element signature="e#6995#7080#0" />
+                <element signature="e#7569#7728#0" />
+                <element signature="e#8091#8567#0" />
+                <element signature="e#8611#9250#0" />
+                <element signature="e#9294#9539#0" />
+                <element signature="e#9586#9616#0" />
+                <element signature="e#9659#9901#0" />
+                <element signature="e#9947#9976#0" />
+                <element signature="e#10009#10424#0" />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$APPLICATION_CONFIG_DIR$/scratches/gpu_offscreen.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="509">
+              <caret line="52" column="3" lean-forward="true" selection-start-line="28" selection-end-line="52" selection-end-column="3" />
+              <folding>
+                <element signature="e#929#939#0" expanded="true" />
+                <element signature="e#9174#9195#0" />
+                <element signature="e#8690#8796#0" />
+                <element signature="e#8861#8870#0" />
+                <element signature="e#8919#8944#0" />
+                <element signature="e#10466#10974#0" />
+                <marker date="1588548444626" expanded="true" signature="1881:1884" ph="..." />
+                <marker date="1588548444626" expanded="true" signature="4989:4998" ph="..." />
+                <marker date="1588548444626" expanded="true" signature="5261:5522" ph="..." />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/snap_context/bgl_ext.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="465">
+              <caret line="102" column="55" lean-forward="true" selection-start-line="102" selection-start-column="55" selection-end-line="102" selection-end-column="55" />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/snap_context/__init__.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="174">
+              <caret line="73" column="20" selection-start-line="73" selection-start-column="8" selection-end-line="73" selection-end-column="20" />
+              <folding>
+                <element signature="e#846#856#0" expanded="true" />
+                <element signature="e#1292#1372#0" />
+                <element signature="e#2069#2931#0" />
+                <element signature="e#3047#3252#0" />
+                <element signature="e#3296#4329#0" />
+                <element signature="e#4323#4418#0" />
+                <element signature="e#4498#5871#0" />
+                <element signature="e#7197#7658#0" />
+                <element signature="e#8085#8168#0" />
+                <element signature="e#8974#9094#0" />
+                <element signature="e#9255#10676#0" />
+                <marker date="1588549256415" expanded="true" signature="3972:4115" ph="..." />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+    </leaf>
+  </component>
+  <component name="FileTemplateManagerImpl">
+    <option name="RECENT_TEMPLATES">
+      <list>
+        <option value="Python Script" />
+      </list>
+    </option>
+  </component>
+  <component name="FindInProjectRecents">
+    <findStrings>
+      <find>set_display_axis</find>
+      <find>self._draw_flags |= DRAW_ROTATE</find>
+      <find>self._draw_flags |= DRAW_MOVE</find>
+      <find>AXIS</find>
+      <find>DRAW_PERPENDICULAR</find>
+      <find>FACE</find>
+      <find>EVENT_C</find>
+      <find>set_project_normal</find>
+      <find>_matrix_from_view</find>
+      <find>wst_</find>
+      <find>context.preferences</find>
+      <find>register_shortcuts</find>
+      <find>mesh_arrays</find>
+      <find>deps</find>
+      <find>is_behind_view</find>
+      <find>get_snap_loc</find>
+      <find>view_vector</find>
+      <find>view_</find>
+      <find>._cen</find>
+      <find>_edge_widget =</find>
+      <find>face_</find>
+      <find>slcadsnap</find>
+      <find>view_x</find>
+      <find>EVENT_X</find>
+      <find>project_axis</find>
+      <find>_scale</find>
+      <find>_move_widget</find>
+      <find>update_rotate_widget</find>
+      <find>SlCadScaleWidget</find>
+      <find>_scale_widget</find>
+    </findStrings>
+    <replaceStrings>
+      <replace>set_snap_mode</replace>
+      <replace>self.slcadsnap.</replace>
+      <replace>self.slcadsnap.</replace>
+      <replace>slcadsnap.</replace>
+      <replace>_ray_segment_t</replace>
+      <replace>SlCadConstraint</replace>
+      <replace>SlCadRotateWidget</replace>
+      <replace>SlCadSnapTarget</replace>
+      <replace>update_gl_snap</replace>
+      <replace>_event_pixel_coord</replace>
+      <replace>_perspective_matrix</replace>
+      <replace>DRAW_ROTATE</replace>
+      <replace>_constraint_widget.set_world_matrix</replace>
+      <replace>_pixel_dist(</replace>
+      <replace>_preview_widget</replace>
+      <replace>box</replace>
+      <replace>SEGS_CENTER</replace>
+      <replace>layout</replace>
+      <replace>curve_arrays</replace>
+      <replace>is_not_on_screen</replace>
+      <replace>draw</replace>
+      <replace>GPU_3d_ArcFill</replace>
+      <replace>SlCadConstraintWidget</replace>
+      <replace>view_z</replace>
+    </replaceStrings>
+  </component>
+  <component name="IdeDocumentHistory">
+    <option name="CHANGED_PATHS">
+      <list>
+        <option value="$PROJECT_DIR$/utils/gpu_draw.py" />
+        <option value="$APPLICATION_CONFIG_DIR$/scratches/gpu_offscreen.py" />
+        <option value="$PROJECT_DIR$/gpu_offscreen.py" />
+        <option value="$PROJECT_DIR$/snap_context/curve_drawing.py" />
+        <option value="$PROJECT_DIR$/snap_context/__init__.py" />
+        <option value="$PROJECT_DIR$/shortcuts.py" />
+        <option value="$PROJECT_DIR$/slcad_snap.py" />
+        <option value="$PROJECT_DIR$/slcad_transform.py" />
+        <option value="$PROJECT_DIR$/__init__.py" />
+      </list>
+    </option>
+  </component>
+  <component name="ProjectFrameBounds" extendedState="6">
+    <option name="x" value="1917" />
+    <option name="width" value="1926" />
+    <option name="height" value="1083" />
+  </component>
+  <component name="ProjectView">
+    <navigator proportions="" version="1">
+      <foldersAlwaysOnTop value="true" />
+    </navigator>
+    <panes>
+      <pane id="Scope" />
+      <pane id="ProjectPane">
+        <subPane>
+          <expand>
+            <path>
+              <item name="slcad_transform" type="b2602c69:ProjectViewProjectNode" />
+              <item name="slcad_transform" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="slcad_transform" type="b2602c69:ProjectViewProjectNode" />
+              <item name="Scratches and Consoles" type="1a2a3e82:ScratchProjectViewPane$MyProjectNode" />
+            </path>
+          </expand>
+          <select />
+        </subPane>
+      </pane>
+    </panes>
+  </component>
+  <component name="PropertiesComponent">
+    <property name="last_opened_file_path" value="$PROJECT_DIR$" />
+  </component>
+  <component name="RecentsManager">
+    <key name="MoveFile.RECENT_KEYS">
+      <recent name="$APPLICATION_CONFIG_DIR$/scratches" />
+      <recent name="$PROJECT_DIR$" />
+      <recent name="$PROJECT_DIR$/utils" />
+    </key>
+  </component>
+  <component name="RunDashboard">
+    <option name="ruleStates">
+      <list>
+        <RuleState>
+          <option name="name" value="ConfigurationTypeDashboardGroupingRule" />
+        </RuleState>
+        <RuleState>
+          <option name="name" value="StatusDashboardGroupingRule" />
+        </RuleState>
+      </list>
+    </option>
+  </component>
+  <component name="SvnConfiguration">
+    <configuration />
+  </component>
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="fb73432b-425c-4bf0-a1fd-e5f27b3ee859" name="Default Changelist" comment="" />
+      <created>1588256952075</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1588256952075</updated>
+    </task>
+    <servers />
+  </component>
+  <component name="ToolWindowManager">
+    <frame x="1917" y="0" width="1926" height="1083" extended-state="6" />
+    <editor active="true" />
+    <layout>
+      <window_info id="Favorites" sideWeight="0.5011655" side_tool="true" weight="0.24960506" />
+      <window_info active="true" content_ui="combo" id="Project" order="0" sideWeight="0.4988345" visible="true" weight="0.24960506" />
+      <window_info id="Structure" order="1" sideWeight="0.5011655" side_tool="true" weight="0.24960506" />
+      <window_info anchor="bottom" id="Version Control" show_stripe_button="false" />
+      <window_info anchor="bottom" id="Python Console" />
+      <window_info anchor="bottom" id="Terminal" />
+      <window_info anchor="bottom" id="Event Log" side_tool="true" />
+      <window_info anchor="bottom" id="Message" order="0" />
+      <window_info anchor="bottom" id="Find" order="1" visible="true" weight="0.10995851" />
+      <window_info anchor="bottom" id="Run" order="2" />
+      <window_info anchor="bottom" id="Debug" order="3" weight="0.4" />
+      <window_info anchor="bottom" id="Cvs" order="4" weight="0.25" />
+      <window_info anchor="bottom" id="Inspection" order="5" weight="0.4" />
+      <window_info anchor="bottom" id="TODO" order="6" />
+      <window_info anchor="right" id="Commander" internal_type="SLIDING" order="0" type="SLIDING" weight="0.4" />
+      <window_info anchor="right" id="Ant Build" order="1" weight="0.25" />
+      <window_info anchor="right" content_ui="combo" id="Hierarchy" order="2" weight="0.25" />
+    </layout>
+  </component>
+  <component name="VcsContentAnnotationSettings">
+    <option name="myLimit" value="2678400000" />
+  </component>
+  <component name="editorHistoryManager">
+    <entry file="file://$PROJECT_DIR$/snap_context/bgl_ext.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="465">
+          <caret line="102" column="55" lean-forward="true" selection-start-line="102" selection-start-column="55" selection-end-line="102" selection-end-column="55" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/snap_context/utils_projection.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="258">
+          <caret line="37" lean-forward="true" selection-start-line="37" selection-end-line="37" />
+          <folding>
+            <element signature="e#840#868#0" expanded="true" />
+            <element signature="e#966#1016#0" />
+            <element signature="e#1799#2021#0" />
+            <element signature="e#2126#6037#0" />
+            <element signature="e#6110#6531#0" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$APPLICATION_CONFIG_DIR$/scratches/gpu_offscreen.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="509">
+          <caret line="52" column="3" lean-forward="true" selection-start-line="28" selection-end-line="52" selection-end-column="3" />
+          <folding>
+            <element signature="e#929#939#0" expanded="true" />
+            <element signature="e#9174#9195#0" />
+            <element signature="e#8690#8796#0" />
+            <element signature="e#8861#8870#0" />
+            <element signature="e#8919#8944#0" />
+            <element signature="e#10466#10974#0" />
+            <marker date="1588548444626" expanded="true" signature="1881:1884" ph="..." />
+            <marker date="1588548444626" expanded="true" signature="4989:4998" ph="..." />
+            <marker date="1588548444626" expanded="true" signature="5261:5522" ph="..." />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/snap_context/utils_shader.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="198">
+          <caret line="62" column="9" lean-forward="true" selection-start-line="62" selection-start-column="6" selection-end-line="62" selection-end-column="12" />
+          <folding>
+            <element signature="e#917#1668#0" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/snap_context/__init__.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="174">
+          <caret line="73" column="20" selection-start-line="73" selection-start-column="8" selection-end-line="73" selection-end-column="20" />
+          <folding>
+            <element signature="e#846#856#0" expanded="true" />
+            <element signature="e#1292#1372#0" />
+            <element signature="e#2069#2931#0" />
+            <element signature="e#3047#3252#0" />
+            <element signature="e#3296#4329#0" />
+            <element signature="e#4323#4418#0" />
+            <element signature="e#4498#5871#0" />
+            <element signature="e#7197#7658#0" />
+            <element signature="e#8085#8168#0" />
+            <element signature="e#8974#9094#0" />
+            <element signature="e#9255#10676#0" />
+            <marker date="1588549256415" expanded="true" signature="3972:4115" ph="..." />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/shortcuts.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="375">
+          <caret line="25" selection-start-line="25" selection-end-line="25" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/snap_context/curve_drawing.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="109">
+          <caret line="52" lean-forward="true" selection-start-line="52" selection-end-line="52" />
+          <folding>
+            <element signature="e#839#849#0" expanded="true" />
+            <element signature="e#984#1168#0" />
+            <element signature="e#1190#1325#0" />
+            <element signature="e#1169#1583#0" />
+            <element signature="e#1626#2045#0" />
+            <element signature="e#2080#2482#0" />
+            <element signature="e#2527#2951#0" />
+            <element signature="e#4044#10205#0" />
+            <element signature="e#5037#5962#0" />
+            <element signature="e#5989#6077#0" />
+            <element signature="e#6165#6968#0" />
+            <element signature="e#6995#7080#0" />
+            <element signature="e#7569#7728#0" />
+            <element signature="e#8091#8567#0" />
+            <element signature="e#8611#9250#0" />
+            <element signature="e#9294#9539#0" />
+            <element signature="e#9586#9616#0" />
+            <element signature="e#9659#9901#0" />
+            <element signature="e#9947#9976#0" />
+            <element signature="e#10009#10424#0" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/utils/gpu_draw.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="324">
+          <caret line="263" column="21" selection-start-line="263" selection-start-column="6" selection-end-line="263" selection-end-column="21" />
+          <folding>
+            <element signature="e#999#1028#0" expanded="true" />
+            <element signature="e#3581#3872#0" />
+            <element signature="e#4026#4412#0" />
+            <element signature="e#4455#4696#0" />
+            <element signature="e#6185#6634#0" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/slcad_snap.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="761">
+          <caret line="220" lean-forward="true" selection-start-line="220" selection-end-line="220" />
+          <folding>
+            <element signature="e#929#940#0" expanded="true" />
+            <element signature="e#3931#4064#0" />
+            <element signature="e#4115#4174#0" />
+            <element signature="e#6478#6503#0" />
+            <element signature="e#6557#6690#1" />
+            <element signature="e#6905#7461#0" />
+            <element signature="e#7552#7839#0" />
+            <element signature="e#7857#7965#0" />
+            <element signature="e#8663#9850#0" />
+            <element signature="e#9293#9553#0" />
+            <element signature="e#9617#9797#0" />
+            <element signature="e#10163#11583#0" />
+            <element signature="e#11101#12117#0" />
+            <element signature="e#12967#13782#0" />
+            <element signature="e#13873#14444#0" />
+            <element signature="e#14541#15477#0" />
+            <element signature="e#15531#15761#0" />
+            <element signature="e#15811#15881#0" />
+            <element signature="e#16248#16476#0" />
+            <element signature="e#16124#16282#0" />
+            <element signature="e#17406#17447#0" />
+            <element signature="e#17493#17534#0" />
+            <element signature="e#17221#17261#0" />
+            <element signature="e#18078#18448#0" />
+            <marker date="1588718450591" expanded="true" signature="1917:2043" ph="..." />
+            <marker date="1588718450591" expanded="true" signature="3796:3899" ph="..." />
+            <marker date="1588718450591" expanded="true" signature="3924:3934" ph="..." />
+            <marker date="1588718450591" expanded="true" signature="7456:7500" ph="..." />
+            <marker date="1588718450591" expanded="true" signature="18181:18237" ph="..." />
+            <marker date="1588718450591" expanded="true" signature="18281:18499" ph="..." />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/slcad_transform.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="216">
+          <caret line="1458" lean-forward="true" selection-start-line="1458" selection-end-line="1458" />
+          <folding>
+            <element signature="e#998#1008#0" expanded="true" />
+            <element signature="e#2161#4391#0" />
+            <element signature="e#2241#3265#0" />
+            <element signature="e#2965#3103#0" />
+            <element signature="e#3103#3259#0" />
+            <element signature="e#3338#3875#0" />
+            <element signature="e#3828#6249#0" />
+            <element signature="e#3874#4588#0" />
+            <element signature="e#4927#4973#0" />
+            <element signature="e#5209#5365#0" />
+            <element signature="e#5579#6249#0" />
+            <element signature="e#7632#8071#0" />
+            <element signature="e#6981#7196#0" />
+            <element signature="e#7662#8421#0" />
+            <element signature="e#7668#8990#0" />
+            <element signature="e#7275#7698#0" />
+            <element signature="e#8193#8481#0" />
+            <element signature="e#8446#8568#0" />
+            <element signature="e#8975#9077#0" />
+            <element signature="e#9503#9843#0" />
+            <element signature="e#10070#14992#0" />
+            <element signature="e#9939#10919#0" />
+            <element signature="e#10216#10283#0" />
+            <element signature="e#10324#10444#0" />
+            <element signature="e#10514#10606#0" />
+            <element signature="e#10659#10792#0" />
+            <element signature="e#10953#10988#0" />
+            <element signature="e#10710#10863#0" />
+            <element signature="e#11960#12127#0" />
+            <element signature="e#12196#12621#0" />
+            <element signature="e#11862#12315#0" />
+            <element signature="e#14658#14667#0" />
+            <element signature="e#18613#18785#0" />
+            <element signature="e#20366#30115#0" />
+            <element signature="e#20416#21080#0" />
+            <element signature="e#21121#21271#0" />
+            <element signature="e#21216#21366#0" />
+            <element signature="e#19505#19640#0" />
+            <element signature="e#19880#19938#0" />
+            <element signature="e#21405#22501#0" />
+            <element signature="e#21768#22430#0" />
+            <element signature="e#23295#23492#0" />
+            <element signature="e#23553#24164#0" />
+            <element signature="e#23569#23747#0" />
+            <element signature="e#24058#24173#0" />
+            <element signature="e#24013#25114#0" />
+            <element signature="e#24229#25114#0" />
+            <element signature="e#27953#28559#0" />
+            <element signature="e#24662#25858#0" />
+            <element signature="e#30852#30978#0" />
+            <element signature="e#31050#31418#0" />
+            <element signature="e#32538#37432#0" />
+            <element signature="e#33266#34334#0" />
+            <element signature="e#26341#26748#0" />
+            <element signature="e#38163#38463#0" />
+            <element signature="e#37793#39655#0" />
+            <element signature="e#31207#32017#0" />
+            <element signature="e#32073#32488#0" />
+            <element signature="e#29452#34457#0" />
+            <element signature="e#29587#30168#0" />
+            <element signature="e#29682#29952#0" />
+            <element signature="e#30478#30708#0" />
+            <element signature="e#31062#32262#0" />
+            <element signature="e#35614#36925#0" />
+            <element signature="e#36995#37163#0" />
+            <element signature="e#32349#32528#0" />
+            <element signature="e#35529#35668#0" />
+            <element signature="e#40186#40682#0" />
+            <element signature="e#49204#49865#0" />
+            <element signature="e#40149#40523#0" />
+            <element signature="e#40225#40376#0" />
+            <element signature="e#36743#36830#0" />
+            <element signature="e#48257#48354#0" />
+            <element signature="e#40695#40792#0" />
+            <element signature="e#40531#40648#0" />
+            <element signature="e#40707#40821#0" />
+            <element signature="e#45017#45364#0" />
+            <marker date="1588838700406" expanded="true" signature="5769:6181" ph="..." />
+            <marker date="1588838700406" expanded="true" signature="8733:10584" ph="..." />
+            <marker date="1588838700406" expanded="true" signature="9431:9506" ph="..." />
+            <marker date="1588838700406" expanded="true" signature="9961:10019" ph="..." />
+            <marker date="1588838700406" expanded="true" signature="11385:11532" ph="..." />
+            <marker date="1588838700406" expanded="true" signature="11656:11803" ph="..." />
+            <marker date="1588838700406" expanded="true" signature="11834:11843" ph="..." />
+            <marker date="1588838700406" expanded="true" signature="13501:13568" ph="..." />
+            <marker date="1588838700406" expanded="true" signature="13957:13962" ph="..." />
+            <marker date="1588838700406" expanded="true" signature="14465:14747" ph="..." />
+            <marker date="1588838700406" expanded="true" signature="17517:17621" ph="..." />
+            <marker date="1588838700406" expanded="true" signature="18845:18862" ph="..." />
+            <marker date="1588838700406" expanded="true" signature="18893:19067" ph="..." />
+            <marker date="1588838700406" expanded="true" signature="21521:21530" ph="..." />
+            <marker date="1588838700406" expanded="true" signature="21641:21646" ph="..." />
+            <marker date="1588838700406" expanded="true" signature="33942:33951" ph="..." />
+            <marker date="1588838700406" expanded="true" signature="47171:47176" ph="..." />
+            <marker date="1588838700406" expanded="true" signature="47227:47818" ph="..." />
+            <marker date="1588838700406" expanded="true" signature="48734:49912" ph="..." />
+            <marker date="1588838700406" expanded="true" signature="49948:50337" ph="..." />
+            <marker date="1588838700406" expanded="true" signature="51101:51203" ph="..." />
+            <marker date="1588838700406" expanded="true" signature="52721:52726" ph="..." />
+            <marker date="1588838700406" expanded="true" signature="55469:55840" ph="..." />
+            <marker date="1588838700406" expanded="true" signature="59316:59319" ph="..." />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/__init__.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="422">
+          <caret line="36" column="71" selection-start-line="36" selection-start-column="71" selection-end-line="36" selection-end-column="71" />
+        </state>
+      </provider>
+    </entry>
+  </component>
+</project>
