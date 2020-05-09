@@ -383,13 +383,13 @@ class PS_OT_draw_mesh(Operator):
                 context.area.tag_redraw()
 
                
-                if settings.draw == False:
+                if settings.draw_advance == False:
                     bpy.types.SpaceView3D.draw_handler_remove(self._ps_mesh_draw, 'WINDOW')
                     return {'FINISHED'}
             
 
         else:
-            settings.draw = False
+            settings.draw_advance = False
             bpy.types.SpaceView3D.draw_handler_remove(self._ps_mesh_draw, 'WINDOW')
             return {'FINISHED'}
 
