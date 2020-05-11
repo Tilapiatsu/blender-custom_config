@@ -127,9 +127,6 @@
 [submodule "scripts/addons/fast-sculpt"]
 	path = scripts/addons/fast-sculpt
 	url = https://github.com/jayanam/fast-sculpt.git
-[submodule "scripts/addons/Export-Paper-Model"]
-	path = scripts/addons/Export-Paper-Model
-	url = https://github.com/addam/Export-Paper-Model-from-Blender.git
 [submodule "scripts/GIT/Blender-Addons"]
 	path = scripts/GIT/Blender-Addons
 	url = https://github.com/baldingwizard/Blender-Addons.git
@@ -199,3 +196,6 @@
 [submodule "scripts/addons/BlendLuxCore"]
 	path = scripts/addons/BlendLuxCore
 	url = https://github.com/LuxCoreRender/BlendLuxCore.git
+[submodule "scripts/GIT/Export-Paper-Model"]
+	path = scripts/GIT/Export-Paper-Model
+	url = https://github.com/addam/Export-Paper-Model-from-Blender.git
