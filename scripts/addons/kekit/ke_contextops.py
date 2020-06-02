@@ -2,7 +2,7 @@ bl_info = {
 	"name": "keContextOps",
 	"author": "Kjell Emanuelsson",
 	"category": "Modeling",
-	"version": (1, 0, 0),
+	"version": (1, 3, 1),
 	"blender": (2, 80, 0),
 }
 
@@ -42,7 +42,7 @@ class MESH_OT_ke_contextbevel(Operator):
 class MESH_OT_ke_contextextrude(Operator):
 	bl_idname = "mesh.ke_contextextrude"
 	bl_label = "Context Extrude"
-	bl_description = "VERTS selected: Vertex Extrude, EDGES: Edge Extrude, POLYS: Face extrude (Normal)"
+	bl_description = "VERTS selected: Vertex Extrude, EDGES: Edge Extrude, POLYS: Face Extrude Normal (Region)"
 
 	@classmethod
 	def poll(cls, context):
@@ -229,13 +229,13 @@ class VIEW3D_OT_ke_selmode(Operator):
 
 	def execute(self, context):
 		em = self.edit_mode
-		sel_mode = bpy.context.mode
 		obj = bpy.context.active_object
 		hit_obj = False
 		mouse_over = bpy.context.scene.kekit.selmode_mouse
 
 		if mouse_over:
-			bpy.ops.object.mode_set(mode="OBJECT")
+			if context.object.type == 'MESH':
+				bpy.ops.object.mode_set(mode="OBJECT")
 			hit_obj, hit_wloc, hit_normal, hit_face = mouse_raycast(context, self.mouse_pos)
 
 			if hit_obj:
@@ -249,18 +249,13 @@ class VIEW3D_OT_ke_selmode(Operator):
 						o.select_set(True)
 						context.view_layer.objects.active = o
 						break
-			else:
-				bpy.ops.object.mode_set(mode='EDIT')
 
 		if obj.type == 'MESH' and not hit_obj:
 			if em != 'OBJECT':
-				if sel_mode == 'OBJECT':
-					bpy.ops.object.mode_set(mode='EDIT')
-					bpy.ops.mesh.select_mode(type=em)
-				else:
-					bpy.ops.mesh.select_mode(type=em)
+				bpy.ops.object.mode_set(mode="EDIT")
+				bpy.ops.mesh.select_mode(type=em)
 			else:
-				bpy.ops.object.editmode_toggle()
+				bpy.ops.object.mode_set(mode="OBJECT")
 
 		elif mouse_over and hit_obj and em != 'OBJECT':
 			bpy.ops.object.mode_set(mode='EDIT')

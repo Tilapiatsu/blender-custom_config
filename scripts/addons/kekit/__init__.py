@@ -2,7 +2,7 @@ bl_info = {
 	"name": "keKIT",
 	"author": "Kjell Emanuelsson",
 	"category": "Modeling",
-	"version": (1, 2, 90),
+	"version": (1, 3, 1, 0),
 	"blender": (2, 80, 0),
 	"location": "View3D > Sidebar",
 	"warning": "",
@@ -34,15 +34,49 @@ from . import ke_direct_loop_cut
 from . import ke_mouse_flip
 from . import ke_mouse_mirror
 from . import ke_quickmeasure
+from . import ke_fit2grid
+from . import ke_collision
 
 import bpy
 from bpy.types import Panel
 
-nfo = "keKit v1.290"
+nfo = "keKit v1.31"
 
 # -------------------------------------------------------------------------------------------------
 # SUB MENU PANELS
 # -------------------------------------------------------------------------------------------------
+class VIEW3D_PT_kekit_modeling(Panel):
+	bl_label = "Modeling"
+	bl_space_type = 'VIEW_3D'
+	bl_region_type = 'UI'
+	bl_category = 'keKIT'
+
+	def draw(self, context):
+		layout = self.layout
+		col = layout.column(align=True)
+		col.operator('MESH_OT_primitive_box_add', text="Add Box Primitive", icon='MESH_CUBE')
+		col.operator('VIEW3D_OT_ke_object_to_cursor', text="Align Object(s) to Cursor")
+		col.operator('VIEW3D_OT_origin_to_selected', text="Object Origin(s) to Selection")
+		col.operator('VIEW3D_OT_ke_origin_to_cursor', text="Align Origin(s) to Cursor")
+		col.operator('MESH_OT_merge_to_mouse', icon="MOUSE_MOVE", text="Merge To Mouse")
+		col.operator('VIEW3D_OT_ke_ground', text="Ground or Center")
+		row = layout.row(align=True)
+		row.operator('MESH_OT_ke_itemize', text="Itemize").mode = "DEFAULT"
+		row.operator('MESH_OT_ke_itemize', text="Itemize-Copy").mode = "DUPE"
+		col.separator()
+		col.operator('MESH_OT_ke_unbevel', text="Unbevel")
+		col = layout.column(align=True)
+		col.operator('MESH_OT_ke_direct_loop_cut', text="Direct Loop Cut").mode = "DEFAULT"
+		col.operator('MESH_OT_ke_direct_loop_cut', text="Direct Loop Cut & Slide").mode = "SLIDE"
+
+		col = layout.column(align=True)
+		col.operator('VIEW3D_OT_ke_fit2grid', text="Fit2Grid")
+		col.prop(context.scene.kekit, "fit2grid", text="Grid Size:")
+		row = layout.row(align=True)
+		row.operator('VIEW3D_OT_ke_collision', text="BBox").col_type = "BOX"
+		row.operator('VIEW3D_OT_ke_collision', text="Convex Hull").col_type = "CONVEX"
+
+
 class VIEW3D_PT_Context_Tools(Panel):
 	bl_label = "Context Tools"
 	bl_space_type = 'VIEW_3D'
@@ -108,6 +142,11 @@ class VIEW3D_PT_PieMenus(Panel):
 		layout.label(text="ke Pie Menus")
 		pie = layout.menu_pie().column()
 		pie.operator("wm.call_menu_pie", text="keSnapping", icon="DOT").name = "VIEW3D_MT_ke_pie_snapping"
+		pie.operator("wm.call_menu_pie", text="keFit2Grid", icon="DOT").name = "VIEW3D_MT_ke_pie_fit2grid"
+		pie.operator("wm.call_menu_pie", text="keFit2Grid Micro", icon="DOT").name = "VIEW3D_MT_ke_pie_fit2grid_micro"
+		pie.operator("wm.call_menu_pie", text="keOrientPivot", icon="DOT").name = "VIEW3D_MT_ke_pie_orientpivot"
+		pie.operator("wm.call_menu_pie", text="keOverlays", icon="DOT").name = "VIEW3D_MT_ke_pie_overlays"
+		pie.operator("wm.call_menu_pie", text="keShading", icon="DOT").name = "VIEW3D_MT_ke_pie_shading"
 
 
 # Orientation & Pivot combo panels
@@ -212,7 +251,7 @@ class VIEW3D_PT_Mouse_Mirror(Panel):
 	bl_space_type = 'VIEW_3D'
 	bl_region_type = 'UI'
 	bl_category = 'keKIT'
-	bl_parent_id = "VIEW3D_PT_kekit"
+	bl_parent_id = "VIEW3D_PT_kekit_modeling"
 	bl_options = {'DEFAULT_CLOSED'}
 
 	def draw(self, context):
@@ -229,7 +268,7 @@ class VIEW3D_PT_Mouse_Flip(Panel):
 	bl_space_type = 'VIEW_3D'
 	bl_region_type = 'UI'
 	bl_category = 'keKIT'
-	bl_parent_id = "VIEW3D_PT_kekit"
+	bl_parent_id = "VIEW3D_PT_kekit_modeling"
 	bl_options = {'DEFAULT_CLOSED'}
 
 	def draw(self, context):
@@ -246,7 +285,7 @@ class VIEW3D_PT_FitPrim(Panel):
 	bl_space_type = 'VIEW_3D'
 	bl_region_type = 'UI'
 	bl_category = 'keKIT'
-	bl_parent_id = "VIEW3D_PT_kekit"
+	bl_parent_id = "VIEW3D_PT_kekit_modeling"
 	bl_options = {'DEFAULT_CLOSED'}
 
 	def draw(self, context):
@@ -274,7 +313,7 @@ class VIEW3D_PT_Unrotator(Panel):
 	bl_space_type = 'VIEW_3D'
 	bl_region_type = 'UI'
 	bl_category = 'keKIT'
-	bl_parent_id = "VIEW3D_PT_kekit"
+	bl_parent_id = "VIEW3D_PT_kekit_modeling"
 	bl_options = {'DEFAULT_CLOSED'}
 
 	def draw(self, context):
@@ -304,7 +343,6 @@ class VIEW3D_PT_kekit(Panel):
 	# bl_options = {'HIDE_HEADER'}
 
 	def draw(self, context):
-		# kwm = context.window_manager.kekit
 		layout = self.layout
 		col = layout.column(align=True)
 		# col.operator('wm.url_open', text="Help (web)").url="artbykjell.com"  # IE11 ?!
@@ -327,28 +365,15 @@ class VIEW3D_PT_kekit(Panel):
 		col.operator("MESH_OT_ke_select_boundary", text="Select Boundary (+Active)")
 		col.operator('VIEW3D_OT_ke_get_set_editmesh', icon="MOUSE_MOVE", text="Get & Set Edit Mode")
 		col.operator('VIEW3D_OT_ke_get_set_material', icon="MOUSE_MOVE", text="Get & Set Material")
-
-		col = layout.column(align=True)
-		col.separator()
-		# col.label(text="Modeling")
-		col.operator('MESH_OT_primitive_box_add', text="Add Box Primitive", icon = 'MESH_CUBE')
-		col.operator('VIEW3D_OT_origin_to_selected', text="Object Origin(s) to Selection")
-		col.operator('MESH_OT_merge_to_mouse',icon="MOUSE_MOVE", text="Merge To Mouse")
-		col.operator('VIEW3D_OT_ke_ground', text="Ground (or Center)")
-		row = layout.row(align=True)
-		row.operator('MESH_OT_ke_itemize', text="Itemize").mode = "DEFAULT"
-		row.operator('MESH_OT_ke_itemize', text="Itemize-Copy").mode = "DUPE"
-		col.separator()
-		col.operator('MESH_OT_ke_unbevel', text="Unbevel")
-		col = layout.column(align=True)
-		col.operator('MESH_OT_ke_direct_loop_cut', text="Direct Loop Cut").mode = "DEFAULT"
-		col.operator('MESH_OT_ke_direct_loop_cut', text="Direct Loop Cut & Slide").mode = "SLIDE"
 		col = layout.column(align=True)
 		col.operator('VIEW3D_OT_ke_overlays', text="Object Wireframe Toggle").overlay = "WIRE"
 		col.operator('VIEW3D_OT_ke_overlays', text="Extras Toggle").overlay = "EXTRAS"
+		row = layout.row(align=True)
+		row.operator('VIEW3D_OT_ke_focusmode', text="Focus Mode").supermode = False
+		row.operator('VIEW3D_OT_ke_focusmode', text="Super Focus Mode").supermode = True
 		col = layout.column(align=True)
 		col.operator('VIEW3D_OT_ke_quickmeasure', text="Quick Measure")
-		col.prop(context.scene.kekit, "quickmeasure", text="QM Auto-Update Default")
+		# col.prop(context.scene.kekit, "quickmeasure", text="QM Auto-Update Default")
 
 
 # -------------------------------------------------------------------------------------------------
@@ -357,6 +382,7 @@ class VIEW3D_PT_kekit(Panel):
 
 panels = (
 		VIEW3D_PT_kekit,
+		VIEW3D_PT_kekit_modeling,
 		VIEW3D_PT_Context_Tools,
 		VIEW3D_PT_OPC,
 		VIEW3D_PT_PieMenus,
@@ -381,6 +407,7 @@ def update_panel(self, context):
 # -------------------------------------------------------------------------------------------------
 classes = (
 	VIEW3D_PT_kekit,
+	VIEW3D_PT_kekit_modeling,
 	VIEW3D_PT_Unrotator,
 	VIEW3D_PT_FitPrim,
 	VIEW3D_PT_Context_Tools,
@@ -415,6 +442,8 @@ modules = (
 	ke_mouse_flip,
 	ke_mouse_mirror,
 	ke_quickmeasure,
+	ke_fit2grid,
+	ke_collision,
 )
 
 

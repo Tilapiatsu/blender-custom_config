@@ -2,14 +2,14 @@ bl_info = {
     "name": "keFitPrim",
     "author": "Kjell Emanuelsson",
     "category": "Modeling",
-    "version": (1, 1, 1),
+    "version": (1, 3, 0),
     "blender": (2, 80, 0),
 }
 import bpy
 import blf
 import bmesh
 from .ke_utils import get_loops, average_vector, get_distance, correct_normal, get_midpoint, get_closest_midpoint, \
-    rotation_from_vector, point_to_plane, get_islands
+    rotation_from_vector, point_to_plane, get_selection_islands
 from mathutils import Vector, Matrix
 from math import cos, pi
 from bpy_extras.view3d_utils import region_2d_to_location_3d
@@ -109,6 +109,9 @@ class VIEW3D_OT_ke_fitprim(bpy.types.Operator):
     name="FitPrim Options",
         default="BOX")
 
+    ke_fitprim_itemize: bpy.props.BoolProperty(
+        name="Make Object", description="Makes new object from edit mesh fitprim", default=False)
+
     itemize = True
     boxmode = True
     sphere = False
@@ -169,6 +172,7 @@ class VIEW3D_OT_ke_fitprim(bpy.types.Operator):
                 bpy.ops.mesh.select_all(action='DESELECT')
 
             bpy.context.space_data.overlay.show_cursor = True
+            self.ke_fitprim_itemize = False
             return {'FINISHED'}
 
         return {'RUNNING_MODAL'}
@@ -184,7 +188,11 @@ class VIEW3D_OT_ke_fitprim(bpy.types.Operator):
         elif self.ke_fitprim_option == "QUADSPHERE":
             self.boxmode, self.world, self.sphere = False, False, True
 
-        self.itemize = bpy.context.scene.kekit.fitprim_item
+        if bpy.context.scene.kekit.fitprim_item:
+            self.itemize = True
+        else:
+            self.itemize = self.ke_fitprim_itemize
+
         self.modal = bpy.context.scene.kekit.fitprim_modal
         self.cyl_sides = bpy.context.scene.kekit.fitprim_sides
         self.select = bpy.context.scene.kekit.fitprim_select
@@ -464,24 +472,17 @@ class VIEW3D_OT_ke_fitprim(bpy.types.Operator):
                         # print("Multi obj Point to plane failed for some reason - using single island mode.")
                         island_mode = False
 
-            else: # same (active) obj island selections
-                islands = get_islands(bm, sel_verts)
-                if len(islands) > 1:
-                    active_verts = [v for v in active_face.verts]
-                    for island in islands:
-                        if active_verts[0] in island:
-                            first_island = island
-                            islands.remove(island)
-                            island_mode = True
-                            break
+            else:  # same (active) obj island selections
+                first_island, second_island = get_selection_islands(sel_poly, active_face)
 
-                    island2 = [p for island in islands for p in island]
-                    firstcos = [obj_mtx @ v.co for v in first_island] # needs order sort
-                    secondcos = [obj_mtx @ v.co for v in island2]
-
+                if len(first_island) != 0 and len(second_island) != 0:
+                    firstcos = [obj_mtx @ v.co for v in first_island]  # needs order sort
+                    secondcos = [obj_mtx @ v.co for v in second_island]
                     distance = point_to_plane(obj_mtx @ active_face.calc_center_median(), firstcos, secondcos)
+
                     if distance:
                         distance = abs(distance)
+                        island_mode = True
                     else:
                         # print("Point to plane failed for some reason - using single island mode.")
                         island_mode = False
@@ -489,11 +490,10 @@ class VIEW3D_OT_ke_fitprim(bpy.types.Operator):
                     # Ngon mode
                     first_island = sel_verts
 
-
             # GET PRIMARY SELECTION VALUES
             ngoncheck = len(active_face.verts)
             if sel_mode[2] and len(sel_verts) < 4:
-                ngoncheck = 5 # todo: better solution for tris...
+                ngoncheck = 5  # todo: better solution for tris...
 
             bpy.ops.mesh.select_all(action='DESELECT')
 
@@ -536,7 +536,7 @@ class VIEW3D_OT_ke_fitprim(bpy.types.Operator):
             elif sel_mode[2]:
                 if island_mode:
                     side *= .5
-                    offset = normal * distance / 2
+                    offset = normal * distance * .5
                     distance *= .5
                     if self.sphere:
                         side = distance
@@ -551,7 +551,7 @@ class VIEW3D_OT_ke_fitprim(bpy.types.Operator):
 
             # SET FINAL ROTATION
             if self.world:
-                setrot = (0,0,0)
+                setrot = (0, 0, 0)
             else:
                 setrot = setrot.to_euler()
 
@@ -582,7 +582,8 @@ class VIEW3D_OT_ke_fitprim(bpy.types.Operator):
 
             elif self.ke_fitprim_option == "QUADSPHERE":
                 bpy.ops.mesh.primitive_round_cube_add(align='WORLD', location=setpos, rotation=setrot, radius=side,
-                                                      size=(0, 0, 0), arc_div=self.quadsphere_seg, lin_div=0, div_type='CORNERS')
+                                                      size=(0, 0, 0), arc_div=self.quadsphere_seg, lin_div=0,
+                                                      div_type='CORNERS')
 
                 if self.itemize or self.edit_mode == "OBJECT":
                     bpy.ops.object.shade_smooth()
@@ -601,7 +602,8 @@ class VIEW3D_OT_ke_fitprim(bpy.types.Operator):
                     context.window_manager.modal_handler_add(self)
 
                     args = (self, context, self.screen_x)
-                    self._handle = bpy.types.SpaceView3D.draw_handler_add(draw_callback_px, args, 'WINDOW','POST_PIXEL')
+                    self._handle = bpy.types.SpaceView3D.draw_handler_add(draw_callback_px, args, 'WINDOW',
+                                                                          'POST_PIXEL')
                     bpy.context.space_data.overlay.show_cursor = False
                     return {'RUNNING_MODAL'}
 
@@ -621,7 +623,9 @@ class VIEW3D_OT_ke_fitprim(bpy.types.Operator):
             bpy.ops.view3d.snap_cursor_to_center()
             bpy.context.active_object.select_set(state=True)
 
+        self.ke_fitprim_itemize = False
         return {"FINISHED"}
+
 
 # -------------------------------------------------------------------------------------------------
 # Class Registration & Unregistration

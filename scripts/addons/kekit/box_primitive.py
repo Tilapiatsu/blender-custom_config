@@ -57,7 +57,8 @@ class MESH_OT_primitve_box_add(bpy.types.Operator):
     """Add a simple box mesh"""
     bl_idname = "mesh.primitive_box_add"
     bl_label = "Box"
-    bl_description = "Creates a Box Primitive. Cube tool, but with more settings. (from Blender Default Template)"
+    bl_description = "Creates a Box Primitive. Cube tool, but with more settings. (from Blender Default Template) \n" \
+                     "HOTKEY NOTE: When using WORLD as default new object align: Un-grey the rotation part in hotkey settings for cursor align to work."
     bl_options = {'REGISTER', 'UNDO'}
 
     width: FloatProperty(

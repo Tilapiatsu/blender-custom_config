@@ -1,5 +1,5 @@
 import bpy
-from bpy.types import Menu, Operator
+from bpy.types import Menu, Operator, Panel
 
 # -------------------------------------------------------------------------------------------------
 # Operators
@@ -18,6 +18,9 @@ class VIEW3D_OT_ke_pieops(Operator):
             context.tool_settings.use_snap_grid_absolute = not context.tool_settings.use_snap_grid_absolute
 
         return {'FINISHED'}
+
+
+
 
 class VIEW3D_OT_ke_snap_target(Operator):
     bl_idname = "ke.snap_target"
@@ -85,7 +88,7 @@ class VIEW3D_OT_ke_snap_element(Operator):
 
 
 # -------------------------------------------------------------------------------------------------
-# Custom Pie Menus
+# Custom Pie Menus    Note: COMPASS STYLE REF PIE SLOT POSITIONS:   W, E, S, N, NW, NE, SW, SE
 # -------------------------------------------------------------------------------------------------
 
 class VIEW3D_MT_PIE_ke_snapping(Menu):
@@ -135,10 +138,7 @@ class VIEW3D_MT_PIE_ke_snapping(Menu):
         else:
             cbox.operator("ke.snap_target", text="Closest", icon="NORMALS_VERTEX_FACE", depress=True).ke_snaptarget = "CLOSEST"
 
-        # gap = pie.column()
-        # gap.scale_y = 7
         pie = layout.menu_pie()
-
         pie.operator("ke.snap_element", text="Vertex", icon="SNAP_VERTEX").ke_snapelement = "VERTEX"
         pie.operator("ke.snap_element", text="Element Mix", icon="SNAP_ON").ke_snapelement = "MIX"
         pie.operator("ke.snap_element", text="Increment/Grid", icon="SNAP_GRID").ke_snapelement = "INCREMENT"
@@ -147,14 +147,347 @@ class VIEW3D_MT_PIE_ke_snapping(Menu):
         pie.separator()
         pie.operator("ke.snap_element", text="Face", icon="SNAP_FACE").ke_snapelement = "FACE"
 
+
+
+class VIEW3D_MT_PIE_ke_fit2grid(Menu):
+    bl_label = "keFit2Grid"
+    bl_idname = "VIEW3D_MT_ke_pie_fit2grid"
+
+    def draw(self, context):
+        layout = self.layout
         pie = layout.menu_pie()
+        pie.operator("view3d.ke_fit2grid", text="50cm").set_grid = 0.5
+        pie.operator("view3d.ke_fit2grid", text="5cm").set_grid = 0.05
+        pie.operator("view3d.ke_fit2grid", text="15cm").set_grid = 0.15
+        pie.operator("view3d.ke_fit2grid", text="1cm").set_grid = 0.01
+        pie.operator("view3d.ke_fit2grid", text="1m").set_grid = 1.0
+        pie.operator("view3d.ke_fit2grid", text="2.5cm").set_grid = 0.025
+        pie.operator("view3d.ke_fit2grid", text="25cm").set_grid = 0.25
+        pie.operator("view3d.ke_fit2grid", text="10cm").set_grid = 0.1
+
+
+class VIEW3D_MT_PIE_ke_fit2grid_micro(Menu):
+    bl_label = "keFit2Grid_micro"
+    bl_idname = "VIEW3D_MT_ke_pie_fit2grid_micro"
+
+    def draw(self, context):
+        layout = self.layout
+        pie = layout.menu_pie()
+        pie.operator("view3d.ke_fit2grid", text="5mm").set_grid = 0.005
+        pie.operator("view3d.ke_fit2grid", text="5µm").set_grid = 0.0005
+        pie.operator("view3d.ke_fit2grid", text="1.5mm").set_grid = 0.0015
+        pie.operator("view3d.ke_fit2grid", text="1µm").set_grid = 0.0001
+        pie.operator("view3d.ke_fit2grid", text="1cm").set_grid = 0.01
+        pie.operator("view3d.ke_fit2grid", text="2.5µm").set_grid = 0.00025
+        pie.operator("view3d.ke_fit2grid", text="5µm").set_grid = 0.0005
+        pie.operator("view3d.ke_fit2grid", text="1mm").set_grid = 0.001
+
+
+class VIEW3D_MT_PIE_ke_overlays(Menu):
+    bl_label = "keOverlays"
+    bl_idname = "VIEW3D_MT_ke_pie_overlays"
+
+    def draw(self, context):
+        layout = self.layout
+        pie = layout.menu_pie()
+
         c = pie.column()
         cbox = c.box().column()
+        cbox.scale_y = 1.3
+
+        if bpy.context.space_data.shading.show_backface_culling:
+            cbox.operator("view3d.ke_overlays", text="Backface Culling", icon="XRAY", depress=True).overlay = "BACKFACE"
+        else:
+            cbox.operator("view3d.ke_overlays", text="Backface Culling", icon="XRAY", depress=False).overlay = "BACKFACE"
 
 
-# class VIEW3D_MT_PIE_ke_shading(Menu):
-#     bl_label = "keShading"
-#     bl_idname = "VIEW3D_MT_ke_pie_shading"
+
+        if bpy.context.space_data.overlay.show_extra_indices:
+            cbox.operator("view3d.ke_overlays", text="Indices", icon="LINENUMBERS_ON", depress=True).overlay = "INDICES"
+        else:
+            cbox.operator("view3d.ke_overlays", text="Indices", icon="LINENUMBERS_ON", depress=False).overlay = "INDICES"
+
+        if bpy.context.space_data.overlay.show_extras:
+            cbox.operator("view3d.ke_overlays", text="Extras", icon="LIGHT_SUN", depress=True).overlay = "EXTRAS"
+        else:
+            cbox.operator("view3d.ke_overlays", text="Extras", icon="LIGHT_SUN", depress=False).overlay = "EXTRAS"
+
+        if bpy.context.space_data.overlay.show_cursor:
+            cbox.operator("view3d.ke_overlays", text="Cursor", icon="CURSOR", depress=True).overlay = "CURSOR"
+        else:
+            cbox.operator("view3d.ke_overlays", text="Cursor", icon="CURSOR", depress=False).overlay = "CURSOR"
+
+        if bpy.context.space_data.overlay.show_object_origins:
+            cbox.operator("view3d.ke_overlays", text="Origins", icon="OBJECT_ORIGIN", depress=True).overlay = "ORIGINS"
+        else:
+            cbox.operator("view3d.ke_overlays", text="Origins", icon="OBJECT_ORIGIN", depress=False).overlay = "ORIGINS"
+
+        if bpy.context.space_data.overlay.show_outline_selected:
+            cbox.operator("view3d.ke_overlays", text="Outline", icon="MESH_CIRCLE", depress=True).overlay = "OUTLINE"
+        else:
+            cbox.operator("view3d.ke_overlays", text="Outline", icon="MESH_CIRCLE", depress=False).overlay = "OUTLINE"
+
+        cbox.separator()
+        try:
+            if bpy.context.scene.ke_focus[0] or not bpy.context.scene.ke_focus[0]:  #silly existance check
+
+                if not bpy.context.scene.ke_focus[0] and not bpy.context.scene.ke_focus[10]:
+                    cbox.operator("view3d.ke_focusmode", text="Focus Mode", icon="FULLSCREEN_ENTER",
+                                  depress=False).supermode = False
+                    cbox.operator("view3d.ke_focusmode", text="Super Focus Mode", icon="FULLSCREEN_ENTER",
+                                  depress=False).supermode = True
+
+                elif bpy.context.scene.ke_focus[0] and not bpy.context.scene.ke_focus[10]:
+                    cbox.operator("view3d.ke_focusmode", text="Focus Mode (Off)", icon="FULLSCREEN_EXIT",
+                                  depress=True).supermode = False
+
+                elif bpy.context.scene.ke_focus[10]:
+                    cbox.operator("view3d.ke_focusmode", text="Super Focus Mode (Off)", icon="FULLSCREEN_EXIT",
+                                  depress=True).supermode = True
+
+        except:
+            cbox.operator("view3d.ke_focusmode", text="Focus Mode", icon="FULLSCREEN_ENTER",
+                          depress=False).supermode = False
+            cbox.operator("view3d.ke_focusmode", text="Super Focus", icon="FULLSCREEN_ENTER",
+                          depress=False).supermode = True
+
+        c = pie.column()
+        cbox = c.box().column()
+        cbox.scale_y = 1.3
+        if bpy.context.space_data.overlay.show_edge_seams:
+            cbox.operator("view3d.ke_overlays", text="Edge Seams", icon="UV_ISLANDSEL", depress=True).overlay = "SEAMS"
+        else:
+            cbox.operator("view3d.ke_overlays", text="Edge Seams", icon="UV_ISLANDSEL", depress=False).overlay = "SEAMS"
+
+        if bpy.context.space_data.overlay.show_edge_sharp:
+            cbox.operator("view3d.ke_overlays", text="Edge Sharp", icon="MESH_CUBE", depress=True).overlay = "SHARP"
+        else:
+            cbox.operator("view3d.ke_overlays", text="Edge Sharp", icon="MESH_CUBE", depress=False).overlay = "SHARP"
+
+        if bpy.context.space_data.overlay.show_edge_crease:
+            cbox.operator("view3d.ke_overlays", text="Edge Crease", icon="META_CUBE", depress=True).overlay = "CREASE"
+        else:
+            cbox.operator("view3d.ke_overlays", text="Edge Crease", icon="META_CUBE", depress=False).overlay = "CREASE"
+
+        if bpy.context.space_data.overlay.show_edge_bevel_weight:
+            cbox.operator("view3d.ke_overlays", text="Edge Bevel Weight", icon="MOD_BEVEL", depress=True).overlay = "BEVEL"
+        else:
+            cbox.operator("view3d.ke_overlays", text="Edge Bevel Weight", icon="MOD_BEVEL", depress=False).overlay = "BEVEL"
+
+        cbox.separator()
+        if bpy.context.space_data.overlay.show_vertex_normals:
+            cbox.operator("view3d.ke_overlays", text="Vertex Normals", icon="NORMALS_VERTEX", depress=True).overlay = "VN"
+        else:
+            cbox.operator("view3d.ke_overlays", text="Vertex Normals", icon="NORMALS_VERTEX", depress=False).overlay = "VN"
+
+        if bpy.context.space_data.overlay.show_split_normals:
+            cbox.operator("view3d.ke_overlays", text="Split Normals", icon="NORMALS_VERTEX_FACE", depress=True).overlay = "SN"
+        else:
+            cbox.operator("view3d.ke_overlays", text="Split Normals", icon="NORMALS_VERTEX_FACE", depress=False).overlay = "SN"
+
+        if bpy.context.space_data.overlay.show_face_normals:
+            cbox.operator("view3d.ke_overlays", text="Face Normals", icon="NORMALS_FACE", depress=True).overlay = "FN"
+        else:
+            cbox.operator("view3d.ke_overlays", text="Face Normals", icon="NORMALS_FACE", depress=False).overlay = "FN"
+
+        cbox.separator()
+        if bpy.context.space_data.overlay.show_face_orientation:
+            cbox.operator("view3d.ke_overlays", text="Face Orientation", icon="FACESEL", depress=True).overlay = "FACEORIENT"
+        else:
+            cbox.operator("view3d.ke_overlays", text="Face Orientation", icon="FACESEL", depress=False).overlay = "FACEORIENT"
+
+        pie = layout.menu_pie()
+        pie.operator("view3d.ke_overlays", text="All Overlays", icon="OVERLAY").overlay = "ALL"
+        pie.operator("view3d.ke_overlays", text="All Edge Overlays", icon="UV_EDGESEL").overlay = "ALLEDIT"
+        # pie.separator()
+
+
+class VIEW3D_MT_PIE_ke_orientpivot(Menu):
+    bl_label = "keOrientPivot"
+    bl_idname = "VIEW3D_MT_ke_pie_orientpivot"
+
+    def draw(self, context):
+        mode = bpy.context.mode
+        obj = context.active_object
+        layout = self.layout
+        pie = layout.menu_pie()
+
+        c = pie.column()
+        cbox = c.box().column()
+        cbox.scale_y = 1.3
+        cbox.prop(context.scene.transform_orientation_slots[0], "type", expand=True)
+        cbox.separator()
+        cbox.separator()
+        cbox.operator("view3d.ke_opc", text=" O&P Combo 3  ", icon="HANDLETYPE_FREE_VEC").combo = "3"
+
+        c = pie.column()
+        cbox = c.box().column()
+        cbox.scale_y = 1.3
+
+        cbox.prop_enum(context.scene.tool_settings, "transform_pivot_point", value='BOUNDING_BOX_CENTER')
+        cbox.prop_enum(context.scene.tool_settings, "transform_pivot_point", value='CURSOR')
+        cbox.prop_enum(context.scene.tool_settings, "transform_pivot_point", value='INDIVIDUAL_ORIGINS')
+        cbox.prop_enum(context.scene.tool_settings, "transform_pivot_point", value='MEDIAN_POINT')
+        cbox.prop_enum(context.scene.tool_settings, "transform_pivot_point", value='ACTIVE_ELEMENT')
+        if (obj is None) or (mode in {'OBJECT', 'POSE', 'WEIGHT_PAINT'}):
+            cbox.prop(context.scene.tool_settings, "use_transform_pivot_point_align")
+        else:
+            cbox.separator()
+            cbox.separator()
+        cbox.separator()
+        cbox.separator()
+        cbox.operator("view3d.ke_opc", text="O&P Combo 4", icon="HANDLETYPE_FREE_VEC").combo = "4"
+
+        # pie.separator()
+        pie.operator("view3d.ke_opc", text="O&P Combo 1", icon="KEYTYPE_BREAKDOWN_VEC").combo = "1"
+        pie.operator("view3d.ke_opc", text="O&P Combo 2", icon="KEYTYPE_JITTER_VEC").combo = "2"
+
+
+class VIEW3D_MT_PIE_ke_shading(Menu):
+    bl_label = "keShading"
+    bl_idname = "VIEW3D_MT_ke_pie_shading"
+
+    def get_shading(cls, context):
+        # Get settings from 3D viewport or OpenGL render engine
+        view = context.space_data
+        if view.type == 'VIEW_3D':
+            return view.shading
+        else:
+            return context.scene.display.shading
+
+    def draw(self, context):
+        view = context.space_data
+        layout = self.layout
+        shading = self.get_shading(context)
+        pie = layout.menu_pie()
+
+        # SLOT --------------------------------------------------------------------------------
+        pie.prop(view.shading, "type", expand=True)
+
+        # SLOT --------------------------------------------------------------------------------
+        if shading.type == 'RENDERED':
+            c = pie.row()
+            col = c.box().column()
+            col.prop(shading, "use_scene_lights")
+            col.prop(shading, "use_scene_world")
+            col.separator()
+            col.prop(shading, "render_pass", text="")
+
+            spacer = c.column()
+            spacer.label(text="")
+        else:
+            pie.separator()
+
+        # SLOT --------------------------------------------------------------------------------
+        if shading.type == 'SOLID' and shading.light != 'FLAT':
+            spacer = pie.row()
+            spacer.label(text="")
+
+            col = spacer.box().column()
+            sub = col.row()
+
+            if shading.light == 'STUDIO':
+                prefs = context.preferences
+                system = prefs.system
+
+                if not system.use_studio_light_edit:
+                    sub.scale_y = 0.6  # smaller studiolight preview
+                    sub.template_icon_view(shading, "studio_light", scale_popup=3.0)
+                else:
+                    sub.prop(
+                        system,
+                        "use_studio_light_edit",
+                        text="Disable Studio Light Edit",
+                        icon='NONE',
+                        toggle=True,
+                    )
+
+                sub2 = sub.column()
+                sub2.scale_y = 1.8
+                sub2.operator("preferences.studiolight_show", emboss=False, text="", icon='PREFERENCES')
+                sub2.prop(shading, "use_world_space_lighting", text="", icon='WORLD', toggle=True)
+                sub2.active = shading.use_world_space_lighting
+                sub2.prop(shading, "studiolight_rotate_z", text="")
+
+
+            elif shading.light == 'MATCAP':
+                sub.scale_y = 0.6  # smaller matcap preview
+                sub.template_icon_view(shading, "studio_light", scale_popup=3.0)
+
+                sub = sub.column()
+                sub.scale_y = 1.8
+                sub.operator("preferences.studiolight_show", emboss=False, text="", icon='PREFERENCES')
+                sub.operator("view3d.toggle_matcap_flip", emboss=False, text="", icon='ARROW_LEFTRIGHT')
+
+
+        elif shading.type == 'RENDERED' and not shading.use_scene_world:
+            spacer = pie.row()
+            spacer.label(text="")
+
+            col = spacer.box().column()
+            sub = col.row()
+            sub.scale_y = 0.6
+            sub.template_icon_view(shading, "studio_light", scale_popup=3)
+
+            sub2 = sub.column()
+            sub2.scale_y = 1.8
+            sub2.prop(shading, "studiolight_rotate_z", text="")
+            sub2.prop(shading, "studiolight_intensity", text="")
+            sub2.prop(shading, "studiolight_background_alpha", text="")
+
+            psub = sub.column()
+            psub.operator("preferences.studiolight_show", emboss=False, text="", icon='PREFERENCES')
+
+        else:
+            pie.separator()
+
+
+        # SLOT --------------------------------------------------------------------------------
+        if shading.type == 'MATERIAL':
+            c = pie.row()
+            col = c.box().column()
+            col.prop(shading, "use_scene_lights")
+            col.prop(shading, "use_scene_world")
+            col.separator()
+            col.prop(shading, "render_pass", text="")
+
+            spacer = c.column()
+            spacer.label(text="")
+        else:
+            pie.separator()
+
+
+        # SLOT --------------------------------------------------------------------------------
+        c = pie.row()
+        spacer = c.column()
+
+        if shading.type == 'SOLID':
+            spacer.label(text="")
+            col = c.box().column()
+            lights = col.row()
+            lights.prop(shading, "light", expand=True)
+            col.separator()
+            col.grid_flow(columns=3, align=True).prop(shading, "color_type", expand=True)
+            if shading.color_type == 'SINGLE':
+                col.column().prop(shading, "single_color", text="")
+
+        elif shading.type == 'MATERIAL':
+            if not shading.use_scene_world:
+                spacer.label(text="")
+
+                col = c.box().column()
+                sub = col.row()
+                sub.scale_y = 0.6
+                sub.template_icon_view(shading, "studio_light", scale_popup=3)
+
+                sub2 = sub.column()
+                sub2.scale_y = 1.8
+                sub2.prop(shading, "studiolight_rotate_z", text="")
+                sub2.prop(shading, "studiolight_intensity", text="")
+                sub2.prop(shading, "studiolight_background_alpha", text="")
+
+                psub = sub.column()
+                psub.operator("preferences.studiolight_show", emboss=False, text="", icon='PREFERENCES')
 
 
 # -------------------------------------------------------------------------------------------------
@@ -165,6 +498,11 @@ classes = (
     VIEW3D_OT_ke_snap_target,
     VIEW3D_MT_PIE_ke_snapping,
     VIEW3D_OT_ke_pieops,
+    VIEW3D_MT_PIE_ke_fit2grid,
+    VIEW3D_MT_PIE_ke_fit2grid_micro,
+    VIEW3D_MT_PIE_ke_overlays,
+    VIEW3D_MT_PIE_ke_orientpivot,
+    VIEW3D_MT_PIE_ke_shading,
     )
 
 def register():

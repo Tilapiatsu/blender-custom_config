@@ -65,6 +65,7 @@ def get_prefs(): # Everything down here floats
 		float(bpy.context.scene.kekit.fitprim_quadsphere_seg),
 		float(bpy.context.scene.kekit.quickmeasure),
 		float(bpy.context.scene.kekit.unrotator_invert),
+		round(float(bpy.context.scene.kekit.fit2grid), 4),
 	)
 	# print (set_values)
 	return set_values
@@ -75,7 +76,7 @@ def get_prefs(): # Everything down here floats
 
 path = bpy.utils.script_path_user()
 prefs_data = read_prefs()
-prefs_data_default = 0, 1, 0, 16, 32, 16, 0.2, 1, 1, 0, 1111, 2335, 1315, 6464, 1, 0, 8, 1, 0
+prefs_data_default = 0, 1, 0, 16, 32, 16, 0.2, 1, 1, 0, 1111, 2335, 1315, 6464, 1, 0, 8, 1, 0, 0.01
 o_dict = {1: "1GLOBAL", 2: "2LOCAL", 3: "3NORMAL", 4: "4GIMBAL", 5: "5VIEW", 6: "6CURSOR"}
 p_dict = {1: "1MEDIAN_POINT", 2: "2BOUNDING_BOX_CENTER", 3: "3INDIVIDUAL_ORIGINS", 4: "4CURSOR", 5: "5ACTIVE_ELEMENT"}
 
@@ -156,6 +157,8 @@ class kekit_properties(PropertyGroup):
 	quickmeasure : BoolProperty(default=bool(values[17]))
 	# 18 - default : 0
 	unrotator_invert : BoolProperty(default=bool(values[18]))
+	# 19 - default : 0.01
+	fit2grid : FloatProperty(min=.00001, max=10000, default=float(values[19]))
 
 
 class VIEW3D_OT_ke_prefs_save(Operator):

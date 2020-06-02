@@ -2,13 +2,14 @@ bl_info = {
     "name": "keUnrotator",
     "author": "Kjell Emanuelsson",
     "category": "Modeling",
-    "version": (1, 2, 9),
+    "version": (1, 3, 0),
     "blender": (2, 80, 0),
 }
 import bpy
 import bmesh
 from .ke_utils import get_loops, average_vector, get_distance, mouse_raycast
 from mathutils import Vector, Matrix
+from math import radians
 
 
 def tri_sort(vertpairs):
@@ -36,7 +37,7 @@ def tri_points_order(vcoords):
     return r
 
 
-def unrotate(n_v, v_1, v_2, inv=False, set_inv=False):
+def unrotate(n_v, v_1, v_2, inv=False, set_inv=False, act_inv=False):
     # find the better up/tangent rot
     c1 = n_v.cross(v_1).normalized()
     c2 = n_v.cross(v_2).normalized()
@@ -45,11 +46,13 @@ def unrotate(n_v, v_1, v_2, inv=False, set_inv=False):
     else:
         u_v = c1
     t_v = u_v.cross(n_v).normalized()
+
     if inv:
         rot = Matrix((t_v, u_v, n_v)).to_4x4().inverted()
     else:
         rot = Matrix((t_v, u_v, n_v)).to_4x4()
     rot = rot.to_euler()
+
     if not set_inv:
         rx, ry, rz = rot.x * -1, rot.y * -1, rot.z * -1
     else:
@@ -83,6 +86,7 @@ class VIEW3D_OT_ke_unrotator(bpy.types.Operator):
         default="DEFAULT")
 
     mouse_pos = Vector((0, 0))
+
     set_invert = False
 
     def invoke(self, context, event):
@@ -91,6 +95,11 @@ class VIEW3D_OT_ke_unrotator(bpy.types.Operator):
         return self.execute(context)
 
     def execute(self, context):
+        if bpy.app.version[0] == 2 and bpy.app.version[1] < 83:
+            self.set_invert = False
+        else:
+            self.set_invert = True
+
         sel_check, place, noloc, place, dupe = False, False, False, False, False
         vec_poslist = []
         place_coords = []
@@ -107,7 +116,7 @@ class VIEW3D_OT_ke_unrotator(bpy.types.Operator):
         connect = bpy.context.scene.kekit.unrotator_connect
         nolink = bpy.context.scene.kekit.unrotator_nolink
         nosnap = bpy.context.scene.kekit.unrotator_nosnap
-        self.set_invert = bpy.context.scene.kekit.unrotator_invert
+        actual_invert = bpy.context.scene.kekit.unrotator_invert
 
         # Check mouse over target
         bpy.ops.object.mode_set(mode="OBJECT")
@@ -252,7 +261,10 @@ class VIEW3D_OT_ke_unrotator(bpy.types.Operator):
                     v_1.negate()
                     v_2.negate()
 
-                unrotate(n_v, v_1, v_2, inv=False, set_inv=self.set_invert)
+                if actual_invert:
+                    n_v.negate()
+
+                unrotate(n_v, v_1, v_2, inv=False, set_inv=self.set_invert, act_inv=actual_invert)
 
             if place:
                 # Orient and place
@@ -268,8 +280,11 @@ class VIEW3D_OT_ke_unrotator(bpy.types.Operator):
                     v_1.negate()
                     v_2.negate()
 
+                # if actual_invert:
+                #     n_v.negate()
+
                 # ..again!
-                unrotate(n_v, v_1, v_2, inv=True, set_inv=self.set_invert)
+                unrotate(n_v, v_1, v_2, inv=True, set_inv=self.set_invert, act_inv=actual_invert)
 
                 if not noloc:
                     # Place - just using ops & cursor here...
@@ -320,8 +335,11 @@ class VIEW3D_OT_ke_unrotator(bpy.types.Operator):
                         v_1.negate()
                         v_2.negate()
 
+                    if actual_invert:
+                        n_v.negate()
+
                     bpy.ops.object.rotation_clear()
-                    unrotate(n_v, v_1, v_2, inv=True, set_inv=self.set_invert)
+                    unrotate(n_v, v_1, v_2, inv=True, set_inv=self.set_invert, act_inv=actual_invert)
 
                 if not noloc:
                     if not nosnap:

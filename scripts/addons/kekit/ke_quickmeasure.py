@@ -2,7 +2,7 @@ bl_info = {
 	"name": "keQuickMeasure",
 	"author": "Kjell Emanuelsson",
 	"category": "Modeling",
-	"version": (1, 2, 0),
+	"version": (1, 3, 6),
 	"blender": (2, 80, 0),
 }
 import bpy
@@ -116,18 +116,13 @@ def sel_check(self, context):
 				bb(self,context)
 
 	else:  # Object mode check
-		self.obj_mode = True
 		vc = []
-		for o in context.selected_editable_objects:
-			mat = o.matrix_world
-			for v in o.bound_box:
-				vco = []
-				for i in v:
-					vco.append(i)
-				vc.append(mat @ Vector(vco))
+		for o in context.selected_objects :
+			if o.type == "MESH":
+				vc.extend([o.matrix_world @ v.co for v in o.data.vertices])
 		self.vpos = vc
 		if self.vpos:
-			bb(self,context)
+			bb(self, context)
 
 
 def txt_calc(self, context):
@@ -219,12 +214,12 @@ def draw_callback_px(self, context):
 	if not self.lines:
 		blf.color(font_id, 0.5, 0.5, 0.5, 1)
 		blf.size(font_id, 15, 72)
-		blf.position(font_id, hpos, vpos + 100, 0)
+		blf.position(font_id, hpos, vpos + 86, 0)
 		blf.draw(font_id, "[ Invalid Selection ]")
 	else:
 		blf.color(font_id, 0.796, 0.7488, 0.6435, 1)
 		blf.size(font_id, 20, 72)
-		blf.position(font_id, hpos, vpos + 100, 0)
+		blf.position(font_id, hpos, vpos + 86, 0)
 
 		if self.edit_mode[1] and not self.obj_mode:
 			t = ceil(sum(self.stat * 10000)) / 10000
@@ -242,19 +237,23 @@ def draw_callback_px(self, context):
 	blf.size(font_id, 15, 72)
 	blf.position(font_id, hpos, vpos + 56, 0)
 	blf.draw(font_id, "Change / Update Mode: 1-Verts, 2-Edges, 3-Faces, 4-Objects")
-	blf.position(font_id, hpos, vpos + 36, 0)
+	blf.position(font_id, hpos, vpos + 16, 0)
 	if self.edit_mode[0]:
-		blf.draw(font_id, "Stop: Esc, Enter or Spacebar.      Toggle Vert Mode: V")
+		blf.draw(font_id, "Stop: Esc, Enter, Spacebar.      Toggle Vert Mode: V")
 	else:
-		blf.draw(font_id, "Stop: Esc, Enter or Spacebar")
+		blf.draw(font_id, "Stop: Esc, Enter, Spacebar")
+
+	blf.position(font_id, hpos, vpos + 36, 0)
+	blf.draw(font_id, "(G)rab, (R)otate, (S)cale. +XYZ +'>'")
+
 	blf.color(font_id, 0.5, 0.5, 0.5, 1)
 	blf.size(font_id, 12, 72)
-	blf.position(font_id, hpos, vpos + 15, 0)
-	if self.auto_update:
-		updmode = "Automatic Update"
-	else:
-		updmode = "Manual Update"
-	blf.draw(font_id, "Current Update Mode: %s   S: Toggle Auto/Manual" % updmode)
+	# blf.position(font_id, hpos, vpos + 15, 0)
+	# if self.auto_update:
+	# 	updmode = "Automatic Update"
+	# else:
+	# 	updmode = "Manual Update"
+	# blf.draw(font_id, "Current Update Mode: %s   S: Toggle Auto/Manual" % updmode)
 	blf.position(font_id, hpos, vpos - 3, 0)
 	blf.draw(font_id, "Navigation: Blender(MMB) or Ind.Std(Alt-). 'TAB' toggles, '4' sets/updates Object.")
 
@@ -303,8 +302,8 @@ class VIEW3D_OT_ke_quickmeasure(bpy.types.Operator):
 				self.vertmode = "Distance"
 			sel_check(self, context)
 
-		if event.type == 'S' and event.value == 'RELEASE':
-			self.auto_update = not self.auto_update
+		# if event.type == 'U' and event.value == 'RELEASE':
+		# 	self.auto_update = not self.auto_update
 
 		if context.area and self.sel_upd:
 			if self.auto_update:
@@ -316,7 +315,13 @@ class VIEW3D_OT_ke_quickmeasure(bpy.types.Operator):
 			txt_calc(self, context)
 			context.area.tag_redraw()
 
-		if event.type in {'SPACE', 'ESC', 'RETURN'}:
+		if event.alt and event.type == "LEFTMOUSE" or event.type == "MIDDLEMOUSE" or \
+				event.alt and event.type == "RIGHTMOUSE" or \
+				event.shift and event.type == "MIDDLEMOUSE" or \
+				event.ctrl and event.type == "MIDDLEMOUSE":
+			return {'PASS_THROUGH'}
+
+		elif event.type in {'SPACE', 'ESC', 'RETURN'}:
 			bpy.types.SpaceView3D.draw_handler_remove(self._handle, 'WINDOW')
 			bpy.types.SpaceView3D.draw_handler_remove(self._handle_px, 'WINDOW')
 			context.area.tag_redraw()
@@ -324,14 +329,23 @@ class VIEW3D_OT_ke_quickmeasure(bpy.types.Operator):
 			wm.event_timer_remove(self._timer)
 			return {'FINISHED'}
 
-		elif event.alt and event.type == "LEFTMOUSE" or event.type == "MIDDLEMOUSE" or \
-				event.alt and event.type == "RIGHTMOUSE" or \
-				event.shift and event.type == "MIDDLEMOUSE" or \
-				event.ctrl and event.type == "MIDDLEMOUSE":
-			return {'PASS_THROUGH'}
-
 		elif event.type == "LEFTMOUSE" or event.type == "RIGHTMOUSE":
 			self.sel_upd = True
+			return {'PASS_THROUGH'}
+
+		elif event.shift or event.ctrl or event.alt:
+			return {'PASS_THROUGH'}
+
+		elif event.type == 'G':
+			bpy.ops.transform.translate('INVOKE_DEFAULT')
+
+		elif event.type == 'R':
+			bpy.ops.transform.rotate('INVOKE_DEFAULT')
+
+		elif event.type == 'S':
+			bpy.ops.transform.resize('INVOKE_DEFAULT')
+
+		elif event.type in {'X', 'Y', 'Z', '<'}:
 			return {'PASS_THROUGH'}
 
 		else:
@@ -363,7 +377,7 @@ class VIEW3D_OT_ke_quickmeasure(bpy.types.Operator):
 			# context.window_manager.modal_handler_add(self)
 
 			wm = context.window_manager
-			self._timer = wm.event_timer_add(time_step=0.02, window=context.window)
+			self._timer = wm.event_timer_add(time_step=0.01, window=context.window)
 			wm.modal_handler_add(self)
 
 			context.area.tag_redraw()

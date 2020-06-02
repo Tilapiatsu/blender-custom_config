@@ -4,6 +4,19 @@ from bpy_extras.view3d_utils import region_2d_to_vector_3d, region_2d_to_origin_
 from math import radians, sqrt
 
 
+def get_duplicates(alist):
+    checked = {}
+    dupes = []
+    for x in alist:
+        if x not in checked:
+            checked[x] = 1
+        else:
+            if checked[x] == 1:
+                dupes.append(x)
+            checked[x] += 1
+    return dupes
+
+
 def get_loops(vertpairs, legacy=False):
     # sort list of edges (vert index pairs)
     loop_vp = [i for i in vertpairs]
@@ -58,7 +71,7 @@ def get_3d_view():
     return get_area_of_type('VIEW_3D').spaces[0]
 
 
-def rotation_from_vector(normal_vec, tangent_vec, rotate90=True):
+def rotation_from_vector(normal_vec, tangent_vec, rotate90=True, rw=True):
     up_vec = Vector((0, 0, 1))
     if normal_vec.dot(up_vec) <= 0.00001: up_vec = Vector((1, 0, 0))
     up_vec = tangent_vec.cross(normal_vec).normalized()
@@ -66,9 +79,48 @@ def rotation_from_vector(normal_vec, tangent_vec, rotate90=True):
     if rotate90:
         mat_rot = Matrix.Rotation(radians(-90.0), 4, 'X')
         matrix = matrix @ mat_rot
-        mat_rot = Matrix.Rotation(radians(90.0), 4, 'Z')  # nicer world alignment...
-        matrix = matrix @ mat_rot
+        if rw:
+            mat_rot = Matrix.Rotation(radians(90.0), 4, 'Z')  # nicer world alignment...
+            matrix = matrix @ mat_rot
     return matrix
+
+
+def tri_points_order(vcoords):
+    vp = vcoords[0], vcoords[1], vcoords[2]
+    vp1 = get_distance(vp[0], vp[1])
+    vp2 = get_distance(vp[0], vp[2])
+    vp3 = get_distance(vp[1], vp[2])
+    vpsort = {"2": vp1, "1": vp2, "0": vp3}
+    r = [int(i) for i in sorted(vpsort, key=vpsort.__getitem__)]
+    r.reverse()
+    return r
+
+
+def tri_points_vectors(objmtx, normal, coords):
+    """input normal to check/force z flip"""
+    h = tri_points_order([coords[0], coords[1], coords[2]])
+    vec_poslist = coords[h[0]], coords[h[1]], coords[h[2]]
+
+    # Vectors
+    p1, p2, p3 = objmtx @ vec_poslist[0], objmtx @ vec_poslist[1], objmtx @ vec_poslist[2]
+    v_1 = p2 - p1
+    v_2 = p3 - p1
+    n_v = v_1.cross(v_2).normalized()
+
+    # pick tan vec
+    c1 = n_v.cross(v_1).normalized()
+    c2 = n_v.cross(v_2).normalized()
+    if c1.dot(n_v) > c2.dot(n_v):
+        u_v = c2
+    else:
+        u_v = c1
+    t_v = u_v.cross(n_v).normalized()
+
+    # check inverse Z
+    if n_v.dot(normal) < 0:
+        n_v.negate()
+
+    return n_v, t_v
 
 
 def obj_raycast(obj, matrix, ray_origin, ray_target):
@@ -124,8 +176,46 @@ def mouse_raycast(context, mouse_pos):
         return None, None, None, None
 
 
+def point_axis_raycast(context, vec_point, axis=2, targetcap=-10000):
+    vec_dir = vec_point.to_3d()
+    vec_dir[axis] = targetcap
+    ray_origin = vec_point
+    ray_target = vec_dir
+    best_length_squared = -1.0
+    best_obj, hit_wloc, hit_normal, hit_face = None, None, None, None
+
+    depsgraph = context.evaluated_depsgraph_get()
+
+    for dup in depsgraph.object_instances:
+
+        if dup.is_instance:
+            obj = dup.instance_object
+            obj_mtx = dup.matrix_world.copy()
+        else:
+            obj = dup.object
+            obj_mtx = obj.matrix_world.copy()
+
+        if obj.type == 'MESH':
+            hit, normal, face_index = obj_raycast(obj, obj_mtx, ray_origin, ray_target)
+
+            if hit is not None:
+                hit_world = obj_mtx @ hit
+                length_squared = (hit_world - ray_origin).length_squared
+                if best_obj is None or length_squared < best_length_squared:
+                    hit_normal = normal
+                    hit_wloc = hit_world
+                    hit_face = face_index
+                    best_length_squared = length_squared
+                    best_obj = obj
+
+    if best_obj:
+        return best_obj, hit_wloc, hit_normal, hit_face
+    else:
+        return None, None, None, None
+
+
 def relative_position_to_mouse(context, pos, mouse_pos):
-    # return distance?, world axis direction
+    # TBD - WIP: return distance?, world axis direction
     return None
 
 
@@ -158,6 +248,24 @@ def get_islands(bm, verts):
         tag(island, False)
         verts -= island
     return islands
+
+
+def get_selection_islands(sel_faces, active_face):
+    sortfaces = [p for p in sel_faces if p != active_face]
+    first_island, second_island = active_face.verts[:], []
+    for p in sortfaces:
+        first = False
+        faceverts = p.verts[:]
+        for v in faceverts:
+            if v in first_island:
+                first = True
+                first_island.extend(faceverts)
+                break
+        if first:
+            first_island.extend(faceverts)
+        else:
+            second_island.extend(faceverts)
+    return first_island, second_island
 
 
 def correct_normal(world_matrix, vec_normal):
