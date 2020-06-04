@@ -9,7 +9,7 @@ bl_info = {
     "location": "View3D > Edit Mode",
     "description": "Quickly converts an edge selection to an extruded curve.",
     "warning": "",
-    "wiki_url": "",
+    "doc_url": "",
     "category": "View3D"}
 
 

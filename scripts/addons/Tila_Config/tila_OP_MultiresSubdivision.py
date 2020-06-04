@@ -8,7 +8,7 @@ bl_info = {
 	"blender": (2, 80, 0),
 	"location": "",
 	"warning": "",
-	"wiki_url": "",
+	"doc_url": "",
 	"category": "3D View"
 }
 

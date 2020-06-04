@@ -6,7 +6,7 @@ bl_info = {
     "blender": (2, 80, 0),
     "location": "3D View",
     "warning": "",
-    "wiki_url": "",
+    "doc_url": "",
     "category": "Pivots Pie"
     }
 

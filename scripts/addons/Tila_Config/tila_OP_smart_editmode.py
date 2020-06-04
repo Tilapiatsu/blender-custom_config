@@ -11,7 +11,7 @@ bl_info = {
     "blender": (2, 80, 0),
     "location": "",
     "warning": "",
-    "wiki_url": "",
+    "doc_url": "",
     "category": "3D View"
 }
 
@@ -50,7 +50,7 @@ class TILA_smart_editmode(bpy.types.Operator):
             if self.gpencil_mode[self.mode] == current_mode:
                 bpy.ops.gpencil.editmode_toggle()
             else:
-                bpy.context.scene.tool_settings.gpencil_selectmode = self.gpencil_mode[self.mode]
+                bpy.context.scene.tool_settings.gpencil_selectmode_edit = self.gpencil_mode[self.mode]
 
         def switch_uv_mode(self, current_mode):
             if bpy.context.scene.tool_settings.use_uv_select_sync:
@@ -89,7 +89,7 @@ class TILA_smart_editmode(bpy.types.Operator):
                     bpy.ops.object.mode_set(mode='EDIT_GPENCIL')
                 else:
                     bpy.ops.gpencil.editmode_toggle()
-                    bpy.context.scene.tool_settings.gpencil_selectmode = self.gpencil_mode[self.mode]
+                    bpy.context.scene.tool_settings.gpencil_selectmode_edit = self.gpencil_mode[self.mode]
             
             else:
                 bpy.ops.object.editmode_toggle()
@@ -137,7 +137,7 @@ class TILA_smart_editmode(bpy.types.Operator):
             if self.alt_mode:
                 bpy.ops.object.mode_set(mode='OBJECT')
             else:
-                switch_gpencil_mode(self, bpy.context.scene.tool_settings.gpencil_selectmode)
+                switch_gpencil_mode(self, bpy.context.scene.tool_settings.gpencil_selectmode_edit)
 
         elif bpy.context.mode in ['PAINT_WEIGHT', 'PAINT_VERTEX']:
             if self.alt_mode:

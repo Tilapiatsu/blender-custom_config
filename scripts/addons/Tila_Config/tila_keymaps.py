@@ -10,7 +10,7 @@ bl_info = {
 	"blender": (2, 80, 0),
 	"location": "",
 	"warning": "",
-	"wiki_url": "",
+	"doc_url": "",
 	"category": "Hotkeys"
 	}
 
@@ -389,9 +389,9 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 			self.kmi_set_replace('wm.call_menu', 'X', 'PRESS', alt=True, properties=[('name', 'TILA_MT_action_center')], disable_double=True)
 	
 	def tool_transform(self):
-		self.kmi_set_replace('wm.tool_set_by_id', self.k_move, 'PRESS', properties=[('name', 'builtin.move')])
-		self.kmi_set_replace('wm.tool_set_by_id', self.k_rotate, 'PRESS', properties=[('name', 'builtin.rotate')])
-		self.kmi_set_replace('wm.tool_set_by_id', self.k_scale, 'PRESS', properties=[('name', 'builtin.scale')])
+		self.kmi_set_replace('wm.tool_set_by_id', self.k_move, 'PRESS', properties=[('name', 'builtin.move')], disable_double=True)
+		self.kmi_set_replace('wm.tool_set_by_id', self.k_rotate, 'PRESS', properties=[('name', 'builtin.rotate')], disable_double=True)
+		self.kmi_set_replace('wm.tool_set_by_id', self.k_scale, 'PRESS', properties=[('name', 'builtin.scale')], disable_double=True)
 
 	def isolate(self):
 		self.kmi_set_replace('view3d.tila_isolate', 'X', 'PRESS', ctrl=True, alt=True, properties=[('force_object_isolate', False)])
@@ -423,6 +423,9 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		# MACHINE3tools
 		self.kmi_set_replace('wm.call_menu_pie', 'S', "PRESS", ctrl=True, shift=True, properties=[('name', 'MACHIN3_MT_save_pie')])
 
+		# Atomic Data Manager
+		self.kmi_set_replace('atomic.invoke_pie_menu_ui', 'DEL', "PRESS", ctrl=True, shift=True, disable_double=True)
+		
 
 		##### 3D View
 		self.kmi_init(name='3D View', space_type='VIEW_3D', region_type='WINDOW')
@@ -948,6 +951,7 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		self.kmi_init(name='Grease Pencil Stroke Edit Mode', space_type='EMPTY', region_type='WINDOW')
 		self.global_keys()
 		self.right_mouse()
+		self.tool_transform()
 		self.duplicate(duplicate='gpencil.duplicate_move')
 		self.collection_visibility('object.hide_collection')
 		self.mode_selection()
