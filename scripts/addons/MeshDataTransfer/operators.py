@@ -80,6 +80,7 @@ class TransferShapeKeyData(bpy.types.Operator):
         snap_to_closest = active_prop.snap_to_closest_shapekey
         # target_prop = target.mesh_data_transfer_global
         exclude_muted_shapekeys = active_prop.exclude_muted_shapekeys
+        transfer_drivers = active_prop.transfer_shapekeys_drivers
         world_space = False
         uv_space = False
 
@@ -98,7 +99,7 @@ class TransferShapeKeyData(bpy.types.Operator):
                                          invert_vertex_group= invert_mask,
                                          search_method=search_method, vertex_group=mask_vertex_group,
                                          exclude_muted_shapekeys = exclude_muted_shapekeys,
-                                         snap_to_closest=snap_to_closest)
+                                         snap_to_closest=snap_to_closest, transfer_drivers= transfer_drivers)
         transferred = transfer_data.transfer_shape_keys()
         transfer_data.free()
         if not transferred:
