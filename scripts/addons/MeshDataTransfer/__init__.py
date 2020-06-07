@@ -10,7 +10,7 @@ bl_info = {
     "description" : "This add on will transfer geometry data from one mesh to another based on 3 different spaces:"
                     " 'world, object, uv' also will tranfer UVs based on topology",
     "blender" : (2, 80, 0),
-    "version" : (1, 3, 2,),
+    "version" : (1, 3, 4,),
     "location" : "(Object Mode) Mesh > ObjectData > Mesh Data Transfer ",
     "warning" : "",
     "wiki_url": "",
@@ -66,6 +66,10 @@ class MeshDataSettings(PropertyGroup):
                                                    description="Snap transferred vertices to closest vertex on source mesh")
     snap_to_closest_shapekey: bpy.props.BoolProperty (name="Snap shape key to closest vertex",
                                                    description="Snap transferred shape keys vertices to closest vertex on source shape key")
+
+    transfer_shapekeys_drivers: bpy.props.BoolProperty (name="Transfer shape keys drivers",
+                                                   description="Transfer the drivers along with the shape keys.")
+
 
 class MeshDataGlobalSettings(PropertyGroup):
     transfer_modified_target : bpy.props.BoolProperty ()
@@ -147,7 +151,8 @@ class DATA_PT_mesh_data_transfer(bpy.types.Panel):
                                          toggle=True, icon=snap_key_icon)
         left_bottom_row_box_layout.prop(ob_prop , "exclude_muted_shapekeys" , text="",
                                          toggle=True, icon='CHECKMARK')
-
+        left_bottom_row_box_layout.prop(ob_prop , "transfer_shapekeys_drivers" , text="",
+                                         toggle=True, icon='DRIVER')
 
 
         top_row_layout.split()

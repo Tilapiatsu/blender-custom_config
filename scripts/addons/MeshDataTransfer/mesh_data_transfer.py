@@ -2,6 +2,7 @@ import bmesh
 import bpy
 from mathutils import Vector
 import numpy as np
+import codecs
 from mathutils.bvhtree import BVHTree
 from mathutils import(Vector, Matrix, kdtree )
 from mathutils.geometry import (intersect_line_line, intersect_line_line_2d, intersect_point_line,
@@ -82,6 +83,17 @@ class MeshData (object):
                 if not filter_array[i]:
                     group_names.pop(i)
         return group_names
+
+    @property
+    def shape_keys_drivers(self):
+
+        return self.mesh.shape_keys.animation_data.drivers
+
+    @property
+    def shape_keys_names(self):
+        if self.shape_keys:
+            return [x.name for x in self.shape_keys]
+
 
 
     def get_vertex_group_weights(self, vertex_group_name):
@@ -341,7 +353,7 @@ class MeshDataTransfer (object):
     def __init__(self, source, target, uv_space=False, deformed_source=False,
                  deformed_target=False, world_space=False, search_method="RAYCAST",
                  topology=False, vertex_group = None, invert_vertex_group = False, exclude_locked_groups = False,
-                 exclude_muted_shapekeys=False, snap_to_closest = False):
+                 exclude_muted_shapekeys=False, snap_to_closest = False, transfer_drivers = False):
         self.vertex_group = vertex_group
         self.uv_space = uv_space
         self.topology = topology
@@ -363,6 +375,7 @@ class MeshDataTransfer (object):
         self.hit_faces = None
         self.related_ids = None  # this will store the indexing between
 
+        self.transfer_drivers = transfer_drivers
         self.cast_verts()
         self.barycentric_coords = self.get_barycentric_coords(self.ray_casted, self.hit_faces)
 
@@ -446,7 +459,54 @@ class MeshDataTransfer (object):
             else:
                 transferred_sk = transferred_sk + undeformed_verts
             self.target.set_position_as_shape_key(shape_key_name=sk, co=transferred_sk)
+            # transfer drivers
+        if self.transfer_drivers:
+            self.transfer_shape_keys_drivers()
+
         return True
+
+    def transfer_shape_keys_drivers(self):
+        """
+        Transfer shape keys drivers.
+        :return:
+        """
+        source_f_curves = self.source.shape_keys_drivers
+        target_shape_keys_names = self.target.shape_keys_names
+        for source_f_curve in source_f_curves:
+            source_driver = source_f_curve.driver
+            # finding the input
+
+            source_shape_key = '['.join(source_f_curve.data_path.split('[')[1:])
+            source_shape_key = "]".join(source_shape_key.split("]")[:-1])[1:-1]
+            source_shape_key = codecs.decode(source_shape_key, 'unicode_escape')
+            if source_shape_key not in target_shape_keys_names:
+                continue
+            source_channel = source_f_curve.data_path.split(".")[-1]
+            # create the target driver
+
+            target_driver = self.target.shape_keys[source_shape_key].driver_add(source_channel).driver
+            # copying the data over to the target driver
+            target_driver.type = source_driver.type
+            # copying variables over
+            for source_var in source_driver.variables:
+                target_var = target_driver.variables.new()
+                # coping the variable targets over
+                for i, source_var_target in source_var.targets.items():
+                    target_var.targets[i].id_type = source_var_target.id_type
+                    source_target_id = source_var_target.id
+                    # replace the shape key target id
+                    if source_target_id == self.source.mesh.shape_keys:
+                        source_target_id = self.target.mesh.shape_keys
+                    target_var.targets[i].id = source_target_id
+                    target_var.targets[i].transform_space = source_var_target.transform_space
+                    target_var.targets[i].transform_type = source_var_target.transform_type
+                    target_var.targets[i].data_path = source_var_target.data_path
+                    target_var.targets[i].bone_target = source_var_target.bone_target
+                target_var.name = source_var.name
+                target_var.type = source_var.type
+            target_driver.expression = source_driver.expression
+
+
 
     def transfer_vertex_groups(self):
         source_weights = self.source.get_vertex_groups_weights(ignore_locked=self.exclude_locked_groups)
@@ -505,7 +565,6 @@ class MeshDataTransfer (object):
 
 
         return transferred_position
-
 
     def transfer_vertex_position(self, as_shape_key=False):
 
