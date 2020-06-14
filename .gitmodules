@@ -205,3 +205,6 @@
 [submodule "scripts/addons/UvSquares"]
 	path = scripts/addons/UvSquares
 	url = https://github.com/Radivarig/UvSquares.git
+[submodule "scripts/addons/glslTexture"]
+	path = scripts/addons/glslTexture
+	url = https://github.com/patriciogonzalezvivo/glslTexture.git
