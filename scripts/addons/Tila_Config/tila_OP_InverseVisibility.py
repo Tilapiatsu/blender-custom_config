@@ -10,7 +10,7 @@ bl_info = {
 
 
 class ToggleXSymOperator(bpy.types.Operator):
-    bl_idname = "view3d.inverse_visibility"
+    bl_idname = "view3d.tila_inverse_visibility"
     bl_label = "TILA: Inverse Visibility"
     bl_options = {'REGISTER', 'UNDO'}
 
