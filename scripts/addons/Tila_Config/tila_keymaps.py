@@ -975,6 +975,7 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		self.global_keys()
 		self.right_mouse()
 		self.duplicate(duplicate='gpencil.duplicate_move')
+		self.kmi_set_replace('wm.tool_set_by_id', 'SPACE', 'PRESS', properties=[(('name', 'builtin_brush.Draw'))])
 		self.collection_visibility('object.hide_collection')
 		self.mode_selection()
 		self.tool_radial_control(radius=[('data_path_primary', 'tool_settings.gpencil_paint.brush.size')], opacity=[('data_path_primary', 'tool_settings.gpencil_paint.brush.gpencil_settings.pen_strength')],
