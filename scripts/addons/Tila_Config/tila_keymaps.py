@@ -334,13 +334,13 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		self.kmi_set_replace('object.tila_smartdelete', 'DEL', 'PRESS')
 
 	def tool_radial_control(self, radius=None, opacity=None, eraser_radius=None, fill_color=None):
-		type = 'S'
+		type = 'Q'
 		if radius:
-			self.kmi_set_replace('wm.radial_control', type, 'PRESS', properties=radius, disable_double=True)
+			self.kmi_set_replace('wm.radial_control', type, 'ANY', properties=radius, disable_double=True)
 		if opacity:
-			self.kmi_set_replace('wm.radial_control', type, 'PRESS', shift=True, properties=opacity, disable_double=True)
+			self.kmi_set_replace('wm.radial_control', type, 'ANY', alt=True, shift=True, properties=opacity, disable_double=True)
 		if eraser_radius:
-			self.kmi_set_replace('wm.radial_control', type, 'PRESS', ctrl=True, alt=True, properties=eraser_radius, disable_double=True)
+			self.kmi_set_replace('wm.radial_control', type, 'ANY', ctrl=True, alt=True, properties=eraser_radius, disable_double=True)
 
 	def tool_sample_color(self, tool):
 		if tool:
@@ -677,6 +677,7 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		self.right_mouse()
 		self.tool_sculpt('sculpt.sculptmode_toggle')
 		self.selection_tool(tool='builtin_brush.Grab')
+		self.tool_transform()
 
 		self.tool_subdivision()
 
