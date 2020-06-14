@@ -202,3 +202,6 @@
 [submodule "Scripts/GIT/Lodify"]
 	path = Scripts/GIT/Lodify
 	url = https://github.com/DB3D/Lodify.git
+[submodule "scripts/addons/UvSquares"]
+	path = scripts/addons/UvSquares
+	url = https://github.com/Radivarig/UvSquares.git

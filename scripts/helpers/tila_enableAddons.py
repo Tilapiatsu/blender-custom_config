@@ -10,6 +10,7 @@ modules =   (
             'object_print3d_utils',
             'mesh_looptools',
             'MACHIN3tools',
+            'UvSquares',
             # 'mesh_mesh_align_plus',
             'node_wrangler',
             'node_presets',
