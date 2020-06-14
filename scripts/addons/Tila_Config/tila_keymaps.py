@@ -999,7 +999,6 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		self.kmi_init(name='Grease Pencil Stroke Sculpt Mode', space_type='EMPTY', region_type='WINDOW')
 		self.global_keys()
 		self.right_mouse()
-		self.tool_radial_control(radius=[('data_path_primary', 'tool_settings.gpencil_sculpt.brush.size')], opacity=[('data_path_primary', 'tool_settings.gpencil_sculpt.brush.strength')])
 		self.kmi_set_replace('wm.tool_set_by_id', 'G', 'PRESS', properties=[('name', 'builtin_brush.Grab')])
 
 		self.tool_radial_control(radius=[('data_path_primary', 'tool_settings.gpencil_sculpt_paint.brush.size'), 
