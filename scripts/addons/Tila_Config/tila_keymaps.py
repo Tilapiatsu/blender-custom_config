@@ -945,38 +945,6 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 
 		self.tool_sculpt('gpencil.sculptmode_toggle')
 
-		self.tool_radial_control(radius=[('data_path_primary', 'tool_settings.gpencil_sculpt_paint.brush.size'), 
-		('data_path_secondary', 'tool_settings.unified_paint_settings.size'), 
-		('use_secondary', 'tool_settings.unified_paint_settings.use_unified_size'), 
-		('rotation_path', 'tool_settings.gpencil_sculpt_paint.brush.texture_slot.angle'), 
-		('color_path', 'tool_settings.gpencil_sculpt_paint.brush.cursor_color_add'), 
-		('image_id', 'tool_settings.gpencil_sculpt_paint.brush'),
-		('fill_color_path', 'tool_settings.gpencil_sculpt_paint.brush.color'), 
-		('fill_color_override_path', 'tool_settings.unified_paint_settings.color'), 
-		('fill_color_override_test_path', 'tool_settings.unified_paint_settings.use_unified_color'),
-		('zoom_path', 'space_data.zoom'), ('secondary_tex', True)],
-		opacity=[('data_path_primary', 'tool_settings.gpencil_sculpt_paint.brush.strength'), 
-		('data_path_secondary', 'tool_settings.unified_paint_settings.strength'), 
-		('use_secondary', 'tool_settings.unified_paint_settings.use_unified_strength'), 
-		('rotation_path', 'tool_settings.gpencil_sculpt_paint.brush.texture_slot.angle'), 
-		('color_path', 'tool_settings.gpencil_sculpt_paint.brush.cursor_color_add'), 
-		('image_id', 'tool_settings.gpencil_sculpt_paint.brush'),
-		('fill_color_path', 'tool_settings.gpencil_sculpt_paint.brush.color'), 
-		('fill_color_override_path', 'tool_settings.unified_paint_settings.color'), 
-		('fill_color_override_test_path', 'tool_settings.unified_paint_settings.use_unified_color'),
-		('secondary_tex', True)],
-		eraser_radius=[('data_path_primary', 'tool_settings.gpencil_sculpt_paint.brush.texture_slot.angle'), 
-		('rotation_path', 'tool_settings.gpencil_sculpt_paint.brush.texture_slot.angle'), 
-		('color_path', 'tool_settings.gpencil_sculpt_paint.brush.cursor_color_add'), 
-		('image_id', 'tool_settings.gpencil_sculpt_paint.brush'),
-		('fill_color_path', 'tool_settings.gpencil_sculpt_paint.brush.color'), 
-		('fill_color_override_path', 'tool_settings.unified_paint_settings.color'), 
-		('fill_color_override_test_path', 'tool_settings.unified_paint_settings.use_unified_color')],
-		fill_color=[('fill_color_path', 'tool_settings.gpencil_sculpt_paint.brush.color'), 
-		('fill_color_override_path', 'tool_settings.unified_paint_settings.color'), 
-		('fill_color_override_test_path', 'tool_settings.unified_paint_settings.use_unified_color'),
-		('zoom_path', 'space_data.zoom'), ('secondary_tex', True)])
-
 		self.isolate()
 
 		###### Grease Pencil Stroke Edit Mode
@@ -1031,6 +999,38 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		self.right_mouse()
 		self.tool_radial_control(radius=[('data_path_primary', 'tool_settings.gpencil_sculpt.brush.size')], opacity=[('data_path_primary', 'tool_settings.gpencil_sculpt.brush.strength')])
 		self.kmi_set_replace('wm.tool_set_by_id', 'G', 'PRESS', properties=[('name', 'builtin_brush.Grab')])
+
+		self.tool_radial_control(radius=[('data_path_primary', 'tool_settings.gpencil_sculpt_paint.brush.size'), 
+		('data_path_secondary', 'tool_settings.unified_paint_settings.size'), 
+		('use_secondary', 'tool_settings.unified_paint_settings.use_unified_size'), 
+		('rotation_path', 'tool_settings.gpencil_sculpt_paint.brush.texture_slot.angle'), 
+		('color_path', 'tool_settings.gpencil_sculpt_paint.brush.cursor_color_add'), 
+		('image_id', 'tool_settings.gpencil_sculpt_paint.brush'),
+		('fill_color_path', 'tool_settings.gpencil_sculpt_paint.brush.color'), 
+		('fill_color_override_path', 'tool_settings.unified_paint_settings.color'), 
+		('fill_color_override_test_path', 'tool_settings.unified_paint_settings.use_unified_color'),
+		('zoom_path', 'space_data.zoom'), ('secondary_tex', True)],
+		opacity=[('data_path_primary', 'tool_settings.gpencil_sculpt_paint.brush.strength'), 
+		('data_path_secondary', 'tool_settings.unified_paint_settings.strength'), 
+		('use_secondary', 'tool_settings.unified_paint_settings.use_unified_strength'), 
+		('rotation_path', 'tool_settings.gpencil_sculpt_paint.brush.texture_slot.angle'), 
+		('color_path', 'tool_settings.gpencil_sculpt_paint.brush.cursor_color_add'), 
+		('image_id', 'tool_settings.gpencil_sculpt_paint.brush'),
+		('fill_color_path', 'tool_settings.gpencil_sculpt_paint.brush.color'), 
+		('fill_color_override_path', 'tool_settings.unified_paint_settings.color'), 
+		('fill_color_override_test_path', 'tool_settings.unified_paint_settings.use_unified_color'),
+		('secondary_tex', True)],
+		eraser_radius=[('data_path_primary', 'tool_settings.gpencil_sculpt_paint.brush.texture_slot.angle'), 
+		('rotation_path', 'tool_settings.gpencil_sculpt_paint.brush.texture_slot.angle'), 
+		('color_path', 'tool_settings.gpencil_sculpt_paint.brush.cursor_color_add'), 
+		('image_id', 'tool_settings.gpencil_sculpt_paint.brush'),
+		('fill_color_path', 'tool_settings.gpencil_sculpt_paint.brush.color'), 
+		('fill_color_override_path', 'tool_settings.unified_paint_settings.color'), 
+		('fill_color_override_test_path', 'tool_settings.unified_paint_settings.use_unified_color')],
+		fill_color=[('fill_color_path', 'tool_settings.gpencil_sculpt_paint.brush.color'), 
+		('fill_color_override_path', 'tool_settings.unified_paint_settings.color'), 
+		('fill_color_override_test_path', 'tool_settings.unified_paint_settings.use_unified_color'),
+		('zoom_path', 'space_data.zoom'), ('secondary_tex', True)])
 		
 		###### Frames
 		self.kmi_init(name='Frames', space_type='EMPTY', region_type='WINDOW')
