@@ -468,8 +468,10 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		self.tool_center(pivot='VIEW3D_PT_pivot_point', orientation='VIEW3D_PT_transform_orientations', action_center_context='VIEW3D')
 
 		self.kmi_set_replace('wm.call_menu_pie', 'Q', 'PRESS', ctrl=True, alt=True, shift=True, properties=[('name', 'HP_MT_boolean')])
-		self.kmi_set_replace('view3d.toggle_wireframe', 'F5', 'PRESS', properties=[('selected', False)], disable_double=True)
-		self.kmi_set_replace('view3d.toggle_wireframe', 'F5', 'PRESS', shift=True, properties=[('selected', True)], disable_double=True)
+		self.kmi_set_replace('view3d.toggle_wireframe', 'F5', 'PRESS', properties=[('mode', 'OVERLAY'), ('selected', False)], disable_double=True)
+		self.kmi_set_replace('view3d.toggle_wireframe', 'F5', 'PRESS', shift=True, properties=[('mode', 'OVERLAY'), ('selected', True)], disable_double=True)
+		self.kmi_set_replace('view3d.toggle_wireframe', 'F5', 'PRESS', ctrl=True, properties=[('mode', 'SET'), ('selected', False)], disable_double=True)
+		self.kmi_set_replace('view3d.toggle_wireframe', 'F5', 'PRESS', ctrl=True, shift=True, properties=[('mode', 'SET'), ('selected', True)], disable_double=True)
 
 		self.kmi_set_replace('wm.call_menu_pie', 'F', 'PRESS', alt=True, shift=True, properties=[('name', 'UVTOOLKIT_MT_pie')])
 
