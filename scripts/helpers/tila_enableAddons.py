@@ -109,11 +109,13 @@ def register():
     addon = context.preferences.addons.get('object_collection_manager')
     addon.preferences.enable_qcd = False
 
+
     # # mouselook_navigation
-    # addon = context.preferences.addons.get('mouselook_navigation')
-    # addon.preferences.show_zbrush_border = False
-    # addon.preferences.show_crosshair = False
-    # addon.preferences.show_focus = False
+    addon = context.preferences.addons.get('mouselook_navigation')
+    addon.preferences.show_zbrush_border = False
+    addon.preferences.show_crosshair = False
+    addon.preferences.show_focus = False
+    addon.preferences.rotation_snap_subdivs = 1
 
     # # kekit
     # addon = context.preferences.addons.get('kekit')
