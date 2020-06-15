@@ -746,7 +746,7 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 
 		self.tool_smart_delete()
 		self.kmi_set_replace('object.tila_emptymesh', 'N', 'PRESS', ctrl=True, alt=True, shift=True)
-		self.kmi_set_replace('outliner.collection_objects_select', self.k_select, 'DOUBLE_CLICK', disable_double=True)
+		self.kmi_set_replace('outliner.tila_select_hierarchy', self.k_select, 'DOUBLE_CLICK')
 		self.kmi_set_replace('outliner.show_active', 'A', 'PRESS', ctrl=True, shift=True, disable_double=True)
 
 		self.isolate()
