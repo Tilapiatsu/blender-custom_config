@@ -352,7 +352,7 @@
       <ThemeView3D
         grid="#83838315"
         clipping_border_3d="#202020ff"
-        wire="#bfbfbf"
+        wire="#000000"
         wire_edit="#000000"
         gp_vertex="#a8a8a8"
         gp_vertex_select="#00c5ff"
@@ -378,7 +378,7 @@
         edge_facesel="#6b6b6b"
         freestyle_edge_mark="#0162a7"
         face="#3535354d"
-        face_select="#ffffff2b"
+        face_select="#ffffff0d"
         face_dot="#ffffff"
         facedot_size="2"
         freestyle_face_mark="#013f6bff"
