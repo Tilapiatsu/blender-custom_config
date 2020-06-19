@@ -484,7 +484,6 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		kmi = self.kmi_set_replace('wm.context_toggle', 'F6', 'PRESS', properties=[('data_path', 'space_data.overlay.show_overlays')], disable_double=True)
 		if kmi:
 			kmi.active = True
-		
 
 		# KE_Kit
 		self.kmi_set_replace('view3d.ke_get_set_editmesh', self.k_cursor, 'CLICK', alt=True, disable_double=True)
@@ -667,6 +666,9 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		self.kmi_set_replace('transform.tosphere', 'S', 'PRESS', ctrl=True, alt=True, shift=True, disable_double=True)
 		self.kmi_set_replace('wm.call_menu_pie', 'S', 'PRESS', alt=True, shift=True, properties=[('name', 'TILA_MT_pie_normal')], disable_double=True)
 
+		self.kmi_set_replace('outliner.tila_group_selected', 'G', 'PRESS', ctrl=True, properties=[('mode', 'GROUP_TO_BIGGER_NUMBER')], disable_double=True)
+		self.kmi_set_replace('outliner.tila_group_selected', 'G', 'PRESS', ctrl=True, shift=True, properties=[('mode', 'MOVE_TO_ACTIVE')], disable_double=True)
+
 		###### 3D View Tool: Select
 		self.kmi_init(name='3D View Tool: Tweak', space_type='EMPTY', region_type='WINDOW')
 		self.kmi_set_replace('view3d.select', self.k_select, 'PRESS', properties=[('deselect_all', True)], disable_double=True)
@@ -751,6 +753,9 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 
 		self.isolate()
 		self.join()
+
+		self.kmi_set_replace('outliner.tila_group_selected', 'G', 'PRESS', ctrl=True, properties=[('mode', 'GROUP_TO_BIGGER_NUMBER')], disable_double=True)
+		self.kmi_set_replace('outliner.tila_group_selected', 'G', 'PRESS', ctrl=True, shift=True, properties=[('mode', 'MOVE_TO_ACTIVE')], disable_double=True)
 
 		###### File Browser
 		self.kmi_init(name='File Browser', space_type='FILE_BROWSER', region_type='WINDOW')
