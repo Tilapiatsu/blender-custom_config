@@ -378,7 +378,7 @@ class TILA_OT_smartsplit(bpy.types.Operator):
 
     func = {'VERT': ((bpy.ops.view3d.tila_autosmooth, None), (bpy.ops.mesh.normals_tools, {'mode': 'RESET'}), (bpy.ops.view3d.tila_splitnormal, None)),
             'EDGE': ((bpy.ops.view3d.tila_splitnormal, None),),
-            'FACE': ((bpy.ops.mesh.tila_selectborderedges, {'mode': 'ACTIVE'}), (bpy.ops.view3d.tila_splitnormal, None)),
+            'FACE': ((bpy.ops.mesh.tila_selectborderedges, {'mode': 'ACTIVE'}), (bpy.ops.view3d.tila_splitnormal, None), (bpy.ops.mesh.select_mode, {'type':"FACE"})),
             'OBJECT': ((bpy.ops.object.shade_flat, None),)}
 
     def execute(self, context):
@@ -396,7 +396,7 @@ class TILA_OT_normalsmartmerge(bpy.types.Operator):
 
     func = {'VERT': ((bpy.ops.view3d.tila_autosmooth, None), (bpy.ops.mesh.smoothen_normals, {'factor': 1}), (bpy.ops.view3d.tila_smoothnormal, None)),
             'EDGE': ((bpy.ops.view3d.tila_smoothnormal, None),),
-            'FACE': ((bpy.ops.mesh.tila_selectborderedges, {'mode': 'ACTIVE'}), (bpy.ops.view3d.tila_smoothnormal, None)),
+            'FACE': ((bpy.ops.mesh.tila_selectborderedges, {'mode': 'ACTIVE'}), (bpy.ops.view3d.tila_smoothnormal, None), (bpy.ops.mesh.select_mode, {'type':"FACE"})),
             'OBJECT': ((bpy.ops.object.shade_smooth, None),)}
 
     def execute(self, context):

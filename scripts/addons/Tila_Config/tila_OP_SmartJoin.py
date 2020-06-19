@@ -39,6 +39,11 @@ class TILA_smart_join(bpy.types.Operator):
 		if self.apply_modifiers:
 			for o in self.object_to_process:
 				bpy.context.view_layer.objects.active = o
+
+				if o.type == 'CURVE':
+					if o.data.bevel_depth:
+						bpy.ops.object.convert(target='MESH')
+
 				bpy.ops.object.apply_all_modifiers()
 		
 		bpy.ops.object.join()
