@@ -24,16 +24,25 @@
 # ----------------------------------------------------------
 
 import time
+import logging
 from math import pi, cos, sin
 from mathutils import Matrix, Vector
-from .snap_context import SnapContext
 
+try:
+    from .snap_context import SnapContext
+
+    USE_GL = True
+except ImportError:
+    print("Snap to curves will be disabled")
+    USE_GL = False
+    pass
+
+logger = logging.getLogger(__package__)
 
 X_AXIS = Vector((1, 0, 0))
 Y_AXIS = Vector((0, 1, 0))
 Z_AXIS = Vector((0, 0, 1))
 VECTOR3 = Vector()
-
 
 # Snap modes flags
 VERT = 1
@@ -42,32 +51,65 @@ FACE = 4
 GRID = 8
 EDGE_CENTER = 16
 EDGE_PERPENDICULAR = 32
-FACE_CENTER = 64
-FACE_NORMAL = 128
+EDGE_PARALLEL = 64
+FACE_CENTER = 128
+FACE_NORMAL = 256
+ORIGIN = 512
+
+SNAP_TO_ISOLATED_MESH = True
+
+
+def debug_typ(typ):
+    s = []
+    if typ & VERT:
+        s.append("VERT")
+    if typ & EDGE:
+        s.append("EDGE")
+    if typ & FACE:
+        s.append("FACE")
+    if typ & ORIGIN:
+        s.append("ORIGIN")
+    return " ".join(s)
 
 
 class SlCadSnapTarget:
-    def __init__(self, typ, obj, dist, pts, normal, priority=0, t=None, face_index=0, vertex_index=-1):
+
+    def __init__(self, typ, obj, dist, pts, normal, z=0, t=None, ray_depth=0, face_index=0, vertex_index=-1):
         self.typ = typ
-        #
+
+        # not really usefull here
         self.o = obj
-        # distance from pointer in world units
+
+        # distance from mouse pointer in pixels
         self.d = dist
+
         # points, 0 = snap point in world coordsys 1&2 p0 p1 of edge and more for faces
 
         self._pts = pts
         # hint index of object component
         self.n = normal
-        #
-        self.priority = priority
+
+        # distance from origin
+        self.z = z
+
         # t of snap point along segment
         self.t = t
+
+        self.ray_depth = ray_depth
 
         self._face_index = face_index
         self._vertex_index = vertex_index
 
     def __str__(self):
-        return "face:%s vert:%s dpix:%s t:%s coord:%s" % (self._face_index, self._vertex_index, self.d, self.t, self.p)
+        return "%s f:%s d:%.3f z:%.3f t:%s coord:%s" % (
+            debug_typ(self.typ),
+            self._face_index,
+            # self._vertex_index,
+            self.d,
+            self.z,
+            self.t,
+            self.p
+        )
 
     @property
     def p(self):
@@ -84,6 +126,18 @@ class SlCadSnapTarget:
         if len(self._pts) > 2:
             return self._pts[2]
         return None
+
+    @property
+    def closest_p(self):
+        # closest point of snapped edge
+        p0, p1 = self.p0, self.p1
+        if p1 is not None:
+            if self.t > 0.5:
+                p1, p0 = p0, p1
+            p = p0
+        else:
+            p = p0
+        return p
 
     def constraint(self, constraint):
         p0, p1 = self.p0, self.p1
@@ -114,7 +168,7 @@ class SlCadSnap:
         self._far_clip = 1e32
 
         # limit to nth intersection of ray cast
-        self._max_depth = 1
+        self._max_depth = 100
         self._back_faces = True
         # flag
         self._active = False
@@ -125,11 +179,14 @@ class SlCadSnap:
         self.ray_origin = Vector()
         self.ray_direction = Vector()
 
+        self._skip_selected_faces = False
+
         # snap raw object
         self._snap_loc = Vector()
         self._snap_raw = None
-        self.snap_mode = 0
-
+        self.snap_mode = VERT
+        self._x_ray = False
+        self._center = Vector((0, 0))
         self._rv3d = None
         self._region = None
         self._win_half = Vector((0, 0))
@@ -140,35 +197,36 @@ class SlCadSnap:
 
     @property
     def x_ray(self):
-        return self._max_depth > 1
+        return self._x_ray
 
     @x_ray.setter
     def x_ray(self, mode):
-        if mode:
-            self._max_depth = 100
-        else:
-            self._max_depth = 1
+        self._x_ray = mode
 
-    def start(self, context):
+    def start(self, context, snap_to_loose):
 
         self._region = context.region
         self._rv3d = context.space_data.region_3d
-
-        # setup gl stack
-        # if self.gl_stack is None:
-        self.gl_stack = SnapContext()
-        self.gl_stack.set_pixel_dist(self._snap_radius)
-        self.gl_stack.init_context(context.region, context.space_data)
-        self.update_gl_snap()
-
-        for o in context.visible_objects:
-            if o.type == "CURVE":
-                self.gl_stack.add_obj(o, o.matrix_world)
+        if USE_GL:
+            self.gl_stack = SnapContext()
+            self.gl_stack.set_pixel_dist(self._snap_radius)
+            self.gl_stack.init_context(context.region, context.space_data)
+            self.update_gl_snap()
+            for o in context.visible_objects:
+                if o.type == "CURVE":
+                    if any([x == 0 for x in o.scale]):
+                        continue
+                    self.gl_stack.add_obj(o)
+                elif o.type == "MESH" and snap_to_loose:
+                    self.gl_stack.add_obj(o)
+            self.gl_stack.add_origins(context)
 
     def exit(self):
         # cleanup exclude
         self.clear_exclude()
-        self.gl_stack.snap_objects.clear()
+        self._skip_selected_faces = False
+        if self.gl_stack is not None:
+            self.gl_stack.snap_objects.clear()
 
     def _scene_ray_cast(self, context, origin, direction):
         return context.scene.ray_cast(
@@ -199,27 +257,30 @@ class SlCadSnap:
         view_vector.normalize()
         return origin_start, view_vector
 
-    def _deep_cast(self, context, priority, screen_pixel_coord, hits):
+    def _deep_cast(self, context, screen_pixel_coord, hits, deep_cast):
         """ Find objects below mouse
         :param context:
         :param screen_pixel_coord:
-        :param max_dist:
-        :param max_depth:
+        :param hits:
+        :param deep_cast:
         :return:
         """
         origin, direction = self._region_2d_to_orig_and_vect(screen_pixel_coord)
         hit = True
-        depth = 0
+        ray_depth = 0
         far_clip = self._far_clip
         dist = self._near_clip
         orig = origin + (direction * dist)
-
+        if deep_cast:
+            max_depth = self._max_depth
+        else:
+            max_depth = 1
         # ray cast origin may be too close in ortho mode ..
         if not self._rv3d.is_perspective:
             far_clip += 100000
             orig -= direction * 100000
 
-        while hit and dist < far_clip and depth < self._max_depth:
+        while hit and dist < far_clip and ray_depth < max_depth:
             hit, pos, normal, face_index, o, matrix_world = self._scene_ray_cast(
                 context,
                 orig,
@@ -235,10 +296,9 @@ class SlCadSnap:
                         hits[o] = {}
                     # we only store one hit by face index
                     if face_index not in hits[o]:
-                        hits[o][face_index] = tuple([pos, normal, matrix_world, priority])
+                        hits[o][face_index] = tuple([pos, normal, matrix_world, (origin - pos).length, ray_depth])
 
-                    depth += 1
-
+                    ray_depth += 1
 
     def lerp(self, p0, p1, t):
         return p0 + t * (p1 - p0)
@@ -276,7 +336,7 @@ class SlCadSnap:
         nlen = n.length_squared
         # if (nlen == 0.0f) the lines are parallel, has no nearest point, only distance squared.*/
         if nlen == 0.0:
-            return 0
+            return None
         else:
             c = n - t
             cray = c.cross(ray_direction)
@@ -284,8 +344,12 @@ class SlCadSnap:
 
     def _min_edge_dist(self, p0, p1, origin, direction):
         t = self._ray_segment_t(p0, p1, origin, direction)
-        # print("_ray_segment_t", t)
-        p = self.lerp(p0, p1, t)
+        if t is None:
+            p = p0
+            t = 0
+        else:
+            # print("_ray_segment_t", t)
+            p = self.lerp(p0, p1, t)
         d = self._pixel_dist(p)
         if t <= 0:
             t, p = 0, p0
@@ -295,128 +359,192 @@ class SlCadSnap:
 
     def _pixel_dist(self, p):
         dpix = self._center - self._screen_location_from_3d(p)
-        return dpix.length  #max([abs(i) for i in dpix[:]]) #
+        return dpix.length  # max([abs(i) for i in dpix[:]]) #
 
-    def _closest_mesh_vert(self, o, me, hits, closest):
+    def _closest_mesh_vert(self, o, me, origin, hits, closest):
         for face_index, hit in hits.items():
             if face_index < len(me.polygons):
-                pos, normal, matrix_world, priority = hit
-                verts = [(i, matrix_world @ me.vertices[i].co) for i in me.polygons[face_index].vertices]
+                pos, normal, matrix_world, z, ray_depth = hit
+
+                if self._skip_selected_faces and me.polygons[face_index].select:
+                    continue
+
+                verts = [
+                    (i, matrix_world @ me.vertices[i].co)
+                    for i in me.polygons[face_index].vertices
+                ]
                 # n = matrix_world.to_quaternion() @ normal
                 for i, co in verts:
+
+                    if self._skip_selected_faces and me.vertices[i].select:
+                        continue
+
                     dist = self._pixel_dist(co)
                     if dist < self._snap_radius:
                         closest.append(
-                            SlCadSnapTarget(VERT, o, priority + dist, [co], normal, vertex_index=i, face_index=face_index)
+                            SlCadSnapTarget(
+                                VERT, o, dist, [co], normal,
+                                z=(co - origin).length,
+                                ray_depth=ray_depth,
+                                face_index=face_index
+                            )
                         )
 
-    def _closest_subs(self, origin, direction, p0, p1, snap_radius):
+    def _closest_subs(self, origin, direction, p0, p1, snap_radius, s0, s1):
         t, p, d = self._min_edge_dist(p0, p1, origin, direction)
         found = False
         dist = 1e32
         typ = None
         res = None
         fac = 0
+        z = 1e32
         radius = snap_radius
         if (self.snap_mode & VERT) and (t < 0.3 or t > 0.7):
             ps = p0
+            skip = s0
             if t > 0.5:
                 ps = p1
-            dpix = self._pixel_dist(ps)
-            if dpix < radius:
-                typ = VERT
-                res = [ps]
-                fac = None
-                found = True
-                dist = d
-                radius = dpix
+                skip = s1
+            if not skip:
+                dpix = self._pixel_dist(ps)
+                if dpix < radius:
+                    typ = VERT
+                    res = [ps]
+                    fac = None
+                    found = True
+                    dist = d
+                    radius = dpix
+                    z = (ps - origin).length
 
         if (self.snap_mode & EDGE_CENTER) and (0.75 > t > 0.25):
-            ps = 0.5 * (p0 + p1)
-            dpix = self._pixel_dist(ps)
-            if dpix < radius:
-                typ = EDGE
-                res = [ps, p0, p1]
-                fac = t
-                found = True
-                dist = d
-                radius = dpix
+            if not (s0 or s1):
+                ps = 0.5 * (p0 + p1)
+                dpix = self._pixel_dist(ps)
+                if dpix < radius:
+                    typ = EDGE
+                    res = [ps, p0, p1]
+                    fac = t
+                    found = True
+                    dist = d
+                    radius = dpix
+                    z = (ps - origin).length
 
-        if not found and (self.snap_mode & EDGE):
-            if d < radius:
-                typ = EDGE
-                res = [p, p0, p1]
-                fac = t
-                found = True
-                dist = d
-                radius = d
+        if not found and (self.snap_mode & (EDGE | EDGE_PERPENDICULAR | EDGE_PARALLEL)):
 
-        return found, (radius, typ, dist, res, fac)
+            if not (s0 or s1):
 
-    def _closest_mesh_face(self, o, me, origin, direction, hits, closest):
+                if d < radius:
+                    typ = EDGE
+                    res = [p, p0, p1]
+                    fac = t
+                    found = True
+                    dist = d
+                    radius = d
+                    z = (p - origin).length
+
+        return found, (radius, typ, dist, res, fac, z)
+
+    def _closest_mesh_face(self, o, me, origin, direction, hits, closest, skip_face):
         snap_radius = self._snap_radius
+        seek_radius = snap_radius
+
         for face_index, hit in hits.items():
             if face_index < len(me.polygons):
-                pos, normal, matrix_world, priority = hit
+
+                # Find closest item start by verts, then edges / center, face center if closest
+                # and fallback to face if nothing else is found in radius
+
+                if self._skip_selected_faces and me.polygons[face_index].select:
+                    # skip selected face in edit mode when snapping to normal
+                    continue
+
+                pos, normal, matrix_world, z, ray_depth = hit
                 dist = 1e32
-                verts = [matrix_world @ me.vertices[v].co for v in me.polygons[face_index].vertices]
-                res = [pos] + verts
+                verts = [
+                    (self._skip_selected_faces and me.vertices[v].select, matrix_world @ me.vertices[v].co)
+                    for v in me.polygons[face_index].vertices
+                ]
+                res = None
                 fac = None
                 typ = FACE
-                seek_radius = snap_radius
-                if (self.snap_mode & (VERT | EDGE | EDGE_CENTER)):
-                    for i, p1 in enumerate(verts):
-                        p0 = verts[i - 1]
+
+                if self.snap_mode & (VERT | EDGE | EDGE_CENTER | EDGE_PERPENDICULAR | EDGE_PARALLEL):
+                    for i, (s1, p1) in enumerate(verts):
+                        s0, p0 = verts[i - 1]
                         found, ret = self._closest_subs(
-                            origin, direction, p0, p1, snap_radius
+                            origin, direction, p0, p1, snap_radius, s0, s1
                         )
                         if found:
-                            _snap_radius, typ, dist, res, fac = ret
-                            if dist < seek_radius:
-                                seek_radius = dist
+                            _snap_radius, _typ, dpix, _res, _fac, _z = ret
+                            if dpix < seek_radius:
+                                seek_radius = dpix
+                                _snap_radius, typ, dist, res, fac, z = ret
 
-                if (self.snap_mode & FACE_CENTER):
+                if self.snap_mode & FACE_CENTER:
                     ps = matrix_world @ me.polygons[face_index].center
                     dpix = self._pixel_dist(ps)
                     if dpix < seek_radius:
                         typ = FACE
-                        res = [ps] + verts
-                        pos = ps
+                        res = [ps] + [v[1] for v in verts]
+                        dist = dpix
+                        z = (ps - origin).length
+                        fac = None
 
-                if typ == FACE:
+                if res is None and (self.snap_mode & (FACE | FACE_NORMAL)):
+                    # nothing else found, skip face if something was found in curve
+                    if skip_face:
+                        continue
+                    res = [pos] + [v[1] for v in verts]
                     dist = self._pixel_dist(pos)
-                    fac = None
 
-                closest.append(
-                    SlCadSnapTarget(typ, o, dist + priority, res, normal, t=fac)
-                )
+                if res is not None:
+                    closest.append(
+                        SlCadSnapTarget(
+                            typ, o, dist, res, normal,
+                            z=z, t=fac, ray_depth=ray_depth, face_index=face_index
+                        )
+                    )
 
     def _closest_mesh_edge(self, o, me, origin, direction, hits, closest):
         snap_radius = self._snap_radius
+        seek_radius = snap_radius
         for face_index, hit in hits.items():
             if face_index < len(me.polygons):
-                pos, normal, matrix_world, priority = hit
-                verts = [matrix_world @ me.vertices[v].co for v in me.polygons[face_index].vertices]
+
+                if self._skip_selected_faces and me.polygons[face_index].select:
+                    continue
+
+                pos, normal, matrix_world, z, ray_depth = hit
+                verts = [
+                    (self._skip_selected_faces and me.vertices[v].select, matrix_world @ me.vertices[v].co)
+                    for v in me.polygons[face_index].vertices
+                ]
                 dist = 1e32
                 typ = None
                 fac = None
                 res = []
-                for i, p1 in enumerate(verts):
-                    p0 = verts[i - 1]
+                for i, (s1, p1) in enumerate(verts):
+                    s0, p0 = verts[i - 1]
                     found, ret = self._closest_subs(
-                        origin, direction, p0, p1, snap_radius
+                        origin, direction, p0, p1, snap_radius, s0, s1
                     )
                     if found:
-                        _snap_radius, typ, dist, res, fac = ret
+                        _snap_radius, _typ, _dist, _res, _fac, _z = ret
+                        if _dist < seek_radius:
+                            seek_radius = _dist
+                            _snap_radius, typ, dist, res, fac, z = ret
 
                 if typ is not None:
                     closest.append(
-                        SlCadSnapTarget(typ, o, dist + priority, res, normal, t=fac)
+                        SlCadSnapTarget(
+                            typ, o, dist, res, normal,
+                            z=z, t=fac, ray_depth=ray_depth, face_index=face_index
+                        )
                     )
             else:
-                print("_closest_mesh_edge face_index > n polys %s > %s" % (face_index, len(me.polygons)))
+                logger.debug("_closest_mesh_edge face_index > n polys %s > %s" % (face_index, len(me.polygons)))
 
-    def _closest_geometry(self, context, origin, direction, hits_dict, closest):
+    def _closest_geometry(self, context, origin, direction, hits_dict, closest, skip_face):
         t = time.time()
         depsgraph = context.evaluated_depsgraph_get()
         for o, hits in hits_dict.items():
@@ -427,39 +555,42 @@ class SlCadSnap:
                 else:
                     me = o.data
 
-                if (self.snap_mode & (FACE | FACE_CENTER)):
-                    self._closest_mesh_face(o, me, origin, direction, hits, closest)
+                if self.snap_mode & (FACE | FACE_CENTER | FACE_NORMAL):
+                    self._closest_mesh_face(o, me, origin, direction, hits, closest, skip_face)
 
-                elif (self.snap_mode & (EDGE | EDGE_CENTER)):
+                elif self.snap_mode & (EDGE | EDGE_CENTER | EDGE_PERPENDICULAR | EDGE_PARALLEL):
                     self._closest_mesh_edge(o, me, origin, direction, hits, closest)
 
-                elif (self.snap_mode & VERT):
-                    self._closest_mesh_vert(o, me, hits, closest)
+                elif self.snap_mode & VERT:
+                    self._closest_mesh_vert(o, me, origin, hits, closest)
 
         # print("_closest_geometry %.4f" % (time.time() - t))
 
-    def _cast(self, context, hits, radius, use_center=True):
+    def _cast(self, context, hits, radius, use_center, deep_cast):
         t = time.time()
-        
-        cx, cy = self._center[0:2]
-        da = 2 * pi / self._cast_samples
+
         # allow multiple attempts if nothing is found on radius
         n_hits, n_faces, max_depth = 0, 0, 0
 
         if use_center:
-            self._deep_cast(context, 0, self._center, hits)
+            self._deep_cast(context, self._center, hits, deep_cast)
 
-        for i in range(self._cast_samples):
-            # cast multiple rays around radius
-            a = i * da
-            self._deep_cast(context, 0.00001, (cx + radius * cos(a), cy + radius * sin(a)), hits)
+        # when hit a face in edge / face / normal / origin modes, closest is under mouse cursor
+        if len(hits) == 0 or (self.snap_mode & (VERT | EDGE_CENTER | FACE_CENTER)):
+            cx, cy = self._center[0:2]
+            da = 2 * pi / self._cast_samples
+            for i in range(self._cast_samples):
+                # cast multiple rays around radius
+                a = i * da
+                self._deep_cast(context, (cx + radius * cos(a), cy + radius * sin(a)), hits, deep_cast)
+
         n_hits, max_depth, n_faces = len(hits), 0, 0
         if n_hits > 0:
             _hits = [len(hit) for hit in hits.values()]
             max_depth = max(_hits)
             n_faces = sum(_hits)
 
-        print("_cast objects:%s faces:%s depth:%s  %.4f" % (n_hits, n_faces, max_depth, time.time() - t))
+        # print("_cast objects:%s faces:%s depth:%s  %.4f" % (n_hits, n_faces, max_depth, time.time() - t))
 
     @staticmethod
     def _isect_vec_plane(origin, u, p_co, p_no, epsilon=1e-6):
@@ -524,11 +655,7 @@ class SlCadSnap:
 
     def update_gl_snap(self):
         if self.gl_stack is not None:
-            self.gl_stack.set_snap_mode(
-                (self.snap_mode & VERT) != 0,
-                (self.snap_mode & EDGE) != 0,
-                (self.snap_mode & EDGE_CENTER) != 0
-            )
+            self.gl_stack.set_snap_mode(self.snap_mode)
 
     def toggle_snap_mode(self, snap_to_xx):
         if self.snap_mode & snap_to_xx:
@@ -554,9 +681,51 @@ class SlCadSnap:
         self.ray_origin, self.ray_direction = self._region_2d_to_orig_and_vect(self._center)
         return self._center, self.ray_origin, self.ray_direction
 
-    def snap(self, context, event):
+    @property
+    def is_snapping_to_vert(self):
+        return self._is_snapping and (self._snap_raw.typ & VERT)
+
+    @property
+    def is_snapping_to_edge(self):
+        return self._is_snapping and (self._snap_raw.typ & EDGE)
+
+    @property
+    def is_snapping_to_face(self):
+        return self._is_snapping and (self._snap_raw.typ & FACE)
+
+    @property
+    def is_snapping_to_normal(self):
+        return self._is_snapping and (self.snap_mode & FACE_NORMAL)
+
+    @property
+    def is_snapping_to_perpendicular(self):
+        return self.is_snapping_to_edge and (self.snap_mode & EDGE_PERPENDICULAR)
+
+    @property
+    def is_snapping_to_parallel(self):
+        return self.is_snapping_to_edge and (self.snap_mode & EDGE_PARALLEL)
+
+    @property
+    def is_snapping_to_origin(self):
+        return self._is_snapping and (self._snap_raw.typ & ORIGIN)
+
+    @property
+    def edge_points(self):
+        p0, p1 = self._snap_raw.p0, self._snap_raw.p1
+        if self._snap_raw.t > 0.5:
+            p0, p1 = p1, p0
+        return p0, p1
+
+    def snap(self, context, event, grid_matrix):
+        """
+        :param grid_matrix:
+        :param context:
+        :param event:
+        :return:
+        """
 
         # flag to prevent overflow
+        # a modal may call faster than time to compute
         if self._active:
             return
 
@@ -572,58 +741,88 @@ class SlCadSnap:
 
         t = time.time()
 
-        # fallback to gl for curves only, limited to knots and straight segments
-        target, ret = self.gl_stack.snap(center)
-        if target is not None and ret is not None:
-            loc, pts, dist, fac = ret
+        # when geometry is found (origin or curve), skip face snap
+        skip_face = False
 
-            # print("snap gl_stack.snap(): data:%s loc:%s idx:%s  %.4f" % (target.data[0].name, loc, idx, time.time() - t))
-            if loc is not None:
-                typ = EDGE
-                if fac is None:
-                    typ = VERT
-                closest_curve.append(
-                    SlCadSnapTarget(typ, target.data[0], dist, pts, Z_AXIS, t=fac)
-                )
+        if self.gl_stack is not None and (self.snap_mode & (
+                VERT | EDGE | EDGE_CENTER | EDGE_PERPENDICULAR | EDGE_PARALLEL | ORIGIN)
+        ):
+            # fallback to gl for curves only, limited to knots and straight segments
+            target, ret = self.gl_stack.snap(center)
+            if target is not None and ret is not None:
+                loc, pts, dist, fac, typ = ret
+                # print("snap gl_stack.snap(): data:%s loc:%s idx:%s  %.4f" %
+                #  (target.data[0].name, loc, idx, time.time() - t))
+                if loc is not None:
+                    # if self.snap_mode & ORIGIN:
+                    #     pos = target.data[0].matrix_world.translation
+                    #     z = (pos - origin).length
+                    #     closest_curve.append(
+                    #         SlCadSnapTarget(ORIGIN, target.data[0], 0, [pos], Z_AXIS, z=z, t=None)
+                    #     )
+                    # else:
+                    #
+                    #     typ = EDGE
+                    #     if fac is None:
+                    #         typ = VERT
+                    # logger.debug("found %s  %s" % (typ, dist))
+                    z = (pts[0] - origin).length
+                    closest_curve.append(
+                        SlCadSnapTarget(typ, target.data[0], dist, pts, Z_AXIS, z=z, t=fac)
+                    )
+                    skip_face = True
 
         # snap to geometry
         use_center = True
 
         attempts = self._max_attempts
-        # progressive grow of radius by attempts
+        # progressive grow snap radius by attempts
         snap_radius_px = int(self._snap_radius / attempts)
         radius = 0
+
+        # Deep cast for x_ray and when snapping to normal in edit mode to skip selected faces
+        sort_by_ray_depth = (context.mode == "EDIT_MESH" and (self.snap_mode & FACE_NORMAL))
+        deep_cast = self.x_ray or sort_by_ray_depth
+
         while attempts > 0:
 
             closest = closest_curve[:]
             attempts -= 1
             radius += snap_radius_px
 
-            if self.snap_mode & (VERT | EDGE | EDGE_CENTER | FACE):
-                # Mesh snap rely on scene.ray_cast
-                self._cast(context, hits, radius, use_center)
+            if (self.snap_mode & (
+                    VERT | EDGE | EDGE_CENTER | EDGE_PERPENDICULAR | EDGE_PARALLEL | FACE | FACE_CENTER | FACE_NORMAL
+            )):
+
+                self._cast(context, hits, radius, use_center, deep_cast)
 
                 use_center = False
                 if len(hits) > 0:
-                    self._closest_geometry(context, origin, direction, hits, closest)
+                    self._closest_geometry(context, origin, direction, hits, closest, skip_face)
 
             if self.snap_mode & GRID:
                 # Snap to grid
-                p0 = self._mouse_to_plane()
+                p0 = self._mouse_to_plane(p_co=grid_matrix.translation, p_no=grid_matrix.col[2].to_3d())
                 if p0 is not None:
-                    x, y, z = p0
-                    p1 = Vector((round(x, 0), round(y, 0), round(z, 0)))
+                    x, y, z = grid_matrix.inverted_safe() @ p0
+                    p1 = grid_matrix @ Vector((round(x, 1), round(y, 1), round(z, 1)))
                     closest.append(
                         SlCadSnapTarget(GRID, None, self._pixel_dist(p1), [p1], Z_AXIS)
                     )
 
             if len(closest) > 0:
 
-                closest.sort(key=lambda i: i.d)
+                # when snapping to normal use ray depth to sort items, as a back face may be closest than anything else
+                if sort_by_ray_depth:
+                    closest.sort(key=lambda i: (i.ray_depth, i.d, i.z))
+                else:
+                    # prefer closest z items when pixel distance is the same
+                    closest.sort(key=lambda i: (i.d, i.z))
+
                 snap_raw = closest[0]
 
-                for c in closest:
-                    print(c)
+                # for i in closest:
+                #    print(i)
 
                 # snap proximity with mouse pointer
                 if snap_raw.d < self._snap_radius:
@@ -636,11 +835,16 @@ class SlCadSnap:
 
         self._active = False
 
+    def exclude_selected_face(self):
+        self._skip_selected_faces = True  # (self.snap_mode & FACE_NORMAL)
+
     def exclude_from_snap(self, objs):
         self._exclude = set([o.name for o in objs])
-        self.gl_stack._exclude = self._exclude
+        if self.gl_stack is not None:
+            self.gl_stack._exclude = self._exclude
+        self._is_snapping = False
 
     def clear_exclude(self):
         self._exclude.clear()
-        self.gl_stack._exclude.clear()
-
+        if self.gl_stack is not None:
+            self.gl_stack._exclude.clear()

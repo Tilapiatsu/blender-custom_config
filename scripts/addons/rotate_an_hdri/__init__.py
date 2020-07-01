@@ -20,7 +20,7 @@ bl_info = {
     "name": "Rotate an HDRI",
     "description": "",
     "author": "Alexander Belyakov",
-    "version": (1, 1),
+    "version": (1, 1, 2),
     "blender": (2, 80, 0),
     "location": "",
     "warning": "",
@@ -42,9 +42,9 @@ from bpy.props import (
 )
 
 
-MAT_PREVIEW_LIMIT_POS = 3.1415927410125732
-MAT_PREVIEW_LIMIT_NEG = -3.1415927410125732
-MAPPING_NODE_LIMIT = 6.2831854820251465
+LIMIT_POS = 3.1415927410125732
+LIMIT_NEG = -3.1415927410125732
+Z = 2
 
 
 def draw_callback_px(self, context):
@@ -66,21 +66,12 @@ def draw_callback_px(self, context):
 def get_hdri_rotation_angle(context):
     shading = context.space_data.shading
     hdri = get_hdri(context)
-    hdri_angle = 0
     if hdri == 'MAT_PREVIEW':
-        current_angle_z = shading.studiolight_rotate_z
-        if current_angle_z > 0:
-            hdri_angle = abs(MAT_PREVIEW_LIMIT_POS - current_angle_z)
-        else:
-            hdri_angle = abs(MAT_PREVIEW_LIMIT_NEG + current_angle_z)
-    elif hdri == 'NODE':
-        mapping_node = get_mapping_node(context)
-        if mapping_node:
-            if (2, 80) == bpy.app.version[:2]:
-                current_angle_z = mapping_node.rotation[2]
-            else:
-                current_angle_z = mapping_node.inputs[2].default_value[2]
-            hdri_angle = MAPPING_NODE_LIMIT - current_angle_z
+        hdri_angle = shading.studiolight_rotate_z
+    if hdri == 'NODE':
+        mapping_node_rotation = get_mapping_node_rotation(context)
+        if mapping_node_rotation:
+            hdri_angle = mapping_node_rotation[Z]
     return hdri_angle
 
 
@@ -92,28 +83,52 @@ def get_hdri(context):
         if (2, 80) == bpy.app.version[:2]:
             if shading.type == 'MATERIAL' and shading.use_scene_world:
                 hdri = 'NODE'
-            elif shading.type == 'RENDERED':
+            if shading.type == 'RENDERED':
                 hdri = 'NODE'
-            else:
-                if shading.type == 'MATERIAL':
-                    hdri = 'MAT_PREVIEW'
+            if shading.type == 'MATERIAL':
+                hdri = 'MAT_PREVIEW'
         else:
             if shading.type == 'MATERIAL' and shading.use_scene_world:
                 hdri = 'NODE'
-            elif shading.type == 'RENDERED' and shading.use_scene_world_render:
+            if shading.type == 'RENDERED' and shading.use_scene_world_render:
                 hdri = 'NODE'
-            elif shading.type == 'MATERIAL'and not shading.use_scene_world:
+            if shading.type == 'MATERIAL'and not shading.use_scene_world:
                 hdri = 'MAT_PREVIEW'
-            elif (shading.type == 'RENDERED'
-                  and not shading.use_scene_world_render):
+            if shading.type == 'RENDERED' and not shading.use_scene_world_render:
                 hdri = 'MAT_PREVIEW'
     return hdri
 
 
 def get_mapping_node(context):
     node_tree = context.scene.world.node_tree
+    gaffer_mapping_node = node_tree.nodes.get("HDRIHandler_ShaderNodeMapping")
+    if gaffer_mapping_node:
+        return gaffer_mapping_node
     mapping_node = node_tree.nodes.get("Mapping")
-    return mapping_node
+    if mapping_node:
+        return mapping_node
+
+
+def get_mapping_node_rotation(context):
+    mapping_node = get_mapping_node(context)
+    if mapping_node:
+        if (2, 80) == bpy.app.version[:2]:
+            mapping_node_rotation = mapping_node.rotation
+        else:
+            mapping_node_rotation = mapping_node.inputs[2].default_value
+        return mapping_node_rotation
+
+
+def update_gaffer_rotation_property(context):
+    scene = context.scene
+    mapping_node = get_mapping_node(context)
+    if mapping_node:
+        if mapping_node.name == "HDRIHandler_ShaderNodeMapping":
+            mapping_node_rotation = get_mapping_node_rotation(context)
+            try:
+                scene.gaf_props.hdri_rotation = math.degrees(mapping_node_rotation[Z])
+            except AttributeError:
+                pass
 
 
 class RotateHDRI(Operator):
@@ -127,44 +142,34 @@ class RotateHDRI(Operator):
     def modal(self, context, event):
         addon_prefs = context.preferences.addons["rotate_an_hdri"].preferences
         shading = context.space_data.shading
+
         if event.type == 'MOUSEMOVE':
             hdri = get_hdri(context)
             delta = self.first_mouse_x - event.mouse_x
             rotation_speed = 0.001 * addon_prefs.rotation_speed
             if hdri == 'MAT_PREVIEW':
                 hdri_angle = self.first_value
-                if shading.studiolight_rotate_z == MAT_PREVIEW_LIMIT_NEG:
-                    self.first_value = MAT_PREVIEW_LIMIT_POS
+                if shading.studiolight_rotate_z == LIMIT_NEG:
+                    self.first_value = LIMIT_POS
                     self.first_mouse_x = event.mouse_x
-                if shading.studiolight_rotate_z == MAT_PREVIEW_LIMIT_POS:
-                    self.first_value = MAT_PREVIEW_LIMIT_NEG
+                if shading.studiolight_rotate_z == LIMIT_POS:
+                    self.first_value = LIMIT_NEG
                     self.first_mouse_x = event.mouse_x
-                shading.studiolight_rotate_z = (
-                    hdri_angle + delta * rotation_speed)
-            elif hdri == 'NODE':
-                mapping_node = get_mapping_node(context)
-                if mapping_node:
+                shading.studiolight_rotate_z = hdri_angle + delta * rotation_speed
+            if hdri == 'NODE':
+                mapping_node_rotation = get_mapping_node_rotation(context)
+                if mapping_node_rotation:
                     hdri_angle = self.first_value
-                    z = 2
-                    if (2, 80) == bpy.app.version[:2]:
-                        current_angle = mapping_node.rotation
-                    else:
-                        current_angle = mapping_node.inputs[2].default_value
-                    if current_angle[z] < 0:
-                        self.first_value = MAPPING_NODE_LIMIT
+                    if mapping_node_rotation[Z] < LIMIT_NEG:
+                        self.first_value = LIMIT_POS
                         self.first_mouse_x = event.mouse_x
-                    if current_angle[z] > MAPPING_NODE_LIMIT:
-                        self.first_value = 0
+                    if mapping_node_rotation[Z] > LIMIT_POS:
+                        self.first_value = LIMIT_NEG
                         self.first_mouse_x = event.mouse_x
-                    current_angle[z] = hdri_angle + delta * rotation_speed
-
-        if event.type == 'LEFTMOUSE':
-            SpaceView3D.draw_handler_remove(self._handle, 'WINDOW')
-            return {'FINISHED'}
-        if event.type == 'RIGHTMOUSE':
-            SpaceView3D.draw_handler_remove(self._handle, 'WINDOW')
-            return {'FINISHED'}
-        if event.type == 'ESC':
+                    current_angle = hdri_angle + delta * rotation_speed
+                    mapping_node_rotation[Z] = current_angle
+        if event.type in {'LEFTMOUSE', 'RIGHTMOUSE', 'ESC'}:
+            update_gaffer_rotation_property(context)
             SpaceView3D.draw_handler_remove(self._handle, 'WINDOW')
             return {'FINISHED'}
         return {'RUNNING_MODAL'}
@@ -177,13 +182,10 @@ class RotateHDRI(Operator):
         if hdri == 'MAT_PREVIEW':
             self.first_value = shading.studiolight_rotate_z
         elif hdri == 'NODE':
-            mapping_node = get_mapping_node(context)
-            if mapping_node:
-                if (2, 80) == bpy.app.version[:2]:
-                    current_angle_z = mapping_node.rotation[2]
-                else:
-                    current_angle_z = mapping_node.inputs[2].default_value[2]
-                self.first_value = current_angle_z
+            mapping_node_rotation = get_mapping_node_rotation(context)
+            if mapping_node_rotation:
+                initial_angle = mapping_node_rotation[Z]
+                self.first_value = initial_angle
 
         args = (self, context)
         self._handle = SpaceView3D.draw_handler_add(

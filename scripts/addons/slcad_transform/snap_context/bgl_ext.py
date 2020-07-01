@@ -30,13 +30,16 @@ if hasattr(ctypes.pythonapi, 'Py_InitModule4_64'):
 else:
     _Py_ssize_t = ctypes.c_int
 
+
 class _PyObject(ctypes.Structure):
     pass
+
 
 _PyObject._fields_ = [
     ('ob_refcnt', _Py_ssize_t),
     ('ob_type', ctypes.POINTER(_PyObject)),
 ]
+
 
 if object.__basicsize__ != ctypes.sizeof(_PyObject):
     # python with trace
@@ -48,12 +51,14 @@ if object.__basicsize__ != ctypes.sizeof(_PyObject):
             ('ob_type', ctypes.POINTER(_PyObject)),
         ]
 
+
 class _PyVarObject(_PyObject):
     _fields_ = [
         ('ob_size', _Py_ssize_t),
     ]
 
-class C_Buffer(_PyVarObject):
+
+class CBuffer(_PyVarObject):
     _fields_ = [
         ("parent", ctypes.py_object),
         ("type", ctypes.c_int),
@@ -62,37 +67,39 @@ class C_Buffer(_PyVarObject):
         ("buf", ctypes.c_void_p),
     ]
 
-assert ctypes.sizeof(C_Buffer) == bgl.Buffer.__basicsize__
 
-class VoidBufValue():
+assert ctypes.sizeof(CBuffer) == bgl.Buffer.__basicsize__
+
+
+class VoidBufValue:
     def __init__(self, value):
         self.buf = bgl.Buffer(bgl.GL_BYTE, 1)
 
-        self._buf_addr = ctypes.pointer(ctypes.c_void_p.from_address(id(self.buf) + C_Buffer.buf.offset))
+        self._buf_addr = ctypes.pointer(ctypes.c_void_p.from_address(id(self.buf) + CBuffer.buf.offset))
         self._allocated_buf = self._buf_addr[0]
         self._buf_addr[0] = value
 
     def __del__(self):
         self._buf_addr[0] = self._allocated_buf
-        #del self._allocated_buf
-        #del self._buf_addr
+        # del self._allocated_buf
+        # del self._buf_addr
         del self.buf
 
 
 def np_array_as_bgl_Buffer(array):
-    type = array.dtype
-    if type == np.int8:
-        type = bgl.GL_BYTE
-    elif type == np.int16:
-        type = bgl.GL_SHORT
-    elif type == np.int32:
-        type = bgl.GL_INT
-    elif type == np.float32:
-        type = bgl.GL_FLOAT
-    elif type == np.float64:
-        type = bgl.GL_DOUBLE
+    typ = array.dtype
+    if typ == np.int8:
+        typ = bgl.GL_BYTE
+    elif typ == np.int16:
+        typ = bgl.GL_SHORT
+    elif typ == np.int32:
+        typ = bgl.GL_INT
+    elif typ == np.float32:
+        typ = bgl.GL_FLOAT
+    elif typ == np.float64:
+        typ = bgl.GL_DOUBLE
     else:
-        raise Exception("Unsupported type %s" % type)
+        raise Exception("Unsupported type %s" % typ)
 
     _decref = ctypes.pythonapi.Py_DecRef
     _incref = ctypes.pythonapi.Py_IncRef
@@ -101,45 +108,13 @@ def np_array_as_bgl_Buffer(array):
     _decref.restype = _incref.restype = None
 
     buf = bgl.Buffer(bgl.GL_BYTE, (1, *array.shape))[0]
-    c_buf = C_Buffer.from_address(id(buf))
+    c_buf = CBuffer.from_address(id(buf))
 
     _decref(c_buf.parent)
     _incref(array)
 
-    c_buf.parent = array # Prevents MEM_freeN
-    c_buf.type = type
+    c_buf.parent = array   # Prevents MEM_freeN
+    c_buf.type = typ
     c_buf.buf = array.ctypes.data
 
     return buf
-
-
-def bgl_Buffer_reshape(buf, shape):
-    assert np.prod(buf.dimensions) == np.prod(shape)
-
-    c_buf = C_Buffer.from_address(id(buf))
-    c_buf.ndimensions = len(shape)
-
-    tmp_buf = bgl.Buffer(c_buf.type, (1,) * len(shape))
-    c_tmp_buf = C_Buffer.from_address(id(tmp_buf))
-    for i, v in enumerate(shape):
-        c_tmp_buf.dimensions[i] = v
-
-    offset = C_Buffer.dimensions.offset
-    a = ctypes.pointer(ctypes.c_void_p.from_address(id(tmp_buf) + offset))
-    b = ctypes.pointer(ctypes.c_void_p.from_address(id(buf) + offset))
-
-    a[0], b[0] = b[0], a[0]
-
-    del c_buf
-    del c_tmp_buf
-    del tmp_buf
-
-
-def get_clip_planes(rv3d):
-    #(int)(&((struct RegionView3D *)0)->rflag) == 842
-    #(int)(&((struct RegionView3D *)0)->clip) == 464
-    rv3d_ptr = rv3d.as_pointer()
-    rflag = ctypes.c_short.from_address(rv3d_ptr + 842).value
-    if rflag & 4: # RV3D_CLIPPING
-        clip = (6 * (4 * ctypes.c_float)).from_address(rv3d_ptr + 464)
-        return bgl.Buffer(bgl.GL_FLOAT, (6, 4), clip)

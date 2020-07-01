@@ -24,14 +24,16 @@
 # Author: Stephen Leger (s-leger)
 #
 # ----------------------------------------------------------
+
+
 bl_info = {
     'name': 'CAD Transform',
     'description': 'Cad like transform',
-    'author': 's-leger support@blender-archipack.org',
+    'author': '<s-leger> support@blender-archipack.org',
     'license': 'GPL',
     'deps': '',
     'blender': (2, 80, 0),
-    'version': (0, 0, 1),
+    'version': (0, 0, 8),
     'location': 'View3D > Tools > Cad',
     'warning': '',
     'wiki_url': 'https://github.com/s-leger/blender_cad_transforms/wiki',
@@ -41,16 +43,16 @@ bl_info = {
     'category': '3D View'
     }
 
+__author__ = bl_info['author']
+__version__ = ".".join(map(str, bl_info['version']))
 
-if "bpy" in locals():
-    import importlib as imp
-    imp.reload("slcad_transform")
+
+if "slcad_transform" in locals():
+    pass
+
 else:
     from .slcad_transform import register, unregister
 
 
-
 if __name__ == "__main__":
     register()
-
-
