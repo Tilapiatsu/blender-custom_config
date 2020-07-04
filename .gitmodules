@@ -211,3 +211,12 @@
 [submodule "scrips/addons/DreamUV"]
 	path = scrips/addons/DreamUV
 	url = https://github.com/leukbaars/DreamUV.git
+[submodule "scripts/addons/tensionmap"]
+	path = scripts/addons/tensionmap
+	url = https://github.com/ScottishCyclops/tensionmap.git
+[submodule "scripts/addons/modifier_list"]
+	path = scripts/addons/modifier_list
+	url = https://github.com/Symstract/modifier_list.git
+[submodule "scripts/addons/Auto_Reload"]
+	path = scripts/addons/Auto_Reload
+	url = https://github.com/samytichadou/Auto_Reload-Blender_addon.git
