@@ -11,6 +11,7 @@ modules =   (
             'mesh_looptools',
             'MACHIN3tools',
             'UvSquares',
+            'Auto_Reload',
             # 'mesh_mesh_align_plus',
             'node_wrangler',
             'node_presets',
