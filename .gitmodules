@@ -208,3 +208,6 @@
 [submodule "scripts/addons/glslTexture"]
 	path = scripts/addons/glslTexture
 	url = https://github.com/patriciogonzalezvivo/glslTexture.git
+[submodule "scrips/addons/DreamUV"]
+	path = scrips/addons/DreamUV
+	url = https://github.com/leukbaars/DreamUV.git
