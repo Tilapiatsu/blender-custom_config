@@ -110,16 +110,16 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 
 	def navigation_keys(self, pan=None, orbit=None, dolly=None, roll=None):
 		if orbit:
-			self.kmi_set_replace(orbit, self.k_manip, "PRESS", alt=True)
+			self.kmi_set_replace(orbit, self.k_manip, "PRESS", alt=True, disable_double=True)
 		if pan:
-			if self.km.name in ['3D View']:
-				self.kmi_set_replace(pan, self.k_manip, "PRESS", alt=True, shift=True)
+			if self.km.name in ['3D View', 'Image']:
+				self.kmi_set_replace(pan, self.k_manip, "PRESS", alt=True, shift=True, disable_double=True)
 			else:
-				self.kmi_set_replace(pan, self.k_manip, "CLICK_DRAG", alt=True, shift=True)
+				self.kmi_set_replace(pan, self.k_manip, "CLICK_DRAG", alt=True, shift=True, disable_double=True)
 		if dolly:
-			self.kmi_set_replace(dolly, self.k_manip, "PRESS", alt=True, ctrl=True)
+			self.kmi_set_replace(dolly, self.k_manip, "PRESS", alt=True, ctrl=True, disable_double=True)
 		if roll:
-			self.kmi_set_replace(roll, self.k_context, "PRESS", alt=True)
+			self.kmi_set_replace(roll, self.k_context, "PRESS", alt=True, disable_double=True)
 
 	def mode_selection(self):
 		self.kmi_set_replace('view3d.tila_smart_editmode', self.k_vert_mode, 'PRESS', properties=[('mode', 0), ('use_extend', False), ('use_expand', False), ('alt_mode', False)], disable_double=True)
@@ -253,9 +253,9 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 			
 		
 		if linked_pick_tool:
-			if self.km.name in ['Curve', 'Lattice', 'Grease Pencil', 'Particle']:
-				self.kmi_set_replace(linked_pick_tool, self.k_linked, 'PRESS', ctrl=False, properties=[('deselect', False)])
-				self.kmi_set_replace(linked_pick_tool, self.k_linked, 'PRESS', ctrl=True, properties=[('deselect', True)])
+			if self.km.name in ['Curve', 'Lattice', 'Grease Pencil', 'Particle', 'UV Editor']:
+				self.kmi_set_replace(linked_pick_tool, self.k_linked, 'PRESS', ctrl=False, properties=[('deselect', False), ('extend', True)], disable_double=True)
+				self.kmi_set_replace(linked_pick_tool, self.k_linked, 'PRESS', ctrl=True, properties=[('deselect', True), ('extend', True)], disable_double=True)
 
 			else:
 				self.kmi_set_replace(linked_pick_tool, self.k_linked, 'PRESS', ctrl=False, properties=[('deselect', False), ('delimit', {'SEAM'})], disable_double=True)
@@ -524,6 +524,7 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		self.global_keys()
 		self.right_mouse()
 		self.navigation_keys(pan='image.view_pan', orbit=None, dolly='image.view_zoom')
+		
 
 		###### UV Editor
 		self.kmi_init(name='UV Editor', space_type='EMPTY', region_type='WINDOW')
@@ -537,15 +538,19 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 					  		loop_tool='uv.select_loop',
 					  		more_tool='uv.select_more',
 					  		less_tool='uv.select_less',
+							shortestpath_tool='uv.shortest_path_pick',
 					  		linked_tool='uv.select_linked',
 							linked_pick_tool='uv.select_linked_pick',
 							invert_tool='uv.select_all')
 		
+		self.kmi_set_replace('image.view_selected', 'A', 'PRESS', ctrl=True, shift=True, disable_double=True)
 		self.kmi_set_replace('uv.cursor_set', self.k_cursor, 'PRESS', ctrl=True, alt=True, shift=True)
 		self.tool_smooth()
 		self.hide_reveal(hide='uv.hide', unhide='uv.reveal')
 		self.snap(snapping='wm.context_menu_enum', snapping_prop=[('data_path', 'tool_settings.snap_uv_element')])
 		self.tool_center(pivot='SpaceImageEditor.pivot_point')
+
+		self.kmi_set_replace('wm.call_menu_pie', 'F', 'PRESS', alt=True, shift=True, properties=[('name', 'UVTOOLKIT_MT_pie')])
 
 		###### Mesh
 		self.kmi_init(name='Mesh', space_type='EMPTY', region_type='WINDOW')
@@ -667,7 +672,7 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		self.kmi_set_replace('wm.call_menu_pie', 'S', 'PRESS', alt=True, shift=True, properties=[('name', 'TILA_MT_pie_normal')], disable_double=True)
 
 		self.kmi_set_replace('outliner.tila_group_selected', 'G', 'PRESS', ctrl=True, properties=[('mode', 'GROUP_TO_BIGGER_NUMBER')], disable_double=True)
-		self.kmi_set_replace('outliner.tila_group_selected', 'G', 'PRESS', ctrl=True, shift=True, properties=[('mode', 'MOVE_TO_ACTIVE')], disable_double=True)
+		self.kmi_set_replace('outliner.tila_group_selected', 'G', 'PRESS', ctrl=True, shift=True, properties=[('mode', 'ADDg_TO_ACTIVE')], disable_double=True)
 
 		###### 3D View Tool: Select
 		self.kmi_init(name='3D View Tool: Tweak', space_type='EMPTY', region_type='WINDOW')

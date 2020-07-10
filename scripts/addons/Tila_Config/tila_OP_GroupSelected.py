@@ -14,7 +14,7 @@ class GroupSelected(bpy.types.Operator):
 	bl_label = "TILA: Group Selected"
 	bl_options = {'REGISTER', 'UNDO'}
 
-	mode : bpy.props.EnumProperty(items=[("GROUP_TO_BIGGER_NUMBER", "Group To Bigger Number", ""), ("GROUP_TO_ACTIVE", "Group To Active", ""), ("MOVE_TO_ACTIVE", "Move To Active", "")])
+	mode : bpy.props.EnumProperty(items=[("GROUP_TO_BIGGER_NUMBER", "Group To Bigger Number", ""), ("GROUP_TO_ACTIVE", "Group To Active", ""), ("MOVE_TO_ACTIVE", "Move To Active", ""), ("ADD_TO_ACTIVE", "Add To Active", "")])
 
 	def get_parent_collection(self, context):
 		parent_collection = ''
@@ -45,7 +45,7 @@ class GroupSelected(bpy.types.Operator):
 		parent_collection_name = self.get_parent_collection(context)
 		parent_collection = bpy.data.collections[parent_collection_name]
 
-		if self.mode == 'MOVE_TO_ACTIVE':
+		if self.mode in ['MOVE_TO_ACTIVE', 'ADD_TO_ACTIVE']:
 			new_collection = parent_collection
 		else:
 			new_collection_name = parent_collection_name + '_group'
@@ -54,7 +54,8 @@ class GroupSelected(bpy.types.Operator):
 
 
 		for o in context.selected_objects:
-			o.users_collection[0].objects.unlink(o)
+			if self.mode not in ['ADD_TO_ACTIVE']:
+				o.users_collection[0].objects.unlink(o)
 			new_collection.objects.link(o)
 			
 
