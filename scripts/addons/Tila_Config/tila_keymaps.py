@@ -550,6 +550,12 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		self.snap(snapping='wm.context_menu_enum', snapping_prop=[('data_path', 'tool_settings.snap_uv_element')])
 		self.tool_center(pivot='SpaceImageEditor.pivot_point')
 
+		self.kmi_set_replace('wm.tool_set_by_id', 'W', 'PRESS', ctrl=True, alt=True, shift=True, properties=[('name', 'builtin_brush.Grab')])
+		self.tool_radial_control(radius=[('data_path_primary', 'tool_settings.uv_sculpt.brush.size'), ('data_path_secondary', 'tool_settings.unified_paint_settings.size'), ('use_secondary', 'tool_settings.unified_paint_settings.use_unified_size'), ('rotation_path', 'tool_settings.uv_sculpt.brush.texture_slot.angle'), ('color_path', 'tool_settings.uv_sculpt.brush.cursor_color_add'), ('image_id', 'tool_settings.uv_sculpt.brush')],
+						   		opacity=[('data_path_primary', 'tool_settings.uv_sculpt.brush.strength'), ('data_path_secondary', 'tool_settings.unified_paint_settings.strength'), ('use_secondary', 'tool_settings.unified_paint_settings.use_unified_strength'), (
+							   'rotation_path', 'tool_settings.uv_sculpt.brush.texture_slot.angle'), ('color_path', 'tool_settings.uv_sculpt.brush.cursor_color_add'), ('image_id', 'tool_settings.uv_sculpt.brush')],
+						   		eraser_radius=[('data_path_primary', 'tool_settings.uv_sculpt.brush.texture_slot.angle'), ('rotation_path', 'tool_settings.uv_sculpt.brush.texture_slot.angle'), ('color_path', 'tool_settings.uv_sculpt.brush.cursor_color_add'), ('image_id', 'tool_settings.uv_sculpt.brush')])
+
 		self.kmi_set_replace('wm.call_menu_pie', 'F', 'PRESS', alt=True, shift=True, properties=[('name', 'UVTOOLKIT_MT_pie')])
 
 		###### Mesh
