@@ -523,6 +523,7 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		self.kmi_init(name='Image', space_type='IMAGE_EDITOR', region_type='WINDOW')
 		self.global_keys()
 		self.right_mouse()
+		self.kmi_set_active(False, 'image.view_pan', self.k_cursor, 'PRESS', shift=True)
 		self.navigation_keys(pan='image.view_pan', orbit=None, dolly='image.view_zoom')
 		
 
