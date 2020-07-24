@@ -27,6 +27,7 @@ modules =   (
             'PolyQuilt',
             'slcad_transform',
             'EasyHDRI',
+            'Lodify'
             # 'MeasureIt-ARCH',
             'retopoflow',
             'add_curve_extra_objects',
