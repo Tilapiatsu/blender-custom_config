@@ -220,3 +220,6 @@
 [submodule "scripts/addons/DreamUV"]
 	path = scripts/addons/DreamUV
 	url = https://github.com/leukbaars/DreamUV.git
+[submodule "scripts/addons/mesh-fairing"]
+	path = scripts/addons/mesh-fairing
+	url = https://github.com/fedackb/mesh-fairing.git
