@@ -16,6 +16,7 @@ robocopy "..\GIT\Blender-Addons\MathsExpressionLiteBlender28" "MathsExpressionLi
 robocopy "..\GIT\MapsModelsImporter\blender\MapsModelsImporter" "MapsModelsImporter" %param%
 robocopy "..\GIT\Polycount\polycount" "Polycount" %param%
 robocopy "..\GIT\Texel-Density-Checker\Texel_Density_3_1_281" "Texel_Density" %param%
+robocopy "..\GIT\BEER\BlenderMalt" "BlenderMalt" %param%
 
 copy "..\GIT\ProTheme\blender_pro.xml" "..\presets\interface_theme"
 

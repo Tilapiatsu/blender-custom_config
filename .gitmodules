@@ -223,3 +223,6 @@
 [submodule "scripts/addons/mesh-fairing"]
 	path = scripts/addons/mesh-fairing
 	url = https://github.com/fedackb/mesh-fairing.git
+[submodule "Scripts/GIT/BEER"]
+	path = Scripts/GIT/BEER
+	url = https://github.com/BlenderNPR/BEER.git
