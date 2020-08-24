@@ -28,6 +28,8 @@ modules =   (
             'slcad_transform',
             'EasyHDRI',
             'Lodify',
+            'bakeToVertexColor',
+            'SSGI',
             # 'MeasureIt-ARCH',
             'retopoflow',
             'add_curve_extra_objects',
