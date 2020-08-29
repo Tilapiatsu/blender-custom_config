@@ -10,9 +10,32 @@ import bmesh
 from mathutils import Vector
 from bpy.types import Operator
 from .ke_utils import mouse_raycast
+
+
 # -------------------------------------------------------------------------------------------------
-# Selection
+# random stuff and pie/menu operators
 # -------------------------------------------------------------------------------------------------
+#
+# class VIEW3D_OT_ke_op(Operator):
+# 	bl_idname = "view3d.ke_op"
+# 	bl_label = "Run Operator"
+# 	bl_description = "Run Operator"
+#
+# 	operator: bpy.props.EnumProperty(
+# 		items=[("ICONS", "Show Icons", "", "Icons", 1),
+# 			   ("TEST", "Testcube", "", "Test", 2),
+# 			   ],
+# 		name="Ops",
+# 		default="ICONS")
+#
+# 	def execute(self, context):
+# 		if self.operator == 'Icons':
+# 			bpy.ops.iv.icons_show(filter_auto_focus="", filter="", selected_icon="")
+# 		elif self.operator == 'Test':
+# 			bpy.ops.mesh.primitive_cube_add()
+# 		return {'FINISHED'}
+
+
 class MESH_OT_ke_select_boundary(Operator):
 	bl_idname = "mesh.ke_select_boundary"
 	bl_label = "select boundary(+active)"
@@ -105,10 +128,24 @@ class VIEW3D_OT_ke_object_to_cursor(Operator):
 class VIEW3D_OT_ke_origin_to_cursor(Operator):
 	bl_idname = "view3d.ke_origin_to_cursor"
 	bl_label = "Align Origin To Cursor"
-	bl_description = "Aligns selected object(s) origin(s) (ONLY) to Cursor (Rotation & Location)"
+	bl_description = "Aligns selected object(s) origin(s) to Cursor (Rotation,Location or both)"
 	bl_space_type = 'VIEW_3D'
 	bl_region_type = 'UI'
 	bl_options = {'REGISTER', 'UNDO'}
+
+	align: bpy.props.EnumProperty(
+		items=[("LOCATION", "Location Only", "", "LOCATION", 1),
+			   ("ROTATION", "Rotation Only", "", "ROTATION", 2),
+			   ("BOTH", "Location & Rotation", "", "BOTH", 3),
+			   ],
+		name="Align",
+		default="BOTH")
+
+	def draw(self, context):
+		layout = self.layout
+		layout.use_property_split = True
+		column = layout.column()
+		column.prop(self, "align", expand=True)
 
 	@classmethod
 	def poll(cls, context):
@@ -116,17 +153,93 @@ class VIEW3D_OT_ke_origin_to_cursor(Operator):
 				context.object.type == 'MESH')
 
 	def execute(self, context):
+
+		if len(context.selected_objects) == 0:
+			return {"CANCELLED"}
+
 		if context.object.data.is_editmode:
 			bpy.ops.object.mode_set(mode="OBJECT")
 
-		context.scene.tool_settings.use_transform_data_origin = True
-		bpy.ops.object.origin_set(type='ORIGIN_CURSOR', center='MEDIAN')
-		bpy.ops.transform.transform(mode='ALIGN', value=(0, 0, 0, 0), orient_type='CURSOR', mirror=True,
-									use_proportional_edit=False, proportional_edit_falloff='SMOOTH',
-									proportional_size=1, use_proportional_connected=False,
-									use_proportional_projected=False)
-		context.scene.tool_settings.use_transform_data_origin = False
+		if self.align == "BOTH":
+			context.scene.tool_settings.use_transform_data_origin = True
+			bpy.ops.object.origin_set(type='ORIGIN_CURSOR', center='MEDIAN')
+			bpy.ops.transform.transform(mode='ALIGN', value=(0, 0, 0, 0), orient_type='CURSOR', mirror=True,
+										use_proportional_edit=False, proportional_edit_falloff='SMOOTH',
+										proportional_size=1, use_proportional_connected=False,
+										use_proportional_projected=False)
+			context.scene.tool_settings.use_transform_data_origin = False
 
+		else:
+			cursor = context.scene.cursor
+			ogloc = list(cursor.location)
+
+			if self.align =='LOCATION':
+				context.scene.tool_settings.use_transform_data_origin = True
+				bpy.ops.view3d.snap_selected_to_cursor(use_offset=True)
+				context.scene.tool_settings.use_transform_data_origin = False
+
+			elif self.align =='ROTATION':
+				obj_loc = list(context.object.location)
+				context.scene.tool_settings.use_transform_data_origin = True
+				bpy.ops.object.origin_set(type='ORIGIN_CURSOR', center='MEDIAN')
+				bpy.ops.transform.transform(mode='ALIGN', value=(0, 0, 0, 0), orient_type='CURSOR', mirror=True,
+											use_proportional_edit=False, proportional_edit_falloff='SMOOTH',
+											proportional_size=1, use_proportional_connected=False,
+											use_proportional_projected=False)
+				cursor.location = obj_loc
+				bpy.ops.view3d.snap_selected_to_cursor(use_offset=True)
+				context.scene.tool_settings.use_transform_data_origin = False
+				cursor.location = ogloc
+
+		bpy.ops.transform.select_orientation(orientation='LOCAL')
+
+		return {'FINISHED'}
+
+
+class VIEW3D_OT_align_origin_to_selected(Operator):
+	bl_idname = "view3d.align_origin_to_selected"
+	bl_label = "Align Origin To Selected Elements"
+	bl_description = "CursorFit&Align + OriginToCursor Macro: Places origin(s) at element selection. (Cursor is restored)"
+	bl_space_type = 'VIEW_3D'
+	bl_region_type = 'UI'
+	bl_options = {'REGISTER', 'UNDO'}
+
+	align: bpy.props.EnumProperty(
+		items=[("LOCATION", "Location", "", "LOCATION", 1),
+			   ("ROTATION", "Rotation", "", "ROTATION", 2),
+			   ("BOTH", "Location & Rotation", "", "BOTH", 3),
+			   ],
+		name="Align",
+		default="BOTH")
+
+	def draw(self, context):
+		layout = self.layout
+		layout.use_property_split = True
+		column = layout.column()
+		column.prop(self, "align", expand=True)
+
+
+	@classmethod
+	def poll(cls, context):
+		return (context.object is not None and
+				context.object.type == 'MESH')
+
+	def execute(self, context):
+		cursor = context.scene.cursor
+		ogmode = str(cursor.rotation_mode)
+		ogloc = cursor.location.copy()
+		ogrot = cursor.rotation_quaternion.copy()
+
+		bpy.ops.view3d.cursor_fit_selected_and_orient()
+		bpy.ops.view3d.ke_origin_to_cursor(align=self.align)
+
+		cursor.rotation_mode = "QUATERNION"
+		cursor.location = ogloc
+		cursor.rotation_quaternion = ogrot
+		cursor.rotation_mode = ogmode
+
+		bpy.ops.transform.select_orientation(orientation='LOCAL')
+		bpy.context.scene.tool_settings.transform_pivot_point = 'MEDIAN_POINT'
 		return {'FINISHED'}
 
 
@@ -156,18 +269,50 @@ class VIEW3D_OT_ke_overlays(Operator):
 			   ("ORIGINS", "Show Origins", "", "ORIGINS", 15),
 			   ("CURSOR", "Show Cursor", "", "CURSOR", 16),
 			   ("OUTLINE", "Show Outline", "", "OUTLINE", 17),
+			   ("WIREFRAMES", "Show Object Wireframes", "", "WIREFRAMES", 18),
+			   ("GRID", "Show Grid (3D View)", "", "GRID", 19),
 			   ],
 		name="Overlay Type",
 		default="WIRE")
 
 	def execute(self, context):
+		# Same for Edit mode and Object mode
+		if self.overlay == "GRID":  # Does not affect ortho views, assuming default xy only.
+			status = bpy.context.space_data.overlay.show_floor
+			bpy.context.space_data.overlay.show_floor = not status
+			if not bpy.context.space_data.overlay.show_floor:
+				bpy.context.space_data.overlay.show_axis_x = False
+				bpy.context.space_data.overlay.show_axis_y = False
+				# bpy.context.space_data.overlay.show_axis_z = False
+			else:
+				bpy.context.space_data.overlay.show_axis_x = True
+				bpy.context.space_data.overlay.show_axis_y = True
+				# bpy.context.space_data.overlay.show_axis_z = False
+
+		elif self.overlay == "EXTRAS":
+			status = bpy.context.space_data.overlay.show_extras
+			bpy.context.space_data.overlay.show_extras = not status
+
+		elif self.overlay == "ALL":
+			status = bpy.context.space_data.overlay.show_overlays
+			bpy.context.space_data.overlay.show_overlays = not status
+
+		elif self.overlay == "ORIGINS":
+			status = bpy.context.space_data.overlay.show_object_origins
+			bpy.context.space_data.overlay.show_object_origins = not status
+
+		elif self.overlay == "OUTLINE":
+			status = bpy.context.space_data.overlay.show_outline_selected
+			bpy.context.space_data.overlay.show_outline_selected = not status
+
+		elif self.overlay == "CURSOR":
+			status = bpy.context.space_data.overlay.show_cursor
+			bpy.context.space_data.overlay.show_cursor = not status
+
+		# Mode contextual
 		if bpy.context.mode == "EDIT_MESH":
 
-			if self.overlay == "EXTRAS":
-				status = bpy.context.space_data.overlay.show_extras
-				bpy.context.space_data.overlay.show_extras = not status
-
-			elif self.overlay == "SEAMS":
+			if self.overlay == "SEAMS":
 				status = bpy.context.space_data.overlay.show_edge_seams
 				bpy.context.space_data.overlay.show_edge_seams = not status
 
@@ -203,10 +348,6 @@ class VIEW3D_OT_ke_overlays(Operator):
 					bpy.context.space_data.overlay.show_edge_crease = True
 					bpy.context.space_data.overlay.show_edge_bevel_weight = True
 
-			elif self.overlay == "ALL":
-				status = bpy.context.space_data.overlay.show_overlays
-				bpy.context.space_data.overlay.show_overlays = not status
-
 			elif self.overlay == "VN":
 				status = bpy.context.space_data.overlay.show_vertex_normals
 				bpy.context.space_data.overlay.show_vertex_normals = not status
@@ -223,44 +364,16 @@ class VIEW3D_OT_ke_overlays(Operator):
 				status = bpy.context.space_data.shading.show_backface_culling
 				bpy.context.space_data.shading.show_backface_culling = not status
 
-			elif self.overlay == "ORIGINS":
-				status = bpy.context.space_data.overlay.show_object_origins
-				bpy.context.space_data.overlay.show_object_origins = not status
-
-			elif self.overlay == "OUTLINE":
-				status = bpy.context.space_data.overlay.show_outline_selected
-				bpy.context.space_data.overlay.show_outline_selected = not status
-
-			elif self.overlay == "CURSOR":
-				status = bpy.context.space_data.overlay.show_cursor
-				bpy.context.space_data.overlay.show_cursor = not status
-
-
 		elif bpy.context.mode == "OBJECT":
 
 			if self.overlay == "WIRE":
 				status = bpy.context.space_data.overlay.show_wireframes
 				bpy.context.space_data.overlay.show_wireframes = not status
 
-			elif self.overlay == "EXTRAS":
-				status = bpy.context.space_data.overlay.show_extras
-				bpy.context.space_data.overlay.show_extras = not status
+			elif self.overlay == "WIREFRAMES":
+				status = bpy.context.space_data.overlay.show_wireframes
+				bpy.context.space_data.overlay.show_wireframes = not status
 
-			elif self.overlay == "ALL":
-				status = bpy.context.space_data.overlay.show_overlays
-				bpy.context.space_data.overlay.show_overlays = not status
-
-			elif self.overlay == "ORIGINS":
-				status = bpy.context.space_data.overlay.show_object_origins
-				bpy.context.space_data.overlay.show_object_origins = not status
-
-			elif self.overlay == "OUTLINE":
-				status = bpy.context.space_data.overlay.show_outline_selected
-				bpy.context.space_data.overlay.show_outline_selected = not status
-
-			elif self.overlay == "CURSOR":
-				status = bpy.context.space_data.overlay.show_cursor
-				bpy.context.space_data.overlay.show_cursor = not status
 
 		return {'FINISHED'}
 
@@ -275,7 +388,8 @@ class VIEW3D_OT_ke_frame_view(Operator):
 
 	def execute(self, context):
 		sel_mode = bpy.context.mode
-		sel_obj = [o for o in bpy.context.scene.objects if o.select_get()]
+		sel_obj =  [o for o in context.selected_objects]
+		active = [context.active_object]
 
 		if sel_mode == "OBJECT":
 			if sel_obj:
@@ -284,22 +398,21 @@ class VIEW3D_OT_ke_frame_view(Operator):
 				bpy.ops.view3d.view_all('INVOKE_DEFAULT', center=True)
 
 		elif sel_mode == "EDIT_MESH":
+			if not sel_obj and active:
+				sel_obj = active
 
-			bpy.ops.object.mode_set(mode="OBJECT")
 			sel_check = False
 
-			for o in bpy.context.scene.objects:
-				if not sel_check and o.type == "MESH":
+			for o in sel_obj:
+				if o.type == "MESH":
+					o.update_from_editmode()
 					for v in o.data.vertices:
 						if v.select:
 							sel_check = True
 							break
 
-			bpy.ops.object.mode_set(mode="EDIT")
-
 			if sel_check:
 				bpy.ops.view3d.view_selected('INVOKE_DEFAULT', use_all_regions=False)
-
 			else:
 				bpy.ops.view3d.view_all('INVOKE_DEFAULT', center=True)
 
@@ -449,6 +562,8 @@ classes = (
 	VIEW3D_OT_ke_focusmode,
 	VIEW3D_OT_ke_object_to_cursor,
 	VIEW3D_OT_ke_origin_to_cursor,
+	VIEW3D_OT_align_origin_to_selected,
+	# VIEW3D_OT_ke_op,
 )
 
 def register():

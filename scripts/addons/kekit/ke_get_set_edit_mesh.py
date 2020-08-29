@@ -45,13 +45,15 @@ class VIEW3D_OT_ke_get_set_material(Operator):
     bl_idname = "view3d.ke_get_set_material"
     bl_label = "Get & Set Material"
     bl_description = "Samples material under mouse pointer and applies it to the selection"
-    bl_options = {'REGISTER', 'UNDO'}
+    bl_options = {'REGISTER'}
+
+    offset: bpy.props.IntVectorProperty(name="Offset", default=(0, 0), size=2)
 
     mouse_pos = Vector((0, 0))
 
     def invoke(self, context, event):
-        self.mouse_pos[0] = event.mouse_region_x
-        self.mouse_pos[1] = event.mouse_region_y
+        self.mouse_pos[0] = event.mouse_region_x - self.offset[0]
+        self.mouse_pos[1] = event.mouse_region_y - self.offset[1]
         return self.execute(context)
 
     def execute(self, context):

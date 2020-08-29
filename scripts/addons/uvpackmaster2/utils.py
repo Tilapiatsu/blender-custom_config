@@ -1,3 +1,21 @@
+# ##### BEGIN GPL LICENSE BLOCK #####
+#
+#  This program is free software; you can redistribute it and/or
+#  modify it under the terms of the GNU General Public License
+#  as published by the Free Software Foundation; either version 2
+#  of the License, or (at your option) any later version.
+#
+#  This program is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU General Public License for more details.
+#
+#  You should have received a copy of the GNU General Public License
+#  along with this program; if not, write to the Free Software Foundation,
+#  Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+#
+# ##### END GPL LICENSE BLOCK #####
+
 
 import os
 import platform
@@ -52,8 +70,11 @@ def split_by_chars(str, cnt):
         
 
 def reset_stats(prefs):
+
     prefs.stats_area = -1.0
     prefs.stats_array.clear()
+    prefs['op_status'] = ''
+    prefs['op_warnings'] = []
 
 
 def print_backtrace(ex):
@@ -109,7 +130,9 @@ def read_pack_solution(pack_solution_msg):
 
     return pack_solution
 
+
 def to_uvp_group_method(group_method):
+
     if group_method in {UvGroupingMethod.MATERIAL.code, UvGroupingMethod.MESH.code, UvGroupingMethod.OBJECT.code, UvGroupingMethod.MANUAL.code}:
 
         return UvGroupingMethodUvp.EXTERNAL
@@ -121,32 +144,15 @@ def to_uvp_group_method(group_method):
     raise RuntimeError('Unexpected grouping method encountered')
 
 
-def handle_invalid_islands(p_context, invalid_islands):
-    p_context.select_all_faces(False)
+def redraw_ui(context):
 
-    for idx, island_faces in enumerate(p_context.uv_island_faces_list):
-        if idx in invalid_islands:
-            p_context.select_island_faces(idx, island_faces, True)
-
-def handle_island_flags(p_context, uv_island_faces_list, island_flags):
-    overlap_indicies = []
-    for i in range(len(island_flags)):
-        overlaps = island_flags[i] & UvPackerIslandFlags.OVERLAPS
-        if overlaps > 0:
-            overlap_indicies.append(i)
-
-    overlap_detected = len(overlap_indicies) > 0
-    if overlap_detected:
-        for idx, island_faces in enumerate(uv_island_faces_list):
-            if idx not in overlap_indicies:
-                p_context.select_island_faces(idx, island_faces, False)
-            else:
-                p_context.select_island_faces(idx, island_faces, True)
-
-    return overlap_detected
+    for area in context.screen.areas:
+        if area is not None:
+            area.tag_redraw()
 
 
 def get_active_image_size(context):
+
     img = None
     for area in context.screen.areas:
         if area.type == 'IMAGE_EDITOR':
@@ -160,12 +166,16 @@ def get_active_image_size(context):
 
     return (img.size[0], img.size[1])
 
+
 def get_active_image_ratio(context):
+
     img_size = get_active_image_size(context)
 
     return float(img_size[0]) / float(img_size[1])
 
+
 def pixel_to_unit(context, pixel_value):
+
     prefs = get_prefs()
     scene_props = context.scene.uvp2_props
 
@@ -177,24 +187,19 @@ def pixel_to_unit(context, pixel_value):
 
     return float(pixel_value) / tex_size
 
+
 def get_pixel_margin(context):
 
     return pixel_to_unit(context, context.scene.uvp2_props.pixel_margin)
+
 
 def get_pixel_padding(context):
     
     return pixel_to_unit(context, context.scene.uvp2_props.pixel_padding)
 
-def reset_target_box(scene_props):
-
-    scene_props.target_box_p1_x = 0.0
-    scene_props.target_box_p1_y = 0.0
-
-    scene_props.target_box_p2_x = 1.0
-    scene_props.target_box_p2_y = 1.0
-    
 
 def validate_target_box(scene_props):
+    
     tbox_dim_limit = 0.05
     tbox_width = abs(scene_props.target_box_p1_x - scene_props.target_box_p2_x)
     tbox_height = abs(scene_props.target_box_p1_y - scene_props.target_box_p2_y)

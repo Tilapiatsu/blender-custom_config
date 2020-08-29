@@ -1,3 +1,21 @@
+# ##### BEGIN GPL LICENSE BLOCK #####
+#
+#  This program is free software; you can redistribute it and/or
+#  modify it under the terms of the GNU General Public License
+#  as published by the Free Software Foundation; either version 2
+#  of the License, or (at your option) any later version.
+#
+#  This program is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU General Public License for more details.
+#
+#  You should have received a copy of the GNU General Public License
+#  along with this program; if not, write to the Free Software Foundation,
+#  Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+#
+# ##### END GPL LICENSE BLOCK #####
+
 
 from .utils import *
 # from .pack_context import *
@@ -78,7 +96,7 @@ def target_box_draw_callback_text(self, context):
         if not self.prefs.target_box_draw_enable:
             return
 
-        editor_draw_msg(self.box_color, 'Click and hold RMB in the UV area to start drawing packing box. Press ESC to cancel')
+        editor_draw_msg(self.box_color, 'Click and hold RMB in the UV area to start drawing packing box. Hold CTRL to snap to tile boundaries. Press ESC to cancel')
 
     except Exception as ex:
         if in_debug_mode(debug_lvl=2):
@@ -90,6 +108,8 @@ class UVP2_OT_EnableTargetBox(bpy.types.Operator):
     bl_idname = 'uvpackmaster2.enable_target_box'
     bl_label = 'Enable Packing Box'
     bl_description = "Enable the packing box functionality"
+
+    SNAP_DISTANCE = 0.1
 
     @classmethod
     def poll(cls, context):
@@ -115,86 +135,110 @@ class UVP2_OT_EnableTargetBox(bpy.types.Operator):
 
         reset_target_box_params(self.prefs)
 
-    def modal(self, context, event):
-        finish = False
+
+    def handle_drawing(self, event):
+
+        if not self.prefs.target_box_draw_enable:
+            return False
+
         force_redraw = False
+        exit_draw_mode = False
+        self.snap_enable = event.ctrl
+        
+        if self.begin_coords is None:
+
+            if event.type == 'RIGHTMOUSE' and event.value == 'PRESS':
+                view_coords = self.context.region.view2d.region_to_view(event.mouse_region_x, event.mouse_region_y)
+
+                self.begin_coords = view_coords
+                self.end_coords = view_coords
+
+            elif event.type == 'ESC':
+                exit_draw_mode = True
+                force_redraw = True
+
+        else:
+
+            exit_draw_mode = event.type == 'RIGHTMOUSE' and event.value == 'RELEASE'
+
+            if event.type == 'MOUSEMOVE' or exit_draw_mode:
+                view_coords = self.context.region.view2d.region_to_view(event.mouse_region_x, event.mouse_region_y)
+
+                self.end_coords = view_coords 
+                force_redraw = True
+
+        self.update_coords()
+
+        if exit_draw_mode:
+            self.reset_draw_variables()
+
+            target_box_valid = True
+            try:
+                validate_target_box(self.scene_props)
+            except:
+                target_box_valid = False
+
+            if not target_box_valid:
+                self.prefs.reset_target_box(self.scene_props)
+                self.report({'ERROR'}, 'Drawn packig box was too small - it was reset to the default value')
+
+        if force_redraw:
+            self.context.area.tag_redraw()
+
+        return not exit_draw_mode
+        
+
+    def modal(self, context, event):
 
         try:
             if not self.prefs.target_box_enable or context.area is None:
                 self.finish(context)
                 return {'FINISHED'}
 
-            if self.prefs.target_box_draw_enable:
-
-                if not self.target_box_draw_after_click:
-
-                    if event.type == 'RIGHTMOUSE' and event.value == 'PRESS':
-                        view_coords = self.context.region.view2d.region_to_view(event.mouse_region_x, event.mouse_region_y)
-
-                        self.scene_props.target_box_p1_x = view_coords[0]
-                        self.scene_props.target_box_p1_y = view_coords[1]
-
-                        self.scene_props.target_box_p2_x = view_coords[0]
-                        self.scene_props.target_box_p2_y = view_coords[1]
-
-                        self.target_box_draw_after_click = True
-
-                    elif event.type == 'ESC':
-                        self.prefs.target_box_draw_enable = False
-                        force_redraw = True
-
-                else:
-
-                    exit_draw_mode = event.type == 'RIGHTMOUSE' and event.value == 'RELEASE'
-
-                    if event.type == 'MOUSEMOVE' or exit_draw_mode:
-                        view_coords = self.context.region.view2d.region_to_view(event.mouse_region_x, event.mouse_region_y)
-
-                        self.scene_props.target_box_p2_x = view_coords[0]
-                        self.scene_props.target_box_p2_y = view_coords[1]
-
-                        if exit_draw_mode:
-                            try:
-                                validate_target_box(self.scene_props)
-                            except:
-                                reset_target_box(self.scene_props)
-                                self.report({'ERROR'}, 'Drawn packig box was too small - it was reset to the default value')
-
-                            self.target_box_draw_after_click = False
-                            self.prefs.target_box_draw_enable = False
-
-                        self.update_coords()
-                        force_redraw = True
-                        
-
-                if force_redraw:
-                    self.context.area.tag_redraw()
-
-                return {'RUNNING_MODAL'}
+            if self.handle_drawing(event):
+                 return {'RUNNING_MODAL'}
 
             self.update_coords()
+            return {'PASS_THROUGH'}
 
         except RuntimeError as ex:
             if in_debug_mode():
                 print_backtrace(ex)
 
             self.report({'ERROR'}, str(ex))
-            finish = True
 
         except Exception as ex:
             if in_debug_mode():
                 print_backtrace(ex)
 
             self.report({'ERROR'}, 'Unexpected error')
-            finish = True
+ 
+        self.finish(context)
+        return {'FINISHED'}
 
-        if finish:
-            self.finish(context)
-            return {'FINISHED'}
-
-        return {'PASS_THROUGH'}
-
+        
     def update_coords(self):
+
+        if self.begin_coords is not None and self.end_coords is not None:
+
+            def apply_snapping(val):
+                rounded = round(val)
+                if abs(rounded - val) < self.SNAP_DISTANCE:
+                    return rounded
+                return val
+
+            begin_coords_fin = self.begin_coords
+            end_coords_fin = self.end_coords
+
+            if self.snap_enable:
+                begin_coords_fin = (apply_snapping(begin_coords_fin[0]), apply_snapping(begin_coords_fin[1]))
+                end_coords_fin = (apply_snapping(end_coords_fin[0]), apply_snapping(end_coords_fin[1]))
+
+            self.scene_props.target_box_p1_x = begin_coords_fin[0]
+            self.scene_props.target_box_p1_y = begin_coords_fin[1]
+            
+            self.scene_props.target_box_p2_x = end_coords_fin[0]
+            self.scene_props.target_box_p2_y = end_coords_fin[1]
 
         p1 = (self.scene_props.target_box_p1_x, self.scene_props.target_box_p1_y)
         p2 = (self.scene_props.target_box_p1_x, self.scene_props.target_box_p2_y)
@@ -216,6 +260,12 @@ class UVP2_OT_EnableTargetBox(bpy.types.Operator):
 
             self.context.area.tag_redraw()
 
+    def reset_draw_variables(self):
+        self.prefs.target_box_draw_enable = False
+        self.begin_coords = None
+        self.end_coords = None
+        self.snap_enable = False
+
     def execute(self, context):
 
         self.context = context
@@ -223,8 +273,7 @@ class UVP2_OT_EnableTargetBox(bpy.types.Operator):
         self.prefs = get_prefs()
 
         self.prefs.target_box_enable = True
-        self.prefs.target_box_draw_enable = False
-        self.target_box_draw_after_click = False
+        self.reset_draw_variables()
 
         self.box_color = (1, 1, 0, 1)
 
@@ -316,42 +365,4 @@ class UVP2_OT_SetTargetBoxTile(bpy.types.Operator):
         self.scene_props.target_box_p2_y = self.scene_props.target_box_tile_y + 1
 
         return {'FINISHED'}
-
-class UVP2_OT_MoveTargetBoxTile(bpy.types.Operator):
-
-    bl_idname = 'uvpackmaster2.move_target_box_tile'
-    bl_label = 'Move Packing Box'
-    bl_description = "Move the packing box to an adjacent tile"
-
-    dir_x = IntProperty(
-        name="Direction X",
-        description='',
-        default=0)
-
-    dir_y = IntProperty(
-        name="Direction Y",
-        description='',
-        default=0)
-
-    @classmethod
-    def poll(cls, context):
-        prefs = get_prefs()
-        return prefs.target_box_enable
-
-    def execute(self, context):
-
-        self.scene_props = context.scene.uvp2_props
-
-        tbox_width = abs(self.scene_props.target_box_p1_x - self.scene_props.target_box_p2_x)
-        tbox_height = abs(self.scene_props.target_box_p1_y - self.scene_props.target_box_p2_y)
-
-        delta_x = self.dir_x * tbox_width
-        delta_y = self.dir_y * tbox_height
-
-        self.scene_props.target_box_p1_x += delta_x
-        self.scene_props.target_box_p2_x += delta_x
-
-        self.scene_props.target_box_p1_y += delta_y
-        self.scene_props.target_box_p2_y += delta_y
-
-        return {'FINISHED'}
+    

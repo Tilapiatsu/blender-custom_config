@@ -31,9 +31,10 @@ class VIEW3D_OT_ke_snap_target(Operator):
         items=[("CLOSEST", "Closest", "Closest", "", 1),
                ("CENTER", "Center", "Center", "", 2),
                ("MEDIAN", "Median", "Median", "", 3),
-               ("ACTIVE", "Active", "Active", "", 4),
-               ("PROJECT", "Project Self", "Project Self", "", 5),
-               ("ALIGN", "Align Rotation", "Align Rotation", "", 6)],
+               ("CENTER", "Center", "Center", "", 4),
+               ("ACTIVE", "Active", "Active", "", 5),
+               ("PROJECT", "Project Self", "Project Self", "", 6),
+               ("ALIGN", "Align Rotation", "Align Rotation", "", 7)],
         name="Snap Target",
         default="CLOSEST")
 
@@ -76,11 +77,9 @@ class VIEW3D_OT_ke_snap_element(Operator):
 
         elif self.ke_snapelement == "INCREMENT":
             ct.snap_elements = {'INCREMENT'}
-            ctx_mode = bpy.context.mode
-            if ctx_mode == "OBJECT":
+            # ctx_mode = bpy.context.mode
+            if not ct.use_snap_grid_absolute:
                 ct.use_snap_grid_absolute = True
-            else:
-                ct.use_snap_grid_absolute = False
         else:
             ct.snap_elements = {self.ke_snapelement}
 
@@ -90,6 +89,56 @@ class VIEW3D_OT_ke_snap_element(Operator):
 # -------------------------------------------------------------------------------------------------
 # Custom Pie Menus    Note: COMPASS STYLE REF PIE SLOT POSITIONS:   W, E, S, N, NW, NE, SW, SE
 # -------------------------------------------------------------------------------------------------
+class VIEW3D_MT_PIE_ke_align(Menu):
+    bl_label = "keSnapAlign"
+    bl_idname = "VIEW3D_MT_ke_pie_align"
+
+    def draw(self, context):
+        layout = self.layout
+        pie = layout.menu_pie()
+        pie.operator("view3d.snap_cursor_to_center", text="Cursor to World Origin", icon='CURSOR')
+
+        pie.operator("mesh.ke_zeroscale", text="ZeroScale H", icon="NODE_SIDE").screen_axis = 0
+
+        pie.operator("view3d.cursor_fit_selected_and_orient", text="Cursor Fit&Align", icon="ORIENTATION_CURSOR")
+        # pie.separator()
+        pie.operator("mesh.ke_zeroscale", text="ZeroScale V", icon="NODE_TOP").screen_axis = 1
+
+        c = pie.row()
+        selbox = c.box().column()
+        selbox.operator("view3d.snap_selected_to_grid", text="Selection to Grid", icon='RESTRICT_SELECT_OFF')
+        selbox.operator(
+            "view3d.snap_selected_to_cursor",
+            text="Selection to Cursor",
+            icon='RESTRICT_SELECT_OFF',
+        ).use_offset = False
+        selbox.operator(
+            "view3d.snap_selected_to_cursor",
+            text="Sel.to Cursor w.Offset",
+            icon='RESTRICT_SELECT_OFF',
+        ).use_offset = True
+        selbox.operator("view3d.snap_selected_to_active", text="Selection to Active", icon='RESTRICT_SELECT_OFF')
+        spacer = c.column()
+        spacer.label(text="")
+
+        pie.operator("mesh.ke_zeroscale", text="ZeroScale Normal", icon="NORMALS_FACE").orient_type = "NORMAL"
+
+        c = pie.row()
+        cbox = c.box().column()
+        cbox.operator("view3d.snap_cursor_to_grid", text="Cursor to Grid", icon='CURSOR')
+        cbox.operator("view3d.snap_cursor_to_selected", text="Cursor to Selected", icon='CURSOR')
+        cbox.operator("view3d.snap_cursor_to_active", text="Cursor to Active", icon='CURSOR')
+        spacer = c.column()
+        spacer.label(text="")
+
+        spacer = pie.row()
+        spacer.label(text="")
+        vbox = spacer.box().column()
+        vbox.operator('view3d.align_origin_to_selected', text="Align Origin To Selected", icon="OBJECT_ORIGIN")
+        vbox.operator('view3d.ke_origin_to_cursor', text="Align Origin(s) To Cursor", icon="PIVOT_CURSOR")
+        vbox.operator('view3d.ke_object_to_cursor', text="Align Object(s) to Cursor", icon="CURSOR")
+        # vbox.operator('view3d.origin_to_selected', text="Object Origin(s) to Selection")
+
 
 class VIEW3D_MT_PIE_ke_snapping(Menu):
     bl_label = "keSnapping"
@@ -111,18 +160,6 @@ class VIEW3D_MT_PIE_ke_snapping(Menu):
 
         cbox.separator()
 
-        if not ct.use_snap_self:
-            cbox.operator("ke.snap_target", text="Project Self", icon="PROP_PROJECTED",depress=False).ke_snaptarget = "PROJECT"
-        else:
-            cbox.operator("ke.snap_target", text="Project Self", icon="PROP_PROJECTED",depress=True).ke_snaptarget = "PROJECT"
-
-        if not ct.use_snap_align_rotation:
-            cbox.operator("ke.snap_target", text="Align Rotation", icon="ORIENTATION_NORMAL", depress=False).ke_snaptarget = "ALIGN"
-        else:
-            cbox.operator("ke.snap_target", text="Align Rotation", icon="ORIENTATION_NORMAL", depress=True).ke_snaptarget = "ALIGN"
-
-        cbox.separator()
-
         if not ct.snap_target == "MEDIAN":
             cbox.operator("ke.snap_target", text="Median", icon="PIVOT_MEDIAN", depress=False).ke_snaptarget = "MEDIAN"
         else:
@@ -138,6 +175,23 @@ class VIEW3D_MT_PIE_ke_snapping(Menu):
         else:
             cbox.operator("ke.snap_target", text="Closest", icon="NORMALS_VERTEX_FACE", depress=True).ke_snaptarget = "CLOSEST"
 
+        if not ct.snap_target == "CENTER":
+            cbox.operator("ke.snap_target", text="Center", icon="SNAP_FACE_CENTER", depress=False).ke_snaptarget = "CENTER"
+        else:
+            cbox.operator("ke.snap_target", text="Center", icon="SNAP_FACE_CENTER", depress=True).ke_snaptarget = "CENTER"
+
+        cbox.separator()
+
+        if not ct.use_snap_self:
+            cbox.operator("ke.snap_target", text="Project Self", icon="PROP_PROJECTED",depress=False).ke_snaptarget = "PROJECT"
+        else:
+            cbox.operator("ke.snap_target", text="Project Self", icon="PROP_PROJECTED",depress=True).ke_snaptarget = "PROJECT"
+
+        if not ct.use_snap_align_rotation:
+            cbox.operator("ke.snap_target", text="Align Rotation", icon="ORIENTATION_NORMAL", depress=False).ke_snaptarget = "ALIGN"
+        else:
+            cbox.operator("ke.snap_target", text="Align Rotation", icon="ORIENTATION_NORMAL", depress=True).ke_snaptarget = "ALIGN"
+
         pie = layout.menu_pie()
         pie.operator("ke.snap_element", text="Vertex", icon="SNAP_VERTEX").ke_snapelement = "VERTEX"
         pie.operator("ke.snap_element", text="Element Mix", icon="SNAP_ON").ke_snapelement = "MIX"
@@ -146,6 +200,61 @@ class VIEW3D_MT_PIE_ke_snapping(Menu):
         pie.operator("ke.snap_element", text="Edge", icon="SNAP_EDGE").ke_snapelement = "EDGE"
         pie.separator()
         pie.operator("ke.snap_element", text="Face", icon="SNAP_FACE").ke_snapelement = "FACE"
+
+
+class VIEW3D_MT_PIE_bsnapping(Menu):
+    bl_label = "bSnapping"
+    bl_idname = "VIEW3D_MT_bsnapping"
+
+    def draw(self, context):
+        tool_settings = context.tool_settings
+        snap_elements = tool_settings.snap_elements
+        obj = context.active_object
+        object_mode = 'OBJECT' if obj is None else obj.mode
+
+        layout = self.layout
+        pie = layout.menu_pie()
+        c = pie.column()
+        # sub = c.box().column()
+        sub = c.box().column(align=True)
+        sub.scale_y = 1.3
+
+        if 'INCREMENT' in snap_elements:
+            sub.prop(tool_settings, "use_snap_grid_absolute")
+
+        if snap_elements != {'INCREMENT'}:
+            # cbox.label(text="Snap with")
+            tsub = c.box().column(align=True)
+            tsub.scale_y = 1.3
+
+            tsub.prop(tool_settings, "snap_target", expand=True)
+            sub.prop(tool_settings, "use_snap_backface_culling")
+
+            if obj:
+                if object_mode == 'EDIT':
+                    sub.prop(tool_settings, "use_snap_self")
+                if object_mode in {'OBJECT', 'POSE', 'EDIT', 'WEIGHT_PAINT'}:
+                    sub.prop(tool_settings, "use_snap_align_rotation")
+
+            if 'FACE' in snap_elements:
+                sub.prop(tool_settings, "use_snap_project")
+
+            if 'VOLUME' in snap_elements:
+                sub.prop(tool_settings, "use_snap_peel_object")
+
+        # cbox.label(text="Affect")
+
+        sub2 = c.box().column(align=True)
+        sub2.prop(tool_settings, "use_snap_translate", text="Move", toggle=True)
+        sub2.prop(tool_settings, "use_snap_rotate", text="Rotate", toggle=True)
+        sub2.prop(tool_settings, "use_snap_scale", text="Scale", toggle=True)
+
+        c = pie.column()
+        rightbox = c.box().column()
+        rightbox.scale_y = 1.5
+
+        # rightbox.label(text="Snap to")
+        rightbox.prop(tool_settings, "snap_elements", expand=True)
 
 
 
@@ -200,12 +309,17 @@ class VIEW3D_MT_PIE_ke_overlays(Menu):
         else:
             cbox.operator("view3d.ke_overlays", text="Backface Culling", icon="XRAY", depress=False).overlay = "BACKFACE"
 
-
-
         if bpy.context.space_data.overlay.show_extra_indices:
             cbox.operator("view3d.ke_overlays", text="Indices", icon="LINENUMBERS_ON", depress=True).overlay = "INDICES"
         else:
             cbox.operator("view3d.ke_overlays", text="Indices", icon="LINENUMBERS_ON", depress=False).overlay = "INDICES"
+
+        cbox.separator()
+
+        if bpy.context.space_data.overlay.show_floor:
+            cbox.operator("view3d.ke_overlays", text="Grid", icon="GRID", depress=True).overlay = "GRID"
+        else:
+            cbox.operator("view3d.ke_overlays", text="Grid", icon="GRID", depress=False).overlay = "GRID"
 
         if bpy.context.space_data.overlay.show_extras:
             cbox.operator("view3d.ke_overlays", text="Extras", icon="LIGHT_SUN", depress=True).overlay = "EXTRAS"
@@ -217,6 +331,13 @@ class VIEW3D_MT_PIE_ke_overlays(Menu):
         else:
             cbox.operator("view3d.ke_overlays", text="Cursor", icon="CURSOR", depress=False).overlay = "CURSOR"
 
+        if bpy.context.space_data.overlay.show_wireframes:
+            cbox.operator("view3d.ke_overlays", text="Object Wireframes", icon="MOD_WIREFRAME", depress=True).overlay = "WIREFRAMES"
+        else:
+            cbox.operator("view3d.ke_overlays", text="Object Wireframes", icon="MOD_WIREFRAME", depress=False).overlay = "WIREFRAMES"
+
+        cbox.separator()
+
         if bpy.context.space_data.overlay.show_object_origins:
             cbox.operator("view3d.ke_overlays", text="Origins", icon="OBJECT_ORIGIN", depress=True).overlay = "ORIGINS"
         else:
@@ -227,29 +348,31 @@ class VIEW3D_MT_PIE_ke_overlays(Menu):
         else:
             cbox.operator("view3d.ke_overlays", text="Outline", icon="MESH_CIRCLE", depress=False).overlay = "OUTLINE"
 
-        cbox.separator()
-        try:
-            if bpy.context.scene.ke_focus[0] or not bpy.context.scene.ke_focus[0]:  #silly existance check
 
-                if not bpy.context.scene.ke_focus[0] and not bpy.context.scene.ke_focus[10]:
-                    cbox.operator("view3d.ke_focusmode", text="Focus Mode", icon="FULLSCREEN_ENTER",
-                                  depress=False).supermode = False
-                    cbox.operator("view3d.ke_focusmode", text="Super Focus Mode", icon="FULLSCREEN_ENTER",
-                                  depress=False).supermode = True
-
-                elif bpy.context.scene.ke_focus[0] and not bpy.context.scene.ke_focus[10]:
-                    cbox.operator("view3d.ke_focusmode", text="Focus Mode (Off)", icon="FULLSCREEN_EXIT",
-                                  depress=True).supermode = False
-
-                elif bpy.context.scene.ke_focus[10]:
-                    cbox.operator("view3d.ke_focusmode", text="Super Focus Mode (Off)", icon="FULLSCREEN_EXIT",
-                                  depress=True).supermode = True
-
-        except:
-            cbox.operator("view3d.ke_focusmode", text="Focus Mode", icon="FULLSCREEN_ENTER",
-                          depress=False).supermode = False
-            cbox.operator("view3d.ke_focusmode", text="Super Focus", icon="FULLSCREEN_ENTER",
-                          depress=False).supermode = True
+        # cbox.separator()
+        #
+        # try:
+        #     if bpy.context.scene.ke_focus[0] or not bpy.context.scene.ke_focus[0]:  #silly existance check
+        #
+        #         if not bpy.context.scene.ke_focus[0] and not bpy.context.scene.ke_focus[10]:
+        #             cbox.operator("view3d.ke_focusmode", text="Focus Mode", icon="FULLSCREEN_ENTER",
+        #                           depress=False).supermode = False
+        #             cbox.operator("view3d.ke_focusmode", text="Super Focus Mode", icon="FULLSCREEN_ENTER",
+        #                           depress=False).supermode = True
+        #
+        #         elif bpy.context.scene.ke_focus[0] and not bpy.context.scene.ke_focus[10]:
+        #             cbox.operator("view3d.ke_focusmode", text="Focus Mode (Off)", icon="FULLSCREEN_EXIT",
+        #                           depress=True).supermode = False
+        #
+        #         elif bpy.context.scene.ke_focus[10]:
+        #             cbox.operator("view3d.ke_focusmode", text="Super Focus Mode (Off)", icon="FULLSCREEN_EXIT",
+        #                           depress=True).supermode = True
+        #
+        # except:
+        #     cbox.operator("view3d.ke_focusmode", text="Focus Mode", icon="FULLSCREEN_ENTER",
+        #                   depress=False).supermode = False
+        #     cbox.operator("view3d.ke_focusmode", text="Super Focus", icon="FULLSCREEN_ENTER",
+        #                   depress=False).supermode = True
 
         c = pie.column()
         cbox = c.box().column()
@@ -275,6 +398,7 @@ class VIEW3D_MT_PIE_ke_overlays(Menu):
             cbox.operator("view3d.ke_overlays", text="Edge Bevel Weight", icon="MOD_BEVEL", depress=False).overlay = "BEVEL"
 
         cbox.separator()
+
         if bpy.context.space_data.overlay.show_vertex_normals:
             cbox.operator("view3d.ke_overlays", text="Vertex Normals", icon="NORMALS_VERTEX", depress=True).overlay = "VN"
         else:
@@ -291,13 +415,48 @@ class VIEW3D_MT_PIE_ke_overlays(Menu):
             cbox.operator("view3d.ke_overlays", text="Face Normals", icon="NORMALS_FACE", depress=False).overlay = "FN"
 
         cbox.separator()
+
+        # if bpy.context.space_data.overlay.show_floor:
+        #     cbox.operator("view3d.ke_overlays", text="Grid", icon="GRID", depress=True).overlay = "GRID"
+        # else:
+        #     cbox.operator("view3d.ke_overlays", text="Grid", icon="GRID", depress=False).overlay = "GRID"
+
         if bpy.context.space_data.overlay.show_face_orientation:
             cbox.operator("view3d.ke_overlays", text="Face Orientation", icon="FACESEL", depress=True).overlay = "FACEORIENT"
         else:
             cbox.operator("view3d.ke_overlays", text="Face Orientation", icon="FACESEL", depress=False).overlay = "FACEORIENT"
 
+
+        c = pie.column()
+        cbox = c.box().column()
+        cbox.scale_y = 1.3
+        cbox.operator("view3d.ke_overlays", text="All Overlays", icon="OVERLAY").overlay = "ALL"
+        cbox.separator()
+        # cbox.separator()
+        try:
+            if bpy.context.scene.ke_focus[0] or not bpy.context.scene.ke_focus[0]:  #silly existance check
+
+                if not bpy.context.scene.ke_focus[0] and not bpy.context.scene.ke_focus[10]:
+                    cbox.operator("view3d.ke_focusmode", text="Focus Mode", icon="FULLSCREEN_ENTER",
+                                  depress=False).supermode = False
+                    cbox.operator("view3d.ke_focusmode", text="Super Focus Mode", icon="FULLSCREEN_ENTER",
+                                  depress=False).supermode = True
+
+                elif bpy.context.scene.ke_focus[0] and not bpy.context.scene.ke_focus[10]:
+                    cbox.operator("view3d.ke_focusmode", text="Focus Mode (Off)", icon="FULLSCREEN_EXIT",
+                                  depress=True).supermode = False
+
+                elif bpy.context.scene.ke_focus[10]:
+                    cbox.operator("view3d.ke_focusmode", text="Super Focus Mode (Off)", icon="FULLSCREEN_EXIT",
+                                  depress=True).supermode = True
+
+        except:
+            cbox.operator("view3d.ke_focusmode", text="Focus Mode", icon="FULLSCREEN_ENTER",
+                          depress=False).supermode = False
+            cbox.operator("view3d.ke_focusmode", text="Super Focus", icon="FULLSCREEN_ENTER",
+                          depress=False).supermode = True
+
         pie = layout.menu_pie()
-        pie.operator("view3d.ke_overlays", text="All Overlays", icon="OVERLAY").overlay = "ALL"
         pie.operator("view3d.ke_overlays", text="All Edge Overlays", icon="UV_EDGESEL").overlay = "ALLEDIT"
         # pie.separator()
 
@@ -471,6 +630,11 @@ class VIEW3D_MT_PIE_ke_shading(Menu):
             if shading.color_type == 'SINGLE':
                 col.column().prop(shading, "single_color", text="")
 
+            opt = c.box().column()
+            opt.prop(shading, "show_cavity", text="Cavity")
+            opt.prop(shading, "show_specular_highlight", text="Specular")
+
+
         elif shading.type == 'MATERIAL':
             if not shading.use_scene_world:
                 spacer.label(text="")
@@ -490,6 +654,18 @@ class VIEW3D_MT_PIE_ke_shading(Menu):
                 psub.operator("preferences.studiolight_show", emboss=False, text="", icon='PREFERENCES')
 
 
+class VIEW3D_MT_PIE_ke_testpie(Menu):
+    bl_label = "keTestPie"
+    bl_idname = "VIEW3D_MT_ke_pie_test"
+
+    def draw(self, context):
+        layout = self.layout
+        pie = layout.menu_pie()
+        pie.operator("view3d.ke_get_set_material", text="Get Material", icon="MATERIAL").offset = (-168,0)
+
+
+
+
 # -------------------------------------------------------------------------------------------------
 # Class Registration & Unregistration
 # -------------------------------------------------------------------------------------------------
@@ -497,12 +673,15 @@ classes = (
     VIEW3D_OT_ke_snap_element,
     VIEW3D_OT_ke_snap_target,
     VIEW3D_MT_PIE_ke_snapping,
+    VIEW3D_MT_PIE_bsnapping,
     VIEW3D_OT_ke_pieops,
     VIEW3D_MT_PIE_ke_fit2grid,
     VIEW3D_MT_PIE_ke_fit2grid_micro,
     VIEW3D_MT_PIE_ke_overlays,
     VIEW3D_MT_PIE_ke_orientpivot,
     VIEW3D_MT_PIE_ke_shading,
+    VIEW3D_MT_PIE_ke_testpie,
+    VIEW3D_MT_PIE_ke_align,
     )
 
 def register():

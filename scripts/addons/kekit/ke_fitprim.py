@@ -2,7 +2,7 @@ bl_info = {
     "name": "keFitPrim",
     "author": "Kjell Emanuelsson",
     "category": "Modeling",
-    "version": (1, 3, 0),
+    "version": (1, 3, 2),
     "blender": (2, 80, 0),
 }
 import bpy
@@ -112,7 +112,7 @@ class VIEW3D_OT_ke_fitprim(bpy.types.Operator):
     ke_fitprim_itemize: bpy.props.BoolProperty(
         name="Make Object", description="Makes new object from edit mesh fitprim", default=False)
 
-    itemize = True
+    itemize = False
     boxmode = True
     sphere = False
     world = False
@@ -209,41 +209,15 @@ class VIEW3D_OT_ke_fitprim(bpy.types.Operator):
         # -----------------------------------------------------------------------------------------
         if self.edit_mode == "EDIT_MESH":
             sel_mode = [b for b in bpy.context.tool_settings.mesh_select_mode]
-            multi_object_mode = False
             other_side = []
+
+            multi_object_mode = False
 
             sel_obj = [o for o in bpy.context.objects_in_mode if o.type == "MESH"]
             if len(sel_obj) == 2:
                 multi_object_mode = True
 
             obj = bpy.context.active_object
-
-            if multi_object_mode:
-                second_obj = [o for o in sel_obj if o != obj][0]
-                bm2 = bmesh.from_edit_mesh(second_obj.data)
-                obj_mtx2 = second_obj.matrix_world.copy()
-
-                # selection double check - just to get some manual selection control w. 2nd active face
-                sel_poly2 = [p for p in bm2.faces if p.select]
-                if sel_poly2:
-                    active_face2 = bm2.faces.active
-                    if active_face2 not in sel_poly2:
-                        active_face2 = None
-                    if active_face2:
-                        sel_verts2 = active_face2.verts
-                    else:
-                        sel_verts2 = sel_poly2[0].verts
-                else:
-                    sel_verts2 = [v for v in bm2.verts if v.select]
-
-                if not sel_verts2:
-                    multi_object_mode = False
-
-                elif sel_mode[0]:
-                    # Just for 2-vert mode in multiobj mode
-                    ole = sel_verts2[0].link_edges[:]
-                    other_side = get_shortest(obj_mtx2, ole)
-
             obj_mtx = obj.matrix_world.copy()
 
             bm = bmesh.from_edit_mesh(obj.data)
@@ -257,6 +231,32 @@ class VIEW3D_OT_ke_fitprim(bpy.types.Operator):
                 active_face = bm.faces.active
                 if active_face not in sel_poly:
                     active_face = None
+
+            if multi_object_mode:
+                second_obj = [o for o in sel_obj if o != obj][0]
+                bm2 = bmesh.from_edit_mesh(second_obj.data)
+                obj_mtx2 = second_obj.matrix_world.copy()
+
+                sel_poly2 = [p for p in bm2.faces if p.select]
+                if sel_poly2:
+                    active_face2 = bm2.faces.active
+                    if active_face2 not in sel_poly2:
+                        active_face2 = None
+                    if active_face2:
+                        sel_verts2 = active_face2.verts
+                    else:
+                        sel_verts2 = sel_poly2[0].verts
+                        active_face2 = sel_poly2[0]  # haxxfixxx
+                else:
+                    sel_verts2 = [v for v in bm2.verts if v.select]
+
+                if not sel_verts2:
+                    multi_object_mode = False
+
+                elif sel_mode[0]:
+                    # Just for 2-vert mode in multiobj mode
+                    ole = sel_verts2[0].link_edges[:]
+                    other_side = get_shortest(obj_mtx2, ole)
 
             side = None
             distance = 0
@@ -454,23 +454,30 @@ class VIEW3D_OT_ke_fitprim(bpy.types.Operator):
         # FACE MODE
         # -----------------------------------------------------------------------------------------
         elif sel_mode[2] and active_face and sel_poly:
+            fail_island = False
 
             # GET ISLANDS
             if multi_object_mode and active_face:
+                print (active_face, active_face2)
                 first_island = sel_verts
                 point = obj_mtx @ active_face.calc_center_median()
 
-                firstcos = [obj_mtx @ v.co for v in sel_verts]
-                secondcos = [obj_mtx2 @ v.co for v in sel_verts2]
+                # firstcos = [obj_mtx @ v.co for v in sel_verts]
+                # secondcos = [obj_mtx2 @ v.co for v in sel_verts2]
+                # todo: Oopsie doopsie - cant just feed random cos to the plane calc ;> rewrite at some point. for now:
+                firstcos = [obj_mtx @ v.co for v in active_face.verts]
+                secondcos = [obj_mtx2 @ v.co for v in active_face2.verts]
 
                 if firstcos and secondcos:
                     island_mode = True
+
                     distance = point_to_plane(point, firstcos, secondcos)
                     if distance:
                         distance = abs(distance)
                     else:
-                        # print("Multi obj Point to plane failed for some reason - using single island mode.")
-                        island_mode = False
+                        print("Multi obj Point to plane failed for some reason - using single island mode.")
+                        # island_mode = False
+                        fail_island = True
 
             else:  # same (active) obj island selections
                 first_island, second_island = get_selection_islands(sel_poly, active_face)
@@ -478,35 +485,40 @@ class VIEW3D_OT_ke_fitprim(bpy.types.Operator):
                 if len(first_island) != 0 and len(second_island) != 0:
                     firstcos = [obj_mtx @ v.co for v in first_island]  # needs order sort
                     secondcos = [obj_mtx @ v.co for v in second_island]
+                    print (firstcos[0], secondcos[0])
                     distance = point_to_plane(obj_mtx @ active_face.calc_center_median(), firstcos, secondcos)
 
                     if distance:
                         distance = abs(distance)
                         island_mode = True
                     else:
-                        # print("Point to plane failed for some reason - using single island mode.")
-                        island_mode = False
+                        print("Point to plane failed for some reason - using single island mode.")
+                        fail_island = True
+                    print(distance)
                 else:
                     # Ngon mode
                     first_island = sel_verts
+
 
             # GET PRIMARY SELECTION VALUES
             ngoncheck = len(active_face.verts)
             if sel_mode[2] and len(sel_verts) < 4:
                 ngoncheck = 5  # todo: better solution for tris...
 
-            bpy.ops.mesh.select_all(action='DESELECT')
 
-            for v in first_island:
-                bm.verts[v.index].select = True
+            if island_mode or fail_island:
+                bpy.ops.mesh.select_all(action='DESELECT')
 
-            bmesh.update_edit_mesh(obj.data, True)
-            bpy.ops.mesh.select_mode(type='VERT')
-            bpy.ops.mesh.select_mode(type='FACE')
+                for v in first_island:
+                    bm.verts[v.index].select = True
 
-            bm.faces.ensure_lookup_table()
-            # sel_poly = [p for p in bm.faces if p.select]
+                bmesh.update_edit_mesh(obj.data, True)
+                bpy.ops.mesh.select_mode(type='VERT')
+                bpy.ops.mesh.select_mode(type='FACE')
+                bm.faces.ensure_lookup_table()
+
             bpy.ops.mesh.region_to_loop()
+            # return {'FINISHED'}
 
             sel_edges = [e for e in bm.edges if e.select]
             vps = [e.verts for e in sel_edges]
@@ -516,7 +528,7 @@ class VIEW3D_OT_ke_fitprim(bpy.types.Operator):
             start_vec = vecs[-1]
             setrot = rotation_from_vector(normal, start_vec)
 
-            # print("Rectangle or Ngon mode",ngoncheck)
+            print("Rectangle or Ngon mode",ngoncheck, island_mode, fail_island)
             if ngoncheck <= 4:
                 side, sides, center = get_sides(obj_mtx, start_vec, vecs, vps, legacy=False)
             else:
@@ -560,7 +572,8 @@ class VIEW3D_OT_ke_fitprim(bpy.types.Operator):
                 bpy.ops.mesh.select_mode(type='FACE')
 
             if self.itemize:
-                bpy.ops.object.mode_set(mode="OBJECT")
+                if self.edit_mode != "OBJECT":
+                    bpy.ops.object.mode_set(mode="OBJECT")
                 cursor = bpy.context.scene.cursor
                 bpy.ops.transform.select_orientation(orientation='GLOBAL')
                 cursor.location = setpos

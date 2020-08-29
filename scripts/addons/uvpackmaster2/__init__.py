@@ -1,3 +1,21 @@
+# ##### BEGIN GPL LICENSE BLOCK #####
+#
+#  This program is free software; you can redistribute it and/or
+#  modify it under the terms of the GNU General Public License
+#  as published by the Free Software Foundation; either version 2
+#  of the License, or (at your option) any later version.
+#
+#  This program is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU General Public License for more details.
+#
+#  You should have received a copy of the GNU General Public License
+#  along with this program; if not, write to the Free Software Foundation,
+#  Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+#
+# ##### END GPL LICENSE BLOCK #####
+
 
 if "bpy" in locals():
     import importlib
@@ -8,19 +26,22 @@ if "bpy" in locals():
     importlib.reload(operator)
     importlib.reload(operator_islands)
     importlib.reload(operator_box)
+    importlib.reload(operator_uv)
     importlib.reload(prefs)
     importlib.reload(enums)
     importlib.reload(labels)
     importlib.reload(panel)
     importlib.reload(panel_base)
     importlib.reload(pack_context)
+    importlib.reload(uv_context)
     importlib.reload(presets)
+    importlib.reload(island_params)
 
 bl_info = {
     "name": "UVPackmaster2",
     "author": "glukoz",
-    "version": (2, 3, 1),
-    "blender": (2, 81, 0),
+    "version": (2, 4, 4),
+    "blender": (2, 83, 0),
     "location": "",
     "description": "",
     "warning": "",
@@ -42,6 +63,7 @@ if inside_blender:
     from .operator import *
     from .operator_islands import *
     from .operator_box import *
+    from .operator_uv import *
     from .panel import *
     from .prefs import *
     from .register import *
@@ -63,8 +85,8 @@ if inside_blender:
         UVP2_OT_MeasureAreaOperator,
         UVP2_OT_OverlapCheckOperator,
         UVP2_OT_ValidateOperator,
-        UVP2_OT_SelectSimilarOperator,
-        UVP2_OT_AlignSimilarOperator,
+        UVP2_OT_SelectSimilar,
+        UVP2_OT_AlignSimilar,
         UVP2_OT_AdjustIslandsToTexture,
         UVP2_OT_UndoIslandsAdjustemntToTexture,
 
@@ -85,6 +107,7 @@ if inside_blender:
         UVP2_OT_ShowManualGroupIslandParam,
         UVP2_OT_SetManualGroupIslandParam,
         UVP2_OT_ResetManualGroupIslandParam,
+        UVP2_OT_SelectManualGroupIslandParam,
 
         UVP2_OT_EnableTargetBox,
         UVP2_OT_DisableTargetBox,
@@ -95,6 +118,16 @@ if inside_blender:
         UVP2_OT_SavePreset,
         UVP2_OT_LoadPreset,
         UVP2_OT_LoadTargetBox,
+        UVP2_OT_ResetToDefaults,
+
+        UVP2_OT_SplitOverlappingIslands,
+        UVP2_OT_UndoIslandSplit,
+        UVP2_OT_AdjustScaleToUnselected,
+        UVP2_OT_DebugIslands,
+        UVP2_OT_SelectIslandsInsideTargetBox,
+
+        UVP2_OT_SetRotStep,
+        UVP2_MT_SetRotStep,
 
         UVP2_PT_Main,
         UVP2_PT_PackingDevice,
@@ -105,7 +138,7 @@ if inside_blender:
         UVP2_PT_TargetBox,
         UVP2_PT_IslandRotStep,
         UVP2_PT_ManualGrouping,
-        UVP2_PT_Warnings,
+        UVP2_PT_Hints,
         UVP2_PT_Statistics,
         UVP2_PT_Help
     )

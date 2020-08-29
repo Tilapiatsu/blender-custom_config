@@ -3,14 +3,15 @@ bl_info = {
     "author": "Kjell Emanuelsson 2020",
     "category": "Modeling",
     "wiki_url": "http://artbykjell.com",
-    "version": (1, 3, 0),
+    "version": (1, 4, 0),
     "blender": (2, 80, 0),
 }
 
 import bpy
 import bmesh
 from mathutils import Vector
-from .ke_utils import rotation_from_vector, mouse_raycast, correct_normal, average_vector
+from .ke_utils import rotation_from_vector, mouse_raycast, correct_normal, average_vector, \
+    tri_points_order, get_loops, flatten
 
 
 def set_cursor(rotmat, pos=[]):
@@ -86,49 +87,105 @@ class VIEW3D_OT_cursor_fit_selected_and_orient(bpy.types.Operator):
 
                 vert_mode = False
 
+
             # EDGE MODE -----------------------------------------------------------------------
             if sel_mode[1]:
-                sel_edges = [e for e in bm.edges if e.select]
 
-                shared_face = []
-                if len(sel_edges) == 2:
+                loop_mode = False
+                line_mode = False
+
+                sel_edges = [e for e in bm.edges if e.select]
+                e_count = len(sel_edges)
+
+                if e_count > 1:
+                    vps = [e.verts[:] for e in sel_edges]
+                    loops = get_loops(vps, legacy=True)
+                    if len(loops) >= 1 and loops[0][0] != loops[0][-1]:
+                        fl = list(set(flatten(vps)))
+                        if len(fl) == len(loops[0]):
+                            line_mode = True
+
+                if e_count == 1:
+
+                    ev = sel_edges[0].verts[:]
+                    n = Vector((ev[0].normal + ev[1].normal) * .5).normalized()
+                    t_v = Vector((ev[0].co - ev[1].co).normalized())
+                    vert_mode = False
+
+                elif e_count == 2 or line_mode:
+                    shared_face = []
                     for f in sel_edges[0].link_faces:
                         for fe in sel_edges[1].link_faces:
                             if fe == f:
                                 shared_face = f
                                 break
 
-                avg_v, avg_e = [], []
-                for e in sel_edges:
-                    avg_v.append((e.verts[0].normal + e.verts[1].normal)*.5)
-                    uv = Vector(e.verts[0].co - e.verts[1].co).normalized()
-                    avg_e.append(uv)
+                    ev = sel_edges[0].verts[:]
+                    etv = sel_edges[1].verts[:]
 
-                n = average_vector(avg_v)
-                if sum(n) == 0:
-                    print("zero n")
-                    n = avg_v[0]
-                t_v = average_vector(avg_e)
-                if sum(t_v) == 0:
-                    print("zero e")
-                    t_v = avg_e[0]
+                    n = Vector((ev[0].normal + ev[1].normal)*.5).normalized()
+                    t_v = Vector((etv[0].normal + etv[1].normal)*.5).normalized()
 
-                if shared_face:
-                    t_v = avg_e[0]
+                    if abs(round(n.dot(t_v),2)) == 1 or shared_face or line_mode:
+                        avg_v, avg_e = [], []
+                        for e in sel_edges:
+                            avg_v.append((e.verts[0].normal + e.verts[1].normal) * .5)
+                            uv = Vector(e.verts[0].co - e.verts[1].co).normalized()
+                            avg_e.append(uv)
 
+                        n = average_vector(avg_v)
+                        # I forgot why i needed these checks?
+                        if sum(n) == 0:
+                            n = avg_v[0]
+                        t_v = average_vector(avg_e)
+                        if sum(t_v) == 0:
+                            t_v = avg_e[0]
+
+                        if shared_face:
+                            t_v = avg_e[0]
+
+                        vert_mode = False
+
+
+                elif e_count > 2:
+                    loop_mode = True
+
+                    startv = Vector(sel_edges[0].verts[0].co - sel_edges[0].verts[1].co).normalized()
+                    cv1 = Vector(sel_edges[1].verts[0].co - sel_edges[1].verts[1].co).normalized()
+                    cdot = abs(round(startv.dot(cv1), 6))
+
+                    for e in sel_edges[2:]:
+                        v = Vector(e.verts[0].co - e.verts[1].co).normalized()
+                        vdot = abs(round(startv.dot(v), 3))
+                        if vdot < cdot:
+                            cv1 = v
+                            cdot = vdot
+
+                    n = startv
+                    t_v = cv1
+                    n.negate()
+                    vert_mode = False
+
+                # final pass
                 n = correct_normal(obj_mtx, n)
                 t_v = correct_normal(obj_mtx, t_v)
                 n = n.cross(t_v)
 
-                rot_mtx = rotation_from_vector(n, t_v, rotate90=False)
-                set_cursor(rot_mtx)
+                # vert average fallback
+                if sum(t_v) == 0 or sum(n) == 0:
+                    vert_mode = True
 
-                vert_mode = False
+                if not vert_mode:
+                    if loop_mode:
+                        rot_mtx = rotation_from_vector(n, t_v, rotate90=True)
+                    else:
+                        rot_mtx = rotation_from_vector(n, t_v, rotate90=False)
+
+                    set_cursor(rot_mtx)
 
 
             # VERT (& GENERAL AVERAGE) MODE -----------------------------------------------------------------------
             if sel_mode[0] or vert_mode:
-                print("VERTMODE")
 
                 if sel_count == 2:
                     n = Vector(sel_verts[0].co - sel_verts[1].co).normalized()
@@ -138,6 +195,36 @@ class VIEW3D_OT_cursor_fit_selected_and_orient(bpy.types.Operator):
                     t_v = t_v.cross(n)
 
                     rot_mtx = rotation_from_vector(n, t_v)
+                    set_cursor(rot_mtx)
+
+                elif sel_count == 3:
+                    cv = [v.co for v in sel_verts]
+
+                    # make triangle vectors, sort to avoid the hypot.vector
+                    h = tri_points_order(cv)
+                    tri = sel_verts[h[0]].co, sel_verts[h[1]].co, sel_verts[h[2]].co
+                    v1 = Vector((tri[0] - tri[1])).normalized()
+                    v2 = Vector((tri[0] - tri[2])).normalized()
+                    v1 = correct_normal(obj_mtx, v1)
+                    v2 = correct_normal(obj_mtx, v2)
+                    n_v = v1.cross(v2)
+
+                    # flipcheck
+                    v_n = [v.normal for v in sel_verts]
+                    ncheck = correct_normal(obj_mtx, sum(v_n, Vector()) / len(v_n))
+                    if ncheck.dot(n_v) < 0:
+                        n_v.negate()
+
+                    # tangentcheck
+                    c1 = n_v.cross(v1).normalized()
+                    c2 = n_v.cross(v2).normalized()
+                    if c1.dot(n_v) > c2.dot(n_v):
+                        u_v = c2
+                    else:
+                        u_v = c1
+                    t_v = u_v.cross(n_v).normalized()
+
+                    rot_mtx = rotation_from_vector(n_v, t_v)
                     set_cursor(rot_mtx)
 
                 elif sel_count != 0:

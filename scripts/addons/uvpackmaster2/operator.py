@@ -1,3 +1,21 @@
+# ##### BEGIN GPL LICENSE BLOCK #####
+#
+#  This program is free software; you can redistribute it and/or
+#  modify it under the terms of the GNU General Public License
+#  as published by the Free Software Foundation; either version 2
+#  of the License, or (at your option) any later version.
+#
+#  This program is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU General Public License for more details.
+#
+#  You should have received a copy of the GNU General Public License
+#  along with this program; if not, write to the Free Software Foundation,
+#  Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+#
+# ##### END GPL LICENSE BLOCK #####
+
 
 import subprocess
 import queue
@@ -10,6 +28,7 @@ from .pack_context import *
 from .connection import *
 from .prefs import *
 from .os_iface import *
+from .island_params import *
 from .labels import UvpLabels
 from .register import check_uvp, unregister_uvp
 
@@ -23,10 +42,15 @@ import tempfile
 class InvalidIslandsError(Exception):
     pass
 
+class NoUvFaceError(Exception):
+    pass
 
 class UVP2_OT_PackOperatorGeneric(bpy.types.Operator):
 
     bl_options = {'UNDO'}
+
+    MODAL_INTERVAL_S = 0.1
+    interactive = False
 
     @classmethod
     def poll(cls, context):
@@ -62,24 +86,54 @@ class UVP2_OT_PackOperatorGeneric(bpy.types.Operator):
     def raiseUnexpectedOutputError(self):
         raise RuntimeError('Unexpected output from the pack process')
 
+    def set_status(self, status_type, status):
+
+        self.op_status_type = status_type
+        self.op_status = status
+
+    def add_warning(self, warn_msg):
+
+        self.op_warnings.append(warn_msg)
+
+    def report_status(self):
+
+        if self.op_status is not None:
+            self.prefs['op_status'] = self.op_status
+
+            op_status_type = self.op_status_type if self.op_status_type is not None else 'INFO'
+            op_status = self.op_status
+
+            if len(self.op_warnings) > 0:
+
+                if op_status_type == 'INFO':
+                    op_status_type = 'WARNING'
+
+                op_status += '. (WARNINGS were reported - check the UVP tab for details)'
+
+            self.report({op_status_type}, op_status)
+
+        self.prefs['op_warnings'] = self.op_warnings
+            # self.prefs.stats_op_warnings.add(warning_msg)
+
     def exit_common(self):
-        wm = self.p_context.context.window_manager
-        wm.event_timer_remove(self._timer)
+
+        if self.interactive:
+            wm = self.p_context.context.window_manager
+            wm.event_timer_remove(self._timer)
+
         self.p_context.update_meshes()
+        self.report_status()
 
         if in_debug_mode():
             print('UVP operation time: ' + str(time.time() - self.start_time))
 
-    def read_islands(self):
-        if self.islands_msg is None:
-            self.raiseUnexpectedOutputError()
-
+    def read_islands(self, islands_msg):
         islands = []
-        island_cnt = force_read_int(self.islands_msg)
-        selected_cnt = force_read_int(self.islands_msg)
+        island_cnt = force_read_int(islands_msg)
+        selected_cnt = force_read_int(islands_msg)
 
         for i in range(island_cnt):
-            islands.append(read_int_array(self.islands_msg))
+            islands.append(read_int_array(islands_msg))
 
         self.p_context.set_islands(selected_cnt, islands)
 
@@ -98,7 +152,7 @@ class UVP2_OT_PackOperatorGeneric(bpy.types.Operator):
         if len(invalid_islands) == 0:
             self.raiseUnexpectedOutputError()
 
-        handle_invalid_islands(self.p_context, invalid_islands)
+        self.p_context.handle_invalid_islands(invalid_islands)
 
         if code == UvInvalidIslandCode.TOPOLOGY:
             error_msg = "Invalid topology encountered in the selected islands. Check the Help panel to learn more"
@@ -109,7 +163,9 @@ class UVP2_OT_PackOperatorGeneric(bpy.types.Operator):
             self.raiseUnexpectedOutputError()
 
         raise InvalidIslandsError(error_msg)
-        
+
+    def require_selection(self):
+        return True 
 
     def finish_after_op_done(self):
         return True
@@ -127,7 +183,9 @@ class UVP2_OT_PackOperatorGeneric(bpy.types.Operator):
 
         self.check_uvp_retcode(self.uvp_proc.returncode)
 
-        self.read_islands()
+        if not self.p_context.islands_received():
+            self.raiseUnexpectedOutputError()
+
         self.process_invalid_islands()
         self.process_result()
 
@@ -137,7 +195,7 @@ class UVP2_OT_PackOperatorGeneric(bpy.types.Operator):
     def finish(self, context):
 
         self.exit_common()
-        return {'FINISHED'}
+        return {'FINISHED', 'PASS_THROUGH'}
 
     def cancel(self, context):
         self.uvp_proc.terminate()
@@ -275,10 +333,8 @@ class UVP2_OT_PackOperatorGeneric(bpy.types.Operator):
             self.similar_islands_msg = msg
 
         elif msg_code == UvPackMessageCode.ISLANDS:
-            if self.islands_msg is not None:
-                self.raiseUnexpectedOutputError()
 
-            self.islands_msg = msg
+            self.read_islands(msg)
 
         elif msg_code == UvPackMessageCode.ISLANDS_METADATA:
             if self.islands_metadata_msg is not None:
@@ -361,29 +417,30 @@ class UVP2_OT_PackOperatorGeneric(bpy.types.Operator):
                 return self.finish(context)
 
         except OpAbortedException:
-            self.report({'INFO'}, 'Packer process killed')
+            self.set_status('INFO', 'Packer process killed')
             cancel = True
 
         except OpCancelledException:
-            self.report({'INFO'}, 'Operation cancelled by user')
+            self.set_status('INFO', 'Operation cancelled by the user')
             cancel = True
 
         except InvalidIslandsError as err:
-            self.report({'ERROR'}, str(err))
+            self.set_status('ERROR', str(err))
             cancel = True
 
         except RuntimeError as ex:
             if in_debug_mode():
                 print_backtrace(ex)
 
-            self.report({'ERROR'}, str(ex))
+            self.set_status('ERROR', str(ex))
             cancel = True
 
         except Exception as ex:
             if in_debug_mode():
                 print_backtrace(ex)
 
-            self.report({'ERROR'}, 'Unexpected error')
+            self.set_status('ERROR', 'Unexpected error')
+
             cancel = True
 
         if cancel:
@@ -406,9 +463,14 @@ class UVP2_OT_PackOperatorGeneric(bpy.types.Operator):
         self.pack_ratio = 1.0
         self.target_box = None
 
+        self.op_status_type = None
+        self.op_status = None
+        self.op_warnings = []
+
         try:
             if not check_uvp():
                 unregister_uvp()
+                redraw_ui(context)
                 raise RuntimeError("UVP engine broken")
 
             reset_stats(self.prefs)
@@ -419,12 +481,18 @@ class UVP2_OT_PackOperatorGeneric(bpy.types.Operator):
             send_unselected = self.send_unselected_islands()
             send_rot_step = self.send_rot_step()
             send_groups = self.grouping_enabled() and (to_uvp_group_method(self.get_group_method()) == UvGroupingMethodUvp.EXTERNAL)
+            send_verts_3d = self.send_verts_3d()
 
-            face_cnt = self.p_context.serialize_uv_maps(send_unselected, send_groups, send_rot_step, self.get_group_method() if send_groups else None)
+            selected_cnt, unselected_cnt = self.p_context.serialize_uv_maps(send_unselected, send_groups, send_rot_step, send_verts_3d, self.get_group_method() if send_groups else None)
 
-            if face_cnt == 0:
-                self.report({'WARNING'}, 'No UV face selected')
-                return {'CANCELLED'}
+            if self.require_selection():
+                if selected_cnt == 0:
+                    raise NoUvFaceError('No UV face selected')
+            
+            else:
+                if selected_cnt + unselected_cnt == 0:
+                    raise NoUvFaceError('No UV face visible')
+
 
             self.validate_pack_params()
 
@@ -434,7 +502,7 @@ class UVP2_OT_PackOperatorGeneric(bpy.types.Operator):
                 out_file.write(self.p_context.serialized_maps)
                 out_file.close()
 
-            uvp_args_final = [get_uvp_execpath(), '-E', '-e', str(UvTopoAnalysisLevel.PROCESS_SELF_INTERSECT), '-t', str(self.prefs.thread_count)] + self.get_uvp_args()
+            uvp_args_final = [get_uvp_execpath(), '-E', '-e', str(UvTopoAnalysisLevel.FORCE_EXTENDED), '-t', str(self.prefs.thread_count)] + self.get_uvp_args()
 
             if send_unselected:
                 uvp_args_final.append('-s')
@@ -496,20 +564,24 @@ class UVP2_OT_PackOperatorGeneric(bpy.types.Operator):
             self.area_msg = None
             self.invalid_faces_msg = None
             self.similar_islands_msg = None
-            self.islands_msg = None
             self.islands_metadata_msg = None
+
+        except NoUvFaceError as ex:
+            self.set_status('WARNING', str(ex))
+            cancel = True
 
         except RuntimeError as ex:
             if in_debug_mode():
                 print_backtrace(ex)
 
-            self.report({'ERROR'}, str(ex))
+            self.set_status('ERROR', str(ex))
             cancel = True
+            
         except Exception as ex:
             if in_debug_mode():
                 print_backtrace(ex)
 
-            self.report({'ERROR'}, 'Unexpected error')
+            self.set_status('ERROR', 'Unexpected error')
             cancel = True
 
         if self.p_context is not None:
@@ -518,14 +590,35 @@ class UVP2_OT_PackOperatorGeneric(bpy.types.Operator):
         if cancel:
             if self.uvp_proc is not None:
                 self.uvp_proc.terminate()
+
+            self.report_status()
             return {'FINISHED'}
 
-        wm = context.window_manager
-        self._timer = wm.event_timer_add(0.1, window=context.window)
-        wm.modal_handler_add(self)
-        return {'RUNNING_MODAL'}
+        if self.interactive:
+            wm = context.window_manager
+            self._timer = wm.event_timer_add(self.MODAL_INTERVAL_S, window=context.window)
+            wm.modal_handler_add(self)
+            return {'RUNNING_MODAL'}
+
+        class FakeTimerEvent:
+            def __init__(self):
+                self.type = 'TIMER'
+                self.value = 'NOTHING'
+                self.ctrl = False
+
+        while True:
+            event = FakeTimerEvent()
+
+            ret = self.modal(context, event)
+            if ret.intersection({'FINISHED', 'CANCELLED'}):
+                return ret
+
+            time.sleep(self.MODAL_INTERVAL_S)
+
 
     def invoke(self, context, event):
+
+        self.interactive = True
 
         self.prefs = get_prefs()
         self.scene_props = context.scene.uvp2_props
@@ -534,11 +627,12 @@ class UVP2_OT_PackOperatorGeneric(bpy.types.Operator):
 
         wm = context.window_manager
         if self.confirmation_msg != '':
-            pix_per_char = 7
-            dialog_width = pix_per_char * len(self.confirmation_msg)
+            pix_per_char = 5
+            dialog_width = pix_per_char * len(self.confirmation_msg) + 50
             return wm.invoke_props_dialog(self, width=dialog_width)
 
         return self.execute(context)
+        
 
     def draw(self, context):
         layout = self.layout
@@ -560,6 +654,9 @@ class UVP2_OT_PackOperatorGeneric(bpy.types.Operator):
     def send_rot_step(self):
         return False
 
+    def send_verts_3d(self):
+        return False
+
     def read_area(self, area_msg):
         return round(force_read_float(area_msg) / self.pack_ratio, 3)
 
@@ -576,11 +673,12 @@ class UVP2_OT_PackOperator(UVP2_OT_PackOperatorGeneric):
     def get_confirmation_msg(self):
 
         if platform.system() == 'Darwin':
-            cuda_warning_msg = 'WARNING: Cuda support on MacOS is experimental. Click OK to continue'
-
             active_dev = self.prefs.dev_array[self.prefs.sel_dev_idx] if self.prefs.sel_dev_idx < len(self.prefs.dev_array) else None
             if active_dev is not None and active_dev.id.startswith('cuda'):
-                return cuda_warning_msg
+                return UvpLabels.CUDA_MACOS_CONFIRM_MSG
+
+        if self.prefs.pack_groups_together(self.scene_props) and not self.prefs.heuristic_enabled(self.scene_props):
+            return UvpLabels.GROUPS_TOGETHER_CONFIRM_MSG
 
         return ''
 
@@ -595,6 +693,9 @@ class UVP2_OT_PackOperator(UVP2_OT_PackOperatorGeneric):
 
     def send_rot_step(self):
         return self.prefs.FEATURE_island_rotation_step and self.scene_props.rot_enable and self.scene_props.island_rot_step_enable
+
+    def send_verts_3d(self):
+        return self.scene_props.normalize_islands
 
     def get_progress_msg_spec(self):
 
@@ -640,6 +741,12 @@ class UVP2_OT_PackOperator(UVP2_OT_PackOperatorGeneric):
             self.area = self.read_area(msg)
             return True
 
+        elif msg_code == UvPackMessageCode.PACK_SOLUTION:
+            
+            pack_solution = read_pack_solution(msg)
+            self.p_context.apply_pack_solution(self.pack_ratio, pack_solution)
+            return True
+
         elif msg_code == UvPackMessageCode.BENCHMARK:
 
             stats = self.prefs.stats_array.add()
@@ -667,6 +774,7 @@ class UVP2_OT_PackOperator(UVP2_OT_PackOperatorGeneric):
 
     def process_result(self):
         overlap_detected = False
+        outside_detected = False
 
         if self.invalid_faces_msg is not None:
             invalid_face_count = force_read_int(self.invalid_faces_msg)
@@ -687,35 +795,35 @@ class UVP2_OT_PackOperator(UVP2_OT_PackOperatorGeneric):
                     self.p_context.select_faces(list(invalid_faces), True)
 
             if invalid_face_count > 0:
-                self.report({'WARNING'}, 'Pre-validation failed. Number of invalid faces found: ' + str(invalid_face_count) + '. Packing aborted')
-
+                self.set_status('WARNING', 'Pre-validation failed. Number of invalid faces found: ' + str(invalid_face_count) + '. Packing aborted')
                 return
 
 
         if not self.prefs.FEATURE_demo:
-            if self.pack_solution_msg is None:
-                self.raiseUnexpectedOutputError()
-
             if self.island_flags_msg is None:
                 self.raiseUnexpectedOutputError()
 
-            pack_solution = read_pack_solution(self.pack_solution_msg)
-
-            self.p_context.apply_pack_solution(self.pack_ratio, pack_solution)
-
             island_flags = read_int_array(self.island_flags_msg)
-            overlap_detected = handle_island_flags(self.p_context, self.p_context.uv_island_faces_list, island_flags)
+            overlap_detected, outside_detected = self.p_context.handle_island_flags(island_flags)
 
-        if (self.uvp_proc.returncode == UvPackerErrorCode.NO_SPACE):
-            self.report({'WARNING'}, 'No enough space to pack all islands (overlap check skipped)')
-        elif overlap_detected:
-            self.report({'WARNING'}, 'Overlapping islands detected after packing, increase the Precision parameter')
+        if self.area is not None:
+            self.prefs.stats_area = self.area
+
+        if self.uvp_proc.returncode == UvPackerErrorCode.NO_SPACE:
+            op_status = 'Packing stopped - no space to pack all islands'
+            self.add_warning("Overlap check was performed only on the islands which were packed")
         else:
-            report_msg = 'Packing done'
+            op_status = 'Packing done'
             if self.area is not None:
-                self.prefs.stats_area = self.area
-                report_msg = report_msg + ', packed islands area: ' + str(self.area)
-            self.report({'INFO'}, report_msg)
+                op_status += ', packed islands area: ' + str(self.area)
+
+        self.set_status('INFO', op_status)
+
+        if overlap_detected:
+            self.add_warning("Overlapping islands were detected after packing (check the selected islands). Consider increasing the 'Precision' parameter. Sometimes increasing the 'Adjustment Time' may solve the problem (if used in the operation).")
+        if outside_detected:
+            self.add_warning("Some islands are outside their packing box after packing (check the selected islands). This usually happens when 'Pixel Padding' is set to a small value and the 'Adjustment Time' is not long enough.")
+        
 
     def validate_pack_params(self):
         active_dev = self.prefs.dev_array[self.prefs.sel_dev_idx] if self.prefs.sel_dev_idx < len(self.prefs.dev_array) else None
@@ -724,13 +832,13 @@ class UVP2_OT_PackOperator(UVP2_OT_PackOperatorGeneric):
             raise RuntimeError('Could not find a packing device')
 
         if not active_dev.supported:
-            raise RuntimeError('Selected packing device is not supported in this add-on edition')
+            raise RuntimeError('Selected packing device is not supported in this engine edition')
 
         # Validate pack mode
         pack_mode = UvPackingMode.get_mode(self.scene_props.pack_mode)
 
         if pack_mode.req_feature != '' and not getattr(self.prefs, 'FEATURE_' + pack_mode.req_feature):
-            raise RuntimeError('Selected packing mode is not supported in this add-on edition')
+            raise RuntimeError('Selected packing mode is not supported in this engine edition')
 
         if self.grouping_enabled():
 
@@ -746,7 +854,6 @@ class UVP2_OT_PackOperator(UVP2_OT_PackOperatorGeneric):
 
         if self.prefs.FEATURE_target_box and self.prefs.target_box_enable:
             validate_target_box(self.scene_props)
-            
 
     def get_target_box_string(self, target_box):
 
@@ -777,6 +884,7 @@ class UVP2_OT_PackOperator(UVP2_OT_PackOperatorGeneric):
                 pixel_padding = get_pixel_padding(self.p_context.context)
                 uvp_args += ['-N', str(pixel_padding)]
 
+            uvp_args += ['-W', self.scene_props.pixel_margin_method]
             uvp_args += ['-Y', str(self.scene_props.pixel_margin_adjust_time)]
 
         if self.prefs.fixed_scale_enabled(self.scene_props):
@@ -795,7 +903,7 @@ class UVP2_OT_PackOperator(UVP2_OT_PackOperatorGeneric):
             uvp_args += ['-p', str(self.prefs.packing_depth)]
 
         if self.prefs.heuristic_enabled(self.scene_props):
-            uvp_args += ['-h', str(self.scene_props.heuristic_search_time)]
+            uvp_args += ['-h', str(self.scene_props.heuristic_search_time), '-j', str(self.scene_props.heuristic_max_wait_time)]
 
             if self.prefs.FEATURE_advanced_heuristic and self.scene_props.advanced_heuristic:
                 uvp_args.append('-H')
@@ -812,11 +920,14 @@ class UVP2_OT_PackOperator(UVP2_OT_PackOperatorGeneric):
             if to_uvp_group_method(self.get_group_method()) == UvGroupingMethodUvp.SIMILARITY:
                 uvp_args += ['-I', str(self.scene_props.similarity_threshold)]
 
+            if self.prefs.pack_groups_together(self.scene_props):
+                uvp_args += ['-U', str(self.scene_props.group_compactness)]
+
         if self.prefs.multi_device_enabled(self.scene_props):
             uvp_args.append('-u')
 
-        if self.prefs.FEATURE_lock_overlapping and self.scene_props.lock_overlapping:
-            uvp_args += ['-l']
+        if self.prefs.lock_overlap_enabled(self.scene_props):
+            uvp_args += ['-l', self.scene_props.lock_overlapping_mode]
 
         if self.prefs.pack_to_others_enabled(self.scene_props):
             uvp_args += ['-x']
@@ -824,10 +935,12 @@ class UVP2_OT_PackOperator(UVP2_OT_PackOperatorGeneric):
         if self.prefs.FEATURE_validation and self.scene_props.pre_validate:
             uvp_args.append('-v')
 
-        if self.prefs.FEATURE_target_box and self.prefs.target_box_enable:
-            self.target_box = (Vector((self.scene_props.target_box_p1_x, self.scene_props.target_box_p1_y)),
-                               Vector((self.scene_props.target_box_p2_x, self.scene_props.target_box_p2_y)))
+        if self.prefs.normalize_islands_enabled(self.scene_props):
+            uvp_args.append('-L')
 
+        if self.prefs.FEATURE_target_box and self.prefs.target_box_enable:
+            self.target_box = self.prefs.target_box(self.scene_props)
+        
         if self.prefs.pack_ratio_enabled(self.scene_props):
             self.pack_ratio = get_active_image_ratio(self.p_context.context)
 
@@ -860,12 +973,12 @@ class UVP2_OT_OverlapCheckOperator(UVP2_OT_PackOperatorGeneric):
             self.raiseUnexpectedOutputError()
 
         island_flags = read_int_array(self.island_flags_msg)
-        overlap_detected = handle_island_flags(self.p_context, self.p_context.uv_island_faces_list, island_flags)
+        overlap_detected, outside_detected = self.p_context.handle_island_flags(island_flags)
 
         if overlap_detected:
-            self.report({'WARNING'}, 'Overlapping islands detected')
+            self.set_status('WARNING', 'Overlapping islands detected')
         else:
-            self.report({'INFO'}, 'No overlapping islands detected')
+            self.set_status('INFO', 'No overlapping islands detected')
 
     def validate_pack_params(self):
         pass
@@ -889,8 +1002,7 @@ class UVP2_OT_MeasureAreaOperator(UVP2_OT_PackOperatorGeneric):
 
         area = self.read_area(self.area_msg)
         self.prefs.stats_area = area
-
-        self.report({'INFO'}, 'Islands area: ' + str(area))
+        self.set_status('INFO', 'Islands area: ' + str(area))
 
     def validate_pack_params(self):
         pass
@@ -939,9 +1051,9 @@ class UVP2_OT_ValidateOperator(UVP2_OT_PackOperatorGeneric):
                 self.raiseUnexpectedOutputError()
 
         if invalid_face_count > 0:
-            self.report({'WARNING'}, 'Number of invalid faces found: ' + str(invalid_face_count))
+            self.set_status('WARNING', 'Number of invalid faces found: ' + str(invalid_face_count))
         else:
-            self.report({'INFO'}, 'No invalid faces found')
+            self.set_status('INFO', 'No invalid faces found')
 
     def validate_pack_params(self):
         pass
@@ -951,7 +1063,27 @@ class UVP2_OT_ValidateOperator(UVP2_OT_PackOperatorGeneric):
         uvp_args = ['-o', str(UvPackerOpcode.VALIDATE_UVS)]
         return uvp_args
 
-class UVP2_OT_SelectSimilarOperator(UVP2_OT_PackOperatorGeneric):
+
+class UVP2_OT_ProcessSimilar(UVP2_OT_PackOperatorGeneric):
+
+    def validate_pack_params(self):
+        pass
+
+    def get_uvp_args(self):
+
+        uvp_args = ['-o', str(self.get_uvp_opcode()), '-I', str(self.scene_props.similarity_threshold)]
+        uvp_args += ['-i', str(self.scene_props.precision)]
+        uvp_args += ['-r', str(90)]
+
+        if self.prefs.pack_ratio_enabled(self.scene_props):
+            self.pack_ratio = get_active_image_ratio(self.p_context.context)
+            uvp_args += ['-q', str(self.pack_ratio)]
+
+        return uvp_args
+
+
+
+class UVP2_OT_SelectSimilar(UVP2_OT_ProcessSimilar):
     bl_idname = 'uvpackmaster2.uv_select_similar'
     bl_label = 'Select Similar'
     bl_description = "Selects all islands which have similar shape to islands which are already selected. For more info regarding similarity detection click the help button"
@@ -964,7 +1096,12 @@ class UVP2_OT_SelectSimilarOperator(UVP2_OT_PackOperatorGeneric):
         return ''
 
     def send_unselected_islands(self):
+
         return True
+
+    def get_uvp_opcode(self):
+
+        return UvPackerOpcode.SELECT_SIMILAR
 
     def process_result(self):
 
@@ -984,35 +1121,19 @@ class UVP2_OT_SelectSimilarOperator(UVP2_OT_PackOperatorGeneric):
             if len(similar_islands) > 0:
                 self.raiseUnexpectedOutputError()
 
-        self.report({'INFO'}, 'Similar islands found: ' + str(similar_island_count))
+        self.set_status('INFO', 'Similar islands found: ' + str(similar_island_count))
 
-    def validate_pack_params(self):
 
-        if not self.scene_props.rot_enable:
-            raise RuntimeError("Island rotations must be enabled in order to run operation")
 
-        if self.scene_props.prerot_disable:
-            raise RuntimeError("'Pre-Rotation Disable' option must be off in order to run operation")
-
-    def get_uvp_args(self):
-
-        uvp_args = ['-o', str(UvPackerOpcode.SELECT_SIMILAR), '-I', str(self.scene_props.similarity_threshold)]
-        uvp_args += ['-i', str(self.scene_props.precision)]
-
-        if self.prefs.FEATURE_island_rotation and self.scene_props.rot_enable:
-            uvp_args += ['-r', str(self.scene_props.rot_step)]
-
-        if self.prefs.pack_ratio_enabled(self.scene_props):
-            self.pack_ratio = get_active_image_ratio(self.p_context.context)
-            uvp_args += ['-q', str(self.pack_ratio)]
-
-        return uvp_args
-
-class UVP2_OT_AlignSimilarOperator(UVP2_OT_PackOperatorGeneric):
+class UVP2_OT_AlignSimilar(UVP2_OT_ProcessSimilar):
     bl_idname = 'uvpackmaster2.uv_align_similar'
     bl_label = 'Align Similar'
     bl_description = "Align selected islands, so islands which are similar are placed on top of each other. For more info regarding similarity detection click the help button"
 
+
+    def get_uvp_opcode(self):
+
+        return UvPackerOpcode.ALIGN_SIMILAR
 
     def process_result(self):
 
@@ -1025,29 +1146,9 @@ class UVP2_OT_AlignSimilarOperator(UVP2_OT_PackOperatorGeneric):
         pack_solution = read_pack_solution(self.pack_solution_msg)
         self.p_context.apply_pack_solution(self.pack_ratio, pack_solution)
 
-        self.report({'INFO'}, 'Islands aligned')
+        self.set_status('INFO', 'Islands aligned')
 
-    def validate_pack_params(self):
 
-        if not self.scene_props.rot_enable:
-            raise RuntimeError("Island rotations must be enabled in order to run operation")
-
-        if self.scene_props.prerot_disable:
-            raise RuntimeError("'Pre-Rotation Disable' option must be off in order to run operation")
-
-    def get_uvp_args(self):
-
-        uvp_args = ['-o', str(UvPackerOpcode.ALIGN_SIMILAR), '-I', str(self.scene_props.similarity_threshold)]
-        uvp_args += ['-i', str(self.scene_props.precision)]
-
-        if self.prefs.FEATURE_island_rotation and self.scene_props.rot_enable:
-            uvp_args += ['-r', str(self.scene_props.rot_step)]
-
-        if self.prefs.pack_ratio_enabled(self.scene_props):
-            self.pack_ratio = get_active_image_ratio(self.p_context.context)
-            uvp_args += ['-q', str(self.pack_ratio)]
-
-        return uvp_args
 
 class UVP2_OT_ScaleIslands(bpy.types.Operator):
 
@@ -1059,8 +1160,6 @@ class UVP2_OT_ScaleIslands(bpy.types.Operator):
 
     def execute(self, context):
 
-        # cancel = False
-
         try:
             self.p_context = PackContext(context)
             ratio = get_active_image_ratio(self.p_context.context)
@@ -1071,18 +1170,13 @@ class UVP2_OT_ScaleIslands(bpy.types.Operator):
                 print_backtrace(ex)
 
             self.report({'ERROR'}, str(ex))
-            # cancel = True
-
 
         except Exception as ex:
             if in_debug_mode():
                 print_backtrace(ex)
 
             self.report({'ERROR'}, 'Unexpected error')
-            # cancel = True
 
-        # if cancel:
-        #     return {'CANCELLED'}
 
         self.p_context.update_meshes()
         return {'FINISHED'}

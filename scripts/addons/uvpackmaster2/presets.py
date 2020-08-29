@@ -1,3 +1,21 @@
+# ##### BEGIN GPL LICENSE BLOCK #####
+#
+#  This program is free software; you can redistribute it and/or
+#  modify it under the terms of the GNU General Public License
+#  as published by the Free Software Foundation; either version 2
+#  of the License, or (at your option) any later version.
+#
+#  This program is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU General Public License for more details.
+#
+#  You should have received a copy of the GNU General Public License
+#  along with this program; if not, write to the Free Software Foundation,
+#  Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+#
+# ##### END GPL LICENSE BLOCK #####
+
 
 import os
 import json
@@ -149,7 +167,164 @@ PRESET_PROPERTIES_V4 = [
     'target_box_p2_y'
 ]
 
-PRESET_PROPERTIES_LATEST = PRESET_PROPERTIES_V4
+PRESET_PROPERTIES_V5 = [
+    'precision',
+    'margin',
+    'pixel_margin',
+    'pixel_padding',
+    'pixel_margin_tex_size',
+    'rot_enable',
+    'prerot_disable',
+    'fixed_scale',
+    'rot_step',
+    'island_rot_step_enable',
+    'island_rot_step',
+    'tex_ratio',
+    'pack_to_others',
+    'pack_mode',
+    'group_method',
+    'manual_group_num',
+    'tile_count',
+    'tiles_in_row',
+    'lock_overlapping',
+    'pre_validate',
+    'heuristic_enable',
+    'heuristic_search_time',
+    'pixel_margin_adjust_time',
+    'advanced_heuristic',
+    'similarity_threshold',
+    'multi_device_pack',
+    'fully_inside',
+    'move_islands',
+    'target_box_tile_x',
+    'target_box_tile_y',
+    'target_box_p1_x',
+    'target_box_p1_y',
+    'target_box_p2_x',
+    'target_box_p2_y'
+]
+
+PRESET_PROPERTIES_V6 = [
+    'precision',
+    'margin',
+    'pixel_margin',
+    'pixel_padding',
+    'pixel_margin_method',
+    'pixel_margin_tex_size',
+    'rot_enable',
+    'prerot_disable',
+    'fixed_scale',
+    'rot_step',
+    'island_rot_step_enable',
+    'island_rot_step',
+    'tex_ratio',
+    'pack_to_others',
+    'pack_mode',
+    'group_method',
+    'manual_group_num',
+    'tile_count',
+    'tiles_in_row',
+    'lock_overlapping_mode',
+    'pre_validate',
+    'heuristic_enable',
+    'heuristic_search_time',
+    'heuristic_max_wait_time',
+    'pixel_margin_adjust_time',
+    'advanced_heuristic',
+    'similarity_threshold',
+    'multi_device_pack',
+    'fully_inside',
+    'move_islands',
+    'target_box_tile_x',
+    'target_box_tile_y',
+    'target_box_p1_x',
+    'target_box_p1_y',
+    'target_box_p2_x',
+    'target_box_p2_y'
+]
+
+PRESET_PROPERTIES_V7 = [
+    'precision',
+    'margin',
+    'pixel_margin',
+    'pixel_padding',
+    'pixel_margin_method',
+    'pixel_margin_tex_size',
+    'rot_enable',
+    'prerot_disable',
+    'fixed_scale',
+    'rot_step',
+    'island_rot_step_enable',
+    'island_rot_step',
+    'tex_ratio',
+    'pack_to_others',
+    'pack_mode',
+    'group_method',
+    'group_compactness',
+    'manual_group_num',
+    'tile_count',
+    'tiles_in_row',
+    'lock_overlapping_mode',
+    'pre_validate',
+    'heuristic_enable',
+    'heuristic_search_time',
+    'heuristic_max_wait_time',
+    'pixel_margin_adjust_time',
+    'advanced_heuristic',
+    'similarity_threshold',
+    'multi_device_pack',
+    'fully_inside',
+    'move_islands',
+    'target_box_tile_x',
+    'target_box_tile_y',
+    'target_box_p1_x',
+    'target_box_p1_y',
+    'target_box_p2_x',
+    'target_box_p2_y'
+]
+
+PRESET_PROPERTIES_V8 = [
+    'precision',
+    'margin',
+    'pixel_margin',
+    'pixel_padding',
+    'pixel_margin_method',
+    'pixel_margin_tex_size',
+    'rot_enable',
+    'prerot_disable',
+    'fixed_scale',
+    'normalize_islands',
+    'rot_step',
+    'island_rot_step_enable',
+    'island_rot_step',
+    'tex_ratio',
+    'pack_to_others',
+    'pack_mode',
+    'group_method',
+    'group_compactness',
+    'manual_group_num',
+    'tile_count',
+    'tiles_in_row',
+    'lock_overlapping_mode',
+    'pre_validate',
+    'heuristic_enable',
+    'heuristic_search_time',
+    'heuristic_max_wait_time',
+    'pixel_margin_adjust_time',
+    'advanced_heuristic',
+    'similarity_threshold',
+    'multi_device_pack',
+    'fully_inside',
+    'move_islands',
+    'target_box_tile_x',
+    'target_box_tile_y',
+    'target_box_p1_x',
+    'target_box_p1_y',
+    'target_box_p2_x',
+    'target_box_p2_y'
+]
+
+PRESET_PROPERTIES_LATEST = PRESET_PROPERTIES_V8
 
 
 class UVP2_OT_SavePreset(bpy.types.Operator, ExportHelper):
@@ -236,6 +411,18 @@ class UVP2_OT_LoadPresetBase(bpy.types.Operator):
         if addon_version in {(2,3,0), (2,3,1)}:
             return 4
 
+        if addon_version == (2,3,2):
+            return 5
+
+        if addon_version == (2,3,5):
+            return 6
+
+        if addon_version in {(2,4,0), (2,4,2), (2,4,3)}:
+            return 7
+
+        if addon_version == (2,4,4):
+            return 8
+
         raise RuntimeError('Unsupported preset version')
 
     def translate_props_1to2(self, props_dict):
@@ -279,9 +466,52 @@ class UVP2_OT_LoadPresetBase(bpy.types.Operator):
         props_dict['manual_group_num'] = 0
         props_dict['tile_count'] = 2
 
+    def translate_props_4to5(self, props_dict):
+
+        for prop_name in PRESET_PROPERTIES_V4:
+            if prop_name not in props_dict:
+                self.raise_invalid_format()
+
+        props_dict['fully_inside'] = True
+        props_dict['move_islands'] = False
+
+    def translate_props_5to6(self, props_dict):
+
+        for prop_name in PRESET_PROPERTIES_V5:
+            if prop_name not in props_dict:
+                self.raise_invalid_format()
+
+        props_dict['pixel_margin_method'] = UvPixelMarginMethod.ADJUSTMENT_TIME.code
+        props_dict['heuristic_max_wait_time'] = 0
+        props_dict['lock_overlapping_mode'] = UvLockOverlappingMode.ANY_PART.code if props_dict['lock_overlapping'] else UvLockOverlappingMode.DISABLED.code
+        del props_dict['lock_overlapping']
+
+    def translate_props_6to7(self, props_dict):
+
+        for prop_name in PRESET_PROPERTIES_V6:
+            if prop_name not in props_dict:
+                self.raise_invalid_format()
+
+        props_dict['group_compactness'] = 0.0
+
+    def translate_props_7to8(self, props_dict):
+
+        for prop_name in PRESET_PROPERTIES_V7:
+            if prop_name not in props_dict:
+                self.raise_invalid_format()
+
+        props_dict['normalize_islands'] = False
+
     def translate_props(self, preset_version, props_dict):
 
-        translate_array = [ self.translate_props_1to2, self.translate_props_2to3, self.translate_props_3to4 ]
+        translate_array = [
+            self.translate_props_1to2,
+            self.translate_props_2to3,
+            self.translate_props_3to4,
+            self.translate_props_4to5,
+            self.translate_props_5to6,
+            self.translate_props_6to7,
+            self.translate_props_7to8 ]
 
         for i in range(preset_version-1, len(translate_array)):
             translate_array[i](props_dict)
@@ -326,6 +556,8 @@ class UVP2_OT_LoadPresetBase(bpy.types.Operator):
                 setattr(scene_props, prop_name, props_dict[prop_name])
                 
             self.post_op()
+            redraw_ui(context)
+            
             self.report({'INFO'}, self.success_msg)
 
         except RuntimeError as ex:
@@ -386,3 +618,38 @@ class UVP2_OT_LoadTargetBox(UVP2_OT_LoadPresetBase, ImportHelper):
         
         if is_blender28():
             bpy.ops.uvpackmaster2.enable_target_box()
+
+
+class UVP2_OT_ResetToDefaults(bpy.types.Operator):
+
+    bl_idname = 'uvpackmaster2.reset_to_defaults'
+    bl_label = 'Reset To Defaults'
+    bl_description = 'Reset all UVP parameters to default values'
+
+    CONFIRMATION_MSG = 'Are you sure you want to reset all UVP parameters to default values?'
+    
+    def execute(self, context):
+
+        for prop_name in PRESET_PROPERTIES_LATEST:
+            context.scene.uvp2_props.property_unset(prop_name)
+
+        prefs = get_prefs()
+        prefs.property_unset('thread_count')
+        prefs.target_box_enable = False
+
+        redraw_ui(context)
+
+        self.report({'INFO'}, 'Parameters reset')
+        return {'FINISHED'}
+
+    def invoke(self, context, event):
+
+        wm = context.window_manager
+        pix_per_char = 5
+        dialog_width = pix_per_char * len(self.CONFIRMATION_MSG) + 50
+        return wm.invoke_props_dialog(self, width=dialog_width)
+
+    def draw(self, context):
+        layout = self.layout
+        col = layout.column()
+        col.label(text=self.CONFIRMATION_MSG)
