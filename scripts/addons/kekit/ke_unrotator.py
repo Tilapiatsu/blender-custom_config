@@ -8,7 +8,7 @@ bl_info = {
 import bpy
 import bmesh
 from .ke_utils import get_loops, average_vector, get_distance, mouse_raycast
-from mathutils import Vector, Matrix
+from mathutils import Vector, Matrix, Euler
 from math import radians
 
 
@@ -37,7 +37,7 @@ def tri_points_order(vcoords):
     return r
 
 
-def unrotate(n_v, v_1, v_2, inv=False, set_inv=False, act_inv=False):
+def unrotate(n_v, v_1, v_2, inv=False, set_inv=False, rot_offset=0):
     # find the better up/tangent rot
     c1 = n_v.cross(v_1).normalized()
     c2 = n_v.cross(v_2).normalized()
@@ -58,6 +58,10 @@ def unrotate(n_v, v_1, v_2, inv=False, set_inv=False, act_inv=False):
     else:
         rx, ry, rz = rot.x, rot.y, rot.z
 
+    if rot_offset != 0:
+        # eul = Euler((radians(rot_offset),0.0,0.0), 'XYZ')
+        rz += rot_offset
+
     # oldskool modo-kit method to avoid non-uniform scale issues...slow, but works.
     bpy.ops.transform.rotate(value=rx, orient_axis='X', orient_type='GLOBAL', use_proportional_edit=False,
                              snap=False, orient_matrix_type='GLOBAL')
@@ -72,10 +76,9 @@ class VIEW3D_OT_ke_unrotator(bpy.types.Operator):
     bl_label = "Unrotator"
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'UI'
-    bl_description = "EDIT MODE: Unrotates mesh using *active element* vectors as 'bottom' OR " \
-                     "aligns to MOUSE OVER face normal on other mesh or object. " \
-                     "OBJECT: Resets rotation. MOUSE OVER interactive placement uses blenders face-snapping. " \
-                     "Object mode duplicates will be linked instances."
+    bl_description = "Unrotates geo using *active element* as new 'bottom' OR aligns to MOUSE OVER face normal on other mesh or object." \
+                     "OBJECT: Resets rotation OR aligns on MOUSE OVER." \
+                     "Note: Rotation tweak (redo-option) will glitch out if you move the camera"
     bl_options = {'REGISTER', 'UNDO'}
 
     ke_unrotator_option: bpy.props.EnumProperty(
@@ -85,9 +88,23 @@ class VIEW3D_OT_ke_unrotator(bpy.types.Operator):
         name="Unrotator Options",
         default="DEFAULT")
 
+    rot_offset: bpy.props.FloatProperty(name="Rotation Offset", default=0, min=-360.0, max=360.0, step=500, subtype='ANGLE', precision=0)
+
+    center = False
+
     mouse_pos = Vector((0, 0))
 
     set_invert = False
+
+    def draw(self, context):
+        layout = self.layout
+        layout.use_property_split = True
+        col = layout.column()
+        col.prop(self, "rot_offset")
+        col.separator()
+        sub = col.column(align=True)
+        sub.label(text= " Rotation Offset Note: Unchanged viewport required")
+
 
     def invoke(self, context, event):
         self.mouse_pos[0] = event.mouse_region_x
@@ -112,15 +129,21 @@ class VIEW3D_OT_ke_unrotator(bpy.types.Operator):
         elif self.ke_unrotator_option == "NO_LOC":
             noloc, dupe = True, False
 
-        reset = bpy.context.scene.kekit.unrotator_reset
+        # reset = bpy.context.scene.kekit.unrotator_reset
+        reset = False
         connect = bpy.context.scene.kekit.unrotator_connect
         nolink = bpy.context.scene.kekit.unrotator_nolink
         nosnap = bpy.context.scene.kekit.unrotator_nosnap
         actual_invert = bpy.context.scene.kekit.unrotator_invert
+        self.center = bpy.context.scene.kekit.unrotator_center
 
         # Check mouse over target
         bpy.ops.object.mode_set(mode="OBJECT")
         hit_obj, hit_wloc, hit_normal, hit_face = mouse_raycast(context, self.mouse_pos)
+
+        if mode == "OBJECT" and not nosnap:
+            self.rot_offset = 0
+            self.center = False
 
         if mode == "EDIT_MESH":
             bpy.ops.object.mode_set(mode="EDIT")
@@ -165,6 +188,10 @@ class VIEW3D_OT_ke_unrotator(bpy.types.Operator):
                         vt = tri_sort(pe)
                         place_coords = obj_mtx @ vt[0].co, obj_mtx @ vt[1].co, obj_mtx @ vt[2].co
 
+                        if self.center:
+                            bm.faces.ensure_lookup_table()
+                            hit_wloc = average_vector([obj_mtx @ v.co for v in hit_face_verts])
+
                 elif hit_obj.name != obj.name:
                     # print("Mouse over different Object - Unrotate & Place mode")
                     place = True
@@ -173,6 +200,10 @@ class VIEW3D_OT_ke_unrotator(bpy.types.Operator):
                     for v in vt:
                         vc = hit_obj.matrix_world @ hit_obj.data.vertices[v].co
                         place_coords.append(vc)
+
+                        if self.center:
+                            hit_face_verts = [hit_obj.matrix_world @ hit_obj.data.vertices[i].co for i in hit_obj.data.polygons[hit_face].vertices]
+                            hit_wloc = average_vector(hit_face_verts)
 
             if sel_check and place and dupe:
                 bpy.ops.mesh.duplicate()
@@ -264,14 +295,14 @@ class VIEW3D_OT_ke_unrotator(bpy.types.Operator):
                 if actual_invert:
                     n_v.negate()
 
-                unrotate(n_v, v_1, v_2, inv=False, set_inv=self.set_invert, act_inv=actual_invert)
+                unrotate(n_v, v_1, v_2, inv=False, set_inv=self.set_invert, rot_offset=self.rot_offset)
 
             if place:
                 # Orient and place
                 p1, p2, p3 = place_coords[0], place_coords[1], place_coords[2]
 
-                v_1 = p1 - p2
-                v_2 = p1 - p3
+                v_1 = p2 - p1
+                v_2 = p3 - p1
                 n_v = v_1.cross(v_2).normalized()
 
                 # Direction flip check
@@ -284,7 +315,7 @@ class VIEW3D_OT_ke_unrotator(bpy.types.Operator):
                 #     n_v.negate()
 
                 # ..again!
-                unrotate(n_v, v_1, v_2, inv=True, set_inv=self.set_invert, act_inv=actual_invert)
+                unrotate(n_v, v_1, v_2, inv=True, set_inv=self.set_invert)
 
                 if not noloc:
                     # Place - just using ops & cursor here...
@@ -300,10 +331,12 @@ class VIEW3D_OT_ke_unrotator(bpy.types.Operator):
             # Unrotate only
             if not hit_obj:
                 obj.select_set(True)
-                bpy.ops.object.rotation_clear()
+                obj.rotation_euler = (0, 0, self.rot_offset)
+
             elif hit_obj.name == obj.name:
                 obj.select_set(True)
-                bpy.ops.object.rotation_clear()
+                obj.rotation_euler = (0, 0, self.rot_offset)
+
 
             # Place!
             elif hit_obj.name != obj.name:
@@ -338,10 +371,14 @@ class VIEW3D_OT_ke_unrotator(bpy.types.Operator):
                     if actual_invert:
                         n_v.negate()
 
-                    bpy.ops.object.rotation_clear()
-                    unrotate(n_v, v_1, v_2, inv=True, set_inv=self.set_invert, act_inv=actual_invert)
+                    obj.rotation_euler = (0,0,self.rot_offset)
+                    unrotate(n_v, v_1, v_2, inv=True, set_inv=self.set_invert)
 
                 if not noloc:
+                    if self.center and nosnap:
+                        hit_wloc = hit_obj.matrix_world @ Vector(hit_obj.data.polygons[hit_face].center)
+                        obj.location = hit_wloc
+
                     if not nosnap:
                         bpy.context.scene.tool_settings.use_snap = True
                         bpy.context.scene.tool_settings.snap_elements = {'FACE'}

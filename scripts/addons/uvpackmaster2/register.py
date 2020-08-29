@@ -1,3 +1,21 @@
+# ##### BEGIN GPL LICENSE BLOCK #####
+#
+#  This program is free software; you can redistribute it and/or
+#  modify it under the terms of the GNU General Public License
+#  as published by the Free Software Foundation; either version 2
+#  of the License, or (at your option) any later version.
+#
+#  This program is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU General Public License for more details.
+#
+#  You should have received a copy of the GNU General Public License
+#  along with this program; if not, write to the Free Software Foundation,
+#  Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+#
+# ##### END GPL LICENSE BLOCK #####
+
 
 import platform
 import multiprocessing
@@ -87,7 +105,7 @@ def get_uvp_version():
     feature_codes = []
 
     for i in range(feature_cnt):
-        feature_codes.append(struct.unpack('c', version_msg.read(1))[0])
+        feature_codes.append(force_read_int(version_msg))
 
     dev_cnt = force_read_int(version_msg)
     devices = []
@@ -127,7 +145,7 @@ def parse_feature_codes(feature_codes):
     prefs.FEATURE_pack_to_tiles = False
 
     for code in feature_codes:
-        int_code = int.from_bytes(code, 'little')
+        int_code = code
         if int_code == UvPackerFeatureCode.DEMO:
             prefs.FEATURE_demo = True
         elif int_code == UvPackerFeatureCode.ISLAND_ROTATION:
@@ -201,9 +219,13 @@ def register_specific(bl_info):
     bpy.app.handlers.load_post.append(load_post_handler)
 
     addon_uvp_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'uvp')
-    paths_to_check = [get_prefs().uvp_path, addon_uvp_path]
+    paths_to_check = [get_prefs().uvp_path, os_uvp_path(), addon_uvp_path]
 
     for path in paths_to_check:
+
+        if path is None:
+            continue
+
         try:
             register_uvp(path)
         except:
@@ -220,7 +242,7 @@ def check_uvp():
 def unregister_uvp():
     prefs = get_prefs()
     prefs.uvp_initialized = False
-    prefs.label_message = 'UVP engine {} not available'.format(UvpVersionInfo.uvp_version_string())
+    prefs.label_message = 'UVP engine {} not detected, press the button for help:'.format(UvpVersionInfo.uvp_version_string())
     prefs.uvp_path = 'Select a path to the UVP engine'
 
     prefs.sel_dev_idx = -1
@@ -289,10 +311,13 @@ def register_uvp(uvp_path):
         prefs.label_message = 'UVP engine: {} ({})'.format(UvpVersionInfo.uvp_version_string(), edition_long_name)
         prefs.uvp_initialized = True
 
-    except:
+    except Exception as ex:
         if in_debug_mode():
             print_backtrace(ex)
 
+        unregister_uvp()
+        raise
+    except:
         unregister_uvp()
         raise
 
@@ -327,6 +352,8 @@ class UVP2_OT_SelectUvpEngine(bpy.types.Operator, ImportHelper):
                 print_backtrace(ex)
 
             self.report({'ERROR'}, 'UVP initialization failed: Unexpected error')
+
+        redraw_ui(context)
 
         return {'FINISHED'}
     

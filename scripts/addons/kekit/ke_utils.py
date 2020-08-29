@@ -251,21 +251,25 @@ def get_islands(bm, verts):
 
 
 def get_selection_islands(sel_faces, active_face):
+
     sortfaces = [p for p in sel_faces if p != active_face]
     first_island, second_island = active_face.verts[:], []
+
+    maxcount = len(sortfaces) * 4  # todo: Terrible. better sort tbd.
+    while maxcount:
+        maxcount -= 1
+        for p in sortfaces:
+            faceverts = p.verts[:]
+            for v in faceverts:
+                if v in first_island:
+                    first_island.extend(faceverts)
+                    sortfaces.remove(p)
+                    break
+
     for p in sortfaces:
-        first = False
-        faceverts = p.verts[:]
-        for v in faceverts:
-            if v in first_island:
-                first = True
-                first_island.extend(faceverts)
-                break
-        if first:
-            first_island.extend(faceverts)
-        else:
-            second_island.extend(faceverts)
-    return first_island, second_island
+        second_island.extend(p.verts)
+
+    return list(set(first_island)), list(set(second_island))
 
 
 def correct_normal(world_matrix, vec_normal):
@@ -346,6 +350,10 @@ def  point_to_plane(first_point, point_verts, plane_verts):
             length = 0
         else:
             length = -(d1 / d2)
+
+    # Round off in case the plane returns zero (or near)
+    if length - 0.0001 <= 0 <= 0.0001:
+        length = 0
 
     return length
 
@@ -435,3 +443,38 @@ def get_vert_nearest_mouse(context, mousepos, verts, mtx):
             merge_point = v
             nearest = dist
     return merge_point
+
+
+def get_scene_unit(value):
+    #insp:Jayanam
+    unit_length = bpy.context.scene.unit_settings.length_unit
+    unit_scale = bpy.context.scene.unit_settings.scale_length
+    value = value * unit_scale
+    if unit_length == 'KILOMETERS' :
+        return 'km', value * 0.001
+    elif unit_length == 'METERS':
+        return 'm', value
+    elif unit_length == 'CENTIMETERS':
+        return 'cm', value * 100
+    elif unit_length == 'MILLIMETERS':
+        return 'mm', value * 1000
+    elif unit_length == 'MICROMETERS':
+        return '\u00b5'+'m', value * 1000000
+    elif unit_length == 'MILES':
+        return 'mi', value * 0.00062137119223733
+    elif unit_length == 'FEET':
+        return '\u0027', value * 3.280839895013123
+    elif unit_length == 'INCHES':
+        return '\u0022', value * 39.37007874015748
+    elif unit_length == 'THOU':
+        return 'thou', value * 39370.07874015748
+    else:
+        return 'bu', value #1
+
+
+def shift_list(array, s):
+    """Shifts the elements of a list to the left or right."""
+    s %= len(array)
+    s *= -1
+    shifted_array = array[s:] + array[:s]
+    return shifted_array

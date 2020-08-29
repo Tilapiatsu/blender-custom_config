@@ -1,3 +1,21 @@
+# ##### BEGIN GPL LICENSE BLOCK #####
+#
+#  This program is free software; you can redistribute it and/or
+#  modify it under the terms of the GNU General Public License
+#  as published by the Free Software Foundation; either version 2
+#  of the License, or (at your option) any later version.
+#
+#  This program is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU General Public License for more details.
+#
+#  You should have received a copy of the GNU General Public License
+#  along with this program; if not, write to the Free Software Foundation,
+#  Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+#
+# ##### END GPL LICENSE BLOCK #####
+
 
 from .labels import UvpLabels
 from .blend import get_prefs
@@ -40,6 +58,7 @@ class UvPackMessageCode:
 
 class UvPackerIslandFlags:
     OVERLAPS = 1
+    OUTSIDE_TARGET_BOX = 2
 
 class UvPackerFeatureCode:
     DEMO = 0
@@ -70,6 +89,8 @@ class UvPackerErrorCode:
     PRE_VALIDATION_FAILED = 7
     DEVICE_NOT_SUPPORTED = 8
     DEVICE_DOESNT_SUPPORT_GROUPS_TOGETHER = 9
+    NO_UVS = 10
+    NO_SELECTED_UVS = 11
 
 class UvPackingPhaseCode:
     INITIALIZATION = 0
@@ -191,8 +212,8 @@ class UvPackingMode:
                     UvpLabels.PACK_MODE_GROUPS_TO_TILES_DESC,
                     'grouping',
                     supports_heuristic=True,
-                    supports_pack_to_others=False,
-                    supports_fixed_scale=False)
+                    supports_pack_to_others=True,
+                    supports_fixed_scale=True)
 
     MODES = [SINGLE_TILE, TILES, GROUPS_TOGETHER, GROUPS_TO_TILES]
 
@@ -209,15 +230,25 @@ class UvGroupingMethod:
     OBJECT = EnumValue('3', 'Object')
     MANUAL = EnumValue('4', 'Manual')
 
+class UvPixelMarginMethod:
+    ADJUSTMENT_TIME = EnumValue('0', 'Adjustment Time (Recommended)', UvpLabels.PIXEL_MARGIN_METHOD_ADJUSTMENT_TIME_DESC)
+    ITERATIVE = EnumValue('1', 'Iterative', UvpLabels.PIXEL_MARGIN_METHOD_ITERATIVE_DESC)
+
 class UvGroupingMethodUvp:
     DISABLED = 0
     EXTERNAL = 1
     SIMILARITY = 2
 
+class UvLockOverlappingMode:
+    DISABLED = EnumValue('0', 'Disabled', UvpLabels.LOCK_OVERLAPPING_MODE_DISABLED_DESC)
+    ANY_PART = EnumValue('1', 'Any Part', UvpLabels.LOCK_OVERLAPPING_MODE_ANY_PART_DESC)
+    EXACT = EnumValue('2', 'Exact', UvpLabels.LOCK_OVERLAPPING_MODE_EXACT_DESC)
+
 class UvMapSerializationFlags:
     CONTAINS_FLAGS = 1
     CONTAINS_GROUPS = 2
     CONTAINS_ROT_STEP = 4
+    CONTAINS_VERTS_3D = 8
 
 class UvFaceInputFlags:
     SELECTED = 1

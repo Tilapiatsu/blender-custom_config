@@ -1,3 +1,21 @@
+# ##### BEGIN GPL LICENSE BLOCK #####
+#
+#  This program is free software; you can redistribute it and/or
+#  modify it under the terms of the GNU General Public License
+#  as published by the Free Software Foundation; either version 2
+#  of the License, or (at your option) any later version.
+#
+#  This program is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU General Public License for more details.
+#
+#  You should have received a copy of the GNU General Public License
+#  along with this program; if not, write to the Free Software Foundation,
+#  Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+#
+# ##### END GPL LICENSE BLOCK #####
+
 
 import multiprocessing
 
@@ -8,6 +26,7 @@ from .labels import UvpLabels
 import bpy
 from bpy.props import IntProperty, FloatProperty, BoolProperty, StringProperty, EnumProperty, CollectionProperty
 from bpy.types import AddonPreferences
+from mathutils import Vector
 
 
 class UVP2_DeviceDesc(bpy.types.PropertyGroup):
@@ -36,7 +55,8 @@ class UVP2_SceneProps(bpy.types.PropertyGroup):
         description=UvpLabels.MARGIN_DESC,
         min=0.0,
         default=0.005,
-        precision=3)
+        precision=3,
+        step=0.1)
 
     pixel_margin = IntProperty(
         name=UvpLabels.PIXEL_MARGIN_NAME,
@@ -52,6 +72,12 @@ class UVP2_SceneProps(bpy.types.PropertyGroup):
         max=128,
         default=0)
 
+    pixel_margin_method = EnumProperty(
+        items=(UvPixelMarginMethod.ADJUSTMENT_TIME.to_blend_enum(),
+               UvPixelMarginMethod.ITERATIVE.to_blend_enum()),
+        name=UvpLabels.PIXEL_MARGIN_METHOD_NAME,
+        description=UvpLabels.PIXEL_MARGIN_METHOD_DESC)
+
     pixel_margin_tex_size = IntProperty(
         name=UvpLabels.PIXEL_MARGIN_TEX_SIZE_NAME,
         description=UvpLabels.PIXEL_MARGIN_TEX_SIZE_DESC,
@@ -66,6 +92,11 @@ class UVP2_SceneProps(bpy.types.PropertyGroup):
     prerot_disable = BoolProperty(
         name=UvpLabels.PREROT_DISABLE_NAME,
         description=UvpLabels.PREROT_DISABLE_DESC,
+        default=False)
+
+    normalize_islands = BoolProperty(
+        name=UvpLabels.NORMALIZE_ISLANDS_NAME,
+        description=UvpLabels.NORMALIZE_ISLANDS_DESC,
         default=False)
 
     fixed_scale = BoolProperty(
@@ -119,6 +150,15 @@ class UVP2_SceneProps(bpy.types.PropertyGroup):
         name=UvpLabels.GROUP_METHOD_NAME,
         description=UvpLabels.GROUP_METHOD_DESC)
 
+    group_compactness = FloatProperty(
+        name=UvpLabels.GROUP_COMPACTNESS_NAME,
+        description=UvpLabels.GROUP_COMPACTNESS_DESC,
+        default=0.0,
+        min=0.0,
+        max=1.0,
+        precision=2,
+        step=10.0)
+
     manual_group_num = IntProperty(
         name=UvpLabels.MANUAL_GROUP_NUM_NAME,
         description=UvpLabels.MANUAL_GROUP_NUM_DESC,
@@ -138,10 +178,12 @@ class UVP2_SceneProps(bpy.types.PropertyGroup):
         default=10,
         min=1)
 
-    lock_overlapping = BoolProperty(
-        name=UvpLabels.LOCK_OVERLAPPING_NAME,
-        description=UvpLabels.LOCK_OVERLAPPING_DESC,
-        default=False)
+    lock_overlapping_mode = EnumProperty(
+        items=(UvLockOverlappingMode.DISABLED.to_blend_enum(),
+               UvLockOverlappingMode.ANY_PART.to_blend_enum(),
+               UvLockOverlappingMode.EXACT.to_blend_enum()),
+        name=UvpLabels.LOCK_OVERLAPPING_MODE_NAME,
+        description=UvpLabels.LOCK_OVERLAPPING_MODE_DESC)
 
     pre_validate = BoolProperty(
         name=UvpLabels.PRE_VALIDATE_NAME,
@@ -154,8 +196,14 @@ class UVP2_SceneProps(bpy.types.PropertyGroup):
         default=False)
 
     heuristic_search_time = IntProperty(
-        name=UvpLabels.HEURISTIC_SEACH_TIME_NAME,
-        description=UvpLabels.HEURISTIC_SEACH_TIME_DESC,
+        name=UvpLabels.HEURISTIC_SEARCH_TIME_NAME,
+        description=UvpLabels.HEURISTIC_SEARCH_TIME_DESC,
+        default=0,
+        min=0)
+
+    heuristic_max_wait_time = IntProperty(
+        name=UvpLabels.HEURISTIC_MAX_WAIT_TIME_NAME,
+        description=UvpLabels.HEURISTIC_MAX_WAIT_TIME_DESC,
         default=0,
         min=0)
 
@@ -176,12 +224,23 @@ class UVP2_SceneProps(bpy.types.PropertyGroup):
         description=UvpLabels.SIMILARITY_THRESHOLD_DESC,
         default=0.5,
         min=0.0,
-        precision=3)
+        precision=2,
+        step=5.0)
 
     multi_device_pack = BoolProperty(
         name=UvpLabels.MULTI_DEVICE_PACK_NAME,
         description=UvpLabels.MULTI_DEVICE_PACK_DESC,
         default=True)
+
+    fully_inside = BoolProperty(
+        name=UvpLabels.FULLY_INSIDE_NAME,
+        description=UvpLabels.FULLY_INSIDE_DESC,
+        default=True)
+
+    move_islands = BoolProperty(
+        name=UvpLabels.MOVE_ISLANDS_NAME,
+        description=UvpLabels.MOVE_ISLANDS_DESC,
+        default=False)
 
     target_box_tile_x = IntProperty(
         name=UvpLabels.TARGET_BOX_TILE_X_NAME,
@@ -197,25 +256,29 @@ class UVP2_SceneProps(bpy.types.PropertyGroup):
         name=UvpLabels.TARGET_BOX_P1_X_NAME,
         description=UvpLabels.TARGET_BOX_P1_X_DESC,
         default=0.0,
-        precision=3)
+        precision=3,
+        step=10.0)
 
     target_box_p1_y = FloatProperty(
         name=UvpLabels.TARGET_BOX_P1_Y_NAME,
         description=UvpLabels.TARGET_BOX_P1_Y_DESC,
         default=0.0,
-        precision=3)
+        precision=3,
+        step=10.0)
 
     target_box_p2_x = FloatProperty(
         name=UvpLabels.TARGET_BOX_P2_X_NAME,
         description=UvpLabels.TARGET_BOX_P1_X_DESC,
         default=1.0,
-        precision=3)
+        precision=3,
+        step=10.0)
 
     target_box_p2_y = FloatProperty(
         name=UvpLabels.TARGET_BOX_P2_Y_NAME,
         description=UvpLabels.TARGET_BOX_P1_Y_DESC,
         default=1.0,
-        precision=3)
+        precision=3,
+        step=10.0)
 
 
 class UVP2_Preferences(AddonPreferences):
@@ -226,6 +289,27 @@ class UVP2_Preferences(AddonPreferences):
 
     def pixel_padding_enabled(self, scene_props):
         return scene_props.pixel_padding > 0
+
+    def pixel_margin_method_enabled(self, scene_props):
+        if self.fixed_scale_enabled(scene_props):
+            return False, "'Fixed Scale' always provides exact pixel margin"
+
+        if self.pack_to_others_enabled(scene_props):
+            return False, "'Pack To Others' always uses the 'Iterative' method"
+
+        if self.pack_to_tiles(scene_props) and scene_props.tile_count != 1:
+            return False, "Packing mode 'Tiles' always uses the 'Iterative' method, unless 'Tile Count' is set to 1"
+
+        if self.pack_groups_together(scene_props):
+            return False, "Packing mode 'Groups Together' always uses the 'Iterative' method"
+
+        return True, ''
+
+    def pixel_margin_adjust_time_enabled(self, scene_props):
+        return scene_props.pixel_margin_method == UvPixelMarginMethod.ADJUSTMENT_TIME.code
+
+    def pixel_margin_iterative_enabled(self, scene_props):
+        return scene_props.pixel_margin_method == UvPixelMarginMethod.ITERATIVE.code
 
     def pack_to_tiles(self, scene_props):
         return self.FEATURE_pack_to_tiles and scene_props.pack_mode == UvPackingMode.TILES.code
@@ -298,6 +382,36 @@ class UVP2_Preferences(AddonPreferences):
 
     def fixed_scale_enabled(self, scene_props):
         return self.fixed_scale_supported(scene_props)[0] and scene_props.fixed_scale
+
+    def normalize_islands_supported(self, scene_props):
+        if self.fixed_scale_enabled(scene_props):
+            return False, "(Not supported with 'Fixed Scale' enabled)"
+
+        return True, ''
+
+    def normalize_islands_enabled(self, scene_props):
+        return self.normalize_islands_supported(scene_props)[0] and scene_props.normalize_islands
+
+    def lock_overlap_enabled(self, scene_props):
+        return self.FEATURE_lock_overlapping and scene_props.lock_overlapping_mode != UvLockOverlappingMode.DISABLED.code
+
+    def target_box(self, scene_props):
+        x_min = min(scene_props.target_box_p1_x, scene_props.target_box_p2_x)
+        x_max = max(scene_props.target_box_p1_x, scene_props.target_box_p2_x)
+
+        y_min = min(scene_props.target_box_p1_y, scene_props.target_box_p2_y)
+        y_max = max(scene_props.target_box_p1_y, scene_props.target_box_p2_y)
+
+        return (Vector((x_min, y_min)), Vector((x_max, y_max)))
+
+    def reset_target_box(self, scene_props):
+
+        scene_props.target_box_p1_x = 0.0
+        scene_props.target_box_p1_y = 0.0
+
+        scene_props.target_box_p2_x = 1.0
+        scene_props.target_box_p2_y = 1.0
+
 
     # Supporeted features
     FEATURE_demo = BoolProperty(

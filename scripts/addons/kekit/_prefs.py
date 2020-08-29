@@ -66,6 +66,8 @@ def get_prefs(): # Everything down here floats
 		float(bpy.context.scene.kekit.quickmeasure),
 		float(bpy.context.scene.kekit.unrotator_invert),
 		round(float(bpy.context.scene.kekit.fit2grid), 4),
+		round(bpy.context.scene.kekit.vptransform),
+		float(bpy.context.scene.kekit.unrotator_center),
 	)
 	# print (set_values)
 	return set_values
@@ -76,7 +78,7 @@ def get_prefs(): # Everything down here floats
 
 path = bpy.utils.script_path_user()
 prefs_data = read_prefs()
-prefs_data_default = 0, 1, 0, 16, 32, 16, 0.2, 1, 1, 0, 1111, 2335, 1315, 6464, 1, 0, 8, 1, 0, 0.01
+prefs_data_default = 0, 1, 0, 16, 32, 16, 0.2, 1, 1, 0, 1111, 2335, 1315, 6464, 1, 0, 8, 1, 0, 0.01, 1, 0
 o_dict = {1: "1GLOBAL", 2: "2LOCAL", 3: "3NORMAL", 4: "4GIMBAL", 5: "5VIEW", 6: "6CURSOR"}
 p_dict = {1: "1MEDIAN_POINT", 2: "2BOUNDING_BOX_CENTER", 3: "3INDIVIDUAL_ORIGINS", 4: "4CURSOR", 5: "5ACTIVE_ELEMENT"}
 
@@ -159,7 +161,10 @@ class kekit_properties(PropertyGroup):
 	unrotator_invert : BoolProperty(default=bool(values[18]))
 	# 19 - default : 0.01
 	fit2grid : FloatProperty(min=.00001, max=10000, default=float(values[19]))
-
+	# 20 - default : 1
+	vptransform : BoolProperty(default=bool(values[20]))
+	# 21 - default : 0
+	unrotator_center: BoolProperty(default=bool(values[21]))
 
 class VIEW3D_OT_ke_prefs_save(Operator):
 	bl_idname = "view3d.ke_prefs_save"
