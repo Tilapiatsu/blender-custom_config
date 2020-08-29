@@ -23,6 +23,26 @@ print("Loading Tilapiatu's user preferences")
 bpy.context.preferences.view.show_tooltips = True
 bpy.context.preferences.view.show_tooltips_python = True
 bpy.context.preferences.view.render_display_type = "WINDOW"
+bpy.context.preferences.view.use_weight_color_range = True
+
+for c in enumerate(bpy.context.preferences.view.weight_color_range.elements):
+    if len(bpy.context.preferences.view.weight_color_range.elements)>1:
+        bpy.context.preferences.view.weight_color_range.elements.remove(bpy.context.preferences.view.weight_color_range.elements[0])
+
+bpy.context.preferences.view.weight_color_range.elements[0].color = (1,0,1,1)
+bpy.context.preferences.view.weight_color_range.elements[0].position = 1
+
+bpy.context.preferences.view.weight_color_range.elements.new(0)
+bpy.context.preferences.view.weight_color_range.elements[0].color = (0,0,0,1)
+
+bpy.context.preferences.view.weight_color_range.elements.new(0.25)
+bpy.context.preferences.view.weight_color_range.elements[1].color = (0,0,1,1)
+
+bpy.context.preferences.view.weight_color_range.elements.new(0.5)
+bpy.context.preferences.view.weight_color_range.elements[2].color = (1,1,0,1)
+
+bpy.context.preferences.view.weight_color_range.elements.new(0.75)
+bpy.context.preferences.view.weight_color_range.elements[3].color = (1,0,0,1)
 
 # Edit Settings
 bpy.context.preferences.edit.undo_steps = 200
@@ -40,6 +60,6 @@ bpy.context.preferences.inputs.use_mouse_depth_navigate = True
 bpy.context.preferences.inputs.use_zoom_to_mouse = True
 
 # System Settings
-bpy.context.preferences.system.legacy_compute_device_type = "CUDA"
+# bpy.context.preferences.system.legacy_compute_device_type = "CUDA"
 
 print("Loading Tilapiatu's user preferences Completed")
