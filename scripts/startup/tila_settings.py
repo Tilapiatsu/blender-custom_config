@@ -22,10 +22,11 @@ print("Loading Tilapiatu's user preferences")
 # View Settings
 bpy.context.preferences.view.show_tooltips = True
 bpy.context.preferences.view.show_tooltips_python = True
-bpy.context.preferences.view.render_display_type = "NONE"
+bpy.context.preferences.view.render_display_type = "WINDOW"
 
 # Edit Settings
 bpy.context.preferences.edit.undo_steps = 200
+bpy.context.preferences.edit.keyframe_new_interpolation_type = "LINEAR"
 
 # Input Settings
 bpy.context.preferences.inputs.view_zoom_axis = "HORIZONTAL"
