@@ -163,7 +163,7 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 						lasso_tool=None, select_through_tool=None,
 						box_tool=None, box_through_tool=None, node_box_tool=None,
 						circle_tool=None, gp_circle_tool=None,
-						shortestpath_tool=None,
+						shortestpath_tool=None, shortestring_tool=None,
 						loop_tool=None, ring_tool=None,
 						more_tool=None, less_tool=None,
 						next_tool=None, previous_tool=None, 
@@ -221,6 +221,11 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		if shortestpath_tool:
 			self.kmi_remove(idname=shortestpath_tool)
 			self.kmi_set_replace(shortestpath_tool, self.k_context, 'CLICK', shift=True, disable_double=True, properties=[('use_fill', False), ('use_face_step', False), ('use_topology_distance', False)])
+			self.kmi_set_replace(shortestpath_tool, self.k_context, 'CLICK', ctrl=True, shift=True, disable_double=True, properties=[('use_fill', True), ('use_face_step', False), ('use_topology_distance', False)])
+
+		#  shortest ring
+		if shortestring_tool:
+			self.kmi_set_replace(shortestring_tool, self.k_cursor, 'CLICK', ctrl=True, shift=True, disable_double=True, properties=[('use_fill', False), ('use_face_step', True), ('use_topology_distance', False)])
 
 		# Loop Select / Deselect / Add
 		if loop_tool:
@@ -435,6 +440,7 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		self.tool_smart_delete()
 		self.kmi_set_active(False, idname='view3d.select_circle', type="C")
 		self.kmi_set_active(False, idname='view3d.cursor3d', type="RIGHTMOUSE")
+		self.kmi_set_active(False, idname='view3d.dolly', type="MIDDLEMOUSE")
 
 		self.navigation_keys(pan='view3d.move',
 							orbit='view3d.rotate',
@@ -494,6 +500,7 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 
 		# Rotate an HDRI
 		self.kmi_set_replace('rotate.hdri', self.k_context, 'PRESS', ctrl=True, alt=True, shift=False,  disable_double=True)
+		self.kmi_set_active(enable=True, idname='rotate.hdri')
 		
 
 
@@ -569,6 +576,7 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		self.tool_transform()
 
 		self.selection_keys(shortestpath_tool='mesh.shortest_path_pick',
+							shortestring_tool='mesh.shortest_path_pick',
 							loop_tool='mesh.loop_select',
 					  		ring_tool='mesh.edgering_select',
 							more_tool='mesh.select_more',
