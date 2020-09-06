@@ -190,7 +190,7 @@ class SmartBevel(bpy.types.Operator):
 
     def invoke(self, context, event):
         if tuple(bpy.context.scene.tool_settings.mesh_select_mode) == (True, False, False):
-            bpy.ops.mesh.bevel('INVOKE_DEFAULT', vertex_only=True)
+            bpy.ops.mesh.bevel('INVOKE_DEFAULT', affect='VERTICES')
             return {'FINISHED'}
         elif tuple(bpy.context.scene.tool_settings.mesh_select_mode) == (False, False, True):
             bpy.ops.mesh.select_mode(type='EDGE')
@@ -198,7 +198,7 @@ class SmartBevel(bpy.types.Operator):
             bpy.ops.mesh.region_to_loop('INVOKE_DEFAULT')
             print('selecting border...')
 
-        bpy.ops.mesh.bevel('INVOKE_DEFAULT', vertex_only=False)
+        bpy.ops.mesh.bevel('INVOKE_DEFAULT', affect='EDGES')
         return {'FINISHED'}
 
 
