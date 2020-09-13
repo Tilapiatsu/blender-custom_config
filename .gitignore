@@ -43,3 +43,4 @@ scripts/presets/bkit.json
 
 scripts/addons/blenderbezierutils.py
 config/platform_support.txt
+datafiles/colormanagement/*

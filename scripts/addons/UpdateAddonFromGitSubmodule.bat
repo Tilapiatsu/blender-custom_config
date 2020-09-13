@@ -17,6 +17,7 @@ robocopy "..\GIT\MapsModelsImporter\blender\MapsModelsImporter" "MapsModelsImpor
 robocopy "..\GIT\Polycount\polycount" "Polycount" %param%
 robocopy "..\GIT\Texel-Density-Checker\Texel_Density_3_1_281" "Texel_Density" %param%
 robocopy "..\GIT\BEER\BlenderMalt" "BlenderMalt" %param%
+robocopy "..\GIT\OpenColorIO\aces_1.2" "..\..\datafiles\colormanagement" %param%
 
 copy "..\GIT\ProTheme\blender_pro.xml" "..\presets\interface_theme"
 
