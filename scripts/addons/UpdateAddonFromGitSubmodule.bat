@@ -18,7 +18,7 @@ robocopy "..\GIT\Polycount\polycount" "Polycount" %param%
 robocopy "..\GIT\Texel-Density-Checker\Texel_Density_3_1_281" "Texel_Density" %param%
 robocopy "..\GIT\BEER\BlenderMalt" "BlenderMalt" %param%
 robocopy "..\GIT\OpenColorIO\aces_1.2" "..\..\datafiles\colormanagement" %param%
-powershell -Command "(gc ..\..\datafiles\colormanagement\config.ocio) -replace 'texture_paint: ACES - ACEScc', 'texture_paint: Utility - sRGB - Texture' | Out-File -encoding ASCII ..\..\datafiles\colormanagement\config.ocio"
+powershell -Command "(gc ..\..\datafiles\colormanagement\config.ocio) -replace 'texture_paint: ACES - ACEScc', 'texture_paint: Utility - Rec.2020 - Display' | Out-File -encoding ASCII ..\..\datafiles\colormanagement\config.ocio"
 
 copy "..\GIT\ProTheme\blender_pro.xml" "..\presets\interface_theme"
 
