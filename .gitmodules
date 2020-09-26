@@ -229,3 +229,6 @@
 [submodule "scripts/GIT/OpenColorIO"]
 	path = scripts/GIT/OpenColorIO
 	url = https://github.com/colour-science/OpenColorIO-Configs.git
+[submodule "scripts/addons/seams_to_sewing_pattern"]
+	path = scripts/addons/seams_to_sewing_pattern
+	url = https://gitlab.com/thomaskole/blender-seams-to-sewing-pattern.git
