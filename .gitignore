@@ -19,6 +19,7 @@ scripts/addons/uvpackmaster2/Engine/*
 scripts/addons/Polycount/*
 scripts/addons/Texel_Density/*
 scripts/addons/BlenderMalt/*
+scripts/addons/uv_toolkit/*
 scripts/presets/interface_theme/blender_pro.xml
 .vscode/settings.json
 
