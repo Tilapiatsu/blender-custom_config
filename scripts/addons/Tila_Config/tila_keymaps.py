@@ -491,8 +491,9 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		if kmi:
 			kmi.active = True
 
+		self.kmi_set_replace('object.switch_object', self.k_cursor, 'CLICK', alt=True, disable_double=True)
+
 		# KE_Kit
-		self.kmi_set_replace('view3d.ke_get_set_editmesh', self.k_cursor, 'CLICK', alt=True, disable_double=True)
 		self.kmi_set_replace('view3d.ke_get_set_material', 'M', 'PRESS', shift=True)
 
 		# MouseLook_Navigation
