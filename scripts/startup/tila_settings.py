@@ -41,6 +41,11 @@ try:
 except:
     pass
 
+try:
+    bpy.context.preferences.experimental.use_switch_object_operator = True
+except:
+    pass
+
 # Edit Weight color
 for c in enumerate(bpy.context.preferences.view.weight_color_range.elements):
     if len(bpy.context.preferences.view.weight_color_range.elements)>1:
