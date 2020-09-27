@@ -440,7 +440,7 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		self.tool_smart_delete()
 		self.kmi_set_active(False, idname='view3d.select_circle', type="C")
 		self.kmi_set_active(False, idname='view3d.cursor3d', type="RIGHTMOUSE")
-		self.kmi_set_active(False, idname='view3d.dolly', type="MIDDLEMOUSE")
+		self.kmi_set_active(False, idname='view3d.rotate', type="MIDDLEMOUSE")
 
 		self.navigation_keys(pan='view3d.move',
 							orbit='view3d.rotate',
