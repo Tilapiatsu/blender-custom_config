@@ -232,3 +232,6 @@
 [submodule "scripts/addons/seams_to_sewing_pattern"]
 	path = scripts/addons/seams_to_sewing_pattern
 	url = https://gitlab.com/thomaskole/blender-seams-to-sewing-pattern.git
+[submodule "scripts/GIT/colour_nuke"]
+	path = scripts/GIT/colour_nuke
+	url = https://github.com/colour-science/colour-nuke.git
