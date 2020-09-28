@@ -82,6 +82,7 @@ def register():
         #     bpy.ops.preferences.addon_disable(module=m)
         #     bpy.context.window_manager.keyconfigs.update()
         #     print("disableing addon {}".format(m))
+        print('Enabling Addon : {}'.format(m))
         bpy.ops.preferences.addon_enable(module=m)
         bpy.context.window_manager.keyconfigs.update()
     
