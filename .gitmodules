@@ -235,3 +235,6 @@
 [submodule "scripts/GIT/colour_nuke"]
 	path = scripts/GIT/colour_nuke
 	url = https://github.com/colour-science/colour-nuke.git
+[submodule "scripts/addons/BMAX_Connector"]
+	path = scripts/addons/BMAX_Connector
+	url = https://github.com/TitusLVR/BMAX_Connector.git
