@@ -587,7 +587,7 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 							invert_tool='mesh.select_all', inner_tool='mesh.loop_to_region')
 
 		# self.kmi_set_active(False, idname='mesh.select_linked_pick', ctrl=False)
-		# self.kmi_set_active(False, idname='mesh.select_linked_pick', ctrl=True, alt=False, shift=False, properties=[('deselect', True)])
+		self.kmi_set_active(False, idname='object.switch_object')
 
 		self.duplicate(duplicate='mesh.duplicate_move')
 		self.hide_reveal(hide='mesh.hide', unhide='mesh.reveal', inverse='view3d.inverse_visibility')
@@ -704,6 +704,8 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		self.tool_transform()
 
 		self.tool_subdivision()
+
+		self.kmi_set_active(False, idname='object.switch_object')
 
 		self.kmi_set_replace('object.tila_duplicate', self.k_manip, 'CLICK_DRAG', ctrl=True, alt=True, shift=True, properties=[('linked', False), ('move', True)])
 
