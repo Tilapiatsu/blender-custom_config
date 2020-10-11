@@ -113,7 +113,7 @@ class UVP2_OT_IslandParamGeneric(UVP2_OT_PackOperatorGeneric):
 
     def get_uvp_args(self):
 
-        uvp_args = ['-o', str(UvPackerOpcode.GET_ISLANDS_METADATA), '-R']
+        uvp_args = ['-o', str(UvPackerOpcode.GET_ISLANDS_METADATA)]
         return uvp_args
 
     def handle_event_spec(self, event):
@@ -219,7 +219,7 @@ class UVP2_OT_ResetRotStepIslandParam(UVP2_OT_RotStepIslandParamGeneric, UVP2_OT
 
     bl_idname = 'uvpackmaster2.reset_island_rot_step'
     bl_label = 'Reset Rotation Step'
-    bl_description = "Reset rotation step value for the selected islands. After reset the 'G' value will be assigned to the islands, which means they will use the global 'Rotation Step' parameter when generating orientations"
+    bl_description = "Reset rotation step value for the selected islands. After reset a special 'G' value will be assigned to the islands, which means they will use the global 'Rotation Step' parameter when generating orientations"
 
 
 
@@ -265,3 +265,43 @@ class UVP2_OT_SelectManualGroupIslandParam(UVP2_OT_ManualGroupIslandParamGeneric
     bl_label = 'Select Islands Assigned To Group'
     bl_description = "Select/deselect all islands which are assigned to a manual group determined by the 'Group Number' parameter"
 
+
+
+# LOCK GROUP
+
+class UVP2_OT_LockGroupIslandParamGeneric:
+
+    param_info = LockGroupIslandParamInfo()
+
+    def lock_groups_enabled(self):
+        return True
+
+
+class UVP2_OT_ShowLockGroupIslandParam(UVP2_OT_LockGroupIslandParamGeneric, UVP2_OT_ShowIslandParam):
+
+    bl_idname = 'uvpackmaster2.uv_show_lock_group_island_param'
+    bl_label = 'Show Lock Groups'
+    bl_description = "Show lock group numbers the selected islands are assigned to"
+
+
+class UVP2_OT_SetLockGroupIslandParam(UVP2_OT_LockGroupIslandParamGeneric, UVP2_OT_SetIslandParam):
+
+    bl_idname = 'uvpackmaster2.set_island_lock_group'
+    bl_label = 'Assign Islands To Lock Group'
+    bl_description = "Assign the selected islands to a lock group determined by the 'Lock Group Number' parameter"
+
+
+class UVP2_OT_ResetLockGroupIslandParam(UVP2_OT_LockGroupIslandParamGeneric, UVP2_OT_ResetIslandParam):
+
+    bl_idname = 'uvpackmaster2.reset_island_lock_group'
+    bl_label = 'Unset Lock Groups'
+    bl_description = "Unset the lock group assignment for the selected islands (the islands will not belong to any group)"
+
+
+class UVP2_OT_SelectLockGroupIslandParam(UVP2_OT_LockGroupIslandParamGeneric, UVP2_OT_SelectIslandParam):
+
+    select = BoolProperty(name='', default=True)
+    
+    bl_idname = 'uvpackmaster2.select_island_lock_group'
+    bl_label = 'Select Islands Assigned To Lock Group'
+    bl_description = "Select/deselect all islands which are assigned to a lock group determined by the 'Lock Group Number' parameter"

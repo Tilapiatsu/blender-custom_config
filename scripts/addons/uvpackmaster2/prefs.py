@@ -46,7 +46,7 @@ class UVP2_SceneProps(bpy.types.PropertyGroup):
     precision = IntProperty(
         name=UvpLabels.PRECISION_NAME,
         description=UvpLabels.PRECISION_DESC,
-        default=200,
+        default=500,
         min=10,
         max=10000)
 
@@ -54,7 +54,7 @@ class UVP2_SceneProps(bpy.types.PropertyGroup):
         name=UvpLabels.MARGIN_NAME,
         description=UvpLabels.MARGIN_DESC,
         min=0.0,
-        default=0.005,
+        default=0.003,
         precision=3,
         step=0.1)
 
@@ -104,6 +104,11 @@ class UVP2_SceneProps(bpy.types.PropertyGroup):
         description=UvpLabels.FIXED_SCALE_DESC,
         default=False)
 
+    fixed_scale_strategy = EnumProperty(
+        items=UvFixedScaleStrategy.to_blend_enums(),
+        name=UvpLabels.FIXED_SCALE_STRATEGY_NAME,
+        description=UvpLabels.FIXED_SCALE_STRATEGY_DESC)
+
     rot_step = IntProperty(
         name=UvpLabels.ROT_STEP_NAME,
         description=UvpLabels.ROT_STEP_DESC,
@@ -146,6 +151,7 @@ class UVP2_SceneProps(bpy.types.PropertyGroup):
                UvGroupingMethod.SIMILARITY.to_blend_enum(),
                UvGroupingMethod.MESH.to_blend_enum(),
                UvGroupingMethod.OBJECT.to_blend_enum(),
+               UvGroupingMethod.TILE.to_blend_enum(),
                UvGroupingMethod.MANUAL.to_blend_enum()),
         name=UvpLabels.GROUP_METHOD_NAME,
         description=UvpLabels.GROUP_METHOD_DESC)
@@ -165,6 +171,23 @@ class UVP2_SceneProps(bpy.types.PropertyGroup):
         default=0,
         min=0,
         max=100)
+
+    lock_groups_enable = BoolProperty(
+        name=UvpLabels.LOCK_GROUPS_ENABLE_NAME,
+        description=UvpLabels.LOCK_GROUPS_ENABLE_DESC,
+        default=False)
+
+    lock_group_num = IntProperty(
+        name=UvpLabels.LOCK_GROUP_NUM_NAME,
+        description=UvpLabels.LOCK_GROUP_NUM_DESC,
+        default=1,
+        min=1,
+        max=100)
+
+    use_blender_tile_grid = BoolProperty(
+        name=UvpLabels.USE_BLENDER_TILE_GRID_NAME,
+        description=UvpLabels.USE_BLENDER_TILE_GRID_DESC,
+        default=False)
 
     tile_count = IntProperty(
         name=UvpLabels.TILE_COUNT_NAME,
@@ -284,20 +307,24 @@ class UVP2_SceneProps(bpy.types.PropertyGroup):
 class UVP2_Preferences(AddonPreferences):
     bl_idname = __package__
 
+    MAX_TILES_IN_ROW = 1000
+
     def pixel_margin_enabled(self, scene_props):
         return scene_props.pixel_margin > 0
 
     def pixel_padding_enabled(self, scene_props):
         return scene_props.pixel_padding > 0
 
-    def pixel_margin_method_enabled(self, scene_props):
+    def pixel_margin_method_enabled(self, scene_props, context):
         if self.fixed_scale_enabled(scene_props):
             return False, "'Fixed Scale' always provides exact pixel margin"
 
         if self.pack_to_others_enabled(scene_props):
             return False, "'Pack To Others' always uses the 'Iterative' method"
 
-        if self.pack_to_tiles(scene_props) and scene_props.tile_count != 1:
+        tile_count, tiles_in_row = self.tile_grid_config(scene_props, context)
+
+        if self.pack_to_tiles(scene_props) and tile_count != 1:
             return False, "Packing mode 'Tiles' always uses the 'Iterative' method, unless 'Tile Count' is set to 1"
 
         if self.pack_groups_together(scene_props):
@@ -313,6 +340,27 @@ class UVP2_Preferences(AddonPreferences):
 
     def pack_to_tiles(self, scene_props):
         return self.FEATURE_pack_to_tiles and scene_props.pack_mode == UvPackingMode.TILES.code
+
+    def tile_grid_config(self, scene_props, context):
+        tile_grid_shape = None
+
+        if scene_props.use_blender_tile_grid:
+            try:
+                tile_grid_shape = context.space_data.uv_editor.tile_grid_shape
+            except:
+                pass
+
+        if tile_grid_shape is None:
+            tile_count = scene_props.tile_count
+            tiles_in_row = scene_props.tiles_in_row
+        else:
+            tile_count = tile_grid_shape[0] * tile_grid_shape[1]
+            tiles_in_row = tile_grid_shape[0]
+
+        if self.grouping_enabled(scene_props) and scene_props.group_method == UvGroupingMethod.TILE.code:
+            tiles_in_row = self.MAX_TILES_IN_ROW
+
+        return (tile_count, tiles_in_row)
 
     def grouping_enabled(self, scene_props):
         return self.FEATURE_grouping and (scene_props.pack_mode == UvPackingMode.GROUPS_TOGETHER.code or scene_props.pack_mode == UvPackingMode.GROUPS_TO_TILES.code)
@@ -337,9 +385,6 @@ class UVP2_Preferences(AddonPreferences):
 
         if not pack_mode.supports_heuristic:
             return False, UvpLabels.FEATURE_NOT_SUPPORTED_BY_PACKING_MODE_MSG
-
-        if self.fixed_scale_enabled(scene_props):
-            return False, "(Not supported with 'Fixed Scale' enabled)"
 
         return True, ''
 

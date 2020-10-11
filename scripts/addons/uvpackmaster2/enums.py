@@ -224,11 +224,21 @@ class UvGroupingMode_Legacy:
     PACK_TO_TILES = EnumValue('2', '', '')
 
 class UvGroupingMethod:
-    MATERIAL = EnumValue('0', 'Material')
-    SIMILARITY = EnumValue('1', 'Similarity')
-    MESH = EnumValue('2', 'Mesh Parts')
-    OBJECT = EnumValue('3', 'Object')
-    MANUAL = EnumValue('4', 'Manual')
+    MATERIAL = EnumValue('0', 'Material', UvpLabels.GROUP_METHOD_MATERIAL_DESC)
+    SIMILARITY = EnumValue('1', 'Similarity', UvpLabels.GROUP_METHOD_SIMILARITY_DESC)
+    MESH = EnumValue('2', 'Mesh Parts', UvpLabels.GROUP_METHOD_MESH_DESC)
+    OBJECT = EnumValue('3', 'Object', UvpLabels.GROUP_METHOD_OBJECT_DESC)
+    MANUAL = EnumValue('4', 'Manual', UvpLabels.GROUP_METHOD_MANUAL_DESC)
+    TILE = EnumValue('5', 'UDIM Tile', UvpLabels.GROUP_METHOD_TILE_DESC)
+
+class UvFixedScaleStrategy:
+    BOTTOM_TOP = EnumValue('0', 'Bottom-Top')
+    LEFT_RIGHT = EnumValue('1', 'Left-Right')
+    SQUARE = EnumValue('2', 'Square')
+
+    @classmethod
+    def to_blend_enums(cls):
+        return (cls.BOTTOM_TOP.to_blend_enum(), cls.LEFT_RIGHT.to_blend_enum(), cls.SQUARE.to_blend_enum())
 
 class UvPixelMarginMethod:
     ADJUSTMENT_TIME = EnumValue('0', 'Adjustment Time (Recommended)', UvpLabels.PIXEL_MARGIN_METHOD_ADJUSTMENT_TIME_DESC)
@@ -249,6 +259,7 @@ class UvMapSerializationFlags:
     CONTAINS_GROUPS = 2
     CONTAINS_ROT_STEP = 4
     CONTAINS_VERTS_3D = 8
+    CONTAINS_LOCK_GROUPS = 16
 
 class UvFaceInputFlags:
     SELECTED = 1
@@ -260,7 +271,8 @@ class UvDeviceFlags:
 class UvIslandIntParams:
     GROUP = 0
     ROTATION_STEP = 1
-    COUNT = 2
+    LOCK_GROUP = 2
+    COUNT = 3
 
 class UvInvalidIslandCode:
     TOPOLOGY = 0

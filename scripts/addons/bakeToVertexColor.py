@@ -664,7 +664,7 @@ def register():
 
 def unregister():
     bpy.utils.unregister_class(OBJECT_OT_bake_vertex_color)
-    bpy.utils.register_class(OBJECT_PT_bake_vertex_color)
+    bpy.utils.unregister_class(OBJECT_PT_bake_vertex_color)
     bpy.utils.unregister_class(OBJECT_PG_bake_to_vertex_col)
     del bpy.types.Scene.bake_to_vertex_color_props
 

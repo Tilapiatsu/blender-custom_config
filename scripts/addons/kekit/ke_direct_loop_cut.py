@@ -111,6 +111,11 @@ class MESH_OT_ke_direct_loop_cut(bpy.types.Operator):
 		hit_obj, hit_wloc, hit_normal, hit_face = mouse_raycast(context, self.mouse_pos)
 		bpy.ops.object.mode_set(mode="EDIT")
 
+		if self.mode == "DEFAULT":
+			if context.object == hit_obj or hit_wloc:
+				bpy.ops.mesh.select_all(action='DESELECT')
+				sel_edge = []
+
 		bm = bmesh.from_edit_mesh(me)
 		bm.edges.ensure_lookup_table()
 
@@ -136,11 +141,12 @@ class MESH_OT_ke_direct_loop_cut(bpy.types.Operator):
 		if not sel_edge:
 			bpy.ops.view3d.select(extend=True, location=self.mouse_pos)
 			bm.edges.ensure_lookup_table()
-			sel_edge = [e for e in bm.edges if e.select][0]
+			sel_edge = [e for e in bm.edges if e.select]
 			if not sel_edge:
 				self.report(type={"INFO"}, message="No edge selection found!")
 				return {'CANCELLED'}
-
+			else:
+				sel_edge = sel_edge[0]
 
 		# CUT DIRECTION	 -----------------------------------------------------------------------------
 		# Set direction-vert nearest mouse to [0] and get fac 0-1 value, unless raycast fail -> 0.5

@@ -550,6 +550,41 @@ class VIEW3D_OT_ke_focusmode(Operator):
 
 		return {'FINISHED'}
 
+
+class MESH_OT_ke_extract_and_edit(Operator):
+	bl_idname = "mesh.ke_extract_and_edit"
+	bl_label = "Extract & Edit"
+	bl_description = "Separate mesh selection into a new object - set as Active Object - in Edit Mode"
+	bl_options = {'REGISTER', 'UNDO'}
+
+	@classmethod
+	def poll(cls, context):
+		return (context.object is not None and
+				context.object.type == 'MESH' and
+				context.object.data.is_editmode)
+
+	def execute(self, context):
+		sel_obj = [o for o in context.selected_objects if o.type == "MESH"]
+
+		if not len(sel_obj):
+			self.report({'INFO'}, "Selection Error: No valid/active object(s) selected?")
+			return {"CANCELLED"}
+
+		bpy.ops.mesh.separate(type="SELECTED")
+		new_obj = [o for o in context.selected_objects if o.type == 'MESH'][-1]
+
+		bpy.ops.object.mode_set(mode='OBJECT')
+		bpy.ops.object.select_all(action="DESELECT")
+		new_obj.select_set(True)
+
+		view_layer = bpy.context.view_layer
+		view_layer.objects.active = new_obj
+
+		bpy.ops.object.mode_set(mode='EDIT')
+
+		return {'FINISHED'}
+
+
 # -------------------------------------------------------------------------------------------------
 # Class Registration & Unregistration
 # -------------------------------------------------------------------------------------------------
@@ -563,6 +598,7 @@ classes = (
 	VIEW3D_OT_ke_object_to_cursor,
 	VIEW3D_OT_ke_origin_to_cursor,
 	VIEW3D_OT_align_origin_to_selected,
+	MESH_OT_ke_extract_and_edit,
 	# VIEW3D_OT_ke_op,
 )
 

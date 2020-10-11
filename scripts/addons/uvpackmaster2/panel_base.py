@@ -280,6 +280,7 @@ class UVP2_PT_BasicOptionsBase(UVP2_PT_Generic):
         # TODO: missing feature check
         row.prop(self.scene_props, "rot_enable")
 
+        # box = col.box()
         row = box.row()
         row.enabled = self.scene_props.rot_enable
         row.prop(self.scene_props, "prerot_disable")
@@ -330,10 +331,9 @@ class UVP2_PT_IslandRotStepBase(UVP2_PT_Generic):
         row = box.row()
         row.prop(self.scene_props, "island_rot_step_enable")
         row.operator(UVP2_OT_IslandRotStepHelp.bl_idname, icon='HELP', text='')
-
-        box = col.box()
-        box.enabled = self.scene_props.island_rot_step_enable
-        col2 = box.column(align=True)
+        
+        col2 = col.column(align=True)
+        col2.enabled = self.scene_props.island_rot_step_enable
 
         row = col2.row(align=True)
         row.prop(self.scene_props, "island_rot_step")
@@ -390,6 +390,52 @@ class UVP2_PT_ManualGroupingBase(UVP2_PT_Generic):
 
         row = container.row(align=True)
         row.operator(UVP2_OT_ShowManualGroupIslandParam.bl_idname)
+
+
+class UVP2_PT_LockGroupsBase(UVP2_PT_Generic):
+    bl_label = 'Lock Groups'
+    bl_context = ''
+    bl_options = {'DEFAULT_CLOSED'}
+
+    def draw_specific(self, context):
+        layout = self.layout
+
+        panel_enabled = True
+
+        if not self.prefs.FEATURE_lock_overlapping:
+            layout.label(text=UvpLabels.FEATURE_NOT_SUPPORTED_MSG)
+            panel_enabled = False
+
+        col = layout.column(align=True)
+        col.enabled = panel_enabled
+
+        box = col.box()
+        row = box.row()
+        row.prop(self.scene_props, "lock_groups_enable")
+
+        container = col.column(align=True)
+        container.enabled = self.scene_props.lock_groups_enable
+
+        row = container.row(align=True)
+        row.prop(self.scene_props, "lock_group_num")
+
+        row = container.row(align=True)
+        row.operator(UVP2_OT_SetLockGroupIslandParam.bl_idname)
+        container.separator()
+
+        container.label(text="Select islands assigned to a lock group:")
+        row = container.row(align=True)
+
+        op = row.operator(UVP2_OT_SelectLockGroupIslandParam.bl_idname, text="Select")
+        op.select = True
+        op = row.operator(UVP2_OT_SelectLockGroupIslandParam.bl_idname, text="Deselect")
+        op.select = False
+
+        row = container.row(align=True)
+        row.operator(UVP2_OT_ResetLockGroupIslandParam.bl_idname)
+
+        row = container.row(align=True)
+        row.operator(UVP2_OT_ShowLockGroupIslandParam.bl_idname)
 
 
 class UVP2_PT_HeuristicBase(UVP2_PT_Generic):
@@ -472,14 +518,17 @@ class UVP2_PT_AdvancedOptionsBase(UVP2_PT_Generic):
 
         if self.prefs.tiles_enabled(self.scene_props):
             row.operator(UVP2_OT_UdimSupportHelp.bl_idname, icon='HELP', text='')
-            
-        if self.prefs.pack_to_tiles(self.scene_props):
-            row = col2.row(align=True)
-            row.prop(self.scene_props, "tile_count")
 
-        if self.prefs.tiles_enabled(self.scene_props):
-            row = col2.row(align=True)
-            row.prop(self.scene_props, "tiles_in_row")
+            box = col2.box()
+            box.prop(self.scene_props, "use_blender_tile_grid")
+            
+            tile_col = col2.column(align=True)
+            tile_col.enabled = not self.scene_props.use_blender_tile_grid
+
+            if self.prefs.pack_to_tiles(self.scene_props):
+                tile_col.prop(self.scene_props, "tile_count")
+
+            tile_col.prop(self.scene_props, "tiles_in_row")
 
         if self.prefs.pack_groups_together(self.scene_props):
             row = col2.row(align=True)
@@ -487,10 +536,10 @@ class UVP2_PT_AdvancedOptionsBase(UVP2_PT_Generic):
 
         if self.prefs.grouping_enabled(self.scene_props):
             box = col.box()
-            col2 = box.column()
-            col2.label(text=UvpLabels.GROUP_METHOD_NAME + ':')
+            col3 = box.column()
+            col3.label(text=UvpLabels.GROUP_METHOD_NAME + ':')
 
-            row = col2.row(align=True)
+            row = col3.row(align=True)
             row.prop(self.scene_props, "group_method", text='')
 
             if self.scene_props.group_method == UvGroupingMethod.MANUAL.code:
@@ -511,6 +560,14 @@ class UVP2_PT_AdvancedOptionsBase(UVP2_PT_Generic):
 
         row = box.row()
         self.handle_prop("fixed_scale", fs_supported, fs_not_supported_msg, row)
+
+        # box = col.box()
+        col2 = box.column()
+        col2.enabled = self.prefs.fixed_scale_enabled(self.scene_props)
+        col2.label(text=UvpLabels.FIXED_SCALE_STRATEGY_NAME + ':')
+
+        row = col2.row(align=True)
+        row.prop(self.scene_props, "fixed_scale_strategy", text='')
 
         # Normalize islands
         box = col.box()
@@ -535,8 +592,15 @@ class UVP2_PT_AdvancedOptionsBase(UVP2_PT_Generic):
         row = col.row(align=True)
         row.operator(UVP2_OT_AlignSimilar.bl_idname, text=UVP2_OT_AlignSimilar.bl_label + demo_suffix)
 
-        col.separator()
-        col.label(text='Pixel Margin Options:')
+
+class UVP2_PT_PixelMarginBase(UVP2_PT_Generic):
+    bl_label = 'Pixel Margin'
+    bl_context = ''
+    bl_options = {'DEFAULT_CLOSED'}
+
+    def draw_specific(self, context):
+        layout = self.layout
+        col = layout.column(align=True)
 
         # Pixel margin
         row = col.row(align=True)
@@ -551,7 +615,7 @@ class UVP2_PT_AdvancedOptionsBase(UVP2_PT_Generic):
         row.prop(self.scene_props, "pixel_padding")
 
         # Pixel margin method
-        pix_method_enabled, pix_method_msg = self.prefs.pixel_margin_method_enabled(self.scene_props)
+        pix_method_enabled, pix_method_msg = self.prefs.pixel_margin_method_enabled(self.scene_props, context)
 
         box = pm_col.box()
         box.enabled = pix_method_enabled
@@ -732,7 +796,7 @@ class UVP2_PT_HintsBase(UVP2_PT_Generic):
         if self.prefs.advanced_heuristic_available(self.scene_props) and self.scene_props.advanced_heuristic:
             hints.append("'Advanced Hueristic' is useful only for UV maps containing a small number of islands. Read the option description to learn more.")
 
-        if self.prefs.pixel_margin_enabled(self.scene_props) and self.prefs.pixel_margin_method_enabled(self.scene_props)[0]:
+        if self.prefs.pixel_margin_enabled(self.scene_props) and self.prefs.pixel_margin_method_enabled(self.scene_props, context)[0]:
             
             if self.prefs.pixel_margin_adjust_time_enabled(self.scene_props) and self.scene_props.pixel_margin_adjust_time > 1:
                 hints.append("The pixel margin adjustment time set to 1 second should be enough for a usual UV map. Set the adjustment time to greater values only if the resulting pixel margin after packing is not accurate enough for you.")

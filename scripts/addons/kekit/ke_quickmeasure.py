@@ -18,6 +18,7 @@ from .ke_utils import get_distance, get_midpoint, get_scene_unit, chunk
 
 def bb(self, context):
     self.stat = []
+    self.sizes = []
     x, y, z = [], [], []
     for i in self.vpos:
         x.append(i[0])
@@ -45,6 +46,7 @@ def bb(self, context):
     ]
     for i in self.lines:
         d = get_distance(i[0], i[1])
+        self.sizes.append(d)
         unit = get_scene_unit(d)
         value = str(round(unit[1], 4)) + unit[0]
         self.stat.append(value)
@@ -69,6 +71,9 @@ def sel_check(self, context, sel_save_check=False):
         self.sel_save_obj = sel_obj
     else:
         sel_obj = [obj for obj in context.selected_objects if obj.type == "MESH"]
+
+    if sel_obj:
+        self.snapobj = sel_obj[0]
 
     # store one list of vert indices per obj in sel_save -----------------------------------------------------------
     sel_verts = []
@@ -197,14 +202,21 @@ def draw_callback_view(self, context):
 
 def draw_callback_px(self, context):
     font_id = 0
+    if self.user_axis == 1:
+        ua = "Y"
+    elif self.user_axis == 0:
+        ua = "X"
+    else:
+        ua = "Z"
 
     if self.lines:
         # draw stats
         count = 0
         blf.enable(font_id, 4)
         blf.size(font_id, 14, 72)
+        blf.color(font_id, 0.9, 0.9, 0.9, 1)
         blf.shadow(font_id, 3, 0, 0, 0, 1)
-        blf.shadow_offset(font_id, 1, -1)
+        blf.shadow_offset(font_id, 2, -2)
 
         for t, s in zip(self.txt_pos, self.stat):
             blf.position(font_id, t[0], t[1], 0)
@@ -240,18 +252,18 @@ def draw_callback_px(self, context):
     if not self.lines:
         blf.color(font_id, 0.5, 0.5, 0.5, 1)
         blf.size(font_id, 15, 72)
-        blf.position(font_id, hpos, vpos + 86, 0)
+        blf.position(font_id, hpos, vpos + 106, 0)
         blf.draw(font_id, "[ Invalid Selection ]")
     else:
         if self.sel_save_mode:
             blf.color(font_id, 0.5, 0.5, 0.5, 1)
             blf.size(font_id, 15, 72)
-            blf.position(font_id, hpos, vpos + 114, 0)
+            blf.position(font_id, hpos, vpos + 134, 0)
             blf.draw(font_id, "[ --- Using Saved Selection --- ]")
 
         blf.color(font_id, 0.796, 0.7488, 0.6435, 1)
         blf.size(font_id, 20, 72)
-        blf.position(font_id, hpos, vpos + 86, 0)
+        blf.position(font_id, hpos, vpos + 106, 0)
 
         if self.edit_mode[1] and not self.obj_mode:
             t = ceil(sum(self.stat * 10000)) / 10000
@@ -267,9 +279,9 @@ def draw_callback_px(self, context):
     # Instructions
     blf.color(font_id, 0.8, 0.8, 0.8, 1)
     blf.size(font_id, 15, 72)
-    blf.position(font_id, hpos, vpos + 56, 0)
+    blf.position(font_id, hpos, vpos + 78, 0)
     blf.draw(font_id, "Change / Update Mode: (1)Verts, (2)Edges, (3)Faces, (4)Objects")
-    blf.position(font_id, hpos, vpos + 16, 0)
+    blf.position(font_id, hpos, vpos + 56, 0)
     if self.edit_mode[0]:
         blf.draw(font_id, "Stop: (Esc), (Enter), (Spacebar).      Toggle Vert Mode: (V)")
     else:
@@ -277,13 +289,60 @@ def draw_callback_px(self, context):
 
     blf.position(font_id, hpos, vpos + 36, 0)
     blf.draw(font_id, "(G)rab, (R)otate, (S)cale. +X,Y/>,Z")
-    blf.position(font_id, hpos, vpos - 4, 0)
+    blf.position(font_id, hpos, vpos + 16, 0)
     blf.draw(font_id, "Freeze Selection: (F) Toggle")
+    blf.position(font_id, hpos, vpos - 4, 0)
+    blf.draw(font_id, "Round-Snap: (T) By %s-Axis(M). Unit-scale:%s(N). Round-Snap All Axis (B)." %(ua, self.unit_size) )
 
     blf.color(font_id, 0.5, 0.5, 0.5, 1)
     blf.size(font_id, 12, 72)
     blf.position(font_id, hpos, vpos - 24, 0)
     blf.draw(font_id, "Navigation: Blender(MMB) or Ind.Std(Alt-) & (TAB) toggles mode")
+
+
+def snapscale(self, context, all_axis=False):
+    if self.edit_mode[2]:
+        temp_emode = False
+        # re-order the sizes because im apparently making things needlessly convoluted...
+        z = self.sizes.pop(0)
+        self.sizes.append(z)
+
+        other_axis = [0, 1, 2]
+        other_axis.pop(self.user_axis)
+
+        # calculate rounded values
+        if not all_axis:
+            size = self.sizes[self.user_axis]
+            user_value = round(size, 2)
+        else:
+            user_value = (round(self.sizes[0], 2), round(self.sizes[1], 2), round(self.sizes[2], 2))
+
+        if context.mode == "OBJECT": # QnD indeed...
+            bpy.ops.object.mode_set(mode="EDIT")
+            bpy.ops.mesh.select_all(action='SELECT')
+            temp_emode = True
+
+        if all_axis:
+            nx = user_value[0] / self.sizes[0]
+            ny = user_value[1] / self.sizes[1]
+            nz = user_value[2] / self.sizes[2]
+            new_dimensions = (nx, ny, nz)
+        else:
+            edit_val =  user_value / self.sizes[self.user_axis]
+            new_dimensions = [edit_val, edit_val, edit_val]
+
+            if not self.unit_size:
+                new_dimensions[other_axis[0]] = 1
+                new_dimensions[other_axis[1]] = 1
+
+        bpy.ops.transform.resize(value=new_dimensions, orient_type='GLOBAL', orient_matrix_type='GLOBAL',
+                                 constraint_axis=(False, False, False), mirror=False, use_proportional_edit=False,
+                                 use_proportional_connected=False, use_proportional_projected=False, snap=False,
+                                 gpencil_strokes=False, texture_space=False, remove_on_cancel=False,
+                                 release_confirm=False)
+        if temp_emode:
+            bpy.ops.mesh.select_all(action='DESELECT')
+            bpy.ops.object.mode_set(mode="OBJECT")
 
 
 class VIEW3D_OT_ke_quickmeasure(bpy.types.Operator):
@@ -315,6 +374,11 @@ class VIEW3D_OT_ke_quickmeasure(bpy.types.Operator):
     sel_save_mode = False
     sel_save = []
     sel_save_obj = []
+
+    unit_size = False
+    user_axis = 2
+    sizes = []
+    snapobj = []
 
     def modal(self, context, event):
         if event.type in {'ONE', 'TWO', 'THREE', 'TAB'}:
@@ -384,6 +448,25 @@ class VIEW3D_OT_ke_quickmeasure(bpy.types.Operator):
 
         elif event.type in {'NUMPAD_PLUS', 'NUMPAD_MINUS', 'NUMPAD_1', 'NUMPAD_2', 'NUMPAD_3', 'NUMPAD_4', 'NUMPAD_5', 'NUMPAD_6', 'NUMPAD_7', 'NUMPAD_8', 'NUMPAD_9'}:
             return {'PASS_THROUGH'}
+
+        elif event.type == 'T' and event.value == 'RELEASE':
+            snapscale(self, context, all_axis=False)
+            sel_check(self, context)
+
+        elif event.type == 'N' and event.value == 'RELEASE':
+            self.unit_size = not self.unit_size
+
+        elif event.type == 'B' and event.value == 'RELEASE':
+            snapscale(self, context, all_axis=True)
+            sel_check(self, context)
+
+        elif event.type == 'M' and event.value == 'RELEASE':
+            if self.user_axis == 0:
+                self.user_axis = 1
+            elif self.user_axis == 1:
+                self.user_axis = 2
+            elif self.user_axis == 2:
+                self.user_axis = 0
 
         else:
             self.sel_upd = False

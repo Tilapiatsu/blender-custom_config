@@ -2,8 +2,8 @@ bl_info = {
     "name": "keZeroScale",
     "author": "Kjell Emanuelsson",
     "category": "Modeling",
-    "version": (1, 0, 1),
-    "blender": (2, 80, 0),
+    "version": (1, 0, 2),
+    "blender": (2, 9, 0),
 }
 import bpy
 import bmesh
@@ -59,13 +59,16 @@ class MESH_OT_ke_zeroscale(bpy.types.Operator):
         if self.orient_type == "GLOBAL":
             rm = context.space_data.region_3d.view_matrix
             v = Vector(rm[self.screen_axis])
-            xz, xy, yz = Vector((0, 1, 0)), Vector((0, 0, 1)), Vector((1, 0, 0))
+            xz = abs(Vector((0, 1, 0)).dot(v))
+            xy = abs(Vector((0, 0, 1)).dot(v))
+            yz = abs(Vector((1, 0, 0)).dot(v))
 
-            dic = {(True, False, True): abs(xz.dot(v)), (True, True, False): abs(xy.dot(v)),
-                   (False, True, True): abs(yz.dot(v))}
+            value_dic = {(True, False, True): xz, (True, True, False): xy, (False, True, True): yz}
+            lock_dic = {(False, True, False): xz, (False, False, True): xy, (True, False, False): yz}
 
-            vplane = sorted(dic, key=dic.get)[-1]
+            vplane = sorted(value_dic, key=value_dic.get)[-1]
             zerovalue = [float(i) for i in vplane]
+            vplane = sorted(lock_dic, key=lock_dic.get)[-1]
         else:
             vplane = (False, False, True)
             if self.orient_type == "NORMAL":

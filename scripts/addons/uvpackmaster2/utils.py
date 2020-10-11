@@ -133,7 +133,7 @@ def read_pack_solution(pack_solution_msg):
 
 def to_uvp_group_method(group_method):
 
-    if group_method in {UvGroupingMethod.MATERIAL.code, UvGroupingMethod.MESH.code, UvGroupingMethod.OBJECT.code, UvGroupingMethod.MANUAL.code}:
+    if group_method in {UvGroupingMethod.MATERIAL.code, UvGroupingMethod.MESH.code, UvGroupingMethod.OBJECT.code, UvGroupingMethod.MANUAL.code, UvGroupingMethod.TILE.code}:
 
         return UvGroupingMethodUvp.EXTERNAL
 

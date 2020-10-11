@@ -481,9 +481,10 @@ class UVP2_OT_PackOperatorGeneric(bpy.types.Operator):
             send_unselected = self.send_unselected_islands()
             send_rot_step = self.send_rot_step()
             send_groups = self.grouping_enabled() and (to_uvp_group_method(self.get_group_method()) == UvGroupingMethodUvp.EXTERNAL)
+            send_lock_groups = self.lock_groups_enabled()
             send_verts_3d = self.send_verts_3d()
 
-            selected_cnt, unselected_cnt = self.p_context.serialize_uv_maps(send_unselected, send_groups, send_rot_step, send_verts_3d, self.get_group_method() if send_groups else None)
+            selected_cnt, unselected_cnt = self.p_context.serialize_uv_maps(send_unselected, send_groups, send_rot_step, send_lock_groups, send_verts_3d, self.get_group_method() if send_groups else None)
 
             if self.require_selection():
                 if selected_cnt == 0:
@@ -509,6 +510,12 @@ class UVP2_OT_PackOperatorGeneric(bpy.types.Operator):
 
             if self.grouping_enabled():
                 uvp_args_final += ['-a', str(to_uvp_group_method(self.get_group_method()))]
+
+            if self.send_rot_step():
+                uvp_args_final += ['-R']
+
+            if self.lock_groups_enabled():
+                uvp_args_final += ['-Q']
 
             if in_debug_mode():
                 if self.prefs.seed > 0:
@@ -654,6 +661,9 @@ class UVP2_OT_PackOperatorGeneric(bpy.types.Operator):
     def send_rot_step(self):
         return False
 
+    def lock_groups_enabled(self):
+        return False
+
     def send_verts_3d(self):
         return False
 
@@ -693,6 +703,9 @@ class UVP2_OT_PackOperator(UVP2_OT_PackOperatorGeneric):
 
     def send_rot_step(self):
         return self.prefs.FEATURE_island_rotation_step and self.scene_props.rot_enable and self.scene_props.island_rot_step_enable
+
+    def lock_groups_enabled(self):
+        return self.prefs.FEATURE_lock_overlapping and self.scene_props.lock_groups_enable
 
     def send_verts_3d(self):
         return self.scene_props.normalize_islands
@@ -889,12 +902,10 @@ class UVP2_OT_PackOperator(UVP2_OT_PackOperatorGeneric):
 
         if self.prefs.fixed_scale_enabled(self.scene_props):
             uvp_args += ['-O']
+            uvp_args += ['-F', self.scene_props.fixed_scale_strategy]
 
         if self.prefs.FEATURE_island_rotation and self.scene_props.rot_enable:
             uvp_args += ['-r', str(self.scene_props.rot_step)]
-
-            if self.prefs.FEATURE_island_rotation_step and self.scene_props.island_rot_step_enable:
-                uvp_args += ['-R']
 
             if self.scene_props.prerot_disable:
                 uvp_args += ['-w']
@@ -910,11 +921,13 @@ class UVP2_OT_PackOperator(UVP2_OT_PackOperatorGeneric):
 
         uvp_args += ['-g', self.scene_props.pack_mode]
 
+        tile_count, tiles_in_row = self.prefs.tile_grid_config(self.scene_props, self.p_context.context)
+
         if self.prefs.pack_to_tiles(self.scene_props):
-            uvp_args += ['-V', str(self.scene_props.tile_count)]
+            uvp_args += ['-V', str(tile_count)]
 
         if self.prefs.tiles_enabled(self.scene_props):
-            uvp_args += ['-C', str(self.scene_props.tiles_in_row)]
+            uvp_args += ['-C', str(tiles_in_row)]
 
         if self.grouping_enabled():
             if to_uvp_group_method(self.get_group_method()) == UvGroupingMethodUvp.SIMILARITY:
@@ -1219,7 +1232,7 @@ class UVP2_OT_UvpSetupHelp(UVP2_OT_Help):
     bl_idname = 'uvpackmaster2.uv_uvp_setup_help'
     bl_description = "Show help for UVP setup"
 
-    URL_SUFFIX = "setup"
+    URL_SUFFIX = "uvp-setup"
 
 
 class UVP2_OT_HeuristicSearchHelp(UVP2_OT_Help):
@@ -1251,7 +1264,7 @@ class UVP2_OT_InvalidTopologyHelp(UVP2_OT_Help):
     bl_idname = 'uvpackmaster2.uv_invalid_topology_help'
     bl_description = "Show help for handling invalid topology errors"
 
-    URL_SUFFIX = "invalid-topology"
+    URL_SUFFIX = "invalid-topology-issues"
 
 
 class UVP2_OT_PixelMarginHelp(UVP2_OT_Help):
@@ -1267,7 +1280,7 @@ class UVP2_OT_IslandRotStepHelp(UVP2_OT_Help):
     bl_idname = 'uvpackmaster2.uv_island_rot_step_help'
     bl_description = "Show help for setting rotation step on per-island level"
 
-    URL_SUFFIX = "island-rot-step"
+    URL_SUFFIX = "island-rotation-step"
 
 
 class UVP2_OT_UdimSupportHelp(UVP2_OT_Help):

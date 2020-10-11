@@ -2,7 +2,7 @@ bl_info = {
     "name": "keFitPrim",
     "author": "Kjell Emanuelsson",
     "category": "Modeling",
-    "version": (1, 3, 2),
+    "version": (1, 3, 3),
     "blender": (2, 80, 0),
 }
 import bpy
@@ -475,7 +475,7 @@ class VIEW3D_OT_ke_fitprim(bpy.types.Operator):
                     if distance:
                         distance = abs(distance)
                     else:
-                        print("Multi obj Point to plane failed for some reason - using single island mode.")
+                        # print("Multi obj Point to plane failed for some reason - using single island mode.")
                         # island_mode = False
                         fail_island = True
 
@@ -485,16 +485,16 @@ class VIEW3D_OT_ke_fitprim(bpy.types.Operator):
                 if len(first_island) != 0 and len(second_island) != 0:
                     firstcos = [obj_mtx @ v.co for v in first_island]  # needs order sort
                     secondcos = [obj_mtx @ v.co for v in second_island]
-                    print (firstcos[0], secondcos[0])
+                    # print (firstcos[0], secondcos[0])
                     distance = point_to_plane(obj_mtx @ active_face.calc_center_median(), firstcos, secondcos)
 
                     if distance:
                         distance = abs(distance)
                         island_mode = True
                     else:
-                        print("Point to plane failed for some reason - using single island mode.")
+                        # print("Point to plane failed for some reason - using single island mode.")
                         fail_island = True
-                    print(distance)
+                    # print(distance)
                 else:
                     # Ngon mode
                     first_island = sel_verts
@@ -528,7 +528,7 @@ class VIEW3D_OT_ke_fitprim(bpy.types.Operator):
             start_vec = vecs[-1]
             setrot = rotation_from_vector(normal, start_vec)
 
-            print("Rectangle or Ngon mode",ngoncheck, island_mode, fail_island)
+            # print("Rectangle or Ngon mode",ngoncheck, island_mode, fail_island)
             if ngoncheck <= 4:
                 side, sides, center = get_sides(obj_mtx, start_vec, vecs, vps, legacy=False)
             else:
@@ -594,9 +594,13 @@ class VIEW3D_OT_ke_fitprim(bpy.types.Operator):
                     bpy.context.object.data.use_auto_smooth = True
 
             elif self.ke_fitprim_option == "QUADSPHERE":
+                as_check = bpy.context.object.data.use_auto_smooth
                 bpy.ops.mesh.primitive_round_cube_add(align='WORLD', location=setpos, rotation=setrot, radius=side,
                                                       size=(0, 0, 0), arc_div=self.quadsphere_seg, lin_div=0,
                                                       div_type='CORNERS')
+
+                bpy.ops.ed.undo_push()
+                bpy.context.object.data.use_auto_smooth = as_check
 
                 if self.itemize or self.edit_mode == "OBJECT":
                     bpy.ops.object.shade_smooth()

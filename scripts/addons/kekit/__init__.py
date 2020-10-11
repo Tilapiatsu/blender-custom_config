@@ -2,7 +2,7 @@ bl_info = {
     "name": "keKIT",
     "author": "Kjell Emanuelsson",
     "category": "Modeling",
-    "version": (1, 3, 5, 0),
+    "version": (1, 3, 6, 2),
     "blender": (2, 80, 0),
     "location": "View3D > Sidebar",
     "warning": "",
@@ -37,11 +37,12 @@ from . import ke_quickmeasure
 from . import ke_fit2grid
 from . import ke_collision
 from . import ke_zeroscale
+from . import ke_quickscale
 
 import bpy
 from bpy.types import Panel
 
-nfo = "keKit v1.35"
+nfo = "keKit v1.362"
 # -------------------------------------------------------------------------------------------------
 # SUB MENU PANELS
 # -------------------------------------------------------------------------------------------------
@@ -69,17 +70,35 @@ class VIEW3D_PT_kekit_modeling(Panel):
         row = layout.row(align=True)
         row.operator('MESH_OT_ke_itemize', text="Itemize").mode = "DEFAULT"
         row.operator('MESH_OT_ke_itemize', text="Itemize-Copy").mode = "DUPE"
-        # col.separator()
-        col = layout.column(align=True)
-        col.operator('MESH_OT_ke_direct_loop_cut', text="Direct Loop Cut").mode = "DEFAULT"
-        col.operator('MESH_OT_ke_direct_loop_cut', text="Direct Loop Cut & Slide").mode = "SLIDE"
 
         col = layout.column(align=True)
-        col.operator('VIEW3D_OT_ke_fit2grid', text="Fit2Grid")
-        col.prop(context.scene.kekit, "fit2grid", text="Grid Size:")
+        col.operator('MESH_OT_ke_extract_and_edit', text="Extract & Edit")
+        # col.separator()
+        r = layout.row(align=True)
+        r.operator('MESH_OT_ke_direct_loop_cut', text="Direct LoopCut").mode = "DEFAULT"
+        r.operator('MESH_OT_ke_direct_loop_cut', text="& Slide").mode = "SLIDE"
+
         row = layout.row(align=True)
         row.operator('VIEW3D_OT_ke_collision', text="BBox").col_type = "BOX"
         row.operator('VIEW3D_OT_ke_collision', text="Convex Hull").col_type = "CONVEX"
+
+        col = layout.column(align=True)
+        c = col.box()
+        col = c.column()
+        col.operator('VIEW3D_OT_ke_fit2grid', text="Fit2Grid")
+        col.prop(context.scene.kekit, "fit2grid", text="Grid Size:")
+
+        col = layout.column(align=True)
+        c = col.box()
+        c.label(text="QuickScale")
+        col = c.column()
+        col.prop(context.scene.kekit, "qs_user_value", text="Length:")
+        row = c.row()
+        row.operator('VIEW3D_OT_ke_quickscale', text="X").user_axis = 0
+        row.operator('VIEW3D_OT_ke_quickscale', text="Y").user_axis = 1
+        row.operator('VIEW3D_OT_ke_quickscale', text="Z").user_axis = 2
+        col = c.column()
+        col.prop(context.scene.kekit, "qs_unit_size", text="Unit Size:")
 
 
 class VIEW3D_PT_VPContextual(Panel):
@@ -476,6 +495,7 @@ modules = (
     ke_fit2grid,
     ke_collision,
     ke_zeroscale,
+    ke_quickscale,
 )
 
 
