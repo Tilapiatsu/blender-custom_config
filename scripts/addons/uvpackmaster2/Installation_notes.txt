@@ -1,16 +1,1 @@
-Installer method (Windows only)
-https://glukoz.dev/uvp/blender/help/setup/
-
-If you are upgrading from an older add-on version go to Blender preferences and uninstall the previous version of the UVPackmaster add-on. After uninstalling it is strongly recommended to restart Blender, otherwise an error may occur when installing a new add-on version.
-
-Download the latest version of the UVPackmaster add-on for Blender 2.8x from the Downloads page (the add-on file name starts with uvpackmaster2-addon).
-
-Install the add-on using the standard procedure for Blender add-ons.
-
-Purchase the UVP engine at gumroad. Note that the engine is required to use the add-on packing features in Blender (if you want to test the product before buying, use the free demo installer available at the Downloads page). After purchasing, download an UVP engine installer from gumroad. The name of the installer follows a pattern: uvp-engine-{EDITION}-{VERSION}.exe. Make sure you use the correct engine version - there must be a match between the add-on version and the engine version. You can use any engine edition, but it will determine a set of packing features which will be available.
-
-After downloading, run the installer. Select a path where you want to install the engine. If you already have any other UVP engine installation present in your system (e.g. an older version, different edition), the installer will automatically remove it before installing the new engine.
-
-Install Visual Studio Redistributable 2017 from Microsoft, if you don’t have it installed already. It is required for the engine to run.
-
-Run Blender (or restart if you had it opened), go to the UV editor where UVPackmaster add-on interface is located. At the top of the interface you should see that the path where you installed the UVP engine was automatically detected by the add-on. You can immediately start using UVP packing features in Blender.
+In order to use UVP in Blender you MUST follow the setup guide described here: https://glukoz.dev/uvp/blender/help/setup/

@@ -40,8 +40,8 @@ if "bpy" in locals():
 bl_info = {
     "name": "UVPackmaster2",
     "author": "glukoz",
-    "version": (2, 4, 4),
-    "blender": (2, 83, 0),
+    "version": (2, 5, 0),
+    "blender": (2, 90, 0),
     "location": "",
     "description": "",
     "warning": "",
@@ -109,6 +109,11 @@ if inside_blender:
         UVP2_OT_ResetManualGroupIslandParam,
         UVP2_OT_SelectManualGroupIslandParam,
 
+        UVP2_OT_ShowLockGroupIslandParam,
+        UVP2_OT_SetLockGroupIslandParam,
+        UVP2_OT_ResetLockGroupIslandParam,
+        UVP2_OT_SelectLockGroupIslandParam,
+
         UVP2_OT_EnableTargetBox,
         UVP2_OT_DisableTargetBox,
         UVP2_OT_DrawTargetBox,
@@ -133,11 +138,13 @@ if inside_blender:
         UVP2_PT_PackingDevice,
         UVP2_PT_BasicOptions,
         UVP2_PT_AdvancedOptions,
+        UVP2_PT_PixelMargin,
         UVP2_PT_Heuristic,
         UVP2_PT_NonSquarePacking,
         UVP2_PT_TargetBox,
         UVP2_PT_IslandRotStep,
         UVP2_PT_ManualGrouping,
+        UVP2_PT_LockGroups,
         UVP2_PT_Hints,
         UVP2_PT_Statistics,
         UVP2_PT_Help
@@ -169,5 +176,5 @@ if inside_blender:
         del bpy.types.Scene.uvp2_props
         bpy.utils.unregister_class(UVP2_SceneProps)
 
-        del UVP2_Preferences.stats_array
-        del UVP2_Preferences.dev_array
+        # del UVP2_Preferences.stats_array
+        # del UVP2_Preferences.dev_array

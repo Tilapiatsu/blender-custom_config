@@ -2,7 +2,7 @@ bl_info = {
     "name": "MouseMirror",
     "author": "Kjell Emanuelsson 2020",
     "wiki_url": "http://artbykjell.com",
-    "version": (1, 0, 0),
+    "version": (1, 0, 1),
     "blender": (2, 80, 0),
 }
 import bpy
@@ -40,19 +40,23 @@ class VIEW3D_OT_ke_mouse_mirror(Operator):
 
     def execute(self, context):
         if context.object.data.is_editmode:
-            if not self.center == "ACTIVE":
+            if self.center != "ACTIVE":
                 bpy.ops.mesh.duplicate()
         else:
+            # DUPE
+            bpy.ops.object.duplicate()
+            bpy.ops.object.transform_apply(location=False, rotation=True, scale=False)
+
+        if self.center == "BBOX":
             # GRAB CURRENT ORIENT & PIVOT (to restore at the end)
             og_orientation = bpy.context.scene.transform_orientation_slots[0].type
             og_pivot = bpy.context.scene.tool_settings.transform_pivot_point
             # SET TO GLOBAL
             bpy.ops.transform.select_orientation(orientation='GLOBAL')
             bpy.context.scene.tool_settings.transform_pivot_point = 'MEDIAN_POINT'
-            # DUPE
-            bpy.ops.object.duplicate()
-            bpy.ops.object.transform_apply(location=False, rotation=True, scale=False)
 
+        if self.center == "ACTIVE":
+            self.use_center = True
 
         sel_mode = bpy.context.tool_settings.mesh_select_mode[:]
         obj = bpy.context.object
@@ -223,10 +227,13 @@ class VIEW3D_OT_ke_mouse_mirror(Operator):
 
         if context.object.data.is_editmode:
             bpy.ops.mesh.normals_make_consistent(inside=False)
-        else:
+
+        if self.center == "BBOX":
             bpy.context.scene.tool_settings.transform_pivot_point = og_pivot
             bpy.ops.transform.select_orientation(orientation=og_orientation)
+
         return {'FINISHED'}
+
 
 # -------------------------------------------------------------------------------------------------
 # Class Registration & Unregistration

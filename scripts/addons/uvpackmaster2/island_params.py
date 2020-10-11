@@ -40,6 +40,7 @@ class IslandParamInfo:
         param_array = [None] * UvIslandIntParams.COUNT
         param_array[UvIslandIntParams.GROUP] = GroupIslandParamInfo()
         param_array[UvIslandIntParams.ROTATION_STEP] = RotStepIslandParamInfo()
+        param_array[UvIslandIntParams.LOCK_GROUP] = LockGroupIslandParamInfo()
 
         return param_array
 
@@ -102,19 +103,8 @@ class IslandParamInfo:
         return (1,1,1,1)
 
 
-class GroupIslandParamInfo(IslandParamInfo):
+class GroupIslandParamInfoGeneric(IslandParamInfo):
 
-    NAME = 'Group'
-    VCOLOR_CHNAME_SUFFIX = 'group'
-    ALL_CHANNELS = False
-
-    MIN_VALUE = 0
-    MAX_VALUE = 100
-    DEFAULT_VALUE = MIN_VALUE
-    
-    PARAM_IDX = UvIslandIntParams.GROUP
-    PROP_NAME = 'manual_group_num'
-    
     GROUP_COLORS = [
 		(0.0, 0.0, 1.0, 1.0),
         (1.0, 1.0, 0.0, 1.0),
@@ -134,6 +124,20 @@ class GroupIslandParamInfo(IslandParamInfo):
     @classmethod
     def param_to_color(cls, value):
         return cls.GROUP_COLORS[value % len(cls.GROUP_COLORS)]
+
+
+class GroupIslandParamInfo(GroupIslandParamInfoGeneric):
+
+    NAME = 'Group'
+    VCOLOR_CHNAME_SUFFIX = 'group'
+    ALL_CHANNELS = False
+
+    MIN_VALUE = 0
+    MAX_VALUE = 100
+    DEFAULT_VALUE = MIN_VALUE
+    
+    PARAM_IDX = UvIslandIntParams.GROUP
+    PROP_NAME = 'manual_group_num'
 
 
 class RotStepIslandParamInfo(IslandParamInfo):
@@ -157,6 +161,27 @@ class RotStepIslandParamInfo(IslandParamInfo):
 
         return str(value)
 
+
+class LockGroupIslandParamInfo(GroupIslandParamInfoGeneric):
+
+    NAME = 'Lock Group'
+    VCOLOR_CHNAME_SUFFIX = 'lock_group'
+    ALL_CHANNELS = False
+
+    MIN_VALUE = 0
+    MAX_VALUE = 100
+    DEFAULT_VALUE = MIN_VALUE
+    
+    PARAM_IDX = UvIslandIntParams.LOCK_GROUP
+    PROP_NAME = 'lock_group_num'
+
+    @classmethod
+    def param_to_text(cls, value):
+        if value == cls.DEFAULT_VALUE:
+            return 'N'
+
+        return str(value)
+    
 
 class SplitOffsetParamInfo(IslandParamInfo):
 

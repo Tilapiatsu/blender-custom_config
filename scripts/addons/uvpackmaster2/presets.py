@@ -324,7 +324,95 @@ PRESET_PROPERTIES_V8 = [
     'target_box_p2_y'
 ]
 
-PRESET_PROPERTIES_LATEST = PRESET_PROPERTIES_V8
+PRESET_PROPERTIES_V9 = [
+    'precision',
+    'margin',
+    'pixel_margin',
+    'pixel_padding',
+    'pixel_margin_method',
+    'pixel_margin_tex_size',
+    'rot_enable',
+    'prerot_disable',
+    'fixed_scale',
+    'normalize_islands',
+    'rot_step',
+    'island_rot_step_enable',
+    'island_rot_step',
+    'tex_ratio',
+    'pack_to_others',
+    'pack_mode',
+    'group_method',
+    'group_compactness',
+    'manual_group_num',
+    'lock_groups_enable',
+    'lock_group_num',
+    'tile_count',
+    'tiles_in_row',
+    'lock_overlapping_mode',
+    'pre_validate',
+    'heuristic_enable',
+    'heuristic_search_time',
+    'heuristic_max_wait_time',
+    'pixel_margin_adjust_time',
+    'advanced_heuristic',
+    'similarity_threshold',
+    'multi_device_pack',
+    'fully_inside',
+    'move_islands',
+    'target_box_tile_x',
+    'target_box_tile_y',
+    'target_box_p1_x',
+    'target_box_p1_y',
+    'target_box_p2_x',
+    'target_box_p2_y'
+]
+
+PRESET_PROPERTIES_V10 = [
+    'precision',
+    'margin',
+    'pixel_margin',
+    'pixel_padding',
+    'pixel_margin_method',
+    'pixel_margin_tex_size',
+    'rot_enable',
+    'prerot_disable',
+    'fixed_scale',
+    'fixed_scale_strategy',
+    'normalize_islands',
+    'rot_step',
+    'island_rot_step_enable',
+    'island_rot_step',
+    'tex_ratio',
+    'pack_to_others',
+    'pack_mode',
+    'group_method',
+    'group_compactness',
+    'manual_group_num',
+    'lock_groups_enable',
+    'lock_group_num',
+    'use_blender_tile_grid',
+    'tile_count',
+    'tiles_in_row',
+    'lock_overlapping_mode',
+    'pre_validate',
+    'heuristic_enable',
+    'heuristic_search_time',
+    'heuristic_max_wait_time',
+    'pixel_margin_adjust_time',
+    'advanced_heuristic',
+    'similarity_threshold',
+    'multi_device_pack',
+    'fully_inside',
+    'move_islands',
+    'target_box_tile_x',
+    'target_box_tile_y',
+    'target_box_p1_x',
+    'target_box_p1_y',
+    'target_box_p2_x',
+    'target_box_p2_y'
+]
+
+PRESET_PROPERTIES_LATEST = PRESET_PROPERTIES_V10
 
 
 class UVP2_OT_SavePreset(bpy.types.Operator, ExportHelper):
@@ -423,6 +511,12 @@ class UVP2_OT_LoadPresetBase(bpy.types.Operator):
         if addon_version == (2,4,4):
             return 8
 
+        if addon_version == (2,4,5):
+            return 9
+
+        if addon_version == (2,5,0):
+            return 10
+
         raise RuntimeError('Unsupported preset version')
 
     def translate_props_1to2(self, props_dict):
@@ -502,6 +596,24 @@ class UVP2_OT_LoadPresetBase(bpy.types.Operator):
 
         props_dict['normalize_islands'] = False
 
+    def translate_props_8to9(self, props_dict):
+
+        for prop_name in PRESET_PROPERTIES_V8:
+            if prop_name not in props_dict:
+                self.raise_invalid_format()
+
+        props_dict['lock_groups_enable'] = False
+        props_dict['lock_group_num'] = 1
+
+    def translate_props_9to10(self, props_dict):
+
+        for prop_name in PRESET_PROPERTIES_V9:
+            if prop_name not in props_dict:
+                self.raise_invalid_format()
+
+        props_dict['fixed_scale_strategy'] = UvFixedScaleStrategy.BOTTOM_TOP.code
+        props_dict['use_blender_tile_grid'] = False
+
     def translate_props(self, preset_version, props_dict):
 
         translate_array = [
@@ -511,7 +623,9 @@ class UVP2_OT_LoadPresetBase(bpy.types.Operator):
             self.translate_props_4to5,
             self.translate_props_5to6,
             self.translate_props_6to7,
-            self.translate_props_7to8 ]
+            self.translate_props_7to8,
+            self.translate_props_8to9,
+            self.translate_props_9to10 ]
 
         for i in range(preset_version-1, len(translate_array)):
             translate_array[i](props_dict)

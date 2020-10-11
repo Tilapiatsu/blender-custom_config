@@ -67,6 +67,9 @@ class UvpLabels:
     FIXED_SCALE_NAME='Fixed Scale'
     FIXED_SCALE_DESC="Do not scale islands during packing. Packer will return an error if UV islands can't fit into the packing box"
 
+    FIXED_SCALE_STRATEGY_NAME='Fixed Scale Strategy'
+    FIXED_SCALE_STRATEGY_DESC="Determines how islands are packed when 'Fixed Scale' is on (no scaling is applied to islands)."
+
     ROT_STEP_NAME='Rotation Step'
     ROT_STEP_DESC="Rotation step (in degrees) to use when generating island orientations which will be considered during packing."
 
@@ -102,11 +105,27 @@ class UvpLabels:
     GROUP_METHOD_NAME="Grouping Method"
     GROUP_METHOD_DESC="Grouping method to use"
 
+    GROUP_METHOD_MATERIAL_DESC = 'Islands sharing the same material will belong to the same group'
+    GROUP_METHOD_SIMILARITY_DESC = 'Islands of a similar shape will belong to the same group'
+    GROUP_METHOD_MESH_DESC = 'Islands being part of adjacent geometry will belong to the same group'
+    GROUP_METHOD_OBJECT_DESC = 'Islands being part of the same object will belong to the same group'
+    GROUP_METHOD_MANUAL_DESC = "Grouping is determined manually by the user in the 'Manual Grouping' panel"
+    GROUP_METHOD_TILE_DESC = 'Islands placed in the same UDIM tile will belong to the same group'
+
     GROUP_COMPACTNESS_NAME="Grouping Compactness"
     GROUP_COMPACTNESS_DESC="A value from 0 to 1 specifying how much the packer should prefer solutions providing more compact grouping, when packing groups together. A lower value means the packer will strive less to achieve compact grouping, at the same time it will prioritize achieving better coverage of the overall packing. With a greater value of the parameter, groups will be packed more compactly, but the coverage of the entire solution might be worse. WARNING: use this parameter with care - a small increase of its value might considerably change the result you will get"
 
     MANUAL_GROUP_NUM_NAME="Group Number"
     MANUAL_GROUP_NUM_DESC="Manual group number to be assigned to the selected islands"
+
+    LOCK_GROUPS_ENABLE_NAME='Enable Lock Groups'
+    LOCK_GROUPS_ENABLE_DESC="Specify manually which islands will be locked together during packing"
+
+    LOCK_GROUP_NUM_NAME="Lock Group Number"
+    LOCK_GROUP_NUM_DESC="Lock group number to be assigned to the selected islands"
+
+    USE_BLENDER_TILE_GRID_NAME="Use Blender UDIM Grid"
+    USE_BLENDER_TILE_GRID_DESC="If enabled, the tile grid shape is determined by the Blender UV editor settings (N-panel / View tab). Otherwise, the shape is configured using the properties below"
 
     TILE_COUNT_NAME="Tile Count"
     TILE_COUNT_DESC="Specify the number of tiles which will be used during packing. If set to '0', then the number of tiles is unlimited"
@@ -175,4 +194,4 @@ class UvpLabels:
     SIMPLIFY_DISABLE_NAME='Simplify Disable'
     WAIT_FOR_DEBUGGER_NAME='Wait For Debugger'
 
-    HELP_BASEURL = "https://glukoz.dev/uvp/blender/help/"
+    HELP_BASEURL = "https://uvpackmaster.com/uvpackmaster-for-blender/"

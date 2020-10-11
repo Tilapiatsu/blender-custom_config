@@ -97,7 +97,7 @@ class PackContext:
             self.vert_idx_offsets.append(next_vert_idx_offset)
             next_vert_idx_offset += len(bm.verts)
 
-    def serialize_uv_maps(self, send_unselected, send_groups, send_rot_step, send_verts_3d, group_method=None):
+    def serialize_uv_maps(self, send_unselected, send_groups, send_rot_step, send_lock_groups, send_verts_3d, group_method=None):
         serialize_start = time.time()
         serialized_maps = bytes()
         selected_cnt = 0
@@ -115,7 +115,7 @@ class PackContext:
 
         if send_groups:
             serialization_flags |= UvMapSerializationFlags.CONTAINS_GROUPS
-            self.create_group_map(group_method)
+            self.get_face_group_method = self.init_grouping(group_method)
             face_groups_array = []
 
         if send_rot_step:
@@ -126,7 +126,16 @@ class PackContext:
             for bm in self.bms:
                 rot_step_layers.append(self.get_or_create_vcolor_layer(bm, RotStepIslandParamInfo.get_vcolor_chname(), RotStepIslandParamInfo.get_default_vcolor()))
 
+        if send_lock_groups:
+            serialization_flags |= UvMapSerializationFlags.CONTAINS_LOCK_GROUPS
+
+            lock_group_array = []
+            lock_group_layers = []
+            for bm in self.bms:
+                lock_group_layers.append(self.get_or_create_vcolor_layer(bm, LockGroupIslandParamInfo.get_vcolor_chname(), LockGroupIslandParamInfo.get_default_vcolor()))
+
         if send_verts_3d:
+
             serialization_flags |= UvMapSerializationFlags.CONTAINS_VERTS_3D
             verts_3d_array = []
 
@@ -140,9 +149,13 @@ class PackContext:
                 face_id_len_array.append(face.index + self.face_idx_offsets[bm_idx])
                 face_id_len_array.append(len(face.verts))
 
+                face_selected = True
+
                 if send_unselected:
+                    face_selected = self.face_is_selected(bm, uv_layer, face)
                     face_flags = 0
-                    if self.face_is_selected(bm, uv_layer, face):
+
+                    if face_selected:
                         face_flags |= UvFaceInputFlags.SELECTED
                         selected_cnt += 1
                     else:
@@ -153,10 +166,13 @@ class PackContext:
                     selected_cnt += 1
 
                 if send_groups:
-                    face_groups_array.append(self.get_face_group(group_method, bm_idx, obj, face))
+                    face_groups_array.append(self.get_face_group_method(bm_idx, obj, face, face_selected))
 
                 if send_rot_step:
                     rot_step_array.append(RotStepIslandParamInfo.vcolor_to_param(self.get_vcolor(rot_step_layers[bm_idx], face)))
+
+                if send_lock_groups:
+                    lock_group_array.append(LockGroupIslandParamInfo.vcolor_to_param(self.get_vcolor(lock_group_layers[bm_idx], face)))
 
                 for loop in face.loops:
                     uv_tuple = loop[uv_layer].uv.to_tuple(5)
@@ -187,6 +203,9 @@ class PackContext:
 
         if (serialization_flags & UvMapSerializationFlags.CONTAINS_ROT_STEP) > 0:
             serialized_maps += struct.pack('i' * len(rot_step_array), *rot_step_array)
+
+        if (serialization_flags & UvMapSerializationFlags.CONTAINS_LOCK_GROUPS) > 0:
+            serialized_maps += struct.pack('i' * len(lock_group_array), *lock_group_array)
 
         if in_debug_mode():
             print('UV serialization time: ' + str(time.time() - serialize_start))
@@ -247,32 +266,48 @@ class PackContext:
 
             self.island_bm_map[island_idx] = curr_bm_idx
 
-    def get_face_group(self, group_method, bm_idx, obj, face):
-        if group_method == UvGroupingMethod.MATERIAL.code:
 
-            mat_idx = face.material_index
+    def get_face_group_material(self, bm_idx, obj, face, face_selected):
 
-            if not (mat_idx >= 0 and mat_idx < len(obj.material_slots)):
-                raise RuntimeError('Grouping by material error: invalid material id')
+        mat_idx = face.material_index
 
-            mat = obj.material_slots[mat_idx]
+        if not (mat_idx >= 0 and mat_idx < len(obj.material_slots)):
+            raise RuntimeError('Grouping by material error: invalid material id')
 
-            if mat is None:
-                raise RuntimeError('Grouping by material error: some faces belong to an empty material slot')
+        mat = obj.material_slots[mat_idx]
 
-            return self.material_map[mat.name]
+        if mat is None:
+            raise RuntimeError('Grouping by material error: some faces belong to an empty material slot')
 
-        elif group_method == UvGroupingMethod.MESH.code:
+        return self.material_map[mat.name]
 
-            return self.mesh_map[bm_idx][face.index]
+    def get_face_group_mesh(self, bm_idx, obj, face, face_selected):
 
-        elif group_method == UvGroupingMethod.OBJECT.code:
+        return self.mesh_map[bm_idx][face.index]
 
-            return bm_idx
+    def get_face_group_object(self, bm_idx, obj, face, face_selected):
 
-        elif group_method == UvGroupingMethod.MANUAL.code:
+        return bm_idx
 
-            return GroupIslandParamInfo.vcolor_to_param(self.get_vcolor(self.manual_group_layers[bm_idx], face))
+    def get_face_group_tile(self, bm_idx, obj, face, face_selected):
+
+        if not face_selected:
+            return -1
+
+        uv_layer = self.uv_layers[bm_idx]
+        uvs = face.loops[0][uv_layer].uv
+
+        if uvs[0] < 0.0 or uvs[1] < 0.0:
+            raise RuntimeError("Grouping method '{}' requires all UV coordinates to be greater than 0".format(UvGroupingMethod.TILE.name))
+
+        if uvs[0] >= UVP2_Preferences.MAX_TILES_IN_ROW:
+            raise RuntimeError("Grouping method '{}' requires all UV X coordinates to be lower than {}".format(UvGroupingMethod.TILE.name, UVP2_Preferences.MAX_TILES_IN_ROW))
+
+        return int(uvs[0]) + int(uvs[1]) * UVP2_Preferences.MAX_TILES_IN_ROW
+
+    def get_face_group_manual(self, bm_idx, obj, face, face_selected):
+
+        return GroupIslandParamInfo.vcolor_to_param(self.get_vcolor(self.manual_group_layers[bm_idx], face))
 
         raise RuntimeError('Unexpected grouping method encountered')
 
@@ -338,23 +373,30 @@ class PackContext:
             self.mesh_map.append(mesh_map)
 
 
-    def create_group_map(self, group_method):
+    def init_grouping(self, group_method):
         if group_method == UvGroupingMethod.MATERIAL.code:
             self.create_material_map()
+            return self.get_face_group_material
             
-        elif group_method == UvGroupingMethod.MESH.code:
+        if group_method == UvGroupingMethod.MESH.code:
             self.create_mesh_map()
+            return self.get_face_group_mesh
 
-        elif group_method == UvGroupingMethod.OBJECT.code:
-            pass
+        if group_method == UvGroupingMethod.OBJECT.code:
+            return self.get_face_group_object
 
-        elif group_method == UvGroupingMethod.MANUAL.code:
+        if group_method == UvGroupingMethod.MANUAL.code:
             self.manual_group_layers = []
             for bm in self.bms:
                 self.manual_group_layers.append(self.get_or_create_vcolor_layer(bm, GroupIslandParamInfo.get_vcolor_chname(), GroupIslandParamInfo.get_default_vcolor()))
 
-        else:
-            raise RuntimeError('Unexpected grouping method encountered')
+            return self.get_face_group_manual
+
+        if group_method == UvGroupingMethod.TILE.code:
+            return self.get_face_group_tile
+
+        raise RuntimeError('Unexpected grouping method encountered')
+
 
     def update_meshes(self):
         for obj in self.objs:
@@ -487,48 +529,57 @@ class PackContext:
                 for loop in face.loops:
                     loop[uv_layer].uv = (loop[uv_layer].uv[0] * sx, loop[uv_layer].uv[1] * sy)
 
+    def transform_island(self, island_idx, matrix):
+
+        bm_idx = self.island_bm_map[island_idx]
+        bm = self.bms[bm_idx]
+        uv_layer = self.uv_layers[bm_idx]
+        face_idx_offset = self.face_idx_offsets[bm_idx]
+
+        island_faces = self.uv_island_faces_list[island_idx]
+
+        for face_idx in island_faces:
+            orig_face_idx = face_idx - face_idx_offset
+            face = bm.faces[orig_face_idx]
+            for loop in face.loops:
+                uv = loop[uv_layer].uv
+                transformed_uv = matrix @ Vector((uv[0], uv[1], 0.0))
+                loop[uv_layer].uv = (transformed_uv[0], transformed_uv[1])
+
     def apply_pack_solution(self, pack_ratio, pack_solution):
-        if is_blender28():
-            matrix_multiply = lambda a, b: a @ b
-        else:
-            matrix_multiply = lambda a, b: a * b
+
+        new_solution_matrices = [None] * len(self.uv_island_faces_list)
 
         for i_solution in pack_solution.island_solutions:
-            bm_idx = self.island_bm_map[i_solution.island_idx]
-            bm = self.bms[bm_idx]
-            uv_layer = self.uv_layers[bm_idx]
-            face_idx_offset = self.face_idx_offsets[bm_idx]
-
-            i_solution.post_scale_offset.x /= pack_ratio
             
+            i_solution.post_scale_offset.x /= pack_ratio
             matrix = Matrix.Translation(i_solution.post_scale_offset)
-            matrix = matrix_multiply(matrix, Matrix.Scale(1 / i_solution.scale / pack_ratio, 4, (1.0, 0.0, 0.0)))
-            matrix = matrix_multiply(matrix, Matrix.Scale(1 / i_solution.scale, 4, (0.0, 1.0, 0.0)))
-            matrix = matrix_multiply(matrix, Matrix.Translation(i_solution.offset))
-            matrix = matrix_multiply(matrix, Matrix.Translation(i_solution.pivot))
-            matrix = matrix_multiply(matrix, Matrix.Rotation(i_solution.angle, 4, 'Z'))
-            matrix = matrix_multiply(matrix, Matrix.Translation(-i_solution.pivot))
-            matrix = matrix_multiply(matrix, Matrix.Scale(i_solution.pre_scale, 4, (0.0, 1.0, 0.0)))
-            matrix = matrix_multiply(matrix, Matrix.Scale(i_solution.pre_scale, 4, (1.0, 0.0, 0.0)))
-            matrix = matrix_multiply(matrix, Matrix.Scale(pack_ratio, 4, (1.0, 0.0, 0.0)))
+            matrix = matrix @ Matrix.Scale(1 / i_solution.scale / pack_ratio, 4, (1.0, 0.0, 0.0))
+            matrix = matrix @ Matrix.Scale(1 / i_solution.scale, 4, (0.0, 1.0, 0.0))
+            matrix = matrix @ Matrix.Translation(i_solution.offset)
+            matrix = matrix @ Matrix.Translation(i_solution.pivot)
+            matrix = matrix @ Matrix.Rotation(i_solution.angle, 4, 'Z')
+            matrix = matrix @ Matrix.Translation(-i_solution.pivot)
+            matrix = matrix @ Matrix.Scale(i_solution.pre_scale, 4, (0.0, 1.0, 0.0))
+            matrix = matrix @ Matrix.Scale(i_solution.pre_scale, 4, (1.0, 0.0, 0.0))
+            matrix = matrix @ Matrix.Scale(pack_ratio, 4, (1.0, 0.0, 0.0))
 
-            island_faces = self.uv_island_faces_list[i_solution.island_idx]
+            new_solution_matrices[i_solution.island_idx] = matrix
 
-            if self.solution_matrices[i_solution.island_idx] is None:
-                self.solution_matrices[i_solution.island_idx] = matrix
-            else:
-                old_matrix = self.solution_matrices[i_solution.island_idx]
-                self.solution_matrices[i_solution.island_idx] = matrix
-                matrix = matrix_multiply(matrix, old_matrix.inverted())
+            if self.solution_matrices[i_solution.island_idx] is not None:
+                matrix = matrix @ self.solution_matrices[i_solution.island_idx].inverted()
 
-            for face_idx in island_faces:
-                orig_face_idx = face_idx - face_idx_offset
-                face = bm.faces[orig_face_idx]
-                for loop in face.loops:
-                    uv = loop[uv_layer].uv
-                    transformed_uv = matrix_multiply(matrix, Vector((uv[0], uv[1], 0.0)))
-                    loop[uv_layer].uv = (transformed_uv[0], transformed_uv[1])
+            self.solution_matrices[i_solution.island_idx] = None
+            self.transform_island(i_solution.island_idx, matrix)
 
+        for island_idx in range(len(self.uv_island_faces_list)):
+
+            if self.solution_matrices[island_idx] is None:
+                continue
+
+            self.transform_island(island_idx, self.solution_matrices[island_idx].inverted())
+
+        self.solution_matrices = new_solution_matrices
         self.update_meshes()
 
     def get_or_create_vcolor_layer(self, bm, vcolor_chname, default_value):
