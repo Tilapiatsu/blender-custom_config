@@ -272,7 +272,7 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 				self.kmi_set_replace(linked_pick_tool, self.k_linked, 'PRESS', ctrl=True, properties=[('deselect', True), ('extend', True)], disable_double=True)
 
 			else:
-				self.kmi_set_replace(linked_pick_tool, self.k_linked, 'PRESS', ctrl=False, properties=[('deselect', False), ('delimit', {'SEAM'})], disable_double=True)
+				self.kmi_set_replace(linked_pick_tool, self.k_linked, 'PRESS', ctrl=False, alt=False, shift=False, properties=[('deselect', False), ('delimit', {'SEAM'})], disable_double=True)
 				self.kmi_set_replace(linked_pick_tool, self.k_linked, 'PRESS', ctrl=True, properties=[('deselect', True), ('delimit', {'SEAM'})], disable_double=True)
 				self.kmi_set_replace(linked_pick_tool, self.k_linked, 'PRESS', shift=True, properties=[('deselect', False), ('delimit', {'MATERIAL'})], disable_double=True)
 				self.kmi_set_replace(linked_pick_tool, self.k_linked, 'PRESS', ctrl=True, shift=True, properties=[('deselect', True), ('delimit', {'MATERIAL'})], disable_double=True)
@@ -451,6 +451,8 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		self.kmi_set_active(False, idname='view3d.cursor3d', type="RIGHTMOUSE")
 		self.kmi_set_active(False, idname='view3d.rotate', type="MIDDLEMOUSE")
 		self.kmi_set_active(False, idname='view3d.dolly', type="MIDDLEMOUSE")
+		self.kmi_set_active(False, idname='wm.tool_set_by_id', type="W")
+		
 
 		self.navigation_keys(pan='view3d.move',
 							orbit='view3d.rotate',
