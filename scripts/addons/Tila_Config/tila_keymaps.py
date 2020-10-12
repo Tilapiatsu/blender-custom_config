@@ -165,6 +165,7 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 						circle_tool=None, gp_circle_tool=None,
 						shortestpath_tool=None, shortestring_tool=None,
 						loop_tool=None, ring_tool=None,
+						loop_multiselect_tool=None, ring_multiselect_tool=None,
 						more_tool=None, less_tool=None,
 						next_tool=None, previous_tool=None, 
 						linked_tool=None, linked_pick_tool=None,
@@ -237,6 +238,14 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		if ring_tool:
 			self.kmi_set_replace(ring_tool, self.k_cursor, 'CLICK', ctrl=True, properties=[('ring', True), ('deselect', True), ('extend', False), ('toggle', False)], disable_double=True)
 			self.kmi_set_replace(ring_tool, self.k_cursor, 'CLICK', shift=True, properties=[('ring', True), ('deselect', False), ('extend', True), ('toggle', False)], disable_double=True)
+
+		# Loop multiselect
+		if loop_multiselect_tool:
+			self.kmi_set_replace(loop_multiselect_tool, 'L', 'PRESS', properties=[('ring', False)], disable_double=True)
+		
+		# Ring multiselect
+		if ring_multiselect_tool:
+			self.kmi_set_replace(ring_multiselect_tool, 'L', 'PRESS', alt=True, properties=[('ring', True)], disable_double=True)
 
 		# Select More / Less
 		if more_tool:
@@ -441,6 +450,7 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		self.kmi_set_active(False, idname='view3d.select_circle', type="C")
 		self.kmi_set_active(False, idname='view3d.cursor3d', type="RIGHTMOUSE")
 		self.kmi_set_active(False, idname='view3d.rotate', type="MIDDLEMOUSE")
+		self.kmi_set_active(False, idname='view3d.dolly', type="MIDDLEMOUSE")
 
 		self.navigation_keys(pan='view3d.move',
 							orbit='view3d.rotate',
@@ -563,7 +573,7 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 							   'rotation_path', 'tool_settings.uv_sculpt.brush.texture_slot.angle'), ('color_path', 'tool_settings.uv_sculpt.brush.cursor_color_add'), ('image_id', 'tool_settings.uv_sculpt.brush')],
 						   		eraser_radius=[('data_path_primary', 'tool_settings.uv_sculpt.brush.texture_slot.angle'), ('rotation_path', 'tool_settings.uv_sculpt.brush.texture_slot.angle'), ('color_path', 'tool_settings.uv_sculpt.brush.cursor_color_add'), ('image_id', 'tool_settings.uv_sculpt.brush')])
 
-		self.kmi_set_replace('uv.minimize_stretch', 'R', 'PRESS', shift=True, disable_double=True)
+		self.kmi_set_replace('uv.minimize_stretch', 'R', 'PRESS', alt=True, shift=True, disable_double=True)
 		self.kmi_set_replace('wm.call_menu_pie', 'F', 'PRESS', alt=True, shift=True, properties=[('name', 'UVTOOLKIT_MT_pie_uv_editor')])
 
 		###### Mesh
@@ -578,6 +588,8 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 							shortestring_tool='mesh.shortest_path_pick',
 							loop_tool='mesh.loop_select',
 					  		ring_tool='mesh.edgering_select',
+							loop_multiselect_tool='mesh.loop_multi_select',
+							ring_multiselect_tool='mesh.loop_multi_select',
 							more_tool='mesh.select_more',
 							less_tool='mesh.select_less',
 							next_tool='mesh.select_next_item',
@@ -609,6 +621,7 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		self.kmi_set_replace('transform.vert_slide', 'S', 'PRESS', ctrl=True, alt=True, properties=[('correct_uv', True)])
 
 		self.kmi_set_replace('wm.tool_set_by_id', 'F', 'PRESS', shift=True, properties=[('name', 'mesh_tool.poly_quilt')], disable_double=True)
+
 
 		self.kmi_set_replace('mesh.remove_doubles', 'M', 'PRESS', ctrl=True, shift=True, disable_double=True)
 		kmi = self.kmi_set_replace('mesh.separate_and_select', 'D', 'PRESS', ctrl=True, shift=True)
