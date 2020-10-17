@@ -238,3 +238,6 @@
 [submodule "scripts/addons/BMAX_Connector"]
 	path = scripts/addons/BMAX_Connector
 	url = https://github.com/TitusLVR/BMAX_Connector.git
+[submodule "scripts/addons/txa_ant"]
+	path = scripts/addons/txa_ant
+	url = https://github.com/nerk987/txa_ant.git
