@@ -285,15 +285,20 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		if inner_tool:
 			self.kmi_set_replace(inner_tool, self.k_select, 'CLICK', ctrl=True, alt=True, shift=True, disable_double=True)
 
-	def selection_tool(self, tool='builtin.select'):
+	def selection_tool(self, tool='builtin.select', alt='builtin.select_box'):
 		# select_tool = self.kmi_find(idname='wm.tool_set_by_id', properties=KeymapManager.bProp([('name', 'builtin.select_box')]))
 		# if select_tool:
 		# 	self.kmi_prop_setattr(select_tool.properties, "name", 'Select')
 		# 	self.kmi_prop_setattr(select_tool.properties, "cycle", False)
 		if self.km.name in ['Sculpt']:
 			self.kmi_set_replace('wm.tool_set_by_id', self.k_menu, "PRESS", properties=[('name', tool)])
+			if alt:
+				self.kmi_set_replace('wm.tool_set_by_id', self.k_menu, "PRESS", ctrl=True, properties=[('name', alt)])
 		else:
 			self.kmi_set_replace('wm.tool_set_by_id', self.k_menu, "PRESS", properties=[('name', tool), ('cycle', False)])
+			if alt:
+				self.kmi_set_replace('wm.tool_set_by_id', self.k_menu, "PRESS", ctrl=True, properties=[('name', alt), ('cycle', False)])
+
 
 
 	def right_mouse(self):
@@ -396,9 +401,12 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 	def tool_center(self, pivot=None, orientation=None, action_center_context=None):
 		print(pivot, orientation)
 		if pivot:
-			self.kmi_set_replace('wm.call_panel', 'X', 'PRESS', ctrl=True, properties=[('name', pivot), ('keep_open', False)], disable_double=True)
-		# if orientation:
-		# 	self.kmi_set_replace('wm.call_panel', 'X', 'PRESS', ctrl=True, shift=True, properties=[('name', orientation), ('keep_open', False)], disable_double=True)
+			if self.km.name in ['Uv Editor']:
+				self.kmi_set_replace('wm.context_menu_enum', 'X', 'PRESS', ctrl=True, properties=[('name', pivot), ('keep_open', False)], disable_double=True)
+			else:
+				self.kmi_set_replace('wm.call_panel', 'X', 'PRESS', ctrl=True, properties=[('name', pivot), ('keep_open', False)], disable_double=True)
+		if orientation:
+			self.kmi_set_replace('wm.call_panel', 'X', 'PRESS', ctrl=True, shift=True, properties=[('name', orientation), ('keep_open', False)], disable_double=True)
 		if action_center_context:
 			self.kmi_set_replace('wm.call_menu', 'X', 'PRESS', alt=True, properties=[('name', 'TILA_MT_action_center')], disable_double=True)
 	
@@ -567,7 +575,7 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		self.tool_smooth()
 		self.hide_reveal(hide='uv.hide', unhide='uv.reveal')
 		self.snap(snapping='wm.context_menu_enum', snapping_prop=[('data_path', 'tool_settings.snap_uv_element')])
-		self.tool_center(pivot='SpaceImageEditor.pivot_point')
+		self.tool_center(pivot='space_data.pivot_point', orientation='IMAGE_PT_snapping')
 
 		self.kmi_set_replace('wm.tool_set_by_id', 'W', 'PRESS', ctrl=True, alt=True, shift=True, properties=[('name', 'builtin_brush.Grab')])
 		self.tool_radial_control(radius=[('data_path_primary', 'tool_settings.uv_sculpt.brush.size'), ('data_path_secondary', 'tool_settings.unified_paint_settings.size'), ('use_secondary', 'tool_settings.unified_paint_settings.use_unified_size'), ('rotation_path', 'tool_settings.uv_sculpt.brush.texture_slot.angle'), ('color_path', 'tool_settings.uv_sculpt.brush.cursor_color_add'), ('image_id', 'tool_settings.uv_sculpt.brush')],
@@ -575,8 +583,22 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 							   'rotation_path', 'tool_settings.uv_sculpt.brush.texture_slot.angle'), ('color_path', 'tool_settings.uv_sculpt.brush.cursor_color_add'), ('image_id', 'tool_settings.uv_sculpt.brush')],
 						   		eraser_radius=[('data_path_primary', 'tool_settings.uv_sculpt.brush.texture_slot.angle'), ('rotation_path', 'tool_settings.uv_sculpt.brush.texture_slot.angle'), ('color_path', 'tool_settings.uv_sculpt.brush.cursor_color_add'), ('image_id', 'tool_settings.uv_sculpt.brush')])
 
-		self.kmi_set_replace('uv.minimize_stretch', 'R', 'PRESS', alt=True, shift=True, disable_double=True)
+
+		self.kmi_set_replace('uv.minimize_stretch', 'R', 'PRESS', ctrl=True, disable_double=True)
 		self.kmi_set_replace('wm.call_menu_pie', 'F', 'PRESS', alt=True, shift=True, properties=[('name', 'UVTOOLKIT_MT_pie_uv_editor')])
+
+		self.kmi_set_replace('uv.stitch', 'V', 'PRESS',  disable_double=True)
+		self.kmi_set_replace('uv.select_split', 'V', 'PRESS', shift=True, disable_double=True)
+
+		self.kmi_set_replace('uv.toolkit_straighten', 'G', 'PRESS', ctrl=True, disable_double=True, properties=[('gridify', False)])
+		self.kmi_set_replace('uv.toolkit_unwrap_selected', 'E', 'PRESS', ctrl=True, disable_double=True, properties=[('gridify', False)])
+		self.kmi_set_replace('uvpackmaster2.uv_pack', 'P', 'PRESS', ctrl=True, disable_double=True)
+
+
+		self.kmi_set_replace('transform.translate', 'UP_ARROW', 'PRESS', ctrl=True, alt=True, shift=True, disable_double=True, properties=[('value', (0.0,1.0,0.0)), ('release_confirm', True)])
+		self.kmi_set_replace('transform.translate', 'DOWN_ARROW', 'PRESS', ctrl=True, alt=True, shift=True, disable_double=True, properties=[('value', (0.0,-1.0,0.0)), ('release_confirm', True)])
+		self.kmi_set_replace('transform.translate', 'LEFT_ARROW', 'PRESS', ctrl=True, alt=True, shift=True, disable_double=True, properties=[('value', (-1.0,0.0,0.0)), ('release_confirm', True)])
+		self.kmi_set_replace('transform.translate', 'RIGHT_ARROW', 'PRESS', ctrl=True, alt=True, shift=True, disable_double=True, properties=[('value', (1.0,0.0,0.0)), ('release_confirm', True)])
 
 		###### Mesh
 		self.kmi_init(name='Mesh', space_type='EMPTY', region_type='WINDOW')
@@ -715,7 +737,7 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		self.global_keys()
 		self.right_mouse()
 		self.tool_sculpt('sculpt.sculptmode_toggle')
-		self.selection_tool(tool='builtin_brush.Grab')
+		self.selection_tool(tool='builtin_brush.Grab', alt='builtin_brush.Mask')
 		self.tool_transform()
 
 		self.tool_subdivision()

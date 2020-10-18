@@ -66,7 +66,7 @@ modules =   (
             'BakeWrangler',
             'atomic_data_manager',
             # 'ZWeightTools-1_0_1',
-            'W_Mesh',
+            # 'W_Mesh',
             'uvpackmaster2',
             'uv_toolkit',
             'lineup_maker',
