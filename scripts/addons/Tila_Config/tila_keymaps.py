@@ -584,11 +584,13 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 						   		eraser_radius=[('data_path_primary', 'tool_settings.uv_sculpt.brush.texture_slot.angle'), ('rotation_path', 'tool_settings.uv_sculpt.brush.texture_slot.angle'), ('color_path', 'tool_settings.uv_sculpt.brush.cursor_color_add'), ('image_id', 'tool_settings.uv_sculpt.brush')])
 
 
-		self.kmi_set_replace('uv.minimize_stretch', 'R', 'PRESS', ctrl=True, disable_double=True)
+		self.kmi_set_replace('uv.minimize_stretch', 'R', 'PRESS', ctrl=True, disable_double=True, properties=[('iterations', 10)])
 		self.kmi_set_replace('wm.call_menu_pie', 'F', 'PRESS', alt=True, shift=True, properties=[('name', 'UVTOOLKIT_MT_pie_uv_editor')])
 
 		self.kmi_set_replace('uv.stitch', 'V', 'PRESS',  disable_double=True)
 		self.kmi_set_replace('uv.select_split', 'V', 'PRESS', shift=True, disable_double=True)
+		self.kmi_set_replace('uv.uv_face_rip', 'V', 'PRESS', ctrl=True, disable_double=True)
+
 
 		self.kmi_set_replace('uv.toolkit_straighten', 'G', 'PRESS', ctrl=True, disable_double=True, properties=[('gridify', False)])
 		self.kmi_set_replace('uv.toolkit_unwrap_selected', 'E', 'PRESS', ctrl=True, disable_double=True, properties=[('gridify', False)])
@@ -599,6 +601,11 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		self.kmi_set_replace('transform.translate', 'DOWN_ARROW', 'PRESS', ctrl=True, alt=True, shift=True, disable_double=True, properties=[('value', (0.0,-1.0,0.0)), ('release_confirm', True)])
 		self.kmi_set_replace('transform.translate', 'LEFT_ARROW', 'PRESS', ctrl=True, alt=True, shift=True, disable_double=True, properties=[('value', (-1.0,0.0,0.0)), ('release_confirm', True)])
 		self.kmi_set_replace('transform.translate', 'RIGHT_ARROW', 'PRESS', ctrl=True, alt=True, shift=True, disable_double=True, properties=[('value', (1.0,0.0,0.0)), ('release_confirm', True)])
+
+		self.kmi_set_replace('uv.toolkit_align_uv', 'UP_ARROW', 'PRESS', ctrl=True, alt=False, shift=False, disable_double=True, properties=[('align_uv', 'MAX_V')])
+		self.kmi_set_replace('uv.toolkit_align_uv', 'DOWN_ARROW', 'PRESS', ctrl=True, alt=False, shift=False, disable_double=True, properties=[('align_uv', 'MIN_V')])
+		self.kmi_set_replace('uv.toolkit_align_uv', 'LEFT_ARROW', 'PRESS', ctrl=True, alt=False, shift=False, disable_double=True, properties=[('align_uv', 'MIN_U')])
+		self.kmi_set_replace('uv.toolkit_align_uv', 'RIGHT_ARROW', 'PRESS', ctrl=True, alt=False, shift=False, disable_double=True, properties=[('align_uv', 'MAX_U')])
 
 		###### Mesh
 		self.kmi_init(name='Mesh', space_type='EMPTY', region_type='WINDOW')
@@ -622,7 +629,7 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 							linked_pick_tool='mesh.select_linked_pick',
 							invert_tool='mesh.select_all', inner_tool='mesh.loop_to_region')
 
-		# self.kmi_set_active(False, idname='mesh.select_linked_pick', ctrl=False)
+		self.kmi_set_active(True, idname='mesh.select_linked_pick', type=self.k_linked)
 		self.kmi_set_active(False, idname='object.switch_object')
 
 		self.duplicate(duplicate='mesh.duplicate_move')
