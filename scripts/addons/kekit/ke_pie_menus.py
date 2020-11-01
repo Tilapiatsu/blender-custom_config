@@ -20,8 +20,6 @@ class VIEW3D_OT_ke_pieops(Operator):
         return {'FINISHED'}
 
 
-
-
 class VIEW3D_OT_ke_snap_target(Operator):
     bl_idname = "ke.snap_target"
     bl_label = "Snap Target"
@@ -89,6 +87,27 @@ class VIEW3D_OT_ke_snap_element(Operator):
 # -------------------------------------------------------------------------------------------------
 # Custom Pie Menus    Note: COMPASS STYLE REF PIE SLOT POSITIONS:   W, E, S, N, NW, NE, SW, SE
 # -------------------------------------------------------------------------------------------------
+
+
+class VIEW3D_MT_PIE_ke_fitprim(Menu):
+    bl_label = "ke.fit_prim"
+    bl_idname = "VIEW3D_MT_ke_pie_fitprim"
+
+    def draw(self, context):
+        # if self.ke_fitprim_option in {'BOX_OBJ', 'CYL_OBJ', 'SPHERE_OBJ', 'QUADSPHERE'}:
+
+        layout = self.layout
+        pie = layout.menu_pie()
+        pie.operator("view3d.ke_fitprim", text="Cylinder Obj", icon='MESH_CYLINDER').ke_fitprim_option = 'CYL_OBJ'
+        pie.operator("view3d.ke_fitprim", text="Cylinder", icon='MESH_CYLINDER').ke_fitprim_option = 'CYL'
+        pie.operator("view3d.ke_fitprim", text="Cube Obj", icon="MESH_CUBE").ke_fitprim_option = 'BOX_OBJ'
+        pie.operator("view3d.ke_fitprim", text="Cube", icon="CUBE").ke_fitprim_option = 'BOX'
+        pie.operator("view3d.ke_fitprim", text="Sphere Obj", icon='MESH_UVSPHERE').ke_fitprim_option = 'SPHERE_OBJ'
+        pie.operator("view3d.ke_fitprim", text="Sphere", icon='SPHERE').ke_fitprim_option = 'SPHERE'
+        pie.operator("view3d.ke_fitprim", text="Quadsphere Obj", icon="CLIPUV_HLT").ke_fitprim_option = 'QUADSPHERE_OBJ'
+        pie.operator("view3d.ke_fitprim", text="Quadsphere", icon="MOD_SUBSURF").ke_fitprim_option = 'QUADSPHERE'
+
+
 class VIEW3D_MT_PIE_ke_align(Menu):
     bl_label = "keSnapAlign"
     bl_idname = "VIEW3D_MT_ke_pie_align"
@@ -336,7 +355,7 @@ class VIEW3D_MT_PIE_ke_overlays(Menu):
         else:
             cbox.operator("view3d.ke_overlays", text="Object Wireframes", icon="MOD_WIREFRAME", depress=False).overlay = "WIREFRAMES"
 
-        cbox.separator()
+        # cbox.separator()
 
         if bpy.context.space_data.overlay.show_object_origins:
             cbox.operator("view3d.ke_overlays", text="Origins", icon="OBJECT_ORIGIN", depress=True).overlay = "ORIGINS"
@@ -344,9 +363,14 @@ class VIEW3D_MT_PIE_ke_overlays(Menu):
             cbox.operator("view3d.ke_overlays", text="Origins", icon="OBJECT_ORIGIN", depress=False).overlay = "ORIGINS"
 
         if bpy.context.space_data.overlay.show_outline_selected:
-            cbox.operator("view3d.ke_overlays", text="Outline", icon="MESH_CIRCLE", depress=True).overlay = "OUTLINE"
+            cbox.operator("view3d.ke_overlays", text="Select Outline", icon="MESH_CIRCLE", depress=True).overlay = "OUTLINE"
         else:
-            cbox.operator("view3d.ke_overlays", text="Outline", icon="MESH_CIRCLE", depress=False).overlay = "OUTLINE"
+            cbox.operator("view3d.ke_overlays", text="Select Outline", icon="MESH_CIRCLE", depress=False).overlay = "OUTLINE"
+
+        if bpy.context.space_data.shading.show_object_outline:
+            cbox.operator("view3d.ke_overlays", text="Object Outline", icon="MESH_CIRCLE", depress=True).overlay = "OBJ_OUTLINE"
+        else:
+            cbox.operator("view3d.ke_overlays", text="Object Outline", icon="MESH_CIRCLE", depress=False).overlay = "OBJ_OUTLINE"
 
 
         # cbox.separator()
@@ -682,6 +706,7 @@ classes = (
     VIEW3D_MT_PIE_ke_shading,
     VIEW3D_MT_PIE_ke_testpie,
     VIEW3D_MT_PIE_ke_align,
+    VIEW3D_MT_PIE_ke_fitprim,
     )
 
 def register():

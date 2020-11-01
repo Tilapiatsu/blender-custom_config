@@ -2,14 +2,14 @@ bl_info = {
     "name": "Merge To Mouse",
     "author": "Kjell Emanuelsson 2019",
     "wiki_url": "http://artbykjell.com",
-    "version": (1, 3, 1),
+    "version": (1, 3, 4),
     "blender": (2, 80, 0),
 }
 import bpy
 import bmesh
 from mathutils import Vector
 from bpy.types import Operator
-from .ke_utils import get_loops, flatten, get_vert_nearest_mouse
+from .ke_utils import get_loops, flatten, get_vert_nearest_mouse, get_area_and_type
 
 
 class MESH_OT_merge_to_mouse(Operator):
@@ -33,6 +33,10 @@ class MESH_OT_merge_to_mouse(Operator):
         return self.execute(context)
 
     def execute(self, context):
+        areatype = get_area_and_type()[1]
+        if areatype == "QUAD":
+            bpy.ops.mesh.merge(type='LAST')
+            return {'FINISHED'}
 
         obj = bpy.context.object
         obj_mtx = obj.matrix_world.copy()

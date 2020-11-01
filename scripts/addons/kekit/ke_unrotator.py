@@ -2,12 +2,12 @@ bl_info = {
     "name": "keUnrotator",
     "author": "Kjell Emanuelsson",
     "category": "Modeling",
-    "version": (1, 3, 0),
-    "blender": (2, 80, 0),
+    "version": (1, 3, 1),
+    "blender": (2, 90, 0),
 }
 import bpy
 import bmesh
-from .ke_utils import get_loops, average_vector, get_distance, mouse_raycast
+from .ke_utils import get_loops, average_vector, get_distance, mouse_raycast, tri_points_order
 from mathutils import Vector, Matrix, Euler
 from math import radians
 
@@ -23,18 +23,6 @@ def tri_sort(vertpairs):
                 e2 = [x for x in e if x != v][0]
                 break
     return [e1[0], e1[1], e2]
-
-
-def tri_points_order(vcoords):
-    # Avoiding the hypotenuse (always longest) for vec
-    vp = vcoords[0], vcoords[1], vcoords[2]
-    vp1 = get_distance(vp[0], vp[1])
-    vp2 = get_distance(vp[0], vp[2])
-    vp3 = get_distance(vp[1], vp[2])
-    vpsort = {"2": vp1, "1": vp2, "0": vp3}
-    r = [int(i) for i in sorted(vpsort, key=vpsort.__getitem__)]
-    r.reverse()
-    return r
 
 
 def unrotate(n_v, v_1, v_2, inv=False, set_inv=False, rot_offset=0):
@@ -112,11 +100,6 @@ class VIEW3D_OT_ke_unrotator(bpy.types.Operator):
         return self.execute(context)
 
     def execute(self, context):
-        if bpy.app.version[0] == 2 and bpy.app.version[1] < 83:
-            self.set_invert = False
-        else:
-            self.set_invert = True
-
         sel_check, place, noloc, place, dupe = False, False, False, False, False
         vec_poslist = []
         place_coords = []

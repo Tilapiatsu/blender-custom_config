@@ -400,11 +400,11 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 
 	def tool_center(self, pivot=None, orientation=None, action_center_context=None):
 		print(pivot, orientation)
-		if pivot:
-			if self.km.name in ['Uv Editor']:
-				self.kmi_set_replace('wm.context_menu_enum', 'X', 'PRESS', ctrl=True, properties=[('name', pivot), ('keep_open', False)], disable_double=True)
-			else:
-				self.kmi_set_replace('wm.call_panel', 'X', 'PRESS', ctrl=True, properties=[('name', pivot), ('keep_open', False)], disable_double=True)
+		# if pivot:
+		# 	if self.km.name in ['Uv Editor']:
+		# 		self.kmi_set_replace('wm.context_menu_enum', 'X', 'PRESS', ctrl=True, properties=[('name', pivot), ('keep_open', False)], disable_double=True)
+		# 	else:
+		# 		self.kmi_set_replace('wm.call_panel', 'X', 'PRESS', ctrl=True, properties=[('name', pivot), ('keep_open', False)], disable_double=True)
 		if orientation:
 			self.kmi_set_replace('wm.call_panel', 'X', 'PRESS', ctrl=True, shift=True, properties=[('name', orientation), ('keep_open', False)], disable_double=True)
 		if action_center_context:
@@ -686,9 +686,10 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		kmi = self.kmi_find(idname='wm.call_menu', type='V', ctrl=True)
 		if kmi:
 			kmi.shift = True
-			
-		self.kmi_set_replace('mesh.copyplus', 'C', "PRESS", ctrl=True)
-		self.kmi_set_replace('mesh.pasteplus', 'V', "PRESS", ctrl=True)
+		
+		self.kmi_set_replace('mesh.ke_copyplus', 'C', "PRESS", ctrl=True, properties=[('mode', 'COPY')])
+		self.kmi_set_replace('mesh.ke_copyplus', 'X', "PRESS", ctrl=True, properties=[('mode', 'CUT')])
+		self.kmi_set_replace('mesh.ke_copyplus', 'V', "PRESS", ctrl=True, properties=[('mode', 'PASTE')])
 		
 
 		# MACHINE3tools

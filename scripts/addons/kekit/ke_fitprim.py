@@ -2,7 +2,7 @@ bl_info = {
     "name": "keFitPrim",
     "author": "Kjell Emanuelsson",
     "category": "Modeling",
-    "version": (1, 3, 3),
+    "version": (1, 3, 4),
     "blender": (2, 80, 0),
 }
 import bpy
@@ -11,7 +11,7 @@ import bmesh
 from .ke_utils import get_loops, average_vector, get_distance, correct_normal, get_midpoint, get_closest_midpoint, \
     rotation_from_vector, point_to_plane, get_selection_islands
 from mathutils import Vector, Matrix
-from math import cos, pi
+from math import cos, pi, sqrt
 from bpy_extras.view3d_utils import region_2d_to_location_3d
 
 
@@ -105,6 +105,10 @@ class VIEW3D_OT_ke_fitprim(bpy.types.Operator):
                ("CYL", "Cylinder Mode", "", "CYL_MODE", 2),
                ("SPHERE", "UV Sphere", "", "SPHERE", 3),
                ("QUADSPHERE", "QuadSphere", "", "QUADSPHERE", 4),
+               ("BOX_OBJ", "Box Mode Obj", "", "BOX_MODE_OBJ", 5),
+               ("CYL_OBJ", "Cylinder Mode Obj", "", "CYL_MODE_OBJ", 6),
+               ("SPHERE_OBJ", "UV Sphere Obj", "", "SPHERE_OBJ", 7),
+               ("QUADSPHERE_OBJ", "QuadSphere Obj", "", "QUADSPHERE_OBJ", 8),
                ],
     name="FitPrim Options",
         default="BOX")
@@ -179,13 +183,13 @@ class VIEW3D_OT_ke_fitprim(bpy.types.Operator):
 
     def execute(self, context):
 
-        if self.ke_fitprim_option == "BOX":
+        if self.ke_fitprim_option == "BOX" or self.ke_fitprim_option == "BOX_OBJ":
             self.boxmode, self.world = True, False
-        elif self.ke_fitprim_option == "CYL":
+        elif self.ke_fitprim_option == "CYL" or self.ke_fitprim_option == "CYL_OBJ":
             self.boxmode, self.world = False, False
-        elif self.ke_fitprim_option == "SPHERE":
+        elif self.ke_fitprim_option == "SPHERE" or self.ke_fitprim_option == "SPHERE_OBJ":
             self.boxmode, self.world, self.sphere = False, False, True
-        elif self.ke_fitprim_option == "QUADSPHERE":
+        elif self.ke_fitprim_option == "QUADSPHERE" or self.ke_fitprim_option == "QUADSPHERE_OBJ":
             self.boxmode, self.world, self.sphere = False, False, True
 
         if bpy.context.scene.kekit.fitprim_item:
@@ -200,6 +204,9 @@ class VIEW3D_OT_ke_fitprim(bpy.types.Operator):
         self.sphere_ring = bpy.context.scene.kekit.fitprim_sphere_ring
         self.sphere_seg = bpy.context.scene.kekit.fitprim_sphere_seg
         self.quadsphere_seg = bpy.context.scene.kekit.fitprim_quadsphere_seg
+
+        if self.ke_fitprim_option in {'BOX_OBJ', 'CYL_OBJ', 'SPHERE_OBJ', 'QUADSPHERE_OBJ'}:
+            self.itemize = True
 
         self.edit_mode = bpy.context.mode
         sel_verts = []
@@ -586,21 +593,39 @@ class VIEW3D_OT_ke_fitprim(bpy.types.Operator):
                     bpy.ops.object.shade_smooth()
                     bpy.context.object.data.use_auto_smooth = True
 
-            elif self.sphere and not self.ke_fitprim_option == "QUADSPHERE":
+            elif self.sphere and not self.ke_fitprim_option in {"QUADSPHERE", "QUADSPHERE_OBJ"}:
                 bpy.ops.mesh.primitive_uv_sphere_add(segments=self.sphere_seg, ring_count=self.sphere_ring, radius=side,
                                                      align='WORLD', location=setpos, rotation=setrot)
                 if self.itemize or self.edit_mode == "OBJECT":
                     bpy.ops.object.shade_smooth()
                     bpy.context.object.data.use_auto_smooth = True
 
-            elif self.ke_fitprim_option == "QUADSPHERE":
-                as_check = bpy.context.object.data.use_auto_smooth
-                bpy.ops.mesh.primitive_round_cube_add(align='WORLD', location=setpos, rotation=setrot, radius=side,
-                                                      size=(0, 0, 0), arc_div=self.quadsphere_seg, lin_div=0,
-                                                      div_type='CORNERS')
+            elif self.ke_fitprim_option == "QUADSPHERE" or self.ke_fitprim_option == "QUADSPHERE_OBJ":
+                cutnr = self.quadsphere_seg
+
+                # calc compensated subd radius from cube
+                v1_pos = setpos[0] + side, setpos[1] + side, setpos[2] + side
+                rad = sqrt(sum([(a - b) ** 2 for a, b in zip(setpos, v1_pos)]))
+                diff = side / rad
+
+                side = (side * diff)
+                distance = side
+
+                bpy.ops.mesh.primitive_box_add(width=side, depth=side, height=distance,
+                                               align='WORLD', location=setpos, rotation=setrot)
+                # as_check = bpy.context.object.data.use_auto_smooth
+
+                if self.itemize or self.edit_mode == "OBJECT":
+                    bpy.ops.object.mode_set(mode="EDIT")
+                    bpy.ops.mesh.subdivide(number_cuts=cutnr, smoothness=1)
+                    bpy.ops.mesh.faces_shade_smooth()
+                    bpy.ops.object.mode_set(mode="OBJECT")
+                else:
+                    bpy.ops.mesh.subdivide(number_cuts=cutnr, smoothness=1)
+                    bpy.ops.mesh.faces_shade_smooth()
 
                 bpy.ops.ed.undo_push()
-                bpy.context.object.data.use_auto_smooth = as_check
+                # bpy.context.object.data.use_auto_smooth = as_check
 
                 if self.itemize or self.edit_mode == "OBJECT":
                     bpy.ops.object.shade_smooth()

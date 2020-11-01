@@ -268,9 +268,10 @@ class VIEW3D_OT_ke_overlays(Operator):
 			   ("BACKFACE", "Backface Culling", "", "BACKFACE", 14),
 			   ("ORIGINS", "Show Origins", "", "ORIGINS", 15),
 			   ("CURSOR", "Show Cursor", "", "CURSOR", 16),
-			   ("OUTLINE", "Show Outline", "", "OUTLINE", 17),
+			   ("OUTLINE", "Show Selection Outline", "", "OUTLINE", 17),
 			   ("WIREFRAMES", "Show Object Wireframes", "", "WIREFRAMES", 18),
 			   ("GRID", "Show Grid (3D View)", "", "GRID", 19),
+			   ("OBJ_OUTLINE", "Show Object Outline", "", "OBJ_OUTLINE", 20),
 			   ],
 		name="Overlay Type",
 		default="WIRE")
@@ -308,6 +309,10 @@ class VIEW3D_OT_ke_overlays(Operator):
 		elif self.overlay == "CURSOR":
 			status = bpy.context.space_data.overlay.show_cursor
 			bpy.context.space_data.overlay.show_cursor = not status
+
+		elif self.overlay == "OBJ_OUTLINE":
+			status = bpy.context.space_data.shading.show_object_outline
+			bpy.context.space_data.shading.show_object_outline = not status
 
 		# Mode contextual
 		if bpy.context.mode == "EDIT_MESH":
