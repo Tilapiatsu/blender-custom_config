@@ -687,9 +687,9 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		if kmi:
 			kmi.shift = True
 		
-		self.kmi_set_replace('mesh.ke_copyplus', 'C', "PRESS", ctrl=True, properties=[('mode', 'COPY')])
-		self.kmi_set_replace('mesh.ke_copyplus', 'X', "PRESS", ctrl=True, properties=[('mode', 'CUT')])
-		self.kmi_set_replace('mesh.ke_copyplus', 'V', "PRESS", ctrl=True, properties=[('mode', 'PASTE')])
+		self.kmi_set_replace('mesh.ke_copyplus', 'C', "PRESS", ctrl=True, properties=[('mode', 'COPY')], disable_double=True)
+		self.kmi_set_replace('mesh.ke_copyplus', 'X', "PRESS", ctrl=True, properties=[('mode', 'CUT')], disable_double=True)
+		self.kmi_set_replace('mesh.ke_copyplus', 'V', "PRESS", ctrl=True, properties=[('mode', 'PASTE')], disable_double=True)
 		
 
 		# MACHINE3tools
