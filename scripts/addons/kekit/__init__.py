@@ -2,7 +2,7 @@ bl_info = {
     "name": "keKIT",
     "author": "Kjell Emanuelsson",
     "category": "Modeling",
-    "version": (1, 3, 6, 2),
+    "version": (1, 3, 6, 5),
     "blender": (2, 80, 0),
     "location": "View3D > Sidebar",
     "warning": "",
@@ -18,7 +18,7 @@ bl_info = {
 from . import _prefs
 from . import ke_orient_and_pivot
 from . import ke_cursor_fit
-from . import ke_copypasteplus
+from . import ke_copyplus
 from . import ke_merge_to_mouse
 from . import ke_contextops
 from . import ke_get_set_edit_mesh
@@ -42,7 +42,7 @@ from . import ke_quickscale
 import bpy
 from bpy.types import Panel
 
-nfo = "keKit v1.362"
+nfo = "keKit v1.365"
 # -------------------------------------------------------------------------------------------------
 # SUB MENU PANELS
 # -------------------------------------------------------------------------------------------------
@@ -195,6 +195,7 @@ class VIEW3D_PT_PieMenus(Panel):
         pie.operator("wm.call_menu_pie", text="keOverlays", icon="DOT").name = "VIEW3D_MT_ke_pie_overlays"
         pie.operator("wm.call_menu_pie", text="keShading", icon="DOT").name = "VIEW3D_MT_ke_pie_shading"
         pie.operator("wm.call_menu_pie", text="keSnapAlign", icon="DOT").name = "VIEW3D_MT_ke_pie_align"
+        pie.operator("wm.call_menu_pie", text="keFitPrim", icon="DOT").name = "VIEW3D_MT_ke_pie_fitprim"
 
 
 # Orientation & Pivot combo panels
@@ -406,8 +407,9 @@ class VIEW3D_PT_kekit(Panel):
         col = layout.column(align=True)
         col.prop(context.scene.kekit, "selmode_mouse", text="Mouse Over Select & Set Mode")
         row = layout.row(align=True)
-        row.operator('MESH_OT_copyplus', text="Copy+")
-        row.operator('MESH_OT_pasteplus', text="Paste+")
+        row.operator('MESH_OT_ke_copyplus', text="Cut+").mode = "CUT"
+        row.operator('MESH_OT_ke_copyplus', text="Copy+").mode = "COPY"
+        row.operator('MESH_OT_ke_copyplus', text="Paste+").mode = "PASTE"
         col = layout.column(align=True)
         col.operator('VIEW3D_OT_ke_spacetoggle', icon="MOUSE_MOVE", text="SpaceToggle")
         col.operator("VIEW3D_OT_cursor_fit_selected_and_orient", text="Cursor Fit & Align")
@@ -476,7 +478,7 @@ modules = (
     _prefs,
     ke_orient_and_pivot,
     ke_cursor_fit,
-    ke_copypasteplus,
+    ke_copyplus,
     ke_merge_to_mouse,
     ke_contextops,
     ke_get_set_edit_mesh,

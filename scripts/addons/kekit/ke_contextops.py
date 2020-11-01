@@ -2,7 +2,7 @@ bl_info = {
 	"name": "keContextOps",
 	"author": "Kjell Emanuelsson",
 	"category": "Modeling",
-	"version": (1, 3, 1),
+	"version": (1, 3, 2),
 	"blender": (2, 80, 0),
 }
 
@@ -77,7 +77,8 @@ class VIEW3D_OT_ke_contextdelete(Operator):
 			if sel_mode[0]:
 				bpy.ops.mesh.delete(type='VERT')
 			elif sel_mode[1]:
-				bpy.ops.mesh.delete(type='EDGE')
+				bpy.ops.mesh.dissolve_edges(use_verts=True)
+				# bpy.ops.mesh.delete(type='EDGE')  # useless? just delete faces if you want to delete faces....
 			elif sel_mode[2]:
 				bpy.ops.mesh.delete(type='FACE')
 
@@ -107,7 +108,7 @@ class MESH_OT_ke_contextdissolve(Operator):
 			bpy.ops.mesh.dissolve_verts()
 		elif sel_mode[1]:
 			bpy.ops.mesh.dissolve_edges(use_verts=False)
-			bpy.ops.mesh.dissolve_limited()
+			# bpy.ops.mesh.dissolve_limited()
 		elif sel_mode[2]:
 			bpy.ops.mesh.dissolve_faces()
 		return {'FINISHED'}

@@ -2,7 +2,7 @@ bl_info = {
     "name": "MouseMirror",
     "author": "Kjell Emanuelsson 2020",
     "wiki_url": "http://artbykjell.com",
-    "version": (1, 0, 1),
+    "version": (1, 0, 2),
     "blender": (2, 80, 0),
 }
 import bpy
@@ -226,7 +226,7 @@ class VIEW3D_OT_ke_mouse_mirror(Operator):
                                  use_accurate=False)
 
         if context.object.data.is_editmode:
-            bpy.ops.mesh.normals_make_consistent(inside=False)
+            bpy.ops.mesh.flip_normals()
 
         if self.center == "BBOX":
             bpy.context.scene.tool_settings.transform_pivot_point = og_pivot

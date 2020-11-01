@@ -71,6 +71,19 @@ def get_3d_view():
     return get_area_of_type('VIEW_3D').spaces[0]
 
 
+def get_area_and_type():
+    for area in bpy.context.screen.areas:
+        if area.type == 'VIEW_3D':
+            for space in area.spaces:
+                if space.type == 'VIEW_3D':
+                    if len(space.region_quadviews) > 0:
+                        return area, "QUAD"
+                    elif space.region_3d.is_perspective:
+                        return area, "PERSP"
+                    else:
+                        return area, "ORTHO"
+
+
 def rotation_from_vector(normal_vec, tangent_vec, rotate90=True, rw=True):
     up_vec = Vector((0, 0, 1))
     if normal_vec.dot(up_vec) <= 0.00001: up_vec = Vector((1, 0, 0))
@@ -86,6 +99,7 @@ def rotation_from_vector(normal_vec, tangent_vec, rotate90=True, rw=True):
 
 
 def tri_points_order(vcoords):
+    # Avoiding the hypotenuse (always longest) for vec
     vp = vcoords[0], vcoords[1], vcoords[2]
     vp1 = get_distance(vp[0], vp[1])
     vp2 = get_distance(vp[0], vp[2])
