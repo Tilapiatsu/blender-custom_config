@@ -734,7 +734,7 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		self.kmi_set_replace('wm.call_menu_pie', 'S', 'PRESS', alt=True, shift=True, properties=[('name', 'TILA_MT_pie_normal')], disable_double=True)
 
 		self.kmi_set_replace('outliner.tila_group_selected', 'G', 'PRESS', ctrl=True, properties=[('mode', 'GROUP_TO_BIGGER_NUMBER')], disable_double=True)
-		self.kmi_set_replace('outliner.tila_group_selected', 'G', 'PRESS', ctrl=True, shift=True, properties=[('mode', 'ADDg_TO_ACTIVE')], disable_double=True)
+		self.kmi_set_replace('outliner.tila_group_selected', 'G', 'PRESS', ctrl=True, shift=True, properties=[('mode', 'MOVE_TO_ACTIVE')], disable_double=True)
 
 		###### 3D View Tool: Select
 		self.kmi_init(name='3D View Tool: Tweak', space_type='EMPTY', region_type='WINDOW')
