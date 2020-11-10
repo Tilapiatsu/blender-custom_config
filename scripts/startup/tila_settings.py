@@ -72,12 +72,12 @@ bpy.context.preferences.edit.keyframe_new_interpolation_type = "LINEAR"
 
 # Input Settings
 bpy.context.preferences.inputs.view_zoom_axis = "HORIZONTAL"
-bpy.context.preferences.inputs.use_trackpad_natural = True
 bpy.context.preferences.inputs.ndof_view_navigate_method = "FREE"
-bpy.context.preferences.inputs.ndof_view_rotate_method = "TRACKBALL"
 bpy.context.preferences.inputs.view_rotate_method = "TRACKBALL"
+bpy.context.preferences.inputs.ndof_view_rotate_method = "TRACKBALL"
 bpy.context.preferences.inputs.use_auto_perspective = True
 bpy.context.preferences.inputs.use_mouse_depth_navigate = True
+bpy.context.preferences.inputs.use_numeric_input_advanced = True
 # bpy.context.preferences.inputs.use_mouse_emulate_3_button = True
 bpy.context.preferences.inputs.use_zoom_to_mouse = True
 
