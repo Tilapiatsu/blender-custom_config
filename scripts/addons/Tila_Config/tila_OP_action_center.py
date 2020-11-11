@@ -6,8 +6,8 @@ class TILA_action_center(bpy.types.Operator):
     bl_label = "Set action center"
     bl_options = {'REGISTER', 'UNDO'}
 
-    action_center = bpy.props.StringProperty(name="Action Center", default='AUTO')
-    context = bpy.props.StringProperty(name="context", default='VIEW3D')
+    action_center : bpy.props.StringProperty(name="Action Center", default='AUTO')
+    context : bpy.props.StringProperty(name="context", default='VIEW3D')
 
     compatible_action_center = ['AUTO',
                                 'SELECTION',

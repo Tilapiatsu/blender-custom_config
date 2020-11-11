@@ -5,9 +5,9 @@ class TILA_brush_select_and_paint(bpy.types.Operator):
     bl_idname = "paint.tila_brush_select_and_paint"
     bl_label = "Select Brush and Paint"
 
-    tool = bpy.props.StringProperty(name="tool", default='SCULPT')
-    default_brush = bpy.props.StringProperty(name="default brush", default='DRAW')
-    brush = bpy.props.StringProperty(name="brush", default='DRAW')
+    tool : bpy.props.StringProperty(name="tool", default='SCULPT')
+    default_brush : bpy.props.StringProperty(name="default brush", default='DRAW')
+    brush : bpy.props.StringProperty(name="brush", default='DRAW')
 
     compatible_tools = ['SCULPT', 'VERTEX', 'WEIGHT', 'IMAGE', 'GPENCIL']
 

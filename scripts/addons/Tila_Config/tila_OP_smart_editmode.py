@@ -21,11 +21,11 @@ class TILA_smart_editmode(bpy.types.Operator):
     bl_label = "Smart Edit Mode"
     bl_options = {'REGISTER', 'UNDO'}
 
-    mode = bpy.props.IntProperty(name='mode', default=0)
-    use_extend = bpy.props.BoolProperty(name='use_extend', default=False)
-    use_expand = bpy.props.BoolProperty(name='use_expand', default=False)
-    get_border = bpy.props.BoolProperty(name='get_border', default=False)
-    alt_mode = bpy.props.BoolProperty(name='alt_mode', default=False)
+    mode : bpy.props.IntProperty(name='mode', default=0)
+    use_extend : bpy.props.BoolProperty(name='use_extend', default=False)
+    use_expand : bpy.props.BoolProperty(name='use_expand', default=False)
+    get_border : bpy.props.BoolProperty(name='get_border', default=False)
+    alt_mode : bpy.props.BoolProperty(name='alt_mode', default=False)
 
     mesh_mode = ['VERT', 'EDGE', 'FACE']
     gpencil_mode = ['POINT', 'STROKE', 'SEGMENT']

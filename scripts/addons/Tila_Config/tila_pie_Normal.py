@@ -136,7 +136,7 @@ class TILA_OT_selectBorderEdges(bpy.types.Operator):
     bl_label = "Tilapiatsu select border edge of current face selection"
     bl_options = {'REGISTER', 'UNDO'}
 
-    mode = bpy.props.EnumProperty(name='mode', items=(('ACTIVE', 'Active', 'Active'), ('SELECTED', 'Selected', 'Selected')), default='SELECTED')
+    mode : bpy.props.EnumProperty(name='mode', items=(('ACTIVE', 'Active', 'Active'), ('SELECTED', 'Selected', 'Selected')), default='SELECTED')
 
     def select_border(self, context, object):
         if context.mode == "EDIT_MESH":
@@ -412,7 +412,7 @@ class TILA_OT_autoSmooth(bpy.types.Operator):
     bl_label = "Tilapiatsu Auto Smooth"
     bl_options = {'REGISTER', 'UNDO'}
 
-    value = bpy.props.BoolProperty(name='value', default=True)
+    value : bpy.props.BoolProperty(name='value', default=True)
 
     def execute(self, context):
         active = bpy.context.active_object
