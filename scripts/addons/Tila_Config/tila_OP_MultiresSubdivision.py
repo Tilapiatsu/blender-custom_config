@@ -185,7 +185,7 @@ class TILA_multires_delete_subdiv(bpy.types.Operator):
 	bl_label = "TILA : Multires Delete Subdivision"
 	bl_options = {'REGISTER', 'UNDO'}
 
-	delete_target = bpy.props.StringProperty(name='subd', default='HIGHER')
+	delete_target : bpy.props.StringProperty(name='subd', default='HIGHER')
 
 	multires_modifier = None
 	active_object = None
