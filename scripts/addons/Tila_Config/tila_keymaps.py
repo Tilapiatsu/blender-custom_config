@@ -778,6 +778,9 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		self.kmi_set_replace('sculpt.face_set_edit', 'W', 'PRESS', ctrl=True, properties=[('mode','SHRINK')], disable_double=True)
 		self.kmi_set_replace('sculpt.face_set_edit', 'W', 'PRESS', ctrl=True, shift=True, properties=[('mode','GROW')], disable_double=True)
 
+		# self.kmi_set_replace('sculpt.set_pivot_position', 'EVT_TWEAK_L', 'EAST', ctrl=True, alt=True, shift=True, properties=[('mode','BORDER')], disable_double=True)
+		self.kmi_set_replace('sculpt.set_pivot_position', self.k_manip, 'PRESS', ctrl=True, alt=True, shift=True, properties=[('mode','SURFACE')], disable_double=True)
+
 		self.kmi_set_replace('wm.context_toggle', 'F', 'PRESS', shift=True, properties=[('data_path', 'scene.tool_settings.sculpt.show_face_sets')], disable_double=True)
 
 		# self.kmi_set_replace('view3d.tila_inverse_visibility', self.k_nav, 'PRESS', ctrl=True, shift=True)
