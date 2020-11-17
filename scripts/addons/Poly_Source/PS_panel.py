@@ -21,32 +21,36 @@ class PS_PT_settings_draw_mesh(Panel):
         return activate()
 
     def draw(self, context):
-        props = bpy.context.preferences.addons[__package__.split(".")[0]].preferences
-        settings = bpy.context.scene.polySource_set
+        props = context.preferences.addons[__package__.split(".")[0]].preferences
+        settings = context.scene.ps_set_
 
         layout = self.layout
-        layout.prop(settings, "draw_advance", toggle=True)
+     
 
-        
-        
+    
+        if settings.retopo_mode == False: 
+            layout.prop(settings, "retopo_mode", toggle=True)
 
-        if settings.draw_advance == True: 
+        else:
             box = layout.box()
-            box.prop(props, "retopo_mode", toggle=True)
+            box.prop(settings, "retopo_mode", toggle=True)
 
-            
+
+            box.prop(props, "verts_size")
             box.prop(props, "edge_width")
+            box.prop(props, "z_bias", text="Z-Bias:")
+            box.prop(props, "opacity", text="Opacity:")
+            box.prop(props, "xray_ret")
 
 
-            if context.mode == 'EDIT_MESH':
-                if props.retopo_mode == True:
-                    box.prop(props, "z_bias", text="Z-Bias:")
-                    box.prop(props, "opacity", text="Opacity:")
-                    
-                    
+
+        if settings.mesh_check == False: 
+            layout.prop(settings, "mesh_check", toggle=True)
                 
-            
+        else:
             box = layout.box()
+            box.prop(settings, "mesh_check", toggle=True)
+    
             row = box.row()
             col = row.column()
             col.scale_y = 1.5
@@ -62,13 +66,29 @@ class PS_PT_settings_draw_mesh(Panel):
             col.prop(props, "ngone", toggle=True)
             col.prop(props, "non_manifold_check", toggle=True)
             
-            layout.prop(props, "xray", toggle=True)
-        layout.prop(context.space_data.overlay, "show_occlude_wire", toggle=True)
+            box.prop(props, "xray_che")
+
+        layout.prop(props, "max_points")
+        layout.prop(context.space_data.overlay, "show_occlude_wire")
+
+
+
+        if settings.polycount == False:
+            layout.prop(settings, "polycount", toggle=True)
+        
+        else:
+            box = layout.box()
+            box.prop(settings, "polycount", toggle=True)
+        
+            row = box.row(align=True)
+            row.prop(settings, "tris_count")
+            row.scale_x = 0.4
+            row.prop(props, "low_suffix", toggle=True)
 
 
 
 def draw_panel(self, context, row):
-    #layout = self.layout
+    props = context.preferences.addons[__package__.split(".")[0]].preferences
     pcoll = preview_collections["main"]
 
     obj = context.active_object
@@ -81,63 +101,67 @@ def draw_panel(self, context, row):
             quad = 0
             ngon = 0
             
+            if len(obj.data.vertices) < props.max_points:
+                if context.mode != 'EDIT_MESH': 
+                    for loop in obj.data.polygons:
+                        count = loop.loop_total
+                        if count == 3:
+                            tris += 1
+                        elif count == 4:
+                            quad += 1
+                        else:
+                            ngon += 1 
 
-            if context.mode != 'EDIT_MESH': 
-                for loop in obj.data.polygons:
-                    count = loop.loop_total
-                    if count == 3:
-                        tris += 1
-                    elif count == 4:
-                        quad += 1
-                    else:
-                        ngon += 1 
 
+                else: 
+                    bm = bmesh.from_edit_mesh(obj.data)
+                    for face in bm.faces:
+                        verts = 0
+                        for i in face.verts:
+                            verts += 1
 
-            else: 
-                bm = bmesh.from_edit_mesh(obj.data)
-                for face in bm.faces:
-                    verts = 0
-                    for i in face.verts:
-                        verts += 1
-
-                    if verts == 3:
-                        tris += 1
-                    elif verts == 4:
-                        quad += 1
-                    else:
-                        ngon += 1 
+                        if verts == 3:
+                            tris += 1
+                        elif verts == 4:
+                            quad += 1
+                        else:
+                            ngon += 1 
+            
 
 
             
 
                 #bmesh.update_edit_mesh(obj.data) 
 
-            polyNGon = str(ngon)
-            polyQuad = str(quad)
-            polyTris = str(tris)
-            
-
-            
-            #layout = self.layout
-            #layout.separator()
-            #row = layout.row(align=True) 
-            #row.alignment='LEFT'
-            ngon_icon = pcoll["ngon_icon"] 
-            quad_icon = pcoll["quad_icon"]
-            tris_icon = pcoll["tris_icon"] 
-            
-            row.operator("mesh.ps_ngons", text=polyNGon, icon_value=ngon_icon.icon_id)    
-            row.operator("mesh.ps_quads", text=polyQuad, icon_value=quad_icon.icon_id)
-            row.operator("mesh.ps_tris", text=polyTris, icon_value=tris_icon.icon_id)
+                polyNGon = str(ngon)
+                polyQuad = str(quad)
+                polyTris = str(tris)
+                
 
                 
+                #layout = self.layout
+                #layout.separator()
+                #row = layout.row(align=True) 
+                #row.alignment='LEFT'
+                ngon_icon = pcoll["ngon_icon"] 
+                quad_icon = pcoll["quad_icon"]
+                tris_icon = pcoll["tris_icon"] 
+                
+                row.operator("mesh.ps_ngons", text=polyNGon, icon_value=ngon_icon.icon_id)    
+                row.operator("mesh.ps_quads", text=polyQuad, icon_value=quad_icon.icon_id)
+                row.operator("mesh.ps_tris", text=polyTris, icon_value=tris_icon.icon_id)
+
+            else:
+                box = row.box()
+                point_max = str(props.max_points)
+                box.label(text="Points > " + point_max, icon='ERROR')
 
 
 
 
 
 def header_panel(self, context):
-    props = bpy.context.preferences.addons[__package__.split(".")[0]].preferences
+    props = context.preferences.addons[__package__].preferences
 
     if activate():
         if props.header == True:
@@ -147,7 +171,7 @@ def header_panel(self, context):
 
 
 def viewHeader_L_panel(self, context):
-    props = bpy.context.preferences.addons[__package__.split(".")[0]].preferences
+    props = context.preferences.addons[__package__].preferences
     if activate():
         if props.viewHeader_L == True:
             layout = self.layout
@@ -157,7 +181,7 @@ def viewHeader_L_panel(self, context):
 
 
 def viewHeader_R_panel(self, context):
-    props = bpy.context.preferences.addons[__package__.split(".")[0]].preferences
+    props = context.preferences.addons[__package__].preferences
     if activate():
         if props.viewHeader_R == True:
             layout = self.layout
@@ -170,7 +194,7 @@ def viewHeader_R_panel(self, context):
 
 
 def tool_panel(self, context):
-    props = bpy.context.preferences.addons[__package__.split(".")[0]].preferences
+    props = context.preferences.addons[__package__].preferences
     if activate():
         layout = self.layout
         row = layout.row(align=True) 

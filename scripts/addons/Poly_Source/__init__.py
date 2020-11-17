@@ -1,8 +1,8 @@
 bl_info = {
     'name': 'Poly Source',
     "author": "Max Derksen",
-    'version': (1, 3, 2),
-    'blender': (2, 80, 0),
+    'version': (1, 4, 0),
+    'blender': (2, 83, 0),
     'location': 'VIEW 3D > Top Bar',
     'category': 'Mesh',
 }
@@ -13,19 +13,28 @@ import sys
 import importlib  
 from bpy.types import AddonPreferences, PropertyGroup
 import bpy.utils.previews 
-from bpy.props import EnumProperty, FloatVectorProperty, BoolProperty, FloatProperty
+from bpy.props import EnumProperty, FloatVectorProperty, BoolProperty, FloatProperty, IntProperty, CollectionProperty
+
+
 
 
 
 class PS_settings(PropertyGroup):
-
+    
     def run_draw(self, context):
-        if self.draw_advance == True:
+        if self.retopo_mode == True:
             bpy.ops.ps.draw_mesh('INVOKE_DEFAULT')
     
-    draw_advance: BoolProperty(name="Advance Draw Mesh", default=False, update=run_draw)
+    
 
 
+    mesh_check: BoolProperty(name="Mesh Check", default=False)
+
+    retopo_mode: BoolProperty(name="Retopology Mode", default=False, update=run_draw)
+
+    polycount:  BoolProperty(name="Draw Poly Count", default=False)
+    tris_count: IntProperty(name="Tris Count", min=1, soft_max=5000, default=2500) # , subtype='FACTOR'
+ 
 
 
 
@@ -40,9 +49,10 @@ class PS_preferences(AddonPreferences):
 
     draw: BoolProperty(name="Advance Draw Mesh", default=False, update=run_draw) """
 
-
-    #draw_advance: BoolProperty(name="Advance Draw Mesh", default=False)
-
+    #Polycount
+    low_suffix: BoolProperty(name="_Low ", description="To use to count only the objects in the collections of the _LOW suffix", default=False)
+    
+    max_points: IntProperty(name="Maximum Vertices In Active Object", description="If the active object has too many vertexes, this may affect performance during rendering.", min=1, soft_max=200000, default=50000)
 
 
     header: BoolProperty(name="Header", default=False)
@@ -59,9 +69,10 @@ class PS_preferences(AddonPreferences):
 
 
     # draw mesh
+    verts_size: FloatProperty(name="Verts Size", description="Verts Size", min=1.0, soft_max=5.0, default=2.5, subtype='FACTOR')
     edge_width: FloatProperty(name="Edge Width", description="Edge Width", min=1.0, soft_max=5.0, default=2.5, subtype='FACTOR')
 
-    z_bias: FloatProperty(name="Z-Bias", description="Z-Bias", min=0.0001, soft_max=1.0, default=0.5, subtype='FACTOR')
+    z_bias: FloatProperty(name="Z-Bias", description="Z-Bias", min=0.000001, soft_max=1.0, default=0.5, subtype='FACTOR')
     opacity: FloatProperty(name="Opacity", description="Face Opacity", min=0.0, max=1.0, default=0.8, subtype='PERCENTAGE')
 
 
@@ -94,19 +105,19 @@ class PS_preferences(AddonPreferences):
 
 
 
-    xray: BoolProperty(name="X-Ray", default=False)
+    xray_ret: BoolProperty(name="X-Ray", default=False)
+    xray_che: BoolProperty(name="X-Ray", default=False)
 
-    retopo_mode: BoolProperty(name="Retopology Mode", default=False)
+    #retopo_mode: BoolProperty(name="Retopology Mode", default=False)
 
-    non_manifold_check: BoolProperty(name="Non Manifold", default=False)
-    v_alone: BoolProperty(name="Vertex Alone", default=False)
+    non_manifold_check: BoolProperty(name="Non Manifold", default=True) ###
+    v_alone: BoolProperty(name="Vertex Alone", default=True) ###
     v_bound: BoolProperty(name="Vertex Boundary", default=False)
     e_pole: BoolProperty(name="Vertex E-Pole", default=False)
     n_pole: BoolProperty(name="Vertex N-Pole", default=False)
     f_pole: BoolProperty(name="More 5 Pole", default=False)
-
     tris: BoolProperty(name="Tris", default=False)
-    ngone: BoolProperty(name="N-Gone", default=False)
+    ngone: BoolProperty(name="N-Gone", default=True) ###
 
 
     def draw(self, context):
@@ -130,9 +141,10 @@ class PS_preferences(AddonPreferences):
         discord_icon = pcoll["discord_icon"]
 
 
-
-        
         col = layout.column()
+        col.prop(self, "max_points")
+        col.separator()
+        
         col.prop(self, "header", text="Header(Not Suport Advance Draw Mesh)")
         col.prop(self, "viewHeader_L")
         col.prop(self, "viewHeader_R")
@@ -208,8 +220,8 @@ preview_collections = {}
 
 from . import PS_draw_mesh
 from . import PS_panel
-
-
+from . import PS_check
+from . import PS_polycount
 
 
 
@@ -223,14 +235,20 @@ def register():
     for cls in classes:
         bpy.utils.register_class(cls)
 
+
+    bpy.types.Scene.ps_set_ = bpy.props.PointerProperty(type=PS_settings)
+
+
+
     PS_panel.register()
     PS_draw_mesh.register()
+    PS_check.register()
+    PS_polycount.register()
  
 
 
+    
 
-
-    bpy.types.Scene.polySource_set = bpy.props.PointerProperty(type=PS_settings)
 
   
     
@@ -270,14 +288,28 @@ def register():
 
     #bpy.app.handlers.load_post.append(run_draw)
 
+
+
+
+
 def unregister():
     for cls in classes:
         bpy.utils.unregister_class(cls)
 
+    del bpy.types.Scene.ps_set_
+
+
+
+
+    
     PS_panel.unregister()
     PS_draw_mesh.unregister()
+    PS_check.unregister()
+    PS_polycount.unregister()
+ 
 
-
+    
+    
 
 
     #remove keymap entry
