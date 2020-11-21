@@ -12,8 +12,8 @@ shader = gpu.shader.from_builtin('3D_UNIFORM_COLOR')
 
 
 def check_draw_bgl(self, context):
-
-    if context.active_object != None and context.active_object.select_get():
+    objs = context.selected_objects
+    if len(objs) > 0:
         props = context.preferences.addons[__package__].preferences
 
         theme = context.preferences.themes['Default']
@@ -44,41 +44,63 @@ def check_draw_bgl(self, context):
        
         shader.bind()
         
+        
+        # COLOR
+        #opacity_second = props.opacity + 0.1
+        ngone_col = props.ngone_col[0], props.ngone_col[1], props.ngone_col[2], props.ngone_col[3]
+        tris_col = props.tris_col[0], props.tris_col[1], props.tris_col[2], props.tris_col[3]
+        e_non_col = props.non_manifold_color[0], props.non_manifold_color[1], props.non_manifold_color[2], props.non_manifold_color[3]
+        e_pole_col = props.e_pole_col[0], props.e_pole_col[1], props.e_pole_col[2], props.e_pole_col[3]
+        n_pole_col = props.n_pole_col[0], props.n_pole_col[1], props.n_pole_col[2], props.n_pole_col[3]
+        f_pole_col = props.f_pole_col[0], props.f_pole_col[1], props.f_pole_col[2], props.f_pole_col[3]
+        v_bound_col = props.bound_col[0], props.bound_col[1], props.bound_col[2], props.bound_col[3]
+        v_alone_col = props.v_alone_color[0], props.v_alone_color[1], props.v_alone_color[2], props.v_alone_color[3]
 
 
-        #uniques = context.objects_in_mode_unique_data
-        uniques = context.selected_objects
-        for obj in uniques:
+        if props.use_mod_che:
+            depsgraph = context.evaluated_depsgraph_get()
+
+     
+        
+        for obj in objs:
             if obj.type == 'MESH':
+
                 me = obj.data
                 if len(me.polygons) < 15000:
-                    if context.mode == 'EDIT_MESH':
-                        mesh = bmesh.from_edit_mesh(me)
-                    
+
+                    if context.mode == 'EDIT_MESH' and props.use_mod_che == False:
+                        bm = bmesh.from_edit_mesh(obj.data)
+
                     else:
-                        mesh = bmesh.new()
-                        mesh.from_mesh(me)
-                        mesh.verts.ensure_lookup_table()
-                        mesh.edges.ensure_lookup_table()
-                        mesh.faces.ensure_lookup_table()
+                        if props.use_mod_che:
+                            if len(obj.modifiers) > 0: 
+                                depsgraph.update()
+
+                            ob_eval = obj.evaluated_get(depsgraph)
+                            me = ob_eval.to_mesh()
+               
+
+                        bm = bmesh.new()
+                        bm.from_mesh(me, face_normals=True, use_shape_key=False)
+
+                        bm.verts.ensure_lookup_table()
+                        bm.edges.ensure_lookup_table()
+                        bm.faces.ensure_lookup_table()
+
+
 
 
                 
                     
-
-
-                
-                    
-                    opacity_second = props.opacity + 0.1
                     # check
                     if props.ngone:
                         ngone = []
-                        for n in mesh.faces:
+                        for n in bm.faces:
                             if len(n.verts)>4:
                                 ngone.append(n.index)
                         #print("ngone",ngone)
                                 
-                        copy = mesh.copy()
+                        copy = bm.copy()
                         copy.faces.ensure_lookup_table()
                         edge_n = [e for i in ngone for e in copy.faces[i].edges]
 
@@ -98,80 +120,67 @@ def check_draw_bgl(self, context):
 
                         ngons_indices = []
                         ngons_indices.extend(list(range(0, len(v_index)))[v_i:v_i+3] for v_i in range(0, len(v_index), 3))
-                        #print("ngons_indices",ngons_indices)
-
-                        #ngone_col = [(props.ngone_col.r, props.ngone_col.g, props.ngone_col.b, opacity_second) for _ in range(len(ngone_co))]
-                        ngone_col = (props.ngone_col.r, props.ngone_col.g, props.ngone_col.b, opacity_second)
-
                         NGONE = batch_for_shader(shader, 'TRIS', {"pos": ngone_co}, indices=ngons_indices)
                         shader.uniform_float("color", ngone_col)
                         NGONE.draw(shader)
                     
 
                     if props.tris:
-                        tris_co = [obj.matrix_world @ v.co for f in mesh.faces for v in f.verts if len(f.verts)==3]
-                        #tris_col = [(props.tris_col.r, props.tris_col.g, props.tris_col.b, opacity_second) for _ in range(len(tris_co))]
-                        tris_col = (props.tris_col.r, props.tris_col.g, props.tris_col.b, opacity_second)
+                        tris_co = [obj.matrix_world @ v.co for f in bm.faces for v in f.verts if len(f.verts)==3]
                         TRIS = batch_for_shader(shader, 'TRIS', {"pos": tris_co})
                         shader.uniform_float("color", tris_col)
                         TRIS.draw(shader)
 
                     
                     if props.non_manifold_check:
-                        e_non_i = [e.index for e in mesh.edges if not e.is_manifold]
-                        e_non_co = [obj.matrix_world @ v.co for i in e_non_i for v in mesh.edges[i].verts]
-                        #e_non_col = [(props.non_manifold_color.r, props.non_manifold_color.g, props.non_manifold_color.b, opacity_second) for _ in range(len(e_non_co))]
-                        e_non_col = (props.non_manifold_color.r, props.non_manifold_color.g, props.non_manifold_color.b, opacity_second)
+                        e_non_i = [e.index for e in bm.edges if not e.is_manifold]
+                        e_non_co = [obj.matrix_world @ v.co for i in e_non_i for v in bm.edges[i].verts]
                         EDGES_NON = batch_for_shader(shader, 'LINES', {"pos": e_non_co})
                         shader.uniform_float("color", e_non_col)
                         EDGES_NON.draw(shader)
 
 
                     if props.e_pole: 
-                        e_pole_co = [obj.matrix_world @ v.co for v in mesh.verts if len(v.link_edges)==5]
-                        #e_pole_col = [(props.e_pole_col.r, props.e_pole_col.g, props.e_pole_col.b, opacity_second) for _ in range(len(e_pole_co))]
-                        e_pole_col = (props.e_pole_col.r, props.e_pole_col.g, props.e_pole_col.b, opacity_second)
+                        e_pole_co = [obj.matrix_world @ v.co for v in bm.verts if len(v.link_edges)==5]
                         E_POLE = batch_for_shader(shader, 'POINTS', {"pos": e_pole_co})
                         shader.uniform_float("color", e_pole_col) 
                         E_POLE.draw(shader)
 
 
                     if props.n_pole:
-                        n_pole_co = [obj.matrix_world @ v.co for v in mesh.verts if len(v.link_edges)==3]
-                        #n_pole_col = [(props.n_pole_col.r, props.n_pole_col.g, props.n_pole_col.b, opacity_second) for _ in range(len(n_pole_co))]
-                        n_pole_col = (props.n_pole_col.r, props.n_pole_col.g, props.n_pole_col.b, opacity_second)
+                        n_pole_co = [obj.matrix_world @ v.co for v in bm.verts if len(v.link_edges)==3]
                         N_POLE = batch_for_shader(shader, 'POINTS', {"pos": n_pole_co}) 
                         shader.uniform_float("color", n_pole_col) 
                         N_POLE.draw(shader)
 
 
                     if props.f_pole: 
-                        f_pole_co = [obj.matrix_world @ v.co for v in mesh.verts if len(v.link_edges)>5]
-                        #f_pole_col = [(props.f_pole_col.r, props.f_pole_col.g, props.f_pole_col.b, opacity_second) for _ in range(len(f_pole_co))]
-                        f_pole_col = (props.f_pole_col.r, props.f_pole_col.g, props.f_pole_col.b, opacity_second)
+                        f_pole_co = [obj.matrix_world @ v.co for v in bm.verts if len(v.link_edges)>5]
                         F_POLE = batch_for_shader(shader, 'POINTS', {"pos": f_pole_co})
                         shader.uniform_float("color", f_pole_col) 
                         F_POLE.draw(shader)
 
 
                     if props.v_bound:
-                        v_bound_co = [obj.matrix_world @ v.co for v in mesh.verts if v.is_boundary and v.is_manifold] 
-                        #v_bound_col = [(props.bound_col.r, props.bound_col.g, props.bound_col.b, opacity_second) for _ in range(len(v_bound_co))]
-                        v_bound_col = (props.bound_col.r, props.bound_col.g, props.bound_col.b, opacity_second)
+                        v_bound_co = [obj.matrix_world @ v.co for v in bm.verts if v.is_boundary and v.is_manifold]
                         V_BOUND = batch_for_shader(shader, 'POINTS', {"pos": v_bound_co,})
                         shader.uniform_float("color", v_bound_col) 
                         V_BOUND.draw(shader)
                     
 
                     if props.v_alone:
-                        v_alone_co = [obj.matrix_world @ v.co for v in mesh.verts if not v.is_manifold]
-                        #v_alone_col = [(props.non_manifold_color.r, props.non_manifold_color.g, props.non_manifold_color.b, opacity_second) for _ in range(len(v_alone_co))]
-                        v_alone_col = (props.non_manifold_color.r, props.non_manifold_color.g, props.non_manifold_color.b, opacity_second)
+                        v_alone_co = [obj.matrix_world @ v.co for v in bm.verts if not v.is_manifold]
                         V_ALONE = batch_for_shader(shader, 'POINTS', {"pos": v_alone_co})
                         shader.uniform_float("color", v_alone_col)
                         V_ALONE.draw(shader)
-            
-            
+
+
+
+
+                    if props.use_mod_che:
+                        bm.free()
+
+
 
         if props.line_smooth:
             bgl.glDisable(bgl.GL_LINE_SMOOTH)
@@ -212,8 +221,7 @@ class PS_GGT_check_group(GizmoGroup):
     @classmethod
     def poll(cls, context):
         settings = context.scene.ps_set_
-        #props = context.preferences.addons[__package__.split(".")[0]].preferences
-        return settings.mesh_check == True
+        return settings.mesh_check
         
 
     def setup(self, context):
@@ -224,7 +232,6 @@ class PS_GGT_check_group(GizmoGroup):
 
     def draw_prepare(self, context):
         settings = context.scene.ps_set_
-        #props = context.preferences.addons[__package__.split(".")[0]].preferences
         mesh = self.mesh
         if settings.mesh_check == True:
             mesh.hide = False
