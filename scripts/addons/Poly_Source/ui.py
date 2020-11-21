@@ -4,6 +4,8 @@ import os
 from bpy.types import Operator, Panel, Menu
 import bpy.utils.previews
 
+
+
 def activate():
     if bpy.context.active_object != None:
         #if bpy.context.active_object.select_get():
@@ -27,7 +29,11 @@ class PS_PT_settings_draw_mesh(Panel):
         layout = self.layout
      
 
-    
+        # Retopology
+        #layout.prop(props, "draw_", toggle=True) # TODO TEST 
+
+
+
         if settings.retopo_mode == False: 
             layout.prop(settings, "retopo_mode", toggle=True)
 
@@ -35,15 +41,25 @@ class PS_PT_settings_draw_mesh(Panel):
             box = layout.box()
             box.prop(settings, "retopo_mode", toggle=True)
 
+            row_W = box.row(align=True)
+            row_W.scale_x = 1.0
+            row_W.label(text="Width")
+            row_W.scale_x = 3.0
+            row_W.prop(props, "verts_size")
+            row_W.prop(props, "edge_width")
 
-            box.prop(props, "verts_size")
-            box.prop(props, "edge_width")
             box.prop(props, "z_bias", text="Z-Bias:")
             box.prop(props, "opacity", text="Opacity:")
-            box.prop(props, "xray_ret")
+
+            row_P = box.row()
+            row_P.scale_x = 1.0
+            row_P.prop(props, "xray_ret")
+            row_P.scale_x = 1.1
+            row_P.prop(props, "use_mod_ret")
 
 
 
+        # Mesh Check
         if settings.mesh_check == False: 
             layout.prop(settings, "mesh_check", toggle=True)
                 
@@ -66,13 +82,17 @@ class PS_PT_settings_draw_mesh(Panel):
             col.prop(props, "ngone", toggle=True)
             col.prop(props, "non_manifold_check", toggle=True)
             
-            box.prop(props, "xray_che")
 
-        layout.prop(props, "max_points")
-        layout.prop(context.space_data.overlay, "show_occlude_wire")
+            row_P = box.row()
+            row_P.scale_x = 1.0
+            row_P.prop(props, "xray_che")
+            row_P.scale_x = 1.1
+            row_P.prop(props, "use_mod_che")
+     
 
 
 
+        # Polycount
         if settings.polycount == False:
             layout.prop(settings, "polycount", toggle=True)
         
@@ -84,6 +104,17 @@ class PS_PT_settings_draw_mesh(Panel):
             row.prop(settings, "tris_count")
             row.scale_x = 0.4
             row.prop(props, "low_suffix", toggle=True)
+
+
+
+        box = layout.box()
+        box.prop(props, "max_points")
+        if context.mode == 'EDIT_MESH':
+            box.prop(context.space_data.overlay, "show_occlude_wire")
+        box.operator("ps.clear_dots", icon='SHADERFX')
+
+
+        
 
 
 
@@ -147,9 +178,9 @@ def draw_panel(self, context, row):
                 quad_icon = pcoll["quad_icon"]
                 tris_icon = pcoll["tris_icon"] 
                 
-                row.operator("mesh.ps_ngons", text=polyNGon, icon_value=ngon_icon.icon_id)    
-                row.operator("mesh.ps_quads", text=polyQuad, icon_value=quad_icon.icon_id)
-                row.operator("mesh.ps_tris", text=polyTris, icon_value=tris_icon.icon_id)
+                row.operator("ps.ngons", text=polyNGon, icon_value=ngon_icon.icon_id)    
+                row.operator("ps.quads", text=polyQuad, icon_value=quad_icon.icon_id)
+                row.operator("ps.tris", text=polyTris, icon_value=tris_icon.icon_id)
 
             else:
                 box = row.box()
@@ -216,7 +247,7 @@ def tool_panel(self, context):
 
 #OPERATOR
 class MESH_OT_ps_ngons(Operator):
-    bl_idname = "mesh.ps_ngons"
+    bl_idname = "ps.ngons"
     bl_label = "NGons"
     bl_options = {'REGISTER', 'UNDO'}
     bl_description = "Number Of NGons. Click To Select"
@@ -234,7 +265,7 @@ class MESH_OT_ps_ngons(Operator):
 
 
 class MESH_OT_ps_quads(Operator):
-    bl_idname = "mesh.ps_quads"
+    bl_idname = "ps.quads"
     bl_label = "Quads"
     bl_options = {'REGISTER', 'UNDO'}
     bl_description = "Number Of Quads. Click To Select"
@@ -252,7 +283,7 @@ class MESH_OT_ps_quads(Operator):
 
 
 class MESH_OT_ps_tris(Operator):
-    bl_idname = "mesh.ps_tris"
+    bl_idname = "ps.tris"
     bl_label = "Tris"
     bl_options = {'REGISTER', 'UNDO'}
     bl_description = "Number Of Tris. Click To Select"

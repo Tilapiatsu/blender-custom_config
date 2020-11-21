@@ -1,7 +1,7 @@
 bl_info = {
     'name': 'Poly Source',
     "author": "Max Derksen",
-    'version': (1, 4, 0),
+    'version': (1, 5, 0),
     'blender': (2, 83, 0),
     'location': 'VIEW 3D > Top Bar',
     'category': 'Mesh',
@@ -22,7 +22,7 @@ from bpy.props import EnumProperty, FloatVectorProperty, BoolProperty, FloatProp
 class PS_settings(PropertyGroup):
     
     def run_draw(self, context):
-        if self.retopo_mode == True:
+        if self.retopo_mode:
             bpy.ops.ps.draw_mesh('INVOKE_DEFAULT')
     
     
@@ -43,11 +43,9 @@ class PS_preferences(AddonPreferences):
     bl_idname = __package__
     
     
-    """ def run_draw(self, context):
-        if self.draw == True:
-            bpy.ops.ps.draw_mesh('INVOKE_DEFAULT')
+   
 
-    draw: BoolProperty(name="Advance Draw Mesh", default=False, update=run_draw) """
+    draw_: BoolProperty(name="TEST", default=False) # TODO 
 
     #Polycount
     low_suffix: BoolProperty(name="_Low ", description="To use to count only the objects in the collections of the _LOW suffix", default=False)
@@ -64,60 +62,51 @@ class PS_preferences(AddonPreferences):
     line_smooth: BoolProperty(name="Line Smooth(If You Need Accelerate)", default=True)
 
 
-    tabs : EnumProperty(name="Tabs", items = [("GENERAL", "General", ""), ("KEYMAPS", "Keymaps", "")], default="GENERAL")
+    tabs: EnumProperty(name="Tabs", items = [("GENERAL", "General", ""), ("KEYMAPS", "Keymaps", "")], default="GENERAL")
 
 
 
     # draw mesh
-    verts_size: FloatProperty(name="Verts Size", description="Verts Size", min=1.0, soft_max=5.0, default=2.5, subtype='FACTOR')
-    edge_width: FloatProperty(name="Edge Width", description="Edge Width", min=1.0, soft_max=5.0, default=2.5, subtype='FACTOR')
-
+    verts_size: IntProperty(name="Vertex", description="Verts Size", min=1, soft_max=5, default=1, subtype='FACTOR')
+    edge_width: FloatProperty(name="Edge", description="Edge Width", min=1.0, soft_max=5.0, default=2, subtype='FACTOR')
     z_bias: FloatProperty(name="Z-Bias", description="Z-Bias", min=0.000001, soft_max=1.0, default=0.5, subtype='FACTOR')
-    opacity: FloatProperty(name="Opacity", description="Face Opacity", min=0.0, max=1.0, default=0.8, subtype='PERCENTAGE')
+    opacity: FloatProperty(name="Opacity", description="Face Opacity", min=0.0, max=1.0, default=0.75, subtype='PERCENTAGE')
+    
 
 
 
+    
+    VE_color: FloatVectorProperty(name="Vertex & Edge Color", subtype='COLOR', default=(0.0, 0.0, 0.0, 1.0), size=4, min=0.0, max=1.0, description="Select A Color For Vertices & Edges")
+    F_color: FloatVectorProperty(name="Face Color", subtype='COLOR', default=(0.0, 0.33, 1.0), min=0.0, max=1.0, description="Select A Color For Faces")
+    select_color: FloatVectorProperty(name="Select Color", subtype='COLOR', default=(1.0, 1.0, 1.0, 0.9), size=4, min=0.0, max=1.0, description=" ")
+
+
+    v_alone_color: FloatVectorProperty(name="Vertex Color", subtype='COLOR', default=(0.0, 1.0, 0.0, 1.0), size=4, min=0.0, max=1.0, description="Select A Color For Single Vertices")
+    non_manifold_color: FloatVectorProperty(name="Non Manifold Color", subtype='COLOR', default=(1.0, 0.0, 0.0, 0.5), size=4, min=0.0, max=1.0)
+    bound_col: FloatVectorProperty(name="Bound Color", subtype='COLOR', default=(0.5, 0.0, 1.0, 0.5), size=4, min=0.0, max=1.0)
+    e_pole_col: FloatVectorProperty(name="E-Pole Color", subtype='COLOR', default=(1.0, 0.5, 0.0, 0.5), size=4, min=0.0, max=1.0)
+    n_pole_col: FloatVectorProperty(name="N-Pole Color", subtype='COLOR', default=(1.0, 1.0, 0.0, 0.5), size=4, min=0.0, max=1.0)
+    f_pole_col: FloatVectorProperty(name="More 5 Pole Color", subtype='COLOR', default=(1.0, 0.0, 1.0, 0.5), size=4, min=0.0, max=1.0)
+    tris_col: FloatVectorProperty(name="Tris Color", subtype='COLOR', default=(0.0, 0.5, 0.9, 0.5), size=4, min=0.0, max=1.0)
+    ngone_col: FloatVectorProperty(name="NGone Color", subtype='COLOR', default=(1.0, 0.1, 0.0, 0.5), size=4, min=0.0, max=1.0)
 
 
 
-    vertex_color: FloatVectorProperty(name="Vertex Color", subtype='COLOR', default=(0.0, 0.0, 0.0), min=0.0, max=1.0, description="Select color for Vertex")
-    edge_color: FloatVectorProperty(name="Edge & Vertex Color", subtype='COLOR', default=(0.0, 0.0, 0.0), min=0.0, max=1.0, description="Select color for Edges & Vertex")
-    face_color: FloatVectorProperty(name="Face Color", subtype='COLOR', default=(0.0, 0.3, 1.0), min=0.0, max=1.0, description="Select color for Face")
-
-    select_items_color: FloatVectorProperty(name="Select Color Vertex/Edges", subtype='COLOR', default=(1.0, 0.07, 0.0), min=0.0, max=1.0)
-    #select_faces_color: FloatVectorProperty(name="Select Color Faces", subtype='COLOR', default=(1.0, 1.0, 1.0), min=0.0, max=1.0)
-
-  
-    non_manifold_color: FloatVectorProperty(name="Non Manifold Color", subtype='COLOR', default=(1.0, 0.0, 0.0), min=0.0, max=1.0)
-
-
-    bound_col: FloatVectorProperty(name="Bound Color", subtype='COLOR', default=(0.5, 0.0, 1.0), min=0.0, max=1.0)
-    e_pole_col: FloatVectorProperty(name="E-Pole Color", subtype='COLOR', default=(1.0, 0.5, 0.0), min=0.0, max=1.0)
-    n_pole_col: FloatVectorProperty(name="N-Pole Color", subtype='COLOR', default=(1.0, 1.0, 0.0), min=0.0, max=1.0)
-    f_pole_col: FloatVectorProperty(name="More 5 Pole Color", subtype='COLOR', default=(1.0, 0.0, 1.0), min=0.0, max=1.0)
-
-    tris_col: FloatVectorProperty(name="Tris Color", subtype='COLOR', default=(0.0, 0.5, 0.9), min=0.0, max=1.0)
-    ngone_col: FloatVectorProperty(name="NGone Color", subtype='COLOR', default=(1.0, 0.1, 0.0), min=0.0, max=1.0)
-
-
-
-
-
-
+    use_mod_ret: BoolProperty(name="Use Modifiers", default=False)
+    use_mod_che: BoolProperty(name="Use Modifiers", default=False)
 
     xray_ret: BoolProperty(name="X-Ray", default=False)
     xray_che: BoolProperty(name="X-Ray", default=False)
 
-    #retopo_mode: BoolProperty(name="Retopology Mode", default=False)
 
-    non_manifold_check: BoolProperty(name="Non Manifold", default=True) ###
-    v_alone: BoolProperty(name="Vertex Alone", default=True) ###
+    non_manifold_check: BoolProperty(name="Non Manifold", default=True)
+    v_alone: BoolProperty(name="Vertex Alone", default=True)
     v_bound: BoolProperty(name="Vertex Boundary", default=False)
     e_pole: BoolProperty(name="Vertex E-Pole", default=False)
     n_pole: BoolProperty(name="Vertex N-Pole", default=False)
     f_pole: BoolProperty(name="More 5 Pole", default=False)
     tris: BoolProperty(name="Tris", default=False)
-    ngone: BoolProperty(name="N-Gone", default=True) ###
+    ngone: BoolProperty(name="N-Gone", default=True)
 
 
     def draw(self, context):
@@ -155,32 +144,36 @@ class PS_preferences(AddonPreferences):
         box.prop(self, "line_smooth")
 
 
-        row = box.row()
-        row.prop(self, "non_manifold_color")
+        
+        
         row = box.row()
         box.label(text="Advance Draw Mesh")
+        
         row = box.row()
-        row.prop(self, "vertex_color")
+        row.prop(self, "VE_color")
         row = box.row()
-        row.prop(self, "edge_color")
+        row.prop(self, "F_color")
         row = box.row()
-        row.prop(self, "face_color")
-        row = box.row()
-        row.prop(self, "select_items_color")
+        row.prop(self, "select_color")
 
         
         box.label(text="Check")
+
+
+        row = box.row()
+        row.prop(self, "v_alone_color")
+        row.prop(self, "non_manifold_color")
+
         row = box.row()
         row.prop(self, "bound_col")
-        row = box.row()
         row.prop(self, "e_pole_col")
+
         row = box.row()
         row.prop(self, "n_pole_col")
-        row = box.row()
         row.prop(self, "f_pole_col")
+
         row = box.row()
         row.prop(self, "tris_col")
-        row = box.row()
         row.prop(self, "ngone_col")
 
 
@@ -194,7 +187,7 @@ class PS_preferences(AddonPreferences):
         row.operator("wm.url_open", text="Artstation", icon_value=artstation_icon.icon_id).url = "https://www.artstation.com/derksen"
         col = layout.column(align=True)
         row = col.row(align=True)
-        row.operator("wm.url_open", text="Discord Channel", icon_value=discord_icon.icon_id).url = "https://discord.gg/SBEDbmK"
+        row.operator("wm.url_open", text="Discord Channel", icon_value=discord_icon.icon_id).url = "https://discord.gg/kvCyyDU"
 
 
     def draw_keymaps(self, context, layout):
@@ -204,9 +197,10 @@ class PS_preferences(AddonPreferences):
         keymap = context.window_manager.keyconfigs.user.keymaps['3D View']
         keymap_items = keymap.keymap_items
 
-        col.prop(keymap_items["mesh.ps_ngons"], 'type', text='NGons', full_event=True)
-        col.prop(keymap_items["mesh.ps_quads"], 'type', text='Quads', full_event=True)
-        col.prop(keymap_items["mesh.ps_tris"], 'type', text='Tris', full_event=True)
+        col.prop(keymap_items["ps.ngons"], 'type', text='NGons', full_event=True)
+        col.prop(keymap_items["ps.quads"], 'type', text='Quads', full_event=True)
+        col.prop(keymap_items["ps.tris"], 'type', text='Tris', full_event=True)
+        col.prop(keymap_items["ps.clear_dots"], 'type', text='Clear Dots', full_event=True)
 
         col.label(text="*some hotkeys may not work because of the use of other addons")
 
@@ -218,11 +212,17 @@ preview_collections = {}
 
 
 
-from . import PS_draw_mesh
-from . import PS_panel
-from . import PS_check
-from . import PS_polycount
+from . import (
+    op,
+    quad_draw,
+    ui,
+    check,
+    polycount,
+)
 
+from .utils import (
+    active_tool,
+)
 
 
 
@@ -239,13 +239,13 @@ def register():
     bpy.types.Scene.ps_set_ = bpy.props.PointerProperty(type=PS_settings)
 
 
-
-    PS_panel.register()
-    PS_draw_mesh.register()
-    PS_check.register()
-    PS_polycount.register()
+    op.register()
+    ui.register()
+    quad_draw.register()
+    check.register()
+    polycount.register()
  
-
+    active_tool.register()
 
     
 
@@ -264,15 +264,17 @@ def register():
 
     km = kc.keymaps.new(name='3D View', space_type='VIEW_3D')
     # Pie
-    kmi = km.keymap_items.new("mesh.ps_ngons", type = "ONE",value="PRESS", ctrl=False, alt=True, shift=False, oskey=False)
+    kmi = km.keymap_items.new("ps.ngons", type = "ONE",value="PRESS", ctrl=False, alt=True, shift=False, oskey=False)
     addon_keymaps.append((km, kmi))
 
-    kmi = km.keymap_items.new("mesh.ps_quads", type = "TWO",value="PRESS", ctrl=False, alt=True, shift=False, oskey=False)
+    kmi = km.keymap_items.new("ps.quads", type = "TWO",value="PRESS", ctrl=False, alt=True, shift=False, oskey=False)
     addon_keymaps.append((km, kmi))
 
-    kmi = km.keymap_items.new("mesh.ps_tris", type = "THREE",value="PRESS", ctrl=False, alt=True, shift=False, oskey=False)
+    kmi = km.keymap_items.new("ps.tris", type = "THREE",value="PRESS", ctrl=False, alt=True, shift=False, oskey=False)
     addon_keymaps.append((km, kmi))
-
+    
+    kmi = km.keymap_items.new("ps.clear_dots", type = "C",value="PRESS", ctrl=True, alt=True, shift=False, oskey=False)
+    addon_keymaps.append((km, kmi))
     del addon_keyconfig
 
     
@@ -301,13 +303,13 @@ def unregister():
 
 
 
-    
-    PS_panel.unregister()
-    PS_draw_mesh.unregister()
-    PS_check.unregister()
-    PS_polycount.unregister()
+    op.unregister()
+    ui.unregister()
+    quad_draw.unregister()
+    check.unregister()
+    polycount.unregister()
  
-
+    active_tool.unregister()
     
     
 
