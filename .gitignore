@@ -20,6 +20,9 @@ scripts/addons/Polycount/*
 scripts/addons/Texel_Density/*
 scripts/addons/BlenderMalt/*
 scripts/addons/uv_toolkit/*
+scripts/addons/Scatter/*
+scripts/addons/Scatter Library/*
+scripts/addons/BakeWrangler/*
 scripts/presets/interface_theme/blender_pro.xml
 .vscode/settings.json
 
@@ -40,7 +43,6 @@ scripts/addons/uv_tube_unwrap.py
 scripts/addons/space_view3d_point_cloud_visualizer.py
 scripts/addons/advanced_transform_2_8.py
 scripts/addons/Asset_Creation_Toolset_2_6_1_281.py
-scripts/addons/BakeWrangler/*
 scripts/presets/bkit.json
 
 scripts/addons/blenderbezierutils.py
