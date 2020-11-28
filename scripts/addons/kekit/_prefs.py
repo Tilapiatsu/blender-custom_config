@@ -70,17 +70,28 @@ def get_prefs(): # Everything down here floats
 		float(bpy.context.scene.kekit.unrotator_center),
 		float(bpy.context.scene.kekit.qs_user_value),
 		float(bpy.context.scene.kekit.qs_unit_size),
+		float(bpy.context.scene.kekit.clean_doubles),
+		float(bpy.context.scene.kekit.clean_doubles_val),
+		float(bpy.context.scene.kekit.clean_loose),
+		float(bpy.context.scene.kekit.clean_interior),
+		float(bpy.context.scene.kekit.clean_degenerate),
+		float(bpy.context.scene.kekit.clean_degenerate_val),
+		float(bpy.context.scene.kekit.clean_collinear),
+		float(bpy.context.scene.kekit.cursorfit)
 	)
 	# print (set_values)
 	return set_values
 
 
 # WIP props ---------------------------------------------------------------------------------------
-# Todo: Just use JSON...?
 
 path = bpy.utils.script_path_user()
 prefs_data = read_prefs()
-prefs_data_default = 0, 1, 0, 16, 32, 16, 0.2, 1, 1, 0, 1111, 2335, 1315, 6464, 1, 0, 8, 1, 0, 0.01, 1, 0, 0, 1
+prefs_data_default = 0, 1, 0, 16, 32, 16, 0.2, 1, 1, 0, \
+					 1111, 2335, 1315, 6464, 1, 0, 8, 1, 0, 0.01,\
+					 1, 0, 0, 1, 1, 0.0001, 1, 1, 1, 0.0001, 1,\
+					 1
+
 o_dict = {1: "1GLOBAL", 2: "2LOCAL", 3: "3NORMAL", 4: "4GIMBAL", 5: "5VIEW", 6: "6CURSOR"}
 p_dict = {1: "1MEDIAN_POINT", 2: "2BOUNDING_BOX_CENTER", 3: "3INDIVIDUAL_ORIGINS", 4: "4CURSOR", 5: "5ACTIVE_ELEMENT"}
 
@@ -154,7 +165,7 @@ class kekit_properties(PropertyGroup):
 	# 14 - default: 1
 	unrotator_nosnap : BoolProperty(default=bool(values[14]))
 	# 15 - default: 0
-	selmode_mouse : BoolProperty(default=bool(values[15]))
+	selmode_mouse : BoolProperty(description="Mouse-Over Mode Toggle", default=bool(values[15]))
 	# 16 - default: 8
 	fitprim_quadsphere_seg : IntProperty(min=1, max=128, default=int(values[16]))
 	# 17 - default: 1
@@ -167,10 +178,19 @@ class kekit_properties(PropertyGroup):
 	vptransform : BoolProperty(default=bool(values[20]))
 	# 21 - default : 0
 	unrotator_center: BoolProperty(default=bool(values[21]))
-	# 22 - Quick Scale
+	# 22 - 23 Quick Scale
 	qs_user_value : FloatProperty(default=float(values[22]), precision=3)
-	# 23 - Quick Scale - Unit
 	qs_unit_size : BoolProperty(default=bool(values[23]))
+	# 24 - 30  Clean
+	clean_doubles : BoolProperty(default=bool(values[24]))
+	clean_doubles_val : FloatProperty(default=float(values[25]), precision=4)
+	clean_loose : BoolProperty(default=bool(values[26]))
+	clean_interior : BoolProperty(default=bool(values[27]))
+	clean_degenerate : BoolProperty(default=bool(values[28]))
+	clean_degenerate_val : FloatProperty(default=float(values[29]), precision=4)
+	clean_collinear : BoolProperty(default=bool(values[30]))
+	# 31 Cursor Fit OP Option
+	cursorfit : BoolProperty(description="Also set Orientation & Pivot to Cursor", default=bool(values[31]))
 
 
 class VIEW3D_OT_ke_prefs_save(Operator):
@@ -184,6 +204,7 @@ class VIEW3D_OT_ke_prefs_save(Operator):
 	def execute(self, context):
 		prefs = get_prefs()
 		write_prefs(prefs)
+		self.report({"INFO"}, "keKit Settings Saved!")
 		return {'FINISHED'}
 
 

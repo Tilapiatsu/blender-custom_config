@@ -35,6 +35,7 @@ class VIEW3D_OT_cursor_fit_selected_and_orient(bpy.types.Operator):
     bl_region_type = 'UI'
     bl_options = {'REGISTER'}
 
+    cursorOP = True
     mouse_pos = Vector((0, 0))
 
     def invoke(self, context, event):
@@ -43,6 +44,14 @@ class VIEW3D_OT_cursor_fit_selected_and_orient(bpy.types.Operator):
         return self.execute(context)
 
     def execute(self, context):
+        og_cursor_setting = str(context.scene.cursor.rotation_mode)
+        self.cursorOP = bpy.context.scene.kekit.cursorfit
+
+        if not self.cursorOP:
+            # GRAB CURRENT ORIENT & PIVOT (to restore at the end)
+            og_orientation = str(bpy.context.scene.transform_orientation_slots[0].type)
+            og_pivot = str(bpy.context.scene.tool_settings.transform_pivot_point)
+
         if bpy.context.mode == "EDIT_MESH":
             sel_mode = bpy.context.tool_settings.mesh_select_mode[:]
             obj = bpy.context.edit_object
@@ -234,7 +243,12 @@ class VIEW3D_OT_cursor_fit_selected_and_orient(bpy.types.Operator):
 
                     if sel_count >= 1:
                         if sel_count == 1:
-                            t_c = sel_verts[0].co - sel_verts[0].link_edges[-1].other_vert(sel_verts[0]).co
+                            if not sel_verts[0].link_edges:
+                                # floater vert check -> world rot
+                                t_c = Vector((1,0,0))
+                                n = Vector((0,0,1))
+                            else:
+                                t_c = sel_verts[0].co - sel_verts[0].link_edges[0].other_vert(sel_verts[0]).co
                         else:
                             t_c = sel_verts[0].co - sel_verts[1].co
 
@@ -246,6 +260,9 @@ class VIEW3D_OT_cursor_fit_selected_and_orient(bpy.types.Operator):
 
                 elif sel_count == 0:
                     bpy.ops.view3d.snap_cursor_to_center()
+
+                bm.select_flush_mode()
+                bmesh.update_edit_mesh(obj.data, True)
 
         # OBJECT MODE -----------------------------------------------------------------------
         elif bpy.context.mode == "OBJECT":
@@ -268,6 +285,19 @@ class VIEW3D_OT_cursor_fit_selected_and_orient(bpy.types.Operator):
 
             else:
                 bpy.ops.view3d.snap_cursor_to_center()
+
+
+        if not self.cursorOP:
+            # RESET OP TRANSFORMS
+            bpy.ops.transform.select_orientation(orientation=og_orientation)
+            bpy.context.scene.tool_settings.transform_pivot_point = og_pivot
+
+        if og_cursor_setting != "QUATERNION":
+            # just gonna go ahead and assume no one uses this as default, for back-compatibility reasons...
+            context.scene.cursor.rotation_mode = og_cursor_setting
+        else:
+            context.scene.cursor.rotation_mode = 'XYZ'
+
 
         return {'FINISHED'}
 

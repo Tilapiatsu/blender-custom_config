@@ -2,7 +2,7 @@ bl_info = {
     "name": "ke_fit2grid",
     "author": "Kjell Emanuelsson",
     "category": "Modeling",
-    "version": (1, 0, 0),
+    "version": (1, 0, 1),
     "blender": (2, 80, 0),
 }
 import bpy
@@ -27,7 +27,7 @@ class VIEW3D_OT_ke_fit2grid(bpy.types.Operator):
     @classmethod
     def poll(cls, context):
         return (context.object is not None and
-                context.object.type == 'MESH')
+                context.object.type == 'MESH' and context.object.data.is_editmode)
 
     def execute(self, context):
         if not self.set_grid:

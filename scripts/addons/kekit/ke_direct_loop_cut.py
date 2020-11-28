@@ -80,8 +80,11 @@ class MESH_OT_ke_direct_loop_cut(bpy.types.Operator):
 	bl_label = "Direct Loop Cut"
 	bl_space_type = 'VIEW_3D'
 	bl_region_type = 'UI'
-	bl_description = "Adds edge loop under mouse pointer -or- edge-center (on selected) if over nothing." \
-					 "Select one edge to add loop to ring, or select manual ring to limit cut. Also: Multi-ring slice."
+	bl_description = "SLIDE: Cut edge loop(s) at mouse pointer -or- edge-center(s) on selected *if mouse is over nothing*." \
+					 "Limit slice: ring-edges selected on 1 ring." \
+					 "DIRECT: Instant at pointer or multi-ring slice if over nothing." \
+					 "No limit slice in DC."
+
 	bl_options = {'REGISTER'}
 
 	mode : bpy.props.EnumProperty(items=[("DEFAULT", "Default", ""),("SLIDE", "Slide", "")],

@@ -2,7 +2,7 @@ bl_info = {
     "name": "keQuickMeasure",
     "author": "Kjell Emanuelsson",
     "category": "Modeling",
-    "version": (1, 4, 0),
+    "version": (1, 4, 1),
     "blender": (2, 80, 0),
 }
 import bpy
@@ -249,21 +249,26 @@ def draw_callback_px(self, context):
     blf.shadow(font_id, 5, 0, 0, 0, 1)
     blf.shadow_offset(font_id, 1, -1)
 
+    if not self.help_mode:
+        hoff = 72
+    else:
+        hoff = 0
+
     if not self.lines:
         blf.color(font_id, 0.5, 0.5, 0.5, 1)
         blf.size(font_id, 15, 72)
-        blf.position(font_id, hpos, vpos + 106, 0)
+        blf.position(font_id, hpos, vpos + 106 - hoff, 0)
         blf.draw(font_id, "[ Invalid Selection ]")
     else:
         if self.sel_save_mode:
             blf.color(font_id, 0.5, 0.5, 0.5, 1)
             blf.size(font_id, 15, 72)
-            blf.position(font_id, hpos, vpos + 134, 0)
+            blf.position(font_id, hpos, vpos + 134 - hoff, 0)
             blf.draw(font_id, "[ --- Using Saved Selection --- ]")
 
         blf.color(font_id, 0.796, 0.7488, 0.6435, 1)
         blf.size(font_id, 20, 72)
-        blf.position(font_id, hpos, vpos + 106, 0)
+        blf.position(font_id, hpos, vpos + 106 - hoff, 0)
 
         if self.edit_mode[1] and not self.obj_mode:
             t = ceil(sum(self.stat * 10000)) / 10000
@@ -279,25 +284,33 @@ def draw_callback_px(self, context):
     # Instructions
     blf.color(font_id, 0.8, 0.8, 0.8, 1)
     blf.size(font_id, 15, 72)
-    blf.position(font_id, hpos, vpos + 78, 0)
-    blf.draw(font_id, "Change / Update Mode: (1)Verts, (2)Edges, (3)Faces, (4)Objects")
-    blf.position(font_id, hpos, vpos + 56, 0)
-    if self.edit_mode[0]:
-        blf.draw(font_id, "Stop: (Esc), (Enter), (Spacebar).      Toggle Vert Mode: (V)")
+
+    if self.help_mode:
+        blf.position(font_id, hpos, vpos + 78, 0)
+        blf.draw(font_id, "Change / Update Mode: (1)Verts, (2)Edges, (3)Faces, (4)Objects")
+        blf.position(font_id, hpos, vpos + 56, 0)
+        if self.edit_mode[0]:
+            blf.draw(font_id, "Stop: (Esc), (Enter), (Spacebar).      Toggle Vert Mode: (V)")
+        else:
+            blf.draw(font_id, "Stop: (Esc), (Enter), (Spacebar)")
+
+        blf.position(font_id, hpos, vpos + 36, 0)
+        blf.draw(font_id, "(G)rab, (R)otate, (S)cale. +X,Y/>,Z")
+        blf.position(font_id, hpos, vpos + 16, 0)
+        blf.draw(font_id, "Freeze Selection: (F) Toggle")
+        blf.position(font_id, hpos, vpos - 4, 0)
+        blf.draw(font_id, "Round-Snap: (T) By %s-Axis(M). Unit-scale:%s(N). Round-Snap All Axis (B)." %(ua, self.unit_size) )
+
+        blf.color(font_id, 0.5, 0.5, 0.5, 1)
+        blf.size(font_id, 12, 72)
+        blf.position(font_id, hpos, vpos - 24, 0)
+        blf.draw(font_id, "Navigation: Blender(MMB) or Ind.Std(Alt-) & (TAB) toggles mode. (H) Toggle Help")
+
     else:
-        blf.draw(font_id, "Stop: (Esc), (Enter), (Spacebar)")
-
-    blf.position(font_id, hpos, vpos + 36, 0)
-    blf.draw(font_id, "(G)rab, (R)otate, (S)cale. +X,Y/>,Z")
-    blf.position(font_id, hpos, vpos + 16, 0)
-    blf.draw(font_id, "Freeze Selection: (F) Toggle")
-    blf.position(font_id, hpos, vpos - 4, 0)
-    blf.draw(font_id, "Round-Snap: (T) By %s-Axis(M). Unit-scale:%s(N). Round-Snap All Axis (B)." %(ua, self.unit_size) )
-
-    blf.color(font_id, 0.5, 0.5, 0.5, 1)
-    blf.size(font_id, 12, 72)
-    blf.position(font_id, hpos, vpos - 24, 0)
-    blf.draw(font_id, "Navigation: Blender(MMB) or Ind.Std(Alt-) & (TAB) toggles mode")
+        blf.color(font_id, 0.5, 0.5, 0.5, 1)
+        blf.size(font_id, 15, 72)
+        blf.position(font_id, hpos, vpos + 78 - hoff, 0)
+        blf.draw(font_id, "(H) Help")
 
 
 def snapscale(self, context, all_axis=False):
@@ -348,8 +361,15 @@ def snapscale(self, context, all_axis=False):
 class VIEW3D_OT_ke_quickmeasure(bpy.types.Operator):
     bl_idname = "view3d.ke_quickmeasure"
     bl_label = "Quick Measure"
-    bl_description = "Contextual measurement types by mesh selection (Obj & Edit modes)"
+    bl_description = "Contextual measurement types by mesh selection (Obj & Edit modes). *QM FreezeMode* starts in freeze mode."
     bl_options = {'REGISTER'}
+
+    qm_start: bpy.props.EnumProperty(
+        items=[("DEFAULT", "Default Mode", "", "DEFAULT", 1),
+               ("SEL_SAVE", "Selection Save Mode", "", "SEL_SAVE", 2),
+               ],
+    name="Start Mode",
+        default="DEFAULT")
 
     @classmethod
     def poll(cls, context):
@@ -374,6 +394,7 @@ class VIEW3D_OT_ke_quickmeasure(bpy.types.Operator):
     sel_save_mode = False
     sel_save = []
     sel_save_obj = []
+    help_mode = False
 
     unit_size = False
     user_axis = 2
@@ -417,6 +438,10 @@ class VIEW3D_OT_ke_quickmeasure(bpy.types.Operator):
             self.sel_save_mode = not self.sel_save_mode
             if self.sel_save_mode:
                 sel_check(self, context, sel_save_check=True)
+            context.area.tag_redraw()
+
+        elif event.type == 'H' and event.value == 'RELEASE':
+            self.help_mode = not self.help_mode
             context.area.tag_redraw()
 
         elif event.type in {'ESC', 'RETURN', 'SPACE'}:
@@ -499,6 +524,9 @@ class VIEW3D_OT_ke_quickmeasure(bpy.types.Operator):
         sel_check(self, context, sel_save_check=True)
 
         if context.area.type == 'VIEW_3D':
+            if self.qm_start == "SEL_SAVE":
+                self.sel_save_mode = True
+
             self.screen_x = int(bpy.context.region.width * .5)
 
             args = (self, context)

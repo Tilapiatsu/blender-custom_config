@@ -2,14 +2,13 @@ bl_info = {
     "name": "keUnrotator",
     "author": "Kjell Emanuelsson",
     "category": "Modeling",
-    "version": (1, 3, 1),
+    "version": (1, 3, 2),
     "blender": (2, 90, 0),
 }
 import bpy
 import bmesh
-from .ke_utils import get_loops, average_vector, get_distance, mouse_raycast, tri_points_order
-from mathutils import Vector, Matrix, Euler
-from math import radians
+from .ke_utils import get_loops, average_vector, mouse_raycast, tri_points_order
+from mathutils import Vector, Matrix
 
 
 def tri_sort(vertpairs):
@@ -47,7 +46,6 @@ def unrotate(n_v, v_1, v_2, inv=False, set_inv=False, rot_offset=0):
         rx, ry, rz = rot.x, rot.y, rot.z
 
     if rot_offset != 0:
-        # eul = Euler((radians(rot_offset),0.0,0.0), 'XYZ')
         rz += rot_offset
 
     # oldskool modo-kit method to avoid non-uniform scale issues...slow, but works.
@@ -82,7 +80,7 @@ class VIEW3D_OT_ke_unrotator(bpy.types.Operator):
 
     mouse_pos = Vector((0, 0))
 
-    set_invert = False
+    set_invert = True
 
     def draw(self, context):
         layout = self.layout
@@ -100,6 +98,10 @@ class VIEW3D_OT_ke_unrotator(bpy.types.Operator):
         return self.execute(context)
 
     def execute(self, context):
+        # print(bpy.app.version, (2, 91, 0) > bpy.app.version)
+        if (2, 91, 0) > bpy.app.version:
+            self.set_invert = False
+
         sel_check, place, noloc, place, dupe = False, False, False, False, False
         vec_poslist = []
         place_coords = []
@@ -294,9 +296,6 @@ class VIEW3D_OT_ke_unrotator(bpy.types.Operator):
                     v_1.negate()
                     v_2.negate()
 
-                # if actual_invert:
-                #     n_v.negate()
-
                 # ..again!
                 unrotate(n_v, v_1, v_2, inv=True, set_inv=self.set_invert)
 
@@ -330,8 +329,8 @@ class VIEW3D_OT_ke_unrotator(bpy.types.Operator):
                         bpy.ops.object.duplicate(linked=False)
                     else:
                         bpy.ops.object.duplicate(linked=True)
-                    dobj = bpy.context.active_object
-                    dobj.select_set(True)
+                    obj = bpy.context.active_object
+                    obj.select_set(True)
 
                 if noloc or nosnap:
                     pe = [e for e in hit_obj.data.polygons[hit_face].edge_keys]
@@ -370,10 +369,7 @@ class VIEW3D_OT_ke_unrotator(bpy.types.Operator):
                         bpy.context.scene.tool_settings.use_snap_project = False
                         bpy.context.scene.tool_settings.use_snap_translate = True
 
-                    if dupe:
-                        dobj.location = hit_wloc
-                    else:
-                        obj.location = hit_wloc
+                    obj.location = hit_wloc
 
                     if not nosnap:
                         bpy.ops.transform.translate('INVOKE_DEFAULT')
