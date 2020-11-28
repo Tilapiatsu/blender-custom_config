@@ -1,3 +1,11 @@
+bl_info = {
+    "name": "kePies",
+    "author": "Kjell Emanuelsson",
+    "version": (0, 1, 0),
+    "blender": (2, 8, 0),
+    "description": "Custom Pie Menus",
+    "category": "3D View",}
+
 import bpy
 from bpy.types import Menu, Operator, Panel
 
@@ -94,18 +102,16 @@ class VIEW3D_MT_PIE_ke_fitprim(Menu):
     bl_idname = "VIEW3D_MT_ke_pie_fitprim"
 
     def draw(self, context):
-        # if self.ke_fitprim_option in {'BOX_OBJ', 'CYL_OBJ', 'SPHERE_OBJ', 'QUADSPHERE'}:
-
         layout = self.layout
         pie = layout.menu_pie()
-        pie.operator("view3d.ke_fitprim", text="Cylinder Obj", icon='MESH_CYLINDER').ke_fitprim_option = 'CYL_OBJ'
-        pie.operator("view3d.ke_fitprim", text="Cylinder", icon='MESH_CYLINDER').ke_fitprim_option = 'CYL'
-        pie.operator("view3d.ke_fitprim", text="Cube Obj", icon="MESH_CUBE").ke_fitprim_option = 'BOX_OBJ'
-        pie.operator("view3d.ke_fitprim", text="Cube", icon="CUBE").ke_fitprim_option = 'BOX'
-        pie.operator("view3d.ke_fitprim", text="Sphere Obj", icon='MESH_UVSPHERE').ke_fitprim_option = 'SPHERE_OBJ'
-        pie.operator("view3d.ke_fitprim", text="Sphere", icon='SPHERE').ke_fitprim_option = 'SPHERE'
-        pie.operator("view3d.ke_fitprim", text="Quadsphere Obj", icon="CLIPUV_HLT").ke_fitprim_option = 'QUADSPHERE_OBJ'
-        pie.operator("view3d.ke_fitprim", text="Quadsphere", icon="MOD_SUBSURF").ke_fitprim_option = 'QUADSPHERE'
+        pie.operator("view3d.ke_fitprim", text="Cylinder Obj", icon='MESH_CYLINDER').ke_fitprim_option = 'CYL_OBJ_PM'
+        pie.operator("view3d.ke_fitprim", text="Cylinder", icon='MESH_CYLINDER').ke_fitprim_option = 'CYL_PM'
+        pie.operator("view3d.ke_fitprim", text="Cube Obj", icon="MESH_CUBE").ke_fitprim_option = 'BOX_OBJ_PM'
+        pie.operator("view3d.ke_fitprim", text="Cube", icon="CUBE").ke_fitprim_option = 'BOX_PM'
+        pie.operator("view3d.ke_fitprim", text="Sphere Obj", icon='MESH_UVSPHERE').ke_fitprim_option = 'SPHERE_OBJ_PM'
+        pie.operator("view3d.ke_fitprim", text="Sphere", icon='SPHERE').ke_fitprim_option = 'SPHERE_PM'
+        pie.operator("view3d.ke_fitprim", text="Quadsphere Obj", icon="CLIPUV_HLT").ke_fitprim_option = 'QUADSPHERE_OBJ_PM'
+        pie.operator("view3d.ke_fitprim", text="Quadsphere", icon="MOD_SUBSURF").ke_fitprim_option = 'QUADSPHERE_PM'
 
 
 class VIEW3D_MT_PIE_ke_align(Menu):
@@ -115,35 +121,34 @@ class VIEW3D_MT_PIE_ke_align(Menu):
     def draw(self, context):
         layout = self.layout
         pie = layout.menu_pie()
-        pie.operator("view3d.snap_cursor_to_center", text="Cursor to World Origin", icon='CURSOR')
+        pie.operator("view3d.cursor_fit_selected_and_orient", text="Cursor Fit&Align", icon="ORIENTATION_CURSOR")
 
         pie.operator("mesh.ke_zeroscale", text="ZeroScale H", icon="NODE_SIDE").screen_axis = 0
 
-        pie.operator("view3d.cursor_fit_selected_and_orient", text="Cursor Fit&Align", icon="ORIENTATION_CURSOR")
-        # pie.separator()
+        pie.operator("mesh.ke_zeroscale", text="ZeroScale Cursor", icon="CURSOR").orient_type = "CURSOR"
+
         pie.operator("mesh.ke_zeroscale", text="ZeroScale V", icon="NODE_TOP").screen_axis = 1
 
         c = pie.row()
-        selbox = c.box().column()
+        main = c.column()
+        selbox = main.box().column()
         selbox.operator("view3d.snap_selected_to_grid", text="Selection to Grid", icon='RESTRICT_SELECT_OFF')
-        selbox.operator(
-            "view3d.snap_selected_to_cursor",
-            text="Selection to Cursor",
-            icon='RESTRICT_SELECT_OFF',
-        ).use_offset = False
-        selbox.operator(
-            "view3d.snap_selected_to_cursor",
-            text="Sel.to Cursor w.Offset",
-            icon='RESTRICT_SELECT_OFF',
-        ).use_offset = True
+        selbox.operator("view3d.snap_selected_to_cursor", text="Selection to Cursor", icon='RESTRICT_SELECT_OFF').use_offset = False
+        selbox.operator("view3d.snap_selected_to_cursor", text="Sel.to Cursor w.Offset", icon='RESTRICT_SELECT_OFF').use_offset = True
         selbox.operator("view3d.snap_selected_to_active", text="Selection to Active", icon='RESTRICT_SELECT_OFF')
         spacer = c.column()
         spacer.label(text="")
+        main.label(text="")
+        main.label(text="")
 
         pie.operator("mesh.ke_zeroscale", text="ZeroScale Normal", icon="NORMALS_FACE").orient_type = "NORMAL"
 
         c = pie.row()
-        cbox = c.box().column()
+        main = c.column()
+        main.label(text="")
+        main.label(text="")
+        cbox = main.box().column()
+        cbox.operator("view3d.snap_cursor_to_center", text="Cursor to World Origin", icon='CURSOR')
         cbox.operator("view3d.snap_cursor_to_grid", text="Cursor to Grid", icon='CURSOR')
         cbox.operator("view3d.snap_cursor_to_selected", text="Cursor to Selected", icon='CURSOR')
         cbox.operator("view3d.snap_cursor_to_active", text="Cursor to Active", icon='CURSOR')
@@ -152,11 +157,15 @@ class VIEW3D_MT_PIE_ke_align(Menu):
 
         spacer = pie.row()
         spacer.label(text="")
-        vbox = spacer.box().column()
+        vbox = spacer.column()
+        vbox.label(text="")
+        vbox.label(text="")
+        vbox = vbox.box().column()
         vbox.operator('view3d.align_origin_to_selected', text="Align Origin To Selected", icon="OBJECT_ORIGIN")
         vbox.operator('view3d.ke_origin_to_cursor', text="Align Origin(s) To Cursor", icon="PIVOT_CURSOR")
         vbox.operator('view3d.ke_object_to_cursor', text="Align Object(s) to Cursor", icon="CURSOR")
-        # vbox.operator('view3d.origin_to_selected', text="Object Origin(s) to Selection")
+        vbox.operator('view3d.ke_align_object_to_active', text="Align Object(s) to Active", icon="CON_LOCLIKE")
+        vbox.operator('view3d.ke_swap', text="Swap Places", icon="CON_TRANSLIKE")
 
 
 class VIEW3D_MT_PIE_ke_snapping(Menu):
@@ -316,6 +325,9 @@ class VIEW3D_MT_PIE_ke_overlays(Menu):
     bl_idname = "VIEW3D_MT_ke_pie_overlays"
 
     def draw(self, context):
+        o = context.space_data.overlay
+        s = context.space_data.shading
+
         layout = self.layout
         pie = layout.menu_pie()
 
@@ -323,132 +335,107 @@ class VIEW3D_MT_PIE_ke_overlays(Menu):
         cbox = c.box().column()
         cbox.scale_y = 1.3
 
-        if bpy.context.space_data.shading.show_backface_culling:
+        if s.show_backface_culling:
             cbox.operator("view3d.ke_overlays", text="Backface Culling", icon="XRAY", depress=True).overlay = "BACKFACE"
         else:
             cbox.operator("view3d.ke_overlays", text="Backface Culling", icon="XRAY", depress=False).overlay = "BACKFACE"
 
-        if bpy.context.space_data.overlay.show_extra_indices:
+        if o.show_extra_indices:
             cbox.operator("view3d.ke_overlays", text="Indices", icon="LINENUMBERS_ON", depress=True).overlay = "INDICES"
         else:
             cbox.operator("view3d.ke_overlays", text="Indices", icon="LINENUMBERS_ON", depress=False).overlay = "INDICES"
 
         cbox.separator()
 
-        if bpy.context.space_data.overlay.show_floor:
+        if o.show_floor:
             cbox.operator("view3d.ke_overlays", text="Grid", icon="GRID", depress=True).overlay = "GRID"
         else:
             cbox.operator("view3d.ke_overlays", text="Grid", icon="GRID", depress=False).overlay = "GRID"
 
-        if bpy.context.space_data.overlay.show_extras:
+        if o.show_extras:
             cbox.operator("view3d.ke_overlays", text="Extras", icon="LIGHT_SUN", depress=True).overlay = "EXTRAS"
         else:
             cbox.operator("view3d.ke_overlays", text="Extras", icon="LIGHT_SUN", depress=False).overlay = "EXTRAS"
 
-        if bpy.context.space_data.overlay.show_cursor:
+        if o.show_cursor:
             cbox.operator("view3d.ke_overlays", text="Cursor", icon="CURSOR", depress=True).overlay = "CURSOR"
         else:
             cbox.operator("view3d.ke_overlays", text="Cursor", icon="CURSOR", depress=False).overlay = "CURSOR"
 
-        if bpy.context.space_data.overlay.show_wireframes:
-            cbox.operator("view3d.ke_overlays", text="Object Wireframes", icon="MOD_WIREFRAME", depress=True).overlay = "WIREFRAMES"
-        else:
-            cbox.operator("view3d.ke_overlays", text="Object Wireframes", icon="MOD_WIREFRAME", depress=False).overlay = "WIREFRAMES"
 
-        # cbox.separator()
-
-        if bpy.context.space_data.overlay.show_object_origins:
+        if o.show_object_origins:
             cbox.operator("view3d.ke_overlays", text="Origins", icon="OBJECT_ORIGIN", depress=True).overlay = "ORIGINS"
         else:
             cbox.operator("view3d.ke_overlays", text="Origins", icon="OBJECT_ORIGIN", depress=False).overlay = "ORIGINS"
 
-        if bpy.context.space_data.overlay.show_outline_selected:
+        cbox.separator()
+
+        if o.show_wireframes:
+            cbox.operator("view3d.ke_overlays", text="Object Wireframes", icon="MOD_WIREFRAME", depress=True).overlay = "WIREFRAMES"
+        else:
+            cbox.operator("view3d.ke_overlays", text="Object Wireframes", icon="MOD_WIREFRAME", depress=False).overlay = "WIREFRAMES"
+
+        if o.show_outline_selected:
             cbox.operator("view3d.ke_overlays", text="Select Outline", icon="MESH_CIRCLE", depress=True).overlay = "OUTLINE"
         else:
             cbox.operator("view3d.ke_overlays", text="Select Outline", icon="MESH_CIRCLE", depress=False).overlay = "OUTLINE"
 
-        if bpy.context.space_data.shading.show_object_outline:
+        if s.show_object_outline:
             cbox.operator("view3d.ke_overlays", text="Object Outline", icon="MESH_CIRCLE", depress=True).overlay = "OBJ_OUTLINE"
         else:
             cbox.operator("view3d.ke_overlays", text="Object Outline", icon="MESH_CIRCLE", depress=False).overlay = "OBJ_OUTLINE"
 
-
-        # cbox.separator()
-        #
-        # try:
-        #     if bpy.context.scene.ke_focus[0] or not bpy.context.scene.ke_focus[0]:  #silly existance check
-        #
-        #         if not bpy.context.scene.ke_focus[0] and not bpy.context.scene.ke_focus[10]:
-        #             cbox.operator("view3d.ke_focusmode", text="Focus Mode", icon="FULLSCREEN_ENTER",
-        #                           depress=False).supermode = False
-        #             cbox.operator("view3d.ke_focusmode", text="Super Focus Mode", icon="FULLSCREEN_ENTER",
-        #                           depress=False).supermode = True
-        #
-        #         elif bpy.context.scene.ke_focus[0] and not bpy.context.scene.ke_focus[10]:
-        #             cbox.operator("view3d.ke_focusmode", text="Focus Mode (Off)", icon="FULLSCREEN_EXIT",
-        #                           depress=True).supermode = False
-        #
-        #         elif bpy.context.scene.ke_focus[10]:
-        #             cbox.operator("view3d.ke_focusmode", text="Super Focus Mode (Off)", icon="FULLSCREEN_EXIT",
-        #                           depress=True).supermode = True
-        #
-        # except:
-        #     cbox.operator("view3d.ke_focusmode", text="Focus Mode", icon="FULLSCREEN_ENTER",
-        #                   depress=False).supermode = False
-        #     cbox.operator("view3d.ke_focusmode", text="Super Focus", icon="FULLSCREEN_ENTER",
-        #                   depress=False).supermode = True
-
         c = pie.column()
         cbox = c.box().column()
         cbox.scale_y = 1.3
-        if bpy.context.space_data.overlay.show_edge_seams:
+        if o.show_edge_seams:
             cbox.operator("view3d.ke_overlays", text="Edge Seams", icon="UV_ISLANDSEL", depress=True).overlay = "SEAMS"
         else:
             cbox.operator("view3d.ke_overlays", text="Edge Seams", icon="UV_ISLANDSEL", depress=False).overlay = "SEAMS"
 
-        if bpy.context.space_data.overlay.show_edge_sharp:
+        if o.show_edge_sharp:
             cbox.operator("view3d.ke_overlays", text="Edge Sharp", icon="MESH_CUBE", depress=True).overlay = "SHARP"
         else:
             cbox.operator("view3d.ke_overlays", text="Edge Sharp", icon="MESH_CUBE", depress=False).overlay = "SHARP"
 
-        if bpy.context.space_data.overlay.show_edge_crease:
+        if o.show_edge_crease:
             cbox.operator("view3d.ke_overlays", text="Edge Crease", icon="META_CUBE", depress=True).overlay = "CREASE"
         else:
             cbox.operator("view3d.ke_overlays", text="Edge Crease", icon="META_CUBE", depress=False).overlay = "CREASE"
 
-        if bpy.context.space_data.overlay.show_edge_bevel_weight:
+        if o.show_edge_bevel_weight:
             cbox.operator("view3d.ke_overlays", text="Edge Bevel Weight", icon="MOD_BEVEL", depress=True).overlay = "BEVEL"
         else:
             cbox.operator("view3d.ke_overlays", text="Edge Bevel Weight", icon="MOD_BEVEL", depress=False).overlay = "BEVEL"
 
         cbox.separator()
 
-        if bpy.context.space_data.overlay.show_vertex_normals:
+        if o.show_vertex_normals:
             cbox.operator("view3d.ke_overlays", text="Vertex Normals", icon="NORMALS_VERTEX", depress=True).overlay = "VN"
         else:
             cbox.operator("view3d.ke_overlays", text="Vertex Normals", icon="NORMALS_VERTEX", depress=False).overlay = "VN"
 
-        if bpy.context.space_data.overlay.show_split_normals:
+        if o.show_split_normals:
             cbox.operator("view3d.ke_overlays", text="Split Normals", icon="NORMALS_VERTEX_FACE", depress=True).overlay = "SN"
         else:
             cbox.operator("view3d.ke_overlays", text="Split Normals", icon="NORMALS_VERTEX_FACE", depress=False).overlay = "SN"
 
-        if bpy.context.space_data.overlay.show_face_normals:
+        if o.show_face_normals:
             cbox.operator("view3d.ke_overlays", text="Face Normals", icon="NORMALS_FACE", depress=True).overlay = "FN"
         else:
             cbox.operator("view3d.ke_overlays", text="Face Normals", icon="NORMALS_FACE", depress=False).overlay = "FN"
 
         cbox.separator()
 
-        # if bpy.context.space_data.overlay.show_floor:
-        #     cbox.operator("view3d.ke_overlays", text="Grid", icon="GRID", depress=True).overlay = "GRID"
-        # else:
-        #     cbox.operator("view3d.ke_overlays", text="Grid", icon="GRID", depress=False).overlay = "GRID"
-
-        if bpy.context.space_data.overlay.show_face_orientation:
+        if o.show_face_orientation:
             cbox.operator("view3d.ke_overlays", text="Face Orientation", icon="FACESEL", depress=True).overlay = "FACEORIENT"
         else:
             cbox.operator("view3d.ke_overlays", text="Face Orientation", icon="FACESEL", depress=False).overlay = "FACEORIENT"
+
+        if o.show_weight:
+            cbox.operator("view3d.ke_overlays", text="Vertex Weights", icon="GROUP_VERTEX", depress=True).overlay = "WEIGHT"
+        else:
+            cbox.operator("view3d.ke_overlays", text="Vertex Weights", icon="GROUP_VERTEX", depress=False).overlay = "WEIGHT"
 
 
         c = pie.column()
@@ -482,7 +469,6 @@ class VIEW3D_MT_PIE_ke_overlays(Menu):
 
         pie = layout.menu_pie()
         pie.operator("view3d.ke_overlays", text="All Edge Overlays", icon="UV_EDGESEL").overlay = "ALLEDIT"
-        # pie.separator()
 
 
 class VIEW3D_MT_PIE_ke_orientpivot(Menu):
@@ -526,22 +512,35 @@ class VIEW3D_MT_PIE_ke_orientpivot(Menu):
         pie.operator("view3d.ke_opc", text="O&P Combo 2", icon="KEYTYPE_JITTER_VEC").combo = "2"
 
 
+def get_shading(context):
+    # Get settings from 3D viewport or OpenGL render engine
+    view = context.space_data
+    if view.type == 'VIEW_3D':
+        return view.shading
+    else:
+        # return context.scene.display.shading
+        return None
+
+
 class VIEW3D_MT_PIE_ke_shading(Menu):
+    bl_space_type = 'VIEW_3D'
     bl_label = "keShading"
     bl_idname = "VIEW3D_MT_ke_pie_shading"
 
-    def get_shading(cls, context):
-        # Get settings from 3D viewport or OpenGL render engine
-        view = context.space_data
-        if view.type == 'VIEW_3D':
-            return view.shading
-        else:
-            return context.scene.display.shading
+    @classmethod
+    def poll(cls, context):
+        # return context.space_data.type == "VIEW_3D"
+        shading = get_shading(context)
+        engine = context.scene.render.engine
+        return shading.type in {'SOLID', 'MATERIAL'} or engine == 'BLENDER_EEVEE' and shading.type == 'RENDERED'
 
     def draw(self, context):
         view = context.space_data
         layout = self.layout
-        shading = self.get_shading(context)
+
+        shading = get_shading(context)
+        if shading is None:
+            return {'CANCELLED'}
         pie = layout.menu_pie()
 
         # SLOT --------------------------------------------------------------------------------
@@ -585,12 +584,13 @@ class VIEW3D_MT_PIE_ke_shading(Menu):
                         toggle=True,
                     )
 
-                sub2 = sub.column()
-                sub2.scale_y = 1.8
-                sub2.operator("preferences.studiolight_show", emboss=False, text="", icon='PREFERENCES')
-                sub2.prop(shading, "use_world_space_lighting", text="", icon='WORLD', toggle=True)
-                sub2.active = shading.use_world_space_lighting
-                sub2.prop(shading, "studiolight_rotate_z", text="")
+                # Todo: When using search, blender spams "unsupported rna type" etc for these props. MEH!
+                # sub2 = sub.column()
+                # sub2.scale_y = 1.8
+                # sub2.operator("preferences.studiolight_show", emboss=False, text="", icon='PREFERENCES')
+                # sub2.prop(shading, "use_world_space_lighting", text="", icon='WORLD', toggle=True)
+                # # sub2.active = shading.use_world_space_lighting
+                # sub2.prop(shading, "studiolight_rotate_z", text="")
 
 
             elif shading.light == 'MATCAP':
@@ -612,12 +612,13 @@ class VIEW3D_MT_PIE_ke_shading(Menu):
             sub.scale_y = 0.6
             sub.template_icon_view(shading, "studio_light", scale_popup=3)
 
-            sub2 = sub.column()
-            sub2.scale_y = 1.8
-            sub2.prop(shading, "studiolight_rotate_z", text="")
-            sub2.prop(shading, "studiolight_intensity", text="")
-            sub2.prop(shading, "studiolight_background_alpha", text="")
-
+            # Todo: When using search, blender spams "unsupported rna type" etc for these props. MEH!
+            # sub2 = sub.column()
+            # sub2.scale_y = 1.8
+            # sub2.prop(shading, "studiolight_rotate_z", text="")
+            # sub2.prop(shading, "studiolight_intensity", text="")
+            # sub2.prop(shading, "studiolight_background_alpha", text="")
+            #
             psub = sub.column()
             psub.operator("preferences.studiolight_show", emboss=False, text="", icon='PREFERENCES')
 
@@ -668,11 +669,13 @@ class VIEW3D_MT_PIE_ke_shading(Menu):
                 sub.scale_y = 0.6
                 sub.template_icon_view(shading, "studio_light", scale_popup=3)
 
-                sub2 = sub.column()
-                sub2.scale_y = 1.8
-                sub2.prop(shading, "studiolight_rotate_z", text="")
-                sub2.prop(shading, "studiolight_intensity", text="")
-                sub2.prop(shading, "studiolight_background_alpha", text="")
+                # Todo: When using search, blender spams "unsupported rna type" etc for these props. MEH!
+                # sub2 = sub.column()
+                # sub2.scale_y = 1.4
+                # sub2.prop(shading, "studiolight_rotate_z", text="")
+                # sub2.prop(shading, "studiolight_intensity", text="")
+                # sub2.prop(shading, "studiolight_background_alpha", text="")
+                # sub2.prop(shading, "studiolight_background_blur", text="")
 
                 psub = sub.column()
                 psub.operator("preferences.studiolight_show", emboss=False, text="", icon='PREFERENCES')

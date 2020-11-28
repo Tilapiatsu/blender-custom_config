@@ -2,7 +2,7 @@ bl_info = {
 	"name": "keContextOps",
 	"author": "Kjell Emanuelsson",
 	"category": "Modeling",
-	"version": (1, 3, 2),
+	"version": (1, 3, 7),
 	"blender": (2, 80, 0),
 }
 
@@ -10,10 +10,31 @@ import bpy
 import bmesh
 from mathutils import Vector
 from bpy.types import Operator
-from .ke_utils import get_loops, mouse_raycast
+from .ke_utils import get_loops, mouse_raycast, get_selected
 
 # from bpy.props import EnumProperty
 # import rna_keymap_ui
+
+
+class MESH_OT_ke_contextslide(Operator):
+	bl_idname = "mesh.ke_contextslide"
+	bl_label = "Context Slide"
+	bl_description = "Alternative one-click for double-G slide."
+
+	@classmethod
+	def poll(cls, context):
+		return (context.object is not None and
+				context.object.type == 'MESH' and
+				context.object.data.is_editmode)
+
+	def execute(self, context):
+		sel_mode = bpy.context.tool_settings.mesh_select_mode
+		if sel_mode[0]:
+			bpy.ops.transform.vert_slide("INVOKE_DEFAULT")
+		else:
+			bpy.ops.transform.edge_slide("INVOKE_DEFAULT")
+
+		return {'FINISHED'}
 
 
 class MESH_OT_ke_contextbevel(Operator):
@@ -77,8 +98,8 @@ class VIEW3D_OT_ke_contextdelete(Operator):
 			if sel_mode[0]:
 				bpy.ops.mesh.delete(type='VERT')
 			elif sel_mode[1]:
-				bpy.ops.mesh.dissolve_edges(use_verts=True)
-				# bpy.ops.mesh.delete(type='EDGE')  # useless? just delete faces if you want to delete faces....
+				# bpy.ops.mesh.dissolve_edges(use_verts=True)
+				bpy.ops.mesh.delete(type='EDGE')
 			elif sel_mode[2]:
 				bpy.ops.mesh.delete(type='FACE')
 
@@ -107,7 +128,7 @@ class MESH_OT_ke_contextdissolve(Operator):
 		if sel_mode[0]:
 			bpy.ops.mesh.dissolve_verts()
 		elif sel_mode[1]:
-			bpy.ops.mesh.dissolve_edges(use_verts=False)
+			bpy.ops.mesh.dissolve_edges(use_verts=True)
 			# bpy.ops.mesh.dissolve_limited()
 		elif sel_mode[2]:
 			bpy.ops.mesh.dissolve_faces()
@@ -133,6 +154,7 @@ class VIEW3D_OT_ke_contextselect(Operator):
 				og = [v for v in bm.verts if v.select]
 				bpy.ops.mesh.select_linked(delimit=set())
 				bpy.ops.mesh.region_to_loop()
+				bpy.ops.ed.undo_push()
 				sel_verts = [v for v in bm.verts if v.select]
 				if sel_verts:
 					bpy.ops.mesh.select_mode(use_extend=False, use_expand=False, type='EDGE')
@@ -141,16 +163,16 @@ class VIEW3D_OT_ke_contextselect(Operator):
 					for v in og:
 						v.select = True
 					bpy.ops.mesh.select_linked(delimit=set())
-
-				# bpy.ops.mesh.select_all(action='DESELECT')
-					# fail_info = "ContextSelect(Vertex) Found no open borders - Nothing selected."
-					# self.report({'INFO'}, fail_info)
+					bpy.ops.ed.undo_push()
 
 			elif sel_mode[1]:
-				bpy.ops.mesh.loop_select('INVOKE_DEFAULT')
+				bpy.ops.mesh.loop_multi_select(True, ring=False)
+				bpy.ops.ed.undo_push()
 
 			elif sel_mode[2]:
 				bpy.ops.mesh.select_linked(delimit=set())
+				bpy.ops.ed.undo_push()
+
 
 		return {'FINISHED'}
 
@@ -173,11 +195,15 @@ class VIEW3D_OT_ke_contextselect_extend(Operator):
 				bpy.ops.mesh.select_linked(delimit=set())
 				bpy.ops.mesh.region_to_loop()
 				bpy.ops.mesh.select_mode(use_extend=False, use_expand=False, type='EDGE')
+				bpy.ops.ed.undo_push()
+
 			elif sel_mode[1]:
 				bpy.ops.mesh.loop_multi_select(ring=False)
+				bpy.ops.ed.undo_push()
 
 			elif sel_mode[2]:
 				bpy.ops.mesh.select_linked(delimit=set())
+				bpy.ops.ed.undo_push()
 
 		return {'FINISHED'}
 
@@ -200,12 +226,14 @@ class VIEW3D_OT_ke_contextselect_subtract(Operator):
 				bpy.ops.mesh.select_linked(delimit=set())
 				bpy.ops.mesh.region_to_loop()
 				bpy.ops.mesh.select_mode(use_extend=False, use_expand=False, type='EDGE')
+				bpy.ops.ed.undo_push()
+
 			elif sel_mode[1]:
 				bpy.ops.mesh.loop_select('INVOKE_DEFAULT', deselect=True)
-
+				bpy.ops.ed.undo_push()
 			elif sel_mode[2]:
 				bpy.ops.mesh.select_linked_pick('INVOKE_DEFAULT', deselect=True)
-
+				bpy.ops.ed.undo_push()
 		return {'FINISHED'}
 
 
@@ -231,7 +259,10 @@ class VIEW3D_OT_ke_selmode(Operator):
 
 	def execute(self, context):
 		em = self.edit_mode
-		obj = bpy.context.active_object
+		mode = bpy.context.mode
+
+		obj = get_selected(context)
+
 		hit_obj = False
 		mouse_over = bpy.context.scene.kekit.selmode_mouse
 
@@ -252,16 +283,27 @@ class VIEW3D_OT_ke_selmode(Operator):
 						context.view_layer.objects.active = o
 						break
 
-		if obj.type == 'MESH' and not hit_obj:
-			if em != 'OBJECT':
-				bpy.ops.object.mode_set(mode="EDIT")
-				bpy.ops.mesh.select_mode(type=em)
-			else:
-				bpy.ops.object.mode_set(mode="OBJECT")
+				if em != "OBJECT":
+					bpy.ops.object.mode_set(mode="EDIT")
+					bpy.ops.mesh.select_mode(type=em)
 
-		elif mouse_over and hit_obj and em != 'OBJECT':
-			bpy.ops.object.mode_set(mode='EDIT')
-			bpy.ops.mesh.select_mode(type=em)
+			elif not hit_obj and obj:
+				if em != "OBJECT":
+					bpy.ops.object.mode_set(mode="EDIT")
+					bpy.ops.mesh.select_mode(type=em)
+
+		elif obj:
+			if em != "OBJECT":
+				if mode == 'OBJECT':
+					bpy.ops.object.mode_set(mode="EDIT")
+					bpy.ops.mesh.select_mode(type=em)
+				else:
+					bpy.ops.mesh.select_mode(type=em)
+			else:
+				if mode != 'OBJECT':
+					bpy.ops.object.mode_set(mode="OBJECT")
+				else:
+					bpy.ops.object.mode_set(mode="EDIT")
 
 		return {'FINISHED'}
 
@@ -429,8 +471,7 @@ class VIEW3D_OT_ke_vptransform(Operator):
 
 	@classmethod
 	def poll(cls, context):
-		return (context.object is not None and
-				context.object.type == 'MESH')
+		return context.object is not None
 
 	def execute(self, context):
 		self.world_only = bpy.context.scene.kekit.vptransform
@@ -451,10 +492,12 @@ class VIEW3D_OT_ke_vptransform(Operator):
 		elif self.transform == 'RESIZE':
 			bpy.ops.transform.resize('INVOKE_DEFAULT', constraint_axis=vplane)
 		elif self.transform == 'COPYGRAB':
-			if context.mode == 'EDIT_MESH':
+			if context.mode == 'EDIT_MESH' and context.object.type == 'MESH':
 				bpy.ops.mesh.duplicate('INVOKE_DEFAULT')
-			else:
+			elif context.mode == 'OBJECT':
 				bpy.ops.object.duplicate('INVOKE_DEFAULT')
+			else:
+				return {'CANCELLED'}
 			bpy.ops.transform.translate('INVOKE_DEFAULT', constraint_axis=vplane)
 
 		return {'FINISHED'}
@@ -476,6 +519,7 @@ classes = (
 	MESH_OT_ke_triple_connect_spin,
 	VIEW3D_OT_ke_selmode,
 	VIEW3D_OT_ke_vptransform,
+	MESH_OT_ke_contextslide,
 )
 
 

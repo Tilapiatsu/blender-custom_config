@@ -17,6 +17,20 @@ def get_duplicates(alist):
     return dupes
 
 
+def get_selected(context, sel_type="MESH"):
+    '''Get a selected Object by Type, Active or not'''
+    obj = None
+    sel_obj = [o for o in context.selected_objects]
+    if sel_obj:
+        sel_obj = [o for o in sel_obj if o.type == sel_type]
+    if context.active_object:
+        if context.active_object.type == sel_type:
+            obj = context.active_object
+    if not obj and sel_obj:
+        obj = sel_obj[0]
+    return obj
+
+
 def get_loops(vertpairs, legacy=False):
     # sort list of edges (vert index pairs)
     loop_vp = [i for i in vertpairs]
