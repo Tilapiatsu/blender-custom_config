@@ -1061,8 +1061,6 @@ class SoftDeformedHandler(object):
                     active_v_group == widget.armature.mirror_deform_bone.name:
                 return widget
 
-
-
     def remove_modifier(self, mod):
         if self.type == "GPENCIL":
             self.obj.grease_pencil_modifiers.remove(mod)
@@ -1091,8 +1089,6 @@ class SoftDeformedHandler(object):
         if opposite_group:
             self.smooth_weights(opposite_group.name)
         self.obj.vertex_groups.active_index = v_group.index
-
-
 
     def smooth_weights(self,v_group_name=None, iter = None, factor = None, expand=None ):
         current_mode = None
@@ -1427,26 +1423,33 @@ class SoftArmatureHandler(object):
 
 
         #adding mirror contraints
-        const = mirror_driver_bone.constraints.new('COPY_TRANSFORMS')
-        const.target = bpy.data.objects[soft_mod_armature.name]
-        const.subtarget = deform_bone.name
+        mirror_driver_copy_const = mirror_driver_bone.constraints.new('COPY_TRANSFORMS')
+        mirror_driver_copy_const.target = bpy.data.objects[soft_mod_armature.name]
+        mirror_driver_copy_const.subtarget = deform_bone.name
 
-        const = mirror_driver_bone.constraints.new("CHILD_OF")
-        const.target = bpy.data.objects[soft_mod_armature.name]
-        const.subtarget = mirror_origin_bone.name
-        const.inverse_matrix = Matrix.Identity (4)
+        mirror_driver_child_of_const = mirror_driver_bone.constraints.new("CHILD_OF")
+        mirror_driver_child_of_const.target = bpy.data.objects[soft_mod_armature.name]
+        mirror_driver_child_of_const.subtarget = mirror_origin_bone.name
+        mirror_driver_child_of_const.inverse_matrix = Matrix.Identity (4)
         wm = soft_mod_armature.matrix_world @ mirror_origin_bone.matrix.inverted()
-        const.inverse_matrix = wm
+        mirror_driver_child_of_const.inverse_matrix = wm
 
 
-        const = mirror_deform_bone.constraints.new('CHILD_OF')
-        const.target = bpy.data.objects[soft_mod_armature.name]
-        const.subtarget = mirror_driver_bone.name
-        context_py = bpy.context.copy ()
-        context_py["constraint"] = const
-        armature.bones.active = mirror_deform_bone.bone
-        bpy.ops.constraint.childof_set_inverse (context_py , constraint="Child Of" , owner='BONE')
+        mirror_deform_child_of_const = mirror_deform_bone.constraints.new('CHILD_OF')
+        mirror_deform_child_of_const.target = bpy.data.objects[soft_mod_armature.name]
+        mirror_deform_child_of_const.subtarget = mirror_driver_bone.name
+        # print (const)
+        # setting invers. This will give an error if the version of blender is higher than 2.8.3
+        version = bpy.app.version
+        if version <=(2, 82, 99):
 
+            context_py = bpy.context.copy ()
+            context_py["constraint"] = mirror_deform_child_of_const
+            armature.bones.active = mirror_deform_bone.bone
+            bpy.ops.constraint.childof_set_inverse (context_py , constraint="Child Of", owner='BONE')
+
+        else:
+            mirror_deform_child_of_const.set_inverse_pending = True
 
         #adding the driver
         if bpy.ops.object.mode_set.poll ():

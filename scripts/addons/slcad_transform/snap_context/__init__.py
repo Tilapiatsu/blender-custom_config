@@ -80,10 +80,9 @@ class SnapContext:
         self._texture = None
         self.winsize = Vector((0, 0))
 
-    def init_context(self, region, space):
-
-        self.region = region
-        self.rv3d = space.region_3d
+    def init_context(self, context):
+        self.region = context.region
+        self.rv3d = context.space_data.region_3d
         # self.depth_range = Vector((space.clip_start, space.clip_end))
         w, h = self.region.width, self.region.height
         self._offscreen = gpu.types.GPUOffScreen(w, h)
@@ -221,8 +220,10 @@ class SnapContext:
             self.update_all()
 
     def add_origins(self, context):
-
-        origins = [o.matrix_world.translation.copy() for o in context.visible_objects]
+        # check isolate mode
+        origins = [o.matrix_world.translation.copy()
+                   for o in context.visible_objects
+                ]
         origins.append(context.scene.cursor.location.copy())
 
         matrix = Matrix()
@@ -231,6 +232,7 @@ class SnapContext:
         return self.snap_objects[-1]
 
     def add_obj(self, obj):
+        # print("gl_stack.add_obj %s" % obj.name)
         # Cannot freeze wrapped/owned data
         matrix = obj.matrix_world.copy()
         snap_obj = self._get_snap_obj_by_obj(obj)
@@ -248,13 +250,24 @@ class SnapContext:
     def draw(self):
         # For debug purposes
         gpu_Indices_enable_state()
-        _offset_cur = 1
+        _offset_cur = 128
         proj_mat = self.rv3d.perspective_matrix.copy()
 
-        if self.proj_mat != proj_mat:
-            self.proj_mat = proj_mat
-            GPU_Indices.set_ProjectionMatrix(self.proj_mat)
-            self.update_all()
+        multisample_enabled = bgl.glIsEnabled(bgl.GL_MULTISAMPLE)
+
+        if multisample_enabled:
+            bgl.glDisable(bgl.GL_MULTISAMPLE)
+
+        dither_enabled = bgl.glIsEnabled(bgl.GL_DITHER)
+
+        if dither_enabled:
+            bgl.glDisable(bgl.GL_DITHER)
+
+        # if self.proj_mat != proj_mat:
+        GPU_Indices.set_ProjectionMatrix(proj_mat)
+            # clear buffer
+            # bgl.glClearColor(0.0, 0.0, 0.0, 0.0)
+            # bgl.glClear(bgl.GL_COLOR_BUFFER_BIT | bgl.GL_DEPTH_BUFFER_BIT)
 
         for i, snap_obj in enumerate(self.snap_objects):
 
@@ -269,14 +282,19 @@ class SnapContext:
                 # print("create data %.4f" % (time.time() - tim))
 
             snap_obj.data[1].set_draw_mode(
-                (self._snap_mode & (KNOT | SEGS | SEGS_CENTER | SEGS_PERPENDICULAR | SEGS_PARALLEL)) != 0,
-                (self._snap_mode & ORIGIN) != 0
+                (self._snap_mode & (KNOT | SEGS | SEGS_CENTER | SEGS_PERPENDICULAR | SEGS_PARALLEL)) > 0,
+                (self._snap_mode & ORIGIN) > 0
             )
 
             snap_obj.data[1].set_ModelViewMatrix(snap_obj.mat)
             snap_obj.data[1].draw(_offset_cur)
 
             _offset_cur += snap_obj.data[1].get_tot_elems()
+
+        if dither_enabled:
+            bgl.glEnable(bgl.GL_DITHER)  # dithering and AA break color coding, so disable #
+        if multisample_enabled:
+            bgl.glEnable(bgl.GL_MULTISAMPLE)
 
         gpu_Indices_restore_state()
 
@@ -287,89 +305,100 @@ class SnapContext:
         self.mval[:] = mval
 
         gpu_Indices_enable_state()
-        self._offscreen.bind()
+        with self._offscreen.bind():
 
-        proj_mat = self.rv3d.perspective_matrix.copy()
+            multisample_enabled = bgl.glIsEnabled(bgl.GL_MULTISAMPLE)
 
-        if self.proj_mat != proj_mat:
-            self.proj_mat = proj_mat
-            GPU_Indices.set_ProjectionMatrix(self.proj_mat)
-            self.update_all()
+            if multisample_enabled:
+                bgl.glDisable(bgl.GL_MULTISAMPLE)
 
-        ray_dir, ray_orig = self.get_ray(mval)
-        for i, snap_obj in enumerate(self.snap_objects[self.drawn_count:], self.drawn_count):
+            dither_enabled = bgl.glIsEnabled(bgl.GL_DITHER)
 
-            obj = snap_obj.data[0]
+            if dither_enabled:
+                bgl.glDisable(bgl.GL_DITHER)
 
-            # origins
-            if obj.__class__.__name__ == 'list':
-                in_threshold = (self._snap_mode & ORIGIN)
-            else:
-                # allow to hide some objects from snap, eg active object when moving
-                if obj is None or obj.name in self._exclude:
-                    # print("exclude %s" % obj.name)
-                    continue
+            proj_mat = self.rv3d.perspective_matrix.copy()
 
-                bbmin = Vector(obj.bound_box[0])
-                bbmax = Vector(obj.bound_box[6])
+            if self.proj_mat != proj_mat:
+                self.proj_mat = proj_mat
+                GPU_Indices.set_ProjectionMatrix(self.proj_mat)
+                self.update_all()
 
-                # check objects under ray using bound box
-                if bbmin != bbmax:
-                    MVP = proj_mat @ snap_obj.mat
-                    mat_inv = snap_obj.mat.inverted()
-                    ray_orig_local = mat_inv @ ray_orig
-                    ray_dir_local = ray_dir @ snap_obj.mat
-                    in_threshold = intersect_boundbox_threshold(self, MVP, ray_orig_local, ray_dir_local, bbmin, bbmax)
+            ray_dir, ray_orig = self.get_ray(mval)
+            for i, snap_obj in enumerate(self.snap_objects[self.drawn_count:], self.drawn_count):
 
+                obj = snap_obj.data[0]
+
+                # origins
+                if obj.__class__.__name__ == 'list':
+                    # filter by visibility
+                    in_threshold = (self._snap_mode & ORIGIN)
                 else:
-                    dist = self._max_pixel_dist(snap_obj.mat.translation)
-                    in_threshold = dist < self._dist_px
+                    # allow to hide some objects from snap, eg active object when moving
+                    if obj is None or obj.name in self._exclude or not obj.visible_get():
+                        # print("exclude %s" % obj.name)
+                        continue
 
-            # print("ray_orig %s  ray_dir %s  %s in_threshold %s" % (ray_orig, ray_dir, obj.name, in_threshold))
+                    bbmin = Vector(obj.bound_box[0])
+                    bbmax = Vector(obj.bound_box[6])
 
-            if in_threshold:
+                    # check objects under ray using bound box
+                    if bbmin != bbmax:
+                        MVP = proj_mat @ snap_obj.mat
+                        mat_inv = snap_obj.mat.inverted()
+                        ray_orig_local = mat_inv @ ray_orig
+                        ray_dir_local = ray_dir @ snap_obj.mat
+                        in_threshold = intersect_boundbox_threshold(self, MVP, ray_orig_local, ray_dir_local, bbmin, bbmax)
 
-                # create shader and data for detail analysis
-                if len(snap_obj.data) == 1:
-                    # tim = time.time()
+                    else:
+                        dist = self._max_pixel_dist(snap_obj.mat.translation)
+                        in_threshold = dist < self._dist_px
 
-                    snap_obj.data.append(
-                        GPU_Indices(obj)
-                        )
-                    # print("create data %.4f" % (time.time() - tim))
+                # print("ray_orig %s  ray_dir %s  %s in_threshold %s" % (ray_orig, ray_dir, obj.name, in_threshold))
 
-                snap_obj.data[1].set_draw_mode(
-                    (self._snap_mode & (KNOT | SEGS | SEGS_CENTER | SEGS_PERPENDICULAR | SEGS_PARALLEL)) > 0,
-                    (self._snap_mode & ORIGIN) > 0
-                )
-                snap_obj.data[1].set_ModelViewMatrix(snap_obj.mat)
-                snap_obj.data[1].draw(self._offset_cur)
+                if in_threshold:
 
-                self._offset_cur += snap_obj.data[1].get_tot_elems()
+                    # create shader and data for detail analysis
+                    if len(snap_obj.data) == 1:
+                        # tim = time.time()
 
-                self.snap_objects[self.drawn_count], self.snap_objects[i] = \
-                    self.snap_objects[i], self.snap_objects[self.drawn_count]
-                self.drawn_count += 1
+                        snap_obj.data.append(
+                            GPU_Indices(obj)
+                            )
+                        # print("create data %.4f" % (time.time() - tim))
 
-        bgl.glReadBuffer(bgl.GL_COLOR_ATTACHMENT0)
-        bgl.glReadPixels(
-                int(self.mval[0]) - self._dist_px, int(self.mval[1]) - self._dist_px,
-                self.threshold, self.threshold, bgl.GL_RED_INTEGER, bgl.GL_UNSIGNED_INT, self._snap_buffer)
-        bgl.glReadBuffer(bgl.GL_BACK)
+                    snap_obj.data[1].set_draw_mode(
+                        (self._snap_mode & (KNOT | SEGS | SEGS_CENTER | SEGS_PERPENDICULAR | SEGS_PARALLEL)) > 0,
+                        (self._snap_mode & ORIGIN) > 0
+                    )
+                    snap_obj.data[1].set_ModelViewMatrix(snap_obj.mat)
+                    snap_obj.data[1].draw(self._offset_cur)
 
-        snap_obj, index = self._get_nearest_index()
+                    self._offset_cur += snap_obj.data[1].get_tot_elems()
 
-        if snap_obj:
-            ret = self._get_loc(snap_obj, index)
+                    self.snap_objects[self.drawn_count], self.snap_objects[i] = \
+                        self.snap_objects[i], self.snap_objects[self.drawn_count]
+                    self.drawn_count += 1
 
-        # print(ret)
+            bgl.glReadBuffer(bgl.GL_COLOR_ATTACHMENT0)
+            bgl.glReadPixels(
+                    int(self.mval[0]) - self._dist_px, int(self.mval[1]) - self._dist_px,
+                    self.threshold, self.threshold, bgl.GL_RED_INTEGER, bgl.GL_UNSIGNED_INT, self._snap_buffer)
+            bgl.glReadBuffer(bgl.GL_BACK)
 
-        # if dither_enabled:
-        #     bgl.glEnable(bgl.GL_DITHER)  # dithering and AA break color coding, so disable #
-        # if multisample_enabled:
-        #     bgl.glEnable(bgl.GL_MULTISAMPLE)
+            snap_obj, index = self._get_nearest_index()
 
-        self._offscreen.unbind()
+            if snap_obj:
+                ret = self._get_loc(snap_obj, index)
+
+            # print(ret)
+            # print(self._snap_buffer[:])
+            if dither_enabled:
+                bgl.glEnable(bgl.GL_DITHER)  # dithering and AA break color coding, so disable #
+            if multisample_enabled:
+                bgl.glEnable(bgl.GL_MULTISAMPLE)
+
+        # self._offscreen.unbind()
         gpu_Indices_restore_state()
 
         # print("curve snap %s %.4f" % (len(self.snap_objects), time.time() - t))

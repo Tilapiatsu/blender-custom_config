@@ -26,6 +26,7 @@
 # ----------------------------------------------------------
 
 from math import pi, cos, sin
+import bpy
 import gpu
 import bgl
 import blf
@@ -51,16 +52,29 @@ void main()
 '''
 
 
-fragment_flat_color = '''
-uniform vec4 color;
+if bpy.app.version >= (2,83,0):
+    # 2.83+ color correction, see https://developer.blender.org/T79788
+    fragment_flat_color = '''
+    uniform vec4 color;
 
-out vec4 fragColor;
+    out vec4 fragColor;
 
-void main()
-{
-    fragColor = color;
-}
-'''
+    void main()
+    {
+        fragColor = blender_srgb_to_framebuffer_space(color);
+    }
+    '''
+else:
+    fragment_flat_color = '''
+    uniform vec4 color;
+    
+    out vec4 fragColor;
+    
+    void main()
+    {
+        fragColor = color;
+    }
+    '''
 
 
 def get_shader(builtin_typ=None):

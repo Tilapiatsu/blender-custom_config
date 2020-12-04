@@ -3,7 +3,7 @@ bl_info = {
     "author" : "Maurizio Memoli",
     "description" : "",
     "blender" : (2, 80, 0),
-    "version" : (2, 0, 0,),
+    "version" : (2, 1, 0,),
     "location" : "",
     "warning" : "",
     "wiki_url": "",
@@ -24,33 +24,32 @@ from . operators.ops import OT_delete_override, OT_paint_mode, OT_toggle_soft_mo
 addon_keymaps = []
 
 class SoftWidgetSttings(PropertyGroup):
-    topologycal_sym = bpy.props.BoolProperty (default=False)
+    topologycal_sym: bpy.props.BoolProperty (default=False)
 
-    widget_relative_size = bpy.props.FloatProperty (default=0.0)
+    widget_relative_size: bpy.props.FloatProperty (default=0.0)
 
 
 class SoftModSettings(PropertyGroup):
-    surf_falloff=BoolProperty(
-
+    surf_falloff: BoolProperty(
         name="Surface Falloff",
         description ="Enable surface falloff",
         default=False)
 
-    show_widget_properties = bpy.props.BoolProperty (default=True)
+    show_widget_properties: bpy.props.BoolProperty (default=True)
 
-    show_mesh_properties = bpy.props.BoolProperty (default=True)
+    show_mesh_properties: bpy.props.BoolProperty (default=True)
 
-    show_global_properties = bpy.props.BoolProperty (default=True)
+    show_global_properties: bpy.props.BoolProperty (default=True)
 
-    widget_name = bpy.props.StringProperty (default="")
+    widget_name: bpy.props.StringProperty (default="")
 
-    widget_global_size = bpy.props.FloatProperty (default=0.0)
+    widget_global_size: bpy.props.FloatProperty (default=0.0)
 
-    smooth_iterations = bpy.props.IntProperty (default=2, min=0)
+    smooth_iterations: bpy.props.IntProperty (default=2, min=0)
 
-    smooth_factor = bpy.props.FloatProperty (default=1.0, min=0.0, max=1.0)
+    smooth_factor: bpy.props.FloatProperty (default=1.0, min=0.0, max=1.0)
 
-    smooth_expand = bpy.props.FloatProperty (default=0.0, min = 0.0, max= 1.0)
+    smooth_expand: bpy.props.FloatProperty (default=0.0, min = 0.0, max= 1.0)
 
 
 
@@ -122,6 +121,7 @@ def unregister():
     addon_keymaps.clear()
 
     del bpy.types.Scene.soft_mod
+    del bpy.types.Object.soft_widget
     #del bpy.types.Scene.show_widget_properties
 
     #del bpy.types.Object.widget_name
