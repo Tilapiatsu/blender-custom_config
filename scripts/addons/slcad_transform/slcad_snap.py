@@ -27,15 +27,18 @@ import time
 import logging
 from math import pi, cos, sin
 from mathutils import Matrix, Vector
+import bpy
 
 try:
     from .snap_context import SnapContext
-
     USE_GL = True
 except ImportError:
     print("Snap to curves will be disabled")
     USE_GL = False
     pass
+
+# Draw gl stack
+DEBUG_GL = False # bpy.app.version >= (2,91,0)
 
 logger = logging.getLogger(__package__)
 
@@ -57,6 +60,7 @@ FACE_NORMAL = 256
 ORIGIN = 512
 
 SNAP_TO_ISOLATED_MESH = True
+SNAP_TO_BASE_MESH = True
 
 
 def debug_typ(typ):
@@ -210,7 +214,7 @@ class SlCadSnap:
         if USE_GL:
             self.gl_stack = SnapContext()
             self.gl_stack.set_pixel_dist(self._snap_radius)
-            self.gl_stack.init_context(context.region, context.space_data)
+            self.gl_stack.init_context(context)
             self.update_gl_snap()
             for o in context.visible_objects:
                 if o.type == "CURVE":
@@ -228,11 +232,20 @@ class SlCadSnap:
         if self.gl_stack is not None:
             self.gl_stack.snap_objects.clear()
 
-    def _scene_ray_cast(self, context, origin, direction):
-        return context.scene.ray_cast(
-            view_layer=context.view_layer,
-            origin=origin,
-            direction=direction)
+    def minimum_blender_version(self, major, minor, rev):
+        return bpy.app.version >= (major, minor, rev)
+
+    def _scene_ray_cast(self, context, orig, vec):
+        if self.minimum_blender_version(2, 91, 0):
+            return context.scene.ray_cast(
+                depsgraph=context.view_layer.depsgraph,
+                origin=orig,
+                direction=vec)
+        else:
+            return context.scene.ray_cast(
+                view_layer=context.view_layer,
+                origin=orig,
+                direction=vec)
 
     def _event_pixel_coord(self, event):
         return Vector((event.mouse_region_x, event.mouse_region_y))
@@ -289,7 +302,7 @@ class SlCadSnap:
             if hit:
                 dist = (orig - pos).length
                 orig += direction * (dist + self._cast_threshold)
-                if o.name not in self._exclude:
+                if o.name not in self._exclude and o.visible_get():
                     # normal -> vec are opposites, when facing length is 0 when opposite length is 2
                     # if self._back_faces or (matrix_world.to_quaternion() @ normal + direction).length < 1:
                     if o not in hits:
@@ -369,6 +382,7 @@ class SlCadSnap:
                 if self._skip_selected_faces and me.polygons[face_index].select:
                     continue
 
+                # TODO: handle "visible" state
                 verts = [
                     (i, matrix_world @ me.vertices[i].co)
                     for i in me.polygons[face_index].vertices
@@ -458,6 +472,7 @@ class SlCadSnap:
                     # skip selected face in edit mode when snapping to normal
                     continue
 
+                # TODO: handle "visible" state
                 pos, normal, matrix_world, z, ray_depth = hit
                 dist = 1e32
                 verts = [
@@ -514,6 +529,7 @@ class SlCadSnap:
                 if self._skip_selected_faces and me.polygons[face_index].select:
                     continue
 
+                # TODO: handle "visible" state
                 pos, normal, matrix_world, z, ray_depth = hit
                 verts = [
                     (self._skip_selected_faces and me.vertices[v].select, matrix_world @ me.vertices[v].co)
@@ -546,6 +562,8 @@ class SlCadSnap:
 
     def _closest_geometry(self, context, origin, direction, hits_dict, closest, skip_face):
         t = time.time()
+        # TODO: handle "visible" state at object's level, including "isolated" state
+
         depsgraph = context.evaluated_depsgraph_get()
         for o, hits in hits_dict.items():
             if o.type == "MESH":
@@ -716,11 +734,36 @@ class SlCadSnap:
             p0, p1 = p1, p0
         return p0, p1
 
-    def snap(self, context, event, grid_matrix):
-        """
-        :param grid_matrix:
-        :param context:
-        :param event:
+    @property
+    def is_snapping(self):
+        '''
+        :return: Snapping state boolean, True when snapping to something
+        '''
+        return self._is_snapping
+
+    @property
+    def snap_target(self):
+        '''
+        :return: Active snap target SlCadSnapTarget or None
+        '''
+        if self._is_snapping:
+            return self._snap_raw
+        return None
+
+    @property
+    def snap_location(self):
+        '''
+        :return: Active snap location Vector or None
+        '''
+        if self._is_snapping:
+            return self._snap_loc
+        return None
+
+    def snap(self, context, event, grid_matrix=None):
+        """ Update _snap_raw, _snap_loc and _is_snapping state
+        :param context: blender's context
+        :param event: blender's mouse event
+        :param grid_matrix: optional Matrix for grid snap plane and scale
         :return:
         """
 
@@ -747,8 +790,12 @@ class SlCadSnap:
         if self.gl_stack is not None and (self.snap_mode & (
                 VERT | EDGE | EDGE_CENTER | EDGE_PERPENDICULAR | EDGE_PARALLEL | ORIGIN)
         ):
-            # fallback to gl for curves only, limited to knots and straight segments
+            # if DEBUG_GL:
+            #    self.gl_stack.draw()
+
+            # fallback to gl for curves, origin, cursor, isolated verts / edges, limited to knots and straight segments
             target, ret = self.gl_stack.snap(center)
+
             if target is not None and ret is not None:
                 loc, pts, dist, fac, typ = ret
                 # print("snap gl_stack.snap(): data:%s loc:%s idx:%s  %.4f" %
@@ -772,11 +819,11 @@ class SlCadSnap:
                     )
                     skip_face = True
 
-        # snap to geometry
+        # Snap to geometry, use ray under mouse only on first attempt
         use_center = True
 
         attempts = self._max_attempts
-        # progressive grow snap radius by attempts
+        # Progressive grow snap radius by attempts
         snap_radius_px = int(self._snap_radius / attempts)
         radius = 0
 
@@ -800,7 +847,7 @@ class SlCadSnap:
                 if len(hits) > 0:
                     self._closest_geometry(context, origin, direction, hits, closest, skip_face)
 
-            if self.snap_mode & GRID:
+            if self.snap_mode & GRID and grid_matrix is not None:
                 # Snap to grid
                 p0 = self._mouse_to_plane(p_co=grid_matrix.translation, p_no=grid_matrix.col[2].to_3d())
                 if p0 is not None:

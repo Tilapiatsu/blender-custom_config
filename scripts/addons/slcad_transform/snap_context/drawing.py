@@ -20,16 +20,18 @@
 # Twitter:  wii_mano @mano_wii
 
 import bgl
+import bpy
 import gpu
 import numpy as np
 from .bgl_ext import VoidBufValue, np_array_as_bgl_Buffer
 from mathutils.geometry import interpolate_bezier
 import bmesh
-
+from .utils_shader import Shader
 import time
 
 
 vert_3d = '''
+#version 330
 uniform mat4 MVP;
 
 in vec3 pos;
@@ -46,6 +48,7 @@ void main()
 
 
 primitive_id_frag = '''
+#version 330
 uniform float offset;
 
 in float primitive_id_var;
@@ -77,6 +80,7 @@ def interp_bezier(p0, p1, segs, resolution):
 
 
 def get_bmesh_loose_edges(bm):
+    # TODO: handle "visible" state
     looseedges = [i.verts for i in bm.edges if i.is_wire]
     edges_co = None
     if len(looseedges) > 0:
@@ -88,6 +92,7 @@ def get_bmesh_loose_edges(bm):
 
 
 def get_bmesh_loose_verts(bm):
+    # TODO: handle "visible" state
     pos = [v.co for v in bm.verts if not v.link_edges]
     if len(pos) < 1:
         return None
@@ -96,7 +101,7 @@ def get_bmesh_loose_verts(bm):
 
 def get_curve_arrays(curve):
     # ~0.1s / 100k pts on POLY
-    # t = time.time()
+    t = time.time()
     segs = []
     pos = []
     k0 = 0
@@ -135,7 +140,7 @@ def get_curve_arrays(curve):
     for i, (v0, v1) in enumerate(segs):
         edges_co[i][0] = pos[v0]
         edges_co[i][1] = pos[v1]
-    # print("get_curve_arrays %.4f" % (time.time() - t))
+    # print("get_curve_arrays %.4f  (%s) segs" % (time.time() - t, len(edges_co)))
     return edges_co
 
 
@@ -181,11 +186,19 @@ class _Object_Arrays:
 
 class GPU_Indices:
 
-    shader = gpu.types.GPUShader(vert_3d, primitive_id_frag)
+    shader = Shader(
+        vert_3d,
+        None,
+        primitive_id_frag,
+    )
+    # broken in 2.91, revert back to old fashion code, do it painfully by hand
+    # shader = gpu.types.GPUShader(vert_3d, primitive_id_frag)
+
     unif_MVP = bgl.glGetUniformLocation(shader.program, 'MVP')
     unif_offset = bgl.glGetUniformLocation(shader.program, 'offset')
     attr_pos = bgl.glGetAttribLocation(shader.program, 'pos')
     attr_primitive_id = bgl.glGetAttribLocation(shader.program, 'primitive_id')
+
     # returns of public API #
     knot_co = bgl.Buffer(bgl.GL_FLOAT, 3)
     seg_co = bgl.Buffer(bgl.GL_FLOAT, (2, 3))
@@ -215,52 +228,55 @@ class GPU_Indices:
         self.snap_mode = 0
 
         self.vao = bgl.Buffer(bgl.GL_INT, 1)
+        _arrays = _Object_Arrays(obj)
+
+
         bgl.glGenVertexArrays(1, self.vao)
         bgl.glBindVertexArray(self.vao[0])
 
-        _arrays = _Object_Arrays(obj)
-
         if _arrays.segs_co:
+            self.num_segs = len(_arrays.segs_co)
+            segs_indices = np.repeat(np.arange(self.num_segs, dtype='f4'), 2)
 
             self.vbo_segs_co = bgl.Buffer(bgl.GL_INT, 1)
-            self.num_segs = len(_arrays.segs_co)
             bgl.glGenBuffers(1, self.vbo_segs_co)
             bgl.glBindBuffer(bgl.GL_ARRAY_BUFFER, self.vbo_segs_co[0])
             bgl.glBufferData(bgl.GL_ARRAY_BUFFER, self.num_segs * 24, _arrays.segs_co, bgl.GL_STATIC_DRAW)
 
-            segs_indices = np.repeat(np.arange(self.num_segs, dtype='f4'), 2)
             self.vbo_segs = bgl.Buffer(bgl.GL_INT, 1)
             bgl.glGenBuffers(1, self.vbo_segs)
             bgl.glBindBuffer(bgl.GL_ARRAY_BUFFER, self.vbo_segs[0])
             bgl.glBufferData(
                 bgl.GL_ARRAY_BUFFER, self.num_segs * 8, np_array_as_bgl_Buffer(segs_indices), bgl.GL_STATIC_DRAW
             )
+
             del segs_indices
             self._draw_segs = True
 
         # objects origin
         if _arrays.origin_co:
+            self.num_origins = len(_arrays.origin_co)
+            orig_indices = np.arange(self.num_origins, dtype='f4')
 
             self.vbo_origin_co = bgl.Buffer(bgl.GL_INT, 1)
-
-            self.num_origins = len(_arrays.origin_co)
             bgl.glGenBuffers(1, self.vbo_origin_co)
             bgl.glBindBuffer(bgl.GL_ARRAY_BUFFER, self.vbo_origin_co[0])
             bgl.glBufferData(bgl.GL_ARRAY_BUFFER, self.num_origins * 12, _arrays.origin_co, bgl.GL_STATIC_DRAW)
 
-            orig_indices = np.arange(self.num_origins, dtype='f4')
             self.vbo_origin = bgl.Buffer(bgl.GL_INT, 1)
             bgl.glGenBuffers(1, self.vbo_origin)
             bgl.glBindBuffer(bgl.GL_ARRAY_BUFFER, self.vbo_origin[0])
             bgl.glBufferData(
                 bgl.GL_ARRAY_BUFFER, self.num_origins * 4, np_array_as_bgl_Buffer(orig_indices), bgl.GL_STATIC_DRAW
             )
+
             del orig_indices
             self.is_mesh = _arrays.is_mesh
             self._draw_origins = True
-        del _arrays
 
-        bgl.glBindVertexArray(0)
+            bgl.glBindVertexArray(0)
+
+        del _arrays
 
     def get_tot_elems(self):
         tot = 0
@@ -279,6 +295,7 @@ class GPU_Indices:
 
     @property
     def draw_origin(self):
+        # origins and isolated vertices
         return (self._draw_origins or (self._draw_segs and self.is_mesh)) and self.vbo_origin_co is not None
 
     def set_draw_mode(self, draw_segs, draw_origin):
@@ -291,6 +308,7 @@ class GPU_Indices:
 
     def set_ModelViewMatrix(self, MV):
         self.MVP[:] = self.P @ MV
+        # self.MVP = self.P @ MV
 
     def bind(self, co, buf_id, offset):
         bgl.glUniform1f(self.unif_offset, float(offset))
@@ -303,22 +321,25 @@ class GPU_Indices:
 
     def draw(self, index_offset):
         self.first_index = index_offset
+
         bgl.glUseProgram(self.shader.program)
         bgl.glBindVertexArray(self.vao[0])
         bgl.glUniformMatrix4fv(self.unif_MVP, 1, bgl.GL_TRUE, self.MVP)
-        # bgl.glUniform1f(self.unif_size, float(2.0))
 
         if self.draw_segs:
             self.bind(self.vbo_segs_co, self.vbo_segs, index_offset)
             bgl.glDrawArrays(bgl.GL_LINES, 0, self.num_segs * 2)
-            index_offset += self.num_segs
+
+        index_offset += self.num_segs
 
         if self.draw_origin:
             self.bind(self.vbo_origin_co, self.vbo_origin, index_offset)
             bgl.glDrawArrays(bgl.GL_POINTS, 0, self.num_origins)
-            index_offset += self.num_origins
+
+        index_offset += self.num_origins
 
         bgl.glBindVertexArray(0)
+
 
     def get_seg_co(self, index):
         bgl.glBindVertexArray(self.vao[0])

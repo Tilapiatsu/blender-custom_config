@@ -33,7 +33,7 @@ import logging
 from logging import config
 from bpy.types import Operator, WorkSpaceTool, AddonPreferences, PropertyGroup, Panel
 from bpy.props import (
-    EnumProperty, BoolProperty, StringProperty, IntProperty,
+    EnumProperty, BoolProperty, StringProperty, IntProperty, FloatProperty,
     CollectionProperty, FloatVectorProperty, BoolVectorProperty
 )
 
@@ -63,7 +63,8 @@ from .slcad_snap import (
 
 ZERO = Vector()
 
-DEBUG_DRAW_GL = False
+DEBUG_DRAW_GL = False  # bpy.app.version >= (2, 91, 0)
+
 
 logger = logging.getLogger(__package__)
 
@@ -120,6 +121,7 @@ FREEMOVE = 32
 CONSTRAINT = 64
 MOVE_SNAP_FROM = 128
 MOVE_SNAP_TO = 256
+DUPLICATE = 512
 
 # constraint axis or plane
 X = 1
@@ -200,6 +202,8 @@ default_keymap = {
     "SCALE_DIMENSIONS": ("TAB", "Scale dimensions"),
     "CLEAR_SNAP": ("SPACE", "Clear all snap"),
     "INVERT_CONSTRAINT": ("I", "Invert constraint direction"),
+    "DUPLICATE": ("D", "Duplicate"),
+    "WORLD_CONSTRAINT": ("C", "Constraint world", False, False, True)
     # it is still not possible to define actions shortcuts
     # "MOVE": ("G", "Move"),
     # "ROTATE": ("R", "Rotate"),
@@ -802,6 +806,15 @@ class SlCadConstraint:
 
         return cls.changeAxesDict[(main_axis, guide_axis)](x, y, z)
 
+    def negate(self):
+        ''' Recerse axis
+        :return:
+        '''
+        self._mat.col[0] = -Vector(self._mat.col[0])
+        self._mat.col[1] = -Vector(self._mat.col[1])
+        self._mat.col[2] = -Vector(self._mat.col[2])
+        self._update_project_matrix()
+
     def __copy__(self):
         return SlCadConstraint(origin=self)
 
@@ -1107,7 +1120,8 @@ class SLCAD_main:
         get=get_xray_ex,
         set=set_xray_ex
     )
-
+    _copy = 0
+    _duplicates = []
     _last_run = 0
     _action = 0
     _snap_average = []
@@ -1343,6 +1357,10 @@ class SLCAD_main:
 
         if event.value == "PRESS":
 
+            if prefs.match("DUPLICATE", signature):
+                self._action |= DUPLICATE
+                self._copy = 0
+
             if prefs.match("AVERAGE", signature):
                 # average snap points
                 if slcadsnap._is_snapping:
@@ -1368,7 +1386,14 @@ class SLCAD_main:
 
             elif not (self._action & KEYBOARD):
 
-                if prefs.match("CONSTRAINT", signature) and (self._action & MOVE):
+                if prefs.match("WORLD_CONSTRAINT", signature):
+                    self._action &= ~PIVOT
+                    self._constraint_flag = C_GLOBAL
+                    self.constraint._mat = Matrix()
+                    self.constraint._update_project_matrix()
+                    self.update_constraint(context)
+
+                elif prefs.match("CONSTRAINT", signature) and (self._action & MOVE):
 
                     self._action |= PIVOT
                     self._draw_flags |= DRAW_CONSTRAINT
@@ -1461,7 +1486,7 @@ class SLCAD_main:
 
                 elif prefs.match("INVERT_CONSTRAINT", signature):
                     # set opposite direction for main constraint axis
-                    self.constraint.direction = -self.constraint.direction
+                    self.constraint.negate()
                     # update transform
                     self._free_move(context, event)
 
@@ -1518,6 +1543,7 @@ class SLCAD_main:
                     self._change_constraint_axis(context, signature)
                     return True
 
+
                 c = event.ascii
 
                 if c in self._keyboard_ascii:
@@ -1543,7 +1569,35 @@ class SLCAD_main:
 
                 confirm = k in {"RET", "NUMPAD_ENTER"}
 
-                return self._eval_keyboard_entry(context, event, confirm)
+                if (self._action & DUPLICATE):
+
+                    key = prefs.key("DUPLICATE")
+                    try:
+                        if self.line_entered.startswith(key):
+                            self._copy = max(0, int(self.line_entered[1:]) - 1)
+                        else:
+                            dups = self.line_entered.split(key)
+                            if len(dups) == 2:
+                                line_entered, ncopy = dups
+                                self._copy = max(0, int(ncopy) - 1)
+
+                        if confirm:
+                            self.line_entered = ""
+                            SlCadTextEval.text = ""
+                            self.line_pos = 0
+                            self._action &= ~KEYBOARD
+                            self._action &= ~ DUPLICATE
+                            context.window.cursor_set("CROSSHAIR")
+                            self.change_header_draw(self._header_text_backup)
+
+                        snap_loc = self.get_snap_loc(context, event)
+                        self.transform(context, event, snap_loc)
+
+                    except:
+                        pass
+
+                else:
+                    return self._eval_keyboard_entry(context, event, confirm)
 
         return True
 
@@ -1575,23 +1629,23 @@ class SLCAD_main:
                 self._constraint_flag &= ~C_USER
                 # in plane mode skip local
                 if self._flags_axis & AXIS:
-                    self._constraint_flag |= C_LOCAL
+                    self._constraint_flag |= self._primary_constraint
                 else:
-                    self._constraint_flag |= C_GLOBAL
+                    self._constraint_flag |= self._secondary_constraint
 
-            elif self._constraint_flag & C_LOCAL:
+            elif self._constraint_flag & self._primary_constraint:
                 # toggle local to global
-                self._constraint_flag &= ~C_LOCAL
-                self._constraint_flag |= C_GLOBAL
+                self._constraint_flag &= ~self._primary_constraint
+                self._constraint_flag |= self._secondary_constraint
 
             else:
                 # Rotate / Scale always have a constraint
                 if self._action & (ROTATE | SCALE):
 
-                    self._constraint_flag &= ~C_GLOBAL
+                    self._constraint_flag &= ~self._secondary_constraint
 
                     if self._constraint_user is None:
-                        self._constraint_flag |= C_LOCAL
+                        self._constraint_flag |= self._primary_constraint
                     else:
                         self._constraint_flag |= C_USER
                 else:
@@ -1602,7 +1656,7 @@ class SLCAD_main:
 
             self._constraint_flag &= ~C_SCREEN
             # in move action last toggle state is global
-            self._constraint_flag &= ~C_GLOBAL
+            self._constraint_flag &= ~self._secondary_constraint
             self._flags_axis = axis
 
             if constraint_to_plane:
@@ -1612,7 +1666,7 @@ class SLCAD_main:
 
             # if there is a no user constraint use local one
             if self._constraint_user is None and not (self._constraint_flag & (C_EDGE | C_NORMAL)):
-                self._constraint_flag |= C_LOCAL
+                self._constraint_flag |= self._primary_constraint
             else:
                 self._constraint_flag |= C_USER
 
@@ -1774,7 +1828,7 @@ class SLCAD_main:
 
     def undo(self, context, event):
         tm = Matrix()
-        for o in context.selected_objects:
+        for o in self._matrix_world.keys():
             self._transform(context, event, o, tm, confirm=True)
 
     def update_constraint(self, context):
@@ -2153,6 +2207,7 @@ class SLCAD_main:
         self._flags_axis = 0
         self._constraint_flag = 0
         self._action = 0
+        self._duplicates.clear()
 
         return self._confirm_exit
 
@@ -2254,9 +2309,16 @@ class SLCAD_main:
 
                 self.line_entered = ""
                 self.line_pos = 0
-                self._eval_keyboard_entry(context, event, False)
+
+                if self._action & DUPLICATE:
+                    self._copy = 0
+
+                else:
+                    self._eval_keyboard_entry(context, event, False)
+
                 self.change_header_draw(self._header_text_backup)
                 self._action &= ~KEYBOARD
+                self._action &= ~ DUPLICATE
                 context.window.cursor_set("CROSSHAIR")
                 self._last_run = time.time()
                 return {'RUNNING_MODAL'}
@@ -2352,7 +2414,7 @@ class SLCAD_main:
                                     slcadsnap.exclude_from_snap(context.selected_objects)
 
                                 elif context.mode == "EDIT_MESH":
-                                    print("exclude_selected_face")
+                                    # print("exclude_selected_face")
                                     slcadsnap.exclude_selected_face()
 
                                 # set constraint origins (all but C_USER)
@@ -2390,6 +2452,17 @@ class SLCAD_main:
             # when keyboard is active disallow mouse input
             if not (self._action & KEYBOARD):
                 self._free_move(context, event)
+
+        elif (event.type in {'WHEELUPMOUSE', 'WHEELDOWNMOUSE'} and event.ctrl) or \
+              event.type in {'UP_ARROW', 'DOWN_ARROW'} and event.value == "PRESS":
+            offset = -1
+            if "UP" in event.type:
+                offset = 1
+            self._copy = max(0, self._copy + offset)
+
+            if self._action & (MOVE | ROTATE | SCALE):
+                snap_loc = self.get_snap_loc(context, event)
+                self.transform(context, event, snap_loc)
 
         self._last_run = time.time()
         logger.info("Modal body end %.4f" % (self._last_run - t))
@@ -2725,6 +2798,15 @@ class SLCAD_main:
             else:
                 # regular transform
                 o.matrix_world = trs
+                # Instance trs, lerp work for translation only
+                # Lerp and instance objects
+                dups = self._duplicate_object(o)
+                # neutral
+                _tm = Matrix()
+                for i, new_o in enumerate(dups):
+                    # o goes to 1, other from [0 .. -1]
+                    fac = i / self._copy
+                    new_o.matrix_world = space @ _tm.lerp(tm, fac) @ space.inverted() @ self._matrix_world[o]
 
             self._reset_children_transform(o, _ct)
 
@@ -2779,6 +2861,34 @@ class SLCAD_main:
                             if p.select_right_handle:
                                 p.handle_right = trs @ p.handle_right
 
+    def _clean_datablock(self, o, d):
+        if d and d.users == 1:
+            getattr(bpy.data, o.type.lower()).remove(d)
+
+    def _duplicate_object(self, o):
+        dups = len(self._duplicates)
+        for i in range(self._copy, dups):
+            if self._duplicates:
+                new_o = self._duplicates.pop()
+                for coll in new_o.users_collection:
+                    coll.objects.unlink(new_o)
+                self._clean_datablock(new_o, new_o.data)
+                bpy.data.objects.remove(new_o)
+
+        if self._copy > 0:
+            for i in range(dups, self._copy):
+                new_o = o.copy()
+                if self._action & (MOVE | ROTATE):
+                    # in move mode we may create instances
+                    d = new_o.data
+                    new_o.data = o.data
+                    self._clean_datablock(new_o, d)
+                for coll in o.users_collection:
+                    if new_o.name not in coll:
+                        coll.objects.link(new_o)
+                self._duplicates.append(new_o)
+        return self._duplicates
+
     def _make_unique_obdata(self, o):
         """Make object unique as we can't apply object's transform on shared data
         :param context:
@@ -2787,7 +2897,10 @@ class SLCAD_main:
         """
         if o.data is not None and o.data.users > 1:
             o.data = o.data.copy()
-            o.data.update_flag()
+            try:
+                o.data.update_flag()
+            except:
+                pass
 
     def _rotate_only_parent(self, o, rot):
         _ct = self._store_children_transform(o)
@@ -2829,6 +2942,9 @@ class SLCAD_main:
             self._apply_transform_to_mesh(o, tm)
         elif o.type == "CURVE":
             self._apply_transform_to_curve(o, tm)
+        elif o.type =="EMPTY" and o.empty_display_type == "IMAGE":
+            # apply scale to reference image size, use x axis as reference
+            o.empty_display_size *= tm.to_scale().x
 
     def _rec_apply_scale(self, o):
         """Apply scale part to mesh including hierarchy, preserve rotation
@@ -2931,6 +3047,8 @@ class SLCAD_main:
         self._real_time = True  # prefs.real_time
         self._absolute_scale = prefs.absolute_scale
         self._scale_dimensions = prefs.scale_dimensions
+        self._primary_constraint = {'C_LOCAL':C_LOCAL, 'C_GLOBAL': C_GLOBAL}[prefs.constraint_order]
+        self._secondary_constraint = {'C_LOCAL': C_GLOBAL, 'C_GLOBAL':C_LOCAL}[prefs.constraint_order]
         slcadsnap._snap_radius = prefs.snap_radius
 
     def init(self, context):
@@ -2938,6 +3056,7 @@ class SLCAD_main:
 
         self._flags_axis = 0
         self._constraint_flag = C_LOCAL
+        self._duplicates.clear()
 
         self._apply_edit_mode_changes(context)
         prefs = context.preferences.addons[__package__].preferences
@@ -3039,7 +3158,7 @@ class SLCAD_main:
 
             logger.debug("invoke draw handler")
             self._handle = bpy.types.SpaceView3D.draw_handler_add(
-                self.gl_draw, (context,), 'WINDOW', 'POST_PIXEL'
+                self.gl_draw, (context,), 'WINDOW', 'POST_PIXEL'   #,'POST_VIEW' #
             )
 
             logger.debug("invoke modal handler")
@@ -3355,12 +3474,21 @@ class SLCAD_AddonPreferences(AddonPreferences):
         size=4,
         min=0, max=1
     )
-    widget_size: IntProperty(name="Circle widgets radius (pixel)", min=2, default=5)
-    line_width: IntProperty(name="Snap widgets lines thickness (pixel)", min=1, default=1)
-    ruler_width: IntProperty(name="Rulers lines thickness (pixel)", min=1, default=2)
-    grid_width: IntProperty(name="Grid lines thickness (pixel)", min=1, default=1)
+    widget_size: FloatProperty(name="Circle widgets radius (pixel)", min=0.2, default=5)
+    line_width: FloatProperty(name="Snap widgets lines thickness (pixel)", min=0.1, default=1)
+    ruler_width: FloatProperty(name="Rulers lines thickness (pixel)", min=0.1, default=2)
+    grid_width: FloatProperty(name="Grid lines thickness (pixel)", min=0.1, default=1)
 
     font_size: IntProperty(name="Font size", min=8, default=16)
+    constraint_order: EnumProperty(
+        name="Constraint toggle",
+        description="Order of constraint toggle",
+        items=(
+            ('C_GLOBAL', "Global then local", "Use global then local axis for constraint"),
+            ('C_LOCAL', "Local then global", "Use local then global axis for constraint")
+        ),
+        default='C_LOCAL'
+    )
     debug_level: EnumProperty(
         name="Debug level",
         description="Set debug log level",
@@ -3397,6 +3525,12 @@ class SLCAD_AddonPreferences(AddonPreferences):
 
     keymap: CollectionProperty(type=SLCAD_keymap)
 
+    def key(self, name):
+        k = self.keymap.get(name)
+        if k:
+            return k.key.lower()
+        return ""
+
     def match(self, name, signature, value="PRESS"):
         shorts = name.split(",")
         for sname in shorts:
@@ -3409,6 +3543,7 @@ class SLCAD_AddonPreferences(AddonPreferences):
         layout = self.layout
         box = layout.box()
         box.label(text="Interaction")
+        box.prop(self, "use_numpad_for_navigation")
         box.prop(self, "release_confirm")
         box.prop(self, "snap_radius")
 
@@ -3417,6 +3552,7 @@ class SLCAD_AddonPreferences(AddonPreferences):
         box.prop(self, "snap_to_loose")
         box.prop(self, "absolute_scale")
         box.prop(self, "default_scale_dimensions")
+        box.prop(self, "constraint_order")
 
         box = layout.box()
         box.label(text="Sanity check")
@@ -3468,7 +3604,6 @@ class SLCAD_AddonPreferences(AddonPreferences):
 
         box = layout.box()
         box.label(text="Keymap")
-        box.prop(self, "use_numpad_for_navigation")
         # layout.prop(self, "confirm_exit")
         box.label(text="Snap modes:")
         for key in self.keymap[0:10]:
