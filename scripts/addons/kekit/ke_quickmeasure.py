@@ -2,7 +2,7 @@ bl_info = {
     "name": "keQuickMeasure",
     "author": "Kjell Emanuelsson",
     "category": "Modeling",
-    "version": (1, 4, 1),
+    "version": (1, 4, 2),
     "blender": (2, 80, 0),
 }
 import bpy
@@ -468,7 +468,7 @@ class VIEW3D_OT_ke_quickmeasure(bpy.types.Operator):
         elif event.type == 'S':
             bpy.ops.transform.resize('INVOKE_DEFAULT')
 
-        elif event.type in {'X', 'Y', 'Z', '<'}:
+        elif event.type in {'X', 'Y', 'Z', 'GRLESS'}:
             return {'PASS_THROUGH'}
 
         elif event.type in {'NUMPAD_PLUS', 'NUMPAD_MINUS', 'NUMPAD_1', 'NUMPAD_2', 'NUMPAD_3', 'NUMPAD_4', 'NUMPAD_5', 'NUMPAD_6', 'NUMPAD_7', 'NUMPAD_8', 'NUMPAD_9'}:

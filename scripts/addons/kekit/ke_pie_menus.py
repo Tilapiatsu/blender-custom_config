@@ -8,6 +8,7 @@ bl_info = {
 
 import bpy
 from bpy.types import Menu, Operator, Panel
+from . ke_utils import get_selected
 
 # -------------------------------------------------------------------------------------------------
 # Operators
@@ -17,13 +18,89 @@ class VIEW3D_OT_ke_pieops(Operator):
     bl_label = "Pie Operators"
     bl_options = {'REGISTER'}
 
-    pop: bpy.props.IntProperty(default=0)
+    # pop: bpy.props.IntProperty(default=0)
+    op :  bpy.props.StringProperty(default="GRID")
 
     def execute(self, context):
+        sel_obj = [o for o in context.selected_objects if o.type == "MESH"]
+        active = context.active_object
+        if sel_obj:
+            sel_obj = [i for i in sel_obj if i != active]
 
-        # 0 - ABSOLUTE GRID TOGGLE
-        if self.pop == 0:
+        # ABSOLUTE GRID TOGGLE
+        if self.op == "GRID":
             context.tool_settings.use_snap_grid_absolute = not context.tool_settings.use_snap_grid_absolute
+
+        # BEVEL WEIGHTS
+        elif self.op == "BWEIGHTS_ON":
+            if not context.object.data.is_editmode:
+                bpy.ops.object.mode_set(mode="EDIT")
+                bpy.ops.mesh.select_all(action='SELECT')
+                bpy.ops.transform.edge_bevelweight(value=1)
+                bpy.ops.mesh.select_all(action='DESELECT')
+                bpy.ops.object.mode_set(mode="OBJECT")
+            else:
+                bpy.ops.transform.edge_bevelweight(value=1)
+
+        elif self.op == "BWEIGHTS_OFF":
+            if not context.object.data.is_editmode:
+                bpy.ops.object.mode_set(mode="EDIT")
+                bpy.ops.mesh.select_all(action='SELECT')
+                bpy.ops.transform.edge_bevelweight(value=-1)
+                bpy.ops.mesh.select_all(action='DESELECT')
+                bpy.ops.object.mode_set(mode="OBJECT")
+            else:
+                bpy.ops.transform.edge_bevelweight(value=-1)
+
+        # W-SUBD
+        elif self.op == "WSUBD":
+            o = get_selected(context)
+            # Add bevel modifier prepped for subd
+            if o:
+                bpy.ops.object.modifier_add(type='BEVEL')
+                b = o.modifiers[-1]
+                b.name = "kSubBevel"
+                b.width = 0.025
+                b.limit_method = 'WEIGHT'
+                b.segments = 2
+                # Add subd modifier
+                bpy.ops.object.modifier_add(type='SUBSURF')
+                s = o.modifiers[-1]
+                s.name = "kSubD"
+                s.levels = 3
+                s.render_levels = 3
+                s.boundary_smooth = 'PRESERVE_CORNERS'
+
+        # WEIGHTED NORMAL MODFIER
+        elif self.op == "WNORMAL":
+            bpy.ops.object.modifier_add(type='WEIGHTED_NORMAL')
+
+        # TOGGLE SUBD CORNERS
+        elif self.op == "SUBCORNERS":
+            for mod in [m for m in context.object.modifiers if m.name == 'kSubD']:
+                if mod.boundary_smooth == "PRESERVE_CORNERS":
+                    mod.boundary_smooth = 'ALL'
+                else:
+                    mod.boundary_smooth = "PRESERVE_CORNERS"
+
+        elif self.op == "MOD_VIS":
+            bpy.ops.object.toggle_apply_modifiers_view()
+
+        elif self.op in {"MIRROR_X", "MIRROR_Y", "MIRROR_Z"}:
+            if active:
+                bpy.ops.object.modifier_add(type='MIRROR')
+                m = active.modifiers[-1]
+                m.name = "kMirror"
+                if self.op == "MIRROR_Y":
+                    m.use_axis = (False, True, False)
+                elif self.op == "MIRROR_Z":
+                    m.use_axis = (False, False, True)
+
+        elif self.op == "SOLIDIFY":
+            if active:
+                bpy.ops.object.modifier_add(type='SOLIDIFY')
+                m = active.modifiers[-1]
+                m.name = "kSolidify"
 
         return {'FINISHED'}
 
@@ -95,6 +172,115 @@ class VIEW3D_OT_ke_snap_element(Operator):
 # -------------------------------------------------------------------------------------------------
 # Custom Pie Menus    Note: COMPASS STYLE REF PIE SLOT POSITIONS:   W, E, S, N, NW, NE, SW, SE
 # -------------------------------------------------------------------------------------------------
+
+class VIEW3D_MT_PIE_ke_subd(Menu):
+    bl_label = "keSubd"
+    bl_idname = "VIEW3D_MT_ke_pie_subd"
+
+
+    def draw(self, context):
+        # Check existing modifiers
+        bevel_mod = ""
+        mirror_mod = ""
+        solidify_mod = ""
+        # ke Transfer Union Surface Object, ke TransferUnion Reciever Object
+        ktuso = ""
+        kturo = ""
+        # ke Mask Transfer Surface Object, ke Mask Transfer Reciever Object
+        kmtso = ""
+        kmtro = ""
+
+        if context.object and context.object.type == "MESH":
+            for m in context.object.modifiers:
+                if m.name == "kSubBevel":
+                    bevel_mod = m
+                if m.name == "kMirror":
+                    mirror_mod = m
+                if m.name == "kSolidify":
+                    solidify_mod = m
+
+        layout = self.layout
+        pie = layout.menu_pie()
+
+        # Bevel Weights
+        pie.operator("ke.pieops", text="Bevel Weight -1").op = "BWEIGHTS_OFF"
+        pie.operator("ke.pieops", text="Bevel Weight 1").op = "BWEIGHTS_ON"
+
+        # Toggles
+        c = pie.column(align=True)
+        btm = c.box()
+        btm.operator("ke.pieops", text="Toggle Stack Visibility").op = "MOD_VIS"
+        btm.operator("ke.pieops", text="Toggle SubD Corners").op = "SUBCORNERS"
+        c.separator()
+        btm = c.box()
+        btm.label(text="(WIP)") # Set MaskTransfer
+        btm.label(text="(WIP)") # Set TransferUnion
+
+        # SUBD MAIN
+        pie.operator("ke.pieops", text="Set W-SUBD").op = "WSUBD"
+
+        # Lattice
+        c = pie.column()
+        c.label(text="WIP") # Lattice
+
+        # Solidify
+        spacer = pie.row()
+        spacer.label(text="")
+        slot = spacer.column()
+        if solidify_mod:
+            s = slot.box().column()
+            s.label(text="Solidify Settings")
+            s.prop(solidify_mod, "thickness")
+            s.prop(solidify_mod, "offset")
+            # s.prop(solidify_mod, "use_rim")
+            # s.prop(solidify_mod, "use_rim_only")
+        else:
+            slot.operator("ke.pieops", text="Solidify Modifier").op = "SOLIDIFY"
+        slot.label(text="")
+
+        # Mirror
+        c = pie.row()
+        main = c.column()
+        main.label(text="")
+        if not mirror_mod:
+            main.label(text="")
+
+        s = main.box().column()
+        if mirror_mod:
+            sub = s.row(align=True)
+            sub.label(text="Mirror XYZ")
+            sub.prop(mirror_mod, "use_axis", icon_only=True)
+            sub = s.row(align=True)
+            sub.label(text="Bisect XYZ")
+            sub.prop(mirror_mod, "use_bisect_axis", icon_only=True)
+            sub = s.row(align=True)
+            sub.label(text="Flip XYZ")
+            sub.prop(mirror_mod, "use_bisect_flip_axis", icon_only=True)
+        else:
+            s.label(text="Mirror Modifier")
+            s.operator("ke.pieops", text="X Mirror").op = "MIRROR_X"
+            s.operator("ke.pieops", text="Y Mirror").op = "MIRROR_Y"
+            s.operator("ke.pieops", text="Z Mirror").op = "MIRROR_Z"
+        spacer = c.column()
+        spacer.label(text="")
+
+        # Bevel Settings
+        if bevel_mod:
+            spacer = pie.row()
+            spacer.label(text="")
+            slot = spacer.column()
+            slot.label(text="")
+            s = slot.box().column()
+            sub = s.row()
+            sub.label(text="Bevel")
+            sub.prop_menu_enum(bevel_mod, "offset_type")
+            s.prop(bevel_mod, "width", text="Width")
+            s.prop(bevel_mod, "segments", text="Segments")
+        else:
+            spacer = pie.row()
+            spacer.label(text="")
+            slot = spacer.column()
+            slot.label(text="[ Bevel Settings N/A]")
 
 
 class VIEW3D_MT_PIE_ke_fitprim(Menu):
@@ -182,9 +368,9 @@ class VIEW3D_MT_PIE_ke_snapping(Menu):
         cbox.scale_y = 1.3
 
         if not ct.use_snap_grid_absolute:
-            cbox.operator("ke.pieops", text="Absolute Grid", icon="SNAP_GRID", depress=False).pop = 0
+            cbox.operator("ke.pieops", text="Absolute Grid", icon="SNAP_GRID", depress=False).op = "GRID"
         else:
-            cbox.operator("ke.pieops", text="Absolute Grid", icon="SNAP_GRID", depress=True).pop = 0
+            cbox.operator("ke.pieops", text="Absolute Grid", icon="SNAP_GRID", depress=True).op = "GRID"
 
         cbox.separator()
 
@@ -681,15 +867,15 @@ class VIEW3D_MT_PIE_ke_shading(Menu):
                 psub.operator("preferences.studiolight_show", emboss=False, text="", icon='PREFERENCES')
 
 
-class VIEW3D_MT_PIE_ke_testpie(Menu):
-    bl_label = "keTestPie"
-    bl_idname = "VIEW3D_MT_ke_pie_test"
-
-    def draw(self, context):
-        layout = self.layout
-        pie = layout.menu_pie()
-        pie.operator("view3d.ke_get_set_material", text="Get Material", icon="MATERIAL").offset = (-168,0)
-
+# class VIEW3D_MT_PIE_ke_testpie(Menu):
+#     bl_label = "keTestPie"
+#     bl_idname = "VIEW3D_MT_ke_pie_test"
+#
+#     def draw(self, context):
+#         layout = self.layout
+#         pie = layout.menu_pie()
+#         pie.operator("view3d.ke_get_set_material", text="Get Material", icon="MATERIAL").offset = (-168,0)
+#
 
 
 
@@ -707,9 +893,9 @@ classes = (
     VIEW3D_MT_PIE_ke_overlays,
     VIEW3D_MT_PIE_ke_orientpivot,
     VIEW3D_MT_PIE_ke_shading,
-    VIEW3D_MT_PIE_ke_testpie,
     VIEW3D_MT_PIE_ke_align,
     VIEW3D_MT_PIE_ke_fitprim,
+    VIEW3D_MT_PIE_ke_subd
     )
 
 def register():

@@ -2,7 +2,7 @@ bl_info = {
     "name": "keKIT",
     "author": "Kjell Emanuelsson",
     "category": "Modeling",
-    "version": (1, 3, 8, 0),
+    "version": (1, 3, 8, 4),
     "blender": (2, 80, 0),
     "location": "View3D > Sidebar",
     "warning": "",
@@ -44,7 +44,7 @@ from . import ke_lineararray
 import bpy
 from bpy.types import Panel
 
-nfo = "keKit v1.38"
+nfo = "keKit v1.384"
 # -------------------------------------------------------------------------------------------------
 # SUB MENU PANELS
 # -------------------------------------------------------------------------------------------------
@@ -79,6 +79,8 @@ class VIEW3D_PT_kekit_selection(Panel):
         col.operator('VIEW3D_OT_ke_swap', text="Swap Places")
         col.operator("MESH_OT_ke_select_boundary", text="Select Boundary (+Active)")
         col.operator('MESH_OT_ke_select_invert_linked', text="Select Inverted Linked")
+        col.operator('view3d.ke_view_align_toggle')
+        col.operator('view3d.ke_view_align_snap').contextual = False
 
 
 class VIEW3D_PT_ke_cursorbookmarks(Panel):
@@ -123,6 +125,56 @@ class VIEW3D_PT_ke_cursorbookmarks(Panel):
         else:
             row.operator('VIEW3D_OT_ke_cursor_bookmark', text="6", depress=True).mode = "USE6"
 
+
+class VIEW3D_PT_ke_viewbookmarks(Panel):
+    bl_label = "View Bookmarks"
+    bl_space_type = 'VIEW_3D'
+    bl_region_type = 'UI'
+    bl_category = 'keKIT'
+    bl_parent_id = "VIEW3D_PT_kekit_selection"
+    bl_options = {'DEFAULT_CLOSED'}
+
+    def draw(self, context):
+        q = bpy.context.scene.ke_query_props
+        layout = self.layout
+        row = layout.grid_flow(row_major=True, columns=6, align=True)
+        row.operator('VIEW3D_OT_ke_view_bookmark', text="", icon="IMPORT").mode = "SET1"
+        row.operator('VIEW3D_OT_ke_view_bookmark', text="", icon="IMPORT").mode = "SET2"
+        row.operator('VIEW3D_OT_ke_view_bookmark', text="", icon="IMPORT").mode = "SET3"
+        row.operator('VIEW3D_OT_ke_view_bookmark', text="", icon="IMPORT").mode = "SET4"
+        row.operator('VIEW3D_OT_ke_view_bookmark', text="", icon="IMPORT").mode = "SET5"
+        row.operator('VIEW3D_OT_ke_view_bookmark', text="", icon="IMPORT").mode = "SET6"
+        if sum(bpy.context.scene.ke_vslot1) == 0:
+            row.operator('VIEW3D_OT_ke_view_bookmark', text="1", depress=False).mode = "USE1"
+        else:
+            row.operator('VIEW3D_OT_ke_view_bookmark', text="1", depress=True).mode = "USE1"
+        if sum(bpy.context.scene.ke_vslot2) == 0:
+            row.operator('VIEW3D_OT_ke_view_bookmark', text="2", depress=False).mode = "USE2"
+        else:
+            row.operator('VIEW3D_OT_ke_view_bookmark', text="2", depress=True).mode = "USE2"
+        if sum(bpy.context.scene.ke_vslot3) == 0:
+            row.operator('VIEW3D_OT_ke_view_bookmark', text="3", depress=False).mode = "USE3"
+        else:
+            row.operator('VIEW3D_OT_ke_view_bookmark', text="3", depress=True).mode = "USE3"
+        if sum(bpy.context.scene.ke_vslot4) == 0:
+            row.operator('VIEW3D_OT_ke_view_bookmark', text="4", depress=False).mode = "USE4"
+        else:
+            row.operator('VIEW3D_OT_ke_view_bookmark', text="4", depress=True).mode = "USE4"
+        if sum(bpy.context.scene.ke_vslot5) == 0:
+            row.operator('VIEW3D_OT_ke_view_bookmark', text="5", depress=False).mode = "USE5"
+        else:
+            row.operator('VIEW3D_OT_ke_view_bookmark', text="5", depress=True).mode = "USE5"
+        if sum(bpy.context.scene.ke_vslot6) == 0:
+            row.operator('VIEW3D_OT_ke_view_bookmark', text="6", depress=False).mode = "USE6"
+        else:
+            row.operator('VIEW3D_OT_ke_view_bookmark', text="6", depress=True).mode = "USE6"
+
+        sub = layout.row(align=True)
+        sub.alignment="CENTER"
+        sub.operator('VIEW3D_OT_ke_viewpos', text="Get").mode = "GET"
+        sub.prop(q, "view_query", text="")
+        sub.operator('VIEW3D_OT_ke_viewpos', text="Set").mode = "SET"
+        # srow = sub.row()
 
 class VIEW3D_PT_kekit_modeling(Panel):
     bl_label = "Modeling"
@@ -246,6 +298,8 @@ class VIEW3D_PT_Context_Tools(Panel):
         col.operator('MESH_OT_ke_triple_connect_spin', text="Triple Connect Spin")
         col.operator("VIEW3D_OT_ke_frame_view", text="Frame All or Selected")
         col.operator('MESH_OT_ke_contextslide')
+        col.operator('view3d.ke_view_align_snap', text="View Align Snap Contextual").contextual = True
+
 
 
 # PIE MENUS
@@ -295,6 +349,7 @@ class VIEW3D_PT_PieMenus(Panel):
         pie.operator("wm.call_menu_pie", text="keShading", icon="DOT").name = "VIEW3D_MT_ke_pie_shading"
         pie.operator("wm.call_menu_pie", text="keSnapAlign", icon="DOT").name = "VIEW3D_MT_ke_pie_align"
         pie.operator("wm.call_menu_pie", text="keFitPrim", icon="DOT").name = "VIEW3D_MT_ke_pie_fitprim"
+        pie.operator("wm.call_menu_pie", text="keSubd", icon="DOT").name = "VIEW3D_MT_ke_pie_subd"
 
 
 # Orientation & Pivot combo panels
@@ -541,12 +596,6 @@ class VIEW3D_PT_kekit(Panel):
         col = layout.column(align=True)
         col.operator('VIEW3D_OT_ke_get_set_editmesh', icon="MOUSE_MOVE", text="Get & Set Edit Mode")
         col.operator('VIEW3D_OT_ke_get_set_material', icon="MOUSE_MOVE", text="Get & Set Material")
-        # col = layout.column(align=True)
-        # col.operator('VIEW3D_OT_ke_overlays', text="Object Wireframe Toggle").overlay = "WIRE"
-        # col.operator('VIEW3D_OT_ke_overlays', text="Extras Toggle").overlay = "EXTRAS"
-        # row = layout.row(align=True)
-        # row.operator('VIEW3D_OT_ke_focusmode', text="Focus Mode").supermode = False
-        # row.operator('VIEW3D_OT_ke_focusmode', text="Super Focus Mode").supermode = True
         row = layout.row(align=True)
         row.operator('VIEW3D_OT_ke_quickmeasure', text="Quick Measure").qm_start = "DEFAULT"
         row.operator('VIEW3D_OT_ke_quickmeasure', text="QM FreezeMode").qm_start = "SEL_SAVE"
@@ -555,6 +604,11 @@ class VIEW3D_PT_kekit(Panel):
 # -------------------------------------------------------------------------------------------------
 # Prefs & Properties
 # -------------------------------------------------------------------------------------------------
+
+class ke_query_props(bpy.types.PropertyGroup):
+    view_query: bpy.props.StringProperty(default=" N/A ")
+
+
 
 panels = (
         VIEW3D_PT_kekit,
@@ -582,6 +636,7 @@ def update_panel(self, context):
 # Class Registration & Unregistration
 # -------------------------------------------------------------------------------------------------
 classes = (
+    ke_query_props,
     VIEW3D_PT_kekit,
     VIEW3D_PT_kekit_selection,
     VIEW3D_PT_kekit_modeling,
@@ -601,6 +656,7 @@ classes = (
     VIEW3D_PT_Mouse_Mirror,
     VIEW3D_PT_Quick_Scale,
     VIEW3D_PT_ke_cursorbookmarks,
+    VIEW3D_PT_ke_viewbookmarks
     )
 
 modules = (
@@ -636,6 +692,7 @@ def register():
 
     for cls in classes:
         bpy.utils.register_class(cls)
+        bpy.types.Scene.ke_query_props = bpy.props.PointerProperty(type=ke_query_props)
 
     for m in modules:
         m.register()
@@ -647,6 +704,12 @@ def unregister():
     for m in modules:
         m.unregister()
 
+    try:
+        del bpy.types.Scene.ke_query_props
+
+    except Exception as e:
+        print('unregister fail:\n', e)
+        pass
 
 if __name__ == "__main__":
     register()
