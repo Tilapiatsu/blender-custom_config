@@ -2,7 +2,7 @@ bl_info = {
     "name": "keLinearArray",
     "author": "Kjell Emanuelsson",
     "category": "Modeling",
-    "version": (1, 0, 1),
+    "version": (1, 0, 2),
     "blender": (2, 80, 0),
 }
 
@@ -14,11 +14,39 @@ from bpy_extras.view3d_utils import region_2d_to_location_3d
 
 
 def draw_callback_px(self, context, pos):
-    val = self.count
-    axl = ""
     hpos, vpos = 64, 64
     if pos: hpos = pos - 10
-    if val:
+    title = ""
+
+    if self.axis_lock is not None:
+        if self.axis_lock == 2:
+            title += "[Z]"
+        elif self.axis_lock == 1:
+            title += "[Y]"
+        else :
+            title += "[X]"
+
+    if self.snap:
+        title += " "
+        if self.snapval == 0:
+            if self.imperial:
+                title += "[ft]"
+            else:
+                title += "[m]"
+        elif self.snapval == 1:
+            if self.imperial:
+                title += "[in]"
+            else:
+                title += "[dm]"
+        elif self.snapval == 2:
+            if self.imperial:
+                title += "[thou]"
+            else:
+                title += "[cm]"
+        elif self.snapval == 3:
+                title += "[mm]"
+
+    if self.count:
         font_id = 0
         blf.enable(font_id, 4)
         blf.position(font_id, hpos, vpos + 68, 0)
@@ -26,16 +54,11 @@ def draw_callback_px(self, context, pos):
         blf.size(font_id, 20, 72)
         blf.shadow(font_id, 5, 0, 0, 0, 1)
         blf.shadow_offset(font_id, 1, -1)
-        if self.axis_lock is None:
-            blf.draw(font_id, "Linear Array: " + str(val))
-        else:
-            if self.axis_lock == 2:
-                axl = "Z"
-            elif self.axis_lock == 1:
-                axl = "Y"
-            else:
-                axl = "X"
-            blf.draw(font_id, "Linear Array: " + str(val) + " [" +axl +"]" )
+        blf.draw(font_id, "Linear Array: " + str(self.count))
+        blf.size(font_id, 13, 72)
+        blf.color(font_id, 0.85, 0.85, 0.85, 1)
+        blf.position(font_id, hpos, vpos + 98, 0)
+        blf.draw(font_id, title)
 
         if self.help:
             blf.size(font_id, 13, 72)
@@ -43,11 +66,14 @@ def draw_callback_px(self, context, pos):
             blf.position(font_id, hpos, vpos + 45, 0)
             blf.draw(font_id, "Array Count: Mouse Wheel Up / Down")
             blf.position(font_id, hpos, vpos + 27, 0)
-            blf.draw(font_id, "Grid Snap Steps: (1) m, (2) dm , (3) cm, (4) mm")
+            if self.imperial:
+                blf.draw(font_id, "Grid Snap Steps: (1) feet, (2) inches, (3) thou, (4) mm")
+            else:
+                blf.draw(font_id, "Grid Snap Steps: (1) m, (2) dm , (3) cm, (4) mm")
             blf.position(font_id, hpos, vpos + 9, 0)
-            blf.draw(font_id, "Toggle Grid Snap: (5) or SHIFT-TAB")
+            blf.draw(font_id, "Toggle Grid Snap: (1-4) or SHIFT-TAB")
             blf.position(font_id, hpos, vpos - 9, 0)
-            blf.draw(font_id, "Manual Axis Lock: (X), (Y), (Z) and (F) to unlock")
+            blf.draw(font_id, "Manual Axis Lock: (X), (Y), (Z) and (C) to release Constraint")
 
             blf.size(font_id, 10, 72)
             blf.color(font_id, 0.5, 0.5, 0.5, 1)
@@ -59,10 +85,26 @@ def draw_callback_px(self, context, pos):
             blf.size(font_id, 12, 72)
             blf.color(font_id, 0.5, 0.5, 0.5, 1)
             blf.position(font_id, hpos, vpos + 45, 0)
-            blf.draw(font_id, "(H) Toggle Help)")
+            blf.draw(font_id, "(H) Toggle Help")
 
     else:
         return {'CANCELLED'}
+
+
+def to_imperial(values, mode):
+    unit_scale = bpy.context.scene.unit_settings.scale_length
+    values = [i * unit_scale for i in values]
+    if mode == 0:
+        # FEET
+        return '\u0027', [(v // 0.3048) * 0.3048 for v in values]
+    elif mode == 1:
+        # INCHES
+        return '\u0022', [(v // 0.0254) * 0.0254 for v in values]
+    elif mode == 2:
+        # THOU
+        return 'thou', [(v // 0.000025) * 0.000025 for v in values]
+    else:
+        return 'bu', values
 
 
 class VIEW3D_OT_ke_lineararray(bpy.types.Operator):
@@ -87,21 +129,26 @@ class VIEW3D_OT_ke_lineararray(bpy.types.Operator):
     snap = False
     snapval = 0
     axis_lock = None
-
+    imperial = []
 
     @classmethod
     def poll(cls, context):
         return (context.object is not None and context.object.type == 'MESH' and not context.object.data.is_editmode)
 
-
     def upd_array(self, context, event):
         # Get Mouse Pos for end-point
         cpos = self.set_pos
         pos = region_2d_to_location_3d(self.region, self.rv3d, (event.mouse_region_x, event.mouse_region_y), cpos)
-
         # Snapping
         if self.snap:
-            pos = Vector((round(pos[0], self.snapval), round(pos[1], self.snapval), round(pos[2], self.snapval)))
+            if self.imperial:
+                conv = to_imperial(pos, self.snapval)
+                if conv[0] == "bu":
+                    pos = Vector((round(pos[0], self.snapval), round(pos[1], self.snapval), round(pos[2], self.snapval)))
+                else:
+                    pos = conv[1]
+            else:
+                pos = Vector((round(pos[0], self.snapval), round(pos[1], self.snapval), round(pos[2], self.snapval)))
 
         # Find Axis Direction & Distance (if not axis locked)
         dx = abs(pos[0] - self.set_pos[0])
@@ -139,7 +186,9 @@ class VIEW3D_OT_ke_lineararray(bpy.types.Operator):
 
 
     def invoke(self, context, event):
-
+        self.imperial = bpy.context.scene.unit_settings.system
+        if self.imperial != 'IMPERIAL':
+            self.imperial = []
         self.region = context.region
         self.rv3d = context.space_data.region_3d
         self.screen_x = int(self.region.width *.5)
@@ -202,26 +251,39 @@ class VIEW3D_OT_ke_lineararray(bpy.types.Operator):
             return {'PASS_THROUGH'}
 
         elif event.type == 'ONE' and event.value == 'PRESS':
-            self.snapval = 0
-            self.snap = True
+            if self.snap and self.snapval == 0:
+                self.snap = False
+            else:
+                self.snapval = 0
+                self.snap = True
+            self.upd_array(context, event)
 
         elif event.type == 'TWO' and event.value == 'PRESS':
-            self.snapval = 1
-            self.snap = True
+            if self.snap and self.snapval == 1:
+                self.snap = False
+            else:
+                self.snapval = 1
+                self.snap = True
+            self.upd_array(context, event)
 
         elif event.type == 'THREE' and event.value == 'PRESS':
-            self.snapval = 2
-            self.snap = True
+            if self.snap and self.snapval == 2:
+                self.snap = False
+            else:
+                self.snapval = 2
+                self.snap = True
+            self.upd_array(context, event)
 
         elif event.type == 'FOUR' and event.value == 'PRESS':
-            self.snapval = 3
-            self.snap = True
-
-        elif event.type == 'FIVE' and event.value == 'PRESS':
-            self.snap = not self.snap
+            if self.snap and self.snapval == 3:
+                self.snap = False
+            else:
+                self.snapval = 3
+                self.snap = True
+            self.upd_array(context, event)
 
         elif event.shift and event.type == 'TAB' and event.value == 'PRESS':
-                self.snap = not self.snap
+            self.snap = not self.snap
 
         elif event.type == 'H' and event.value == 'PRESS':
             self.help = not self.help
@@ -231,7 +293,7 @@ class VIEW3D_OT_ke_lineararray(bpy.types.Operator):
             self.axis_lock = 0
             context.area.tag_redraw()
 
-        elif event.type == 'Y' and event.value == 'PRESS':
+        elif event.type in {'Y', 'GRLESS'} and event.value == 'PRESS':
             self.axis_lock = 1
             context.area.tag_redraw()
 
@@ -239,7 +301,7 @@ class VIEW3D_OT_ke_lineararray(bpy.types.Operator):
             self.axis_lock = 2
             context.area.tag_redraw()
 
-        elif event.type == 'F' and event.value == 'PRESS':
+        elif event.type == 'C' and event.value == 'PRESS':
             self.axis_lock = None
             context.area.tag_redraw()
 

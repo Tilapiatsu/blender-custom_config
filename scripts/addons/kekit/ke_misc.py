@@ -7,7 +7,7 @@ bl_info = {
 }
 import bpy
 import bmesh
-from mathutils import Vector
+from mathutils import Vector, Quaternion
 from bpy.types import Operator
 from .ke_utils import mouse_raycast
 
@@ -15,6 +15,200 @@ from .ke_utils import mouse_raycast
 # -------------------------------------------------------------------------------------------------
 # random stuff and pie/menu operators
 # -------------------------------------------------------------------------------------------------
+class VIEW3D_OT_ke_viewpos(Operator):
+	bl_idname = "view3d.ke_viewpos"
+	bl_label = "Get & Set Viewpos"
+	bl_description = "Get & Set Viewpos"
+	bl_options = {'REGISTER', 'UNDO'}
+
+	mode : bpy.props.EnumProperty(
+		items=[("GET", "Get Viewpos", "", "GET", 1),
+			   ("SET", "Set Viewpos", "", "SET", 2),
+			   ],
+		name="Viewpos",
+		default="SET")
+
+	def draw(self, context):
+		layout = self.layout
+
+	def execute(self, context):
+		rv3d = context.space_data.region_3d
+
+		if self.mode == "GET":
+			p = [int(rv3d.is_perspective)]
+			d = [rv3d.view_distance]
+			loc = [i for i in rv3d.view_location]
+			rot = [i for i in rv3d.view_rotation]
+			v = p + d + loc + rot
+			v = str(v)
+			bpy.context.scene.ke_query_props.view_query = v
+
+		else:
+			v = [0]
+			try:
+				q = str(bpy.context.scene.ke_query_props.view_query)[1:-1]
+				qs = q.split(",")
+				v = [float(i) for i in qs]
+			except:
+				print("Incorrect values. Aborting.")
+				return {'CANCELLED'}
+
+			if len(v) == 9:
+				if not rv3d.is_perspective and bool(v[0]):
+					bpy.ops.view3d.view_persportho()
+				rv3d.view_distance = v[1]
+				rv3d.view_location = Vector(v[2:5])
+				rv3d.view_rotation = Quaternion(v[5:9])
+
+		return {'FINISHED'}
+
+
+class VIEW3D_OT_ke_view_align_toggle(Operator):
+	bl_idname = "view3d.ke_view_align_toggle"
+	bl_label = "View Align Selected Toggle"
+	bl_description = "Align View to Active (Shift-NUM7) that frames selection in ortho and then restores " \
+					 "original view when toggled."
+	bl_options = {'REGISTER', 'UNDO'}
+
+	def draw(self, context):
+		layout = self.layout
+
+	def execute(self, context):
+		rv3d = context.space_data.region_3d
+		v = [0,0,0,0,0,0,0,0,0]
+		slot = bpy.context.scene.ke_vtoggle
+		# SET
+		if sum(slot) == 0:
+			p = [int(rv3d.is_perspective)]
+			d = [rv3d.view_distance]
+			loc = [i for i in rv3d.view_location]
+			rot = [i for i in rv3d.view_rotation]
+			v = p + d + loc + rot
+			slot[0] = v[0]
+			slot[1] = v[1]
+			slot[2] = v[2]
+			slot[3] = v[3]
+			slot[4] = v[4]
+			slot[5] = v[5]
+			slot[6] = v[6]
+			slot[7] = v[7]
+			slot[8] = v[8]
+			bpy.ops.view3d.view_selected(use_all_regions=False)
+			bpy.ops.view3d.view_axis(type='TOP', align_active=True)
+
+		# USE
+		else:
+			v[0] = slot[0]
+			v[1] = slot[1]
+			v[2] = slot[2]
+			v[3] = slot[3]
+			v[4] = slot[4]
+			v[5] = slot[5]
+			v[6] = slot[6]
+			v[7] = slot[7]
+			v[8] = slot[8]
+
+			if not rv3d.is_perspective and bool(v[0]):
+				bpy.ops.view3d.view_persportho()
+			rv3d.view_distance = v[1]
+			rv3d.view_location = Vector(v[2:5])
+			rv3d.view_rotation = Quaternion(v[5:9])
+
+			slot[0] = 0
+			slot[1] = 0
+			slot[2] = 0
+			slot[3] = 0
+			slot[4] = 0
+			slot[5] = 0
+			slot[6] = 0
+			slot[7] = 0
+			slot[8] = 0
+
+		return {"FINISHED"}
+
+
+class VIEW3D_OT_ke_view_bookmark(Operator):
+	bl_idname = "view3d.ke_view_bookmark"
+	bl_label = "View Bookmarks"
+	bl_description = "Store & Use Viewport Placement (persp/ortho, loc, rot)"
+	bl_space_type = 'VIEW_3D'
+	bl_region_type = 'UI'
+	bl_options = {'REGISTER', 'UNDO'}
+
+	mode : bpy.props.EnumProperty(
+		items=[("SET1", "Set Cursor Slot 1", "", "SET1", 1),
+			   ("SET2", "Set Cursor Slot 2", "", "SET2", 2),
+			   ("SET3", "Set Cursor Slot 3", "", "SET3", 3),
+			   ("SET4", "Set Cursor Slot 4", "", "SET4", 4),
+			   ("SET5", "Set Cursor Slot 5", "", "SET5", 5),
+			   ("SET6", "Set Cursor Slot 6", "", "SET6", 6),
+			   ("USE1", "Use Cursor Slot 1", "", "USE1", 7),
+			   ("USE2", "Use Cursor Slot 2", "", "USE2", 8),
+			   ("USE3", "Use Cursor Slot 3", "", "USE3", 9),
+			   ("USE4", "Use Cursor Slot 4", "", "USE4", 10),
+			   ("USE5", "Use Cursor Slot 5", "", "USE5", 11),
+			   ("USE6", "Use Cursor Slot 6", "", "USE6", 12)
+			   ],
+		name="View Bookmarks",
+		default="SET1")
+
+	def draw(self, context):
+		layout = self.layout
+
+	def execute(self, context):
+		rv3d = context.space_data.region_3d
+		v = [0,0,0,0,0,0,0,0,0]
+
+		nr = int(self.mode[-1])
+		if nr == 2:
+			slot = bpy.context.scene.ke_vslot2
+		elif nr == 3:
+			slot = bpy.context.scene.ke_vslot3
+		elif nr == 4:
+			slot = bpy.context.scene.ke_vslot4
+		elif nr == 5:
+			slot = bpy.context.scene.ke_vslot5
+		elif nr == 6:
+			slot = bpy.context.scene.ke_vslot6
+		else:
+			slot = bpy.context.scene.ke_vslot1
+
+		if "SET" in self.mode:
+			p = [int(rv3d.is_perspective)]
+			d = [rv3d.view_distance]
+			loc = [i for i in rv3d.view_location]
+			rot = [i for i in rv3d.view_rotation]
+			v = p + d + loc + rot
+			# You'd think you could just assign a floatV prop to a floatV prop, but no??!
+			slot[0] = v[0]
+			slot[1] = v[1]
+			slot[2] = v[2]
+			slot[3] = v[3]
+			slot[4] = v[4]
+			slot[5] = v[5]
+			slot[6] = v[6]
+			slot[7] = v[7]
+			slot[8] = v[8]
+		# USE
+		else:
+			v[0] = slot[0]
+			v[1] = slot[1]
+			v[2] = slot[2]
+			v[3] = slot[3]
+			v[4] = slot[4]
+			v[5] = slot[5]
+			v[6] = slot[6]
+			v[7] = slot[7]
+			v[8] = slot[8]
+
+			if not rv3d.is_perspective and bool(v[0]):
+				bpy.ops.view3d.view_persportho()
+			rv3d.view_distance = v[1]
+			rv3d.view_location = Vector(v[2:5])
+			rv3d.view_rotation = Quaternion(v[5:9])
+
+		return {"FINISHED"}
+
 
 class VIEW3D_OT_ke_cursor_bookmark(Operator):
 	bl_idname = "view3d.ke_cursor_bookmark"
@@ -346,7 +540,7 @@ class VIEW3D_OT_ke_origin_to_cursor(Operator):
 class VIEW3D_OT_align_origin_to_selected(Operator):
 	bl_idname = "view3d.align_origin_to_selected"
 	bl_label = "Align Origin To Selected Elements"
-	bl_description = "CursorFit&Align + OriginToCursor Macro: Places origin(s) at element selection. (Cursor is restored)"
+	bl_description = "CursorFit&Align + OriginToCursor Macro: Places origin(s) at element selection (or Obj transform in object mode). (Cursor is restored)"
 	bl_space_type = 'VIEW_3D'
 	bl_region_type = 'UI'
 	bl_options = {'REGISTER', 'UNDO'}
@@ -426,7 +620,7 @@ class VIEW3D_OT_align_origin_to_selected(Operator):
 class VIEW3D_OT_ke_align_object_to_active(Operator):
 	bl_idname = "view3d.ke_align_object_to_active"
 	bl_label = "Align Object(s) To Active"
-	bl_description = "Align selected object(s) to the Active Object"
+	bl_description = "Align selected object(s) to the Active Objects Transforms. (You may want to apply scale)"
 	bl_space_type = 'VIEW_3D'
 	bl_options = {'REGISTER', 'UNDO'}
 
@@ -570,6 +764,9 @@ class VIEW3D_OT_ke_overlays(Operator):
 		elif self.overlay == "OBJ_OUTLINE":
 			s.show_object_outline = not s.show_object_outline
 
+		elif self.overlay == "BACKFACE":
+			s.show_backface_culling = not s.show_backface_culling
+
 		# Mode contextual
 		if bpy.context.mode == "EDIT_MESH":
 
@@ -611,9 +808,6 @@ class VIEW3D_OT_ke_overlays(Operator):
 
 			elif self.overlay == "FN":
 				o.show_face_normals = not o.show_face_normals
-
-			elif self.overlay == "BACKFACE":
-				s.show_backface_culling = not s.show_backface_culling
 
 			elif self.overlay == "WEIGHT":
 				o.show_weight = not o.show_weight
@@ -856,6 +1050,8 @@ class MESH_OT_ke_extract_and_edit(Operator):
 		return {'FINISHED'}
 
 
+
+
 # -------------------------------------------------------------------------------------------------
 # Class Registration & Unregistration
 # -------------------------------------------------------------------------------------------------
@@ -874,7 +1070,10 @@ classes = (
 	MESH_OT_ke_select_invert_linked,
 	VIEW3D_OT_ke_cursor_bookmark,
 	VIEW3D_OT_ke_align_object_to_active,
-	VIEW3D_OT_ke_swap
+	VIEW3D_OT_ke_swap,
+	VIEW3D_OT_ke_view_bookmark,
+	VIEW3D_OT_ke_view_align_toggle,
+	VIEW3D_OT_ke_viewpos
 )
 
 def register():
@@ -883,12 +1082,21 @@ def register():
 
 	bpy.types.Scene.ke_focus = bpy.props.BoolVectorProperty(size=16)
 	bpy.types.Scene.ke_focus_stats = bpy.props.BoolProperty()
+
 	bpy.types.Scene.ke_cslot1 = bpy.props.FloatVectorProperty(size=6)
 	bpy.types.Scene.ke_cslot2 = bpy.props.FloatVectorProperty(size=6)
 	bpy.types.Scene.ke_cslot3 = bpy.props.FloatVectorProperty(size=6)
 	bpy.types.Scene.ke_cslot4 = bpy.props.FloatVectorProperty(size=6)
 	bpy.types.Scene.ke_cslot5 = bpy.props.FloatVectorProperty(size=6)
 	bpy.types.Scene.ke_cslot6 = bpy.props.FloatVectorProperty(size=6)
+
+	bpy.types.Scene.ke_vslot1 = bpy.props.FloatVectorProperty(size=9)
+	bpy.types.Scene.ke_vslot2 = bpy.props.FloatVectorProperty(size=9)
+	bpy.types.Scene.ke_vslot3 = bpy.props.FloatVectorProperty(size=9)
+	bpy.types.Scene.ke_vslot4 = bpy.props.FloatVectorProperty(size=9)
+	bpy.types.Scene.ke_vslot5 = bpy.props.FloatVectorProperty(size=9)
+	bpy.types.Scene.ke_vslot6 = bpy.props.FloatVectorProperty(size=9)
+	bpy.types.Scene.ke_vtoggle = bpy.props.FloatVectorProperty(size=9)
 
 
 def unregister():
@@ -903,6 +1111,14 @@ def unregister():
 		del bpy.types.Scene.ke_cslot4
 		del bpy.types.Scene.ke_cslot5
 		del bpy.types.Scene.ke_cslot6
+		del bpy.types.Scene.ke_vslot1
+		del bpy.types.Scene.ke_vslot2
+		del bpy.types.Scene.ke_vslot3
+		del bpy.types.Scene.ke_vslot4
+		del bpy.types.Scene.ke_vslot5
+		del bpy.types.Scene.ke_vslot6
+		del bpy.types.Scene.ke_vtoggle
+
 	except Exception as e:
 		print('unregister fail:\n', e)
 		pass

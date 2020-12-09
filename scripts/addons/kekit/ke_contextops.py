@@ -8,6 +8,7 @@ bl_info = {
 
 import bpy
 import bmesh
+from math import copysign
 from mathutils import Vector
 from bpy.types import Operator
 from .ke_utils import get_loops, mouse_raycast, get_selected
@@ -380,7 +381,11 @@ class MESH_OT_ke_maya_connect(Operator):
 	def execute(self, context):
 		sel_mode = bpy.context.tool_settings.mesh_select_mode[:]
 		if sel_mode[0]:
-			bpy.ops.mesh.vert_connect_path('INVOKE_DEFAULT')
+			try:
+				bpy.ops.mesh.vert_connect_path('INVOKE_DEFAULT')
+			except:
+				bpy.ops.mesh.vert_connect('INVOKE_DEFAULT')
+
 		elif sel_mode[1] or sel_mode[2]:
 			bpy.ops.mesh.subdivide('INVOKE_DEFAULT')
 		return {'FINISHED'}
@@ -431,7 +436,10 @@ class MESH_OT_ke_triple_connect_spin(Operator):
 
 				if sel_mode[0]:
 					if self.connect_mode == 'PATH':
-						bpy.ops.mesh.vert_connect_path('INVOKE_DEFAULT')
+						try:
+							bpy.ops.mesh.vert_connect_path('INVOKE_DEFAULT')
+						except:
+							bpy.ops.mesh.vert_connect('INVOKE_DEFAULT')
 					elif self.connect_mode == 'PAIR':
 						bpy.ops.mesh.vert_connect('INVOKE_DEFAULT')
 
@@ -503,6 +511,59 @@ class VIEW3D_OT_ke_vptransform(Operator):
 		return {'FINISHED'}
 
 
+class VIEW3D_OT_ke_view_align_snap(Operator):
+	bl_idname = "view3d.ke_view_align_snap"
+	bl_label = "View Align Snap"
+	bl_description = "Snap view to nearest Ortho. Contextual variant: To selected (toggle) if anything is selected."
+	bl_options = {'REGISTER'}
+
+	contextual: bpy.props.BoolProperty(default=False)
+
+	def execute(self, context):
+		sel = []
+		slot = []
+		if self.contextual:
+			slot = bpy.context.scene.ke_vtoggle
+			obj = get_selected(context)
+			if obj:
+				obj.update_from_editmode()
+				sel = [v for v in obj.data.vertices if v.select]
+
+		# ALIGN TO SELECTED (TOGGLE)
+		if sel or sum(slot) != 0:
+			bpy.ops.view3d.ke_view_align_toggle()
+		# OR SNAP TO NEAREST ORTHO
+		else:
+			rm = context.space_data.region_3d.view_matrix
+			v = Vector(rm[2])
+			x, y, z = abs(v.x), abs(v.y), abs(v.z)
+
+			if x > y and x > z:
+				axis = copysign(1, v.x), 0, 0
+			elif y > x and y > z:
+				axis = 0, copysign(1, v.y), 0
+			else:
+				axis = 0, 0, copysign(1, v.z)
+
+			# Negative: FRONT (-Y), LEFT(-X), BOTTOM (-Z)
+			if sum(axis) < 0:
+				if bool(axis[2]):
+					bpy.ops.view3d.view_axis(type='BOTTOM')
+				elif bool(axis[1]):
+					bpy.ops.view3d.view_axis(type='FRONT')
+				else:
+					bpy.ops.view3d.view_axis(type='LEFT')
+			else:
+				if bool(axis[2]):
+					bpy.ops.view3d.view_axis(type='TOP')
+				elif bool(axis[1]):
+					bpy.ops.view3d.view_axis(type='BACK')
+				else:
+					bpy.ops.view3d.view_axis(type='RIGHT')
+
+		return {'FINISHED'}
+
+
 # -------------------------------------------------------------------------------------------------
 # Class Registration & Unregistration
 # -------------------------------------------------------------------------------------------------
@@ -520,6 +581,7 @@ classes = (
 	VIEW3D_OT_ke_selmode,
 	VIEW3D_OT_ke_vptransform,
 	MESH_OT_ke_contextslide,
+	VIEW3D_OT_ke_view_align_snap
 )
 
 

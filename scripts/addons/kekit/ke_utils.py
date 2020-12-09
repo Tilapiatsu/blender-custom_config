@@ -466,10 +466,11 @@ def get_vert_nearest_mouse(context, mousepos, verts, mtx):
     for v in verts:
         vpos = mtx @ Vector(v.co)
         vscreenpos = location_3d_to_region_2d(context.region, context.space_data.region_3d, vpos)
-        dist = (mousepos - vscreenpos).length
-        if dist < nearest:
-            merge_point = v
-            nearest = dist
+        if vscreenpos:
+            dist = (mousepos - vscreenpos).length
+            if dist < nearest:
+                merge_point = v
+                nearest = dist
     return merge_point
 
 

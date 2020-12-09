@@ -2,7 +2,7 @@ bl_info = {
     "name": "Merge To Mouse",
     "author": "Kjell Emanuelsson 2019",
     "wiki_url": "http://artbykjell.com",
-    "version": (1, 3, 4),
+    "version": (1, 3, 5),
     "blender": (2, 80, 0),
 }
 import bpy
@@ -132,6 +132,9 @@ class MESH_OT_merge_to_mouse(Operator):
                     bm.select_history.add(merge_point)
                     bm.verts[merge_point.index].select = True
                     bpy.ops.mesh.merge(type='LAST', uvs=True)
+
+                    bm.select_flush_mode()
+                    bmesh.update_edit_mesh(obj.data, True)
 
         bpy.context.tool_settings.mesh_select_mode = (sel_mode[0], sel_mode[1], sel_mode[2])
 
