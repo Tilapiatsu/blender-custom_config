@@ -10,7 +10,7 @@ robocopy "..\GIT\glTF-Blender-IO\addons\io_scene_gltf2" "glTF-Blender-IO" %param
 robocopy "..\GIT\ScreenCast-Keys\src\screencastkeys" "screencastkeys" %param%
 robocopy "..\GIT\mifthtools\blender\addons\2.8\mira_tools" "mira_tools" %param%
 robocopy "..\GIT\PolyQuilt\Addons\PolyQuilt" "PolyQuilt" %param%
-robocopy "addon_common" "retopoflow\addon_common" %param%
+@REM robocopy "addon_common" "retopoflow\addon_common" %param%
 robocopy "..\GIT\vertex_color_master\vertex_color_master" "vertex_color_master" %param%
 robocopy "..\GIT\Blender-Addons\MathsExpressionLiteBlender28" "MathsExpressionLiteBlender28" %param%
 robocopy "..\GIT\MapsModelsImporter\blender\MapsModelsImporter" "MapsModelsImporter" %param%
