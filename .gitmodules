@@ -31,9 +31,6 @@
 [submodule "scripts/GIT/animation_nodes"]
 	path = scripts/GIT/animation_nodes
 	url = https://github.com/JacquesLucke/animation_nodes.git
-[submodule "scripts/addons/retopoflow"]
-	path = scripts/addons/retopoflow
-	url = https://github.com/CGCookie/retopoflow.git
 [submodule "scripts/GIT/mesh_align_plus"]
 	path = scripts/GIT/mesh_align_plus
 	url = https://github.com/egtwobits/mesh_mesh_align_plus.git
