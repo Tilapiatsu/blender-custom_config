@@ -1,10 +1,25 @@
 import bpy
-import bgl 
-import gpu
+
+
 from gpu_extras.batch import batch_for_shader
 from bpy.types import Operator, GizmoGroup, Gizmo
 import bmesh
 
+
+
+
+
+
+import bgl 
+
+import gpu
+from math import sin, cos, pi
+from gpu.types import (
+        GPUBatch,
+        GPUVertBuf,
+        GPUVertFormat,
+    )
+from mathutils import Matrix, Vector
 import mathutils
 
 
@@ -21,7 +36,157 @@ from .utils.active_tool import active_tool
 
 
 
+
+
+
+
+# --- Retopology Tool
+tools_ret = {
+        "mesh_tool.poly_quilt",
+        "mesh_tool.poly_quilt_poly",
+        "mesh_tool.poly_quilt_extrude",
+        "mesh_tool.poly_quilt_edgeloop",
+        "mesh_tool.poly_quilt_loopcut",
+        "mesh_tool.poly_quilt_knife",
+        "mesh_tool.poly_quilt_delete",
+        "mesh_tool.poly_quilt_brush",
+        "mesh_tool.poly_quilt_seam",
+        "builtin.poly_build",
+        }
 #import time
+def gpu_draw(self, context): # TODO
+    
+
+    if context.active_object != None and context.active_object.select_get() and context.mode == 'EDIT_MESH':
+        
+        props = context.preferences.addons[__package__].preferences
+
+        theme = context.preferences.themes['Default']
+        vertex_size = theme.view_3d.vertex_size
+
+        
+
+        # Color
+        VA_Col = props.v_alone_color[0], props.v_alone_color[1], props.v_alone_color[2], props.v_alone_color[3]
+        VE_Col = props.VE_color[0], props.VE_color[1], props.VE_color[2], props.VE_color[3]
+        F_Col = props.F_color[0], props.F_color[1], props.F_color[2], props.opacity
+        sel_Col = props.select_color[0], props.select_color[1], props.select_color[2], 1.0
+        
+        
+        
+
+        # добавить обработку сетки через bgl TODO
+        
+        tool_retopo = active_tool().idname in tools_ret # Retopology Tool
+    
+
+        
+
+        
+
+        is_perspective = context.region_data.is_perspective
+        if is_perspective:
+            z_bias = props.z_bias / 350
+        else:
+            z_bias = 1.0
+
+
+
+        bgl.glEnable(bgl.GL_BLEND)
+        bgl.glLineWidth(props.edge_width)
+        bgl.glPointSize(vertex_size + props.verts_size)
+        bgl.glCullFace(bgl.GL_BACK)
+
+
+
+        if tool_retopo:
+            shader = shader_uni
+        else:
+            shader = shader_sm
+
+
+        view_mat = context.region_data.perspective_matrix
+        shader.uniform_float("view_mat", view_mat)
+        shader.uniform_float("Z_Bias", z_bias)
+        
+        
+
+  
+        
+        
+
+
+        if props.use_mod_ret:
+            depsgraph = context.evaluated_depsgraph_get()
+
+
+        #uniques = context.objects_in_mode_unique_data
+        uniques = context.selected_objects
+        for obj in uniques:
+            if props.use_mod_ret:
+                if len(obj.modifiers) > 0: 
+                    depsgraph.update()
+
+                ob_eval = obj.evaluated_get(depsgraph)
+                me = ob_eval.to_mesh()
+            
+                bm = bmesh.new()
+                bm.from_mesh(me, face_normals=True, use_shape_key=False)
+
+                bm.verts.ensure_lookup_table()
+                bm.edges.ensure_lookup_table()
+                bm.faces.ensure_lookup_table()
+
+            else:
+                bm = bmesh.from_edit_mesh(obj.data)
+
+
+
+            if len(bm.verts)<30000:
+                if tool_retopo:
+                    # только одиночные вертексы
+                    vCo_one = [obj.matrix_world @ v.co for v in bm.verts] # if len(v.link_faces) < 1
+
+                    with gpu.matrix.push_pop():
+                        gpu.matrix.translate((0,0))
+                        gpu.matrix.scale_uniform(1)
+
+                        fmt = GPUVertFormat()
+                        pos_id = fmt.attr_add(id="pos", comp_type='F32', len=3, fetch_mode='FLOAT')
+                        vbo = GPUVertBuf(len=len(vCo_one), format=fmt)
+                        vbo.attr_fill(id=pos_id, data=vCo_one)
+                        batch = GPUBatch(type='POINTS', buf=vbo)
+                        batch.program_set(shader)
+                        shader.uniform_float("color", VA_Col)
+                        batch.draw()
+
+
+
+                else:
+                    vertex_co = [obj.matrix_world @ v.co for v in bm.verts]
+                    v_len = len(vertex_co)
+                    vert_col = [VE_Col for i in range(v_len)]
+                    # Окрашивание выделенных элементов
+                    for i, vert in enumerate(bm.verts):
+                        if len(vert.link_faces) < 1:
+                            vert_col[i] = VA_Col
+
+                        if vert.select:
+                            #face_col[i] = select_color_f
+                            vert_col[i] = sel_Col
+
+                    with gpu.matrix.push_pop():
+                        #gpu.matrix.translate(position)
+                        #gpu.matrix.scale_uniform(radius)
+
+                        fmt = GPUVertFormat()
+                        pos_id = fmt.attr_add(id="pos", comp_type='F32', len=2, fetch_mode='FLOAT')
+                        vbo = GPUVertBuf(len=len(vertex_co), format=fmt)
+                        vbo.attr_fill(id=pos_id, data=vCo_one)
+                        batch = GPUBatch(type='POINTS', buf=vbo)
+                        batch.program_set(shader)
+                        shader.uniform_float("color", VA_Col)
+                        batch.draw()
 
 
 
@@ -34,6 +199,11 @@ def mesh_draw_bgl(self, context):
         theme = context.preferences.themes['Default']
         vertex_size = theme.view_3d.vertex_size
 
+        # Color
+        VA_Col = props.v_alone_color[0], props.v_alone_color[1], props.v_alone_color[2], props.v_alone_color[3]
+        VE_Col = props.VE_color[0], props.VE_color[1], props.VE_color[2], props.VE_color[3]
+        F_Col = props.F_color[0], props.F_color[1], props.F_color[2], props.opacity
+        sel_Col = props.select_color[0], props.select_color[1], props.select_color[2], 1.0
         
 
 
@@ -73,7 +243,7 @@ def mesh_draw_bgl(self, context):
 
         
 
-        tool_retopo = active_tool().idname in {"mesh_tool.poly_quilt", "builtin.poly_build"}
+        tool_retopo = active_tool().idname in tools_ret # Retopology Tools
         if tool_retopo:
             shader = shader_uni
         else:
@@ -89,12 +259,7 @@ def mesh_draw_bgl(self, context):
         
 
   
-        # Color
-        VA_Col = props.v_alone_color[0], props.v_alone_color[1], props.v_alone_color[2], props.v_alone_color[3]
-        VE_Col = props.VE_color[0], props.VE_color[1], props.VE_color[2], props.VE_color[3]
-        F_Col = props.F_color[0], props.F_color[1], props.F_color[2], props.opacity
         
-        sel_Col = props.select_color[0], props.select_color[1], props.select_color[2], 1.0
         
 
 
@@ -150,7 +315,7 @@ def mesh_draw_bgl(self, context):
 
 
                     # только одиночные вертексы
-                    vCo_one = [obj.matrix_world @ v.co for v in bm.verts if v.is_wire] #not v.is_manifold]
+                    vCo_one = [obj.matrix_world @ v.co for v in bm.verts if len(v.link_faces) < 1] #not v.is_manifold] (not v.is_manifold and v.is_wire)
 
                     VERTS = batch_for_shader(shader, 'POINTS', {"pos": vCo_one})
                     shader.uniform_float("color", VA_Col)
@@ -182,7 +347,7 @@ def mesh_draw_bgl(self, context):
 
                     # Окрашивание выделенных элементов
                     for i, vert in enumerate(bm.verts):
-                        if vert.is_wire:
+                        if len(vert.link_faces) < 1:
                             vert_col[i] = VA_Col
 
                         if vert.select:
@@ -236,7 +401,8 @@ class PS_GT_draw(Gizmo):
     bl_idname = "ps.draw"
 
     def draw(self, context):
-        mesh_draw_bgl(self, context)
+        gpu_draw(self, context)
+        #mesh_draw_bgl(self, context)
 
     def setup(self):
         self.use_draw_modal = False
@@ -322,7 +488,7 @@ class PS_OT_draw_mesh(Operator):
 
 
     def invoke(self, context, event):
-        if context.area.type == 'VIEW_3D':
+        if context.area.type == 'VIEW_3D': # mesh_draw_bgl
             args = (self, context)
             self._ps_mesh_draw= bpy.types.SpaceView3D.draw_handler_add(mesh_draw_bgl, args, 'WINDOW', 'POST_VIEW')
             context.window_manager.modal_handler_add(self)

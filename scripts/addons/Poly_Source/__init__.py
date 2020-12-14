@@ -1,7 +1,7 @@
 bl_info = {
     'name': 'Poly Source',
     "author": "Max Derksen",
-    'version': (1, 5, 0),
+    'version': (1, 5, 1),
     'blender': (2, 83, 0),
     'location': 'VIEW 3D > Top Bar',
     'category': 'Mesh',
@@ -76,37 +76,44 @@ class PS_preferences(AddonPreferences):
 
 
     
-    VE_color: FloatVectorProperty(name="Vertex & Edge Color", subtype='COLOR', default=(0.0, 0.0, 0.0, 1.0), size=4, min=0.0, max=1.0, description="Select A Color For Vertices & Edges")
-    F_color: FloatVectorProperty(name="Face Color", subtype='COLOR', default=(0.0, 0.33, 1.0), min=0.0, max=1.0, description="Select A Color For Faces")
-    select_color: FloatVectorProperty(name="Select Color", subtype='COLOR', default=(1.0, 1.0, 1.0, 0.9), size=4, min=0.0, max=1.0, description=" ")
+    VE_color: FloatVectorProperty(name="Vertex & Edge Color", subtype='COLOR', default=(0.0, 0.0, 0.0, 1.0), size=4, min=0.0, max=1.0, description="Select a color for vertices & edges")
+    F_color: FloatVectorProperty(name="Face Color", subtype='COLOR', default=(0.0, 0.33, 1.0), min=0.0, max=1.0, description="Select a color for faces")
+    select_color: FloatVectorProperty(name="Select Color", subtype='COLOR', default=(1.0, 1.0, 1.0, 0.9), size=4, min=0.0, max=1.0, description="Select a color for elements")
 
 
-    v_alone_color: FloatVectorProperty(name="Vertex Color", subtype='COLOR', default=(0.0, 1.0, 0.0, 1.0), size=4, min=0.0, max=1.0, description="Select A Color For Single Vertices")
-    non_manifold_color: FloatVectorProperty(name="Non Manifold Color", subtype='COLOR', default=(1.0, 0.0, 0.0, 0.5), size=4, min=0.0, max=1.0)
-    bound_col: FloatVectorProperty(name="Bound Color", subtype='COLOR', default=(0.5, 0.0, 1.0, 0.5), size=4, min=0.0, max=1.0)
-    e_pole_col: FloatVectorProperty(name="E-Pole Color", subtype='COLOR', default=(1.0, 0.5, 0.0, 0.5), size=4, min=0.0, max=1.0)
-    n_pole_col: FloatVectorProperty(name="N-Pole Color", subtype='COLOR', default=(1.0, 1.0, 0.0, 0.5), size=4, min=0.0, max=1.0)
-    f_pole_col: FloatVectorProperty(name="More 5 Pole Color", subtype='COLOR', default=(1.0, 0.0, 1.0, 0.5), size=4, min=0.0, max=1.0)
-    tris_col: FloatVectorProperty(name="Tris Color", subtype='COLOR', default=(0.0, 0.5, 0.9, 0.5), size=4, min=0.0, max=1.0)
-    ngone_col: FloatVectorProperty(name="NGone Color", subtype='COLOR', default=(1.0, 0.1, 0.0, 0.5), size=4, min=0.0, max=1.0)
+    v_alone_color: FloatVectorProperty(name="Vertex Color", subtype='COLOR', default=(0.0, 1.0, 0.0, 1.0), size=4, min=0.0, max=1.0, description="Vertexes that are not connected to the geometry")
+    non_manifold_color: FloatVectorProperty(name="Non Manifold Color", subtype='COLOR', default=(1.0, 0.0, 0.0, 0.5), size=4, min=0.0, max=1.0, description="Non Manifold Edges")
+    bound_col: FloatVectorProperty(name="Bound Color", subtype='COLOR', default=(0.5, 0.0, 1.0, 0.5), size=4, min=0.0, max=1.0, description="Vertexes that are located at the edge of the geometry")
+    e_pole_col: FloatVectorProperty(name="E-Pole Color", subtype='COLOR', default=(1.0, 0.5, 0.0, 0.5), size=4, min=0.0, max=1.0, description="Vertexes that are connected to 5 edges")
+    n_pole_col: FloatVectorProperty(name="N-Pole Color", subtype='COLOR', default=(1.0, 1.0, 0.0, 0.5), size=4, min=0.0, max=1.0, description="Vertexes that are connected to 3 edges")
+    f_pole_col: FloatVectorProperty(name="More 5 Pole Color", subtype='COLOR', default=(1.0, 0.0, 1.0, 0.5), size=4, min=0.0, max=1.0, description="Vertexes that are connected to more than 5 edges")
+    tris_col: FloatVectorProperty(name="Tris Color", subtype='COLOR', default=(0.0, 0.5, 1.0, 0.5), size=4, min=0.0, max=1.0, description="Polygons with three vertexes")
+    ngone_col: FloatVectorProperty(name="NGone Color", subtype='COLOR', default=(1.0, 0.1, 0.0, 0.5), size=4, min=0.0, max=1.0, description="Polygons with more than 4 vertexes")
+    
 
 
+    use_mod_ret: BoolProperty(name="Use Modifiers", description="Use the data from the modifiers", default=False)
+    use_mod_che: BoolProperty(name="Use Modifiers", description="Use the data from the modifiers", default=False)
 
-    use_mod_ret: BoolProperty(name="Use Modifiers", default=False)
-    use_mod_che: BoolProperty(name="Use Modifiers", default=False)
-
-    xray_ret: BoolProperty(name="X-Ray", default=False)
-    xray_che: BoolProperty(name="X-Ray", default=False)
+    xray_ret: BoolProperty(name="X-Ray", description="", default=False)
+    xray_che: BoolProperty(name="X-Ray", description="", default=False)
 
 
-    non_manifold_check: BoolProperty(name="Non Manifold", default=True)
-    v_alone: BoolProperty(name="Vertex Alone", default=True)
-    v_bound: BoolProperty(name="Vertex Boundary", default=False)
-    e_pole: BoolProperty(name="Vertex E-Pole", default=False)
-    n_pole: BoolProperty(name="Vertex N-Pole", default=False)
-    f_pole: BoolProperty(name="More 5 Pole", default=False)
-    tris: BoolProperty(name="Tris", default=False)
-    ngone: BoolProperty(name="N-Gone", default=True)
+    non_manifold_check: BoolProperty(name="Non Manifold", description="Non Manifold Edges", default=True)
+    v_alone: BoolProperty(name="Vertex Alone", description="Vertexes that are not connected to the geometry", default=True)
+    v_bound: BoolProperty(name="Vertex Boundary", description="Vertexes that are located at the edge of the geometry", default=False)
+    e_pole: BoolProperty(name="Vertex E-Pole", description="Vertexes that are connected to 5 edges", default=False)
+    n_pole: BoolProperty(name="Vertex N-Pole", description="Vertexes that are connected to 3 edges", default=False)
+    f_pole: BoolProperty(name="More 5 Pole", description="Vertexes that are connected to more than 5 edges", default=False)
+    tris: BoolProperty(name="Tris", description="Polygons with three vertexes", default=False)
+    ngone: BoolProperty(name="N-Gone", description="Polygons with more than 4 vertexes", default=True)
+    
+
+
+    custom_count: BoolProperty(name="Custom", description="Custom number of vertexes in the polygon", default=False)
+    custom_count_verts: IntProperty(name="Number of vertexes in the polygon", description=" ", min=3, default=5)
+    custom_col: FloatVectorProperty(name="Polygon Color For Custom Mode", subtype='COLOR', default=(0.95, 0.78, 0.0, 0.5), size=4, min=0.0, max=1.0, description=" ")
+
 
 
     def draw(self, context):
@@ -176,6 +183,9 @@ class PS_preferences(AddonPreferences):
         row.prop(self, "tris_col")
         row.prop(self, "ngone_col")
 
+        row = box.row()
+        row.prop(self, "custom_col")
+
 
 
         col = layout.column()
@@ -187,7 +197,7 @@ class PS_preferences(AddonPreferences):
         row.operator("wm.url_open", text="Artstation", icon_value=artstation_icon.icon_id).url = "https://www.artstation.com/derksen"
         col = layout.column(align=True)
         row = col.row(align=True)
-        row.operator("wm.url_open", text="Discord Channel", icon_value=discord_icon.icon_id).url = "https://discord.gg/kvCyyDU"
+        row.operator("wm.url_open", text="Discord Channel", icon_value=discord_icon.icon_id).url = "https://discord.gg/YAJE9JGDXc"
 
 
     def draw_keymaps(self, context, layout):
@@ -201,6 +211,7 @@ class PS_preferences(AddonPreferences):
         col.prop(keymap_items["ps.quads"], 'type', text='Quads', full_event=True)
         col.prop(keymap_items["ps.tris"], 'type', text='Tris', full_event=True)
         col.prop(keymap_items["ps.clear_dots"], 'type', text='Clear Dots', full_event=True)
+        col.prop(keymap_items["ps.remove_vertex_non_manifold"], 'type', text='Clear Dots', full_event=True)
 
         col.label(text="*some hotkeys may not work because of the use of other addons")
 
@@ -274,6 +285,9 @@ def register():
     addon_keymaps.append((km, kmi))
     
     kmi = km.keymap_items.new("ps.clear_dots", type = "C",value="PRESS", ctrl=True, alt=True, shift=False, oskey=False)
+    addon_keymaps.append((km, kmi))
+
+    kmi = km.keymap_items.new("ps.remove_vertex_non_manifold", type = "N",value="PRESS", ctrl=True, alt=True, shift=False, oskey=False)
     addon_keymaps.append((km, kmi))
     del addon_keyconfig
 
