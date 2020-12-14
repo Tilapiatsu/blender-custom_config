@@ -11,6 +11,43 @@ shader = gpu.shader.from_builtin('3D_UNIFORM_COLOR')
 
 
 
+def custom_batch(shader, type, content, indices=None):
+    """
+    shader
+    type: 'POINTS', 'LINES', 'TRIS' or 'LINES_ADJ'
+    
+    """
+    from gpu.types import (
+        GPUBatch,
+        GPUIndexBuf,
+        GPUVertBuf,
+    )
+
+    for data in content.values():
+        vbo_len = len(data)
+        break
+    else:
+        raise ValueError("Empty 'content'")
+
+    vbo_format = shader.format_calc()
+    vbo = GPUVertBuf(vbo_format, vbo_len)
+
+    for id, data in content.items():
+        if len(data) != vbo_len:
+            raise ValueError("Length mismatch for 'content' values")
+        vbo.attr_fill(id, data)
+
+    if indices is None:
+        return GPUBatch(type=type, buf=vbo)
+    else:
+        ibo = GPUIndexBuf(type=type, seq=indices)
+        return GPUBatch(type=type, buf=vbo, elem=ibo)
+
+
+
+
+
+
 def check_draw_bgl(self, context):
     objs = context.selected_objects
     if len(objs) > 0:
@@ -55,7 +92,7 @@ def check_draw_bgl(self, context):
         f_pole_col = props.f_pole_col[0], props.f_pole_col[1], props.f_pole_col[2], props.f_pole_col[3]
         v_bound_col = props.bound_col[0], props.bound_col[1], props.bound_col[2], props.bound_col[3]
         v_alone_col = props.v_alone_color[0], props.v_alone_color[1], props.v_alone_color[2], props.v_alone_color[3]
-
+        custom_col = props.custom_col[0], props.custom_col[1], props.custom_col[2], props.custom_col[3]
 
         if props.use_mod_che:
             depsgraph = context.evaluated_depsgraph_get()
@@ -92,7 +129,7 @@ def check_draw_bgl(self, context):
 
                 
                     
-                    # check
+                    # --- N-Gone
                     if props.ngone:
                         ngone = []
                         for n in bm.faces:
@@ -116,14 +153,50 @@ def check_draw_bgl(self, context):
                             v_index.extend([v.index for v in f.verts if not f.hide])
                             ngone_co.extend([obj.matrix_world @ v.co for v in f.verts if not f.hide]) 
 
-                        copy.free() #maybe delete
+                        copy.free() # TODO может быть удалить ?
 
                         ngons_indices = []
                         ngons_indices.extend(list(range(0, len(v_index)))[v_i:v_i+3] for v_i in range(0, len(v_index), 3))
                         NGONE = batch_for_shader(shader, 'TRIS', {"pos": ngone_co}, indices=ngons_indices)
                         shader.uniform_float("color", ngone_col)
                         NGONE.draw(shader)
-                    
+                        
+
+                        
+
+                    # --- Custom 
+                    if props.custom_count:
+                        custom_faces = []
+                        for n in bm.faces:
+                            if len(n.verts) == props.custom_count_verts:
+                                custom_faces.append(n.index)
+                     
+                                
+                        copy = bm.copy()
+                        copy.faces.ensure_lookup_table()
+                        edge_n = [e for i in custom_faces for e in copy.faces[i].edges]
+
+                        for e in copy.edges:
+                            if not e in edge_n:
+                                e.hide_set(True)
+
+                        bmesh.ops.triangulate(copy, faces=copy.faces[:])
+
+                        v_index = []
+                        custom_co = []
+                        for f in copy.faces:
+                            v_index.extend([v.index for v in f.verts if not f.hide])
+                            custom_co.extend([obj.matrix_world @ v.co for v in f.verts if not f.hide]) 
+
+                        copy.free() # TODO может быть удалить ?
+
+                        custom_faces_indices = []
+                        custom_faces_indices.extend(list(range(0, len(v_index)))[v_i:v_i+3] for v_i in range(0, len(v_index), 3))
+                        CUSTOM = batch_for_shader(shader, 'TRIS', {"pos": custom_co}, indices=custom_faces_indices)
+                        shader.uniform_float("color", custom_col)
+                        CUSTOM.draw(shader)
+
+
 
                     if props.tris:
                         tris_co = [obj.matrix_world @ v.co for f in bm.faces for v in f.verts if len(f.verts)==3]
@@ -162,14 +235,14 @@ def check_draw_bgl(self, context):
 
 
                     if props.v_bound:
-                        v_bound_co = [obj.matrix_world @ v.co for v in bm.verts if v.is_boundary and v.is_manifold]
+                        v_bound_co = [obj.matrix_world @ v.co for v in bm.verts if v.is_boundary or not v.is_manifold]
                         V_BOUND = batch_for_shader(shader, 'POINTS', {"pos": v_bound_co,})
                         shader.uniform_float("color", v_bound_col) 
                         V_BOUND.draw(shader)
                     
 
                     if props.v_alone:
-                        v_alone_co = [obj.matrix_world @ v.co for v in bm.verts if not v.is_manifold]
+                        v_alone_co = [obj.matrix_world @ v.co for v in bm.verts if len(v.link_edges)<1]
                         V_ALONE = batch_for_shader(shader, 'POINTS', {"pos": v_alone_co})
                         shader.uniform_float("color", v_alone_col)
                         V_ALONE.draw(shader)

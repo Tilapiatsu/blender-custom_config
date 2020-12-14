@@ -59,7 +59,7 @@ class PS_PT_settings_draw_mesh(Panel):
 
 
 
-        # Mesh Check
+        # --- Mesh Check
         if settings.mesh_check == False: 
             layout.prop(settings, "mesh_check", toggle=True)
                 
@@ -82,6 +82,13 @@ class PS_PT_settings_draw_mesh(Panel):
             col.prop(props, "ngone", toggle=True)
             col.prop(props, "non_manifold_check", toggle=True)
             
+
+            rowC = box.row(align=True)
+            rowC.prop(props, "custom_count")
+            sub_rowC = rowC.row()
+            sub_rowC.scale_x = 1.5
+            sub_rowC.active = props.custom_count
+            sub_rowC.prop(props, "custom_count_verts")
 
             row_P = box.row()
             row_P.scale_x = 1.0
@@ -112,7 +119,7 @@ class PS_PT_settings_draw_mesh(Panel):
         if context.mode == 'EDIT_MESH':
             box.prop(context.space_data.overlay, "show_occlude_wire")
         box.operator("ps.clear_dots", icon='SHADERFX')
-
+        box.operator("ps.remove_vertex_non_manifold", icon='SHADERFX')
 
         
 
