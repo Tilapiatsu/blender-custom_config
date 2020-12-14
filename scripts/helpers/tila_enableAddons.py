@@ -31,7 +31,7 @@ modules =   (
 			'bakeToVertexColor',
 			'SSGI',
 			# 'MeasureIt-ARCH',
-			'retopoflow',
+			'RetopoFlow',
 			'add_curve_extra_objects',
 			'add_mesh_extra_objects',
 			'io_scene_fbx',
