@@ -16,8 +16,12 @@ robocopy "..\GIT\Blender-Addons\MathsExpressionLiteBlender28" "MathsExpressionLi
 robocopy "..\GIT\MapsModelsImporter\blender\MapsModelsImporter" "MapsModelsImporter" %param%
 robocopy "..\GIT\Polycount\polycount" "Polycount" %param%
 robocopy "..\GIT\Texel-Density-Checker\Texel_Density_3_1_281" "Texel_Density" %param%
-robocopy "..\GIT\BEER\BlenderMalt" "BlenderMalt" %param%
-robocopy "..\GIT\OpenColorIO\aces_1.2" "..\..\datafiles\colormanagement" %param%
+
+"%PYTHONPATH%\python.exe" "..\GIT\BEER\Malt\scripts\package_blender_addon.py"
+robocopy "..\GIT\BEER\Malt\BlenderMalt" "BlenderMalt" %param%
+robocopy "..\GIT\BEER\Malt\Malt" "BlenderMalt\MaltPath\Malt" %param%
+
+@REM robocopy "..\GIT\OpenColorIO\aces_1.2" "..\..\datafiles\colormanagement" %param%
 @REM powershell -Command "(gc ..\..\datafiles\colormanagement\config.ocio) -replace 'texture_paint: ACES - ACEScc', 'texture_paint: Utility - Rec.2020 - Display' | Out-File -encoding ASCII ..\..\datafiles\colormanagement\config.ocio"
 
 copy "..\GIT\ProTheme\blender_pro.xml" "..\presets\interface_theme"
