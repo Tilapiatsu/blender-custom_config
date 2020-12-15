@@ -19,7 +19,7 @@
 bl_info = {
     "name": "Mouselook Navigation",
     "author": "dairin0d, moth3r",
-    "version": (1, 2, 5),
+    "version": (1, 3, 0),
     "blender": (2, 80, 0),
     "location": "View3D > orbit/pan/dolly/zoom/fly/walk",
     "description": "Provides extra 3D view navigation options (ZBrush mode) and customizability",
@@ -53,6 +53,7 @@ if "dairin0d" in locals(): importlib.reload(dairin0d)
 exec(("" if importlib.util.find_spec("dairin0d") else "from . ")+"import dairin0d")
 
 dairin0d.load(globals(), {
+    "utils_blender": "ToggleObjectMode, BlUtil",
     "utils_view3d": "SmartView3D, RaycastResult",
     "utils_userinput": "InputKeyMonitor, ModeStack, KeyMapUtils",
     "utils_gl": "cgl",
@@ -291,7 +292,7 @@ class MouselookNavigation:
         v3d = context.space_data
         rv3d = context.region_data
         
-        region_pos, region_size = self.sv.region_rect()
+        region_pos, region_size = self.sv.region_rect().get("min", "size", convert=Vector)
         
         userprefs = context.preferences
         drag_threshold = userprefs.inputs.drag_threshold
@@ -886,8 +887,8 @@ class MouselookNavigation:
         
         self.sv = SmartView3D(context, use_matrix=True)
         
-        region_pos, region_size = self.sv.region_rect()
-        clickable_region_pos, clickable_region_size = self.sv.region_rect(False)
+        region_pos, region_size = self.sv.region_rect().get("min", "size", convert=Vector)
+        clickable_region_pos, clickable_region_size = self.sv.region_rect(False).get("min", "size", convert=Vector)
         
         self.zbrush_border = calc_zbrush_border(self.sv.area, self.sv.region)
         
@@ -905,7 +906,8 @@ class MouselookNavigation:
         if addon_prefs.zbrush_method == 'ZBUFFER':
             cast_result = self.sv.depth_cast(mouse_region, depthcast_radius)
         elif addon_prefs.zbrush_method == 'RAYCAST':
-            cast_result = self.sv.ray_cast(mouse_region, raycast_radius)
+            with ToggleObjectMode('OBJECT' if context.mode == 'SCULPT' else None):
+                cast_result = self.sv.ray_cast(mouse_region, raycast_radius)
         else: # SELECTION
             cast_result = RaycastResult() # Auto Depth is useless with ZBrush mode anyway
         
@@ -948,7 +950,8 @@ class MouselookNavigation:
                 
                 if wrk_pos > self.zbrush_border:
                     if addon_prefs.zbrush_method == 'SELECTION':
-                        cast_result = self.sv.select(mouse_region)
+                        with ToggleObjectMode('OBJECT' if context.mode == 'SCULPT' else None):
+                            cast_result = self.sv.select(mouse_region)
                     
                     if cast_result.success: return {'PASS_THROUGH'}
             
@@ -1045,7 +1048,7 @@ class MouselookNavigation:
         if self.mode_stack.mode is None:
             context.window.cursor_warp(self.mouse0.x, self.mouse0.y)
         elif self.mode_stack.mode in {'FLY', 'FPS'}:
-            focus_proj = self.sv.focus_projected + self.sv.region_rect()[0]
+            focus_proj = self.sv.focus_projected + self.sv.region_rect().get("min", convert=Vector)
             context.window.cursor_warp(focus_proj.x, focus_proj.y)
         
         # TODO: show_low_resolution can be enabled not only for sculpt, but for any paint-like mode
@@ -1144,8 +1147,8 @@ def draw_callback_px(self, context):
         border = calc_zbrush_border(area, region)
         color = addon_prefs.get_color("color_zbrush_border")
         
-        x, y = clickable_rect[0] - full_rect[0]
-        w, h = clickable_rect[1]
+        x, y = clickable_rect.min - full_rect.min
+        w, h = clickable_rect.size
         
         shader = gpu.shader.from_builtin('2D_UNIFORM_COLOR')
         shader.bind()
@@ -1321,6 +1324,7 @@ class AutoregKeymapPreset:
     def _cleanup_ark_data(self, ark_data):
         ark_data.pop("is_current", None)
         ark_data.pop("index", None)
+        return ark_data
     
     def _fix_old_versions(self, data):
         if not isinstance(data, dict): return
@@ -1390,12 +1394,14 @@ class VIEW3D_PT_mouselook_navigation:
         addon_prefs = addon.preferences
         settings = addon_prefs
         
-        with layout.row(align=True):
+        with layout.row():
             layout.label(text="Show/hide:")
-            layout.prop(settings, "show_crosshair", text="", icon='ADD')
-            with layout.row(align=True)(active=settings.show_crosshair):
-                layout.prop(settings, "show_focus", text="", icon='LIGHT_HEMI')
-            layout.prop(settings, "show_zbrush_border", text="", icon='SELECT_SET')
+            layout.prop(addon_prefs, "show_trackball", text="", icon='ORIENTATION_GIMBAL')
+            with layout.row(align=True):
+                layout.prop(settings, "show_crosshair", text="", icon='ADD')
+                with layout.row(align=True)(active=settings.show_crosshair):
+                    layout.prop(settings, "show_focus", text="", icon='LIGHT_HEMI')
+                layout.prop(settings, "show_zbrush_border", text="", icon='SELECT_SET')
         
         with layout.column(align=True):
             layout.prop(settings, "zoom_speed_modifier")
@@ -1436,21 +1442,12 @@ def draw_view3d_header(self, context):
     
     if addon_prefs.show_in_header:
         row = layout.row(align=True)
-        row.prop(addon.preferences, "is_enabled", text="", icon='VIEW3D')
+        
+        if addon_prefs.show_trackball:
+            row.prop(addon_prefs, "is_trackball", text="", icon='ORIENTATION_GIMBAL')
+        
+        row.prop(addon_prefs, "is_enabled", text="", icon='VIEW3D')
         row.popover("VIEW3D_PT_mouselook_navigation_header_popover", text="")
-
-# VIEW_CAMERA
-# VIEW_ZOOM
-# VIS_SEL_11 (already used in header for object type visibility popover)
-# CON_CAMERASOLVER
-# HIDE_OFF
-# RESTRICT_SELECT_OFF
-# RESTRICT_RENDER_OFF
-# OUTLINER_DATA_CAMERA
-# OUTLINER_OB_CAMERA
-# CAMERA_DATA
-# CAMERA_STEREO ?
-# VIEW3D
 
 @addon.PropertyGroup
 class NavigationDirectionFlip:
@@ -1543,6 +1540,13 @@ class ThisAddonPreferences:
     autolevel_trackball_up: False | prop("Trackball Autolevel up", "Try to autolevel 'upright' in Trackball mode")
     autolevel_speed_modifier: 0.0 | prop("Autolevel speed", "Autoleveling speed", min=0.0)
     
+    def _is_trackball_get(self):
+        return bpy.context.preferences.inputs.view_rotate_method == 'TRACKBALL'
+    def _is_trackball_set(self, value):
+        bpy.context.preferences.inputs.view_rotate_method = ('TRACKBALL' if value else 'TURNTABLE')
+    show_trackball: False | prop("Show the trackball/turntable switch", "Display a trackball/turntable indicator in the header")
+    is_trackball: False | prop("Use Trackball orbit", "Use the Trackball orbiting method", get=_is_trackball_get, set=_is_trackball_set)
+    
     def draw(self, context):
         layout = self.layout
         row = layout.row()
@@ -1569,7 +1573,11 @@ class ThisAddonPreferences:
         
         use_universal_input_settings = (self.use_universal_input_settings or len(self.autoreg_keymaps) == 0)
         
-        layout.label(text="General settings:")
+        with layout.row():
+            with layout.row()(alignment='LEFT'):
+                layout.label(text="General settings:")
+            with layout.row()(alignment='RIGHT'):
+                layout.popover("VIEW3D_PT_mouselook_navigation_header_popover", text="3D View Extras")
         
         with layout.box():
             with layout.row()(alignment='LEFT'):

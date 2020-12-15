@@ -22,6 +22,7 @@ import blf
 from mathutils import Color, Vector, Matrix, Quaternion, Euler
 
 from .utils_python import DummyObject
+from .bounds import Bounds
 from .utils_gl import TextWrapper
 from .bpy_inspect import BlRna
 
@@ -399,20 +400,34 @@ class BlUI:
         else: # Region, Area, RenderEngine
             arg.tag_redraw()
     
-    def calc_region_rect(area, r, overlap=True):
+    def calc_region_rect(area, r, overlap=True, convert=None):
         # Note: there may be more than one region of the same type (e.g. in quadview)
         if (not overlap) and (r.type == 'WINDOW'):
             x0, y0, x1, y1 = r.x, r.y, r.x+r.width, r.y+r.height
-            ox0, oy0, ox1, oy1 = x0, y0, x1, y1
+            
             for r in area.regions:
-                if r.type == 'TOOLS':
-                    ox0 = r.x + r.width
-                elif r.type == 'UI':
-                    ox1 = r.x
-            x0, y0, x1, y1 = max(x0, ox0), max(y0, oy0), min(x1, ox1), min(y1, oy1)
-            return (Vector((x0, y0)), Vector((x1-x0, y1-y0)))
+                if (r.width <= 0) or (r.height <= 0): continue
+                
+                # A HUD-specific hack. At least in Blender 2.80, HUD in 3d view
+                # in some cases does not become 1x1 when it's "hidden",
+                # but we may still attempt to detect it by its (x,y) being zero
+                if (r.alignment == 'FLOAT') and (r.x == 0) and (r.y == 0): continue
+                
+                alignment = r.alignment
+                if convert: alignment = convert.get(alignment, alignment)
+                
+                if alignment == 'TOP':
+                    y1 = min(y1, r.y)
+                elif alignment == 'BOTTOM':
+                    y0 = max(y0, r.y + r.height)
+                elif alignment == 'LEFT':
+                    x0 = max(x0, r.x + r.width)
+                elif alignment == 'RIGHT':
+                    x1 = min(x1, r.x)
+            
+            return Bounds.MinSize((x0, y0), (x1-x0, y1-y0))
         else:
-            return (Vector((r.x, r.y)), Vector((r.width, r.height)))
+            return Bounds.MinSize((r.x, r.y), (r.width, r.height))
     
     def point_in_rect(p, r):
         return ((p[0] >= r.x) and (p[0] < r.x + r.width) and (p[1] >= r.y) and (p[1] < r.y + r.height))

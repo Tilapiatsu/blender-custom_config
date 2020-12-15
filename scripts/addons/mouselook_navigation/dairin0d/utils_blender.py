@@ -31,6 +31,7 @@ from mathutils import Color, Vector, Euler, Quaternion, Matrix
 from mathutils.geometry import intersect_line_sphere
 
 from .utils_math import matrix_compose, matrix_inverted_safe, transform_point_normal
+from .bounds import Bounds, RangeAggregator
 from .utils_python import attrs_to_dict
 from .bpy_inspect import BlRna
 
@@ -105,7 +106,29 @@ def apply_shapekeys(obj):
         # This seems to be the only way to remove a shape key
         bpy.ops.object.shape_key_remove(all=False)
 
+def apply_modifier(name, apply_as='DATA', keep_modifier=False):
+    try:
+        # In Blender 2.90, the apply_as argument was removed from
+        # modifier_apply(), and modifier_apply_as_shapekey() was added
+        if bpy.app.version < (2, 90, 0):
+            bpy.ops.object.modifier_apply(modifier=name, apply_as=apply_as)
+        else:
+            if apply_as == 'SHAPE':
+                bpy.ops.object.modifier_apply_as_shapekey(modifier=name, keep_modifier=keep_modifier)
+            else:
+                bpy.ops.object.modifier_apply(modifier=name)
+        
+        return 'APPLIED'
+    except RuntimeError as exc:
+        #print(repr(exc))
+        exc_msg = exc.args[0].lower()
+        # "Error: Modifier is disabled, skipping apply"
+        is_disabled = ("disab" in exc_msg) or ("skip" in exc_msg)
+        return ('DISABLED' if is_disabled else 'FAILED')
+
 def apply_modifiers(context, objects, idnames, options=(), apply_as='DATA'):
+    if not objects: return
+    
     scene_objs = context.scene.collection.objects
     layer_objs = context.view_layer.objects
     active_obj = layer_objs.active
@@ -128,60 +151,77 @@ def apply_modifiers(context, objects, idnames, options=(), apply_as='DATA'):
     
     objects_to_delete = set()
     
-    bpy.ops.object.mode_set(mode='OBJECT')
+    # NOTE: without an active object, mode is OBJECT anyway,
+    # which is what we need for bpy.ops.object.select_all()
+    layer_objs.active = None
     bpy.ops.object.select_all(action='DESELECT')
     
     scene_objs_names = {obj.name_full for obj in scene_objs}
     
+    # NOTE: bpy.ops.object.mode_set() requires an active object
+    # that is not linked from a library and not hidden in viewport.
+    # Otherwise, poll() will fail, resulting in an exception.
+    # However, apparently even all that isn't awlays enough :(
+    
     for obj in objects:
+        if obj.library: continue
+        
         in_scene = obj.name_full in scene_objs_names
         if not in_scene: scene_objs.link(obj)
+        
+        hide_select = obj.hide_select
+        hide_viewport = obj.hide_viewport
+        
+        obj.hide_select = False
+        obj.hide_viewport = False
         layer_objs.active = obj
-        bpy.ops.object.mode_set(mode='OBJECT')
+        
         BlUtil.Object.select_set(obj, True)
         
-        # Users will probably want shape keys to be applied regardless of whether there are modifiers
-        if apply_shape_keys: apply_shapekeys(obj) # also makes single-user
+        if (obj.mode != 'OBJECT') and bpy.ops.object.mode_set.poll():
+            bpy.ops.object.mode_set(mode='OBJECT')
         
-        if obj.modifiers:
-            if (obj.type != 'MESH') and covert_to_mesh:
-                # "Error: Cannot apply constructive modifiers on curve"
-                if obj.data.users > 1: obj.data = obj.data.copy() # don't affect other objects
-                convert_selection_to_mesh()
-            elif make_single_user:
-                # "Error: Modifiers cannot be applied to multi-user data"
-                if obj.data.users > 1: obj.data = obj.data.copy() # don't affect other objects
+        if obj.mode == 'OBJECT':
+            # Users will probably want shape keys to be applied regardless of whether there are modifiers
+            if apply_shape_keys: apply_shapekeys(obj) # also makes single-user
             
-            for md in tuple(obj.modifiers):
-                if not validate_idname(md): continue
+            if obj.modifiers:
+                if (obj.type != 'MESH') and covert_to_mesh:
+                    # "Error: Cannot apply constructive modifiers on curve"
+                    if obj.data.users > 1: obj.data = obj.data.copy() # don't affect other objects
+                    convert_selection_to_mesh()
+                elif make_single_user:
+                    # "Error: Modifiers cannot be applied to multi-user data"
+                    if obj.data.users > 1: obj.data = obj.data.copy() # don't affect other objects
                 
-                obj_to_delete = None
-                if delete_operands and (md.type == 'BOOLEAN'):
-                    obj_to_delete = md.object
-                
-                successfully_applied = False
-                is_disabled = False
-                
-                if visible_only and not md.show_viewport:
-                    is_disabled = True
-                else:
-                    try:
-                        bpy.ops.object.modifier_apply(modifier=md.name, apply_as=apply_as)
-                        successfully_applied = True
-                    except RuntimeError as exc:
-                        #print(repr(exc))
-                        exc_msg = exc.args[0].lower()
-                        # "Error: Modifier is disabled, skipping apply"
-                        is_disabled = ("disab" in exc_msg) or ("skip" in exc_msg)
-                
-                if is_disabled and remove_disabled:
-                    obj.modifiers.remove(md)
-                
-                if successfully_applied and obj_to_delete:
-                    objects_to_delete.add(obj_to_delete)
+                for md in tuple(obj.modifiers):
+                    if not validate_idname(md): continue
+                    
+                    obj_to_delete = None
+                    if delete_operands and (md.type == 'BOOLEAN'):
+                        obj_to_delete = md.object
+                    
+                    successfully_applied = False
+                    is_disabled = False
+                    
+                    if visible_only and not md.show_viewport:
+                        is_disabled = True
+                    else:
+                        apply_result = apply_modifier(md.name, apply_as)
+                        successfully_applied = (apply_result == 'APPLIED')
+                        is_disabled = (apply_result == 'DISABLED')
+                    
+                    if is_disabled and remove_disabled:
+                        obj.modifiers.remove(md)
+                    
+                    if successfully_applied and obj_to_delete:
+                        objects_to_delete.add(obj_to_delete)
         
         BlUtil.Object.select_set(obj, False)
         if not in_scene: scene_objs.unlink(obj)
+        
+        obj.hide_select = hide_select
+        obj.hide_viewport = hide_viewport
     
     deleted_names = set(obj.name for obj in objects_to_delete)
     for obj in objects_to_delete:
@@ -192,7 +232,7 @@ def apply_modifiers(context, objects, idnames, options=(), apply_as='DATA'):
     for obj in selection_prev:
         if obj.name in deleted_names: continue
         BlUtil.Object.select_set(obj, True)
-    if active_obj.name in deleted_names: active_obj = None
+    if active_obj and (active_obj.name in deleted_names): active_obj = None
     layer_objs.active = active_obj
     
     return objects_to_delete
@@ -559,34 +599,17 @@ class BlUtil:
             if (obj.type == 'LATTICE') and (not obj.is_evaluated):
                 # In Blender 2.8, original (non-"evaluated") lattices always
                 # return (-0.5, -0.5, -0.5), (0.5, 0.5, 0.5) as their bounding box
-                bmin, bmax = None, None
-                for p in obj.data.points: # lattice always has at least 1 point
-                    if bmin:
-                        bmin.x = min(bmin.x, p.x)
-                        bmin.y = min(bmin.y, p.y)
-                        bmin.z = min(bmin.z, p.z)
-                        bmax.x = max(bmax.x, p.x)
-                        bmax.y = max(bmax.y, p.y)
-                        bmax.z = max(bmax.z, p.z)
-                    else:
-                        bmin = Vector(p)
-                        bmax = Vector(p)
+                
+                # For some reason, LatticePoint.co returns weird
+                # values, while LatticePoint.co_deform behaves ok
+                points = (p.co_deform for p in obj.data.points)
+                bounds = Bounds.MinMax(*RangeAggregator(3)(points))
             else:
-                bmin, bmax = Vector(obj.bound_box[0]), Vector(obj.bound_box[-2])
+                bounds = Bounds.MinMax(obj.bound_box[0], obj.bound_box[-2])
             
-            if matrix:
-                # This trick was mentioned in "Physics - Broad phase and Narrow phase" chapter of
-                # Newcastle University » Game » Masters Degree » Game Technologies » Physics Tutorials
-                # https://research.ncl.ac.uk/game/mastersdegree/gametechnologies/physicstutorials/6accelerationstructures/Physics%20-%20Spatial%20Acceleration%20Structures.pdf
-                # Basically, take an abs() of all matrix values and transform local bbox half-size by it
-                matrix_abs = Matrix([[abs(v) for v in row] for row in matrix.to_3x3()])
-                half = (bmax - bmin) * 0.5
-                center = bmin + half
-                half = matrix_abs @ half
-                center = matrix @ center
-                bmin, bmax = center-half, center+half
+            if matrix: bounds.transform(matrix)
             
-            return bmin, bmax
+            return bounds
         
         @staticmethod
         def get_geometry(obj, source, mode, verts, edges, faces):
@@ -600,37 +623,37 @@ class BlUtil:
         # active/selection/hidden states can be different for each view layer
         
         @staticmethod
-        def select_get(obj, layer=None):
+        def select_get(obj, view_layer=None):
             try:
-                return obj.select_get(view_layer=layer)
+                return obj.select_get(view_layer=view_layer)
             except RuntimeError: # happens when obj is not in view layer
                 return False
         
         @staticmethod
-        def select_set(obj, value, layer=None):
+        def select_set(obj, value, view_layer=None):
             try:
-                obj.select_set(value, view_layer=layer)
+                obj.select_set(value, view_layer=view_layer)
             except RuntimeError: # happens when obj is not in view layer
                 pass
         
         @staticmethod
-        def visible_get(obj, layer=None, viewport=None):
+        def visible_get(obj, view_layer=None, viewport=None):
             try:
-                return obj.visible_get(view_layer=layer, viewport=viewport)
+                return obj.visible_get(view_layer=view_layer, viewport=viewport)
             except RuntimeError: # happens when obj is not in view layer
                 return not obj.hide_viewport
         
         @staticmethod
-        def hide_get(obj, layer=None):
+        def hide_get(obj, view_layer=None):
             try:
-                return obj.hide_get(view_layer=layer)
+                return obj.hide_get(view_layer=view_layer)
             except RuntimeError: # happens when obj is not in view layer
                 return obj.hide_viewport
         
         @staticmethod
-        def hide_set(obj, value, layer=None):
+        def hide_set(obj, value, view_layer=None):
             try:
-                obj.hide_set(value, view_layer=layer)
+                obj.hide_set(value, view_layer=view_layer)
             except RuntimeError: # happens when obj is not in view layer
                 obj.hide_viewport = value
         
@@ -657,6 +680,143 @@ class BlUtil:
                     value = (action == 'SELECT')
                     for obj in view_layer.objects:
                         obj.select_set(value, view_layer=view_layer)
+        
+        @staticmethod
+        def active_get(view_layer=None):
+            if not view_layer: view_layer = bpy.context.view_layer
+            return view_layer.objects.active
+        
+        @staticmethod
+        def active_set(obj, view_layer=None):
+            if not view_layer: view_layer = bpy.context.view_layer
+            
+            try:
+                view_layer.objects.active = obj
+            except RuntimeError: # happens when obj is not in view layer
+                view_layer.objects.active = None
+        
+        @staticmethod
+        def select_activate(objs, mode, active='ANY', view_layer=None):
+            if not view_layer: view_layer = bpy.context.view_layer
+            
+            if objs is None: objs = ()
+            elif isinstance(objs, bpy.types.Object): objs = [objs]
+            
+            layer_objs = set(view_layer.objects)
+            objs = [obj for obj in objs if obj in layer_objs]
+            
+            if mode in ('DESELECT', 'MUTE', 'INVERSE'):
+                for obj in objs:
+                    obj.select_set(False, view_layer=view_layer)
+                
+                if active and (view_layer.objects.active in objs):
+                    view_layer.objects.active = None
+                
+                if mode == 'DESELECT': return
+                
+                layer_objs.difference_update(objs)
+                
+                for obj in layer_objs:
+                    obj.select_set(True, view_layer=view_layer)
+                
+                if active and (not view_layer.objects.active):
+                    view_layer.objects.active = next(iter(layer_objs), None)
+            elif mode in ('SELECT', 'SOLO', 'ISOLATE'):
+                for obj in objs:
+                    obj.select_set(True, view_layer=view_layer)
+                
+                if active:
+                    if (active == 'ANY') and (view_layer.objects.active not in objs):
+                        active = 'LAST'
+                    
+                    if not objs:
+                        view_layer.objects.active = None
+                    elif active == 'FIRST':
+                        view_layer.objects.active = objs[0]
+                    elif active == 'LAST':
+                        view_layer.objects.active = objs[-1]
+                
+                if mode == 'SELECT': return
+                
+                layer_objs.difference_update(objs)
+                
+                for obj in layer_objs:
+                    obj.select_set(False, view_layer=view_layer)
+    
+    class Data:
+        @staticmethod
+        def all_iter(non_removable=True, exclude=()):
+            bpy_data = bpy.data
+            bpy_prop_collection = bpy.types.bpy_prop_collection
+            
+            for attr_name in dir(bpy_data):
+                if attr_name.startswith("_"): continue
+                if attr_name in exclude: continue
+                attr = getattr(bpy_data, attr_name)
+                if not isinstance(attr, bpy_prop_collection): continue
+                if not (non_removable or hasattr(attr, "remove")): continue
+                yield attr_name, attr
+        
+        @staticmethod
+        def all_map(non_removable=True, exclude=()):
+            return {k: v for k, v in BlUtil.Data.all_iter(non_removable, exclude)}
+        
+        @staticmethod
+        def all_list(non_removable=True, exclude=()):
+            return [v for k, v in BlUtil.Data.all_iter(non_removable, exclude)]
+        
+        @staticmethod
+        def get_users_map(bpy_datas):
+            if hasattr(bpy_datas, "values"): bpy_datas = bpy_datas.values() # dict
+            
+            users_map = {}
+            
+            for bpy_data in bpy_datas:
+                if isinstance(bpy_data, tuple): bpy_data = bpy_data[1] # all_iter()
+                
+                for item in bpy_data:
+                    users_map[(bpy_data, item)] = item.users
+            
+            return users_map
+        
+        @staticmethod
+        def clear_orphaned(users_map0, users_map1):
+            modified = False
+            
+            for key, users0 in users_map0.items():
+                users1 = users_map1.get(key, 0)
+                if users0 == users1: continue
+                if users1 > 0: continue
+                
+                bpy_data, item = key
+                
+                try:
+                    bpy_data.remove(item)
+                except ReferenceError:
+                    pass
+                
+                users_map1.pop(key, None)
+                
+                modified = True
+            
+            return modified
+        
+        class OrphanCleanup:
+            def __init__(self, exclude=()):
+                self.exclude = exclude
+            
+            def __enter__(self):
+                self.bpy_datas = BlUtil.Data.all_list(False, exclude=self.exclude)
+                self.users_map0 = BlUtil.Data.get_users_map(self.bpy_datas)
+            
+            def __exit__(self, exc_type, exc_value, exc_traceback):
+                bpy_datas = self.bpy_datas
+                users_map0 = self.users_map0
+                users_map1 = BlUtil.Data.get_users_map(bpy_datas)
+                
+                while BlUtil.Data.clear_orphaned(users_map0, users_map1):
+                    users_map0 = users_map1
+                    users_map1 = BlUtil.Data.get_users_map(bpy_datas)
     
     class Collection:
         @staticmethod
@@ -710,6 +870,11 @@ class BlUtil:
     
     class Depsgraph:
         @staticmethod
+        def trigger_update():
+            for window in bpy.context.window_manager.windows:
+                window.scene.cursor.location = Vector(window.scene.cursor.location)
+        
+        @staticmethod
         def evaluated_vertices(depsgraph, objs=None, matrix=None, origins='NON_GEOMETRY'):
             instances = True
             
@@ -726,8 +891,8 @@ class BlUtil:
                 geometry_types = {'MESH', 'CURVE', 'SURFACE', 'FONT', 'META', 'GPENCIL', 'LATTICE', 'ARMATURE'}
                 
                 def add_obj(obj, result):
-                    if (origins == 'NON_GEOMETRY') and (obj.type not in geometry_types): return
-                    verts.append(obj.matrix_world.to_translation())
+                    if (origins == 'NON_GEOMETRY') and (obj.type not in geometry_types):
+                        verts.append(obj.matrix_world.to_translation())
             
             MeshEquivalent.gather(objs, depsgraph, matrix=matrix, edit=None, instances=instances, verts=verts, add_obj=add_obj)
             
@@ -737,34 +902,15 @@ class BlUtil:
         def bounding_box(depsgraph, objs=None, matrix=None, origins='NON_GEOMETRY', use_bbox=False):
             if use_bbox:
                 geometry_types = {'MESH', 'CURVE', 'SURFACE', 'FONT', 'META', 'GPENCIL', 'LATTICE', 'ARMATURE'}
-                bbox0, bbox1 = None, None
+                aggregator = RangeAggregator(3)
                 for obj_main, obj_eval, instance_matrix in BlUtil.Depsgraph.evaluated_objects(objs, depsgraph):
                     if (origins == 'NONE') and (obj_eval.type not in geometry_types): continue
                     if matrix: instance_matrix = matrix @ instance_matrix
-                    _bbox0, _bbox1 = BlUtil.Object.bounding_box(obj_eval, instance_matrix)
-                    if bbox0 is None:
-                        bbox0, bbox1 = _bbox0, _bbox1
-                    else:
-                        bbox0.x = min(bbox0.x, _bbox0.x)
-                        bbox0.y = min(bbox0.y, _bbox0.y)
-                        bbox0.z = min(bbox0.z, _bbox0.z)
-                        bbox1.x = max(bbox1.x, _bbox1.x)
-                        bbox1.y = max(bbox1.y, _bbox1.y)
-                        bbox1.z = max(bbox1.z, _bbox1.z)
-                return bbox0, bbox1
+                    aggregator(BlUtil.Object.bounding_box(obj_eval, instance_matrix))
+                return Bounds.MinMax(*aggregator)
             else:
                 points = BlUtil.Depsgraph.evaluated_vertices(depsgraph, objs, matrix, origins)
-                if not points: return (None, None)
-                x0, y0, z0 = points[0]
-                x1, y1, z1 = x0, y0, z0
-                for x, y, z in points:
-                    x0 = min(x0, x)
-                    y0 = min(y0, y)
-                    z0 = min(z0, z)
-                    x1 = max(x1, x)
-                    y1 = max(y1, y)
-                    z1 = max(z1, z)
-                return (Vector((x0, y0, z0)), Vector((x1, y1, z1)))
+                return Bounds.MinMax(*RangeAggregator(3)(points))
         
         @staticmethod
         def evaluated_objects(objs=None, depsgraph=None, originals=True, instances=True):
@@ -793,56 +939,23 @@ class BlUtil:
     
     class Scene:
         @staticmethod
-        def line_cast(scene, view_layer, start, end):
+        def line_cast(scene, subset, start, end):
             # returns (result, location, normal, index, object, matrix)
             delta = end - start
-            return BlUtil.Scene.ray_cast(scene, view_layer, start, delta, delta.magnitude)
+            return BlUtil.Scene.ray_cast(scene, subset, start, delta, delta.magnitude)
         
         @staticmethod
-        def ray_cast(scene, view_layer, origin, direction, distance=1.70141e+38):
+        def ray_cast(scene, subset, origin, direction, distance=1.70141e+38):
             # returns (result, location, normal, index, object, matrix)
-            return scene.ray_cast(view_layer, origin, direction, distance=distance)
-        
-        @staticmethod
-        def bounding_box(scene, matrix=None, exclude=()):
-            if matrix is None: matrix = Matrix()
-            
-            m_to = matrix_inverted_safe(matrix)
-            points = []
-            
-            exclude = {(scene.objects.get(obj) if isinstance(obj, str) else obj) for obj in exclude}
-            
-            mesh_cache = MeshCache(scene)
-            for obj in scene.objects:
-                if obj in exclude: continue
-                
-                m = m_to @ obj.matrix_world
-                
-                mesh_obj = mesh_cache.get(obj)
-                if mesh_obj and mesh_obj.data.vertices:
-                    points.extend(m @ v.co for v in mesh_obj.data.vertices)
-                else:
-                    points.append(m @ Vector())
-                
-                if obj.mode == 'EDIT':
-                    mesh_obj = mesh_cache.get(obj, 'RAW')
-                    if mesh_obj and mesh_obj.data.vertices:
-                        points.extend(m @ v.co for v in mesh_obj.data.vertices)
-                
-                mesh_cache.clear() # don't waste memory
-            
-            if not points: return (None, None) # maybe use numpy? (if 2.70 has it included)
-            points_iter = iter(points)
-            x0, y0, z0 = next(points_iter)
-            x1, y1, z1 = x0, y0, z0
-            for x, y, z in points_iter:
-                x0 = min(x0, x)
-                y0 = min(y0, y)
-                z0 = min(z0, z)
-                x1 = max(x1, x)
-                y1 = max(y1, y)
-                z1 = max(z1, z)
-            return (Vector((x0, y0, z0)), Vector((x1, y1, z1)))
+            if bpy.app.version >= (2, 91, 0):
+                # Expects a depsgraph
+                if isinstance(subset, bpy.types.ViewLayer):
+                    subset = subset.depsgraph
+            else:
+                # Expects a view layer
+                if isinstance(subset, bpy.types.Depsgraph):
+                    subset = subset.view_layer_eval
+            return scene.ray_cast(subset, origin, direction, distance=distance)
         
         @staticmethod
         def update(target):
@@ -1074,7 +1187,13 @@ class BlUtil:
             area = context.area
             area_type = area.type
             area.type = 'NODE_EDITOR'
+            area_ui_type = area.ui_type
+            area.ui_type = 'ShaderNodeTree'
             space = context.space_data
+            
+            def set_node_tree(node_tree):
+                space.pin = False # just to be sure
+                space.path.start(node_tree)
             
             if include:
                 node_filter = (include if callable(include) else (lambda node: node in include))
@@ -1085,7 +1204,7 @@ class BlUtil:
             
             # It seems that assigning obj.active_material_index AND space.node_tree is necessary
             obj.active_material_index = 0
-            space.node_tree = src_mat.node_tree
+            set_node_tree(src_mat.node_tree)
             node_select_info = [(node, node.select) for node in src_mat.node_tree.nodes]
             for node in src_mat.node_tree.nodes:
                 node.select = node_filter(node)
@@ -1094,9 +1213,10 @@ class BlUtil:
                 node.select = select
             
             obj.active_material_index = 1
-            space.node_tree = dst_mat.node_tree
+            set_node_tree(dst_mat.node_tree)
             bpy.ops.node.clipboard_paste()
             
+            area.ui_type = area_ui_type
             area.type = area_type
             view_layer.objects.active = active_obj
             
@@ -1497,6 +1617,8 @@ class MeshEquivalent:
         
         if isinstance(objs, bpy.types.Object):
             objs = {objs}
+        elif isinstance(objs, bpy.types.DepsgraphObjectInstance):
+            objs = {objs.object}
         elif instances:
             objs = set(objs) # original (not evaluated) objects are expected here
         
@@ -1507,6 +1629,7 @@ class MeshEquivalent:
         add_obj = kwargs.get("add_obj")
         
         for obj in objs:
+            if isinstance(obj, bpy.types.DepsgraphObjectInstance): obj = obj.object
             kwargs["matrix"] = (matrix @ obj.matrix_world if matrix else obj.matrix_world)
             result = cls._gather(obj, depsgraph, edit, kwargs)
             if add_obj: add_obj(obj, result)
