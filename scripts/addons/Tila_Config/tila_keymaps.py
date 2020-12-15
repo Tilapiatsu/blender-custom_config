@@ -984,6 +984,11 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		self.snap(snapping='wm.context_menu_enum', snapping_prop=[('data_path', 'tool_settings.snap_node_element')])
 		self.kmi_set_replace('node.view_selected', 'A', 'PRESS', ctrl=True, shift=True)
 		self.kmi_set_replace('node.add_search', self.k_menu, 'PRESS')
+		
+		self.kmi_set_replace('node.backimage_move', self.k_cursor, 'PRESS', disable_double=True)
+		self.kmi_set_replace('node.backimage_zoom', self.k_lasso_through, 'EAST', alt=True, properties=[('factor', 1.2)], disable_double=True)
+		self.kmi_set_replace('node.backimage_zoom', self.k_lasso_through, 'WEST', alt=True, properties=[('factor', 0.8)], disable_double=True)
+		
 
 		###### Animation
 		self.kmi_init(name='Animation', space_type='EMPTY', region_type='WINDOW')
