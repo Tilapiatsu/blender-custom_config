@@ -1000,6 +1000,7 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		self.global_keys()
 		self.right_mouse()
 		self.duplicate(duplicate='armature.duplicate_move')
+		self.tool_transform()
 
 		###### Metaball
 		self.kmi_init(name='Metaball', space_type='EMPTY', region_type='WINDOW')
