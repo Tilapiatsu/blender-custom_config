@@ -923,6 +923,8 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		self.kmi_set_replace('wm.tool_set_by_id', self.k_manip, 'PRESS', ctrl=True, shift=True, alt=True, properties=[('name', 'builtin_brush.Draw')])
 		self.kmi_set_replace('paint.tila_brush_select_and_paint', self.k_manip, 'PRESS', shift=True, properties=[('tool', 'WEIGHT'), ('brush', 'BLUR')])
 		self.kmi_set_replace('paint.tila_brush_select_and_paint', self.k_manip, 'PRESS', ctrl=True, properties=[('tool', 'WEIGHT'), ('brush', 'AVERAGE')])
+
+		self.kmi_set_replace('paint.weight_set', self.k_linked, 'PRESS')
 		
 		###### Image Paint
 		self.kmi_init(name='Image Paint', space_type='EMPTY', region_type='WINDOW')
@@ -1000,6 +1002,12 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		self.global_keys()
 		self.right_mouse()
 		self.duplicate(duplicate='armature.duplicate_move')
+		self.tool_transform()
+
+		###### Pose
+		self.kmi_init(name='Pose', space_type='EMPTY', region_type='WINDOW')
+		self.global_keys()
+		self.right_mouse()
 		self.tool_transform()
 
 		###### Metaball
