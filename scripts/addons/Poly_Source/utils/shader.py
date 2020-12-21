@@ -21,11 +21,11 @@ vs_uni = '''
 
 fs_uni = '''
     uniform vec4 color;
-    out vec4 gl_FragColor;
+    out vec4 fragColor;
 
     void main()
     {
-        gl_FragColor = vec4(color.xyz, color.w);
+        fragColor = vec4(color.xyz, color.w);
     }
 
 '''
@@ -56,11 +56,11 @@ vs_sm = '''
 
 fs_sm = '''
     in vec4 color;
-    out vec4 gl_FragColor;
+    out vec4 fragColor;
 
     void main()
     {
-        gl_FragColor = vec4(color.xyz, color.w);
+        fragColor  = vec4(color.xyz, color.w);
     }
 '''
 

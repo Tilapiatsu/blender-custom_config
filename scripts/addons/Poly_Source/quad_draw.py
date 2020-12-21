@@ -189,206 +189,212 @@ def gpu_draw(self, context): # TODO
                         batch.draw()
 
 
+#from bpy.app.handlers import persistent, depsgraph_update_post
+#@persistent
+""" def update():
+    print( len(depsgraph_update_post) )
+    return True """
 
 def mesh_draw_bgl(self, context):
-    if context.active_object != None and context.active_object.select_get() and context.mode == 'EDIT_MESH':
-        #start_time = time.time()
-        
-        props = context.preferences.addons[__package__].preferences
-
-        theme = context.preferences.themes['Default']
-        vertex_size = theme.view_3d.vertex_size
-
-        # Color
-        VA_Col = props.v_alone_color[0], props.v_alone_color[1], props.v_alone_color[2], props.v_alone_color[3]
-        VE_Col = props.VE_color[0], props.VE_color[1], props.VE_color[2], props.VE_color[3]
-        F_Col = props.F_color[0], props.F_color[1], props.F_color[2], props.opacity
-        sel_Col = props.select_color[0], props.select_color[1], props.select_color[2], 1.0
-        
-
-
-        
-        
-        
-
-        bgl.glEnable(bgl.GL_BLEND)
-        bgl.glLineWidth(props.edge_width)
-        bgl.glPointSize(vertex_size + props.verts_size)
-        bgl.glCullFace(bgl.GL_BACK)
-        
-        
-        if props.xray_ret == False:
-            bgl.glEnable(bgl.GL_DEPTH_TEST)
-            bgl.glEnable(bgl.GL_CULL_FACE)
-
-
-        if props.line_smooth:
-            bgl.glEnable(bgl.GL_LINE_SMOOTH)
-
-        
-        #bgl.glDepthRange(0, 0.99999)
-        #bgl.glDepthFunc(600)
-        bgl.glDepthMask(False)
-
-        
-
-        
-
-        is_perspective = context.region_data.is_perspective
-        if is_perspective:
-            z_bias = props.z_bias / 350
-        else:
-            z_bias = 1.0
-
-
-        
-
-        tool_retopo = active_tool().idname in tools_ret # Retopology Tools
-        if tool_retopo:
-            shader = shader_uni
-        else:
-            shader = shader_sm
-
-        shader.bind()
-
-
-        view_mat = context.region_data.perspective_matrix
-        shader.uniform_float("view_mat", view_mat)
-        shader.uniform_float("Z_Bias", z_bias)
-        
-        
-
-  
-        
-        
-
-
-        if props.use_mod_ret:
-            depsgraph = context.evaluated_depsgraph_get()
-
-
-        #uniques = context.objects_in_mode_unique_data
-        uniques = context.selected_objects
-        for obj in uniques:
-            if props.use_mod_ret:
-                if len(obj.modifiers) > 0: 
-                    depsgraph.update()
-
-                ob_eval = obj.evaluated_get(depsgraph)
-                me = ob_eval.to_mesh()
+    if context.area:
+        if context.active_object != None and context.active_object.select_get() and context.mode == 'EDIT_MESH':
+            #start_time = time.time()
             
-                bm = bmesh.new()
-                bm.from_mesh(me, face_normals=True, use_shape_key=False)
+            props = context.preferences.addons[__package__].preferences
 
-                bm.verts.ensure_lookup_table()
-                bm.edges.ensure_lookup_table()
-                bm.faces.ensure_lookup_table()
+            theme = context.preferences.themes['Default']
+            vertex_size = theme.view_3d.vertex_size
 
+            # Color
+            VA_Col = props.v_alone_color[0], props.v_alone_color[1], props.v_alone_color[2], props.v_alone_color[3]
+            VE_Col = props.VE_color[0], props.VE_color[1], props.VE_color[2], props.VE_color[3]
+            F_Col = props.F_color[0], props.F_color[1], props.F_color[2], props.opacity
+            sel_Col = props.select_color[0], props.select_color[1], props.select_color[2], 1.0
+            
+
+
+            
+            
+            
+
+            bgl.glEnable(bgl.GL_BLEND)
+            bgl.glLineWidth(props.edge_width)
+            bgl.glPointSize(vertex_size + props.verts_size)
+            bgl.glCullFace(bgl.GL_BACK)
+            
+            
+            if props.xray_ret == False:
+                bgl.glEnable(bgl.GL_DEPTH_TEST)
+                bgl.glEnable(bgl.GL_CULL_FACE)
+
+
+            if props.line_smooth:
+                bgl.glEnable(bgl.GL_LINE_SMOOTH)
+
+            
+            #bgl.glDepthRange(0, 0.99999)
+            #bgl.glDepthFunc(600)
+            bgl.glDepthMask(False)
+
+            
+
+            
+
+            is_perspective = context.region_data.is_perspective
+            if is_perspective:
+                z_bias = props.z_bias / 350
             else:
-                bm = bmesh.from_edit_mesh(obj.data)
+                z_bias = 1.0
 
 
+            
 
-            if len(bm.verts)<30000:
-                # Если выбран инструмент ретопологии
-                if tool_retopo:
-                    # все вертексы
-                    vCo = [obj.matrix_world @ v.co for v in bm.verts]
-                    loop_triangles = bm.calc_loop_triangles()
-                    faces_indices = [[loop.vert.index for loop in looptris] for looptris in loop_triangles]
+            tool_retopo = active_tool().idname in tools_ret # Retopology Tools
+            if tool_retopo:
+                shader = shader_uni
+            else:
+                shader = shader_sm
 
-                    FACES = batch_for_shader(shader, 'TRIS', {"pos": vCo}, indices=faces_indices)
-                    shader.uniform_float("color", F_Col)
-                    FACES.draw(shader)
+            shader.bind()
 
 
+            view_mat = context.region_data.perspective_matrix
+            shader.uniform_float("view_mat", view_mat)
+            shader.uniform_float("Z_Bias", z_bias)
+            
+            
 
-
-                    edges_ind = [e.index for e in bm.edges]
-                    edges_cord = [obj.matrix_world @ v.co for i in edges_ind for v in bm.edges[i].verts]
-                    
-                    EDGES = batch_for_shader(shader, 'LINES', {"pos": edges_cord}) 
-                    shader.uniform_float("color", VE_Col)
-                    EDGES.draw(shader)
- 
-
-
-
-                    # только одиночные вертексы
-                    vCo_one = [obj.matrix_world @ v.co for v in bm.verts if len(v.link_faces) < 1] #not v.is_manifold] (not v.is_manifold and v.is_wire)
-
-                    VERTS = batch_for_shader(shader, 'POINTS', {"pos": vCo_one})
-                    shader.uniform_float("color", VA_Col)
-                    VERTS.draw(shader)
-                    
-                
-
-                # Если выбраны обычные инструменты
-                else:
-                    # FACES
-                    vertex_co = [obj.matrix_world @ v.co for v in bm.verts]
-                    v_len = len(vertex_co)
-
-                    loop_triangles = bm.calc_loop_triangles()
-                    faces_indices = [[loop.vert.index for loop in looptris] for looptris in loop_triangles]
-
-                    face_col = [F_Col for i in range(v_len)]
-                    FACES = batch_for_shader(shader, 'TRIS', {"pos": vertex_co, "col": face_col}, indices=faces_indices)
-                    FACES.draw(shader)
-
-
-                    # EDGES & VERTICES
-                    edges_ind = [e.index for e in bm.edges]
-                    edges_cord = [obj.matrix_world @ v.co for i in edges_ind for v in bm.edges[i].verts]
     
-                    edge_col = [VE_Col for i in range(len(edges_cord))]
-                    vert_col = [VE_Col for i in range(v_len)]
+            
+            
 
 
-                    # Окрашивание выделенных элементов
-                    for i, vert in enumerate(bm.verts):
-                        if len(vert.link_faces) < 1:
-                            vert_col[i] = VA_Col
-
-                        if vert.select:
-                            #face_col[i] = select_color_f
-                            vert_col[i] = sel_Col
-
-                    for i, edge in enumerate(bm.edges):
-                        if edge.select:
-                            ind = i*2
-                            ind2 = ind + 1
-                            edge_col[ind] = sel_Col
-                            edge_col[ind2] = sel_Col
+            if props.use_mod_ret:
+                depsgraph = context.evaluated_depsgraph_get()
 
 
+            #uniques = context.objects_in_mode_unique_data
+            uniques = context.selected_objects
+            for obj in uniques:
+                if props.use_mod_ret:
+                    if len(obj.modifiers) > 0: 
+                        depsgraph.update()
+
+                    ob_eval = obj.evaluated_get(depsgraph)
+                    me = ob_eval.to_mesh()
                 
-                    EDGES = batch_for_shader(shader, 'LINES', {"pos": edges_cord, "col": edge_col})
-                    VERTS = batch_for_shader(shader, 'POINTS', {"pos": vertex_co, "col": vert_col}) 
-                
-                    EDGES.draw(shader)
-                    if context.tool_settings.mesh_select_mode[0]:
+                    bm = bmesh.new()
+                    bm.from_mesh(me, face_normals=True, use_shape_key=False)
+
+                    bm.verts.ensure_lookup_table()
+                    bm.edges.ensure_lookup_table()
+                    bm.faces.ensure_lookup_table()
+
+                else:
+                    bm = bmesh.from_edit_mesh(obj.data)
+
+
+
+                if len(bm.verts)<30000:
+                    # Если выбран инструмент ретопологии
+                    if tool_retopo:
+                        # все вертексы
+                        vCo = [obj.matrix_world @ v.co for v in bm.verts]
+                        loop_triangles = bm.calc_loop_triangles()
+                        faces_indices = [[loop.vert.index for loop in looptris] for looptris in loop_triangles]
+
+                        FACES = batch_for_shader(shader, 'TRIS', {"pos": vCo}, indices=faces_indices)
+                        shader.uniform_float("color", F_Col)
+                        FACES.draw(shader)
+
+
+
+
+                        edges_ind = [e.index for e in bm.edges]
+                        edges_cord = [obj.matrix_world @ v.co for i in edges_ind for v in bm.edges[i].verts]
+                        
+                        EDGES = batch_for_shader(shader, 'LINES', {"pos": edges_cord}) 
+                        shader.uniform_float("color", VE_Col)
+                        EDGES.draw(shader)
+    
+
+
+
+                        # только одиночные вертексы
+                        vCo_one = [obj.matrix_world @ v.co for v in bm.verts if len(v.link_faces) < 1] #not v.is_manifold] (not v.is_manifold and v.is_wire)
+
+                        VERTS = batch_for_shader(shader, 'POINTS', {"pos": vCo_one})
+                        shader.uniform_float("color", VA_Col)
                         VERTS.draw(shader)
+                        
                     
-            if props.use_mod_ret:     
-                bm.free()
-                
-            
-            
 
-        if props.line_smooth:
-            bgl.glDisable(bgl.GL_LINE_SMOOTH)
+                    # Если выбраны обычные инструменты
+                    else:
+                        # FACES
+                        vertex_co = [obj.matrix_world @ v.co for v in bm.verts]
+                        v_len = len(vertex_co)
+
+                        loop_triangles = bm.calc_loop_triangles()
+                        faces_indices = [[loop.vert.index for loop in looptris] for looptris in loop_triangles]
+
+                        face_col = [F_Col for i in range(v_len)]
+                        FACES = batch_for_shader(shader, 'TRIS', {"pos": vertex_co, "col": face_col}, indices=faces_indices)
+                        FACES.draw(shader)
+
+
+                        # EDGES & VERTICES
+                        edges_ind = [e.index for e in bm.edges]
+                        edges_cord = [obj.matrix_world @ v.co for i in edges_ind for v in bm.edges[i].verts]
         
-        bgl.glDisable(bgl.GL_DEPTH_TEST)
-        bgl.glDisable(bgl.GL_CULL_FACE)
-        bgl.glLineWidth(1)
-        bgl.glPointSize(1)
-        bgl.glDisable(bgl.GL_BLEND)  
+                        edge_col = [VE_Col for i in range(len(edges_cord))]
+                        vert_col = [VE_Col for i in range(v_len)]
+
+
+                        # Окрашивание выделенных элементов
+                        for i, vert in enumerate(bm.verts):
+                            if len(vert.link_faces) < 1:
+                                vert_col[i] = VA_Col
+
+                            if vert.select:
+                                #face_col[i] = select_color_f
+                                vert_col[i] = sel_Col
+
+                        for i, edge in enumerate(bm.edges):
+                            if edge.select:
+                                ind = i*2
+                                ind2 = ind + 1
+                                edge_col[ind] = sel_Col
+                                edge_col[ind2] = sel_Col
+
+
+                    
+                        EDGES = batch_for_shader(shader, 'LINES', {"pos": edges_cord, "col": edge_col})
+                        VERTS = batch_for_shader(shader, 'POINTS', {"pos": vertex_co, "col": vert_col}) 
+                    
+                        EDGES.draw(shader)
+                        if context.tool_settings.mesh_select_mode[0]:
+                            VERTS.draw(shader)
+                        
+                if props.use_mod_ret:     
+                    bm.free()
+                    
+                
+                
+
+            if props.line_smooth:
+                bgl.glDisable(bgl.GL_LINE_SMOOTH)
+            
+            bgl.glDisable(bgl.GL_DEPTH_TEST)
+            bgl.glDisable(bgl.GL_CULL_FACE)
+            bgl.glLineWidth(1)
+            bgl.glPointSize(1)
+            bgl.glDisable(bgl.GL_BLEND)  
 
 
 
-        #end_time = time.time()
-        #print(end_time-start_time)
+            #end_time = time.time()
+            #print(end_time-start_time)
 
 
 
@@ -474,8 +480,9 @@ class PS_OT_draw_mesh(Operator):
         #props = bpy.context.preferences.addons[__package__.split(".")[0]].preferences
         
         
-        if context.area:
-            context.area.tag_redraw()
+        """ if context.area:
+            print('2222')
+            #context.area.tag_redraw() """
 
                
         if settings.retopo_mode == False:
