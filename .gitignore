@@ -22,7 +22,9 @@ scripts/addons/BlenderMalt/*
 scripts/addons/uv_toolkit/*
 scripts/addons/Scatter/*
 scripts/addons/Scatter Library/*
+scripts/addons/Hair_Extension_ToolKit*/*
 scripts/addons/BakeWrangler/*
+scripts/addons/quad_remesher/*
 scripts/presets/interface_theme/blender_pro.xml
 .vscode/settings.json
 
