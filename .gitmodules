@@ -238,3 +238,6 @@
 [submodule "scripts/GIT/BlenderImgui"]
 	path = scripts/GIT/BlenderImgui
 	url = https://github.com/eliemichel/BlenderImgui.git
+[submodule "scripts/addons/modular_tree"]
+	path = scripts/addons/modular_tree
+	url = https://github.com/MaximeHerpin/modular_tree.git
