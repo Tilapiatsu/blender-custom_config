@@ -25,6 +25,7 @@ scripts/addons/Scatter Library/*
 scripts/addons/Hair_Extension_ToolKit*/*
 scripts/addons/BakeWrangler/*
 scripts/addons/quad_remesher/*
+scripts/addons/hairNet/*
 scripts/presets/interface_theme/blender_pro.xml
 .vscode/settings.json
 

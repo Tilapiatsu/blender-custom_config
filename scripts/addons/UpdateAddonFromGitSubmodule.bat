@@ -21,6 +21,10 @@ robocopy "..\GIT\Texel-Density-Checker\Texel_Density_3_1_281" "Texel_Density" %p
 robocopy "..\GIT\BEER\Malt\BlenderMalt" "BlenderMalt" %param%
 robocopy "..\GIT\BEER\Malt\Malt" "BlenderMalt\MaltPath\Malt" %param%
 
+robocopy "..\GIT\HairNet\hairNet" "hairNet" %param%
+powershell -Command "(gc hairNet\hairNet.py) -replace 'DEBUG = 1', 'DEBUG = 0' | Out-File -encoding ASCII hairNet\hairNet.py"
+
+
 @REM robocopy "..\GIT\OpenColorIO\aces_1.2" "..\..\datafiles\colormanagement" %param%
 @REM powershell -Command "(gc ..\..\datafiles\colormanagement\config.ocio) -replace 'texture_paint: ACES - ACEScc', 'texture_paint: Utility - Rec.2020 - Display' | Out-File -encoding ASCII ..\..\datafiles\colormanagement\config.ocio"
 

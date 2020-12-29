@@ -241,3 +241,9 @@
 [submodule "scripts/addons/modular_tree"]
 	path = scripts/addons/modular_tree
 	url = https://github.com/MaximeHerpin/modular_tree.git
+[submodule "scripts/GIT/HairNet"]
+	path = scripts/GIT/HairNet
+	url = https://github.com/Jandals/HairNet.git
+[submodule "scripts/addons/hair_guides"]
+	path = scripts/addons/hair_guides
+	url = https://github.com/Lichtso/hair_guides.git
