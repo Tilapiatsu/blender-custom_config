@@ -350,7 +350,8 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 	
 	def tool_smart_delete(self):
 		self.kmi_set_active(False, type='DEL')
-		self.kmi_set_replace('object.tila_smartdelete', 'DEL', 'PRESS')
+		self.kmi_set_replace('object.tila_smartdelete', 'DEL', 'PRESS', properties=[('menu',False)])
+		self.kmi_set_replace('object.tila_smartdelete', 'DEL', 'PRESS', alt=True, properties=[('menu',True)])
 
 	def tool_radial_control(self, radius=None, opacity=None, eraser_radius=None, fill_color=None):
 		type = 'Q'
