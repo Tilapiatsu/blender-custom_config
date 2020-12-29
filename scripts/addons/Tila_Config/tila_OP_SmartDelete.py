@@ -52,7 +52,7 @@ class SmartDeleteOperator(bpy.types.Operator):
         elif context.space_data.type == 'OUTLINER':
             bpy.ops.outliner.delete()
 
-        elif context.space_data.type == 'FILEBROWSER':
+        elif context.space_data.type == 'FILE_BROWSER':
             bpy.ops.file.delete()
         # elif context.space_data.type == 'IMAGE_EDITOR':
         #     layout.label("No Context! image editor")
