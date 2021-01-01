@@ -113,6 +113,11 @@ def register():
 	addon.preferences.activate_views_pie = False
 	addon.preferences.activate_transform_pie = False
 	addon.preferences.activate_collections_pie = False
+	addon.preferences.activate_align = True
+	addon.preferences.activate_filebrowser_tools = True
+	addon.preferences.activate_material_picker = True
+	addon.preferences.activate_save_pie = True
+	addon.preferences.activate_align_pie = True
 
 	# object_collection_manager
 	addon = context.preferences.addons.get('object_collection_manager')
