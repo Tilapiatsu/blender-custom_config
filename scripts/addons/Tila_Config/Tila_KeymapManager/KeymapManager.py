@@ -57,6 +57,7 @@ class KeymapManager():
         self.kcu = self.wm.keyconfigs.user
 
         self.km = None
+        self.kmis = None
         self.ukmis = None
         self.akmis = None
 
@@ -65,10 +66,10 @@ class KeymapManager():
     def replace_km_dec(func):
         def func_wrapper(self, idname, type, value, alt=False, any=False, ctrl=False, shift=False, oskey=False, key_modifier=None, disable_double=None, properties=()):
 
-            duplicates = [k for k in self.ukmis if k.idname == idname]
+            duplicates = [k for k in self.kmis if k.idname == idname]
             new_kmi = func(self, idname, type, value, alt=alt, any=any, ctrl=ctrl, shift=shift, oskey=oskey, key_modifier=key_modifier, disable_double=disable_double, properties=properties)
 
-            keymlap_List = {'km': self.km, 'kmis': self.ukmis, 'new_kmi': new_kmi}
+            keymlap_List = {'km': self.km, 'kmis': self.kmis, 'new_kmi': new_kmi}
 
             if len(duplicates):
                 for k in duplicates:
@@ -245,7 +246,7 @@ class KeymapManager():
             else:
                 return None
 
-        for k in self.ukmis:
+        for k in self.kmis:
             if attr_compare(k.idname, idname) is False:
                 continue
 
@@ -284,10 +285,21 @@ class KeymapManager():
         else:
             return None
 
-    def kmi_init(self, name, space_type='EMPTY', region_type='WINDOW', modal=False, tool=False):
+    def kmi_init(self, name, space_type='EMPTY', region_type='WINDOW', modal=False, tool=False, addon=False):
         self.ukmis = self.kcu.keymaps[name].keymap_items
-        self.km = self.kcu.keymaps.new(name, space_type=space_type, region_type=region_type, modal=modal, tool=tool)
-        self.akmis = self.kcu.keymaps[name].keymap_items
+        try:
+            self.akmis = self.kca.keymaps[name].keymap_items
+        except KeyError:
+            self.akmis = None
+
+        if not addon:
+            self.km = self.kcu.keymaps.new(name, space_type=space_type, region_type=region_type, modal=modal, tool=tool)
+            self.kmis = self.ukmis
+        else:
+            self.km = self.kca.keymaps.new(name, space_type=space_type, region_type=region_type, modal=modal, tool=tool)
+            self.kmis = self.akmis
+        
+        
 
     def kmi_prop_setattr(self, kmi_props, attr, value):
         try:
@@ -324,5 +336,6 @@ class KeymapManager():
         if kmi:
             kmi.active = enable
             return enable
-
+        else:
+            print('Unable to find : {} assigned to \'{}\''.format(idname, type))
         return None
