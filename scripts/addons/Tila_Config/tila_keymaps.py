@@ -444,8 +444,11 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		self.selection_tool(tool='builtin.select_box')
 		
 		# MACHINE3tools
+		# self.kmi_init(name='Window', space_type='EMPTY', region_type='WINDOW', addon=True)
+		# self.kmi_set_active(False, 'wm.call_menu_pie', type='S', value='PRESS', alt=False, ctrl=True, shift=False)
+		# self.kmi_init(name='Window', space_type='EMPTY', region_type='WINDOW', addon=False)
 		self.kmi_set_replace('wm.call_menu_pie', 'S', "PRESS", ctrl=True, shift=True, properties=[('name', 'MACHIN3_MT_save_pie')], disable_double=True)
-
+		
 		# Atomic Data Manager
 		self.kmi_set_replace('atomic.invoke_pie_menu_ui', 'DEL', "PRESS", ctrl=True, shift=True, disable_double=True)
 		

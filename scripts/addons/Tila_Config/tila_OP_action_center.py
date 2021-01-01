@@ -43,16 +43,16 @@ class TILA_action_center(bpy.types.Operator):
             if self.action_center == 'AUTO':
                 self.report({'INFO'}, 'Automatic Action Center')
                 if event_type is None:
-                    context.scene.transform_orientation_slots[0].type = 'GLOBAL'
+                    context.scene.transform_orientation_slots[1].type = 'GLOBAL'
                     context.scene.tool_settings.transform_pivot_point = 'CURSOR'
                     bpy.ops.view3d.snap_cursor_to_selected()
                 if event_type == 'RIGHTMOUSE' and event.value == 'PRESS':
-                    context.scene.transform_orientation_slots[0].type = 'GLOBAL'
+                    context.scene.transform_orientation_slots[1].type = 'GLOBAL'
                     context.scene.tool_settings.transform_pivot_point = 'CURSOR'
                     bpy.ops.view3d.snap_cursor_to_selected()
                     bpy.ops.view3d.cursor3d('INVOKE_DEFAULT', use_depth=False, orientation='NONE')
                 if event_type == 'MOUSEMOVE' and  event.value == 'PRESS':
-                    context.scene.transform_orientation_slots[0].type = 'GLOBAL'
+                    context.scene.transform_orientation_slots[1].type = 'GLOBAL'
                     context.scene.tool_settings.transform_pivot_point = 'CURSOR'
                     bpy.ops.view3d.snap_cursor_to_selected()
                     self.set_snapping_settings(context)
@@ -62,7 +62,7 @@ class TILA_action_center(bpy.types.Operator):
                 
             if self.action_center == 'SELECTION':
                 self.report({'INFO'}, 'Selection Action Center')
-                context.scene.transform_orientation_slots[0].type = 'NORMAL'
+                context.scene.transform_orientation_slots[1].type = 'NORMAL'
                 context.scene.tool_settings.transform_pivot_point = 'MEDIAN_POINT'
             if self.action_center == 'SELECTION_BORDER':
                 self.report({'INFO'}, 'Selection Border Action Center')
@@ -73,7 +73,7 @@ class TILA_action_center(bpy.types.Operator):
             if self.action_center == 'SELECTION_CENTER_AUTO_AXIS':
                 self.report({'INFO'}, 'Selection Center Auto Axis Action Center')
                 context.scene.tool_settings.transform_pivot_point = 'MEDIAN_POINT'
-                context.scene.transform_orientation_slots[0].type = 'GLOBAL'
+                context.scene.transform_orientation_slots[1].type = 'GLOBAL'
             if self.action_center == 'ELEMENT':
                 self.report({'INFO'}, 'Element Action Center')
                 context.scene.tool_settings.use_snap = True
@@ -83,15 +83,15 @@ class TILA_action_center(bpy.types.Operator):
                 if event_type == 'MOUSEMOVE' and  event.value == 'PRESS':
                     self.set_snapping_settings(context)
                     bpy.ops.transform.translate('INVOKE_DEFAULT', snap=True, snap_align=True, cursor_transform=True, release_confirm=True, orient_type='NORMAL')
-                context.scene.transform_orientation_slots[0].type = 'CURSOR'
+                context.scene.transform_orientation_slots[1].type = 'CURSOR'
                 context.scene.tool_settings.transform_pivot_point = 'CURSOR'
             if self.action_center == 'VIEW':
                 self.report({'INFO'}, 'View Action Center')
-                context.scene.transform_orientation_slots[0].type = 'VIEW'
+                context.scene.transform_orientation_slots[1].type = 'VIEW'
                 context.scene.tool_settings.transform_pivot_point = 'MEDIAN_POINT'
             if self.action_center == 'ORIGIN':
                 self.report({'INFO'}, 'Origin Action Center')
-                context.scene.transform_orientation_slots[0].type = 'CURSOR'
+                context.scene.transform_orientation_slots[1].type = 'CURSOR'
                 context.scene.tool_settings.transform_pivot_point = 'CURSOR'
                 context.scene.cursor.location[0] = 0
                 context.scene.cursor.location[1] = 0
@@ -101,7 +101,7 @@ class TILA_action_center(bpy.types.Operator):
                 context.scene.cursor.rotation_euler[2] = 0
             if self.action_center == 'PARENT':
                 self.report({'INFO'}, 'Parent Action Center')
-                context.scene.transform_orientation_slots[0].type = 'CURSOR'
+                context.scene.transform_orientation_slots[1].type = 'CURSOR'
                 context.scene.tool_settings.transform_pivot_point = 'CURSOR'
                 parent = context.object if context.object.parent is None else context.object.parent
                 context.scene.cursor.location[0] = parent.location[0]
@@ -112,23 +112,23 @@ class TILA_action_center(bpy.types.Operator):
                 context.scene.cursor.rotation_euler[2] = parent.rotation_euler[2]
             if self.action_center == 'GLOBAL':
                 self.report({'INFO'}, 'Global Action Center')
-                context.scene.transform_orientation_slots[0].type = 'GLOBAL'
+                context.scene.transform_orientation_slots[1].type = 'GLOBAL'
                 context.scene.tool_settings.transform_pivot_point = 'MEDIAN_POINT'
             if self.action_center == 'GLOBAL_INDIVIDUAL':
                 self.report({'INFO'}, 'Global Individual Action Center')
-                context.scene.transform_orientation_slots[0].type = 'GLOBAL'
+                context.scene.transform_orientation_slots[1].type = 'GLOBAL'
                 context.scene.tool_settings.transform_pivot_point = 'INDIVIDUAL_ORIGINS'
             if self.action_center == 'LOCAL':
                 self.report({'INFO'}, 'Local Action Center')
-                context.scene.transform_orientation_slots[0].type = 'NORMAL'
+                context.scene.transform_orientation_slots[1].type = 'NORMAL'
                 context.scene.tool_settings.transform_pivot_point = 'INDIVIDUAL_ORIGINS'
             if self.action_center == 'PIVOT':
                 self.report({'INFO'}, 'Pivot Action Center')
-                context.scene.transform_orientation_slots[0].type = 'LOCAL'
+                context.scene.transform_orientation_slots[1].type = 'LOCAL'
                 context.scene.tool_settings.transform_pivot_point = 'MEDIAN_POINT'
             if self.action_center == 'PIVOT_CENTER_PARENT_AXIS':
                 self.report({'INFO'}, 'Pivot Center Parent Axis Action Center')
-                context.scene.transform_orientation_slots[0].type = 'CURSOR'
+                context.scene.transform_orientation_slots[1].type = 'CURSOR'
                 context.scene.tool_settings.transform_pivot_point = 'CURSOR'
                 parent = context.object if context.object.parent is None else context.object.parent
                 context.scene.cursor.location[0] = context.object.location[0]
@@ -139,14 +139,14 @@ class TILA_action_center(bpy.types.Operator):
                 context.scene.cursor.rotation_euler[2] = parent.rotation_euler[2]
             if self.action_center == 'PIVOT_WORLD_AXIS':
                 self.report({'INFO'}, 'Pivot Wold Axis Action Center')
-                context.scene.transform_orientation_slots[0].type = 'GLOBAL'
+                context.scene.transform_orientation_slots[1].type = 'GLOBAL'
                 context.scene.tool_settings.transform_pivot_point = 'CURSOR'
                 context.scene.cursor.location[0] = context.object.location[0]
                 context.scene.cursor.location[1] = context.object.location[1]
                 context.scene.cursor.location[2] = context.object.location[2]
             if self.action_center == 'CURSOR':
                 self.report({'INFO'}, 'Cursor Action Center')
-                context.scene.transform_orientation_slots[0].type = 'CURSOR'
+                context.scene.transform_orientation_slots[1].type = 'CURSOR'
                 context.scene.tool_settings.transform_pivot_point = 'CURSOR'
             if self.action_center == 'CUSTOM':
                 self.report({'INFO'}, 'Custom Action Center')
