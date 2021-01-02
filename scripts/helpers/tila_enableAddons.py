@@ -122,6 +122,7 @@ def register():
 	for k in kmi:
 		if k.type == 'S':
 			k.active = False
+			bpy.context.window_manager.keyconfigs.update()
 
 	# object_collection_manager
 	addon = context.preferences.addons.get('object_collection_manager')
