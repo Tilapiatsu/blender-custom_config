@@ -118,6 +118,7 @@ def register():
 	addon.preferences.activate_material_picker = True
 	addon.preferences.activate_save_pie = True
 	addon.preferences.activate_align_pie = True
+	addon.preferences.activate_cursor_pie = True
 	kmi = bpy.context.window_manager.keyconfigs.addon.keymaps['Window'].keymap_items
 	for k in kmi:
 		if k.type == 'S':
