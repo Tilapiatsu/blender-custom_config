@@ -247,3 +247,6 @@
 [submodule "scripts/addons/hair_guides"]
 	path = scripts/addons/hair_guides
 	url = https://github.com/Lichtso/hair_guides.git
+[submodule "scripts/addons/ImagePaste"]
+	path = scripts/addons/ImagePaste
+	url = https://github.com/Yeetus3141/ImagePaste.git
