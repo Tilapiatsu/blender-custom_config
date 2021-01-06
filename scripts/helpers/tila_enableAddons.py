@@ -65,6 +65,7 @@ modules =   (
 			'vertex_color_master',
 			'BakeWrangler',
 			'atomic_data_manager',
+			'ImagePaste'
 			# 'ZWeightTools-1_0_1',
 			# 'W_Mesh',
 			'uvpackmaster2',
