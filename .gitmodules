@@ -43,9 +43,6 @@
 [submodule "scripts/GIT/Capsule"]
 	path = scripts/GIT/Capsule
 	url = https://github.com/Takanu/Capsule.git
-[submodule "scripts/GIT/glTF-Blender-IO"]
-	path = scripts/GIT/glTF-Blender-IO
-	url = https://github.com/KhronosGroup/glTF-Blender-IO.git
 [submodule "datafiles/studiolights/world"]
 	path = datafiles/studiolights/world
 	url = https://github.com/Tilapiatsu/hdri_haven-selection.git
