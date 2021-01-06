@@ -4,6 +4,18 @@ from bpy_extras.view3d_utils import region_2d_to_vector_3d, region_2d_to_origin_
 from math import radians, sqrt
 
 
+def getset_transform(o="GLOBAL", p="MEDIAN_POINT",setglobal=True):
+    og = [bpy.context.scene.transform_orientation_slots[0].type, bpy.context.scene.tool_settings.transform_pivot_point]
+    if setglobal:
+        bpy.ops.transform.select_orientation(orientation= o)
+        bpy.context.scene.tool_settings.transform_pivot_point = p
+    return og
+
+def restore_transform(og_op):
+    bpy.ops.transform.select_orientation(orientation=og_op[0])
+    bpy.context.scene.tool_settings.transform_pivot_point = og_op[1]
+
+
 def get_duplicates(alist):
     checked = {}
     dupes = []
@@ -175,17 +187,13 @@ def mouse_raycast(context, mouse_pos):
     hit_length_squared = -1.0
     hit_obj, hit_wloc, hit_normal, hit_face = None, None, None, None
 
-    depsgraph = context.evaluated_depsgraph_get()
-    for dup in depsgraph.object_instances:
-
-        if dup.is_instance:
-            obj = dup.instance_object
+    cat = {'MESH', 'CURVE', 'SURFACE', 'META', 'FONT', 'HAIR', 'GPENCIL'}
+    objects = [o for o in context.visible_objects if o.type in cat]
+    for dup in objects:
+        # only need mesh really?
+        if dup.type == 'MESH':
+            obj = dup
             obj_mtx = dup.matrix_world.copy()
-        else:
-            obj = dup.object
-            obj_mtx = obj.matrix_world.copy()
-
-        if obj.type == 'MESH':
             hit, normal, face_index = obj_raycast(obj, obj_mtx, ray_origin, ray_target)
 
             if hit is not None:
@@ -433,7 +441,7 @@ def mouse_over_element(bm, mouse_pos):
 
     try:
         geom2 = bm.select_history[-1]
-        print("geom2 sel 1st", geom2.select)
+        # print("geom2 sel 1st", geom2.select)
     except IndexError:
         geom2 = None
 

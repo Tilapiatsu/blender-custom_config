@@ -2,196 +2,268 @@ bl_info = {
 	"name": "kekit_prefs",
 	"author": "Kjell Emanuelsson",
 	"category": "preferences",
-	"version": (1, 0, 0),
+	"version": (2, 0, 2),
 	"blender": (2, 80, 0),
 }
-import bpy
-import re
+from bpy import utils
+import json
 
 from bpy.types import (
 		PropertyGroup,
 		Operator,
+		Scene,
+		AddonPreferences,
 		)
 from bpy.props import (
 		BoolProperty,
 		PointerProperty,
-		StringProperty,
+		FloatVectorProperty,
 		IntProperty,
 		FloatProperty,
+		EnumProperty,
+		StringProperty,
 		)
 
-# GLOBAL SETTINGS --------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------
+# EXTERNAL FILE PREFS
+# -------------------------------------------------------------------------------------------------
+
+# IO
 
 def write_prefs(data):
-	path = bpy.utils.script_path_user()
-	file_name = path + "/ke_prefs"
-	with open(file_name, "w") as text_file:
-		text_file.write(str(data))
+    jsondata = json.dumps(data, indent=1, ensure_ascii=True)
+    wpath = utils.script_path_user()
+    file_name = wpath + "/ke_prefs" + ".json"
+    with open(file_name, "w") as text_file:
+        text_file.write(jsondata)
+    text_file.close()
 
 
 def read_prefs():
-	try:
-		path = bpy.utils.script_path_user()
-		file_name = path + "/ke_prefs"
-		f = open(file_name, "r")
-		prefs = f.read()
-	except:
-		prefs = None
-	return prefs
+    wpath = utils.script_path_user()
+    file_name = wpath + "/ke_prefs.json"
+    try:
+        with open(file_name, "r") as jf:
+            prefs = json.load(jf)
+            jf.close()
+    except (OSError,IOError):
+        prefs = None
+    return prefs
 
 
-def get_prefs(): # Everything down here floats
-	set_values = (
-		float(bpy.context.scene.kekit.fitprim_select),
-		float(bpy.context.scene.kekit.fitprim_modal),
-		float(bpy.context.scene.kekit.fitprim_item),
-		float(bpy.context.scene.kekit.fitprim_sides),
-		float(bpy.context.scene.kekit.fitprim_sphere_seg),
-		float(bpy.context.scene.kekit.fitprim_sphere_ring),
-		round(float(bpy.context.scene.kekit.fitprim_unit), 4),
-		float(bpy.context.scene.kekit.unrotator_reset),
-		float(bpy.context.scene.kekit.unrotator_connect),
-		float(bpy.context.scene.kekit.unrotator_nolink),
-		float(bpy.context.scene.kekit.opc1_obj_o[0] + bpy.context.scene.kekit.opc1_obj_p[0] +
-			  bpy.context.scene.kekit.opc1_edit_o[0] + bpy.context.scene.kekit.opc1_edit_p[0]),
-		float(bpy.context.scene.kekit.opc2_obj_o[0] + bpy.context.scene.kekit.opc2_obj_p[0] +
-			  bpy.context.scene.kekit.opc2_edit_o[0] + bpy.context.scene.kekit.opc2_edit_p[0]),
-		float(bpy.context.scene.kekit.opc3_obj_o[0] + bpy.context.scene.kekit.opc3_obj_p[0] +
-			  bpy.context.scene.kekit.opc3_edit_o[0] + bpy.context.scene.kekit.opc3_edit_p[0]),
-		float(bpy.context.scene.kekit.opc4_obj_o[0] + bpy.context.scene.kekit.opc4_obj_p[0] +
-			  bpy.context.scene.kekit.opc4_edit_o[0] + bpy.context.scene.kekit.opc4_edit_p[0]),
-		float(bpy.context.scene.kekit.unrotator_nosnap),
-		float(bpy.context.scene.kekit.selmode_mouse),
-		float(bpy.context.scene.kekit.fitprim_quadsphere_seg),
-		float(bpy.context.scene.kekit.quickmeasure),
-		float(bpy.context.scene.kekit.unrotator_invert),
-		round(float(bpy.context.scene.kekit.fit2grid), 4),
-		round(bpy.context.scene.kekit.vptransform),
-		float(bpy.context.scene.kekit.unrotator_center),
-		float(bpy.context.scene.kekit.qs_user_value),
-		float(bpy.context.scene.kekit.qs_unit_size),
-		float(bpy.context.scene.kekit.clean_doubles),
-		float(bpy.context.scene.kekit.clean_doubles_val),
-		float(bpy.context.scene.kekit.clean_loose),
-		float(bpy.context.scene.kekit.clean_interior),
-		float(bpy.context.scene.kekit.clean_degenerate),
-		float(bpy.context.scene.kekit.clean_degenerate_val),
-		float(bpy.context.scene.kekit.clean_collinear),
-		float(bpy.context.scene.kekit.cursorfit)
-	)
-	# print (set_values)
-	return set_values
+def get_scene_prefs(context):
+	pd = {}
+	for key in context.scene.kekit.__annotations__.keys():
+		k = getattr(context.scene.kekit, key)
+		if str(type(k)) == "<class 'bpy_prop_array'>":
+			pd[key] = k[:]
+		else:
+			pd[key] = k
+	return  pd
 
 
-# WIP props ---------------------------------------------------------------------------------------
+# DEFAULTS
 
-path = bpy.utils.script_path_user()
-prefs_data = read_prefs()
-prefs_data_default = 0, 1, 0, 16, 32, 16, 0.2, 1, 1, 0, \
-					 1111, 2335, 1315, 6464, 1, 0, 8, 1, 0, 0.01,\
-					 1, 0, 0, 1, 1, 0.0001, 1, 1, 1, 0.0001, 1,\
-					 1
+default_values = {
+	'fitprim_select'		: False,
+	'fitprim_modal'			: True,
+	'fitprim_item'			: False,
+	'fitprim_sides'			: 16,
+	'fitprim_sphere_seg'	: 32,
+	'fitprim_sphere_ring'	: 16,
+	'fitprim_unit'			: 0.2,
+	'fitprim_quadsphere_seg': 8,
+	'unrotator_reset'		: True,
+	'unrotator_connect'		: True,
+	'unrotator_nolink'		: False,
+	'unrotator_nosnap'		: True,
+	'unrotator_invert'		: False,
+	'unrotator_center'		: False,
+	'opc1_obj_o'			: "1GLOBAL",
+	'opc1_obj_p'			: "1MEDIAN_POINT",
+	'opc1_edit_o'			: "1GLOBAL",
+	'opc1_edit_p'			: "1MEDIAN_POINT",
+	'opc2_obj_o'			: "2LOCAL",
+	'opc2_obj_p'			: "3INDIVIDUAL_ORIGINS",
+	'opc2_edit_o'			: "3NORMAL",
+	'opc2_edit_p'			: "5ACTIVE_ELEMENT",
+	'opc3_obj_o'			: "1GLOBAL",
+	'opc3_obj_p'			: "3INDIVIDUAL_ORIGINS",
+	'opc3_edit_o'			: "2LOCAL",
+	'opc3_edit_p'			: "3INDIVIDUAL_ORIGINS",
+	'opc4_obj_o'			: "6CURSOR",
+	'opc4_obj_p'			: "4CURSOR",
+	'opc4_edit_o'			: "6CURSOR",
+	'opc4_edit_p'			: "4CURSOR",
+	'selmode_mouse'			: False,
+	'quickmeasure'			: True,
+	'fit2grid'				: 0.01,
+	'vptransform'			: False,
+	'loc_got'				: True,
+	'rot_got'				: True,
+	'scl_got'				: True,
+	'qs_user_value'			: 1.0,
+	'qs_unit_size'			: True,
+	'clean_doubles'			: True,
+	'clean_doubles_val'		: 0.0001,
+	'clean_loose'			: True,
+	'clean_interior'		: True,
+	'clean_degenerate'		: True,
+	'clean_degenerate_val'	: 0.0001,
+	'clean_collinear'		: True,
+	'cursorfit'				: True,
+	'lineararray_go'		: True,
+	'idm01'					: (1.0, 0.0, 0.0, 1.0),
+	'idm02'					: (0.6, 0.0, 0.0, 1.0),
+	'idm03'					: (0.3, 0.0, 0.0, 1.0),
+	'idm04'					: (0.0, 1.0, 0.0, 1.0),
+	'idm05'					: (0.0, 0.6, 0.0, 1.0),
+	'idm06'					: (0.0, 0.3, 0.0, 1.0),
+	'idm07'					: (0.0, 0.0, 1.0, 1.0),
+	'idm08'					: (0.0, 0.0, 0.6, 1.0),
+	'idm09'					: (0.0, 0.0, 0.3, 1.0),
+	'idm10'					: (1.0, 1.0, 1.0, 1.0),
+	'idm11'					: (0.5, 0.5, 0.5, 1.0),
+	'idm12'					: (0.0, 0.0, 0.0, 1.0),
+	'idm01_name'			: "ID_RED",
+	'idm02_name'			: "ID_RED_M",
+	'idm03_name'			: "ID_RED_L",
+	'idm04_name'			: "ID_GREEN",
+	'idm05_name'			: "ID_GREEN_M",
+	'idm06_name'			: "ID_GREEN_L",
+	'idm07_name'			: "ID_BLUE",
+	'idm08_name'			: "ID_BLUE_M",
+	'idm09_name'			: "ID_BLUE_L",
+	'idm10_name'			: "ID_ALPHA",
+	'idm11_name'			: "ID_ALPHA_M",
+	'idm12_name'			: "ID_ALPHA_L",
+	'object_color' 			: False,
+	'matvp_color' 			: False,
+	'vpmuted' 				: False
+}
 
-o_dict = {1: "1GLOBAL", 2: "2LOCAL", 3: "3NORMAL", 4: "4GIMBAL", 5: "5VIEW", 6: "6CURSOR"}
-p_dict = {1: "1MEDIAN_POINT", 2: "2BOUNDING_BOX_CENTER", 3: "3INDIVIDUAL_ORIGINS", 4: "4CURSOR", 5: "5ACTIVE_ELEMENT"}
 
-if prefs_data:
-	values = [float(v) for v in re.findall(r'-?\d+\.?\d*', prefs_data)]
+# PROCESS
 
-	# UPDATE NEW VALUES IF OLD PREFS
-	if len(values) < len(prefs_data_default):
-		missing = len(prefs_data_default) - len(values)
-		update = prefs_data_default[-missing:]
-		for i in update:
-			values.append(float(i))
-		write_prefs(values)
+path = utils.script_path_user()
+v = read_prefs()
 
-	print("keKit Prefs file found - File settings applied")
-
-else:
-	values = prefs_data_default
+# Default values if no prefs-file
+if not v:
+	v = default_values
+	write_prefs(v)
 	print("keKit Prefs file not found - Default settings applied")
 
-print("keKit Prefs location:", path)
+# Update prefs if new prop is added
+elif len(default_values) > len(v):
+	for p in default_values:
+		if p not in v:
+			v[p] = default_values.get(p)
+	write_prefs(v)
+	print("keKit Prefs is old/missing items - Updating prefs")
 
-# Enumprop hack...
-opc1_nrs = [int(i) for i in str(int(values[10]))]
-opc2_nrs = [int(i) for i in str(int(values[11]))]
-opc3_nrs = [int(i) for i in str(int(values[12]))]
-opc4_nrs = [int(i) for i in str(int(values[13]))]
+else:
+	print("keKit Prefs location:", path)
+	print("keKit Prefs found - File Settings Applied")
 
+
+# PROPERTIES
 
 class kekit_properties(PropertyGroup):
-	# 0 - default: 0
-	fitprim_select : BoolProperty(default=bool(values[0]))
-	# 1 - default: 1
-	fitprim_modal : BoolProperty(default=bool(values[1]))
-	# 2 - default: 0
-	fitprim_item : BoolProperty(default=bool(values[2]))
-	# 3 - default: 16
-	fitprim_sides : IntProperty(min=3, max=256, default=int(values[3]))
-	# 4 - default: 32
-	fitprim_sphere_seg : IntProperty(min=3, max=256, default=int(values[4]))
-	# 5 - default: 16
-	fitprim_sphere_ring : IntProperty(min=3, max=256, default=int(values[5]))
-	# 6 - default: 0.2
-	fitprim_unit : FloatProperty(min=.00001, max=256, default=float(values[6]))
-	# 7 - default: 1
-	unrotator_reset : BoolProperty(default=bool(values[7]))
-	# 8 - default: 1
-	unrotator_connect : BoolProperty(default=bool(values[8]))
-	# 9 - default: 0
-	unrotator_nolink : BoolProperty(default=bool(values[9]))
-	# 10 - default: 1111
-	opc1_obj_o: bpy.props.EnumProperty(items=[("1GLOBAL", "Global", ""),("2LOCAL", "Local", ""),("3NORMAL", "Normal", ""),("4GIMBAL", "Gimbal", ""),("5VIEW", "View", ""),("6CURSOR", "Cursor", "")],name="Orientation",default=o_dict.get(opc1_nrs[0]))
-	opc1_obj_p: bpy.props.EnumProperty(items=[("1MEDIAN_POINT", "Median Point", ""),("2BOUNDING_BOX_CENTER", "Bounding Box Center", ""),("3INDIVIDUAL_ORIGINS", "Individual Origins", ""),("4CURSOR", "Cursor", ""),("5ACTIVE_ELEMENT", "Active Element", "")],name="Pivot Transform",default=p_dict.get(opc1_nrs[1]))
-	opc1_edit_o: bpy.props.EnumProperty(items=[("1GLOBAL", "Global", ""),("2LOCAL", "Local", ""),("3NORMAL", "Normal", ""),("4GIMBAL", "Gimbal", ""),("5VIEW", "View", ""),("6CURSOR", "Cursor", "")],name="Orientation",default=o_dict.get(opc1_nrs[2]))
-	opc1_edit_p: bpy.props.EnumProperty(items=[("1MEDIAN_POINT", "Median Point", ""),("2BOUNDING_BOX_CENTER", "Bounding Box Center", ""),("3INDIVIDUAL_ORIGINS", "Individual Origins", ""),("4CURSOR", "Cursor", ""),("5ACTIVE_ELEMENT", "Active Element", "")],name="Pivot Transform",default=p_dict.get(opc1_nrs[3]))
-	# 11 - default: 2331
-	opc2_obj_o: bpy.props.EnumProperty(items=[("1GLOBAL", "Global", ""),("2LOCAL", "Local", ""),("3NORMAL", "Normal", ""),("4GIMBAL", "Gimbal", ""),("5VIEW", "View", ""),("6CURSOR", "Cursor", "")],name="Orientation",default=o_dict.get(opc2_nrs[0]))
-	opc2_obj_p: bpy.props.EnumProperty(items=[("1MEDIAN_POINT", "Median Point", ""),("2BOUNDING_BOX_CENTER", "Bounding Box Center", ""),("3INDIVIDUAL_ORIGINS", "Individual Origins", ""),("4CURSOR", "Cursor", ""),("5ACTIVE_ELEMENT", "Active Element", "")],name="Pivot Transform",default=p_dict.get(opc2_nrs[1]))
-	opc2_edit_o: bpy.props.EnumProperty(items=[("1GLOBAL", "Global", ""),("2LOCAL", "Local", ""),("3NORMAL", "Normal", ""),("4GIMBAL", "Gimbal", ""),("5VIEW", "View", ""),("6CURSOR", "Cursor", "")],name="Orientation",default=o_dict.get(opc2_nrs[2]))
-	opc2_edit_p: bpy.props.EnumProperty(items=[("1MEDIAN_POINT", "Median Point", ""),("2BOUNDING_BOX_CENTER", "Bounding Box Center", ""),("3INDIVIDUAL_ORIGINS", "Individual Origins", ""),("4CURSOR", "Cursor", ""),("5ACTIVE_ELEMENT", "Active Element", "")],name="Pivot Transform",default=p_dict.get(opc2_nrs[3]))
-	# 12 - default: 2435
-	opc3_obj_o: bpy.props.EnumProperty(items=[("1GLOBAL", "Global", ""),("2LOCAL", "Local", ""),("3NORMAL", "Normal", ""),("4GIMBAL", "Gimbal", ""),("5VIEW", "View", ""),("6CURSOR", "Cursor", "")],name="Orientation",default=o_dict.get(opc3_nrs[0]))
-	opc3_obj_p: bpy.props.EnumProperty(items=[("1MEDIAN_POINT", "Median Point", ""),("2BOUNDING_BOX_CENTER", "Bounding Box Center", ""),("3INDIVIDUAL_ORIGINS", "Individual Origins", ""),("4CURSOR", "Cursor", ""),("5ACTIVE_ELEMENT", "Active Element", "")],name="Pivot Transform",default=p_dict.get(opc3_nrs[1]))
-	opc3_edit_o: bpy.props.EnumProperty(items=[("1GLOBAL", "Global", ""),("2LOCAL", "Local", ""),("3NORMAL", "Normal", ""),("4GIMBAL", "Gimbal", ""),("5VIEW", "View", ""),("6CURSOR", "Cursor", "")],name="Orientation",default=o_dict.get(opc3_nrs[2]))
-	opc3_edit_p: bpy.props.EnumProperty(items=[("1MEDIAN_POINT", "Median Point", ""),("2BOUNDING_BOX_CENTER", "Bounding Box Center", ""),("3INDIVIDUAL_ORIGINS", "Individual Origins", ""),("4CURSOR", "Cursor", ""),("5ACTIVE_ELEMENT", "Active Element", "")],name="Pivot Transform",default=p_dict.get(opc3_nrs[3]))
-	# 13 - default: 6464
-	opc4_obj_o: bpy.props.EnumProperty(items=[("1GLOBAL", "Global", ""),("2LOCAL", "Local", ""),("3NORMAL", "Normal", ""),("4GIMBAL", "Gimbal", ""),("5VIEW", "View", ""),("6CURSOR", "Cursor", "")],name="Orientation",default=o_dict.get(opc4_nrs[0]))
-	opc4_obj_p: bpy.props.EnumProperty(items=[("1MEDIAN_POINT", "Median Point", ""),("2BOUNDING_BOX_CENTER", "Bounding Box Center", ""),("3INDIVIDUAL_ORIGINS", "Individual Origins", ""),("4CURSOR", "Cursor", ""),("5ACTIVE_ELEMENT", "Active Element", "")],name="Pivot Transform",default=p_dict.get(opc4_nrs[1]))
-	opc4_edit_o: bpy.props.EnumProperty(items=[("1GLOBAL", "Global", ""),("2LOCAL", "Local", ""),("3NORMAL", "Normal", ""),("4GIMBAL", "Gimbal", ""),("5VIEW", "View", ""),("6CURSOR", "Cursor", "")],name="Orientation",default=o_dict.get(opc4_nrs[2]))
-	opc4_edit_p: bpy.props.EnumProperty(items=[("1MEDIAN_POINT", "Median Point", ""),("2BOUNDING_BOX_CENTER", "Bounding Box Center", ""),("3INDIVIDUAL_ORIGINS", "Individual Origins", ""),("4CURSOR", "Cursor", ""),("5ACTIVE_ELEMENT", "Active Element", "")],name="Pivot Transform",default=p_dict.get(opc4_nrs[3]))
-	# 14 - default: 1
-	unrotator_nosnap : BoolProperty(default=bool(values[14]))
-	# 15 - default: 0
-	selmode_mouse : BoolProperty(description="Mouse-Over Mode Toggle", default=bool(values[15]))
-	# 16 - default: 8
-	fitprim_quadsphere_seg : IntProperty(min=1, max=128, default=int(values[16]))
-	# 17 - default: 1
-	quickmeasure : BoolProperty(default=bool(values[17]))
-	# 18 - default : 0
-	unrotator_invert : BoolProperty(default=bool(values[18]))
-	# 19 - default : 0.01
-	fit2grid : FloatProperty(min=.00001, max=10000, default=float(values[19]))
-	# 20 - default : 1
-	vptransform : BoolProperty(default=bool(values[20]))
-	# 21 - default : 0
-	unrotator_center: BoolProperty(default=bool(values[21]))
-	# 22 - 23 Quick Scale
-	qs_user_value : FloatProperty(default=float(values[22]), precision=3)
-	qs_unit_size : BoolProperty(default=bool(values[23]))
-	# 24 - 30  Clean
-	clean_doubles : BoolProperty(default=bool(values[24]))
-	clean_doubles_val : FloatProperty(default=float(values[25]), precision=4)
-	clean_loose : BoolProperty(default=bool(values[26]))
-	clean_interior : BoolProperty(default=bool(values[27]))
-	clean_degenerate : BoolProperty(default=bool(values[28]))
-	clean_degenerate_val : FloatProperty(default=float(values[29]), precision=4)
-	clean_collinear : BoolProperty(default=bool(values[30]))
-	# 31 Cursor Fit OP Option
-	cursorfit : BoolProperty(description="Also set Orientation & Pivot to Cursor", default=bool(values[31]))
+	# Fitprim
+	fitprim_select : BoolProperty(default=v["fitprim_select"])
+	fitprim_modal : BoolProperty(default=v["fitprim_modal"])
+	fitprim_item : BoolProperty(default=v["fitprim_item"])
+	fitprim_sides : IntProperty(min=3, max=256, default=v["fitprim_sides"])
+	fitprim_sphere_seg : IntProperty(min=3, max=256, default=v["fitprim_sphere_seg"])
+	fitprim_sphere_ring : IntProperty(min=3, max=256, default=v["fitprim_sphere_ring"])
+	fitprim_unit : FloatProperty(min=.00001, max=256, default=v["fitprim_unit"])
+	fitprim_quadsphere_seg : IntProperty(min=1, max=128, default=v["fitprim_quadsphere_seg"])
+	# Unrotator
+	unrotator_reset : BoolProperty(default=v["unrotator_reset"])
+	unrotator_connect : BoolProperty(default=v["unrotator_connect"])
+	unrotator_nolink : BoolProperty(default=v["unrotator_nolink"])
+	unrotator_nosnap : BoolProperty(default=v["unrotator_nosnap"])
+	unrotator_invert : BoolProperty(default=v["unrotator_invert"])
+	unrotator_center: BoolProperty(default=v["unrotator_center"])
+	# Orientation & Pivot Combo 1
+	opc1_obj_o: EnumProperty(items=[("1GLOBAL", "Global", ""),("2LOCAL", "Local", ""),("3NORMAL", "Normal", ""),("4GIMBAL", "Gimbal", ""),("5VIEW", "View", ""),("6CURSOR", "Cursor", "")],name="Orientation", default=v["opc1_obj_o"])
+	opc1_obj_p: EnumProperty(items=[("1MEDIAN_POINT", "Median Point", ""),("2BOUNDING_BOX_CENTER", "Bounding Box Center", ""),("3INDIVIDUAL_ORIGINS", "Individual Origins", ""),("4CURSOR", "Cursor", ""),("5ACTIVE_ELEMENT", "Active Element", "")],name="Pivot Transform", default=v["opc1_obj_p"])
+	opc1_edit_o: EnumProperty(items=[("1GLOBAL", "Global", ""),("2LOCAL", "Local", ""),("3NORMAL", "Normal", ""),("4GIMBAL", "Gimbal", ""),("5VIEW", "View", ""),("6CURSOR", "Cursor", "")], name="Orientation", default=v["opc1_edit_o"])
+	opc1_edit_p: EnumProperty(items=[("1MEDIAN_POINT", "Median Point", ""),("2BOUNDING_BOX_CENTER", "Bounding Box Center", ""),("3INDIVIDUAL_ORIGINS", "Individual Origins", ""),("4CURSOR", "Cursor", ""),("5ACTIVE_ELEMENT", "Active Element", "")],name="Pivot Transform", default=v["opc1_edit_p"])
+	# Orientation & Pivot Combo 2
+	opc2_obj_o: EnumProperty(items=[("1GLOBAL", "Global", ""),("2LOCAL", "Local", ""),("3NORMAL", "Normal", ""), ("4GIMBAL", "Gimbal", ""),("5VIEW", "View", ""),("6CURSOR", "Cursor", "")],name="Orientation", default=v["opc2_obj_o"])
+	opc2_obj_p: EnumProperty(items=[("1MEDIAN_POINT", "Median Point", ""),("2BOUNDING_BOX_CENTER", "Bounding Box Center", ""),("3INDIVIDUAL_ORIGINS", "Individual Origins", ""),("4CURSOR", "Cursor", ""),("5ACTIVE_ELEMENT", "Active Element", "")],name="Pivot Transform", default=v["opc2_obj_p"])
+	opc2_edit_o: EnumProperty(items=[("1GLOBAL", "Global", ""), ("2LOCAL", "Local", ""), ("3NORMAL", "Normal", ""),("4GIMBAL", "Gimbal", ""), ("5VIEW", "View", ""), ("6CURSOR", "Cursor", "")], name="Orientation", default=v["opc2_edit_o"])
+	opc2_edit_p: EnumProperty(items=[("1MEDIAN_POINT", "Median Point", ""),("2BOUNDING_BOX_CENTER", "Bounding Box Center", ""),("3INDIVIDUAL_ORIGINS", "Individual Origins", ""), ("4CURSOR", "Cursor", ""),("5ACTIVE_ELEMENT", "Active Element", "")],name="Pivot Transform", default=v["opc2_edit_p"])
+	# Orientation & Pivot Combo 3
+	opc3_obj_o: EnumProperty(items=[("1GLOBAL", "Global", ""), ("2LOCAL", "Local", ""), ("3NORMAL", "Normal", ""),("4GIMBAL", "Gimbal", ""), ("5VIEW", "View", ""), ("6CURSOR", "Cursor", "")],name="Orientation", default=v["opc3_obj_o"])
+	opc3_obj_p: EnumProperty(items=[("1MEDIAN_POINT", "Median Point", ""),("2BOUNDING_BOX_CENTER", "Bounding Box Center", ""),("3INDIVIDUAL_ORIGINS", "Individual Origins", ""), ("4CURSOR", "Cursor", ""),("5ACTIVE_ELEMENT", "Active Element", "")],name="Pivot Transform", default=v["opc3_obj_p"])
+	opc3_edit_o: EnumProperty(items=[("1GLOBAL", "Global", ""), ("2LOCAL", "Local", ""), ("3NORMAL", "Normal", ""),("4GIMBAL", "Gimbal", ""), ("5VIEW", "View", ""), ("6CURSOR", "Cursor", "")],name="Orientation", default=v["opc3_edit_o"])
+	opc3_edit_p: EnumProperty(items=[("1MEDIAN_POINT", "Median Point", ""),("2BOUNDING_BOX_CENTER", "Bounding Box Center", ""),("3INDIVIDUAL_ORIGINS", "Individual Origins", ""), ("4CURSOR", "Cursor", ""),("5ACTIVE_ELEMENT", "Active Element", "")],name="Pivot Transform", default=v["opc3_edit_p"])
+	# Orientation & Pivot Combo 4
+	opc4_obj_o: EnumProperty(items=[("1GLOBAL", "Global", ""),("2LOCAL", "Local", ""),("3NORMAL", "Normal", ""),("4GIMBAL", "Gimbal", ""),("5VIEW", "View", ""),("6CURSOR", "Cursor", "")],name="Orientation",default=v["opc4_obj_o"])
+	opc4_obj_p: EnumProperty(items=[("1MEDIAN_POINT", "Median Point", ""),("2BOUNDING_BOX_CENTER", "Bounding Box Center", ""),("3INDIVIDUAL_ORIGINS", "Individual Origins", ""),("4CURSOR", "Cursor", ""),("5ACTIVE_ELEMENT", "Active Element", "")],name="Pivot Transform",default=v["opc4_obj_p"])
+	opc4_edit_o: EnumProperty(items=[("1GLOBAL", "Global", ""),("2LOCAL", "Local", ""),("3NORMAL", "Normal", ""),("4GIMBAL", "Gimbal", ""),("5VIEW", "View", ""),("6CURSOR", "Cursor", "")],name="Orientation",default=v["opc4_edit_o"])
+	opc4_edit_p: EnumProperty(items=[("1MEDIAN_POINT", "Median Point", ""),("2BOUNDING_BOX_CENTER", "Bounding Box Center", ""),("3INDIVIDUAL_ORIGINS", "Individual Origins", ""),("4CURSOR", "Cursor", ""),("5ACTIVE_ELEMENT", "Active Element", "")],name="Pivot Transform",default=v["opc4_edit_p"])
+	# Mouse Over Mode Toggle
+	selmode_mouse : BoolProperty(description="Mouse-Over Mode Toggle", default=v["selmode_mouse"])
+	# QuickMeasure  - default: 1
+	quickmeasure : BoolProperty(default=v["quickmeasure"])
+	# Fit2Grid - default : 0.01
+	fit2grid : FloatProperty(min=.00001, max=10000, default=v["fit2grid"])
+	# ViewPlane Contextual - default : 1
+	vptransform : BoolProperty(description="VPAutoGlobal - Sets Global orientation. Overrides GOT options",default=v["vptransform"])
+	loc_got : BoolProperty(description="Grab GlobalOrTool - VPGrab when Global, otherwise Transform (gizmo)",default=v["loc_got"])
+	rot_got : BoolProperty(description="Rotate GlobalOrTool - VPRotate when Global, otherwise Rotate (gizmo)",default=v["rot_got"])
+	scl_got : BoolProperty(description="Scale GlobalOrTool - VPResize when Global, otherwise Scale (gizmo)",default=v["scl_got"])
+	# Quick Scale
+	qs_user_value : FloatProperty(default=v["qs_user_value"], precision=3)
+	qs_unit_size : BoolProperty(default=v["qs_unit_size"])
+	# Cleaning Tools
+	clean_doubles : BoolProperty(default=v["clean_doubles"])
+	clean_doubles_val : FloatProperty(default=v["clean_doubles_val"], precision=4)
+	clean_loose : BoolProperty(default=v["clean_loose"])
+	clean_interior : BoolProperty(default=v["clean_interior"])
+	clean_degenerate : BoolProperty(default=v["clean_degenerate"])
+	clean_degenerate_val : FloatProperty(default=v["clean_degenerate_val"], precision=4)
+	clean_collinear : BoolProperty(default=v["clean_collinear"])
+	# Cursor Fit OP Option
+	cursorfit : BoolProperty(description="Also set Orientation & Pivot to Cursor", default=v["cursorfit"])
+	# Linear Array Global Only Option
+	lineararray_go : BoolProperty(description="Applies Rotation and usese Global Orientation & Pivot during modal", default=v["lineararray_go"])
+	# Material ID Colors
+	idm01 : FloatVectorProperty(name="IDM01", subtype='COLOR', size=4, min=0.0, max=1.0, default=v["idm01"])
+	idm02 : FloatVectorProperty(name="IDM02", subtype='COLOR', size=4, min=0.0, max=1.0, default=v["idm02"])
+	idm03 : FloatVectorProperty(name="IDM03", subtype='COLOR', size=4, min=0.0, max=1.0, default=v["idm03"])
+	idm04 : FloatVectorProperty(name="IDM04", subtype='COLOR', size=4, min=0.0, max=1.0, default=v["idm04"])
+	idm05 : FloatVectorProperty(name="IDM05", subtype='COLOR', size=4, min=0.0, max=1.0, default=v['idm05'])
+	idm06 : FloatVectorProperty(name="IDM06", subtype='COLOR', size=4, min=0.0, max=1.0, default=v['idm06'])
+	idm07 : FloatVectorProperty(name="IDM07", subtype='COLOR', size=4, min=0.0, max=1.0, default=v['idm07'])
+	idm08 : FloatVectorProperty(name="IDM08", subtype='COLOR', size=4, min=0.0, max=1.0, default=v['idm08'])
+	idm09 : FloatVectorProperty(name="IDM09", subtype='COLOR', size=4, min=0.0, max=1.0, default=v['idm09'])
+	idm10 : FloatVectorProperty(name="IDM10", subtype='COLOR', size=4, min=0.0, max=1.0, default=v['idm10'])
+	idm11 : FloatVectorProperty(name="IDM11", subtype='COLOR', size=4, min=0.0, max=1.0, default=v['idm11'])
+	idm12 : FloatVectorProperty(name="IDM12", subtype='COLOR', size=4, min=0.0, max=1.0, default=v['idm12'])
+	# Material ID Names
+	idm01_name : StringProperty(default=v["idm01_name"])
+	idm02_name : StringProperty(default=v["idm02_name"])
+	idm03_name : StringProperty(default=v["idm03_name"])
+	idm04_name : StringProperty(default=v["idm04_name"])
+	idm05_name : StringProperty(default=v["idm05_name"])
+	idm06_name : StringProperty(default=v["idm06_name"])
+	idm07_name : StringProperty(default=v["idm07_name"])
+	idm08_name : StringProperty(default=v["idm08_name"])
+	idm09_name : StringProperty(default=v["idm09_name"])
+	idm10_name : StringProperty(default=v["idm10_name"])
+	idm11_name : StringProperty(default=v["idm11_name"])
+	idm12_name : StringProperty(default=v["idm12_name"])
+	# Material ID Options
+	object_color : BoolProperty(description="Set ID color also to Object Viewport Display",default=v["object_color"])
+	matvp_color : BoolProperty(description="Set ID color also to Material Viewport Display", default=v["matvp_color"])
+	vpmuted : BoolProperty(description="Tone down ID colors slightly for Viewport Display (only)", default=v["vpmuted"])
 
+# MENU OP FOR PREFS SAVING
 
 class VIEW3D_OT_ke_prefs_save(Operator):
 	bl_idname = "view3d.ke_prefs_save"
@@ -202,10 +274,35 @@ class VIEW3D_OT_ke_prefs_save(Operator):
 	bl_options = {'REGISTER'}
 
 	def execute(self, context):
-		prefs = get_prefs()
+		prefs = get_scene_prefs(context)
 		write_prefs(prefs)
 		self.report({"INFO"}, "keKit Settings Saved!")
 		return {'FINISHED'}
+
+
+# -------------------------------------------------------------------------------------------------
+# Add-On Preferences
+# -------------------------------------------------------------------------------------------------
+
+class kekit_addon_preferences(AddonPreferences):
+	bl_idname = __package__
+
+	modal_color_header  : FloatVectorProperty(name="Modal Header Text Color", subtype='COLOR',
+											  size=4, default=[0.8, 0.8, 0.8, 1.0])
+	modal_color_text    : FloatVectorProperty(name="Modal Text Color", subtype='COLOR',
+											  size=4, default=[0.8, 0.8, 0.8, 1.0])
+	modal_color_subtext : FloatVectorProperty(name="Modal Sub-Text Color", subtype='COLOR',
+											  size=4, default=[0.5, 0.5, 0.5, 1.0])
+
+	def draw(self, context):
+		layout = self.layout
+		box = layout.box()
+		row = box.row()
+		row.prop(self, 'modal_color_header')
+		row = box.row()
+		row.prop(self, 'modal_color_text')
+		row = box.row()
+		row.prop(self, 'modal_color_subtext')
 
 
 # -------------------------------------------------------------------------------------------------
@@ -214,24 +311,26 @@ class VIEW3D_OT_ke_prefs_save(Operator):
 classes = (
 	kekit_properties,
 	VIEW3D_OT_ke_prefs_save,
+	kekit_addon_preferences,
 	)
 
 def register():
 
 	for cls in classes:
-		bpy.utils.register_class(cls)
+		utils.register_class(cls)
 
-	bpy.types.Scene.kekit = PointerProperty(type=kekit_properties)
+	Scene.kekit = PointerProperty(type=kekit_properties)
 
 	prefs = read_prefs()
 	if not prefs:
-		write_prefs(prefs_data_default)
+		print("keKit Prefs file not found - Default settings applied")
+		write_prefs(default_values)
 
 def unregister():
 	for cls in reversed(classes):
-		bpy.utils.unregister_class(cls)
+		utils.unregister_class(cls)
 	try:
-		del bpy.types.Scene.kekit
+		del Scene.kekit
 	except Exception as e:
 		print('unregister fail:\n', e)
 		pass

@@ -2,7 +2,7 @@ bl_info = {
     "name": "keQuickMeasure",
     "author": "Kjell Emanuelsson",
     "category": "Modeling",
-    "version": (1, 4, 2),
+    "version": (1, 4, 5),
     "blender": (2, 80, 0),
 }
 import bpy
@@ -255,18 +255,18 @@ def draw_callback_px(self, context):
         hoff = 0
 
     if not self.lines:
-        blf.color(font_id, 0.5, 0.5, 0.5, 1)
+        blf.color(font_id, self.scol[0], self.scol[1], self.scol[2], self.scol[3])
         blf.size(font_id, 15, 72)
         blf.position(font_id, hpos, vpos + 106 - hoff, 0)
         blf.draw(font_id, "[ Invalid Selection ]")
     else:
         if self.sel_save_mode:
-            blf.color(font_id, 0.5, 0.5, 0.5, 1)
+            blf.color(font_id, self.scol[0], self.scol[1], self.scol[2], self.scol[3])
             blf.size(font_id, 15, 72)
             blf.position(font_id, hpos, vpos + 134 - hoff, 0)
             blf.draw(font_id, "[ --- Using Saved Selection --- ]")
 
-        blf.color(font_id, 0.796, 0.7488, 0.6435, 1)
+        blf.color(font_id, self.hcol[0], self.hcol[1], self.hcol[2], self.hcol[3])
         blf.size(font_id, 20, 72)
         blf.position(font_id, hpos, vpos + 106 - hoff, 0)
 
@@ -282,7 +282,7 @@ def draw_callback_px(self, context):
             blf.draw(font_id, "Quick Measure [Area XY: %s]" % self.area)
 
     # Instructions
-    blf.color(font_id, 0.8, 0.8, 0.8, 1)
+    blf.color(font_id, self.tcol[0], self.tcol[1], self.tcol[2], self.tcol[3])
     blf.size(font_id, 15, 72)
 
     if self.help_mode:
@@ -301,13 +301,13 @@ def draw_callback_px(self, context):
         blf.position(font_id, hpos, vpos - 4, 0)
         blf.draw(font_id, "Round-Snap: (T) By %s-Axis(M). Unit-scale:%s(N). Round-Snap All Axis (B)." %(ua, self.unit_size) )
 
-        blf.color(font_id, 0.5, 0.5, 0.5, 1)
+        blf.color(font_id, self.scol[0], self.scol[1], self.scol[2], self.scol[3])
         blf.size(font_id, 12, 72)
         blf.position(font_id, hpos, vpos - 24, 0)
         blf.draw(font_id, "Navigation: Blender(MMB) or Ind.Std(Alt-) & (TAB) toggles mode. (H) Toggle Help")
 
     else:
-        blf.color(font_id, 0.5, 0.5, 0.5, 1)
+        blf.color(font_id, self.scol[0], self.scol[1], self.scol[2], self.scol[3])
         blf.size(font_id, 15, 72)
         blf.position(font_id, hpos, vpos + 78 - hoff, 0)
         blf.draw(font_id, "(H) Help")
@@ -401,6 +401,10 @@ class VIEW3D_OT_ke_quickmeasure(bpy.types.Operator):
     sizes = []
     snapobj = []
 
+    hcol = (1,1,1,1)
+    tcol = (1,1,1,1)
+    scol = (1,1,1,1)
+
     def modal(self, context, event):
         if event.type in {'ONE', 'TWO', 'THREE', 'TAB'}:
             sel_check(self, context)
@@ -471,7 +475,8 @@ class VIEW3D_OT_ke_quickmeasure(bpy.types.Operator):
         elif event.type in {'X', 'Y', 'Z', 'GRLESS'}:
             return {'PASS_THROUGH'}
 
-        elif event.type in {'NUMPAD_PLUS', 'NUMPAD_MINUS', 'NUMPAD_1', 'NUMPAD_2', 'NUMPAD_3', 'NUMPAD_4', 'NUMPAD_5', 'NUMPAD_6', 'NUMPAD_7', 'NUMPAD_8', 'NUMPAD_9'}:
+        elif event.type in {'NUMPAD_PLUS', 'NUMPAD_MINUS', 'NUMPAD_1', 'NUMPAD_2', 'NUMPAD_3', 'NUMPAD_4', 'NUMPAD_5',
+                            'NUMPAD_6', 'NUMPAD_7', 'NUMPAD_8', 'NUMPAD_9', 'WHEELUPMOUSE', 'WHEELDOWNMOUSE'}:
             return {'PASS_THROUGH'}
 
         elif event.type == 'T' and event.value == 'RELEASE':
@@ -503,6 +508,11 @@ class VIEW3D_OT_ke_quickmeasure(bpy.types.Operator):
 
 
     def invoke(self, context, event):
+
+        self.hcol = context.preferences.addons['kekit'].preferences.modal_color_header
+        self.tcol = context.preferences.addons['kekit'].preferences.modal_color_text
+        self.scol = context.preferences.addons['kekit'].preferences.modal_color_subtext
+
         self.auto_update = bpy.context.scene.kekit.quickmeasure
         bpy.ops.wm.tool_set_by_id(name="builtin.select")
 

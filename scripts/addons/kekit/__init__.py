@@ -2,7 +2,7 @@ bl_info = {
     "name": "keKIT",
     "author": "Kjell Emanuelsson",
     "category": "Modeling",
-    "version": (1, 3, 8, 4),
+    "version": (1, 3, 9, 1),
     "blender": (2, 80, 0),
     "location": "View3D > Sidebar",
     "warning": "",
@@ -13,7 +13,6 @@ bl_info = {
 # -------------------------------------------------------------------------------------------------
 # Note: This kit is very much WIP - ..and experimental.
 # -------------------------------------------------------------------------------------------------
-# from ._prefs import get_prefs, write_prefs, VIEW3D_OT_ke_prefs_save
 
 from . import _prefs
 from . import ke_orient_and_pivot
@@ -40,11 +39,14 @@ from . import ke_zeroscale
 from . import ke_quickscale
 from . import ke_clean
 from . import ke_lineararray
+from . import ke_view_tools
+from . import ke_id_material
+from . import ke_mouse_axis_move
 
 import bpy
 from bpy.types import Panel
 
-nfo = "keKit v1.384"
+nfo = "keKit v1.391"
 # -------------------------------------------------------------------------------------------------
 # SUB MENU PANELS
 # -------------------------------------------------------------------------------------------------
@@ -53,34 +55,43 @@ class VIEW3D_PT_kekit_selection(Panel):
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'UI'
     bl_category = 'keKIT'
+    bl_options = {'DEFAULT_CLOSED'}
+
 
     def draw(self, context):
         layout = self.layout
         row = layout.row(align=True)
-        row.alignment="CENTER"
         row.operator("VIEW3D_OT_cursor_fit_selected_and_orient", text="Cursor Fit & Align")
+        row.alignment="CENTER"
         row.prop(context.scene.kekit, "cursorfit", text="O&P")
 
         col = layout.column(align=True)
         col.label(text="Align Object(s) To")
         row = col.row(align=True)
-        row.alignment="CENTER"
+        # row.alignment="CENTER"
         row.operator('VIEW3D_OT_ke_object_to_cursor', text="Cursor")
         row.operator('VIEW3D_OT_ke_align_object_to_active', text="Active Object").align = "BOTH"
 
         col.label(text="Align Origin(s) To")
         row = col.row(align=True)
-        row.alignment="CENTER"
+        # row.alignment="CENTER"
         row.operator('VIEW3D_OT_ke_origin_to_cursor', text="Cursor")
         row.operator('VIEW3D_OT_align_origin_to_selected', text="Selection")
         row.operator('VIEW3D_OT_origin_to_selected', text="Sel.Loc")
 
+        col.label(text="Align View To")
+        row = col.row(align=True)
+        # row.alignment="CENTER"
+        row.operator('view3d.ke_view_align_toggle', text="Cursor").mode = 'CURSOR'
+        row.operator('view3d.ke_view_align_toggle', text="Selected").mode = 'SELECTION'
+        row.operator('view3d.ke_view_align_snap', text="Ortho Snap").contextual = False
+
         col.separator()
+        col.operator('object.ke_straighten')
         col.operator('VIEW3D_OT_ke_swap', text="Swap Places")
         col.operator("MESH_OT_ke_select_boundary", text="Select Boundary (+Active)")
         col.operator('MESH_OT_ke_select_invert_linked', text="Select Inverted Linked")
-        col.operator('view3d.ke_view_align_toggle')
-        col.operator('view3d.ke_view_align_snap').contextual = False
+
 
 
 class VIEW3D_PT_ke_cursorbookmarks(Panel):
@@ -176,29 +187,22 @@ class VIEW3D_PT_ke_viewbookmarks(Panel):
         sub.operator('VIEW3D_OT_ke_viewpos', text="Set").mode = "SET"
         # srow = sub.row()
 
+
 class VIEW3D_PT_kekit_modeling(Panel):
     bl_label = "Modeling"
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'UI'
     bl_category = 'keKIT'
+    bl_options = {'DEFAULT_CLOSED'}
 
     def draw(self, context):
         layout = self.layout
         col = layout.column(align=True)
-        # col.operator('MESH_OT_primitive_box_add', text="Add Box Primitive", icon='MESH_CUBE')
-        # col.separator()
         col.operator('MESH_OT_merge_to_mouse', icon="MOUSE_MOVE", text="Merge To Mouse")
         col.operator('VIEW3D_OT_ke_ground', text="Ground or Center")
         col.operator('MESH_OT_ke_unbevel', text="Unbevel")
         col.operator('MESH_OT_ke_zeroscale', text="ZeroScale to Cursor").orient_type = "CURSOR"
 
-        row = layout.row(align=True)
-        row.operator('MESH_OT_ke_itemize', text="Itemize").mode = "DEFAULT"
-        row.operator('MESH_OT_ke_itemize', text="Dupe & Itemize").mode = "DUPE"
-
-        col = layout.column(align=True)
-        col.operator('MESH_OT_ke_extract_and_edit', text="Extract & Edit")
-        # col.separator()
         r = layout.row(align=True)
         r.operator('MESH_OT_ke_direct_loop_cut', text="DLoopCut&Slide").mode = "SLIDE"
         r.operator('MESH_OT_ke_direct_loop_cut', text="DirectLoopCut").mode = "DEFAULT"
@@ -212,7 +216,80 @@ class VIEW3D_PT_kekit_modeling(Panel):
         col.prop(context.scene.kekit, "fit2grid", text="Size:")
 
         row = layout.row(align=True)
-        row.operator('VIEW3D_OT_ke_lineararray')
+        row.operator("VIEW3D_OT_ke_lineararray")
+        row.alignment="CENTER"
+        row.prop(context.scene.kekit, "lineararray_go", text="GO")
+
+
+class VIEW3D_PT_kekit_id_material(Panel):
+    bl_label = "ID Materials"
+    bl_space_type = 'VIEW_3D'
+    bl_region_type = 'UI'
+    bl_category = 'keKIT'
+    bl_options = {'DEFAULT_CLOSED'}
+
+    def draw(self, context):
+        layout = self.layout
+        col = layout.column(align=True)
+        row = col.row(align=True)
+        row.label(text="Apply")
+        row.label(text="Set Name")
+        row.label(text="Set Color")
+        row = col.row(align=True)
+        row.operator('view3d.ke_id_material', text="Apply").m_id = 1
+        row.prop(context.scene.kekit, "idm01_name", text="")
+        row.prop(context.scene.kekit, "idm01", text="")
+        row = col.row(align=True)
+        row.operator('view3d.ke_id_material', text="Apply").m_id = 2
+        row.prop(context.scene.kekit, "idm02_name", text="")
+        row.prop(context.scene.kekit, "idm02", text="")
+        row = col.row(align=True)
+        row.operator('view3d.ke_id_material', text="Apply").m_id = 3
+        row.prop(context.scene.kekit, "idm03_name", text="")
+        row.prop(context.scene.kekit, "idm03", text="")
+        row = col.row(align=True)
+        row.operator('view3d.ke_id_material', text="Apply").m_id = 4
+        row.prop(context.scene.kekit, "idm04_name", text="")
+        row.prop(context.scene.kekit, "idm04", text="")
+        row = col.row(align=True)
+        row.operator('view3d.ke_id_material', text="Apply").m_id = 5
+        row.prop(context.scene.kekit, "idm05_name", text="")
+        row.prop(context.scene.kekit, "idm05", text="")
+        row = col.row(align=True)
+        row.operator('view3d.ke_id_material', text="Apply").m_id = 6
+        row.prop(context.scene.kekit, "idm06_name", text="")
+        row.prop(context.scene.kekit, "idm06", text="")
+        row = col.row(align=True)
+        row.operator('view3d.ke_id_material', text="Apply").m_id = 7
+        row.prop(context.scene.kekit, "idm07_name", text="")
+        row.prop(context.scene.kekit, "idm07", text="")
+        row = col.row(align=True)
+        row.operator('view3d.ke_id_material', text="Apply").m_id = 8
+        row.prop(context.scene.kekit, "idm08_name", text="")
+        row.prop(context.scene.kekit, "idm08", text="")
+        row = col.row(align=True)
+        row.operator('view3d.ke_id_material', text="Apply").m_id = 9
+        row.prop(context.scene.kekit, "idm09_name", text="")
+        row.prop(context.scene.kekit, "idm09", text="")
+        row = col.row(align=True)
+        row.operator('view3d.ke_id_material', text="Apply").m_id = 10
+        row.prop(context.scene.kekit, "idm10_name", text="")
+        row.prop(context.scene.kekit, "idm10", text="")
+        row = col.row(align=True)
+        row.operator('view3d.ke_id_material', text="Apply").m_id = 11
+        row.prop(context.scene.kekit, "idm11_name", text="")
+        row.prop(context.scene.kekit, "idm11", text="")
+        row = col.row(align=True)
+        row.operator('view3d.ke_id_material', text="Apply").m_id = 12
+        row.prop(context.scene.kekit, "idm12_name", text="")
+        row.prop(context.scene.kekit, "idm12", text="")
+        col.separator(factor=0.5)
+        col.label(text="Options")
+        box = col.box()
+        boxcol = box.column()
+        # boxcol.prop(context.scene.kekit, "matvp_color", text="Set Material Viewport Color")
+        boxcol.prop(context.scene.kekit, "object_color", text="Set Object Viewport Color")
+        # boxcol.prop(context.scene.kekit, "vpmuted", text="Muted Viewport Colors")
 
 
 class VIEW3D_PT_Clean(Panel):
@@ -228,14 +305,26 @@ class VIEW3D_PT_Clean(Panel):
         col.operator('VIEW3D_OT_ke_clean', text="Macro Mesh Clean")
 
         col = layout.column(align=True)
-        col.label(text="Cleaning Options")
-        col.prop(context.scene.kekit, "clean_doubles", text="Double Geo")
+        col.label(text="Macro Mesh Clean Options")
+        box = col.box()
+        boxcol = box.column(align=True)
+        boxcol.prop(context.scene.kekit, "clean_doubles", text="Double Geo")
         # col.prop(context.scene.kekit, "clean_doubles_val", text="Doubles Threshold:")
-        col.prop(context.scene.kekit, "clean_loose", text="Loose Verts/Edges")
-        col.prop(context.scene.kekit, "clean_interior", text="Interior Faces")
-        col.prop(context.scene.kekit, "clean_degenerate", text="Degenerate Geo")
+        boxcol.prop(context.scene.kekit, "clean_loose", text="Loose Verts/Edges")
+        boxcol.prop(context.scene.kekit, "clean_interior", text="Interior Faces")
+        boxcol.prop(context.scene.kekit, "clean_degenerate", text="Degenerate Geo")
         # col.prop(context.scene.kekit, "clean_degenerate_val", text="Degenerate Threshold:")
-        col.prop(context.scene.kekit, "clean_collinear", text="Collinear Verts")
+        boxcol.prop(context.scene.kekit, "clean_collinear", text="Collinear Verts")
+        col.separator(factor=0.5)
+        col.label(text="Purge")
+        box = col.box()
+        boxrow = box.row(align=True)
+        boxrow.operator('view3d.ke_purge', text="Mesh").block_type = "MESH"
+        boxrow.operator('view3d.ke_purge', text="Material").block_type = "MATERIAL"
+        boxrow.operator('view3d.ke_purge', text="Texture").block_type = "TEXTURE"
+        boxrow.operator('view3d.ke_purge', text="Image").block_type = "IMAGE"
+        boxcol = box.column(align=True)
+        boxcol.operator('outliner.orphans_purge', text="Purge All Orphaned Data")
         col = layout.column(align=True)
         col.label(text="Selection Tools")
         col.operator('MESH_OT_ke_select_collinear', text="Select Collinear Verts")
@@ -251,29 +340,32 @@ class VIEW3D_PT_Clean(Panel):
 
 
 
-class VIEW3D_PT_VPContextual(Panel):
-    bl_label = "ViewPlane Contextual"
-    bl_space_type = 'VIEW_3D'
-    bl_region_type = 'UI'
-    bl_category = 'keKIT'
-    bl_parent_id = "VIEW3D_PT_Context_Tools"
-    # bl_options = {'DEFAULT_OPEN'}
-
-    def draw(self, context):
-        layout = self.layout
-        col = layout.column(align=True)
-        row = col.row()
-        row.operator("VIEW3D_OT_ke_vptransform", text="VPGrab").transform = "TRANSLATE"
-        row.operator("VIEW3D_OT_ke_vptransform", text="VPRotate").transform = "ROTATE"
-        row.operator("VIEW3D_OT_ke_vptransform", text="VPResize").transform = "RESIZE"
-        sub = col.column()
-        sub.alignment = 'CENTER'
-        sub.separator()
-        sub.operator("VIEW3D_OT_ke_vptransform", text="VPDupeMove").transform = "COPYGRAB"
-        sub = col.row()
-        sub.alignment = 'CENTER'
-        sub.prop(context.scene.kekit, "vptransform", text="VP Always Global")
-
+# class VIEW3D_PT_VPContextual(Panel):
+#     bl_label = "ViewPlane Contextual"
+#     bl_space_type = 'VIEW_3D'
+#     bl_region_type = 'UI'
+#     bl_category = 'keKIT'
+#     bl_parent_id = "VIEW3D_PT_Context_Tools"
+#     # bl_options = {'DEFAULT_OPEN'}
+#
+#     def draw(self, context):
+#         layout = self.layout
+#         col = layout.column(align=True)
+#         row = col.row()
+#         row.operator("VIEW3D_OT_ke_vptransform", text="VPGrab").transform = "TRANSLATE"
+#         row.operator("VIEW3D_OT_ke_vptransform", text="VPRotate").transform = "ROTATE"
+#         row.operator("VIEW3D_OT_ke_vptransform", text="VPResize").transform = "RESIZE"
+#         sub = col.column()
+#         # sub.alignment = 'CENTER'
+#         sub.separator()
+#         sub.operator("VIEW3D_OT_ke_vptransform", text="VPDupeMove").transform = "COPYGRAB"
+#         # sub = col.row()
+#         sub.label(text="Options")
+#         sub.prop(context.scene.kekit, "vptransform", text="VP Auto Global")
+#         sub.prop(context.scene.kekit, "loc_got", text="Grab Global or Tool")
+#         sub.prop(context.scene.kekit, "rot_got", text="Rotate Global or Tool")
+#         sub.prop(context.scene.kekit, "scl_got", text="Resize Global or Tool")
+#
 
 class VIEW3D_PT_Context_Tools(Panel):
     bl_label = "Context Tools"
@@ -288,7 +380,7 @@ class VIEW3D_PT_Context_Tools(Panel):
         col.operator('MESH_OT_ke_contextbevel', text="Context Bevel")
         col.operator('MESH_OT_ke_contextextrude', text="Context Extrude")
         col.operator('VIEW3D_OT_ke_contextdelete', text="Context Delete")
-        col.operator('MESH_OT_dissolve_mode', text="Context Dissolve (Blender)")
+        # col.operator('MESH_OT_dissolve_mode', text="Context Dissolve (Blender)")
         col.operator('MESH_OT_ke_contextdissolve', text="Context Dissolve")
         col.operator('VIEW3D_OT_ke_contextselect', text="Context Select")
         col.operator('VIEW3D_OT_ke_contextselect_extend', text="Context Select Extend")
@@ -299,7 +391,31 @@ class VIEW3D_PT_Context_Tools(Panel):
         col.operator("VIEW3D_OT_ke_frame_view", text="Frame All or Selected")
         col.operator('MESH_OT_ke_contextslide')
         col.operator('view3d.ke_view_align_snap', text="View Align Snap Contextual").contextual = True
+        col.separator()
 
+        sub = col.box()
+        srow = sub.row(align=True)
+        srow.label(text="Mouse Axis")
+        srow.operator('view3d.ke_mouse_axis_move', text="Dupe", icon="MOUSE_MOVE").mode = "DUPE"
+        srow = sub.row(align=True)
+        srow.operator('view3d.ke_mouse_axis_move', text="Move", icon="MOUSE_MOVE").mode = "MOVE"
+        srow.operator('view3d.ke_mouse_axis_move', text="Rotate", icon="MOUSE_MOVE").mode = "ROT"
+        srow.operator('view3d.ke_mouse_axis_move', text="Scale", icon="MOUSE_MOVE").mode = "SCL"
+        col.separator()
+
+        col = col.box()
+        row = col.row(align=True)
+        row.label(text="View Plane")
+        row.operator("VIEW3D_OT_ke_vptransform", text="VPDupe").transform = "COPYGRAB"
+        row = col.row(align=True)
+        row.operator("VIEW3D_OT_ke_vptransform", text="VPGrab").transform = "TRANSLATE"
+        row.operator("VIEW3D_OT_ke_vptransform", text="VPRotate").transform = "ROTATE"
+        row.operator("VIEW3D_OT_ke_vptransform", text="VPResize").transform = "RESIZE"
+        sub = col.row()
+        sub.prop(context.scene.kekit, "vptransform", text="VPAG")
+        sub.prop(context.scene.kekit, "loc_got", text="GGOT")
+        sub.prop(context.scene.kekit, "rot_got", text="RGOT")
+        sub.prop(context.scene.kekit, "scl_got", text="SGOT")
 
 
 # PIE MENUS
@@ -341,7 +457,8 @@ class VIEW3D_PT_PieMenus(Panel):
         layout.label(text="ke Pie Menus")
         pie = layout.menu_pie().column()
         pie.operator("wm.call_menu_pie", text="keSnapping", icon="DOT").name = "VIEW3D_MT_ke_pie_snapping"
-        pie.operator("wm.call_menu_pie", text="bSnapping", icon="DOT").name = "VIEW3D_MT_bsnapping"
+        pie.operator("wm.call_menu_pie", text="keStepRotate", icon="DOT").name = "VIEW3D_MT_ke_pie_step_rotate"
+        # pie.operator("wm.call_menu_pie", text="bSnapping", icon="DOT").name = "VIEW3D_MT_bsnapping"  # useless
         pie.operator("wm.call_menu_pie", text="keFit2Grid", icon="DOT").name = "VIEW3D_MT_ke_pie_fit2grid"
         pie.operator("wm.call_menu_pie", text="keFit2Grid Micro", icon="DOT").name = "VIEW3D_MT_ke_pie_fit2grid_micro"
         pie.operator("wm.call_menu_pie", text="keOrientPivot", icon="DOT").name = "VIEW3D_MT_ke_pie_orientpivot"
@@ -350,6 +467,7 @@ class VIEW3D_PT_PieMenus(Panel):
         pie.operator("wm.call_menu_pie", text="keSnapAlign", icon="DOT").name = "VIEW3D_MT_ke_pie_align"
         pie.operator("wm.call_menu_pie", text="keFitPrim", icon="DOT").name = "VIEW3D_MT_ke_pie_fitprim"
         pie.operator("wm.call_menu_pie", text="keSubd", icon="DOT").name = "VIEW3D_MT_ke_pie_subd"
+        pie.operator("wm.call_menu_pie", text="keMaterials", icon="DOT").name = "VIEW3D_MT_PIE_ke_materials"
 
 
 # Orientation & Pivot combo panels
@@ -589,10 +707,18 @@ class VIEW3D_PT_kekit(Panel):
         row.prop(context.scene.kekit, "selmode_mouse", text="")
         row.operator('VIEW3D_OT_ke_spacetoggle', text="", icon="MOUSE_MOVE")
 
-        row = layout.row(align=True)
+        col = layout.column(align=True)
+        row = col.row(align=True)
         row.operator('MESH_OT_ke_copyplus', text="Cut+").mode = "CUT"
         row.operator('MESH_OT_ke_copyplus', text="Copy+").mode = "COPY"
         row.operator('MESH_OT_ke_copyplus', text="Paste+").mode = "PASTE"
+        row = col.row(align=True)
+        row.operator('MESH_OT_ke_extract_and_edit', text="Extract&Edit").copy = False
+        row.operator('MESH_OT_ke_extract_and_edit', text="Copy&E&E").copy = True
+        row = col.row(align=True)
+        row.operator('MESH_OT_ke_itemize', text="Itemize").mode = "DEFAULT"
+        row.operator('MESH_OT_ke_itemize', text="DupeItemize").mode = "DUPE"
+
         col = layout.column(align=True)
         col.operator('VIEW3D_OT_ke_get_set_editmesh', icon="MOUSE_MOVE", text="Get & Set Edit Mode")
         col.operator('VIEW3D_OT_ke_get_set_material', icon="MOUSE_MOVE", text="Get & Set Material")
@@ -600,6 +726,8 @@ class VIEW3D_PT_kekit(Panel):
         row.operator('VIEW3D_OT_ke_quickmeasure', text="Quick Measure").qm_start = "DEFAULT"
         row.operator('VIEW3D_OT_ke_quickmeasure', text="QM FreezeMode").qm_start = "SEL_SAVE"
         col.separator()
+        col.operator('view3d.ke_render_visible', icon="RENDER_STILL")
+
 
 # -------------------------------------------------------------------------------------------------
 # Prefs & Properties
@@ -607,8 +735,6 @@ class VIEW3D_PT_kekit(Panel):
 
 class ke_query_props(bpy.types.PropertyGroup):
     view_query: bpy.props.StringProperty(default=" N/A ")
-
-
 
 panels = (
         VIEW3D_PT_kekit,
@@ -629,7 +755,7 @@ def update_panel(self, context):
             bpy.utils.register_class(panel)
 
     except Exception as e:
-        print("\n[{}]\n{}\n\nError:\n{}".format(__name__, message, e))
+        print("\n[{}]\n{}\n\nError:\n{}".format(__name__, "Error", e))
         pass
 
 # -------------------------------------------------------------------------------------------------
@@ -640,11 +766,11 @@ classes = (
     VIEW3D_PT_kekit,
     VIEW3D_PT_kekit_selection,
     VIEW3D_PT_kekit_modeling,
+    VIEW3D_PT_kekit_id_material,
     VIEW3D_PT_Clean,
     VIEW3D_PT_Unrotator,
     VIEW3D_PT_FitPrim,
     VIEW3D_PT_Context_Tools,
-    VIEW3D_PT_VPContextual,
     VIEW3D_PT_OPC,
     VIEW3D_PT_OPC1,
     VIEW3D_PT_OPC2,
@@ -685,6 +811,9 @@ modules = (
     ke_quickscale,
     ke_clean,
     ke_lineararray,
+    ke_view_tools,
+    ke_id_material,
+    ke_mouse_axis_move
 )
 
 

@@ -9,6 +9,7 @@ bl_info = {
 import bpy
 from bpy.types import Menu, Operator, Panel
 from . ke_utils import get_selected
+import addon_utils
 
 # -------------------------------------------------------------------------------------------------
 # Operators
@@ -31,76 +32,124 @@ class VIEW3D_OT_ke_pieops(Operator):
         if self.op == "GRID":
             context.tool_settings.use_snap_grid_absolute = not context.tool_settings.use_snap_grid_absolute
 
-        # BEVEL WEIGHTS
-        elif self.op == "BWEIGHTS_ON":
-            if not context.object.data.is_editmode:
-                bpy.ops.object.mode_set(mode="EDIT")
-                bpy.ops.mesh.select_all(action='SELECT')
-                bpy.ops.transform.edge_bevelweight(value=1)
-                bpy.ops.mesh.select_all(action='DESELECT')
-                bpy.ops.object.mode_set(mode="OBJECT")
-            else:
-                bpy.ops.transform.edge_bevelweight(value=1)
-
-        elif self.op == "BWEIGHTS_OFF":
-            if not context.object.data.is_editmode:
-                bpy.ops.object.mode_set(mode="EDIT")
-                bpy.ops.mesh.select_all(action='SELECT')
-                bpy.ops.transform.edge_bevelweight(value=-1)
-                bpy.ops.mesh.select_all(action='DESELECT')
-                bpy.ops.object.mode_set(mode="OBJECT")
-            else:
-                bpy.ops.transform.edge_bevelweight(value=-1)
-
-        # W-SUBD
-        elif self.op == "WSUBD":
-            o = get_selected(context)
-            # Add bevel modifier prepped for subd
-            if o:
-                bpy.ops.object.modifier_add(type='BEVEL')
-                b = o.modifiers[-1]
-                b.name = "kSubBevel"
-                b.width = 0.025
-                b.limit_method = 'WEIGHT'
-                b.segments = 2
-                # Add subd modifier
-                bpy.ops.object.modifier_add(type='SUBSURF')
-                s = o.modifiers[-1]
-                s.name = "kSubD"
-                s.levels = 3
-                s.render_levels = 3
-                s.boundary_smooth = 'PRESERVE_CORNERS'
-
-        # WEIGHTED NORMAL MODFIER
-        elif self.op == "WNORMAL":
-            bpy.ops.object.modifier_add(type='WEIGHTED_NORMAL')
-
-        # TOGGLE SUBD CORNERS
-        elif self.op == "SUBCORNERS":
-            for mod in [m for m in context.object.modifiers if m.name == 'kSubD']:
-                if mod.boundary_smooth == "PRESERVE_CORNERS":
-                    mod.boundary_smooth = 'ALL'
+        if sel_obj or active:
+            # BEVEL WEIGHTS
+            if self.op == "BWEIGHTS_ON":
+                if not context.object.data.is_editmode:
+                    bpy.ops.object.mode_set(mode="EDIT")
+                    bpy.ops.mesh.select_all(action='SELECT')
+                    bpy.ops.transform.edge_bevelweight(value=1)
+                    bpy.ops.mesh.select_all(action='DESELECT')
+                    bpy.ops.object.mode_set(mode="OBJECT")
                 else:
-                    mod.boundary_smooth = "PRESERVE_CORNERS"
+                    bpy.ops.transform.edge_bevelweight(value=1)
 
-        elif self.op == "MOD_VIS":
-            bpy.ops.object.toggle_apply_modifiers_view()
+            elif self.op == "BWEIGHTS_OFF":
+                if not context.object.data.is_editmode:
+                    bpy.ops.object.mode_set(mode="EDIT")
+                    bpy.ops.mesh.select_all(action='SELECT')
+                    bpy.ops.transform.edge_bevelweight(value=-1)
+                    bpy.ops.mesh.select_all(action='DESELECT')
+                    bpy.ops.object.mode_set(mode="OBJECT")
+                else:
+                    bpy.ops.transform.edge_bevelweight(value=-1)
 
-        elif self.op in {"MIRROR_X", "MIRROR_Y", "MIRROR_Z"}:
-            if active:
-                bpy.ops.object.modifier_add(type='MIRROR')
-                m = active.modifiers[-1]
-                m.name = "kMirror"
-                if self.op == "MIRROR_Y":
-                    m.use_axis = (False, True, False)
-                elif self.op == "MIRROR_Z":
-                    m.use_axis = (False, False, True)
+            # W-SUBD
+            elif self.op == "WSUBD":
+                o = get_selected(context)
+                # Add bevel modifier prepped for subd
+                if o:
+                    bpy.ops.object.modifier_add(type='BEVEL')
+                    b = o.modifiers[-1]
+                    b.name = "kSubBevel"
+                    b.width = 0.025
+                    b.limit_method = 'WEIGHT'
+                    b.segments = 2
+                    # Add subd modifier
+                    bpy.ops.object.modifier_add(type='SUBSURF')
+                    s = o.modifiers[-1]
+                    s.name = "kSubD"
+                    s.levels = 3
+                    s.render_levels = 3
+                    s.boundary_smooth = 'PRESERVE_CORNERS'
 
-        elif self.op == "SOLIDIFY":
-            if active:
-                bpy.ops.object.modifier_add(type='SOLIDIFY')
-                m = active.modifiers[-1]
-                m.name = "kSolidify"
+            # WEIGHTED NORMAL MODFIER
+            elif self.op == "WNORMAL":
+                bpy.ops.object.modifier_add(type='WEIGHTED_NORMAL')
+
+            # TOGGLE SUBD CORNERS
+            elif self.op == "SUBCORNERS":
+                for mod in [m for m in context.object.modifiers if m.name == 'kSubD']:
+                    if mod.boundary_smooth == "PRESERVE_CORNERS":
+                        mod.boundary_smooth = 'ALL'
+                    else:
+                        mod.boundary_smooth = "PRESERVE_CORNERS"
+
+            elif self.op == "MOD_VIS":
+                bpy.ops.object.toggle_apply_modifiers_view()
+
+            elif self.op == "MOD_EDIT_VIS":
+                if not active:
+                    self.report({"INFO"}, "No Active Object Selected")
+                    return {"CANCELLED"}
+                # hacked from addon tools:
+                # avoid toggling not exposed modifiers (currently only Collision, see T53406)
+                skip_type = ["COLLISION"]  # types of modifiers to skip
+
+                # check if the active object has only one non exposed modifier as the logic will fail
+                if len(context.active_object.modifiers) == 1 and \
+                        context.active_object.modifiers[0].type in skip_type:
+
+                    for obj in context.selected_objects:
+                        for mod in obj.modifiers:
+                            if mod.type in skip_type:
+                                continue
+
+                            if mod.show_in_editmode:
+                                is_apply = False
+                                break
+                else:
+                    for mod in context.active_object.modifiers:
+                        if mod.type in skip_type:
+                            continue
+
+                        if mod.show_in_editmode :
+                            is_apply = False
+                            break
+
+                count_modifiers = len(context.active_object.modifiers)
+                # active object - no selection
+                for mod in context.active_object.modifiers:
+                    if mod.type in skip_type:
+                        count_modifiers -= 1
+                        continue
+
+                    mod.show_in_editmode = is_apply
+
+                for obj in context.selected_objects:
+                    count_modifiers += len(obj.modifiers)
+
+                    for mod in obj.modifiers:
+                        if mod.type in skip_type:
+                            count_modifiers -= 1
+                            continue
+                        mod.show_in_editmode = is_apply
+
+            elif self.op in {"MIRROR_X", "MIRROR_Y", "MIRROR_Z"}:
+                if active:
+                    bpy.ops.object.modifier_add(type='MIRROR')
+                    m = active.modifiers[-1]
+                    m.name = "kMirror"
+                    if self.op == "MIRROR_Y":
+                        m.use_axis = (False, True, False)
+                    elif self.op == "MIRROR_Z":
+                        m.use_axis = (False, False, True)
+
+            elif self.op == "SOLIDIFY":
+                if active:
+                    bpy.ops.object.modifier_add(type='SOLIDIFY')
+                    m = active.modifiers[-1]
+                    m.name = "kSolidify"
 
         return {'FINISHED'}
 
@@ -208,8 +257,12 @@ class VIEW3D_MT_PIE_ke_subd(Menu):
 
         # Toggles
         c = pie.column(align=True)
-        btm = c.box()
-        btm.operator("ke.pieops", text="Toggle Stack Visibility").op = "MOD_VIS"
+        spacer = c.column()
+        spacer.label(text="")
+        spacer.label(text="")
+        btm = spacer.box()
+        btm.operator("ke.pieops", text="Toggle Edit Mode Visibility").op = "MOD_EDIT_VIS"
+        btm.operator("ke.pieops", text="Toggle Viewport Visibility").op = "MOD_VIS"
         btm.operator("ke.pieops", text="Toggle SubD Corners").op = "SUBCORNERS"
         c.separator()
         btm = c.box()
@@ -724,6 +777,8 @@ class VIEW3D_MT_PIE_ke_shading(Menu):
         view = context.space_data
         layout = self.layout
 
+        layout.operator_context = 'INVOKE_REGION_WIN'
+
         shading = get_shading(context)
         if shading is None:
             return {'CANCELLED'}
@@ -867,16 +922,78 @@ class VIEW3D_MT_PIE_ke_shading(Menu):
                 psub.operator("preferences.studiolight_show", emboss=False, text="", icon='PREFERENCES')
 
 
-# class VIEW3D_MT_PIE_ke_testpie(Menu):
-#     bl_label = "keTestPie"
-#     bl_idname = "VIEW3D_MT_ke_pie_test"
-#
-#     def draw(self, context):
-#         layout = self.layout
-#         pie = layout.menu_pie()
-#         pie.operator("view3d.ke_get_set_material", text="Get Material", icon="MATERIAL").offset = (-168,0)
-#
+class VIEW3D_MT_PIE_ke_materials(Menu):
+    bl_label = "keMaterials"
+    bl_idname = "VIEW3D_MT_PIE_ke_materials"
 
+    def draw(self, context):
+        layout = self.layout
+        pie = layout.menu_pie()
+
+        box = pie.box()
+        col = box.column(align=True)
+        row = col.row(align=True)
+        row.template_node_socket(color=context.scene.kekit.idm01)
+        row.operator("view3d.ke_id_material",text=context.scene.kekit.idm01_name).m_id = 1
+        row = col.row(align=True)
+        row.template_node_socket(color=context.scene.kekit.idm02)
+        row.operator("view3d.ke_id_material",text=context.scene.kekit.idm02_name).m_id = 2
+        row = col.row(align=True)
+        row.template_node_socket(color=context.scene.kekit.idm03)
+        row.operator("view3d.ke_id_material",text=context.scene.kekit.idm03_name).m_id = 3
+        row = col.row(align=True)
+        row.template_node_socket(color=context.scene.kekit.idm04)
+        row.operator("view3d.ke_id_material",text=context.scene.kekit.idm04_name).m_id = 4
+        row = col.row(align=True)
+        row.template_node_socket(color=context.scene.kekit.idm05)
+        row.operator("view3d.ke_id_material",text=context.scene.kekit.idm05_name).m_id = 5
+        row = col.row(align=True)
+        row.template_node_socket(color=context.scene.kekit.idm06)
+        row.operator("view3d.ke_id_material",text=context.scene.kekit.idm06_name).m_id = 6
+        row = col.row(align=True)
+        row.template_node_socket(color=context.scene.kekit.idm07)
+        row.operator("view3d.ke_id_material",text=context.scene.kekit.idm07_name).m_id = 7
+        row = col.row(align=True)
+        row.template_node_socket(color=context.scene.kekit.idm08)
+        row.operator("view3d.ke_id_material",text=context.scene.kekit.idm08_name).m_id = 8
+        row = col.row(align=True)
+        row.template_node_socket(color=context.scene.kekit.idm09)
+        row.operator("view3d.ke_id_material",text=context.scene.kekit.idm09_name).m_id = 9
+        row = col.row(align=True)
+        row.template_node_socket(color=context.scene.kekit.idm10)
+        row.operator("view3d.ke_id_material",text=context.scene.kekit.idm10_name).m_id = 10
+        row = col.row(align=True)
+        row.template_node_socket(color=context.scene.kekit.idm11)
+        row.operator("view3d.ke_id_material",text=context.scene.kekit.idm11_name).m_id = 11
+        row = col.row(align=True)
+        row.template_node_socket(color=context.scene.kekit.idm12)
+        row.operator("view3d.ke_id_material",text=context.scene.kekit.idm12_name).m_id = 12
+
+        box = pie.box()
+        col = box.column(align=True)
+        c = addon_utils.check("materials_utils")
+        if c[0] and c[1]:
+            col.menu_contents("VIEW3D_MT_materialutilities_main")
+        else:
+            col.label(text="Materials Utils Not Enabled")
+
+
+class VIEW3D_MT_PIE_ke_step_rotate(Menu):
+    bl_label = "keVPStepRotate"
+    bl_idname = "VIEW3D_MT_ke_pie_step_rotate"
+
+    def draw(self, context):
+        layout = self.layout
+        pie = layout.menu_pie()
+        pie.operator("view3d.ke_vp_step_rotate", text="-90", icon="LOOP_BACK").mode = "NROT090"
+        pie.operator("view3d.ke_vp_step_rotate", text="90", icon="LOOP_FORWARDS").mode = "ROT090"
+        pie.operator("object.ke_straighten", text="Straighten Object", icon="CON_ROTLIMIT").deg = 90
+        # pie.operator_context = "INVOKE_DEFAULT"
+        pie.operator("object.rotation_clear").clear_delta = False
+        pie.operator("view3d.ke_vp_step_rotate", text="-45", icon="LOOP_BACK").mode = "NROT045"
+        pie.operator("view3d.ke_vp_step_rotate", text="45", icon="LOOP_FORWARDS").mode = "ROT045"
+        pie.operator("view3d.ke_vp_step_rotate", text="-180", icon="LOOP_BACK").mode = "NROT180"
+        pie.operator("view3d.ke_vp_step_rotate", text="180", icon="LOOP_FORWARDS").mode = "ROT180"
 
 
 # -------------------------------------------------------------------------------------------------
@@ -895,7 +1012,9 @@ classes = (
     VIEW3D_MT_PIE_ke_shading,
     VIEW3D_MT_PIE_ke_align,
     VIEW3D_MT_PIE_ke_fitprim,
-    VIEW3D_MT_PIE_ke_subd
+    VIEW3D_MT_PIE_ke_subd,
+    VIEW3D_MT_PIE_ke_materials,
+    VIEW3D_MT_PIE_ke_step_rotate
     )
 
 def register():

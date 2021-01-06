@@ -8,7 +8,7 @@ bl_info = {
 
 import bpy
 import blf
-from .ke_utils import get_selected
+from .ke_utils import get_selected, getset_transform, restore_transform
 from mathutils import Vector
 from bpy_extras.view3d_utils import region_2d_to_location_3d
 
@@ -50,19 +50,19 @@ def draw_callback_px(self, context, pos):
         font_id = 0
         blf.enable(font_id, 4)
         blf.position(font_id, hpos, vpos + 68, 0)
-        blf.color(font_id, 0.796, 0.7488, 0.6435, 1)
+        blf.color(font_id, self.hcol[0], self.hcol[1], self.hcol[2], self.hcol[3])
         blf.size(font_id, 20, 72)
         blf.shadow(font_id, 5, 0, 0, 0, 1)
         blf.shadow_offset(font_id, 1, -1)
         blf.draw(font_id, "Linear Array: " + str(self.count))
         blf.size(font_id, 13, 72)
-        blf.color(font_id, 0.85, 0.85, 0.85, 1)
+        blf.color(font_id, self.hcol[0], self.hcol[1], self.hcol[2], self.hcol[3])
         blf.position(font_id, hpos, vpos + 98, 0)
         blf.draw(font_id, title)
 
         if self.help:
             blf.size(font_id, 13, 72)
-            blf.color(font_id, 0.85, 0.85, 0.85, 1)
+            blf.color(font_id, self.tcol[0], self.tcol[1], self.tcol[2], self.tcol[3])
             blf.position(font_id, hpos, vpos + 45, 0)
             blf.draw(font_id, "Array Count: Mouse Wheel Up / Down")
             blf.position(font_id, hpos, vpos + 27, 0)
@@ -76,14 +76,14 @@ def draw_callback_px(self, context, pos):
             blf.draw(font_id, "Manual Axis Lock: (X), (Y), (Z) and (C) to release Constraint")
 
             blf.size(font_id, 10, 72)
-            blf.color(font_id, 0.5, 0.5, 0.5, 1)
+            blf.color(font_id, self.scol[0], self.scol[1], self.scol[2], self.scol[3])
             blf.position(font_id, hpos, vpos - 29, 0)
             blf.draw(font_id, "Exit: RMB, Esc, Enter or Spacebar")
             blf.position(font_id, hpos, vpos - 40, 0)
             blf.draw(font_id, "Navigation: Blender (-MMB) or Ind.Std (Alt-MB's)")
         else:
             blf.size(font_id, 12, 72)
-            blf.color(font_id, 0.5, 0.5, 0.5, 1)
+            blf.color(font_id, self.scol[0], self.scol[1], self.scol[2], self.scol[3])
             blf.position(font_id, hpos, vpos + 45, 0)
             blf.draw(font_id, "(H) Toggle Help")
 
@@ -114,6 +114,8 @@ class VIEW3D_OT_ke_lineararray(bpy.types.Operator):
                      "(where you point the mouse)."
     bl_options = {'REGISTER', 'UNDO'}
 
+    global_only : bpy.props.BoolProperty(default=True)
+
     _handle = None
     _handle_px = None
     screen_x = 0
@@ -130,10 +132,17 @@ class VIEW3D_OT_ke_lineararray(bpy.types.Operator):
     snapval = 0
     axis_lock = None
     imperial = []
+    og_op = []
+    hcol = (1,1,1,1)
+    tcol = (1,1,1,1)
+    scol = (1,1,1,1)
 
     @classmethod
     def poll(cls, context):
         return (context.object is not None and context.object.type == 'MESH' and not context.object.data.is_editmode)
+
+    def draw(self, context):
+        layout = self.layout
 
     def upd_array(self, context, event):
         # Get Mouse Pos for end-point
@@ -186,14 +195,27 @@ class VIEW3D_OT_ke_lineararray(bpy.types.Operator):
 
 
     def invoke(self, context, event):
+        self.hcol = context.preferences.addons['kekit'].preferences.modal_color_header
+        self.tcol = context.preferences.addons['kekit'].preferences.modal_color_text
+        self.scol = context.preferences.addons['kekit'].preferences.modal_color_subtext
+
         self.imperial = bpy.context.scene.unit_settings.system
         if self.imperial != 'IMPERIAL':
             self.imperial = []
+
         self.region = context.region
         self.rv3d = context.space_data.region_3d
         self.screen_x = int(self.region.width *.5)
         self.mouse_pos[0] = int(event.mouse_region_x)
         self.mouse_pos[1] = int(event.mouse_region_y)
+
+        return self.execute(context)
+
+
+    def execute(self, context):
+        if self.global_only:
+            bpy.ops.object.transform_apply(location=False, rotation=True, scale=False)
+            self.og_op = getset_transform()
 
         obj = get_selected(context)
 
@@ -205,6 +227,7 @@ class VIEW3D_OT_ke_lineararray(bpy.types.Operator):
             self.oname = obj.name
             # Since it will just be borked without scaled applied anyway - we auto apply.
             bpy.ops.object.transform_apply(location=False, rotation=False, scale=True)
+            bpy.ops.ed.undo_push()
 
             # CREATE ARRAY MODIFIER
             bpy.ops.object.modifier_add(type='ARRAY')
@@ -218,13 +241,14 @@ class VIEW3D_OT_ke_lineararray(bpy.types.Operator):
                                      rotation=self.set_rot)
             context.object.name = "keLineArrayLocator"
             context.object.hide_viewport = True
-
             # RUN MODAL
             context.window_manager.modal_handler_add(self)
             args = (self, context, self.screen_x)
             self._handle_px = bpy.types.SpaceView3D.draw_handler_add(draw_callback_px, args, 'WINDOW', 'POST_PIXEL')
-
             return {'RUNNING_MODAL'}
+
+        if self.global_only:
+            restore_transform(self.og_op)
 
         return {'CANCELLED'}
 
@@ -305,7 +329,7 @@ class VIEW3D_OT_ke_lineararray(bpy.types.Operator):
             self.axis_lock = None
             context.area.tag_redraw()
 
-        elif event.type in {'ESC', 'RET', 'SPACE'} or event.type == 'RIGHTMOUSE' and event.value == 'RELEASE':
+        elif event.type in {'ESC', 'RET', 'SPACE'} or event.type == 'LEFTMOUSE' and event.value == 'RELEASE':
             context.area.tag_redraw()
             bpy.types.SpaceView3D.draw_handler_remove(self._handle_px, 'WINDOW')
             context.object.hide_viewport = False
@@ -313,7 +337,23 @@ class VIEW3D_OT_ke_lineararray(bpy.types.Operator):
             bpy.ops.object.delete(use_global=True, confirm=False)
             context.scene.objects[self.oname].select_set(True)
             context.view_layer.objects.active = context.scene.objects[self.oname]
+            if self.global_only:
+                restore_transform(self.og_op)
             return {'FINISHED'}
+
+        elif event.type == 'RIGHTMOUSE' and event.value == 'RELEASE':
+            context.area.tag_redraw()
+            bpy.types.SpaceView3D.draw_handler_remove(self._handle_px, 'WINDOW')
+            context.object.hide_viewport = False
+            context.object.select_set(True)
+            bpy.ops.object.delete(use_global=True, confirm=False)
+            context.scene.objects[self.oname].select_set(True)
+            context.view_layer.objects.active = context.scene.objects[self.oname]
+            if self.global_only:
+                restore_transform(self.og_op)
+            last = context.scene.objects[self.oname].modifiers[-1]
+            bpy.ops.object.modifier_remove(modifier=last.name)
+            return {'CANCELLED'}
 
         return {'RUNNING_MODAL'}
 
