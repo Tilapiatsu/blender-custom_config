@@ -203,11 +203,47 @@ class VIEW3D_OT_ke_vert_count_select(bpy.types.Operator):
         return {'FINISHED'}
 
 
+class VIEW3D_OT_ke_purge(bpy.types.Operator):
+    bl_idname = "view3d.ke_purge"
+    bl_label = "Purge Unused Data"
+    bl_description = "Purge specific unused data blocks"
+    bl_options = {'REGISTER', 'UNDO'}
+
+    block_type: bpy.props.EnumProperty(
+        items=[("MESH", "Mesh", "", "MESH", 1),
+               ("MATERIAL", "Materials", "", "MATERIAL", 2),
+               ("TEXTURE", "Textures", "", "TEXTURE", 3),
+               ("IMAGE", "Images", "", "IMAGE", 4)],
+        name="Purge Data",
+        default="MATERIAL")
+
+    def execute(self, context):
+        if self.block_type == "MESH":
+            for block in bpy.data.meshes:
+                if block.users == 0:
+                    bpy.data.meshes.remove(block)
+        elif self.block_type == "MATERIAL":
+            for block in bpy.data.materials:
+                if block.users == 0:
+                    bpy.data.materials.remove(block)
+        elif self.block_type == "TEXTURE":
+            for block in bpy.data.textures:
+                if block.users == 0:
+                    bpy.data.textures.remove(block)
+        elif self.block_type == "IMAGE":
+            for block in bpy.data.images:
+                if block.users == 0:
+                    bpy.data.images.remove(block)
+
+        return {'FINISHED'}
+
+
 # -------------------------------------------------------------------------------------------------
 # Class Registration & Unregistration
 # -------------------------------------------------------------------------------------------------
 classes = (VIEW3D_OT_ke_clean,
            VIEW3D_OT_ke_vert_count_select,
+           VIEW3D_OT_ke_purge,
            )
 
 

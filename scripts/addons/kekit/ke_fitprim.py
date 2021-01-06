@@ -2,7 +2,7 @@ bl_info = {
     "name": "keFitPrim",
     "author": "Kjell Emanuelsson",
     "category": "Modeling",
-    "version": (1, 3, 6),
+    "version": (1, 4, 0),
     "blender": (2, 80, 0),
 }
 import bpy
@@ -24,20 +24,20 @@ def draw_callback_px(self, context, pos):
         font_id = 0
         blf.enable(font_id, 4)
         blf.position(font_id, hpos, vpos + 64, 0)
-        blf.color(font_id, 0.796, 0.7488, 0.6435, 1)
+        blf.color(font_id, self.hcol[0], self.hcol[1], self.hcol[2], self.hcol[3])
         blf.size(font_id, 20, 72)
         blf.shadow(font_id, 5, 0, 0, 0, 1)
         blf.shadow_offset(font_id, 1, -1)
         blf.draw(font_id, "Cylinder Sides: " + str(val))
         blf.size(font_id, 15, 72)
         blf.position(font_id, hpos, vpos + 40, 0)
-        blf.color(font_id, 0.8, 0.8, 0.8, 1)
+        blf.color(font_id, self.tcol[0], self.tcol[1], self.tcol[2], self.tcol[3])
         blf.draw(font_id, "Increment: Mouse Wheel Up / Down")
         blf.position(font_id, hpos, vpos + 20, 0)
         blf.draw(font_id, "Apply:        LMB, RMB, Esc, Enter or Spacebar")
         blf.size(font_id, 10, 72)
         blf.position(font_id, hpos, vpos, 0)
-        blf.color(font_id, 0.5, 0.5, 0.5, 1)
+        blf.color(font_id, self.scol[0], self.scol[1], self.scol[2], self.scol[3])
         blf.draw(font_id, "Navigation: Blender (-MMB) or Ind.Std (Alt-) Defaults Pass-Through")
     else:
         return {'CANCELLED'}
@@ -152,6 +152,9 @@ class VIEW3D_OT_ke_fitprim(bpy.types.Operator):
     quadsphere_seg = 4
     mouse_pos = Vector((0, 0))
     edit_mode = ""
+    hcol = (1,1,1,1)
+    tcol = (1,1,1,1)
+    scol = (1,1,1,1)
 
     def draw(self, context):
         layout = self.layout
@@ -240,7 +243,12 @@ class VIEW3D_OT_ke_fitprim(bpy.types.Operator):
 
         return {'RUNNING_MODAL'}
 
+
     def execute(self, context):
+
+        self.hcol = context.preferences.addons['kekit'].preferences.modal_color_header
+        self.tcol = context.preferences.addons['kekit'].preferences.modal_color_text
+        self.scol = context.preferences.addons['kekit'].preferences.modal_color_subtext
 
         if self.ke_fitprim_option == "BOX" or self.ke_fitprim_option == "BOX_OBJ":
             self.boxmode, self.world = True, False
@@ -276,10 +284,7 @@ class VIEW3D_OT_ke_fitprim(bpy.types.Operator):
         if self.edit_mode == "EDIT_MESH":
             sel_mode = [b for b in bpy.context.tool_settings.mesh_select_mode]
             other_side = []
-
-            multi_object_mode = False
-
-            sel_obj = [o for o in bpy.context.objects_in_mode if o.type == "MESH"]
+            sel_obj = [o for o in bpy.context.selected_objects if o.type == "MESH"]
             if len(sel_obj) == 2:
                 multi_object_mode = True
 
@@ -345,7 +350,7 @@ class VIEW3D_OT_ke_fitprim(bpy.types.Operator):
             if not self.edit_mode == "OBJECT":
                 bpy.ops.object.mode_set(mode="EDIT")
 
-            if hit_obj and hit_face:
+            if hit_obj and hit_face is not None:
                 self.world = False
 
                 # rounding
@@ -558,13 +563,8 @@ class VIEW3D_OT_ke_fitprim(bpy.types.Operator):
 
             # GET ISLANDS
             if multi_object_mode and active_face:
-                print (active_face, active_face2)
                 first_island = sel_verts
                 point = obj_mtx @ active_face.calc_center_median()
-
-                # firstcos = [obj_mtx @ v.co for v in sel_verts]
-                # secondcos = [obj_mtx2 @ v.co for v in sel_verts2]
-                # todo: Oopsie doopsie - cant just feed random cos to the plane calc ;> rewrite at some point. for now:
                 firstcos = [obj_mtx @ v.co for v in active_face.verts]
                 secondcos = [obj_mtx2 @ v.co for v in active_face2.verts]
 
@@ -581,11 +581,19 @@ class VIEW3D_OT_ke_fitprim(bpy.types.Operator):
 
             else:  # same (active) obj island selections
                 first_island, second_island = get_selection_islands(sel_poly, active_face)
+                # Ofc, needs correct order for point to plane, and I'll just rely on face.verts for that:
+                calc_island_1 = active_face.verts[:]
+                calc_island_2 = []
+                for p in sel_poly:
+                    verts = p.verts[:]
+                    for v in verts:
+                        if v in second_island:
+                            calc_island_2 = verts
+                            break
 
                 if len(first_island) != 0 and len(second_island) != 0:
-                    firstcos = [obj_mtx @ v.co for v in first_island]  # needs order sort
-                    secondcos = [obj_mtx @ v.co for v in second_island]
-                    # print (firstcos[0], secondcos[0])
+                    firstcos = [obj_mtx @ v.co for v in calc_island_1]
+                    secondcos = [obj_mtx @ v.co for v in calc_island_2]
                     distance = point_to_plane(obj_mtx @ active_face.calc_center_median(), firstcos, secondcos)
 
                     if distance:
@@ -675,10 +683,10 @@ class VIEW3D_OT_ke_fitprim(bpy.types.Operator):
                 if self.edit_mode != "OBJECT":
                     bpy.ops.object.mode_set(mode="OBJECT")
                 cursor = bpy.context.scene.cursor
-                bpy.ops.transform.select_orientation(orientation='GLOBAL')
                 og_orientation = str(context.scene.transform_orientation_slots[0].type)
                 og_cloc = [i for i in cursor.location]
                 og_crot = [i for i in cursor.rotation_euler]
+                bpy.ops.transform.select_orientation(orientation='GLOBAL')
                 cursor.location = setpos
                 cursor.rotation_euler = setrot
 
@@ -708,8 +716,7 @@ class VIEW3D_OT_ke_fitprim(bpy.types.Operator):
                 distance = side
 
                 bpy.ops.mesh.primitive_box_add(width=side, depth=side, height=distance,
-                                               align='WORLD', location=setpos, rotation=setrot)
-                # as_check = bpy.context.object.data.use_auto_smooth
+                                               align='WORLD', location=setpos, rotation=setrot, name="QuadSphere")
 
                 if self.itemize or self.edit_mode == "OBJECT":
                     bpy.ops.object.mode_set(mode="EDIT")

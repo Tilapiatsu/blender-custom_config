@@ -2,7 +2,7 @@ bl_info = {
     "name": "MouseFlip",
     "author": "Kjell Emanuelsson 2020",
     "wiki_url": "http://artbykjell.com",
-    "version": (1, 0, 0),
+    "version": (1, 1, 0),
     "blender": (2, 80, 0),
 }
 import bpy
@@ -10,22 +10,20 @@ import bmesh
 from mathutils import Vector
 from bpy.types import Operator
 from bpy_extras.view3d_utils import region_2d_to_location_3d
-from .ke_utils import average_vector, correct_normal, flatten, get_islands, rotation_from_vector
+from .ke_utils import average_vector, correct_normal, flatten, get_islands, rotation_from_vector, getset_transform, restore_transform
 
 
 class VIEW3D_OT_ke_mouse_flip(Operator):
     bl_idname = "view3d.ke_mouse_flip"
     bl_label = "Mouse Flip"
-    bl_description = "Flip (resize) selection based on relative global mouse position (over selection = Z axis etc.)"
+    bl_description = "BBox Flip(resize) selection based on relative global mouse position, or Active Element. CursorMode = Global offset"
     bl_options = {'REGISTER', 'UNDO'}
 
     center: bpy.props.EnumProperty(items=[("MEDIAN", "Selection Median", ""),
                                 ("ACTIVE", "Active Element", ""),
                                 ("CURSOR", "Cursor", "")],
-                                 name="Center", default="ACTIVE")
-
-    use_center: bpy.props.BoolProperty(name="Active/Cursor as center", default=True)
-
+                                 name="Center", default="MEDIAN")
+    use_center = False
     mouse_pos = Vector((0, 0))
 
     @classmethod
@@ -40,10 +38,21 @@ class VIEW3D_OT_ke_mouse_flip(Operator):
 
     def execute(self, context):
         sel_mode = bpy.context.tool_settings.mesh_select_mode[:]
+        og = getset_transform()
+
         obj = bpy.context.object
         obj_mtx = obj.matrix_world.copy()
         om = ((1, 0, 0), (0, 1, 0), (0, 0, 1))
         scale_value = None
+
+        if self.center != "MEDIAN":
+            self.use_center = True
+
+        # if self.center == "CURSOR":
+        #     orient = "CURSOR"
+        # else:
+        #     orient = "GLOBAL"
+        orient = "GLOBAL"  # Just globaL ONLY for now
 
         if context.object.data.is_editmode:
             mesh = obj.data
@@ -105,16 +114,9 @@ class VIEW3D_OT_ke_mouse_flip(Operator):
 
 
             elif self.center == "CURSOR":
-                cursor = context.scene.cursor
-                avg_pos = cursor.location
-                om = cursor.rotation_quaternion.to_matrix()
-                if not sum([sum(i) for i in om]) == 3.0 :
-                    scale_value = (1, 1, -1)
-
                 sel_verts = [v for v in bm.verts if v.select]
                 vcos = [obj_mtx @ v.co for v in sel_verts]
                 vpos = average_vector(vcos)
-
             else:
                 # MEDIAN
                 sel_verts = [v for v in bm.verts if v.select]
@@ -122,16 +124,19 @@ class VIEW3D_OT_ke_mouse_flip(Operator):
                 avg_pos = average_vector(sel_pos)
                 vpos = avg_pos
 
-
-        else:  # OBJECT MODE
+        # OBJECT MODE
+        else:
+            bpy.ops.object.transform_apply(location=False, rotation=True, scale=True)
             if self.center == "CURSOR":
-                cursor = context.scene.cursor
-                avg_pos = cursor.location
                 vpos = obj.location
             else:
                 vpos = obj.location
                 avg_pos = vpos
 
+        # Edit and Object mode
+        if self.center == "CURSOR":
+            cursor = context.scene.cursor
+            avg_pos = cursor.location
 
         if not scale_value:
             # GET SCREEN POS
@@ -150,9 +155,9 @@ class VIEW3D_OT_ke_mouse_flip(Operator):
             else:
                 scale_value = (-1, 1, 1)
 
-        bpy.ops.transform.resize(value=scale_value, orient_type='GLOBAL',
+        bpy.ops.transform.resize(value=scale_value, orient_type=orient,
                                  orient_matrix= om,
-                                 orient_matrix_type='GLOBAL', constraint_axis=(False, False, False), mirror=False,
+                                 orient_matrix_type="GLOBAL", constraint_axis=(False, False, False), mirror=False,
                                  use_proportional_edit=False, proportional_edit_falloff='SMOOTH', proportional_size=1.0,
                                  use_proportional_connected=False, use_proportional_projected=False, snap=False,
                                  snap_target='CLOSEST', snap_point=(0.0, 0.0, 0.0), snap_align=False,
@@ -161,8 +166,19 @@ class VIEW3D_OT_ke_mouse_flip(Operator):
                                  use_accurate=False)
 
         if context.object.data.is_editmode:
-            bpy.ops.mesh.normals_make_consistent(inside=False)
+            # bpy.ops.mesh.normals_make_consistent(inside=False)
+            bpy.ops.mesh.flip_normals()
 
+        else:
+            bpy.ops.object.transform_apply(location=False, rotation=False, scale=True)
+            bpy.ops.object.editmode_toggle()
+            bpy.ops.mesh.select_all(action='SELECT')
+            # bpy.ops.mesh.flip_normals()
+            bpy.ops.mesh.normals_make_consistent(inside=False)
+            bpy.ops.object.editmode_toggle()
+
+        restore_transform(og)
+        bpy.ops.ed.undo_push()
         return {'FINISHED'}
 
 # -------------------------------------------------------------------------------------------------

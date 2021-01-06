@@ -32,12 +32,6 @@ class VIEW3D_OT_ke_get_set_editmesh(Operator):
 
             best_original = best_obj.original
 
-            if context.space_data.local_view and og_obj != best_original:
-                visible = [obj for obj in context.visible_objects if obj.type == 'MESH']
-                if best_original not in visible:
-                    bpy.ops.object.mode_set(mode=sel_mode)
-                    return {'CANCELLED'}
-
             if og_obj == best_original:
                 context.view_layer.objects.active = og_obj
                 bpy.ops.object.mode_set(mode='EDIT')

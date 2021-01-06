@@ -50,11 +50,12 @@ from bpy.props import (
     EnumProperty,
     FloatProperty,
     FloatVectorProperty,
+    StringProperty
 )
 
 
 class MESH_OT_primitve_box_add(bpy.types.Operator):
-    """Add a simple box mesh"""
+    """note:  Spelling error left intentionally to avoid op clash - just using this for quadshpere now"""
     bl_idname = "mesh.primitive_box_add"
     bl_label = "Box"
     bl_description = "Creates a Box Primitive. Cube tool, but with more settings. (from Blender Default Template) \n" \
@@ -84,6 +85,11 @@ class MESH_OT_primitve_box_add(bpy.types.Operator):
         description="Object Layers",
         size=20,
         options={'HIDDEN', 'SKIP_SAVE'},
+    )
+    name: StringProperty(
+        name="Name",
+        description="Name",
+        default="Box",
     )
 
     # generic transform props
@@ -116,7 +122,7 @@ class MESH_OT_primitve_box_add(bpy.types.Operator):
             self.depth,
         )
 
-        mesh = bpy.data.meshes.new("Box")
+        mesh = bpy.data.meshes.new(self.name)
 
         bm = bmesh.new()
 
@@ -145,12 +151,12 @@ def menu_func(self, context):
 
 def register():
     bpy.utils.register_class(MESH_OT_primitve_box_add)
-    bpy.types.VIEW3D_MT_mesh_add.append(menu_func)
+    # bpy.types.VIEW3D_MT_mesh_add.append(menu_func)
 
 
 def unregister():
     bpy.utils.unregister_class(MESH_OT_primitve_box_add)
-    bpy.types.VIEW3D_MT_mesh_add.remove(menu_func)
+    # bpy.types.VIEW3D_MT_mesh_add.remove(menu_func)
 
 
 if __name__ == "__main__":

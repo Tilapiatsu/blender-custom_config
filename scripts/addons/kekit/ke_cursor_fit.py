@@ -75,6 +75,9 @@ class VIEW3D_OT_cursor_fit_selected_and_orient(bpy.types.Operator):
                 sel_poly = [p for p in bm.faces if p.select]
 
                 if sel_poly:
+
+                    # sel_islands = get_islands(bm, sel_verts)
+
                     v_normals = [p.normal for p in sel_poly]
                     v_tan = [p.calc_tangent_edge_pair() for p in sel_poly]
                     face = sel_poly[-1]
@@ -87,6 +90,11 @@ class VIEW3D_OT_cursor_fit_selected_and_orient(bpy.types.Operator):
                     else:
                         ps = [v.co for v in sel_verts]
                         pos = obj_mtx @ average_vector(ps)
+
+                    # fallback for all faces selected type of scenarios
+                    if sum(normal) == 0:
+                        normal = Vector((0,0,1))
+                        tangent = Vector((1,0,0))
 
                     rot_mtx = rotation_from_vector(normal, tangent, rw=False)
                     set_cursor(rot_mtx, pos=pos)
@@ -266,6 +274,7 @@ class VIEW3D_OT_cursor_fit_selected_and_orient(bpy.types.Operator):
 
         # OBJECT MODE -----------------------------------------------------------------------
         elif bpy.context.mode == "OBJECT":
+            sel_obj = [o for o in context.selected_objects]
             hit_obj, hit_wloc, hit_normal, hit_face = mouse_raycast(context, self.mouse_pos)
 
             if hit_normal and hit_obj:
@@ -282,6 +291,10 @@ class VIEW3D_OT_cursor_fit_selected_and_orient(bpy.types.Operator):
                 rot_mtx = rotation_from_vector(normal, tangent, rw=False)
                 rot_mtx = obj_mtx @ rot_mtx
                 set_cursor(rot_mtx, pos=pos)
+
+            elif sel_obj and not hit_normal:
+                context.scene.cursor.location = sel_obj[0].location
+                context.scene.cursor.rotation_euler = sel_obj[0].rotation_euler
 
             else:
                 bpy.ops.view3d.snap_cursor_to_center()

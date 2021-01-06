@@ -8,10 +8,10 @@ bl_info = {
 
 import bpy
 import bmesh
-from math import copysign
 from mathutils import Vector
 from bpy.types import Operator
 from .ke_utils import get_loops, mouse_raycast, get_selected
+from bpy_extras.view3d_utils import region_2d_to_location_3d
 
 # from bpy.props import EnumProperty
 # import rna_keymap_ui
@@ -473,9 +473,11 @@ class VIEW3D_OT_ke_vptransform(Operator):
 			   ("COPYGRAB", "Duplcate & Move", "", "COPYGRAB", 4),
 			   ],
 		name="Transform",
-		default="TRANSLATE")
-
+		default="ROTATE")
 	world_only: bpy.props.BoolProperty(default=True)
+	rot_got: bpy.props.BoolProperty(default=True)
+	loc_got: bpy.props.BoolProperty(default=False)
+	scl_got: bpy.props.BoolProperty(default=False)
 
 	@classmethod
 	def poll(cls, context):
@@ -483,22 +485,55 @@ class VIEW3D_OT_ke_vptransform(Operator):
 
 	def execute(self, context):
 		self.world_only = bpy.context.scene.kekit.vptransform
+		self.rot_got = bpy.context.scene.kekit.rot_got
+		self.loc_got = bpy.context.scene.kekit.loc_got
+		self.scl_got = bpy.context.scene.kekit.scl_got
+
 		if self.world_only:
+			# set Global
 			bpy.ops.transform.select_orientation(orientation='GLOBAL')
+			og_transform = "GLOBAL"
+		else:
+			# check current transform
+			og_transform = str(context.scene.transform_orientation_slots[0].type)
+
+		# Get Viewplane
 		rm = context.space_data.region_3d.view_matrix
 		v = Vector(rm[2])
-
-		xz,xy,yz = Vector((0,1,0)), Vector((0,0,1)), Vector((1,0,0))
-
-		dic = {(True,False,True): abs(xz.dot(v)), (True,True,False): abs(xy.dot(v)), (False,True,True): abs(yz.dot(v))}
+		xz, xy, yz = Vector((0, 1, 0)), Vector((0, 0, 1)), Vector((1, 0, 0))
+		dic = {(True, False, True): abs(xz.dot(v)), (True, True, False): abs(xy.dot(v)),
+			   (False, True, True): abs(yz.dot(v))}
 		vplane = sorted(dic, key=dic.get)[-1]
 
+		# Set Transforms
 		if self.transform == 'TRANSLATE':
-			bpy.ops.transform.translate('INVOKE_DEFAULT', constraint_axis=vplane)
+			if self.loc_got:
+				if og_transform == "GLOBAL":
+					bpy.ops.transform.translate('INVOKE_DEFAULT', constraint_axis=vplane)
+				else:
+					bpy.ops.wm.tool_set_by_id(name="builtin.move")
+			else:
+				bpy.ops.transform.translate('INVOKE_DEFAULT', constraint_axis=vplane)
+
 		elif self.transform == 'ROTATE':
-			bpy.ops.transform.rotate('INVOKE_DEFAULT', constraint_axis=vplane)
+			if self.rot_got:
+				if og_transform == "GLOBAL":
+					bpy.ops.transform.rotate('INVOKE_DEFAULT', constraint_axis=vplane)
+				else:
+					bpy.ops.wm.tool_set_by_id(name="builtin.rotate")
+			else:
+				bpy.ops.transform.rotate('INVOKE_DEFAULT', constraint_axis=vplane)
+
 		elif self.transform == 'RESIZE':
-			bpy.ops.transform.resize('INVOKE_DEFAULT', constraint_axis=vplane)
+			if self.scl_got:
+				if og_transform == "GLOBAL":
+					bpy.ops.transform.resize('INVOKE_DEFAULT', constraint_axis=vplane)
+				else:
+					bpy.ops.wm.tool_set_by_id(name="builtin.scale")
+			else:
+				bpy.ops.transform.resize('INVOKE_DEFAULT', constraint_axis=vplane)
+
+		# Copygrab
 		elif self.transform == 'COPYGRAB':
 			if context.mode == 'EDIT_MESH' and context.object.type == 'MESH':
 				bpy.ops.mesh.duplicate('INVOKE_DEFAULT')
@@ -507,59 +542,6 @@ class VIEW3D_OT_ke_vptransform(Operator):
 			else:
 				return {'CANCELLED'}
 			bpy.ops.transform.translate('INVOKE_DEFAULT', constraint_axis=vplane)
-
-		return {'FINISHED'}
-
-
-class VIEW3D_OT_ke_view_align_snap(Operator):
-	bl_idname = "view3d.ke_view_align_snap"
-	bl_label = "View Align Snap"
-	bl_description = "Snap view to nearest Ortho. Contextual variant: To selected (toggle) if anything is selected."
-	bl_options = {'REGISTER'}
-
-	contextual: bpy.props.BoolProperty(default=False)
-
-	def execute(self, context):
-		sel = []
-		slot = []
-		if self.contextual:
-			slot = bpy.context.scene.ke_vtoggle
-			obj = get_selected(context)
-			if obj:
-				obj.update_from_editmode()
-				sel = [v for v in obj.data.vertices if v.select]
-
-		# ALIGN TO SELECTED (TOGGLE)
-		if sel or sum(slot) != 0:
-			bpy.ops.view3d.ke_view_align_toggle()
-		# OR SNAP TO NEAREST ORTHO
-		else:
-			rm = context.space_data.region_3d.view_matrix
-			v = Vector(rm[2])
-			x, y, z = abs(v.x), abs(v.y), abs(v.z)
-
-			if x > y and x > z:
-				axis = copysign(1, v.x), 0, 0
-			elif y > x and y > z:
-				axis = 0, copysign(1, v.y), 0
-			else:
-				axis = 0, 0, copysign(1, v.z)
-
-			# Negative: FRONT (-Y), LEFT(-X), BOTTOM (-Z)
-			if sum(axis) < 0:
-				if bool(axis[2]):
-					bpy.ops.view3d.view_axis(type='BOTTOM')
-				elif bool(axis[1]):
-					bpy.ops.view3d.view_axis(type='FRONT')
-				else:
-					bpy.ops.view3d.view_axis(type='LEFT')
-			else:
-				if bool(axis[2]):
-					bpy.ops.view3d.view_axis(type='TOP')
-				elif bool(axis[1]):
-					bpy.ops.view3d.view_axis(type='BACK')
-				else:
-					bpy.ops.view3d.view_axis(type='RIGHT')
 
 		return {'FINISHED'}
 
@@ -581,7 +563,6 @@ classes = (
 	VIEW3D_OT_ke_selmode,
 	VIEW3D_OT_ke_vptransform,
 	MESH_OT_ke_contextslide,
-	VIEW3D_OT_ke_view_align_snap
 )
 
 

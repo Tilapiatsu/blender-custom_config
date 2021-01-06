@@ -12,7 +12,7 @@ import bpy
 class MESH_OT_ke_copyplus(bpy.types.Operator):
     bl_idname = "mesh.ke_copyplus"
     bl_label = "CopyPlus"
-    bl_description = "Cut or Copy face selection (to temporary cache) and paste into another object."
+    bl_description = "Cut+ or Copy+ face selection (to temporary cache) then Paste+ into another object."
     bl_options = {'REGISTER', 'UNDO'}
 
     mode: bpy.props.EnumProperty(
