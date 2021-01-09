@@ -247,3 +247,6 @@
 [submodule "scrips/addons/viewport_timeline_scrub"]
 	path = scrips/addons/viewport_timeline_scrub
 	url = https://github.com/Pullusb/viewport_timeline_scrub.git
+[submodule "scrips/addons/abnormal"]
+	path = scrips/addons/abnormal
+	url = https://github.com/bnpr/Abnormal.git
