@@ -1057,6 +1057,7 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		self.tool_sculpt('gpencil.sculptmode_toggle')
 
 		self.isolate()
+		self.kmi_set_replace('animation.time_scrub', self.k_menu, 'PRESS', shift=True)
 
 		###### Grease Pencil Stroke Edit Mode
 		self.kmi_init(name='Grease Pencil Stroke Edit Mode', space_type='EMPTY', region_type='WINDOW')
@@ -1147,7 +1148,7 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		self.kmi_init(name='Frames', space_type='EMPTY', region_type='WINDOW')
 		self.global_keys()
 		self.right_mouse()
-		self.kmi_set_replace('screen.animation_play', 'SPACE', 'PRESS', ctrl=True, shift=True,  properties=[('reverse', True)])
+		self.kmi_set_replace('screen.animation_play', 'SPACE', 'PRESS', ctrl=True, shift=True,  properties=[('reverse', False)])
 
 		###### Screen
 		self.kmi_init(name='Screen', space_type='EMPTY', region_type='WINDOW')
