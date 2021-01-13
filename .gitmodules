@@ -241,9 +241,6 @@
 [submodule "scripts/addons/ImagePaste"]
 	path = scripts/addons/ImagePaste
 	url = https://github.com/Yeetus3141/ImagePaste.git
-[submodule "scripts/addons/viewport_timeline_scrub"]
-	path = scripts/addons/viewport_timeline_scrub
-	url = https://github.com/Pullusb/viewport_timeline_scrub.git
 [submodule "scripts/addons/Abnormal"]
 	path = scripts/addons/Abnormal
 	url = https://github.com/bnpr/Abnormal.git
