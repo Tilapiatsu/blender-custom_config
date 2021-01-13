@@ -65,7 +65,8 @@ modules =   (
 			'vertex_color_master',
 			'BakeWrangler',
 			'atomic_data_manager',
-			'ImagePaste'
+			'ImagePaste',
+			'viewport_timeline_scrub',
 			# 'ZWeightTools-1_0_1',
 			# 'W_Mesh',
 			'uvpackmaster2',
@@ -141,6 +142,10 @@ def register():
 	# # kekit
 	# addon = context.preferences.addons.get('kekit')
 	# addon.preferences.category = 'Tools'
+
+	# # viewport_timeline_scrub
+	addon = context.preferences.addons.get('viewport_timeline_scrub')
+	addon.preferences.keycode = 'SPACE'
 
 def unregister():
 	# disabling addons
