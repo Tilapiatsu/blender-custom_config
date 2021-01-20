@@ -649,6 +649,7 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		self.kmi_set_replace('mesh.bridge_edge_loops', 'B', 'PRESS', shift=True)
 		self.kmi_set_replace('mesh.edge_collapse', 'DEL', 'PRESS', shift=True)
 		self.kmi_set_replace('mesh.fill', 'P', 'PRESS', shift=True, properties=[('use_beauty', True)])
+		self.kmi_set_replace('mesh.fill_grid', 'P', 'PRESS', alt=True, properties=[('use_interp_simple', False)])
 		self.kmi_set_replace('mesh.edge_face_add', 'P', 'PRESS')
 		self.kmi_set_replace('mesh.flip_normals', 'F', 'PRESS')
 		self.kmi_set_replace('mesh.subdivide', 'D', 'PRESS')
