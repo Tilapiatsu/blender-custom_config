@@ -250,3 +250,6 @@
 [submodule "scripts/addons/Shader-to-OpenVDB"]
 	path = scripts/addons/Shader-to-OpenVDB
 	url = https://github.com/joshuabloemer/Shader-to-OpenVDB.git
+[submodule "scripts/GIT/HEAVYPOLY"]
+	path = scripts/GIT/HEAVYPOLY
+	url = https://github.com/HEAVYPOLY/HEAVYPOLY_Blender.git
