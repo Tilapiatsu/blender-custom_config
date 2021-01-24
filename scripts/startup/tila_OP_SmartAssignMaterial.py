@@ -11,7 +11,7 @@ bl_info = {
 }
 
 
-class SmartMaterialAssignOperator(bpy.types.Operator):
+class TILA_SmartMaterialAssignOperator(bpy.types.Operator):
     bl_idname = "object.tila_smart_assign_material"
     bl_label = "TILA: Assign material to selected faces or objects"
     bl_options = {'REGISTER', 'UNDO'}
@@ -52,14 +52,9 @@ class SmartMaterialAssignOperator(bpy.types.Operator):
 
 addon_keymaps = []
 
+classes = (TILA_SmartMaterialAssignOperator,)
 
-def register():
-    pass
-
-
-def unregister():
-    pass
-
+register, unregister = bpy.utils.register_classes_factory(classes)
 
 if __name__ == "__main__":
     register()

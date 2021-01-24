@@ -9,7 +9,7 @@ bl_info = {
 }
 
 
-class OutlinerSelectHierarchy(bpy.types.Operator):
+class TILA_OutlinerSelectHierarchy(bpy.types.Operator):
     bl_idname = "outliner.tila_select_hierarchy"
     bl_label = "TILA: select hierarchy"
     bl_options = {'REGISTER', 'UNDO'}
@@ -19,14 +19,9 @@ class OutlinerSelectHierarchy(bpy.types.Operator):
         bpy.ops.outliner.object_operation(type='SELECT_HIERARCHY')
         return {'FINISHED'}
 
+classes = (TILA_OutlinerSelectHierarchy,)
 
-def register():
-    pass
-
-
-def unregister():
-    pass
-
+register, unregister = bpy.utils.register_classes_factory(classes)
 
 if __name__ == "__main__":
     register()

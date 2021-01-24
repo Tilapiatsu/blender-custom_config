@@ -9,7 +9,7 @@ bl_info = {
 }
 
 
-class ToggleUseAutoMergeOperator(bpy.types.Operator):
+class TILA_ToggleUseAutoMergeOperator(bpy.types.Operator):
     bl_idname = "mesh.toggle_use_automerge"
     bl_label = "TILA: Toggle Use Automerge"
     bl_options = {'REGISTER', 'UNDO'}
@@ -18,14 +18,9 @@ class ToggleUseAutoMergeOperator(bpy.types.Operator):
         bpy.context.scene.tool_settings.use_mesh_automerge = not bpy.context.scene.tool_settings.use_mesh_automerge
         return {'FINISHED'}
 
+classes = (TILA_ToggleUseAutoMergeOperator,)
 
-def register():
-    pass
-
-
-def unregister():
-    pass
-
+register, unregister = bpy.utils.register_classes_factory(classes)
 
 if __name__ == "__main__":
     register()

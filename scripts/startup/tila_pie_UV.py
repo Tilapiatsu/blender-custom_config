@@ -33,21 +33,11 @@ class TILA_MT_pie_uv(Menu):
             pie.operator('uv.unwrap', icon='MOD_UVPROJECT', text='Unwrap')
 
 
-
-
 classes = (
-    TILA_MT_pie_uv
+    TILA_MT_pie_uv,
 )
-# register, unregister = bpy.utils.register_classes_factory(classes)
 
-
-def register():
-    pass
-
-
-def unregister():
-    pass
-
+register, unregister = bpy.utils.register_classes_factory(classes)
 
 if __name__ == "__main__":
     register()

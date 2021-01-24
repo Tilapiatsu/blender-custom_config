@@ -45,7 +45,16 @@ copy "..\GIT\advanced_transform\advanced_transform_2_8.py" .
 copy "..\GIT\Asset-Creation-Toolset\Asset_Creation_Toolset_2_6_1_281.py" .
 copy "..\GIT\oscuart\oscurart_edit_split_normals.py" .
 copy "..\GIT\oscuart\oscurart_bake_pbr.py" .
-copy "..\GIT\\Export-Paper-Model\object_convert_to_armature.py" .
+copy "..\GIT\Export-Paper-Model\object_convert_to_armature.py" .
 robocopy "..\GIT\bpy_photogrametry\io_mesh_fast_obj" "io_mesh_fast_obj" %param%
+
+copy "..\GIT\HEAVYPOLY\scripts\startup\HEAVYPOLY_OPERATORS.py" "..\startup\"
+copy "..\GIT\HEAVYPOLY\scripts\startup\HEAVYPOLY_pie_rotate_90.py" "..\startup\"
+copy "..\GIT\HEAVYPOLY\scripts\startup\HEAVYPOLY_pie_areas.py" "..\startup\"
+copy "..\GIT\HEAVYPOLY\scripts\startup\HEAVYPOLY_pie_symmetry.py" "..\startup\"
+copy "..\GIT\HEAVYPOLY\scripts\startup\HEAVYPOLY_pie_add.py" "..\startup\"
+copy "..\GIT\HEAVYPOLY\scripts\startup\HEAVYPOLY_pie_boolean.py" "..\startup\"
+copy "..\GIT\HEAVYPOLY\scripts\startup\HEAVYPOLY_select_through_border.py" "..\startup\"
+copy "..\GIT\HEAVYPOLY\scripts\startup\jmQuickPipe.py" "..\startup\"
 
 pause

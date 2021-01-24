@@ -21,12 +21,11 @@ bl_info = {
     "category" : "Preferences"
 }
 
-from . import auto_load
+from . import tila_keymaps
 
-auto_load.init()
 
 def register():
-    auto_load.register()
+    tila_keymaps.register()
 
 def unregister():
-    auto_load.unregister()
+    tila_keymaps.unregister()

@@ -2,7 +2,7 @@ import bpy
 from mathutils import *
 
 
-class OobjectDuplicateOperator(bpy.types.Operator):
+class TILA_ObjectDuplicateOperator(bpy.types.Operator):
     bl_idname = "object.tila_duplicate"
     bl_label = "TILA: Duplicate Object"
     bl_options = {'REGISTER', 'UNDO'}
@@ -30,15 +30,9 @@ class OobjectDuplicateOperator(bpy.types.Operator):
 
         return {'FINISHED'}
 
+classes = (TILA_ObjectDuplicateOperator,)
 
-
-def register():
-    pass
-
-
-def unregister():
-    pass
-
+register, unregister = bpy.utils.register_classes_factory(classes)
 
 if __name__ == "__main__":
     register()

@@ -2,7 +2,7 @@ import bpy
 import re
 
 
-class CopyMirrorVertexGroup(bpy.types.Operator):
+class TILA_CopyMirrorVertexGroup(bpy.types.Operator):
     bl_idname = "object.tila_copy_mirror_vertex_group"
     bl_label = "TILA: Copy and Mirror Vertex Group"
     bl_options = {'REGISTER', 'UNDO'}
@@ -62,13 +62,9 @@ def menu_draw(self, context):
 
 bpy.types.MESH_MT_vertex_group_context_menu.append(menu_draw)
 
+classes = (TILA_CopyMirrorVertexGroup,)
 
-def register():
-    pass
-
-
-def unregister():
-    pass
+register, unregister = bpy.utils.register_classes_factory(classes)
 
 
 if __name__ == "__main__":

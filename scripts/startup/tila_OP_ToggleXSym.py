@@ -9,7 +9,7 @@ bl_info = {
 }
 
 
-class ToggleXSymOperator(bpy.types.Operator):
+class TILA_ToggleXSymOperator(bpy.types.Operator):
 	bl_idname = "view3d.toggle_x_symetry"
 	bl_label = "TILA: Toggle X Symetry"
 	bl_options = {'REGISTER', 'UNDO'}
@@ -19,14 +19,9 @@ class ToggleXSymOperator(bpy.types.Operator):
 		self.report({'INFO'}, 'X Symetry {}'.format('ON' if context.object.data.use_mirror_x else 'OFF'))
 		return {'FINISHED'}
 
+classes = (TILA_ToggleXSymOperator,)
 
-def register():
-	pass
-
-
-def unregister():
-	pass
-
+register, unregister = bpy.utils.register_classes_factory(classes)
 
 if __name__ == "__main__":
-	register()
+    register()

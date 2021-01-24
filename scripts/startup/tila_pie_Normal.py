@@ -452,20 +452,19 @@ class TILA_OT_smoothNormal(bpy.types.Operator):
 
 classes = (
     TILA_MT_pie_normal,
-    TILA_OT_autoSmooth
-
-
+    TILA_OT_selectBorderEdges,
+    TILA_OT_normalflatten,
+    TILA_OT_normalaverage,
+    TILA_OT_normaluseface,
+    TILA_OT_normalsmoothen,
+    TILA_OT_smartsplit,
+    TILA_OT_normalsmartmerge,
+    TILA_OT_autoSmooth,
+    TILA_OT_splitNormal,
+    TILA_OT_smoothNormal
 )
-# register, unregister = bpy.utils.register_classes_factory(classes)
 
-
-def register():
-    pass
-
-
-def unregister():
-    pass
-
+register, unregister = bpy.utils.register_classes_factory(classes)
 
 if __name__ == "__main__":
     register()

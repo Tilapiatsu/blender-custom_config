@@ -251,16 +251,9 @@ classes = (
 	TILA_multires_delete_subdiv,
 	TILA_multires_apply_base
 )
-# register, unregister = bpy.utils.register_classes_factory(classes)
 
 
-def register():
-	pass
-
-
-def unregister():
-	pass
-
+register, unregister = bpy.utils.register_classes_factory(classes)
 
 if __name__ == "__main__":
-	register()
+    register()

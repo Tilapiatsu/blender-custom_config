@@ -62,17 +62,11 @@ class TILA_brush_select_and_paint(bpy.types.Operator):
 
 
 classes = (
-    TILA_brush_select_and_paint
+    TILA_brush_select_and_paint,
 )
-# register, unregister = bpy.utils.register_classes_factory(classes)
 
 
-def register():
-    pass
-
-
-def unregister():
-    pass
+register, unregister = bpy.utils.register_classes_factory(classes)
 
 
 if __name__ == "__main__":

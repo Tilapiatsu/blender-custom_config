@@ -51,18 +51,10 @@ class TILA_smart_join(bpy.types.Operator):
 		return {'FINISHED'}
 
 classes = (
-	TILA_smart_join
+	TILA_smart_join,
 )
-# register, unregister = bpy.utils.register_classes_factory(classes)
 
-
-def register():
-	pass
-
-
-def unregister():
-	pass
-
+register, unregister = bpy.utils.register_classes_factory(classes)
 
 if __name__ == "__main__":
-	register()
+    register()

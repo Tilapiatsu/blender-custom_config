@@ -47,7 +47,10 @@ scripts/addons/space_view3d_point_cloud_visualizer.py
 scripts/addons/advanced_transform_2_8.py
 scripts/addons/Asset_Creation_Toolset_2_6_1_281.py
 scripts/presets/bkit.json
+scripts/startup/HEAVYPOLY*
+scripts/startup/jmQuickPipe.py
 
 scripts/addons/blenderbezierutils.py
 config/platform_support.txt
 datafiles/colormanagement/*
+
