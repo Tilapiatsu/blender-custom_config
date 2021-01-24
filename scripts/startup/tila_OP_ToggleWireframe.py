@@ -9,7 +9,7 @@ bl_info = {
 }
 
 
-class ToggleWireframe(bpy.types.Operator):
+class TILA_ToggleWireframe(bpy.types.Operator):
     bl_idname = "view3d.toggle_wireframe"
     bl_label = "TILA: Toggle Wireframe"
     bl_options = {'REGISTER', 'UNDO'}
@@ -40,14 +40,9 @@ class ToggleWireframe(bpy.types.Operator):
 
         return {'FINISHED'}
 
+classes = (TILA_ToggleWireframe,)
 
-def register():
-    pass
-
-
-def unregister():
-    pass
-
+register, unregister = bpy.utils.register_classes_factory(classes)
 
 if __name__ == "__main__":
     register()

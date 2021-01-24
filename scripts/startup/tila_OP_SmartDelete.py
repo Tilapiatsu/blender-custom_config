@@ -9,7 +9,7 @@ bl_info = {
 }
 
 
-class SmartDeleteOperator(bpy.types.Operator):
+class TILA_SmartDeleteOperator(bpy.types.Operator):
     bl_idname = "object.tila_smartdelete"
     bl_label = "TILA: Smart Delete"
     bl_options = {'REGISTER', 'UNDO'}
@@ -61,40 +61,9 @@ class SmartDeleteOperator(bpy.types.Operator):
 
 addon_keymaps = []
 
+classes = (TILA_SmartDeleteOperator,)
 
-def register():
-    pass
-    # # handle the keymap
-    # wm = bpy.context.window_manager
-    # # Note that in background mode (no GUI available), keyconfigs are not available either,
-    # # so we have to check this to avoid nasty errors in background case.
-    # kc = wm.keyconfigs.addon
-    # if kc:
-    #     km = [kc.keymaps.new(name='3D View', space_type='VIEW_3D'),
-    #           kc.keymaps.new(name='Outliner', space_type='OUTLINER'),
-    #           kc.keymaps.new(name='File Browser', space_type='FILE_BROWSER')]
-
-    #     kmi = [km[0].keymap_items.new(SmartDeleteOperator.bl_idname, 'DEL', 'PRESS'),
-    #            km[1].keymap_items.new(SmartDeleteOperator.bl_idname, 'DEL', 'PRESS'),
-    #            km[2].keymap_items.new(SmartDeleteOperator.bl_idname, 'DEL', 'PRESS')]
-
-    #     for i in range(len(km)):
-    #         addon_keymaps.append(km[i])
-
-
-def unregister():
-    pass
-    # wm = bpy.context.window_manager
-    # for km in addon_keymaps:
-    #     for kmi in km.keymap_items:
-    #         km.keymap_items.remove(kmi)
-    #     wm.keyconfigs.addon.keymaps.remove(km)
-    # addon_keymaps.clear()
-
+register, unregister = bpy.utils.register_classes_factory(classes)
 
 if __name__ == "__main__":
-    try:
-        unregister()
-    except:
-        pass
     register()

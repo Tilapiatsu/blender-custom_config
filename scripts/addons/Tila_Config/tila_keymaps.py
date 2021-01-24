@@ -1223,19 +1223,13 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 
 
 keymap_List = {}
+
 def register():
 	TK = TilaKeymaps()
 	TK.set_tila_keymap()
 
 	keymap_List['new'] = TK.keymap_List['new']
 	keymap_List['replaced'] = TK.keymap_List['replaced']
-	# print("----------------------------------------------------------------")
-	# print("Disabling redundant keymap ")
-	# print("----------------------------------------------------------------")
-	# print("")
-	# for kmi in TK.keymap_List["disable"]:
-	# 	print("Disabling '{}'".format(kmi.name))
-	# 	kmi.active = False
 
 def unregister():
 	print("----------------------------------------------------------------")

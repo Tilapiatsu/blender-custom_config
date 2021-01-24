@@ -166,18 +166,11 @@ class TILA_smart_editmode(bpy.types.Operator):
 
 
 classes = (
-    TILA_smart_editmode
+    TILA_smart_editmode,
 )
-# register, unregister = bpy.utils.register_classes_factory(classes)
 
 
-def register():
-    pass
-
-
-def unregister():
-    pass
-
+register, unregister = bpy.utils.register_classes_factory(classes)
 
 if __name__ == "__main__":
     register()

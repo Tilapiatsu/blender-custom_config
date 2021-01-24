@@ -2,7 +2,7 @@ import bpy
 from mathutils import *
 
 
-class EmptyMeshOperator(bpy.types.Operator):
+class TILA_EmptyMeshOperator(bpy.types.Operator):
     bl_idname = "object.tila_emptymesh"
     bl_label = "TILA: Empty Mesh"
     bl_options = {'REGISTER', 'UNDO'}
@@ -38,30 +38,16 @@ class EmptyMeshOperator(bpy.types.Operator):
 
 addon_keymaps = []
 
+classes = (TILA_EmptyMeshOperator,)
 
 def register():
-    pass
-    # handle the keymap
-    wm = bpy.context.window_manager
-    # Note that in background mode (no GUI available), keyconfigs are not available either,
-    # so we have to check this to avoid nasty errors in background case.
-    kc = wm.keyconfigs.addon
-    if kc:
-        km = [kc.keymaps.new(name='3D View', space_type='VIEW_3D'),
-              kc.keymaps.new(name='Outliner', space_type='OUTLINER'),
-              kc.keymaps.new(name='File Browser', space_type='FILE_BROWSER')]
-        kmi = [km[0].keymap_items.new(EmptyMeshOperator.bl_idname, 'N', 'PRESS', shift=True, ctrl=True, alt=True),
-               km[1].keymap_items.new(EmptyMeshOperator.bl_idname, 'N', 'PRESS', shift=True, ctrl=True, alt=True),
-               km[2].keymap_items.new(EmptyMeshOperator.bl_idname, 'N', 'PRESS', shift=True, ctrl=True, alt=True)]
-        for i in range(len(km)):
-            addon_keymaps.append((km[i], kmi[i]))
+    for c in classes:
+        bpy.utils.register_class(c)
 
 
 def unregister():
-    pass
-    for km, kmi in addon_keymaps:
-        km.keymap_items.remove(kmi)
-    addon_keymaps.clear()
+    for c in classes:
+        bpy.utils.unregister_class(c)
 
 
 if __name__ == "__main__":

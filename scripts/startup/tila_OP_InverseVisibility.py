@@ -9,7 +9,7 @@ bl_info = {
 }
 
 
-class ToggleXSymOperator(bpy.types.Operator):
+class TILA_InverseVisibility(bpy.types.Operator):
     bl_idname = "view3d.tila_inverse_visibility"
     bl_label = "TILA: Inverse Visibility"
     bl_options = {'REGISTER', 'UNDO'}
@@ -38,12 +38,11 @@ class ToggleXSymOperator(bpy.types.Operator):
         bpy.ops.mesh.select_all(action='INVERT')
         bpy.ops.mesh.hide(unselected=False)
 
-def register():
-    pass
+
+classes = (TILA_InverseVisibility,)
 
 
-def unregister():
-    pass
+register, unregister = bpy.utils.register_classes_factory(classes)
 
 
 if __name__ == "__main__":

@@ -61,18 +61,11 @@ class TILA_select_through(bpy.types.Operator):
 
 
 classes = (
-    TILA_select_through
+    TILA_select_through,
 )
-# register, unregister = bpy.utils.register_classes_factory(classes)
 
 
-def register():
-    pass
-
-
-def unregister():
-    pass
-
+register, unregister = bpy.utils.register_classes_factory(classes)
 
 if __name__ == "__main__":
     register()

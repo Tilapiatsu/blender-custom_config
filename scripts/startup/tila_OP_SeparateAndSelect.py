@@ -1,6 +1,6 @@
 import bpy
 
-class SeparateAndSelect(bpy.types.Operator):
+class TILA_SeparateAndSelect(bpy.types.Operator):
     bl_idname = "mesh.separate_and_select"        # unique identifier for buttons and menu items to reference.
     bl_label = "Separate and Select"         # display name in the interface.
     bl_options = {'REGISTER', 'UNDO'}  # enable undo for the operator.
@@ -18,13 +18,9 @@ class SeparateAndSelect(bpy.types.Operator):
         bpy.ops.mesh.select_all(action='SELECT')
         return {'FINISHED'}
 
-def register():
-    pass
+classes = (TILA_SeparateAndSelect,)
 
-
-def unregister():
-    pass
-
+register, unregister = bpy.utils.register_classes_factory(classes)
 
 if __name__ == "__main__":
     register()

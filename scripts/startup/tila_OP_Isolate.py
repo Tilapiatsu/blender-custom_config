@@ -80,18 +80,10 @@ class TILA_isolate(bpy.types.Operator):
 
 
 classes = (
-    TILA_isolate
+    TILA_isolate,
 )
-# register, unregister = bpy.utils.register_classes_factory(classes)
 
-
-def register():
-    pass
-
-
-def unregister():
-    pass
-
+register, unregister = bpy.utils.register_classes_factory(classes)
 
 if __name__ == "__main__":
     register()

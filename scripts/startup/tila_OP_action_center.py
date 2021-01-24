@@ -239,15 +239,9 @@ classes = (
     TILA_action_center,
     TILA_MT_action_center
 )
-# register, unregister = bpy.utils.register_classes_factory(classes)
 
 
-def register():
-    pass
-
-
-def unregister():
-    pass
+register, unregister = bpy.utils.register_classes_factory(classes)
 
 
 if __name__ == "__main__":

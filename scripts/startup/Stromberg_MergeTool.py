@@ -116,15 +116,16 @@ class MergeTool(bpy.types.Operator):
             self.report({'WARNING'}, "Active space must be a View3d")
             return {'CANCELLED'}
 
+classes = (MergeTool,)
 
 def register():
-    pass
-    # bpy.utils.register_class(MergeTool)
+    for c in classes:
+        bpy.utils.register_class(c)
 
 
 def unregister():
-    pass
-    # bpy.utils.unregister_class(MergeTool)
+    for c in classes:
+        bpy.utils.unregister_class(c)
 
 
 if __name__ == "__main__":

@@ -290,7 +290,7 @@ class KeymapManager():
         try:
             self.akmis = self.kca.keymaps[name].keymap_items
         except KeyError:
-            self.akmis = None
+            self.akmis = self.kca.keymaps.new(name)
 
         if not addon:
             self.km = self.kcu.keymaps.new(name, space_type=space_type, region_type=region_type, modal=modal, tool=tool)

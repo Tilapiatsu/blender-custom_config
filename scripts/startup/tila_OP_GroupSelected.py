@@ -9,7 +9,7 @@ bl_info = {
 }
 
 
-class GroupSelected(bpy.types.Operator):
+class TILA_GroupSelected(bpy.types.Operator):
 	bl_idname = "outliner.tila_group_selected"
 	bl_label = "TILA: Group Selected"
 	bl_options = {'REGISTER', 'UNDO'}
@@ -62,14 +62,10 @@ class GroupSelected(bpy.types.Operator):
 
 		return {'FINISHED'}
 
+classes = (TILA_GroupSelected,)
 
-def register():
-	pass
-
-
-def unregister():
-	pass
+register, unregister = bpy.utils.register_classes_factory(classes)
 
 
 if __name__ == "__main__":
-	register()
+    register()
