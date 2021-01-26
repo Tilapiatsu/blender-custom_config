@@ -226,7 +226,7 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 
 		#  shortest ring
 		if shortestring_tool:
-			self.kmi_set_replace(shortestring_tool, self.k_cursor, 'CLICK', ctrl=True, shift=True, disable_double=True, properties=[('use_fill', False), ('use_face_step', True), ('use_topology_distance', False)])
+			self.kmi_set_replace(shortestring_tool, self.k_cursor, 'CLICK', shift=True, disable_double=True, properties=[('use_fill', False), ('use_face_step', True), ('use_topology_distance', False)])
 
 		# Loop Select / Deselect / Add
 		if loop_tool:
@@ -237,7 +237,7 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		# Ring Select / Deselect / Add
 		if ring_tool:
 			self.kmi_set_replace(ring_tool, self.k_cursor, 'CLICK', ctrl=True, properties=[('ring', True), ('deselect', True), ('extend', False), ('toggle', False)], disable_double=True)
-			self.kmi_set_replace(ring_tool, self.k_cursor, 'CLICK', shift=True, properties=[('ring', True), ('deselect', False), ('extend', True), ('toggle', False)], disable_double=True)
+			self.kmi_set_replace(ring_tool, self.k_cursor, 'CLICK', ctrl=True, shift=True, properties=[('ring', True), ('deselect', False), ('extend', True), ('toggle', False)], disable_double=True)
 
 		# Loop multiselect
 		if loop_multiselect_tool:
