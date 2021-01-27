@@ -16,6 +16,13 @@
 #
 # ##### END GPL LICENSE BLOCK #####
 
+'''
+Version notes
+
+1.0.8
+    - Fixed some changes in create_vertex_color_uv that was needed for API changes in Blender 2.91. 
+    Specifically regarding how bpy.ops.uv.smart_project() is handled 
+'''
 
 from bpy.props import (
     IntProperty,
@@ -37,8 +44,8 @@ bl_info = {
     "name": "Bake to vertex color",
     "description": "Runs through selected objects. Bakes a temporary image and then transfers to vertex color. Temporary bake uv's can be created as well. Cycles used for baking, but the addon is usable in the Eevee render settings",
     "author": "Daniel Bystedt, twitter: @3dbystedt",
-    "version": (1, 0, 6),
-    "blender": (2, 80, 0),
+    "version": (1, 0, 8),
+    "blender": (2, 81, 0),
     "location": "properties > render & search menu",
     # "wiki_url": "",
     # "tracker_url": "",
@@ -565,8 +572,19 @@ class OBJECT_OT_bake_vertex_color(bpy.types.Operator):
         if self.bake_uv_type == 'lightmap':
             bpy.ops.uv.lightmap_pack( PREF_IMG_PX_SIZE=128, PREF_MARGIN_DIV=0.4)
         elif self.bake_uv_type == 'smartUv':
-            bpy.ops.uv.smart_project(
+            # Older versions of blender had other parameters for using smart_project operator
+            if(bpy.app.version_string < '2.91.0'):
+                bpy.ops.uv.smart_project(
                 angle_limit=81.61, island_margin=0.05, user_area_weight=1)
+            # smart_project operator for blender 2.91.0 and hopefully later versions as well
+            # requires edit mode and all polygons to be selected
+            else:
+                current_mode = bpy.context.active_object.mode
+                bpy.ops.object.mode_set(mode = 'EDIT') 
+                bpy.ops.mesh.select_all(action='SELECT')
+                bpy.ops.uv.smart_project(
+                    angle_limit=81.61, island_margin=0.05, area_weight=1)
+                bpy.ops.object.mode_set(mode = current_mode) 
 
     def delete_image_node(self, context, image_name):
         for material_slot in context.active_object.material_slots:
