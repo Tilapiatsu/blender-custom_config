@@ -211,12 +211,12 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		
 		# Circle
 		if circle_tool:
-			self.kmi_set_replace(circle_tool, self.k_select, 'CLICK_DRAG', shift=True, properties=[('wait_for_input', False), ('mode', 'ADD'), ('radius', 10)], disable_double=True)
-			self.kmi_set_replace(circle_tool, self.k_select, 'CLICK_DRAG', ctrl=True, properties=[('wait_for_input', False), ('mode', 'SUB'), ('radius', 10)], disable_double=True)
+			self.kmi_set_replace(circle_tool, self.k_select, 'CLICK_DRAG', shift=True, properties=[('wait_for_input', False), ('mode', 'ADD'), ('radius', 5)], disable_double=True)
+			self.kmi_set_replace(circle_tool, self.k_select, 'CLICK_DRAG', ctrl=True, properties=[('wait_for_input', False), ('mode', 'SUB'), ('radius', 5)], disable_double=True)
 
 		if gp_circle_tool:
-			self.kmi_set_replace(gp_circle_tool, self.k_select, 'CLICK_DRAG', shift=True, properties=[('wait_for_input', False), ('mode', 'ADD'), ('radius', 10)], disable_double=True)
-			self.kmi_set_replace(gp_circle_tool, self.k_select, 'CLICK_DRAG', ctrl=True, properties=[('wait_for_input', False), ('mode', 'SUB'), ('radius', 10)], disable_double=True)
+			self.kmi_set_replace(gp_circle_tool, self.k_select, 'CLICK_DRAG', shift=True, properties=[('wait_for_input', False), ('mode', 'ADD'), ('radius', 5)], disable_double=True)
+			self.kmi_set_replace(gp_circle_tool, self.k_select, 'CLICK_DRAG', ctrl=True, properties=[('wait_for_input', False), ('mode', 'SUB'), ('radius', 5)], disable_double=True)
 
 		#  shortest Path Select / Deselect / Add
 		if shortestpath_tool:
