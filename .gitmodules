@@ -253,3 +253,6 @@
 [submodule "scripts/GIT/HEAVYPOLY"]
 	path = scripts/GIT/HEAVYPOLY
 	url = https://github.com/HEAVYPOLY/HEAVYPOLY_Blender.git
+[submodule "datafiles/scene/GlitchNoiseShader"]
+	path = datafiles/scene/GlitchNoiseShader
+	url = https://github.com/Magryllia/GlitchNoiseShader.git
