@@ -1,4 +1,4 @@
-import bpy, os, addon_utils
+import bpy, os, addon_utils 
 # from addon_utils import check,paths,enable
 
 modules =   (
@@ -66,7 +66,7 @@ modules =   (
 			'BakeWrangler',
 			'atomic_data_manager',
 			'ImagePaste',
-			'viewport_timeline_scrub',
+			'greasepencil_tools',
 			# 'ZWeightTools-1_0_1',
 			# 'W_Mesh',
 			'uvpackmaster2',
@@ -132,20 +132,32 @@ def register():
 	addon.preferences.enable_qcd = False
 
 
-	# # mouselook_navigation
+	# mouselook_navigation
 	addon = context.preferences.addons.get('mouselook_navigation')
 	addon.preferences.show_zbrush_border = False
 	addon.preferences.show_crosshair = False
 	addon.preferences.show_focus = False
 	addon.preferences.rotation_snap_subdivs = 1
 
-	# # kekit
+	# kekit
 	# addon = context.preferences.addons.get('kekit')
 	# addon.preferences.category = 'Tools'
 
-	# # viewport_timeline_scrub
-	addon = context.preferences.addons.get('viewport_timeline_scrub')
-	addon.preferences.keycode = 'SPACE'
+	# # greasepencil_tools
+	addon = context.preferences.addons.get('greasepencil_tools')
+	addon.preferences.canvas_use_hud = True
+	addon.preferences.mouse_click = 'RIGHTMOUSE'
+	addon.preferences.rc_angle_step = 45 * 0.0174533 #45 deg to rad
+	addon.preferences.use_ctrl = False
+	addon.preferences.use_alt = True
+	addon.preferences.use_shift = False
+
+	addon.preferences.ts.use_ctrl = False
+	addon.preferences.ts.use_alt = False
+	addon.preferences.ts.use_shift = True
+	addon.preferences.ts.keycode = 'SPACE'
+
+
 
 def unregister():
 	# disabling addons

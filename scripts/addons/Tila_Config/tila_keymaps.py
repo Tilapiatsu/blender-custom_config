@@ -525,7 +525,8 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		self.kmi_set_replace('rotate.hdri', self.k_context, 'PRESS', ctrl=True, alt=True, shift=False,  disable_double=True)
 		self.kmi_set_active(enable=True, idname='rotate.hdri')
 		
-
+		# GreasePencil tools
+		self.kmi_set_replace('view3d.rotate_canvas', self.k_context, 'PRESS', alt=True, disable_double=True)
 
 		##### 3D View Generic
 		self.kmi_init(name='3D View Generic', space_type='VIEW_3D', region_type='WINDOW')
@@ -1058,6 +1059,8 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		self.tool_sculpt('gpencil.sculptmode_toggle')
 
 		self.isolate()
+
+		# Grease Pencil Tools
 		self.kmi_set_replace('animation.time_scrub', self.k_menu, 'PRESS', shift=True)
 
 		###### Grease Pencil Stroke Edit Mode
