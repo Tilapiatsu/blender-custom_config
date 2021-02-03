@@ -67,6 +67,7 @@ modules =   (
 			'atomic_data_manager',
 			'ImagePaste',
 			'greasepencil_tools',
+			'keymesh'
 			# 'ZWeightTools-1_0_1',
 			# 'W_Mesh',
 			'uvpackmaster2',
@@ -145,7 +146,7 @@ def register():
 
 	# # greasepencil_tools
 	addon = context.preferences.addons.get('greasepencil_tools')
-	addon.preferences.canvas_use_hud = True
+	addon.preferences.canvas_use_hud = False
 	addon.preferences.mouse_click = 'RIGHTMOUSE'
 	addon.preferences.rc_angle_step = 45 * 0.0174533 #45 deg to rad
 	addon.preferences.use_ctrl = False
