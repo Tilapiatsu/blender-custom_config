@@ -67,7 +67,7 @@ modules =   (
 			'atomic_data_manager',
 			'ImagePaste',
 			'greasepencil_tools',
-			'keymesh'
+			'keymesh',
 			# 'ZWeightTools-1_0_1',
 			# 'W_Mesh',
 			'uvpackmaster2',
@@ -124,8 +124,9 @@ def register():
 	addon.preferences.activate_cursor_pie = True
 	kmi = bpy.context.window_manager.keyconfigs.addon.keymaps['Window'].keymap_items
 	for k in kmi:
-		if k.type == 'S':
+		if k.type == 'S' and k.properties.name == 'MACHIN3_MT_save_pie':
 			k.active = False
+			k.shift = True
 			bpy.context.window_manager.keyconfigs.update()
 
 	# object_collection_manager
