@@ -415,6 +415,7 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		self.kmi_set_replace('wm.tool_set_by_id', self.k_move, 'PRESS', properties=[('name', 'builtin.move')], disable_double=True)
 		self.kmi_set_replace('wm.tool_set_by_id', self.k_rotate, 'PRESS', properties=[('name', 'builtin.rotate')], disable_double=True)
 		self.kmi_set_replace('wm.tool_set_by_id', self.k_scale, 'PRESS', properties=[('name', 'builtin.scale')], disable_double=True)
+		self.kmi_set_replace('wm.tool_set_by_id', "T", 'PRESS', ctrl=True, properties=[('name', 'builtin.transform')], disable_double=True)
 
 	def isolate(self):
 		self.kmi_set_replace('view3d.tila_isolate', 'X', 'PRESS', ctrl=True, alt=True, properties=[('force_object_isolate', False)])
@@ -563,6 +564,7 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		self.global_keys()
 		self.right_mouse()
 		self.selection_tool()
+		self.tool_transform()
 		self.selection_keys(select_tool='uv.select',
 					  		lasso_tool='uv.select_lasso',
 							box_through_tool='uv.select_box',
@@ -681,7 +683,7 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		self.kmi_set_replace("mesh.edge_rotate", 'V', "PRESS", properties=[('use_ccw', False)], disable_double=True)
 		self.kmi_set_replace("mesh.edge_rotate", 'V', "PRESS", shift=True, properties=[('use_ccw', True)], disable_double=True)
 
-		self.kmi_set_replace('mesh.quads_convert_to_tris', 'T', "PRESS", ctrl=True, properties=[('quad_method','BEAUTY'), ('ngon_method','BEAUTY')])
+		self.kmi_set_replace('mesh.quads_convert_to_tris', 'T', "PRESS", shift=True, properties=[('quad_method','BEAUTY'), ('ngon_method','BEAUTY')])
 		self.kmi_set_replace('mesh.tris_convert_to_quads', 'T', "PRESS", alt=True, shift=True)
 
 		# KE_Kit
