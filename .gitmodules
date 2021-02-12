@@ -253,3 +253,6 @@
 [submodule "datafiles/scene/GlitchNoiseShader"]
 	path = datafiles/scene/GlitchNoiseShader
 	url = https://github.com/Magryllia/GlitchNoiseShader.git
+[submodule "scripts/addons/manage-file-paths"]
+	path = scripts/addons/manage-file-paths
+	url = https://github.com/gregzaal/manage-file-paths.git
