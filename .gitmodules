@@ -256,3 +256,6 @@
 [submodule "scripts/addons/manage-file-paths"]
 	path = scripts/addons/manage-file-paths
 	url = https://github.com/gregzaal/manage-file-paths.git
+[submodule "scripts/addons/character-pipeline-addistant"]
+	path = scripts/addons/character-pipeline-addistant
+	url = https://gitlab.com/blender/character-pipeline-assistant.git
