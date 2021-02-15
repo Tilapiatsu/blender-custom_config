@@ -55,13 +55,8 @@ def has_keentools_attributes(obj):
     return False
 
 
-def set_keentools_version(obj, obj_type, ver):
-    attr_name = Config.version_prop_name[0]
-    set_custom_attribute(obj, attr_name, Config.addon_version)
-    attr_name2 = Config.fb_mod_ver_prop_name[0]
-    set_custom_attribute(obj, attr_name2, ver)
-    attr_name3 = Config.object_type_prop_name[0]
-    set_custom_attribute(obj, attr_name3, obj_type)
+def mark_keentools_object(obj):
+    set_custom_attribute(obj, Config.version_prop_name[0], Config.addon_version)
 
 
 def get_attr_variant_named(data, attr_names):
@@ -106,6 +101,5 @@ def get_obj_collection(obj):
 
 
 def add_to_fb_collection(obj):
-    # fb_col = get_collection_by_name(Config.default_FB_COLLECTION_NAME)
-    fb_col = new_collection(Config.default_FB_COLLECTION_NAME)
+    fb_col = new_collection(Config.default_fb_collection_name)
     fb_col.objects.link(obj)

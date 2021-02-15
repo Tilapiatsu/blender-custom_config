@@ -20,12 +20,13 @@ import logging
 import bpy
 import numpy as np
 
-from .. config import Config, get_main_settings, get_operators, ErrorType
+from .. config import Config, get_main_settings
 from .. fbloader import FBLoader
+import keentools_facebuilder.blender_independent_packages.pykeentools_loader as pkt
+from ..utils.images import find_bpy_image_by_name
 
 
 def switch_to_mode(mode='MATERIAL'):
-    # Switch to Mode
     areas = bpy.context.workspace.screens[0].areas
     for area in areas:
         for space in area.spaces:
@@ -34,7 +35,6 @@ def switch_to_mode(mode='MATERIAL'):
 
 
 def toggle_mode(modes=('SOLID', 'MATERIAL')):
-    # Switch to Mode
     areas = bpy.context.workspace.screens[0].areas
     for area in areas:
         for space in area.spaces:
@@ -49,17 +49,7 @@ def toggle_mode(modes=('SOLID', 'MATERIAL')):
                 space.shading.type = modes[ind]
 
 
-def get_mesh_uvmap(mesh):
-    # if no UVtex - create it
-    if not len(mesh.uv_layers) > 0:
-        uvtex = mesh.uv_layers.new()
-    else:
-        uvtex = mesh.uv_layers.active
-    return uvtex.data
-
-
-def assign_mat(obj, mat):
-    # Assign Material to Object
+def assign_material_to_object(obj, mat):
     if obj.data.materials:
         obj.data.materials[0] = mat
     else:
@@ -68,38 +58,18 @@ def assign_mat(obj, mat):
 
 def get_mat_by_name(mat_name):
     if bpy.data.materials.find(mat_name) >= 0:
-        # Material exists
-        mat = bpy.data.materials[mat_name]
-    else:
-        # Create new material
-        mat = bpy.data.materials.new(mat_name)
-        mat.use_nodes = True
-    return mat
+        return bpy.data.materials[mat_name]
+
+    new_mat = bpy.data.materials.new(mat_name)
+    new_mat.use_nodes = True
+    return new_mat
 
 
-def get_shader_node(mat, find_name, create_name):
-    # Looking for node
-    nodnum = mat.node_tree.nodes.find(find_name)
-    if nodnum >= 0:
-        shader_node = mat.node_tree.nodes[nodnum]
-    else:
-        shader_node = mat.node_tree.nodes.new(create_name)
-    return shader_node
-
-
-def find_tex_by_name(tex_name):
-    tex_num = bpy.data.images.find(tex_name)
-    if tex_num >= 0:
-        tex = bpy.data.images[tex_num]
-    else:
-        tex = None
-    return tex
-
-
-def remove_tex_by_name(name):
-    tex = find_tex_by_name(name)
-    if tex is not None:
-        bpy.data.images.remove(tex)
+def get_shader_node(mat, find_type, create_name):
+    for node in mat.node_tree.nodes:
+        if node.type == find_type:
+            return node
+    return mat.node_tree.nodes.new(create_name)
 
 
 def remove_mat_by_name(name):
@@ -109,12 +79,12 @@ def remove_mat_by_name(name):
 
 
 def show_texture_in_mat(tex_name, mat_name):
-    tex = find_tex_by_name(tex_name)
+    tex = find_bpy_image_by_name(tex_name)
     mat = get_mat_by_name(mat_name)
     principled_node = get_shader_node(
-        mat, 'Principled BSDF', 'ShaderNodeBsdfPrincipled')
+        mat, 'BSDF_PRINCIPLED', 'ShaderNodeBsdfPrincipled')
     image_node = get_shader_node(
-        mat, 'Image Texture', 'ShaderNodeTexImage')
+        mat, 'TEX_IMAGE', 'ShaderNodeTexImage')
     image_node.image = tex
     image_node.location = Config.image_node_layout_coord
     principled_node.inputs['Specular'].default_value = 0.0
@@ -124,114 +94,114 @@ def show_texture_in_mat(tex_name, mat_name):
     return mat
 
 
+def _remove_bpy_texture_if_exists(tex_name):
+    logger = logging.getLogger(__name__)
+    tex_num = bpy.data.images.find(tex_name)
+    if tex_num >= 0:
+        logger.debug("TEXTURE WITH THAT NAME ALREADY EXISTS. REMOVING")
+        existing_tex = bpy.data.images[tex_num]
+        bpy.data.images.remove(existing_tex)
+
+
+def _create_bpy_texture_from_img(img, tex_name):
+    logger = logging.getLogger(__name__)
+    assert(len(img.shape) == 3 and img.shape[2] == 4)
+
+    _remove_bpy_texture_if_exists(tex_name)
+
+    tex = bpy.data.images.new(
+            tex_name, width=img.shape[1], height=img.shape[0],
+            alpha=True, float_buffer=False)
+    tex.colorspace_settings.name = 'sRGB'
+    assert(tex.name == tex_name)
+    tex.pixels[:] = img.ravel()
+    tex.pack()
+
+    logger.debug("TEXTURE BAKED SUCCESSFULLY")
+
+
+def _cam_image_data_exists(cam):
+    if not cam.cam_image:
+        return False
+    w, h = cam.cam_image.size[:2]
+    return w > 0 and h > 0
+
+
+def _get_fb_for_bake_tex(headnum, head):
+    FBLoader.load_model(headnum)
+    fb = FBLoader.get_builder()
+    for i, m in enumerate(head.get_masks()):
+        fb.set_mask(i, m)
+
+    FBLoader.select_uv_set(fb, head.tex_uv_shape)
+    return fb
+
+
+def _sRGB_to_linear(img):
+    img_rgb = img[:, :, :3]
+    img_rgb[img_rgb < 0.04045] = 25 * img_rgb[img_rgb < 0.04045] / 323
+    img_rgb[img_rgb >= 0.04045] = ((200 * img_rgb[img_rgb >= 0.04045] + 11) / 211) ** (12 / 5)
+    return img
+
+
+def _create_frame_data_loader(settings, head, camnums, fb):
+    def frame_data_loader(kf_idx):
+        cam = head.cameras[camnums[kf_idx]]
+
+        w, h = cam.cam_image.size[:2]
+        img = np.rot90(
+            np.asarray(cam.cam_image.pixels[:]).reshape((h, w, 4)),
+            cam.orientation)
+
+        frame_data = pkt.module().texture_builder.FrameData()
+        frame_data.geo = fb.applied_args_model_at(cam.get_keyframe())
+        frame_data.image = img
+        frame_data.model = cam.get_model_mat()
+        frame_data.view = np.eye(4)
+        frame_data.projection = cam.get_projection_matrix()
+
+        return frame_data
+
+    return frame_data_loader
+
+
 def bake_tex(headnum, tex_name):
     logger = logging.getLogger(__name__)
     settings = get_main_settings()
     head = settings.get_head(headnum)
-    # Add UV
-    mesh = head.headobj.data
 
-    # Load FB Object if scene loaded by example
-    FBLoader.load_only(headnum)
-    fb = FBLoader.get_builder()
-
-    uvmap = get_mesh_uvmap(mesh)
-
-    # Generate UVs
-    uv_shape = head.tex_uv_shape
-    fb.select_uv_set(0)
-    if uv_shape == 'uv1':
-        fb.select_uv_set(1)
-    elif uv_shape == 'uv2':
-        fb.select_uv_set(2)
-    elif uv_shape == 'uv3':
-        fb.select_uv_set(3)
-
-    logger.debug("UV_TYPE: {}".format(uv_shape))
-
-    geo = fb.applied_args_model()
-    me = geo.mesh(0)
-
-    # Fill uvs in uvmap
-    uvs_count = me.uvs_count()
-    for i in range(uvs_count):
-        uvmap[i].uv = me.uv(i)
-
-    # There no cameras on object
     if not head.has_cameras():
         logger.debug("NO CAMERAS ON HEAD")
-        return None
+        return False
 
-    w = -1
-    h = -1
-    changes = 0
-    for i, c in enumerate(head.cameras):
-        if c.use_in_tex_baking  and c.cam_image and c.has_pins():
-            size = c.cam_image.size
-            if size[0] <= 0 or size[1] <= 0:
-                continue
-            if size[0] != w or size[1] != h:
-                changes += 1
-            w = size[0]
-            h = size[1]
+    camnums = [cam_idx for cam_idx, cam in enumerate(head.cameras)
+               if cam.use_in_tex_baking and \
+                  _cam_image_data_exists(cam) and \
+                  cam.has_pins()]
 
-    if w <= 0 or h <= 0:
-        logger.debug("NO BACKGROUND IMAGES")
-        return None
+    frames_count = len(camnums)
+    if frames_count == 0:
+        logger.debug("NO FRAMES FOR TEXTURE BUILDING")
+        return False
+    
+    fb = _get_fb_for_bake_tex(headnum, head)
+    frame_data_loader = _create_frame_data_loader(
+        settings, head, camnums, fb)
 
-    if changes > 1:
-        logger.debug("BACKGROUNDS HAVE DIFFERENT SIZES")
-        warn = getattr(get_operators(), Config.fb_warning_callname)
-        warn('INVOKE_DEFAULT', msg=ErrorType.BackgroundsDiffer)
-        return None
+    bpy.context.window_manager.progress_begin(0, 1)
 
-    logger.debug("IMAGE SIZE {} {} {}".format(w, h, changes))
+    class ProgressCallBack(pkt.module().ProgressCallback):
+        def set_progress_and_check_abort(self, progress):
+            bpy.context.window_manager.progress_update(progress)
+            return False
 
-    tw = settings.tex_width
-    th = settings.tex_height
+    progress_callBack = ProgressCallBack()
+    built_texture = pkt.module().texture_builder.build_texture(
+        frames_count, frame_data_loader, progress_callBack,
+        settings.tex_height, settings.tex_width, settings.tex_face_angles_affection,
+        settings.tex_uv_expand_percents, settings.tex_back_face_culling,
+        settings.tex_equalize_brightness, settings.tex_equalize_colour, settings.tex_fill_gaps)
+    bpy.context.window_manager.progress_end()
 
-    # Set camera projection matrix
-    FBLoader.set_camera_projection(head.focal, head.sensor_width, w, h)
-
-    imgs = []
-    keyframes = []
-    wm = bpy.context.window_manager
-    wm.progress_begin(0, len(head.cameras) + 1.0)
-    for i, cam in enumerate(head.cameras):
-        wm.progress_update(i + 1.0)
-        # Bake only if 1) Marked 2) Image is exists 3) Some pins added
-        if cam.use_in_tex_baking and cam.cam_image and cam.has_pins():
-            pix = cam.cam_image.pixels[:]
-            imgs.append(np.asarray(pix).reshape((h, w, 4)))
-            keyframes.append(cam.get_keyframe())
-    wm.progress_end()
-
-    tfaa = settings.tex_face_angles_affection
-    tuep = settings.tex_uv_expand_percents
-    tbfc = settings.tex_back_face_culling
-    teb = settings.tex_equalize_brightness
-    tec = settings.tex_equalize_colour
-    # Texture Creation
-    if len(keyframes) > 0:
-        texture = fb.build_texture(
-            imgs, keyframes, th, tw, tfaa, tuep, tbfc, teb, tec)
-
-        tex_num = bpy.data.images.find(tex_name)
-
-        if tex_num >= 0:
-            logger.debug("TEXTURE ALREADY EXISTS")
-            tex = bpy.data.images[tex_num]
-            bpy.data.images.remove(tex)
-
-        tex = bpy.data.images.new(
-                tex_name, width=tw, height=th,
-                alpha=True, float_buffer=False)
-        # Store Baked Texture into blender
-        tex.pixels[:] = texture.ravel()
-        # Pack image to store in blend-file
-        tex.pack()
-        logger.debug("TEXTURE BAKED SUCCESSFULLY: {}".format(tex.name))
-        return tex.name
-    else:
-        logger.debug("NO KEYFRAMES")
-    return None
+    _create_bpy_texture_from_img(built_texture, tex_name)
+    return True

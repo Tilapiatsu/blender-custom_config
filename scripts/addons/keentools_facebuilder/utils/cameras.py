@@ -16,6 +16,8 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 # ##### END GPL LICENSE BLOCK #####
 import logging
+import math
+
 import bpy
 
 from .. config import get_main_settings, Config
@@ -26,18 +28,19 @@ from . fake_context import get_override_context
 def show_all_cameras(headnum):
     settings = get_main_settings()
     head = settings.get_head(headnum)
+    if head is None:
+        return
     for i, c in enumerate(head.cameras):
-        # Unhide camera
         c.camobj.hide_set(False)
 
 
 def hide_other_cameras(headnum, camnum):
     settings = get_main_settings()
     head = settings.get_head(headnum)
+    if head is None:
+        return
     for i, c in enumerate(head.cameras):
-        if i != camnum:
-            # Hide camera
-            c.camobj.hide_set(True)
+        c.camobj.hide_set(i != camnum)
 
 
 def switch_to_camera(camobj):
@@ -64,6 +67,14 @@ def switch_to_camera(camobj):
             bpy.ops.view3d.object_as_camera(override)
 
 
+def default_camera_params():
+    return {'focal': Config.default_focal_length,
+            'sensor_width': Config.default_sensor_width,
+            'sensor_height': Config.default_sensor_height,
+            'frame_width': Config.default_frame_width,
+            'frame_height': Config.default_frame_height}
+
+
 def get_camera_params(obj):
     logger = logging.getLogger(__name__)
     # Init camera parameters
@@ -88,3 +99,32 @@ def get_camera_params(obj):
     except Exception:
         return None
     return params
+
+
+def get_camera_background(camera):
+    camobj = camera.camobj
+    c = camobj.data
+    if len(c.background_images) == 0:
+        return None
+    else:
+        return c.background_images[0]
+
+
+def reset_background_image_rotation(camera):
+    background_image = get_camera_background(camera)
+    if background_image is None:
+        return
+    background_image.rotation = 0
+    camera.orientation = 0
+
+def rotate_background_image(camera, delta=1):
+    background_image = get_camera_background(camera)
+    if background_image is None:
+        return
+
+    camera.orientation += delta
+    if camera.orientation < 0:
+        camera.orientation += 4
+    if camera.orientation >= 4:
+        camera.orientation += -4
+    background_image.rotation = camera.orientation * math.pi / 2

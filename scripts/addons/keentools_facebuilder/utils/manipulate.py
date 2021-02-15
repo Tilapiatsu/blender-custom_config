@@ -21,23 +21,16 @@ from collections import Counter
 
 import bpy
 
-from .. fbloader import FBLoader
-from .. config import Config, get_main_settings, get_operators, \
-    ErrorType, BuilderType
-from . import cameras, attrs
+from ..fbloader import FBLoader
+from ..config import Config, get_main_settings, get_operator, ErrorType
+from . import cameras, attrs, coords
+from .exif_reader import (read_exif_to_camera, auto_setup_camera_from_exif,
+                          update_image_groups)
+import keentools_facebuilder.blender_independent_packages.pykeentools_loader as pkt
 
 
 def _is_keentools_object(obj):
     return Config.version_prop_name[0] in obj.keys()
-
-
-def _get_object_type(obj):
-    return attrs.get_safe_custom_attribute(
-        obj, Config.object_type_prop_name[0])
-
-
-def _get_mod_version(obj):
-    return attrs.get_safe_custom_attribute(obj, Config.fb_mod_ver_prop_name[0])
 
 
 def _get_serial(obj):
@@ -50,6 +43,17 @@ def _get_dir_name(obj):
 
 def _get_image_names(obj):
     return attrs.get_safe_custom_attribute(obj, Config.fb_images_prop_name[0])
+
+
+def _check_facs_available(count):
+    return pkt.module().FacsExecutor.facs_available(count)
+
+
+def is_it_our_mesh(obj):
+    if not obj or obj.type != 'MESH':
+        return False
+
+    return _check_facs_available(len(obj.data.vertices))
 
 
 # Scene States and Head number. All States are:
@@ -74,9 +78,15 @@ def what_is_state():
     if settings.pinmode:
         return 'PINMODE', settings.current_headnum
 
-    obj = context.active_object
+    obj = context.object
 
-    if not obj or not _is_keentools_object(obj):
+    if not obj:
+        return _how_many_heads()
+
+    if not _is_keentools_object(obj):
+        if obj.type == 'MESH':
+            if _check_facs_available(len(obj.data.vertices)):
+                return 'FACS_HEAD', unknown_headnum
         return _how_many_heads()
 
     if obj.type == 'MESH':
@@ -96,15 +106,69 @@ def what_is_state():
     return _how_many_heads()
 
 
+def get_current_headnum():
+    state, headnum = what_is_state()
+    return headnum
+
+
+def get_current_head():
+    headnum = get_current_headnum()
+    if headnum >= 0:
+        settings = get_main_settings()
+        return settings.get_head(headnum)
+    return None
+
+
+def has_no_blendshape(obj):
+    return not obj or obj.type != 'MESH' or not obj.data or \
+           not obj.data.shape_keys
+
+
+def has_blendshapes_action(obj):
+    if obj and obj.type == 'MESH' \
+           and obj.data.shape_keys \
+           and obj.data.shape_keys.animation_data \
+           and obj.data.shape_keys.animation_data.action:
+        return True
+    return False
+
+
+def get_obj_from_context(context, force_fbloader=True):
+    state, headnum = what_is_state()
+    if state == 'FACS_HEAD':
+        return context.object, 1.0
+    else:
+        if headnum < 0:
+            return None, 1.0
+
+        settings = get_main_settings()
+        head = settings.get_head(headnum)
+        if not head:
+            return None, 1.0
+
+        if force_fbloader:
+            FBLoader.load_model(headnum)
+        return head.headobj, head.model_scale
+
+
 def force_undo_push(msg='KeenTools operation'):
     inc_operation()
     bpy.ops.ed.undo_push(message=msg)
 
 
-def push_head_state_in_undo_history(head, msg='KeenTools operation'):
+def push_head_in_undo_history(head, msg='KeenTools operation'):
     head.need_update = True
     force_undo_push(msg)
     head.need_update = False
+
+
+def push_neutral_head_in_undo_history(head, keyframe,
+                                      msg='KeenTools operation'):
+    fb = FBLoader.get_builder()
+    coords.update_head_mesh_neutral(fb, head.headobj)
+    push_head_in_undo_history(head, msg)
+    if head.should_use_emotions():
+        coords.update_head_mesh_emotions(fb, head.headobj, keyframe)
 
 
 def check_settings():
@@ -112,7 +176,7 @@ def check_settings():
     if not settings.check_heads_and_cams():
         heads_deleted, cams_deleted = settings.fix_heads()
         if heads_deleted == 0:
-            warn = getattr(get_operators(), Config.fb_warning_callname)
+            warn = get_operator(Config.fb_warning_idname)
             warn('INVOKE_DEFAULT', msg=ErrorType.SceneDamaged)
         return False
     return True
@@ -132,9 +196,18 @@ def get_operation():
 # --------------------
 
 
+def select_object_only(obj):
+    bpy.ops.object.select_all(action='DESELECT')
+    obj.select_set(state=True)
+    bpy.context.view_layer.objects.active = obj
+
+
 def unhide_head(headnum):
     settings = get_main_settings()
-    settings.get_head(headnum).headobj.hide_set(False)
+    head = settings.get_head(headnum)
+    FBLoader.load_model(headnum)
+    coords.update_head_mesh_neutral(FBLoader.get_builder(), head.headobj)
+    head.headobj.hide_set(False)
     settings.pinmode = False
 
 
@@ -183,33 +256,25 @@ def auto_detect_frame_size():
         settings.frame_height = el[1]
 
 
-def use_render_frame_size_scaled():
-    # Allow converts scenes pinned on default cameras
-    scene = bpy.context.scene
+def reset_model_to_neutral(headnum):
     settings = get_main_settings()
-    headnum = settings.current_headnum
+    FBLoader.load_model(headnum)
     head = settings.get_head(headnum)
-    rw = scene.render.resolution_x
-    rh = scene.render.resolution_y
-    fw = settings.frame_width
-    fh = settings.frame_height
-    kx = rw / fw
-    dy = 0.5 * (rh - fh * kx)
-
-    FBLoader.load_only(headnum)
+    if head is None:
+        return
     fb = FBLoader.get_builder()
-    for i, c in enumerate(head.cameras):
-        if c.has_pins():
-            kid = settings.get_keyframe(headnum, i)
-            for n in range(fb.pins_count(kid)):
-                p = fb.pin(kid, n)
-                fb.move_pin(
-                    kid, n, (kx * p.img_pos[0], kx * p.img_pos[1] + dy))
-            fb.solve_for_current_pins(kid)
-    FBLoader.save_only(headnum)
+    coords.update_head_mesh_neutral(fb, head.headobj)
 
-    settings.frame_width = rw
-    settings.frame_height = rh
+
+def load_expressions_to_model(headnum, camnum):
+    settings = get_main_settings()
+    FBLoader.load_model(headnum)
+    head = settings.get_head(headnum)
+    if head is None:
+        return
+    fb = FBLoader.get_builder()
+    coords.update_head_mesh_emotions(fb, head.headobj,
+                                     head.get_keyframe(camnum))
 
 
 def reconstruct_by_head():
@@ -228,36 +293,13 @@ def reconstruct_by_head():
     if not _is_keentools_object(obj):
         return
 
-    error_message = "===============\n" \
-                    "Can't reconstruct\n" \
-                    "===============\n" \
-                    "Object parameters are invalid or missing:\n"
-
-    logger.info("START RECONSTRUCT")
-
-    obj_type = _get_object_type(obj)
-    if obj_type is None:
-        obj_type = BuilderType.FaceBuilder
-    logger.debug("OBJ_TYPE: {}".format(obj_type))
-
-    if obj_type != BuilderType.FaceBuilder:
-        warn = getattr(get_operators(), Config.fb_warning_callname)
-        warn('INVOKE_DEFAULT', msg=ErrorType.CustomMessage,
-             msg_content=error_message + 'Object Type')
-        return
-
-    mod_ver = _get_mod_version(obj)
-    if mod_ver is None:
-        mod_ver = Config.unknown_mod_ver
-    logger.debug("MOD_VER {}".format(mod_ver))
+    logger.debug('START RECONSTRUCT')
 
     params = cameras.get_camera_params(obj)
     if params is None:
-        warn = getattr(get_operators(), Config.fb_warning_callname)
-        warn('INVOKE_DEFAULT', msg=ErrorType.CustomMessage,
-             msg_content=error_message + 'camera')
-        return
-    logger.debug("PARAMS: {}".format(params))
+        params = cameras.default_camera_params()
+        logger.debug('DEFAULT CAMERA PARAMETERS GENERATED')
+    logger.debug('PARAMS: {}'.format(params))
 
     serial_str = _get_serial(obj)
     if serial_str is None:
@@ -269,68 +311,69 @@ def reconstruct_by_head():
         dir_name = ""
     logger.debug("DIR_NAME: {}".format(dir_name))
 
-    # Get Image Names
     images = _get_image_names(obj)
     if type(images) is not list:
         images = []
     logger.debug("IMAGES: {}".format(images))
     logger.debug("PARAMETERS LOADED. START HEAD CREATION")
-    # -------------------
-    settings.fix_heads()
 
+    settings.fix_heads()
     headnum = len(settings.heads)
     head = settings.heads.add()
     head.headobj = obj
 
     try:
-        # Copy serial string from object custom property
         head.set_serial_str(serial_str)
-        fb = FBLoader.new_builder(obj_type, mod_ver)
-        head.mod_ver = FBLoader.get_builder_version()
-        settings.current_head = headnum
-        settings.current_camnum = 0
-        logger.debug("CREATED MOD_VER {}".format(head.mod_ver))
-
+        fb = FBLoader.new_builder()
         head.sensor_width = params['sensor_width']
         head.sensor_height = params['sensor_height']
         head.focal = params['focal']
+        head.use_emotions = False
         scene.render.resolution_x = params['frame_width']
         scene.render.resolution_y = params['frame_height']
 
-        # New head shape
         fb.deserialize(head.get_serial_str())
-        # Now reconstruct cameras
+        logger.debug("RECONSTRUCT KEYFRAMES {}".format(str(fb.keyframes())))
+
         for i, kid in enumerate(fb.keyframes()):
-            c = FBLoader.add_camera(headnum, None)
-            FBLoader.set_keentools_version(c.camobj)
-            c.set_keyframe(kid)
+            cam_ob = FBLoader.create_camera_object(headnum, i)
+            camera = head.cameras.add()
+            camera.camobj = cam_ob
+            camera.set_keyframe(kid)
+
+            filename = images[i]
+            logger.debug("IMAGE {} {}".format(i, filename))
+            img = bpy.data.images.new(filename, 0, 0)
+            img.source = 'FILE'
+            img.filepath = filename
+
+            FBLoader.add_background_to_camera(headnum, i, img)
+
+            read_exif_to_camera(headnum, i, filename)
+            camera.orientation = camera.exif.orientation
+
+            auto_setup_camera_from_exif(camera)
+
             logger.debug("CAMERA CREATED {}".format(kid))
-            FBLoader.place_cameraobj(kid, c.camobj, obj)
-            c.set_model_mat(fb.model_mat(kid))
+            FBLoader.place_camera(headnum, i)
+            camera.set_model_mat(fb.model_mat(kid))
             FBLoader.update_pins_count(headnum, i)
 
-        # load background images
-        for i, f in enumerate(images):
-            logger.debug("IMAGE {} {}".format(i, f))
-            img = bpy.data.images.new(f, 0, 0)
-            img.source = 'FILE'
-            img.filepath = f
-            head.get_camera(i).cam_image = img
+            attrs.mark_keentools_object(camera.camobj)
 
-        FBLoader.update_camera_params(head)
+        update_image_groups(head)
+        FBLoader.update_cameras_from_old_version(headnum)
 
     except Exception:
         logger.error("WRONG PARAMETERS")
         for i, c in enumerate(reversed(head.cameras)):
             if c.camobj is not None:
-                # Delete camera object from scene
                 bpy.data.objects.remove(c.camobj, do_unlink=True)
-            # Delete link from list
             head.cameras.remove(i)
         settings.heads.remove(headnum)
         scene.render.resolution_x = rx
         scene.render.resolution_y = ry
-        logger.debug("SCENE PARAMETERS RESTORED")
-        warn = getattr(get_operators(), Config.fb_warning_callname)
+        logger.info("SCENE PARAMETERS RESTORED")
+        warn = get_operator(Config.fb_warning_idname)
         warn('INVOKE_DEFAULT', msg=ErrorType.CannotReconstruct)
         return

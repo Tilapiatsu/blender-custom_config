@@ -16,13 +16,13 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 # ##### END GPL LICENSE BLOCK #####
 
-
+import logging
 import bpy
 
 from . utils import attrs
 from . fbloader import FBLoader
-from . config import Config, get_main_settings, get_operators, \
-    BuilderType, ErrorType
+from . config import Config, get_main_settings, get_operator, ErrorType
+import keentools_facebuilder.blender_independent_packages.pykeentools_loader as pkt
 
 
 class MESH_OT_FBAddHead(bpy.types.Operator):
@@ -32,17 +32,34 @@ class MESH_OT_FBAddHead(bpy.types.Operator):
     bl_options = {'REGISTER', 'UNDO'}
 
     def execute(self, context):
+        logger = logging.getLogger(__name__)
         settings = get_main_settings()
         heads_deleted, cams_deleted = settings.fix_heads()
         try:
             obj = self.new_head()
+        except ModuleNotFoundError:
+            logger.error('ADD_HEAD_ERROR: ModuleNotFoundError')
+            warn = get_operator(Config.fb_warning_idname)
+            warn('INVOKE_DEFAULT', msg=ErrorType.PktProblem)
+            return {'CANCELLED'}
+        except pkt.module().ModelLoadingException:
+            logger.error('ADD_HEAD_ERROR: ModelLoadingException')
+            warn = get_operator(Config.fb_warning_idname)
+            warn('INVOKE_DEFAULT', msg=ErrorType.PktModelProblem)
+            return {'CANCELLED'}
+        except TypeError:
+            logger.error('ADD_HEAD_ERROR: TypeError')
+            warn = get_operator(Config.fb_warning_idname)
+            warn('INVOKE_DEFAULT', msg=ErrorType.CannotCreateObject)
+            return {'CANCELLED'}
         except Exception:
-            warn = getattr(get_operators(), Config.fb_warning_callname)
+            logger.error('ADD_HEAD_ERROR: Exception')
+            warn = get_operator(Config.fb_warning_idname)
             warn('INVOKE_DEFAULT', msg=ErrorType.PktProblem)
             return {'CANCELLED'}
 
         attrs.add_to_fb_collection(obj)  # link to FB objects collection
-        FBLoader.set_keentools_version(obj)  # Mark Keentools attribute
+        FBLoader.set_keentools_attributes(obj)
 
         bpy.ops.object.select_all(action='DESELECT')
         obj.select_set(state=True)
@@ -51,10 +68,10 @@ class MESH_OT_FBAddHead(bpy.types.Operator):
         # bpy.ops.object.shade_smooth()
         h = get_main_settings().heads.add()
         h.headobj = obj
-        h.mod_ver = FBLoader.get_builder_version()
-        h.save_cam_settings()
+        h.reset_sensor_size()
 
         settings.current_headnum = settings.get_last_headnum()
+        FBLoader.save_fb_on_headobj(settings.current_headnum)
 
         try:
             a = context.area
@@ -62,11 +79,12 @@ class MESH_OT_FBAddHead(bpy.types.Operator):
             a.spaces[0].show_region_ui = True
         except Exception:
             pass
+
+        logger.debug('HEAD HAS BEEN SUCCESSFULLY CREATED')
         return {'FINISHED'}
 
     @classmethod
     def new_head(cls):
-        mesh = FBLoader.universal_mesh_loader(
-            BuilderType.FaceBuilder, 'Head_mesh')
-        obj = bpy.data.objects.new('FaceBuilderHead', mesh)
+        mesh = FBLoader.universal_mesh_loader(Config.default_fb_mesh_name)
+        obj = bpy.data.objects.new(Config.default_fb_object_name, mesh)
         return obj

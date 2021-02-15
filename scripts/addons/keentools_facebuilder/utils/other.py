@@ -21,7 +21,7 @@ import time
 import bpy
 import blf
 
-from . edges import FBEdgeShader2D, FBEdgeShader3D
+from . edges import FBEdgeShader2D, FBRasterEdgeShader3D
 from . points import FBPoints2D, FBPoints3D
 from .. config import get_main_settings
 
@@ -35,10 +35,11 @@ def force_ui_redraw(area_type="PREFERENCES"):
 
 def force_stop_shaders():
     FBEdgeShader2D.handler_list = []
-    FBEdgeShader3D.handler_list = []
+    FBRasterEdgeShader3D.handler_list = []
     FBText.handler_list = []
     FBPoints2D.handler_list = []
     FBPoints3D.handler_list = []
+    force_ui_redraw('VIEW_3D')
 
 
 def _setup_ui_elements(*args):
@@ -126,6 +127,7 @@ class FBTimer:
 
 
 class FBStopShaderTimer(FBTimer):
+    _uuid = ''
     @classmethod
     def check_pinmode(cls):
         logger = logging.getLogger(__name__)
@@ -141,13 +143,24 @@ class FBStopShaderTimer(FBTimer):
             cls.stop()
             logger.debug("STOP SHADER FORCE")
             return None
+        else:
+            if settings.pinmode_id != cls.get_uuid():
+                # pinmode id externally changed
+                force_stop_shaders()
+                cls.stop()
+                logger.debug("STOP SHADER FORCED BY PINMODE_ID")
+                return None
 
-        logger.debug("NEXT CALL")
         # Interval to next call
         return 1.0
 
     @classmethod
-    def start(cls):
+    def get_uuid(cls):
+        return cls._uuid
+
+    @classmethod
+    def start(cls, uuid=''):
+        cls._uuid = uuid
         cls._start(cls.check_pinmode, persistent=True)
 
     @classmethod
@@ -209,7 +222,7 @@ class FBText:
         camera = settings.get_camera(settings.current_headnum,
                                      settings.current_camnum)
         # Draw text
-        if len(self.message) > 0:
+        if camera is not None and len(self.message) > 0:
             region = context.region
             text = "{0} [{1}]".format(self.message[0], camera.get_image_name())
             subtext = "{} | {}".format(self.message[1], settings.opnum)

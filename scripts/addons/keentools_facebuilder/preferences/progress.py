@@ -119,14 +119,14 @@ class InstallationProgress:
     @classmethod
     def _final_callback(cls):
         cls._on_finish_download(
-            'Core library has been downloaded and installed successfully.')
+            'The core library has been downloaded and installed successfully.')
 
     @classmethod
     def _error_callback(cls, err):
         cls._on_finish_download('Downloading error: {}'.format(str(err)))
 
     @classmethod
-    def start_download(cls, install_type):
+    def start_download(cls):
         logger = logging.getLogger(__name__)
 
         if cls._check_another_download_active():
@@ -135,20 +135,12 @@ class InstallationProgress:
 
         cls._on_start_download()
         FBUpdateProgressTimer.start()
-        if install_type == 'nightly':
-            logger.debug("START NIGHTLY CORE LIBRARY DOWNLOAD")
-            pkt.install_from_download_async(
-                nightly=True,
-                progress_callback=cls._progress_callback,
-                final_callback=cls._final_callback,
-                error_callback=cls._error_callback)
-        elif install_type == 'default':
-            logger.debug("START DEFAULT CORE LIBRARY DOWNLOAD")
-            pkt.install_from_download_async(
-                version=pkt.MINIMUM_VERSION_REQUIRED,
-                progress_callback=cls._progress_callback,
-                final_callback=cls._final_callback,
-                error_callback=cls._error_callback)
+        logger.debug("START CORE LIBRARY DOWNLOAD")
+        pkt.install_from_download_async(
+            version=pkt.MINIMUM_VERSION_REQUIRED,
+            progress_callback=cls._progress_callback,
+            final_callback=cls._final_callback,
+            error_callback=cls._error_callback)
 
     @classmethod
     def start_zip_install(cls, filepath):
@@ -159,14 +151,14 @@ class InstallationProgress:
             return
 
         cls._on_start_download()
-        logger.debug("START UNPACK CORE LIBRARY DOWNLOAD")
+        logger.info("START UNPACK CORE LIBRARY DOWNLOAD")
         try:
             pkt.install_from_file(filepath)
         except Exception as error:
             cls._on_finish_download(
                 'Failed to install Core library from file. ' + str(error))
-            logger.debug("UNPACK CORE ERROR" + str(error))
+            logger.error("UNPACK CORE ERROR" + str(error))
         else:
             cls._on_finish_download(
-                'Core library has been installed successfully.')
-            logger.debug("UNPACK CORE FINISH")
+                'The core library has been installed successfully.')
+            logger.info("UNPACK CORE FINISH")

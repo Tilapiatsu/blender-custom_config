@@ -32,27 +32,67 @@ def nearest_point(x, y, points, dist=4000000):  # dist squared
     return nearest, dist2
 
 
-def update_head_mesh_geo(obj, geo):
-    """ Head Mesh update by vertices coords in np.array """
+def xy_to_xz_rotation_matrix_3x3():
+    return np.array([[1., 0., 0.],
+                     [0., 0., 1.],
+                     [0., -1., 0.]], dtype=np.float32)
+
+
+def xz_to_xy_rotation_matrix_3x3():
+    return np.array([[1., 0., 0.],
+                     [0., 0., -1.],
+                     [0., 1., 0.]], dtype=np.float32)
+
+
+def xy_to_xz_rotation_matrix_4x4():
+    return np.array([[1., 0., 0., 0.],
+                     [0., 0., 1., 0.],
+                     [0., -1., 0., 0.],
+                     [0., 0., 0., 1.]], dtype=np.float32)
+
+
+def xz_to_xy_rotation_matrix_4x4():
+    return np.array([[1., 0., 0., 0.],
+                     [0., 0., -1., 0.],
+                     [0., 1., 0., 0.],
+                     [0., 0., 0., 1.]], dtype=np.float32)
+
+
+def update_head_mesh_geom(obj, geom):
     mesh = obj.data
-    rot = np.array([[1., 0., 0.], [0., 0., 1.], [0., -1., 0]])
-    npbuffer = geo @ rot
+    assert(len(geom) == len(mesh.vertices))
+    npbuffer = geom @ xy_to_xz_rotation_matrix_3x3()
     mesh.vertices.foreach_set('co', npbuffer.ravel())
+    if mesh.shape_keys:
+        mesh.shape_keys.key_blocks[0].data.foreach_set('co', npbuffer.ravel())
     mesh.update()
 
 
-def update_head_mesh(fb, headobj):
-    """ Recalculate head mesh & update head object in scene """
-    geo = fb.applied_args_vertices()
-    update_head_mesh_geo(headobj, geo)
+def update_head_mesh_neutral(fb, headobj):
+    geom = fb.applied_args_vertices()
+    update_head_mesh_geom(headobj, geom)
 
 
-def projection_matrix(w, h, fl, sw, near, far):
+def update_head_mesh_emotions(fb, headobj, keyframe):
+    geom = fb.applied_args_model_vertices_at(keyframe)
+    update_head_mesh_geom(headobj, geom)
+
+
+def update_head_mesh(settings, fb, head):
+    if head.should_use_emotions():
+        if settings.current_camnum >= 0:
+            update_head_mesh_emotions(
+                fb, head.headobj, head.get_keyframe(settings.current_camnum))
+    else:
+        update_head_mesh_neutral(fb, head.headobj)
+
+
+def projection_matrix(w, h, fl, sw, near, far, scale=1.0):
     z_diff = near - far
     fl_to_sw = fl / sw
     return np.array(
-        [[w * fl_to_sw, 0, 0, 0],
-         [0, w * fl_to_sw, 0, 0],
+        [[scale * w * fl_to_sw, 0, 0, 0],
+         [0, scale * w * fl_to_sw, 0, 0],
          [-w / 2, -h / 2, (near + far) / z_diff, -1],
          [0, 0, 2 * near * far / z_diff, 0]]
     ).transpose()
@@ -118,11 +158,7 @@ def pin_to_xyz(pin, headobj):
 
 def calc_model_mat(model_mat, head_mat):
     """ Convert model matrix to camera matrix """
-    rot_mat = np.array([
-        [1., 0., 0., 0.],
-        [0., 0., 1., 0.],
-        [0., -1., 0., 0.],
-        [0., 0., 0., 1.]])
+    rot_mat = xy_to_xz_rotation_matrix_4x4()
 
     try:
         nm = np.array(model_mat @ rot_mat) @ np.linalg.inv(head_mat)

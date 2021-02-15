@@ -19,7 +19,7 @@
 import bpy
 import keentools_facebuilder.blender_independent_packages.pykeentools_loader \
     as pkt
-from keentools_facebuilder.config import Config
+from keentools_facebuilder.config import Config, get_operator
 from .formatting import replace_newlines_with_spaces
 from keentools_facebuilder.preferences.progress import InstallationProgress
 
@@ -45,35 +45,59 @@ class PREF_OT_InstallPkt(bpy.types.Operator):
     bl_options = {'REGISTER', 'INTERNAL'}
     bl_description = 'Install Core library from website'
 
-    install_type: bpy.props.EnumProperty(
-        name='Version',
-        items=(
-            ('default', 'Latest Stable',
-             'Install the latest stable version', 0),
-            ('nightly', 'Nightly',
-             'Install latest nightly build available. '
-             'Be ready to experience bugs and glitches. '
-             'Please report them', 1)
-        ),
-        default= 'default'
-    )
-
     license_accepted: bpy.props.BoolProperty()
 
     def invoke(self, context, event):
         if self.license_accepted:
-            return context.window_manager.invoke_props_dialog(self)
+            return self.execute(context)
         else:
             self.report({'ERROR'}, _please_accept_eula)
             return {'FINISHED'}
 
     def execute(self, context):
-        InstallationProgress.start_download(self.install_type)
+        InstallationProgress.start_download()
         return {'FINISHED'}
 
+
+class PREF_OT_InstalFromFilePktWithWarning(bpy.types.Operator):
+    bl_idname = _ID_NAME_PREFIX + '_install_pkt_from_file_with_warning'
+    bl_label = 'Please confirm installation'
+    bl_options = {'REGISTER', 'INTERNAL'}
+
+    filepath: bpy.props.StringProperty()
+    filename: bpy.props.StringProperty()
+    warning: bpy.props.StringProperty()
+    confirm_install: bpy.props.BoolProperty(
+        name='Install anyway', default=False)
+
+    content = []
+
+    def _report_canceled(self):
+        self.report({'ERROR'}, 'Installation has been canceled '
+                               'since it was not accepted')
+
     def draw(self, context):
-        layout = self.layout
-        layout.prop(self, 'install_type')
+        layout = self.layout.column()
+        col = layout.column()
+        col.scale_y = Config.text_scale_y
+        col.alert = True
+        col.label(text='You are trying to install "{}"'.format(self.filename))
+        col.label(text=self.warning)
+        col.label(text=' ')
+        layout.prop(self, 'confirm_install')
+
+    def execute(self, context):
+        if not self.confirm_install:
+            self._report_canceled()
+            return {'CANCELLED'}
+
+        InstallationProgress.start_zip_install(self.filepath)
+        self.report({'INFO'}, 'The core library has been '
+                              'installed successfully.')
+        return {'FINISHED'}
+
+    def invoke(self, context, event):
+        return context.window_manager.invoke_props_dialog(self, width=600)
 
 
 class PREF_OT_InstallFromFilePkt(bpy.types.Operator):
@@ -91,7 +115,7 @@ class PREF_OT_InstallFromFilePkt(bpy.types.Operator):
     # can only have exactly that name
     filepath: bpy.props.StringProperty(
             name='',
-            description='absolute path to pykeentools zip file',
+            description='absolute path to keentools core zip file',
             default='',
             subtype='FILE_PATH'
     )
@@ -104,14 +128,14 @@ class PREF_OT_InstallFromFilePkt(bpy.types.Operator):
                    "Core library from ",
                    "our site: keentools.io/downloads"]
         col = layout.column()
-        col.scale_y = 0.75
-        for c in content:
-            col.label(text=c)
+        col.scale_y = Config.text_scale_y
+        for txt_row in content:
+            col.label(text=str(txt_row))
 
         op = layout.operator(
             PREF_OT_OpenURL.bl_idname,
             text='Open downloads page', icon='URL')
-        op.url = 'https://keentools.io/downloads'
+        op.url = Config.core_download_website_url
 
     def invoke(self, context, event):
         if self.license_accepted:
@@ -122,6 +146,32 @@ class PREF_OT_InstallFromFilePkt(bpy.types.Operator):
             return {'FINISHED'}
 
     def execute(self, context):
+        filename_info = pkt.core_filename_info(self.filepath)
+        warning = None
+
+        if not filename_info.is_zip:
+            warning = 'We distribute our Core Library as a ZIP-file. ' +\
+                      'The selected file appears to be of a different type'
+        elif not filename_info.is_keentools_core:
+            warning = 'The selected file name appears to be different from Core library file name'
+        elif filename_info.version != pkt.MINIMUM_VERSION_REQUIRED:
+            def _version_to_string(version):
+                return str(version[0]) + '.' + str(version[1]) + '.' +str(version[2])
+            warning = 'Core library version %s doesn\'t match the add-on version %s' %\
+                      (_version_to_string(filename_info.version),
+                       _version_to_string(pkt.MINIMUM_VERSION_REQUIRED))
+        elif filename_info.os != pkt.os_name():
+            warning = 'Your OS is %s, you\'re trying to install the core library for %s' %\
+                      (pkt.os_name(), filename_info.os)
+        elif filename_info.is_nightly:
+            warning = 'You\'re installing an unstable nightly build, is this what you really want?'
+
+        if warning is not None:
+            install_with_warning = get_operator(PREF_OT_InstalFromFilePktWithWarning.bl_idname)
+            install_with_warning('INVOKE_DEFAULT',
+                filepath=self.filepath, filename=filename_info.filename, warning=warning)
+            return {'FINISHED'}
+
         InstallationProgress.start_zip_install(self.filepath)
         return {'FINISHED'}
 
@@ -133,7 +183,8 @@ class PREF_OT_OpenManualInstallPage(bpy.types.Operator):
     bl_description = 'Open license activation webpage in browser'
 
     def execute(self, context):
-        bpy.ops.wm.url_open(url=Config.manual_install_url)
+        hardware_id = pkt.module().FaceBuilder.license_manager().hardware_id()
+        bpy.ops.wm.url_open(url=Config.manual_install_url + '#' + hardware_id)
         return {'FINISHED'}
 
 
@@ -261,7 +312,7 @@ class PREF_OT_ShowWhy(bpy.types.Operator):
 
     def draw(self, context):
         layout = self.layout
-        layout.scale_y = 0.75
+        layout.scale_y = Config.text_scale_y
 
         content = ['We cannot ship our core library with addon '
                    'due to Blender license restrictions,',

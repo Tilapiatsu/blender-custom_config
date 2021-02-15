@@ -21,12 +21,54 @@ import bpy
 
 import numpy as np
 
-from . import const
-from . config import Config, get_main_settings, BuilderType
+from . config import Config, get_main_settings
 from . utils import coords
-from . utils.edges import FBEdgeShader3D, FBEdgeShader2D
+from . utils.edges import FBEdgeShader2D, FBRasterEdgeShader3D
 from . utils.other import FBText
 from . utils.points import FBPoints2D, FBPoints3D
+
+
+class FBScreenPins:
+    _pins = []
+    _current_pin = None
+    _current_pin_num = -1
+
+    @classmethod
+    def arr(cls):
+        return cls._pins
+
+    @classmethod
+    def set_pins(cls, arr):
+        cls._pins = arr
+
+    @classmethod
+    def add_pin(cls, vec2d):
+        cls._pins.append(vec2d)
+
+    @classmethod
+    def current_pin_num(cls):
+        return cls._current_pin_num
+
+    @classmethod
+    def set_current_pin_num(cls, value):
+        cls._current_pin_num = value
+
+    @classmethod
+    def set_current_pin_num_to_last(cls):
+        cls._current_pin_num = len(cls.arr()) - 1
+
+    @classmethod
+    def current_pin(cls):
+        return cls._current_pin
+
+    @classmethod
+    def set_current_pin(cls, value):
+        cls._current_pin = value
+
+    @classmethod
+    def reset_current_pin(cls):
+        cls._current_pin = None
+        cls._current_pin_num = -1
 
 
 class FBViewport:
@@ -44,54 +86,21 @@ class FBViewport:
     # Text output in Modal mode
     _texter = FBText()
     # Wireframe shader object
-    _wireframer = FBEdgeShader3D()
+    _wireframer = FBRasterEdgeShader3D()
     # Update timer
-    draw_timer_handler = None
+    _draw_timer_handler = None
 
     _residuals = FBEdgeShader2D()
 
     # Pins
-    spins = []  # current screen pins
-    _current_pin = None
-    _current_pin_num = -1
+    _pins = FBScreenPins()
 
-    POINT_SENSITIVITY = Config.default_POINT_SENSITIVITY
+    @classmethod
+    def pins(cls):
+        return cls._pins
+
+    POINT_SENSITIVITY = Config.default_point_sensitivity
     PIXEL_SIZE = 0.1  # Auto Calculated
-
-    # --- current_pin_num class property
-    @classmethod
-    def get_current_pin_num(cls):
-        return cls._current_pin_num
-
-    @classmethod
-    def set_current_pin_num(cls, value):
-        cls._current_pin_num = value
-
-    @property
-    def current_pin_num(self):
-        return self.get_current_pin_num()
-
-    @current_pin_num.setter
-    def current_pin_num(self, value):
-        self.set_current_pin_num(value)
-
-    # --- current_pin class property
-    @classmethod
-    def get_current_pin(cls):
-        return cls._current_pin
-
-    @classmethod
-    def set_current_pin(cls, value):
-        cls._current_pin = value
-
-    @property
-    def current_pin(self):
-        return self.get_current_pin()
-
-    @current_pin.setter
-    def current_pin(self, value):
-        self.set_current_pin(value)
-    # ---
 
     @classmethod
     def points2d(cls):
@@ -126,6 +135,11 @@ class FBViewport:
     def tolerance_dist2(cls):  # squared distance
         return (cls.POINT_SENSITIVITY * cls.PIXEL_SIZE)**2
 
+    @classmethod
+    def in_pin_drag(cls):
+        pins = cls.pins()
+        return pins.current_pin_num() >= 0
+
     # --------
     # Handlers
     @classmethod
@@ -140,17 +154,17 @@ class FBViewport:
         cls.texter().register_handler(args)
         cls.wireframer().register_handler(args)
         # Timer for continuous update modal view
-        cls.draw_timer_handler = context.window_manager.event_timer_add(
-            time_step=0.2, window=context.window
+        cls._draw_timer_handler = context.window_manager.event_timer_add(
+            time_step=Config.viewport_redraw_interval, window=context.window
         )
 
     @classmethod
     def unregister_handlers(cls):
-        if cls.draw_timer_handler is not None:
+        if cls._draw_timer_handler is not None:
             bpy.context.window_manager.event_timer_remove(
-                cls.draw_timer_handler
+                cls._draw_timer_handler
             )
-        cls.draw_timer_handler = None
+        cls._draw_timer_handler = None
         cls.wireframer().unregister_handler()
         cls.texter().unregister_handler()
         cls.points2d().unregister_handler()
@@ -183,41 +197,13 @@ class FBViewport:
         cls.points3d().create_batch()
 
     @classmethod
-    def update_wireframe(cls, builder_type, obj):
-        logger = logging.getLogger(__name__)
+    def update_wireframe(cls):
         settings = get_main_settings()
-        main_color = settings.wireframe_color
-        comp_color = settings.wireframe_special_color
-
-        cls.wireframer().init_color_data((*main_color,
-                                          settings.wireframe_opacity))
-        if settings.show_specials:
-            mesh = obj.data
-            # Check to prevent shader problem
-            if len(mesh.edges) * 2 == len(cls.wireframer().edges_colors):
-                logger.debug("COLORING")
-                special_indices = cls.get_special_indices(builder_type)
-                cls.wireframer().init_special_areas(
-                    obj.data, special_indices, (*comp_color,
-                                                settings.wireframe_opacity))
-            else:
-                logging.warning("LISTS HAVE DIFFERENT SIZES")
+        cls.wireframer().init_colors((settings.wireframe_color,
+                                      settings.wireframe_special_color,
+                                      settings.wireframe_midline_color),
+                                     settings.wireframe_opacity)
         cls.wireframer().create_batches()
-
-    @classmethod
-    def get_special_indices(cls, builder_type):
-        if builder_type == BuilderType.FaceBuilder:
-            pairs = const.get_eyes_indices()
-            pairs = pairs.union(const.get_eyebrows_indices())
-            pairs = pairs.union(const.get_nose_indices())
-            pairs = pairs.union(const.get_mouth_indices())
-            pairs = pairs.union(const.get_ears_indices())
-            pairs = pairs.union(const.get_half_indices())
-            # pairs = pairs.union(const.get_jaw_indices2())
-            return pairs
-        elif builder_type == BuilderType.BodyBuilder:
-            return const.get_bodybuilder_highlight_indices()
-        return {}
 
     @classmethod
     def update_pin_sensitivity(cls):
@@ -232,18 +218,8 @@ class FBViewport:
             settings.pin_size * Config.surf_pin_size_scale)
 
     @classmethod
-    def get_spins(cls):
-        return cls.spins
-
-    @classmethod
-    def set_spins(cls, arr):
-        cls.spins = arr
-
-    @classmethod
-    def surface_points(
-            cls, fb, headobj, keyframe=-1,
-            allcolor=(0, 0, 1, 0.15), selcolor=(0, 1, 0, 1)):
-        """ Load 3D pin points """
+    def surface_points(cls, fb, headobj, keyframe=-1,
+                       allcolor=(0, 0, 1, 0.15), selcolor=(0, 1, 0, 1)):
         verts = []
         colors = []
 
@@ -259,9 +235,7 @@ class FBViewport:
         return verts, colors
 
     @classmethod
-    def surface_points_only(
-            cls, fb, headobj, keyframe=-1):
-        """ Load 3D pin points """
+    def surface_points_only(cls, fb, headobj, keyframe=-1):
         verts = []
 
         for i in range(fb.pins_count(keyframe)):
@@ -288,7 +262,7 @@ class FBViewport:
     @classmethod
     def create_batch_2d(cls, context):
         """ Main Pin Draw Batch"""
-        points = cls.spins.copy()
+        points = cls.pins().arr().copy()
 
         scene = context.scene
         rx = scene.render.resolution_x
@@ -303,8 +277,9 @@ class FBViewport:
 
         vertex_colors = [Config.pin_color for _ in range(len(points))]
 
-        if cls.get_current_pin() and cls.get_current_pin_num() < len(vertex_colors):
-            vertex_colors[cls.get_current_pin_num()] = Config.current_pin_color
+        pins = cls.pins()
+        if pins.current_pin() and pins.current_pin_num() < len(vertex_colors):
+            vertex_colors[pins.current_pin_num()] = Config.current_pin_color
 
         # Camera corners
         points.append(
@@ -349,7 +324,7 @@ class FBViewport:
 
         # ----------
         # Projection
-        projection = fb.projection_mat().T
+        projection = fb.projection_mat(keyframe).T
 
         camobj = bpy.context.scene.camera
         m = camobj.matrix_world.inverted()

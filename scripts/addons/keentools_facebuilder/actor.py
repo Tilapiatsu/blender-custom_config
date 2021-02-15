@@ -17,72 +17,109 @@
 # ##### END GPL LICENSE BLOCK #####
 
 import logging
+import math
+import numpy as np
+
 
 import bpy
 from bpy.props import (
     StringProperty,
     IntProperty,
 )
-from bpy.types import Operator
 
-from .utils import manipulate, materials
-from .config import Config, get_main_settings
-from .utils.exif_reader import get_sensor_size_35mm_equivalent
+from .utils import manipulate
+from .utils.coords import xy_to_xz_rotation_matrix_4x4
+from .config import Config, get_main_settings, get_operator, ErrorType
+from .utils.exif_reader import (update_image_groups,
+                                auto_setup_camera_from_exif,
+                                is_size_compatible_with_group)
+from .utils.blendshapes import (create_blendshape_controls,
+                                make_control_panel,
+                                convert_controls_animation_to_blendshapes,
+                                remove_blendshape_drivers,
+                                delete_with_children,
+                                select_control_panel_sliders,
+                                has_blendshapes_action,
+                                convert_blendshapes_animation_to_controls)
 
 
-class FB_OT_Actor(Operator):
-    bl_idname = Config.fb_actor_idname
-    bl_label = "FaceBuilder in Action"
-    bl_options = {'REGISTER'}
-    bl_description = "FaceBuilder"
+class FB_OT_HistoryActor(bpy.types.Operator):
+    bl_idname = Config.fb_history_actor_idname
+    bl_label = 'FaceBuilder Action'
+    bl_options = {'REGISTER', 'UNDO'}
+    bl_description = 'FaceBuilder'
 
-    action: StringProperty(name="Action Name")
-    headnum: IntProperty(default=0)
-    camnum: IntProperty(default=0)
+    action: StringProperty(name='Action Name')
 
     def draw(self, context):
         pass
 
     def execute(self, context):
         logger = logging.getLogger(__name__)
-        logger.debug("Actor: {}".format(self.action))
+        logger.debug('History Actor: {}'.format(self.action))
 
-        settings = get_main_settings()
+        if self.action == 'generate_control_panel':
+            head = manipulate.get_current_head()
+            if head:
+                controls = create_blendshape_controls(head.headobj)
+                if len(controls) > 0:
+                    control_panel = make_control_panel(controls)
+                    # Positioning control panel near head
+                    offset = np.eye(4)
+                    offset[3][0] = 2 * head.model_scale # Step on X
+                    rot = xy_to_xz_rotation_matrix_4x4()
+                    control_panel.matrix_world = offset @ rot @ \
+                        np.array(head.headobj.matrix_world).transpose()
 
-        if self.action == 'reconstruct_by_head':
-            manipulate.reconstruct_by_head()
+                    # Hide dashed lines between parented objects
+                    bpy.context.space_data.overlay.show_relationship_lines = False
+                    head.headobj.data.update()  # update for drivers affection
 
-        elif self.action == 'unhide_head':
-            manipulate.unhide_head(self.headnum)
+                    head.blendshapes_control_panel = control_panel
+                    if has_blendshapes_action(head.headobj):
+                        convert_blendshapes_animation_to_controls(head.headobj)
+                else:
+                    self.report({'ERROR'}, 'No Blendshapes found. '
+                                           'Create blendshapes first')
+                return {'FINISHED'}
 
-        elif self.action == 'use_render_frame_size_scaled':
-            # Allow converts scenes pinned on default cameras
-            manipulate.use_render_frame_size_scaled()  # disabled in interface
+        elif self.action == 'delete_control_panel':
+            head = manipulate.get_current_head()
+            if head and head.control_panel_exists():
+                remove_blendshape_drivers(head.headobj)
+                delete_with_children(head.blendshapes_control_panel)
+            else:
+                self.report({'ERROR'}, 'Control panel not found')
+            return {'FINISHED'}
 
-        elif self.action == 'delete_camera_image':
-            camera = settings.get_camera(self.headnum, self.camnum)
-            if camera is not None:
-                camera.cam_image = None
+        elif self.action == 'select_control_panel_sliders':
+            head = manipulate.get_current_head()
+            if head and head.control_panel_exists():
+                counter = select_control_panel_sliders(
+                    head.blendshapes_control_panel)
+                self.report(
+                    {'INFO'}, '{} Sliders has been selected'.format(counter))
+            else:
+                self.report({'ERROR'}, 'Control panel not found')
+            return {'FINISHED'}
 
-        elif self.action == 'save_tex':
-            src_context = bpy.context.copy()
-            area = bpy.context.area
-            type = area.type
-            area.type = 'IMAGE_EDITOR'
-            tex = materials.find_tex_by_name(Config.tex_builder_filename)
-            if tex is not None:
-                src_context['edit_image'] = tex
-                area.spaces[0].image = tex
-                # area.type = type
-                op = bpy.ops.image.save_as
-                op('INVOKE_DEFAULT')  # src_context, 'INVOKE_DEFAULT'
+        elif self.action == 'convert_controls_to_blendshapes':
+            head = manipulate.get_current_head()
+            if head and head.control_panel_exists():
+                if not convert_controls_animation_to_blendshapes(head.headobj):
+                    self.report({'ERROR'}, 'Conversion could not be performed')
+                else:
+                    remove_blendshape_drivers(head.headobj)
+                    delete_with_children(head.blendshapes_control_panel)
+                    self.report({'INFO'}, 'Conversion completed')
+            else:
+                self.report({'ERROR'}, 'Control panel not found')
+            return {'FINISHED'}
 
-        return {'FINISHED'}
+        return {'CANCELLED'}
 
 
-class FB_OT_CameraActor(Operator):
-    """ Camera Action
-    """
+class FB_OT_CameraActor(bpy.types.Operator):
     bl_idname = Config.fb_camera_actor_idname
     bl_label = "Camera parameters"
     bl_options = {'REGISTER', 'UNDO', 'INTERNAL'}
@@ -91,78 +128,77 @@ class FB_OT_CameraActor(Operator):
     action: StringProperty(name="Action Name")
     headnum: IntProperty(default=0)
     camnum: IntProperty(default=0)
+    num: IntProperty(default=0)
 
     def draw(self, context):
         pass
 
     def execute(self, context):
         logger = logging.getLogger(__name__)
+        logger.debug('Camera Actor: {}'.format(self.action))
+        logger.debug('headnum: {} camnum: {} num: {}'.format(
+            self.headnum, self.camnum, self.num))
+
         settings = get_main_settings()
-
         head = settings.get_head(self.headnum)
+        camera = head.get_camera(settings.current_camnum)
 
-        if self.action == 'sensor_36x24mm':
-            head.sensor_width = 36.0
-            head.sensor_height = 24.0
+        if self.action == 'toggle_group_info':
+            head.show_image_groups = not head.show_image_groups
 
-        elif self.action == 'focal_50mm':
-            head.focal = 50.0
+        elif self.action == 'manual_mode':
+            head.smart_mode_toggle()
 
-        elif self.action == 'auto_focal_on':
-            head.auto_focal_estimation = True
+        elif self.action == 'reset_image_group':
+            camera.image_group = 0
+            update_image_groups(head)
 
-        elif self.action == 'auto_focal_off':
-            head.auto_focal_estimation = False
+        elif self.action == 'new_image_group':
+            groups = [x.image_group for x in head.cameras if x.image_group > 0]
+            if len(groups) > 0:
+                camera.image_group = max(groups) + 1
+            else:
+                camera.image_group = 1
+            head.show_image_groups = True
 
-        elif self.action == 'exif_focal':
-            if head.exif.focal > 0.0:
-                head.focal = head.exif.focal
+        elif self.action == 'to_image_group':
+            if is_size_compatible_with_group(head, camera, self.num):
+                camera.image_group = self.num
+                head.show_image_groups = True
+            else:
+                error_message = "Wrong Image Size\n\n" \
+                    "This image {} can't be added into group {} \n" \
+                    "because they have different " \
+                    "dimensions.".format(camera.get_image_name(), self.num)
 
-        elif self.action == 'exif_focal35mm':
-            if head.exif.focal35mm > 0.0:
-                head.focal = head.exif.focal35mm
+                warn = get_operator(Config.fb_warning_idname)
+                warn('INVOKE_DEFAULT', msg=ErrorType.CustomMessage,
+                     msg_content=error_message)
 
-        # ------------------
-        # Menu: Sensor Settings
-        # ------------------
-        elif self.action == 'exif_sensor_and_focal':
-            # Get Sensor & Focal from EXIF
-            if head.exif.focal > 0.0 and head.exif.sensor_width > 0.0 and \
-                    head.exif.sensor_length > 0.0:
-                head.focal = head.exif.focal
-                head.sensor_width = head.exif.sensor_width
-                head.sensor_height = head.exif.sensor_length
+        elif self.action == 'make_unique':
+            camera.image_group = -1
+            head.show_image_groups = True
 
-        elif self.action == 'exif_focal_and_sensor_via_35mm':
-            # Get Sensor & Focal from EXIF 35mm equiv.
-            if head.exif.focal > 0.0 and head.exif.focal35mm > 0.0:
-                w, h = get_sensor_size_35mm_equivalent(head)
-                head.sensor_width = w
-                head.sensor_height = h
-                head.focal = head.exif.focal
+        elif self.action == 'make_all_unique':
+            for camera in head.cameras:
+                camera.image_group = -1
 
-        elif self.action == 'standard_sensor_and_exif_focal35mm':
-            # 35 mm Sensor & EXIF Focal 35mm equiv.
-            if head.exif.focal35mm > 0.0:
-                w = 36.0
-                h = 24.0
-                head.sensor_width = w
-                head.sensor_height = h
-                head.focal = head.exif.focal35mm
+        elif self.action == 'reset_all_image_groups':
+            for camera in head.cameras:
+                camera.image_group = 0
+            update_image_groups(head)
 
-        # ------------------
-        elif self.action == 'exif_sensor':
-            # EXIF --> Sensor Size
-            if head.exif.sensor_width > 0.0 and head.exif.sensor_length > 0.0:
-                head.sensor_width = head.exif.sensor_width
-                head.sensor_height = head.exif.sensor_length
+        elif self.action == 'settings_by_exif':
+            camera.image_group = 0
+            auto_setup_camera_from_exif(camera)
+            update_image_groups(head)
 
-        elif self.action == 'exif_sensor_via_35mm':
-            # EXIF 35mm --> calc. Sensor Size
-            if head.exif.focal35mm > 0.0:
-                w, h = get_sensor_size_35mm_equivalent(head)
-                head.sensor_width = w
-                head.sensor_height = h
+        elif self.action == 'reset_all_camera_settings':
+            for camera in head.cameras:
+                camera.image_group = 0
+                auto_setup_camera_from_exif(camera)
+            if not head.smart_mode():
+                head.smart_mode_toggle()
+            update_image_groups(head)
 
-        logger.debug("Camera Actor: {}".format(self.action))
         return {'FINISHED'}

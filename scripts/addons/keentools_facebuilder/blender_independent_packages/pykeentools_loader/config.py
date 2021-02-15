@@ -22,6 +22,7 @@ import inspect
 import tempfile
 __all__ = ['SHADOW_COPIES_DIRECTORY', 'RELATIVE_LIB_DIRECTORY',
            'pkt_installation_dir', 'MINIMUM_VERSION_REQUIRED',
+           'is_python_supported',
            'os_name', 'download_path']
 
 
@@ -29,7 +30,7 @@ SHADOW_COPIES_DIRECTORY = os.path.join(tempfile.gettempdir(),
                                        'pykeentools_shadow_copies')
 
 
-RELATIVE_LIB_DIRECTORY = os.path.join('pykeentools', 'pykeentools')
+RELATIVE_LIB_DIRECTORY = os.path.join('pykeentools_installation', 'pykeentools')
 
 
 def pkt_installation_dir():
@@ -39,7 +40,17 @@ def pkt_installation_dir():
     return os.path.abspath(installation_dir)
 
 
-MINIMUM_VERSION_REQUIRED = '1.5.7'
+MINIMUM_VERSION_REQUIRED = (2021, 1, 0)  # 2021.1.0
+_SUPPORTED_PYTHON_VERSIONS = ((3, 7),)
+
+
+def is_python_supported():
+    import sys
+    ver = sys.version_info[0:3]
+    for supported_ver in _SUPPORTED_PYTHON_VERSIONS:
+        if ver[:len(supported_ver)] == supported_ver:
+            return True
+    return False
 
 
 def os_name():
@@ -61,4 +72,4 @@ def download_path(version=None, nightly=False):
         return 'https://downloads.keentools.io/latest-keentools-core-{}'.format(os_name())
 
     return 'https://downloads.keentools.io/keentools-core-{}-{}'.format(
-        version.replace('.', '_'), os_name())
+        '_'.join([str(x) for x in version]), os_name())

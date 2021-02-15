@@ -32,67 +32,52 @@ class HELP_OT_CameraHelp(bpy.types.Operator):
     def draw(self, context):
         layout = self.layout
         col = layout.column()
-        col.scale_y = 0.75
+        col.scale_y = Config.text_scale_y
         content = [
-            "In order to get a quality model you need to know two things:",
-            "sensor size and focal length. Both in millimetres.",
-            "Of the sensor size you need to know the length "
-            "of the longest side.",
-            "Of the focal length — you need to know the real focal length,",
-            "not the 35mm equivalent.",
+            "To get a quality model you need to know one important thing about",
+            "your photos — the 35mm equivalent focal length the photos "
+            "were taken with.",
+            "Usually we can automatically get this data from EXIF of the "
+            "loaded pictures.",
             " ",
-            "If you don't know either the sensor width or the focal length,",
-            "it's better to switch on the automatic focal length estimation —",
-            "it usually gives pretty good results. ",
-            "The sensor size in such case can be anything, "
-            "but it still is going to be used",
-            "in estimation. The estimation happens every "
-            "time you change pins.",
+            "Unfortunately it's not a rare case when this data is stripped "
+            "out of the photos.",
+            "In this case you still can get a quality model manually "
+            "setting up the focal",
+            "length if you know it. In all other cases we recommend using "
+            "focal length estimation.",
             " ",
-            "You can also try getting camera settings from EXIF "
-            "when it's available.",
-            "It can be found on corresponding panel below.",
+            "If you don't know the focal length, we recommend you to not "
+            "change anything. ",
+            "Please rely on automatic settings, that should provide you "
+            "the best possible results.",
             " ",
-            "Different ways of using EXIF information "
-            "for Sensor width and Focal length",
-            "can be found in corresponding menus (buttons with gear icons) "
-            "on this tab, ",
-            "on the right side of fields."]
+            "If you know the focal length and want to check that "
+            "everything's correct,",
+            "you can open this panel and see the detected 35mm equiv. "
+            "focal length. ",
+            "You can change it if you switch into manual mode using "
+            "the advanced setting menu",
+            "in the header of the camera settings panel.",
+            " ",
+            "When we detect similar 35mm equiv. focal length across a number "
+            "of photographs",
+            "we add them into one group, it helps our face morphing algorithm "
+            "in cases ",
+            "when there are more than one groups with different focal lengths. "
+            "You can also ",
+            "add different pictures with unknown focal length into one "
+            "group manually,",
+            "so the FL estimation algorithm will treat them all as if they "
+            "were taken with ",
+            "the same 35mm equiv. focal length, but we recommend to only do "
+            "so if you really ",
+            "know what you're doing."]
 
         for c in content:
             col.label(text=c)
         layout.separator()
 
-
-    def invoke(self, context, event):
-        return context.window_manager.invoke_props_dialog(
-            self, width=_help_window_width)
-
-    def execute(self, context):
-        return {'FINISHED'}
-
-
-class HELP_OT_ExifHelp(bpy.types.Operator):
-    bl_idname = Config.fb_help_exif_idname
-    bl_label = "EXIF"
-    bl_options = {'REGISTER', 'INTERNAL'}
-    bl_description = "Show help information about EXIF panel"
-
-    def draw(self, context):
-        layout = self.layout
-        col = layout.column()
-        col.scale_y = 0.75
-        content = [
-            "On this panel you can load and see EXIF information stored "
-            "in the image files",
-            "that you have loaded into Views. By default EXIF data "
-            "of the first file is loaded.",
-            "This information can be used for the camera in the panel "
-            "above after loading."]
-
-        for c in content:
-            col.label(text=c)
-        layout.separator()
 
     def invoke(self, context, event):
         return context.window_manager.invoke_props_dialog(
@@ -111,7 +96,7 @@ class HELP_OT_ViewsHelp(bpy.types.Operator):
     def draw(self, context):
         layout = self.layout
         col = layout.column()
-        col.scale_y = 0.75
+        col.scale_y = Config.text_scale_y
         content = [
             "On this panel you can load and remove images "
             "automatically creating ",
@@ -148,7 +133,7 @@ class HELP_OT_ModelHelp(bpy.types.Operator):
     def draw(self, context):
         layout = self.layout
         col = layout.column()
-        col.scale_y = 0.75
+        col.scale_y = Config.text_scale_y
         content = [
             "On this panel you can modify the 3D model of the "
             "head in different ways: ",
@@ -183,7 +168,7 @@ class HELP_OT_PinSettingsHelp(bpy.types.Operator):
     def draw(self, context):
         layout = self.layout
         col = layout.column()
-        col.scale_y = 0.75
+        col.scale_y = Config.text_scale_y
         content = [
             "Here you can tweak the pin size in terms of visual appearance ",
             "and the size of the active area that responds to mouse "
@@ -210,7 +195,7 @@ class HELP_OT_WireframeSettingsHelp(bpy.types.Operator):
     def draw(self, context):
         layout = self.layout
         col = layout.column()
-        col.scale_y = 0.75
+        col.scale_y = Config.text_scale_y
         content = [
             "On this panel you can change colours and opacity of the "
             "model's wireframe ",
@@ -239,7 +224,7 @@ class HELP_OT_TextureHelp(bpy.types.Operator):
     def draw(self, context):
         layout = self.layout
         col = layout.column()
-        col.scale_y = 0.75
+        col.scale_y = Config.text_scale_y
         content = [
             "This panel gives you access to an experimental functionality "
             "of automatic texture ",
@@ -278,6 +263,69 @@ class HELP_OT_TextureHelp(bpy.types.Operator):
             "the texture is applied to the object. It basically takes "
             "the colour of the last ",
             "pixel on the edge and duplicates it on the next empty pixel."]
+
+        for c in content:
+            col.label(text=c)
+        layout.separator()
+
+    def invoke(self, context, event):
+        return context.window_manager.invoke_props_dialog(
+            self, width=_help_window_width)
+
+    def execute(self, context):
+        return {'FINISHED'}
+
+
+class HELP_OT_BlendshapesHelp(bpy.types.Operator):
+    bl_idname = Config.fb_help_blendshapes_idname
+    bl_label = 'Blendshapes'
+    bl_options = {'REGISTER', 'INTERNAL'}
+    bl_description = 'Show help information about Blendshapes panel'
+
+    def draw(self, context):
+        layout = self.layout
+        col = layout.column()
+        col.scale_y = Config.text_scale_y
+        content = [
+            'On this panel you can create FACS ARKit-compatible blendshapes '
+            'for the head ',
+            'you\'ve built, load animation from a CSV file and export the head '
+            'with all blendshapes ',
+            'and animation to a game engine.',
+            ' ',
+            'Once you press "Create" button, 51 blendshapes will be created. '
+            'You can change ',
+            'how they affect the shape of the head here: '
+            'Object Data Properties > Shape Keys.',
+            'If you change the topology, the blendshapes will be recreated. '
+            'When you change ',
+            'the shape of the head using pins in Pin Mode, and also when you '
+            'change the scale ',
+            'of the model, you\'ll be asked if you want to update '
+            'the blendshapes, note that ',
+            'the old blendshapes become useless once you make such changes.',
+            ' ',
+            'The blendshapes are fully compatible with the ARKit '
+            'specifications, which can found ',
+            'at Apple Developer portal.',
+            ' ',
+            'You can animate the blendshapes manually creating keyframes '
+            'for each Shape Key.',
+            ' ',
+            'If you have LiveLinkFace (or similar) application, you can record '
+            'the facial animation ',
+            'using the iOS device with the True Depth sensor (iPhone X '
+            'and newer), ',
+            'export a CSV file and then import it here.',
+            ' ',
+            'To export the head with all its blendshapes and animation, '
+            'you need to know ',
+            'where you want to import this 3D model to. In most cases '
+            'the Export button ',
+            'presented here will work for Unreal Engine and Unity, it will '
+            'pre-setup the Blender ',
+            'export dialog for you. Your free to change the settings before '
+            'saving the file if you need.']
 
         for c in content:
             col.label(text=c)
