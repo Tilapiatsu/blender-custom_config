@@ -65,14 +65,14 @@ modules =   (
 			'vertex_color_master',
 			'BakeWrangler',
 			'atomic_data_manager',
-			'ImagePaste',
+			# 'ImagePaste',
 			'greasepencil_tools',
 			'keymesh',
 			# 'ZWeightTools-1_0_1',
 			# 'W_Mesh',
 			'uvpackmaster2',
 			'uv_toolkit',
-			'lineup_maker',
+			# 'lineup_maker',
 			'Tila_Config'
 			)
 
