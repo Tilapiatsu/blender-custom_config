@@ -585,10 +585,25 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		self.tool_center(pivot='space_data.pivot_point', orientation='IMAGE_PT_snapping')
 
 		self.kmi_set_replace('wm.tool_set_by_id', 'W', 'PRESS', ctrl=True, alt=True, shift=True, properties=[('name', 'builtin_brush.Grab')])
-		self.tool_radial_control(radius=[('data_path_primary', 'tool_settings.uv_sculpt.brush.size'), ('data_path_secondary', 'tool_settings.unified_paint_settings.size'), ('use_secondary', 'tool_settings.unified_paint_settings.use_unified_size'), ('rotation_path', 'tool_settings.uv_sculpt.brush.texture_slot.angle'), ('color_path', 'tool_settings.uv_sculpt.brush.cursor_color_add'), ('image_id', 'tool_settings.uv_sculpt.brush')],
-						   		opacity=[('data_path_primary', 'tool_settings.uv_sculpt.brush.strength'), ('data_path_secondary', 'tool_settings.unified_paint_settings.strength'), ('use_secondary', 'tool_settings.unified_paint_settings.use_unified_strength'), (
-							   'rotation_path', 'tool_settings.uv_sculpt.brush.texture_slot.angle'), ('color_path', 'tool_settings.uv_sculpt.brush.cursor_color_add'), ('image_id', 'tool_settings.uv_sculpt.brush')],
-						   		eraser_radius=[('data_path_primary', 'tool_settings.uv_sculpt.brush.texture_slot.angle'), ('rotation_path', 'tool_settings.uv_sculpt.brush.texture_slot.angle'), ('color_path', 'tool_settings.uv_sculpt.brush.cursor_color_add'), ('image_id', 'tool_settings.uv_sculpt.brush')])
+		self.tool_radial_control(radius=[('data_path_primary', 'tool_settings.uv_sculpt.brush.size'), 
+								('data_path_secondary', 'tool_settings.unified_paint_settings.size'), 
+								('use_secondary', 'tool_settings.unified_paint_settings.use_unified_size'), 
+								('rotation_path', 'tool_settings.uv_sculpt.brush.texture_slot.angle'), 
+								('color_path', 'tool_settings.uv_sculpt.brush.cursor_color_add'), 
+								('image_id', 'tool_settings.uv_sculpt.brush'),
+								('release_confirm', True)],
+						   		opacity=[('data_path_primary', 'tool_settings.uv_sculpt.brush.strength'), 
+								   ('data_path_secondary', 'tool_settings.unified_paint_settings.strength'), 
+								   ('use_secondary', 'tool_settings.unified_paint_settings.use_unified_strength'), 
+								   ('rotation_path', 'tool_settings.uv_sculpt.brush.texture_slot.angle'), 
+								   ('color_path', 'tool_settings.uv_sculpt.brush.cursor_color_add'), 
+								   ('image_id', 'tool_settings.uv_sculpt.brush'),
+									('release_confirm', True)],
+						   		eraser_radius=[('data_path_primary', 'tool_settings.uv_sculpt.brush.texture_slot.angle'), 
+								   ('rotation_path', 'tool_settings.uv_sculpt.brush.texture_slot.angle'), 
+								   ('color_path', 'tool_settings.uv_sculpt.brush.cursor_color_add'), 
+								   ('image_id', 'tool_settings.uv_sculpt.brush'),
+									('release_confirm', True)])
 
 
 		self.kmi_set_replace('uv.minimize_stretch', 'R', 'PRESS', ctrl=True, disable_double=True, properties=[('iterations', 10)])
@@ -762,10 +777,25 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 
 		self.kmi_set_replace('object.tila_duplicate', self.k_manip, 'CLICK_DRAG', ctrl=True, alt=True, shift=True, properties=[('linked', False), ('move', True)])
 
-		self.tool_radial_control(radius=[('data_path_primary', 'tool_settings.sculpt.brush.size'), ('data_path_secondary', 'tool_settings.unified_paint_settings.size'), ('use_secondary', 'tool_settings.unified_paint_settings.use_unified_size'), ('rotation_path', 'tool_settings.sculpt.brush.texture_slot.angle'), ('color_path', 'tool_settings.sculpt.brush.cursor_color_add'), ('image_id', 'tool_settings.sculpt.brush')],
-						   		opacity=[('data_path_primary', 'tool_settings.sculpt.brush.strength'), ('data_path_secondary', 'tool_settings.unified_paint_settings.strength'), ('use_secondary', 'tool_settings.unified_paint_settings.use_unified_strength'), (
-							   'rotation_path', 'tool_settings.sculpt.brush.texture_slot.angle'), ('color_path', 'tool_settings.sculpt.brush.cursor_color_add'), ('image_id', 'tool_settings.sculpt.brush')],
-						   		eraser_radius=[('data_path_primary', 'tool_settings.sculpt.brush.texture_slot.angle'), ('rotation_path', 'tool_settings.sculpt.brush.texture_slot.angle'), ('color_path', 'tool_settings.sculpt.brush.cursor_color_add'), ('image_id', 'tool_settings.sculpt.brush')])
+		self.tool_radial_control(radius=[('data_path_primary', 'tool_settings.sculpt.brush.size'), 
+								('data_path_secondary', 'tool_settings.unified_paint_settings.size'), 
+								('use_secondary', 'tool_settings.unified_paint_settings.use_unified_size'), 
+								('rotation_path', 'tool_settings.sculpt.brush.texture_slot.angle'), 
+								('color_path', 'tool_settings.sculpt.brush.cursor_color_add'), 
+								('image_id', 'tool_settings.sculpt.brush'), 
+								('release_confirm', True)],
+						   		opacity=[('data_path_primary', 'tool_settings.sculpt.brush.strength'), 
+								   ('data_path_secondary', 'tool_settings.unified_paint_settings.strength'), 
+								   ('use_secondary', 'tool_settings.unified_paint_settings.use_unified_strength'), 
+								   ('rotation_path', 'tool_settings.sculpt.brush.texture_slot.angle'), 
+								   ('color_path', 'tool_settings.sculpt.brush.cursor_color_add'), 
+								   ('image_id', 'tool_settings.sculpt.brush'), 
+								   ('release_confirm', True)],
+						   		eraser_radius=[('data_path_primary', 'tool_settings.sculpt.brush.texture_slot.angle'), 
+								   ('rotation_path', 'tool_settings.sculpt.brush.texture_slot.angle'), 
+								   ('color_path', 'tool_settings.sculpt.brush.cursor_color_add'), 
+								   ('image_id', 'tool_settings.sculpt.brush'), 
+								   ('release_confirm', True)])
 
 		self.kmi_set_replace('sculpt.dynamic_topology_toggle', 'D', 'PRESS', ctrl=True, alt=True, shift=True)
 		
@@ -879,17 +909,20 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		('use_secondary', 'tool_settings.unified_paint_settings.use_unified_size'), 
 		('rotation_path', 'tool_settings.vertex_paint.brush.texture_slot.angle'), 
 		('color_path', 'tool_settings.vertex_paint.brush.cursor_color_add'), 
-		('image_id', 'tool_settings.vertex_paint.brush')],
+		('image_id', 'tool_settings.vertex_paint.brush'),
+		('release_confirm', True)],
 		opacity=[('data_path_primary', 'tool_settings.vertex_paint.brush.strength'), 
 		('data_path_secondary', 'tool_settings.unified_paint_settings.strength'), 
 		('use_secondary', 'tool_settings.unified_paint_settings.use_unified_strength'), 
 		('rotation_path', 'tool_settings.vertex_paint.brush.texture_slot.angle'), 
 		('color_path', 'tool_settings.vertex_paint.brush.cursor_color_add'), 
-		('image_id', 'tool_settings.vertex_paint.brush')],
+		('image_id', 'tool_settings.vertex_paint.brush'),
+		('release_confirm', True)],
 		eraser_radius=[('data_path_primary', 'tool_settings.vertex_paint.brush.texture_slot.angle'), 
 		('rotation_path', 'tool_settings.vertex_paint.brush.texture_slot.angle'), 
 		('color_path', 'tool_settings.vertex_paint.brush.cursor_color_add'), 
-		('image_id', 'tool_settings.vertex_paint.brush')])
+		('image_id', 'tool_settings.vertex_paint.brush',
+		('release_confirm', True))])
 
 		self.tool_sample_color('paint.sample_color')
 
@@ -911,17 +944,20 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		('use_secondary', 'tool_settings.unified_paint_settings.use_unified_size'), 
 		('rotation_path', 'tool_settings.weight_paint.brush.texture_slot.angle'), 
 		('color_path', 'tool_settings.weight_paint.brush.cursor_color_add'), 
-		('image_id', 'tool_settings.weight_paint.brush')],
+		('image_id', 'tool_settings.weight_paint.brush',
+		('release_confirm', True))],
 		opacity=[('data_path_primary', 'tool_settings.weight_paint.brush.strength'), 
 		('data_path_secondary', 'tool_settings.unified_paint_settings.strength'), 
 		('use_secondary', 'tool_settings.unified_paint_settings.use_unified_strength'), 
 		('rotation_path', 'tool_settings.weight_paint.brush.texture_slot.angle'), 
 		('color_path', 'tool_settings.weight_paint.brush.cursor_color_add'), 
-		('image_id', 'tool_settings.weight_paint.brush')],
+		('image_id', 'tool_settings.weight_paint.brush',
+		('release_confirm', True))],
 		eraser_radius=[('data_path_primary', 'tool_settings.weight_paint.brush.texture_slot.angle'), 
 		('rotation_path', 'tool_settings.weight_paint.brush.texture_slot.angle'), 
 		('color_path', 'tool_settings.weight_paint.brush.cursor_color_add'), 
-		('image_id', 'tool_settings.weight_paint.brush')])
+		('image_id', 'tool_settings.weight_paint.brush',
+		('release_confirm', True))])
 
 		self.tool_sample_color('paint.weight_sample')
 
@@ -949,7 +985,8 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		('fill_color_path', 'tool_settings.image_paint.brush.color'), 
 		('fill_color_override_path', 'tool_settings.unified_paint_settings.color'), 
 		('fill_color_override_test_path', 'tool_settings.unified_paint_settings.use_unified_color'),
-		('zoom_path', 'space_data.zoom'), ('secondary_tex', True)],
+		('zoom_path', 'space_data.zoom'), ('secondary_tex', True),
+		('release_confirm', True)],
 		opacity=[('data_path_primary', 'tool_settings.image_paint.brush.strength'), 
 		('data_path_secondary', 'tool_settings.unified_paint_settings.strength'), 
 		('use_secondary', 'tool_settings.unified_paint_settings.use_unified_strength'), 
@@ -959,7 +996,8 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		('fill_color_path', 'tool_settings.image_paint.brush.color'), 
 		('fill_color_override_path', 'tool_settings.unified_paint_settings.color'), 
 		('fill_color_override_test_path', 'tool_settings.unified_paint_settings.use_unified_color'),
-		('secondary_tex', True)],
+		('secondary_tex', True),
+		('release_confirm', True)],
 		eraser_radius=[('data_path_primary', 'tool_settings.image_paint.brush.texture_slot.angle'), 
 		('rotation_path', 'tool_settings.image_paint.brush.texture_slot.angle'), 
 		('color_path', 'tool_settings.image_paint.brush.cursor_color_add'), 
@@ -970,7 +1008,8 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		fill_color=[('fill_color_path', 'tool_settings.image_paint.brush.color'), 
 		('fill_color_override_path', 'tool_settings.unified_paint_settings.color'), 
 		('fill_color_override_test_path', 'tool_settings.unified_paint_settings.use_unified_color'),
-		('zoom_path', 'space_data.zoom'), ('secondary_tex', True)])
+		('zoom_path', 'space_data.zoom'), ('secondary_tex', True),
+		('release_confirm', True)])
 
 		self.tool_sample_color('paint.sample_color')
 
@@ -1094,8 +1133,12 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		self.kmi_set_replace('wm.tool_set_by_id', 'SPACE', 'PRESS', properties=[(('name', 'builtin_brush.Draw'))])
 		self.collection_visibility('object.hide_collection')
 		self.mode_selection()
-		self.tool_radial_control(radius=[('data_path_primary', 'tool_settings.gpencil_paint.brush.size')], opacity=[('data_path_primary', 'tool_settings.gpencil_paint.brush.gpencil_settings.pen_strength')],
-								 eraser_radius=[('data_path_primary', 'preferences.edit.grease_pencil_eraser_radius')])
+		self.tool_radial_control(radius=[('data_path_primary', 'tool_settings.gpencil_paint.brush.size'),
+										('release_confirm', True)],
+								opacity=[('data_path_primary', 'tool_settings.gpencil_paint.brush.gpencil_settings.pen_strength',
+										('release_confirm', True))],
+								 eraser_radius=[('data_path_primary', 'preferences.edit.grease_pencil_eraser_radius',
+										('release_confirm', True))])
 		
 		###### Grease Pencil Stroke Paint (Draw brush)
 		self.kmi_init(name='Grease Pencil Stroke Paint (Draw brush)', space_type='EMPTY', region_type='WINDOW')
@@ -1127,7 +1170,8 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		('fill_color_path', 'tool_settings.gpencil_sculpt_paint.brush.color'), 
 		('fill_color_override_path', 'tool_settings.unified_paint_settings.color'), 
 		('fill_color_override_test_path', 'tool_settings.unified_paint_settings.use_unified_color'),
-		('zoom_path', 'space_data.zoom'), ('secondary_tex', True)],
+		('zoom_path', 'space_data.zoom'), ('secondary_tex', True),
+		('release_confirm', True)],
 		opacity=[('data_path_primary', 'tool_settings.gpencil_sculpt_paint.brush.strength'), 
 		('data_path_secondary', 'tool_settings.unified_paint_settings.strength'), 
 		('use_secondary', 'tool_settings.unified_paint_settings.use_unified_strength'), 
@@ -1137,18 +1181,21 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		('fill_color_path', 'tool_settings.gpencil_sculpt_paint.brush.color'), 
 		('fill_color_override_path', 'tool_settings.unified_paint_settings.color'), 
 		('fill_color_override_test_path', 'tool_settings.unified_paint_settings.use_unified_color'),
-		('secondary_tex', True)],
+		('secondary_tex', True),
+		('release_confirm', True)],
 		eraser_radius=[('data_path_primary', 'tool_settings.gpencil_sculpt_paint.brush.texture_slot.angle'), 
 		('rotation_path', 'tool_settings.gpencil_sculpt_paint.brush.texture_slot.angle'), 
 		('color_path', 'tool_settings.gpencil_sculpt_paint.brush.cursor_color_add'), 
 		('image_id', 'tool_settings.gpencil_sculpt_paint.brush'),
 		('fill_color_path', 'tool_settings.gpencil_sculpt_paint.brush.color'), 
 		('fill_color_override_path', 'tool_settings.unified_paint_settings.color'), 
-		('fill_color_override_test_path', 'tool_settings.unified_paint_settings.use_unified_color')],
+		('fill_color_override_test_path', 'tool_settings.unified_paint_settings.use_unified_color'),
+		('release_confirm', True)],
 		fill_color=[('fill_color_path', 'tool_settings.gpencil_sculpt_paint.brush.color'), 
 		('fill_color_override_path', 'tool_settings.unified_paint_settings.color'), 
 		('fill_color_override_test_path', 'tool_settings.unified_paint_settings.use_unified_color'),
-		('zoom_path', 'space_data.zoom'), ('secondary_tex', True)])
+		('zoom_path', 'space_data.zoom'), ('secondary_tex', True),
+		('release_confirm', True)])
 		
 		###### Frames
 		self.kmi_init(name='Frames', space_type='EMPTY', region_type='WINDOW')
@@ -1167,7 +1214,8 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		self.kmi_init(name='Particle', space_type='EMPTY', region_type='WINDOW')
 		self.global_keys()
 		self.mode_selection()
-		self.tool_radial_control(radius=[('data_path_primary', 'tool_settings.particle_edit.brush.size')],
+		self.tool_radial_control(radius=[('data_path_primary', 'tool_settings.particle_edit.brush.size',
+		('release_confirm', True))],
 		opacity=[('data_path_primary', 'tool_settings.particle_edit.brush.strength')])
 
 		kmi = self.kmi_find(idname='wm.call_menu', type=self.k_context)
