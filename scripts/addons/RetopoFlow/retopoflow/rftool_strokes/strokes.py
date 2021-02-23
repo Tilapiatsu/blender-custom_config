@@ -1,5 +1,5 @@
 '''
-Copyright (C) 2020 CG Cookie
+Copyright (C) 2021 CG Cookie
 http://cgcookie.com
 hello@cgcookie.com
 
@@ -42,13 +42,7 @@ from ...addon_common.common.maths import (
 from ...addon_common.common.bezier import CubicBezierSpline, CubicBezier
 from ...addon_common.common.shaders import circleShader, edgeShortenShader, arrowShader
 from ...addon_common.common.utils import iter_pairs, iter_running_sum, min_index, max_index
-from ...addon_common.common import ui
 from ...addon_common.common.boundvar import BoundBool, BoundInt, BoundFloat
-# from ...addon_common.common.ui import (
-#     UI_Image, UI_Number, UI_BoolValue,
-#     UI_Button, UI_Label,
-#     UI_Container, UI_EqualContainer
-#     )
 from ...config.options import options, themes
 
 from .strokes_utils import (
@@ -66,11 +60,12 @@ class RFTool_Strokes(RFTool):
     help        = 'strokes.md'
     shortcut    = 'strokes tool'
     statusbar   = '{{insert}} Insert edge strip and bridge\t{{increase count}} Increase segments\t{{decrease count}} Decrease segments'
+    ui_config   = 'strokes_options.html'
 
 class Strokes_RFWidgets:
     RFWidget_Default = RFWidget_Default_Factory.create()
     RFWidget_BrushStroke = RFWidget_BrushStroke_Factory.create(
-        BoundFloat('''options['strokes radius']'''),
+        BoundInt('''options['strokes radius']''', min_value=1),
         outer_border_color=themes['strokes'],
     )
     RFWidget_Move = RFWidget_Default_Factory.create('HAND')
@@ -118,74 +113,19 @@ class Strokes(RFTool_Strokes, Strokes_RFWidgets):
 
     def update_span_mode(self):
         mode = options['strokes span insert mode']
-        self.ui_options.label = f'Strokes: {mode}'
-        self.ui_span_insert_mode_brushsize.checked = (mode == 'Brush Size')
-        self.ui_span_insert_mode_fixed.checked     = (mode == 'Fixed')
-        # self.ui_options_brush_size.disabled        = (mode != 'Brush Size')
-        # self.ui_options_fixed_spans.disabled       = (mode != 'Fixed')
+        self.ui_summary.innerText = f'Strokes: {mode}'
+        self.ui_insert.dirty(cause='insert mode change', children=True)
 
     @RFTool_Strokes.on_ui_setup
     def ui(self):
-        def span_mode_change(e):
-            if not e.target.checked: return
-            if e.target.value is None: return
-            options['strokes span insert mode'] = e.target.value
-            self.update_span_mode()
-
-        self.ui_options = ui.collapsible('Strokes', children=[
-            ui.collection(label='Span Insert Mode', children=[
-                ui.input_radio(
-                    id='strokes-span-mode-brush',
-                    value='Brush Size',
-                    title='Insert spans based on brush size',
-                    checked=(options['strokes span insert mode']=='Brush Size'),
-                    name='strokes-span-mode',
-                    classes='half-size',
-                    children=[ui.label(innerText='Brush Size')],
-                    on_input=span_mode_change,
-                ),
-                ui.input_radio(
-                    id='strokes-span-mode-fixed',
-                    value='Fixed',
-                    title='Insert fixed number of spans',
-                    checked=(options['strokes span insert mode']=='Fixed'),
-                    name='strokes-span-mode',
-                    classes='half-size',
-                    children=[ui.label(innerText='Fixed')],
-                    on_input=span_mode_change,
-                ),
-                ui.labeled_input_text(
-                    id='strokes-options-brush-size',
-                    label='Brush Size',
-                    title='Adjust brush size',
-                    value=self.rfwidgets['brush'].get_radius_boundvar(),
-                ),
-                ui.labeled_input_text(
-                    id='strokes-options-fixed-spans',
-                    label='Fixed spans',
-                    title='Number of spans to insert when Span Insert Mode is set to Fixed',
-                    value=self._var_fixed_span_count,
-                ),
-            ]),
-            ui.collection(label='New Geometry Edit', children=[
-                ui.labeled_input_text(
-                    label='Spans',
-                    title='Number of spans between previously selected strip and newly created strip',
-                    value=self._var_cross_count,
-                ),
-                ui.labeled_input_text(
-                    label='Loops',
-                    title='Number of loops between previously selected loop and newly created loop',
-                    value=self._var_loop_count,
-                ),
-            ]),
-        ])
-        self.ui_span_insert_mode_brushsize = self.ui_options.getElementById('strokes-span-mode-brush')
-        self.ui_span_insert_mode_fixed     = self.ui_options.getElementById('strokes-span-mode-fixed')
-        self.ui_options_brush_size         = self.ui_options.getElementById('strokes-options-brush-size')
-        self.ui_options_fixed_spans        = self.ui_options.getElementById('strokes-options-fixed-spans')
+        ui_options = self.document.body.getElementById('strokes-options')
+        self.ui_summary = ui_options.getElementById('strokes-summary')
+        self.ui_insert = ui_options.getElementById('strokes-insert-modes')
+        self.ui_radius = ui_options.getElementById('strokes-radius')
+        def dirty_radius():
+            self.ui_radius.dirty(cause='radius changed')
+        self.rfwidgets['brush'].get_radius_boundvar().on_change(dirty_radius)
         self.update_span_mode()
-        return self.ui_options
 
     @RFTool_Strokes.on_reset
     def reset(self):
@@ -241,6 +181,8 @@ class Strokes(RFTool_Strokes, Strokes_RFWidgets):
                 'center': ctr,
             })
 
+    def filter_edge_selection(self, bme):
+        return bme.select or len(bme.link_faces) < 2
 
     @RFTool_Strokes.FSM_State('main')
     # @profiler.function
@@ -255,7 +197,7 @@ class Strokes(RFTool_Strokes, Strokes_RFWidgets):
         self.connection_post = None
         if self.actions.using_onlymods('insert'):
             hovering_sel_vert,_ = self.rfcontext.accel_nearest2D_vert(max_dist=self.rfwidgets['brush'].radius)
-            if hovering_sel_vert:
+            if hovering_sel_vert and (options['strokes snap stroke'] or hovering_sel_vert.select):
                 point_to_point2d = self.rfcontext.Point_to_Point2D
                 self.connection_pre = (point_to_point2d(hovering_sel_vert.co), self.actions.mouse)
 
@@ -290,13 +232,21 @@ class Strokes(RFTool_Strokes, Strokes_RFWidgets):
                 self.move_cancelled = 'cancel'
                 return 'move'
 
+        if self.actions.pressed({'select path add'}):
+            return self.rfcontext.select_path(
+                {'edge'},
+                fn_filter_bmelem=self.filter_edge_selection,
+                kwargs_select={'supparts': False},
+            )
+
         if self.actions.pressed({'select paint', 'select paint add'}, unpress=False):
             sel_only = self.actions.pressed('select paint')
             self.actions.unpress()
-            return self.rfcontext.setup_selection_painting(
-                'edge',
-                sel_only=sel_only,
-                #fn_filter_bmelem=self.filter_edge_selection,
+            return self.rfcontext.setup_smart_selection_painting(
+                {'edge'},
+                selecting=not sel_only,
+                deselect_all=sel_only,
+                fn_filter_bmelem=self.filter_edge_selection,
                 kwargs_select={'supparts': False},
                 kwargs_deselect={'subparts': False},
             )
@@ -312,14 +262,6 @@ class Strokes(RFTool_Strokes, Strokes_RFWidgets):
             else:                         self.rfcontext.select(self.hovering_edge, supparts=False, only=sel_only)
             return
 
-
-        # if self.rfcontext.actions.pressed({'select paint', 'select single', 'select single add'}):
-        #     return self.rfcontext.setup_selection_painting(
-        #         'edge',
-        #         #fn_filter_bmelem=self.filter_edge_selection,
-        #         kwargs_select={'supparts': False},
-        #         kwargs_deselect={'subparts': False},
-        #     )
 
         if self.rfcontext.actions.pressed({'select smart', 'select smart add'}, unpress=False):
             sel_only = self.rfcontext.actions.pressed('select smart')
@@ -362,7 +304,7 @@ class Strokes(RFTool_Strokes, Strokes_RFWidgets):
     def stroking(self):
         self.connection_post = None
         hovering_sel_vert,_ = self.rfcontext.accel_nearest2D_vert(max_dist=self.rfwidgets['brush'].radius)
-        if hovering_sel_vert:
+        if hovering_sel_vert and (options['strokes snap stroke'] or hovering_sel_vert.select):
             point_to_point2d = self.rfcontext.Point_to_Point2D
             self.connection_post = (point_to_point2d(hovering_sel_vert.co), self.actions.mouse)
 
@@ -403,6 +345,8 @@ class Strokes(RFTool_Strokes, Strokes_RFWidgets):
                 s0,s1 = Point_to_Point2D(stroke3D[0]),Point_to_Point2D(stroke3D[-1])
                 bmv0,_ = accel_nearest2D_vert(point=s0, max_dist=self.rfwidgets['brush'].radius)
                 bmv1,_ = accel_nearest2D_vert(point=s1, max_dist=self.rfwidgets['brush'].radius)
+                if not options['strokes snap stroke'] and bmv0 and not bmv0.select: bmv0 = None
+                if not options['strokes snap stroke'] and bmv1 and not bmv1.select: bmv1 = None
                 bmv0_sel = bmv0 and bmv0 in sel_verts
                 bmv1_sel = bmv1 and bmv1 in sel_verts
                 if bmv0_sel or bmv1_sel:
@@ -475,6 +419,8 @@ class Strokes(RFTool_Strokes, Strokes_RFWidgets):
 
         snap0,_ = self.rfcontext.accel_nearest2D_vert(point=nstroke[0], max_dist=self.rfwidgets['brush'].radius)
         snap1,_ = self.rfcontext.accel_nearest2D_vert(point=nstroke[-1], max_dist=self.rfwidgets['brush'].radius)
+        if not options['strokes snap stroke'] and snap0 and not snap0.select: snap0 = None
+        if not options['strokes snap stroke'] and snap1 and not snap1.select: snap1 = None
 
         self.defer_recomputing = True
 
@@ -774,6 +720,8 @@ class Strokes(RFTool_Strokes, Strokes_RFWidgets):
         # check if verts near stroke ends connect to any of the selected strips
         bmv0,_ = self.rfcontext.accel_nearest2D_vert(point=s0, max_dist=self.rfwidgets['brush'].radius)
         bmv1,_ = self.rfcontext.accel_nearest2D_vert(point=s1, max_dist=self.rfwidgets['brush'].radius)
+        if not options['strokes snap stroke'] and bmv0 and not bmv0.select: bmv0 = None
+        if not options['strokes snap stroke'] and bmv1 and not bmv1.select: bmv1 = None
         edges0 = walk_to_corner(bmv0, edges) if bmv0 else None
         edges1 = walk_to_corner(bmv1, edges) if bmv1 else None
         edges0 = [e for e in edges0 if e.is_valid] if edges0 else None
@@ -811,6 +759,19 @@ class Strokes(RFTool_Strokes, Strokes_RFWidgets):
                 'Could not determine which edge strip to extrude from.  Make sure your selection is accurate.'
             )
             return
+
+        if len(best) == 1:
+            # special case where reversing the edge strip will NOT prevent twisted faces
+            verts = best[0].verts
+            p0, p1 = Point_to_Point2D(verts[0].co), Point_to_Point2D(verts[-1].co)
+            if p0 and p1:
+                pd = p1 - p0
+                dot = pd.x * sd.x + pd.y * sd.y
+                if dot < 0:
+                    # reverse stroke!
+                    stroke.reverse()
+                    s0, s1 = s1, s0
+                    sd = -sd
 
         # tessellate stroke to match edge
         edges = best
@@ -861,22 +822,16 @@ class Strokes(RFTool_Strokes, Strokes_RFWidgets):
             prev = cur
 
         if edges0:
-            if len(edges0) == 1:
-                side_verts = list(edges0[0].verts)
-                if side_verts[1] == verts[0]: side_verts.reverse()
-            else:
-                side_verts = get_strip_verts(edges0)
+            side_verts = get_strip_verts(edges0)
+            if side_verts[1] == verts[0]: side_verts.reverse()
             for a,b in zip(side_verts[1:], patch[0][1:]):
                 co = a.co
                 b.merge(a)
                 b.co = co
                 self.rfcontext.clean_duplicate_bmedges(b)
         if edges1:
-            if len(edges1) == 1:
-                side_verts = list(edges1[0].verts)
-                if side_verts[1] == verts[-1]: side_verts.reverse()
-            else:
-                side_verts = get_strip_verts(edges1)
+            side_verts = get_strip_verts(edges1)
+            if side_verts[1] == verts[-1]: side_verts.reverse()
             for a,b in zip(side_verts[1:], patch[-1][1:]):
                 co = a.co
                 b.merge(a)

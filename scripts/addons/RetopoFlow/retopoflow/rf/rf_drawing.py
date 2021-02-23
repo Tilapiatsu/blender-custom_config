@@ -1,5 +1,5 @@
 '''
-Copyright (C) 2020 CG Cookie
+Copyright (C) 2021 CG Cookie
 http://cgcookie.com
 hello@cgcookie.com
 
@@ -41,7 +41,7 @@ from ...config.options import options, visualization
 
 class RetopoFlow_Drawing:
     def get_view_version(self):
-        return Hasher(self.actions.r3d.view_matrix, self.actions.space.lens)
+        return Hasher(self.actions.r3d.view_matrix, self.actions.space.lens, self.actions.r3d.view_distance)
 
     def setup_drawing(self):
         def callback():
@@ -52,11 +52,13 @@ class RetopoFlow_Drawing:
             # self.document.body.dirty(cause='--> options changed', children=True)
             for d in self.rfsources_draw: d.replace_opts(source_opts)
         options.add_callback(callback)
+        self._draw_count = 0
 
     @CookieCutter.PreDraw
     def predraw(self):
         if not self.loading_done: return
         self.update(timer=False)
+        self._draw_count += 1
 
     @CookieCutter.Draw('post3d')
     def draw_target_and_sources(self):

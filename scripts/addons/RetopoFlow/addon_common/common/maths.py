@@ -1,5 +1,5 @@
 '''
-Copyright (C) 2020 CG Cookie
+Copyright (C) 2021 CG Cookie
 http://cgcookie.com
 hello@cgcookie.com
 
@@ -19,7 +19,8 @@ Created by Jonathan Denning, Jonathan Williamson
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 '''
 
-from math import sqrt, acos, cos, sin
+from math import sqrt, acos, cos, sin, floor, ceil, isinf, sqrt, pi
+import random
 import re
 from typing import List
 
@@ -126,6 +127,16 @@ class Vec(VecUtils, Entity3D):
         olen2 = other.length_squared
         if olen2 <= zero_threshold: return Vec3D((0,0,0))
         return (self.dot(other) / olen2) * other
+
+    @staticmethod
+    def average(vecs):
+        ax, ay, az, ac = 0, 0, 0, 0
+        for v in vecs:
+            vx,vy,vz = v
+            ax,ay,az,ac = ax+vx,ay+vy,az+vz,ac+1
+        if ac == 0:
+            return Vec((0, 0, 0))
+        return Vec((ax / ac, ay / ac, az / ac))
 
 
 class Index2D:
@@ -441,6 +452,16 @@ class Direction(VecUtils, Entity3D):
     def from_vector(self, v):
         super().from_vector(v)
         self.normalize()
+
+    @classmethod
+    def uniform(cls):
+        # http://corysimon.github.io/articles/uniformdistn-on-sphere/
+        theta = random.uniform(0, pi*2)
+        phi = acos(random.uniform(-1, 1))
+        x = sin(phi) * cos(theta)
+        y = sin(phi) * sin(theta)
+        z = cos(phi)
+        return cls((x,y,z))
 
 
 class Normal(VecUtils, Entity3D):
@@ -1250,6 +1271,9 @@ class Size2D:
     def height(self, v): self._height = v
 
     @property
+    def size(self): return (self.width, self.height)
+
+    @property
     def min_width(self): return self._min_width
     @min_width.setter
     def min_width(self, v): self._min_width = v
@@ -1559,30 +1583,36 @@ class Accel2D:
         self.face_type = type(self.faces[0]) if self.faces else None
         self.bins = {}
 
-        self.v2Ds = [Point_to_Point2D(v.co) for v in verts]
-        self.map_v_v2D = {v: v2d for (v, v2d) in zip(verts, self.v2Ds)}
-        if self.v2Ds:
+        v2Ds = [Point_to_Point2D(v.co) for v in verts]
+        self.map_v_v2D = {v: v2d for (v, v2d) in zip(verts, v2Ds)}
+        v2Ds = [p for p in v2Ds if p]
+        if v2Ds:
             self.min = Point2D((
-                min(x - 0.001 for (x, _) in self.v2Ds),
-                min(y - 0.001 for (_, y) in self.v2Ds)
+                min(x - 0.001 for (x, _) in v2Ds),
+                min(y - 0.001 for (_, y) in v2Ds)
             ))
             self.max = Point2D((
-                max(x + 0.001 for (x, _) in self.v2Ds),
-                max(y + 0.001 for (_, y) in self.v2Ds)
+                max(x + 0.001 for (x, _) in v2Ds),
+                max(y + 0.001 for (_, y) in v2Ds)
             ))
         else:
             self.min = Point2D((0, 0))
             self.max = Point2D((1, 1))
         self.size = self.max - self.min
 
+        self.bin_cols = ceil(sqrt(len(v2Ds)))
+        self.bin_rows = ceil(sqrt(len(v2Ds)))
+
         # inserting verts
-        for (v, v2d) in zip(verts, self.v2Ds):
+        for (v, v2d) in zip(verts, v2Ds):
+            if not v2d: continue
             i, j = self.compute_ij(v2d)
             self._put(i, j, v)
 
         # inserting edges
         for e in edges:
             v0, v1 = self.map_v_v2D[e.verts[0]], self.map_v_v2D[e.verts[1]]
+            if not v0 or not v1: continue
             ij0, ij1 = self.compute_ij(v0), self.compute_ij(v1)
             mini, minj = min(ij0[0], ij1[0]), min(ij0[1], ij1[1])
             maxi, maxj = max(ij0[0], ij1[0]), max(ij0[1], ij1[1])
@@ -1595,8 +1625,7 @@ class Accel2D:
         # inserting faces
         for f in faces:
             v2ds = [self.map_v_v2D[v] for v in f.verts]
-            if not v2ds:
-                continue
+            if not all(v2ds): continue
             ijs = list(map(self.compute_ij, v2ds))
             mini, minj = min(i for (i, j) in ijs), min(j for (i, j) in ijs)
             maxi, maxj = max(i for (i, j) in ijs), max(j for (i, j) in ijs)
@@ -1807,6 +1836,13 @@ class NumberUnit:
         return NumberUnit(self._num / other, self._unit, self._base)
 
 NumberUnit.zero = NumberUnit(0, 'px')
+
+
+
+def floor_if_finite(v):
+    return v if v is None or isinf(v) else floor(v)
+def ceil_if_finite(v):
+    return v if v is None or isinf(v) else ceil(v)
 
 
 
@@ -2107,6 +2143,23 @@ def intersection2d_line_line(p0, p1, p2, p3):
     if td == 0: return None
     t = tn / td
     return (x0 + t * (x1 - x0), y0 + t * (y1 - y0))
+
+
+def closest2d_point_line(pt:Point2D, p0:Point2D, p1:Point2D):
+    d = Direction2D(p1 - p0)
+    v = Vec2D(pt - p0)
+    u = d * d.dot(v)
+    return Point2D(p0 + u)
+
+def closest2d_point_segment(pt:Point2D, p0:Point2D, p1:Point2D):
+    dv = Vec2D(p1 - p0)
+    ld = dv.length
+    if abs(ld) <= 0.00001: return p0
+    dd = dv / ld
+    v = Vec2D(pt - p0)
+    p = Point2D(p0 + dd * clamp(dd.dot(v), 0, ld))
+    p.freeze()
+    return p
 
 
 if __name__ == '__main__':

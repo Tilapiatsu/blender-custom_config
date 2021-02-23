@@ -1,5 +1,5 @@
 '''
-Copyright (C) 2020 CG Cookie
+Copyright (C) 2021 CG Cookie
 http://cgcookie.com
 hello@cgcookie.com
 
@@ -50,6 +50,7 @@ default_rf_keymaps = {
     'select smart add': {},
     'select paint': {},
     'select paint add': {},
+    'select path add': {},
 
     'select all': {'A'},
     'select invert': {'CTRL+I'},
@@ -65,7 +66,6 @@ default_rf_keymaps = {
     'autosave': {'TIMER_AUTOSAVE'},
 
     'cancel': {'ESC', 'RIGHTMOUSE'},
-    'cancel no select': {'ESC'},
     'confirm': {'RET', 'NUMPAD_ENTER', 'LEFTMOUSE+CLICK'},
 
     'done': {'TAB'},
@@ -74,6 +74,7 @@ default_rf_keymaps = {
     'insert': {'CTRL+LEFTMOUSE', 'CTRL+LEFTMOUSE+DOUBLE'},
     'insert alt0': {'SHIFT+LEFTMOUSE', 'SHIFT+LEFTMOUSE+DOUBLE'},
     'insert alt1': {'CTRL+SHIFT+LEFTMOUSE', 'CTRL+SHIFT+LEFTMOUSE+DOUBLE'},
+    'quick insert': {'LEFTMOUSE'},
 
     # general commands
     'grab': {'G'},
@@ -82,6 +83,10 @@ default_rf_keymaps = {
     'delete': {'X', 'DEL', 'BACK_SPACE'},
     'delete pie menu': {'CTRL+X', 'CTRL+DEL', 'CTRL+BACK_SPACE'},
     'smooth edge flow': {'SHIFT+S'},
+
+    'hide selected': {'H'},
+    'hide unselected': {'SHIFT+H'},
+    'reveal hidden': {'ALT+H'},
 
     'increase count': {'EQUAL','SHIFT+EQUAL','SHIFT+UP_ARROW', 'SHIFT+WHEELUPMOUSE'},
     'decrease count': {'MINUS','SHIFT+DOWN_ARROW','SHIFT+WHEELDOWNMOUSE'},
@@ -96,6 +101,9 @@ default_rf_keymaps = {
     # patches
     'fill': {'F', 'RET', 'NUMPAD_ENTER'},
 
+    # knife
+    'knife reset': {'E'},
+
     # grease pencil
     'grease clear': {'C'},
 
@@ -107,8 +115,8 @@ default_rf_keymaps = {
     'brush strength': {'SHIFT+F'},
 
     # pie menu
-    'pie menu': {'ACCENT_GRAVE'},
-    'pie menu alt0': {'CTRL+ACCENT_GRAVE'},
+    'pie menu': {'Q', 'ACCENT_GRAVE'},
+    'pie menu alt0': {'SHIFT+Q', 'SHIFT+ACCENT_GRAVE'},
     'pie menu confirm': {'LEFTMOUSE+CLICK', 'LEFTMOUSE+DRAG'},
 
     # shortcuts to tools
@@ -117,9 +125,14 @@ default_rf_keymaps = {
     'strokes tool': {'THREE', 'CTRL+ALT+B'},
     'patches tool': {'FOUR', 'CTRL+ALT+F'},
     'polypen tool': {'FIVE', 'CTRL+ALT+V'},
-    'loops tool': {'SIX', 'CTRL+ALT+Q', 'CTRL+R'},
+    'knife tool': {'CTRL+FIVE', 'CTRL+K'},
+    'knife quick': {'K'},
+    'loops tool': {'SIX', 'CTRL+ALT+Q'},
+    'loops quick': {'CTRL+R'},
     'tweak tool': {'SEVEN', 'CTRL+ALT+G'},
+    'tweak quick': {'C'},
     'relax tool': {'EIGHT', 'CTRL+ALT+X'},
+    'relax quick': {'Z'},
     'stretch tool': {'NINE'},          # not ported from rf279, yet
     'grease pencil tool': {'ZERO'},    # not ported from rf279, yet
 }
@@ -131,6 +144,7 @@ left_rf_keymaps = {
     'select smart add': {'SHIFT+LEFTMOUSE+DOUBLE'},
     'select paint': {'LEFTMOUSE+DRAG'},
     'select paint add': {'SHIFT+LEFTMOUSE+DRAG'},
+    'select path add': {'SHIFT+ALT+LEFTMOUSE+DOUBLE'},
 }
 
 right_rf_keymaps = {
@@ -140,6 +154,7 @@ right_rf_keymaps = {
     'select smart add': {'CTRL+SHIFT+RIGHTMOUSE', 'SHIFT+RIGHTMOUSE+DOUBLE'},
     'select paint': {'RIGHTMOUSE+DRAG'},
     'select paint add': {'SHIFT+RIGHTMOUSE+DRAG'},
+    'select path add': {'SHIFT+ALT+RIGHTMOUSE+DOUBLE'},
 }
 
 def get_keymaps():

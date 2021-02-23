@@ -1,5 +1,5 @@
 '''
-Copyright (C) 2020 CG Cookie
+Copyright (C) 2021 CG Cookie
 http://cgcookie.com
 hello@cgcookie.com
 
@@ -19,7 +19,9 @@ Created by Jonathan Denning, Jonathan Williamson, and Patrick Moore
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 '''
 
+import os
 import math
+import time
 import random
 
 import bgl
@@ -34,7 +36,6 @@ from ...addon_common.common.drawing import Drawing, Cursors
 from ...addon_common.common.maths import Point, Normal, Vec2D, Plane, Vec
 from ...addon_common.common.profiler import profiler
 from ...addon_common.common.utils import iter_pairs
-from ...addon_common.common.boundvar import BoundVar, BoundInt
 
 from ...config.options import options
 
@@ -45,6 +46,7 @@ class RFTool_Contours(RFTool):
     help        = 'contours.md'
     shortcut    = 'contours tool'
     statusbar   = '{{insert}} Insert contour\t{{increase count}} Increase segments\t{{decrease count}} Decrease segments\t{{fill}} Bridge'
+    ui_config   = 'contours_options.html'
 
 
 ################################################################################################
@@ -53,7 +55,6 @@ class RFTool_Contours(RFTool):
 
 from .contours_ops import Contours_Ops
 from .contours_props import Contours_Props
-from .contours_ui import Contours_UI
 from .contours_rfwidgets import Contours_RFWidgets
 from .contours_utils import (
     find_loops,
@@ -63,7 +64,7 @@ from .contours_utils import (
     Contours_Utils,
 )
 
-class Contours(RFTool_Contours, Contours_Ops, Contours_Props, Contours_Utils, Contours_UI, Contours_RFWidgets):
+class Contours(RFTool_Contours, Contours_Ops, Contours_Props, Contours_Utils, Contours_RFWidgets):
     @RFTool_Contours.on_init
     def init(self):
         self.init_rfwidgets()
@@ -198,20 +199,29 @@ class Contours(RFTool_Contours, Contours_Ops, Contours_Props, Contours_Utils, Co
 
         if self.actions.pressed({'select paint', 'select paint add'}, unpress=False):
             sel_only = self.actions.pressed('select paint')
-            return self.rfcontext.setup_selection_painting(
-                'edge',
-                sel_only=sel_only,
+            return self.rfcontext.setup_smart_selection_painting(
+                {'edge'},
+                selecting=not sel_only,
+                deselect_all=sel_only,
                 fn_filter_bmelem=self.filter_edge_selection,
                 kwargs_select={'supparts': False},
                 kwargs_deselect={'subparts': False},
             )
 
+        if self.actions.pressed({'select path add'}):
+            return self.rfcontext.select_path(
+                {'edge'},
+                fn_filter_bmelem=self.filter_edge_selection,
+                kwargs_select={'supparts': False},
+            )
+
         if self.actions.pressed({'select single', 'select single add'}, unpress=False):
             # TODO: DO NOT PAINT!
             sel_only = self.actions.pressed('select single')
-            return self.rfcontext.setup_selection_painting(
-                'edge',
-                sel_only=sel_only,
+            return self.rfcontext.setup_smart_selection_painting(
+                {'edge'},
+                selecting=not sel_only,
+                deselect_all=sel_only,
                 fn_filter_bmelem=self.filter_edge_selection,
                 kwargs_select={'supparts': False},
                 kwargs_deselect={'subparts': False},
@@ -298,12 +308,11 @@ class Contours(RFTool_Contours, Contours_Ops, Contours_Props, Contours_Utils, Co
         self.rfcontext.undo_push('rotate plane contours')
 
         self.mousedown = self.rfcontext.actions.mouse
-        self.move_prevmouse = None
 
         self._timer = self.actions.start_timer(120.0)
+        self.rfcontext.set_accel_defer(True)
 
     @RFTool_Contours.FSM_State('rotate plane')
-    @RFTool_Contours.dirty_when_done
     # @profiler.function
     def rotateplane_main(self):
         if self.rfcontext.actions.pressed('confirm'):
@@ -316,10 +325,9 @@ class Contours(RFTool_Contours, Contours_Ops, Contours_Props, Contours_Utils, Co
             self.rfcontext.undo_cancel()
             return 'rotate screen'
 
-        # only update cut on timer events and when mouse has moved
-        if not self.rfcontext.actions.timer: return
-        if self.move_prevmouse == self.rfcontext.actions.mouse: return
-        self.move_prevmouse = self.rfcontext.actions.mouse
+        if not self.actions.mousemove_stop: return
+        # # only update cut on timer events and when mouse has moved
+        # if not self.rfcontext.actions.timer: return
 
         delta = Vec2D(self.rfcontext.actions.mouse - self.mousedown)
         shift_offset = self.rfcontext.drawing.unscale(self.rot_perp2D.dot(delta)) / 1000
@@ -357,10 +365,12 @@ class Contours(RFTool_Contours, Contours_Ops, Contours_Props, Contours_Utils, Co
                 if i == l: break
 
             self.rfcontext.update_verts_faces(verts)
+        self.rfcontext.dirty()
 
     @RFTool_Contours.FSM_State('rotate plane', 'exit')
     def rotateplane_exit(self):
         self._timer.done()
+        self.rfcontext.set_accel_defer(False)
 
 
     def action_setup(self):
@@ -422,15 +432,17 @@ class Contours(RFTool_Contours, Contours_Ops, Contours_Props, Contours_Utils, Co
         #self.grab_along = self.rfcontext.Point_to_Point2D(sum(self.move_origins, Vec((0,0,0))) / len(self.move_origins))
         #self.rotate_start = math.atan2(self.rotate_about.y - self.mousedown.y, self.rotate_about.x - self.mousedown.x)
 
-        self.mousedown = self.actions.mouse
-        self.move_prevmouse = None
-
-        self._timer = self.actions.start_timer(120.0)
+        self.grab_opts = {
+            'mousedown': self.actions.mouse,
+            'timer': self.actions.start_timer(120.0),
+        }
+        self.rfcontext.set_accel_defer(True)
 
     @RFTool_Contours.FSM_State('grab')
-    @RFTool_Contours.dirty_when_done
     # @profiler.function
     def grab(self):
+        opts = self.grab_opts
+
         if self.rfcontext.actions.pressed(self.move_done_pressed):
             return 'main'
         if self.rfcontext.actions.released(self.move_done_released, ignoredrag=True):
@@ -439,13 +451,11 @@ class Contours(RFTool_Contours, Contours_Ops, Contours_Props, Contours_Utils, Co
             self.rfcontext.undo_cancel()
             return 'main'
 
-        # only update cut on timer events and when mouse has moved
-        if not self.rfcontext.actions.timer: return
-        # if not self.rfcontext.actions.mousemove: return
-        if self.move_prevmouse == self.rfcontext.actions.mouse: return
-        self.move_prevmouse = self.rfcontext.actions.mouse
+        if not self.actions.mousemove_stop: return
+        # # only update cut on timer events and when mouse has moved
+        # if not self.rfcontext.actions.timer: return
 
-        delta = Vec2D(self.rfcontext.actions.mouse - self.mousedown)
+        delta = Vec2D(self.actions.mouse - opts['mousedown'])
         # self.crawl_viz = []
 
         raycast,project = self.rfcontext.raycast_sources_Point2D,self.rfcontext.Point_to_Point2D
@@ -493,10 +503,12 @@ class Contours(RFTool_Contours, Contours_Ops, Contours_Props, Contours_Utils, Co
                 if i == l: break
 
             self.rfcontext.update_verts_faces(verts)
+        self.rfcontext.dirty()
 
     @RFTool_Contours.FSM_State('grab', 'exit')
     def grab_exit(self):
-        self._timer.done()
+        self.grab_opts['timer'].done()
+        self.rfcontext.set_accel_defer(False)
 
 
     @RFTool_Contours.FSM_State('rotate screen', 'can enter')
@@ -529,12 +541,10 @@ class Contours(RFTool_Contours, Contours_Ops, Contours_Props, Contours_Utils, Co
         self.rotate_about = self.rfcontext.Point_to_Point2D(sum(self.move_origins, Vec((0,0,0))) / len(self.move_origins))
         self.rotate_start = math.atan2(self.rotate_about.y - self.mousedown.y, self.rotate_about.x - self.mousedown.x)
 
-        self.move_prevmouse = None
-
         self._timer = self.actions.start_timer(120.0)
+        self.rfcontext.set_accel_defer(True)
 
     @RFTool_Contours.FSM_State('rotate screen')
-    @RFTool_Contours.dirty_when_done
     # @profiler.function
     def rotatescreen_main(self):
         if self.rfcontext.actions.pressed('confirm'):
@@ -547,10 +557,9 @@ class Contours(RFTool_Contours, Contours_Ops, Contours_Props, Contours_Utils, Co
             self.rfcontext.undo_cancel()
             return 'rotate plane'
 
-        # only update cut on timer events and when mouse has moved
-        if not self.rfcontext.actions.timer: return
-        if self.move_prevmouse == self.rfcontext.actions.mouse: return
-        self.move_prevmouse = self.rfcontext.actions.mouse
+        if not self.actions.mousemove_stop: return
+        # # only update cut on timer events and when mouse has moved
+        # if not self.rfcontext.actions.timer: return
 
         delta = Vec2D(self.rfcontext.actions.mouse - self.rotate_about)
         rotate = (math.atan2(delta.y, delta.x) - self.rotate_start + math.pi) % (math.pi * 2)
@@ -599,10 +608,12 @@ class Contours(RFTool_Contours, Contours_Ops, Contours_Props, Contours_Utils, Co
                 if i == l: break
 
             self.rfcontext.update_verts_faces(verts)
+        self.rfcontext.dirty()
 
     @RFTool_Contours.FSM_State('rotate screen', 'exit')
     def rotatescreen_exit(self):
         self._timer.done()
+        self.rfcontext.set_accel_defer(False)
 
 
     @Contours_RFWidgets.RFWidget_LineCut.on_action
@@ -644,7 +655,7 @@ class Contours(RFTool_Contours, Contours_Ops, Contours_Props, Contours_Utils, Co
     def draw_post2d_grab(self):
         project = self.rfcontext.Point_to_Point2D
         intersect = self.rfcontext.raycast_sources_Point2D
-        delta = Vec2D(self.rfcontext.actions.mouse - self.mousedown)
+        delta = Vec2D(self.actions.mouse - self.grab_opts['mousedown'])
         c0_good, c1_good = (1.0, 0.1, 1.0, 0.5), (1.0, 0.1, 1.0, 0.0)
         c0_bad,  c1_bad  = (1.0, 0.1, 0.1, 1.0), (1.0, 0.1, 0.1, 0.0)
         bgl.glEnable(bgl.GL_BLEND)

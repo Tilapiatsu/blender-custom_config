@@ -1,5 +1,5 @@
 '''
-Copyright (C) 2020 CG Cookie
+Copyright (C) 2021 CG Cookie
 http://cgcookie.com
 hello@cgcookie.com
 
@@ -177,6 +177,9 @@ class RetopoFlow_Sources:
         if not ray: return False
         if normal and normal.dot(ray.d) >= 0: return False
         return not any(rfsource.raycast_hit(ray) for rfsource in self.rfsources if self.get_rfsource_snap(rfsource))
+
+    def is_nonvisible(self, *args, **kwargs):
+        return not self.is_visible(*args, **kwargs)
 
     def visibility_preset_normal(self):
         options['visible bbox factor'] = 0.001

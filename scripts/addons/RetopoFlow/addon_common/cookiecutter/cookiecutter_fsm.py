@@ -1,5 +1,5 @@
 '''
-Copyright (C) 2020 CG Cookie
+Copyright (C) 2021 CG Cookie
 https://github.com/CGCookie/retopoflow
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -17,8 +17,12 @@ from ..common.fsm import FSM
 from ..common.debug import debugger
 
 class CookieCutter_FSM:
-    fsm = FSM()
-    FSM_State = fsm.wrapper
+    # fsm = FSM()
+    # FSM_State = fsm.wrapper
+    @classmethod
+    def create_FSM(cls):
+        cls.fsm = FSM()
+        cls.FSM_State = cls.fsm.wrapper
 
     def _cc_fsm_init(self):
         self.fsm.init(self, start='main')
@@ -28,3 +32,4 @@ class CookieCutter_FSM:
     def _cc_fsm_update(self):
         self.fsm.update()
 
+CookieCutter_FSM.create_FSM()

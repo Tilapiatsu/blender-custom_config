@@ -1,5 +1,5 @@
 '''
-Copyright (C) 2020 CG Cookie
+Copyright (C) 2021 CG Cookie
 http://cgcookie.com
 hello@cgcookie.com
 
@@ -26,6 +26,7 @@ from copy import deepcopy
 
 import bpy
 
+from .human_readable import convert_actions_to_human_readable
 from .maths import Point2D, Vec2D
 from .debug import dprint
 from .decorators import blender_version_wrapper
@@ -117,72 +118,6 @@ kmi_to_char = {
     'SHIFT+Y':'Y', 'SHIFT+Z':'Z',
 }
 
-# these are separated into a list so that "SHIFT+ZERO" (for example) is handled
-# before the "SHIFT" gets turned into "Shift"
-kmi_to_humanreadable = [
-    {
-        # most printable characters
-        'SHIFT+ZERO':   ')',
-        'SHIFT+ONE':    '!',
-        'SHIFT+TWO':    '@',
-        'SHIFT+THREE':  '#',
-        'SHIFT+FOUR':   '$',
-        'SHIFT+FIVE':   '%',
-        'SHIFT+SIX':    '^',
-        'SHIFT+SEVEN':  '&',
-        'SHIFT+EIGHT':  '*',
-        'SHIFT+NINE':   '(',
-        'SHIFT+PERIOD': '>',
-        'SHIFT+PLUS':   '+',
-        'SHIFT+MINUS':  '_',
-        'SHIFT+SLASH':  '?',
-        'SHIFT+BACK_SLASH':   '|',
-        'SHIFT+EQUAL':        '+',
-        'SHIFT+SEMI_COLON':   ':', 'SHIFT+COMMA':         '<',
-        'SHIFT+LEFT_BRACKET': '{', 'SHIFT+RIGHT_BRACKET': '}',
-        'SHIFT+QUOTE':        '"', 'SHIFT+ACCENT_GRAVE':  '~',
-
-        'BACK_SPACE': 'Backspace',
-        'BACK_SLASH':   '\\',
-    },{
-        'SPACE':        ' ',
-
-        'ZERO':   '0', 'NUMPAD_0':       'Num0',
-        'ONE':    '1', 'NUMPAD_1':       'Num1',
-        'TWO':    '2', 'NUMPAD_2':       'Num2',
-        'THREE':  '3', 'NUMPAD_3':       'Num3',
-        'FOUR':   '4', 'NUMPAD_4':       'Num4',
-        'FIVE':   '5', 'NUMPAD_5':       'Num5',
-        'SIX':    '6', 'NUMPAD_6':       'Num6',
-        'SEVEN':  '7', 'NUMPAD_7':       'Num7',
-        'EIGHT':  '8', 'NUMPAD_8':       'Num8',
-        'NINE':   '9', 'NUMPAD_9':       'Num9',
-        'PERIOD': '.', 'NUMPAD_PERIOD':  'Num.',
-        'PLUS':   '+', 'NUMPAD_PLUS':    'Num+',
-        'MINUS':  '-', 'NUMPAD_MINUS':   'Num-',
-        'SLASH':  '/', 'NUMPAD_SLASH':   'Num/',
-                       'NUMPAD_ASTERIX': 'Num*',
-
-        'EQUAL':        '=',
-        'SEMI_COLON':   ';', 'COMMA':         ',',
-        'LEFT_BRACKET': '[', 'RIGHT_BRACKET': ']',
-        'QUOTE':        "'", 'ACCENT_GRAVE':  '&#96;', #'`',
-        # prefix modifiers
-        'SHIFT': 'Shift', 'CTRL': 'Ctrl', 'ALT': 'Alt', 'OSKEY': 'OSKey',
-
-        # non-printable characters
-        'ESC': 'Esc',
-        'RET': 'Enter', 'NUMPAD_ENTER': 'Enter',
-        'TAB': 'Tab',
-        'DEL': 'Delete',
-        'UP_ARROW': 'Up', 'DOWN_ARROW': 'Down', 'LEFT_ARROW': 'Left', 'RIGHT_ARROW': 'Right',
-        # mouse
-        'LEFTMOUSE': 'LMB', 'MIDDLEMOUSE': 'MMB', 'RIGHTMOUSE': 'RMB',
-        'WHEELUPMOUSE': 'WheelUp', 'WHEELDOWNMOUSE': 'WheelDown',
-        # postfix modifiers
-        'DRAG': 'Drag', 'DOUBLE': 'Double', 'CLICK': 'Click',
-    }
-]
 
 
 def kmi_details(kmi, event_type=None, click=False, double_click=False, drag_click=False):
@@ -228,8 +163,9 @@ def translate_blenderop(action, keyconfig=None):
 
 
 
-def strip_mods(action, ctrl=True, shift=True, alt=True, oskey=True, click=True, double_click=True, drag_click=True):
+def strip_mods(action, ctrl=True, shift=True, alt=True, oskey=True, click=True, double_click=True, drag_click=True, mouse=False):
     if action is None: return None
+    if mouse and 'MOUSE' in action: return ''
     if ctrl:  action = action.replace('CTRL+',  '')
     if shift: action = action.replace('SHIFT+', '')
     if alt:   action = action.replace('ALT+',   '')
@@ -245,15 +181,26 @@ def i18n_translate(text):
 
 
 class TimerHandler:
-    def __init__(self, wm, win, hz):
+    def __init__(self, wm, win, hz, enabled=True):
+        self._win = win
         self._wm = wm
-        self._timer = wm.event_timer_add(1.0 / hz, window=win)
+        self._hz = hz
+        self._timer = None
+        self.enable(enabled)
     def __del__(self):
         self.done()
+    def start(self):
+        if self._timer: return
+        self._timer = self._wm.event_timer_add(1.0 / self._hz, window=self._win)
+    def stop(self):
+        if not self._timer: return
+        self._wm.event_timer_remove(self._timer)
+        self._timer = None
     def done(self):
-        if self._timer:
-            self._wm.event_timer_remove(self._timer)
-            self._timer = None
+        self.stop()
+    def enable(self, v):
+        if v: self.start()
+        else: self.stop()
 
 
 class Actions:
@@ -350,6 +297,13 @@ class Actions:
             'operators': [
                 'Screen | ed.redo',
             ],
+        }, {
+            'name': 'clipboard paste',
+            'operators': [
+                'Text | text.paste',
+                '3D View | view3d.pastebuffer',
+                'Console | console.paste',
+            ],
         },
     ]
 
@@ -420,6 +374,7 @@ class Actions:
         self.mouse_lastb      = None    # last button pressed on mouse
         self.mousemove        = False   # is the current action a mouse move?
         self.mousemove_prev   = False   # was the previous action a mouse move?
+        self.mousemove_stop   = False   # did the mouse just stop moving?
         self.mousedown        = None    # mouse position when a mouse button was pressed
         self.mousedown_left   = None    # mouse position when LMB was pressed
         self.mousedown_middle = None    # mouse position when MMB was pressed
@@ -462,6 +417,7 @@ class Actions:
         self.trackpad = (event_type in Actions.trackpad_actions)
         self.ndof = (event_type in Actions.ndof_actions)
         self.navevent = (event_type in self.keymap['navigate'])
+        self.mousemove_stop = not self.mousemove and self.mousemove_prev
 
         if event_type in self.ignore_actions: return
 
@@ -563,15 +519,9 @@ class Actions:
         return ret
 
     def to_human_readable(self, actions, join=',', onlyfirst=None):
-        ret = set()
-        for action in self.convert(actions):
-            for kmi2hr in kmi_to_humanreadable:
-                for k,v in kmi2hr.items():
-                    action = action.replace(k, v)
-            ret.add(action)
-        ret = sorted(ret)
-        if onlyfirst is not None: ret = ret[:onlyfirst]
-        return join.join(ret)
+        if type(actions) is str: actions = {actions}
+        actions = { act for action in actions for act in self.convert(action) }
+        return convert_actions_to_human_readable(actions, join=join, onlyfirst=onlyfirst)
 
 
     def unuse(self, actions):
@@ -626,15 +576,17 @@ class Actions:
         if any(p in actions for p in self.now_pressed.values()): return True
         return False
 
-    def pressed(self, actions, unpress=True, ignoremods=False, ignorectrl=False, ignoreshift=False, ignorealt=False, ignoreoskey=False, ignoremulti=False, ignoreclick=False, ignoredouble=False, ignoredrag=False, debug=False):
+    def pressed(self, actions, unpress=True, ignoremods=False, ignorectrl=False, ignoreshift=False, ignorealt=False, ignoreoskey=False, ignoremulti=False, ignoreclick=False, ignoredouble=False, ignoredrag=False, ignoremouse=False, debug=False):
         if actions is None: return False
+        if not self.just_pressed: return False
         if ignoremods: ignorectrl,ignoreshift,ignorealt,ignoreoskey = True,True,True,True
         if ignoremulti: ignoreclick,ignoredouble,ignoredrag = True,True,True
         if debug: print('Actions.pressed 0: actions =', actions)
         actions = self.convert(actions)
         if debug: print('Actions.pressed 1: actions =', actions)
-        just_pressed = strip_mods(self.just_pressed, ctrl=ignorectrl, shift=ignoreshift, alt=ignorealt, oskey=ignoreoskey, click=ignoreclick, double_click=ignoredouble, drag_click=ignoredrag)
+        just_pressed = strip_mods(self.just_pressed, ctrl=ignorectrl, shift=ignoreshift, alt=ignorealt, oskey=ignoreoskey, click=ignoreclick, double_click=ignoredouble, drag_click=ignoredrag, mouse=ignoremouse)
         if debug: print('Actions.pressed 2: just_pressed =', just_pressed, self.just_pressed, ', actions =', actions)
+        if not just_pressed: return False
         ret = just_pressed in actions
         if ret and unpress: self.unpress()
         return ret
@@ -659,8 +611,8 @@ class Actions:
         #assert ftype in kmi_to_char, 'Trying to convert unhandled key "%s"' % str(self.just_pressed)
         return kmi_to_char.get(ftype, None)
 
-    def start_timer(self, hz):
-        return TimerHandler(self.context.window_manager, self.context.window, hz)
+    def start_timer(self, hz, enabled=True):
+        return TimerHandler(self.context.window_manager, self.context.window, hz, enabled=enabled)
 
 
 class ActionHandler:
@@ -674,12 +626,15 @@ class ActionHandler:
             _keymap[k] = { op for action in v for op in translate_blenderop(action) }
         self.__dict__['_keymap'] = _keymap
     def __getattr__(self, key):
+        if not ActionHandler._actions: return None
         ActionHandler._actions.keymap2 = self._keymap
         return getattr(ActionHandler._actions, key)
     def __setattr__(self, key, value):
+        if not ActionHandler._actions: return
         ActionHandler._actions.keymap2 = self._keymap
         return setattr(ActionHandler._actions, key, value)
     def done(self):
+        if not ActionHandler._actions: return
         ActionHandler._actions.done()
         ActionHandler._actions = None
 

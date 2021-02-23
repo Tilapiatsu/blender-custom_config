@@ -1,5 +1,5 @@
 '''
-Copyright (C) 2020 CG Cookie
+Copyright (C) 2021 CG Cookie
 http://cgcookie.com
 hello@cgcookie.com
 
@@ -44,7 +44,6 @@ from ...addon_common.common.profiler import profiler
 from ...addon_common.common.maths import Point, Direction, Normal, Frame
 from ...addon_common.common.maths import Point2D, Vec2D, Direction2D
 from ...addon_common.common.maths import Ray, XForm, BBox, Plane
-from ...addon_common.common.ui import Drawing
 from ...addon_common.common.utils import min_index
 from ...addon_common.common.hasher import hash_object, hash_bmesh
 from ...addon_common.common.decorators import stats_wrapper
@@ -151,10 +150,13 @@ class RFMeshRender():
         self.bmesh = rfmesh.bme
         self.rfmesh_version = None
 
+    def dirty(self):
+        self.rfmesh_version = None
+
     # @profiler.function
     def add_buffered_render(self, bgl_type, data):
         batch = BufferedRender_Batch(bgl_type)
-        batch.buffer(data['vco'], data['vno'], data['sel'])
+        batch.buffer(data['vco'], data['vno'], data['sel'], data['warn'])
         self.buffered_renders.append(batch)
         # buffered_render = BGLBufferedRender(bgl_type)
         # buffered_render.buffer(data['vco'], data['vno'], data['sel'], data['idx'])
@@ -163,6 +165,10 @@ class RFMeshRender():
     # @profiler.function
     def _gather_data(self):
         self.buffered_renders = []
+        mirror_axes = self.rfmesh.mirror_mod.xyz if self.rfmesh.mirror_mod else []
+        mirror_x = 'x' in mirror_axes
+        mirror_y = 'y' in mirror_axes
+        mirror_z = 'z' in mirror_axes
 
         def gather():
             vert_count = 100000
@@ -174,6 +180,24 @@ class RFMeshRender():
             '''
             def sel(g):
                 return 1.0 if g.select else 0.0
+            def warn_vert(g):
+                if mirror_x and g.co.x <= 0.0001: return 0.0
+                if mirror_y and g.co.y >= -0.0001: return 0.0
+                if mirror_z and g.co.z <= 0.0001: return 0.0
+                return 0.0 if g.is_manifold and not g.is_boundary else 1.0
+            def warn_edge(g):
+                if mirror_x:
+                    v0,v1 = g.verts
+                    if v0.co.x <= 0.0001 and v1.co.x <= 0.0001: return 0.0
+                if mirror_y:
+                    v0,v1 = g.verts
+                    if v0.co.y >= -0.0001 and v1.co.y >= -0.0001: return 0.0
+                if mirror_z:
+                    v0,v1 = g.verts
+                    if v0.co.z <= 0.0001 and v1.co.z <= 0.0001: return 0.0
+                return 0.0 if g.is_manifold else 1.0
+            def warn_face(g):
+                return 1.0
 
             try:
                 time_start = time.time()
@@ -185,6 +209,7 @@ class RFMeshRender():
                         tri_faces = [(bmf, list(bmvs))
                                      for bmf in self.bmesh.faces
                                      for bmvs in triangulateFace(bmf.verts)
+                                     if not bmf.hide
                                      ]
                         l = len(tri_faces)
                         for i0 in range(0, l, face_count):
@@ -205,6 +230,11 @@ class RFMeshRender():
                                     for bmf, verts in tri_faces[i0:i1]
                                     for bmv in verts
                                 ],
+                                'warn': [
+                                    warn_face(bmf)
+                                    for bmf, verts in tri_faces[i0:i1]
+                                    for bmv in verts
+                                ],
                                 'idx': None,  # list(range(len(tri_faces)*3)),
                             }
                             if self.async_load:
@@ -213,24 +243,29 @@ class RFMeshRender():
                                 self.add_buffered_render(bgl.GL_TRIANGLES, face_data)
 
                     if self.load_edges:
-                        edges = self.bmesh.edges
+                        edges = [bme for bme in self.bmesh.edges if not bme.hide]
                         l = len(edges)
                         for i0 in range(0, l, edge_count):
                             i1 = min(l, i0 + edge_count)
                             edge_data = {
                                 'vco': [
                                     tuple(bmv.co)
-                                    for bme in self.bmesh.edges[i0:i1]
+                                    for bme in edges[i0:i1]
                                     for bmv in bme.verts
                                 ],
                                 'vno': [
                                     tuple(bmv.normal)
-                                    for bme in self.bmesh.edges[i0:i1]
+                                    for bme in edges[i0:i1]
                                     for bmv in bme.verts
                                 ],
                                 'sel': [
                                     sel(bme)
-                                    for bme in self.bmesh.edges[i0:i1]
+                                    for bme in edges[i0:i1]
+                                    for bmv in bme.verts
+                                ],
+                                'warn': [
+                                    warn_edge(bme)
+                                    for bme in edges[i0:i1]
                                     for bmv in bme.verts
                                 ],
                                 'idx': None,  # list(range(len(self.bmesh.edges)*2)),
@@ -241,7 +276,7 @@ class RFMeshRender():
                                 self.add_buffered_render(bgl.GL_LINES, edge_data)
 
                     if self.load_verts:
-                        verts = self.bmesh.verts
+                        verts = [bmv for bmv in self.bmesh.verts if not bmv.hide]
                         l = len(verts)
                         for i0 in range(0, l, vert_count):
                             i1 = min(l, i0 + vert_count)
@@ -249,6 +284,7 @@ class RFMeshRender():
                                 'vco': [tuple(bmv.co) for bmv in verts[i0:i1]],
                                 'vno': [tuple(bmv.normal) for bmv in verts[i0:i1]],
                                 'sel': [sel(bmv) for bmv in verts[i0:i1]],
+                                'warn': [warn_vert(bmv) for bmv in verts[i0:i1]],
                                 'idx': None,  # list(range(len(self.bmesh.verts))),
                             }
                             if self.async_load:
@@ -348,6 +384,8 @@ class RFMeshRender():
             opts['symmetry effect'] = symmetry_effect
 
             bmegl.glSetDefaultOptions()
+
+            opts['no warning'] = not options['warn non-manifold']
 
             opts['cull backfaces'] = cull_backfaces
             opts['alpha backface'] = alpha_backface

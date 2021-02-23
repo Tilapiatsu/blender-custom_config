@@ -1,5 +1,5 @@
 '''
-Copyright (C) 2020 CG Cookie
+Copyright (C) 2021 CG Cookie
 http://cgcookie.com
 hello@cgcookie.com
 
@@ -23,6 +23,13 @@ from functools import wraps
 
 from ..addon_common.common.fsm import FSM
 from ..addon_common.common.drawing import DrawCallbacks
+from ..addon_common.common.boundvar import (
+    BoundVar,
+    BoundBool,
+    BoundInt, BoundFloat,
+    BoundString, BoundStringToBool,
+)
+from ..config.options import options, themes, visualization
 
 
 rftools = {}
@@ -54,7 +61,12 @@ class RFTool:
                 'target change': [],    # called whenever rftarget has changed (selection or edited)
                 'view change':   [],    # called whenever view has changed
                 'mouse move':    [],    # called whenever mouse has moved
+                'mouse stop':    [],    # called whenever mouse has stopped moving
             }
+            if not hasattr(cls, 'quick_shortcut'):
+                cls.quick_shortcut = None
+            if not hasattr(cls, 'ui_config'):
+                cls.ui_config = None
         else:
             # update registry, but do not add new FSM
             RFTool.registry[cls._rftool_index] = cls
@@ -99,20 +111,26 @@ class RFTool:
     def on_mouse_move(cls, fn):
         return cls.callback_decorator('mouse move')(fn)
 
+    @classmethod
+    def on_mouse_stop(cls, fn):
+        return cls.callback_decorator('mouse stop')(fn)
+
     def _callback(self, event, *args, **kwargs):
         ret = []
         for fn in self._callbacks.get(event, []):
             ret.append(fn(self, *args, **kwargs))
         return ret
 
+    def call_with_self_in_context(self, fn, *args, **kwargs):
+        return fn(*args, **kwargs)
 
 
     def __init__(self, rfcontext):
         RFTool.rfcontext = rfcontext
         RFTool.drawing = rfcontext.drawing
         RFTool.actions = rfcontext.actions
+        RFTool.document = rfcontext.document
         self.rfwidget = None
-        self._last_mouse = None
         self._fsm.init(self, start='main')
         self._draw.init(self)
         self._callback('init')
@@ -129,9 +147,8 @@ class RFTool:
         self._callback('view change')
 
     def _fsm_update(self):
-        if self.actions.mouse != self._last_mouse:
-            self._last_mouse = self.actions.mouse
-            self._callback('mouse move')
+        if   self.actions.mousemove:      self._callback('mouse move')
+        elif self.actions.mousemove_prev: self._callback('mouse stop')
         return self._fsm.update()
 
     @staticmethod

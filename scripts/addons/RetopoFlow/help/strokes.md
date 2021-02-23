@@ -1,4 +1,4 @@
-# ![](strokes-icon.png width:32px;height:32px;padding:0px) Strokes Help 
+# ![](strokes-icon.png) Strokes Help 
 
 Shortcut: {{strokes tool}}
 
@@ -24,6 +24,7 @@ This tool lets you insert edge strips and extruding edges by brushing a stroke o
 | {{select single, select single add}} | : | select edges |
 | {{select smart, select smart add}}   | : | smart select loop |
 | {{select paint, select paint add}}   | : | paint edge selection |
+| {{select path add}}                  | : | select edges along shortest path |
 | {{select all}}                       | : | select / deselect all |
 | {{deselect all}}                     | : | deselect all |
 

@@ -1,5 +1,5 @@
 '''
-Copyright (C) 2020 CG Cookie
+Copyright (C) 2021 CG Cookie
 http://cgcookie.com
 hello@cgcookie.com
 
@@ -22,11 +22,13 @@ Created by Jonathan Denning, Jonathan Williamson, and Patrick Moore
 import bgl
 import bpy
 import math
+import time
 import random
 from mathutils import Matrix, Vector
 from mathutils.geometry import intersect_point_tri_2d, intersect_point_tri_2d
 
 from ..rftool import RFTool
+from ...addon_common.common.decorators import timed_call
 
 
 class RFTool_PolyStrips(RFTool):
@@ -36,6 +38,7 @@ class RFTool_PolyStrips(RFTool):
     help        = 'polystrips.md'
     shortcut    = 'polystrips tool'
     statusbar   = '{{insert}} Insert strip of quads\t{{brush radius}} Brush size\t{{action}} Grab selection\t{{increase count}} Increase segments\t{{decrease count}} Decrease segments'
+    ui_config   = 'polystrips_options.html'
 
 
 ################################################################################################
@@ -44,12 +47,10 @@ class RFTool_PolyStrips(RFTool):
 
 from .polystrips_ops   import PolyStrips_Ops
 from .polystrips_props import PolyStrips_Props
-from .polystrips_ui    import PolyStrips_UI
 from .polystrips_rfwidgets import PolyStrips_RFWidgets
 from .polystrips_utils import (
     RFTool_PolyStrips_Strip,
     hash_face_pair,
-    strip_details,
     crawl_strip,
     is_boundaryvert, is_boundaryedge,
     process_stroke_filter, process_stroke_source,
@@ -68,7 +69,7 @@ from ...addon_common.common.utils import iter_pairs
 from ...config.options import options
 
 
-class PolyStrips(RFTool_PolyStrips, PolyStrips_Props, PolyStrips_Ops, PolyStrips_UI, PolyStrips_RFWidgets):
+class PolyStrips(RFTool_PolyStrips, PolyStrips_Props, PolyStrips_Ops, PolyStrips_RFWidgets):
     @RFTool_PolyStrips.on_init
     def init(self):
         self.init_rfwidgets()
@@ -85,8 +86,8 @@ class PolyStrips(RFTool_PolyStrips, PolyStrips_Props, PolyStrips_Ops, PolyStrips
 
     @RFTool_PolyStrips.on_target_change
     # @profiler.function
-    def update_target(self):
-        if self._fsm.state in {'move handle', 'rotate', 'scale'}: return
+    def update_target(self, force=False):
+        if not force and self._fsm.state in {'move handle', 'rotate', 'scale'}: return
 
         self.strips = []
         self._var_cut_count.disabled = True
@@ -148,13 +149,17 @@ class PolyStrips(RFTool_PolyStrips, PolyStrips_Props, PolyStrips_Ops, PolyStrips
     def update_strip_viz(self):
         self.strip_pts = [[strip.curve.eval(i/10) for i in range(10+1)] for strip in self.strips]
 
+    @RFTool_PolyStrips.on_target_change
+    @RFTool_PolyStrips.on_view_change
+    @RFTool_PolyStrips.FSM_OnlyInState('main')
+    def update_next_state(self):
+        self.vis_accel = self.rfcontext.get_vis_accel()
+
 
     @RFTool_PolyStrips.FSM_State('main')
     def main(self):
         Point_to_Point2D = self.rfcontext.Point_to_Point2D
-        mouse = self.rfcontext.actions.mouse
-
-        self.vis_accel = self.rfcontext.get_vis_accel()
+        mouse = self.actions.mouse
 
         if not self.actions.using('action', ignoredrag=True):
             # only update while not pressing action, because action includes drag, and
@@ -190,33 +195,43 @@ class PolyStrips(RFTool_PolyStrips, PolyStrips_Props, PolyStrips_Ops, PolyStrips
 
         # handle edits
         if self.hovering_handles:
-            if self.rfcontext.actions.pressed('action'):
+            if self.actions.pressed('action'):
                 return 'move handle'
-            if self.rfcontext.actions.pressed('action alt0'):
+            if self.actions.pressed('action alt0'):
                 return 'rotate'
-            if self.rfcontext.actions.pressed('action alt1'):
+            if self.actions.pressed('action alt1'):
                 return 'scale'
 
         if self.hovering_sel_face:
-            if self.rfcontext.actions.pressed('action', unpress=False):
+            if self.actions.pressed('action', unpress=False):
                 return 'move all'
 
-        if self.rfcontext.actions.pressed('grab', unpress=False):
+        if self.actions.pressed('grab', unpress=False):
             return 'move all'
 
-        if self.rfcontext.actions.pressed({'increase count', 'decrease count'}, unpress=False):
-            delta = 1 if self.rfcontext.actions.pressed('increase count') else -1
-            self.rfcontext.actions.unpress()
+        if self.actions.pressed({'increase count', 'decrease count'}, unpress=False):
+            delta = 1 if self.actions.pressed('increase count') else -1
+            self.actions.unpress()
+            if self.rfcontext.undo_last_action() != 'change segment count':
+                print(f'starting over')
+                self.setup_change_count()
             self.rfcontext.undo_push('change segment count', repeatable=True)
             self.change_count(delta=delta)
             return
 
+        if self.actions.pressed({'select path add'}):
+            return self.rfcontext.select_path(
+                {'face'},
+                kwargs_select={'supparts': False},
+            )
+
         if self.actions.pressed({'select paint', 'select paint add'}, unpress=False):
             sel_only = self.actions.pressed('select paint')
-            return self.rfcontext.setup_selection_painting(
-                'face',
-                sel_only=sel_only,
-                #fn_filter_bmelem=self.filter_edge_selection,
+            return self.rfcontext.setup_smart_selection_painting(
+                {'face'},
+                selecting=not sel_only,
+                deselect_all=sel_only,
+                # fn_filter_bmelem=self.filter_edge_selection,
                 kwargs_select={'supparts': False},
                 kwargs_deselect={'subparts': False},
             )
@@ -224,10 +239,11 @@ class PolyStrips(RFTool_PolyStrips, PolyStrips_Props, PolyStrips_Ops, PolyStrips
         if self.actions.pressed({'select single', 'select single add'}, unpress=False):
             # TODO: DO NOT PAINT!
             sel_only = self.actions.pressed('select single')
-            return self.rfcontext.setup_selection_painting(
-                'face',
-                sel_only=sel_only,
-                #fn_filter_bmelem=self.filter_edge_selection,
+            return self.rfcontext.setup_smart_selection_painting(
+                {'face'},
+                selecting=not sel_only,
+                deselect_all=sel_only,
+                # fn_filter_bmelem=self.filter_edge_selection,
                 kwargs_select={'supparts': False},
                 kwargs_deselect={'subparts': False},
             )
@@ -257,30 +273,28 @@ class PolyStrips(RFTool_PolyStrips, PolyStrips_Props, PolyStrips_Ops, PolyStrips
         inners = [ p for strip in self.strips for p in strip.curve.points()[1:3] ]
 
         self.sel_cbpts = [(cbpt, cbpt in inners, Point(cbpt), self.rfcontext.Point_to_Point2D(cbpt)) for cbpt in cbpts]
-        self.mousedown = self.rfcontext.actions.mouse
-        self.mouselast = self.rfcontext.actions.mouse
+        self.mousedown = self.actions.mouse
         self.rfwidget = self.rfwidgets['move']
         self.move_done_pressed = 'confirm'
         self.move_done_released = 'action'
         self.move_cancelled = 'cancel'
         self.rfcontext.undo_push('manipulate bezier')
         self._timer = self.actions.start_timer(120.0)
+        self.rfcontext.set_accel_defer(True)
 
     @RFTool_PolyStrips.FSM_State('move handle')
-    @RFTool_PolyStrips.dirty_when_done
     def movehandle(self):
-        if self.rfcontext.actions.pressed(self.move_done_pressed):
+        if self.actions.pressed(self.move_done_pressed):
             return 'main'
-        if self.rfcontext.actions.released(self.move_done_released):
+        if self.actions.released(self.move_done_released):
             return 'main'
-        if self.rfcontext.actions.pressed(self.move_cancelled):
+        if self.actions.pressed(self.move_cancelled):
             self.rfcontext.undo_cancel()
             return 'main'
 
-        if (self.rfcontext.actions.mouse - self.mouselast).length == 0: return
-        self.mouselast = self.rfcontext.actions.mouse
+        if self.actions.mousemove or not self.actions.mousemove_prev: return
 
-        delta = Vec2D(self.rfcontext.actions.mouse - self.mousedown)
+        delta = Vec2D(self.actions.mouse - self.mousedown)
         up,rt,fw = self.rfcontext.Vec_up(),self.rfcontext.Vec_right(),self.rfcontext.Vec_forward()
         for cbpt,inner,oco,oco2D in self.sel_cbpts:
             nco2D = oco2D + delta
@@ -297,10 +311,13 @@ class PolyStrips(RFTool_PolyStrips, PolyStrips_Props, PolyStrips_Ops, PolyStrips
             strip.update(self.rfcontext.nearest_sources_Point, self.rfcontext.raycast_sources_Point, self.rfcontext.update_face_normal)
 
         self.update_strip_viz()
+        self.rfcontext.dirty()
 
     @RFTool_PolyStrips.FSM_State('move handle', 'exit')
     def movehandle_exit(self):
         self._timer.done()
+        self.rfcontext.set_accel_defer(False)
+        self.update_target(force=True)
 
 
     @RFTool_PolyStrips.FSM_State('rotate', 'can enter')
@@ -335,30 +352,32 @@ class PolyStrips(RFTool_PolyStrips, PolyStrips_Props, PolyStrips_Ops, PolyStrips
     def rotate_enter(self):
         for strip in self.mod_strips: strip.capture_edges()
 
-        self.mousedown = self.rfcontext.actions.mouse
+        self.mousedown = self.actions.mouse
         self.rfwidget = self.rfwidgets['move']
         self.move_done_pressed = 'confirm'
         self.move_done_released = 'action alt0'
         self.move_cancelled = 'cancel'
         self.rfcontext.undo_push('rotate')
         self._timer = self.actions.start_timer(120.0)
+        self.rfcontext.set_accel_defer(True)
 
     @RFTool_PolyStrips.FSM_State('rotate')
-    @RFTool_PolyStrips.dirty_when_done
     # @profiler.function
     def rotate(self):
         if not self.rotate_about: return 'main'
-        if self.rfcontext.actions.pressed(self.move_done_pressed):
+        if self.actions.pressed(self.move_done_pressed):
             return 'main'
-        if self.rfcontext.actions.released(self.move_done_released):
+        if self.actions.released(self.move_done_released):
             return 'main'
-        if self.rfcontext.actions.pressed(self.move_cancelled):
+        if self.actions.pressed(self.move_cancelled):
             self.rfcontext.undo_cancel()
             return 'main'
 
+        if self.actions.mousemove or not self.actions.mousemove_prev: return
+
         prev_diff = self.mousedown - self.rotate_about
         prev_rot = math.atan2(prev_diff.x, prev_diff.y)
-        cur_diff = self.rfcontext.actions.mouse - self.rotate_about
+        cur_diff = self.actions.mouse - self.rotate_about
         cur_rot = math.atan2(cur_diff.x, cur_diff.y)
         angle = prev_rot - cur_rot
 
@@ -371,10 +390,13 @@ class PolyStrips(RFTool_PolyStrips, PolyStrips_Props, PolyStrips_Ops, PolyStrips
             strip.update(self.rfcontext.nearest_sources_Point, self.rfcontext.raycast_sources_Point, self.rfcontext.update_face_normal)
 
         self.update_strip_viz()
+        self.rfcontext.dirty()
 
     @RFTool_PolyStrips.FSM_State('rotate', 'exit')
     def rotate_exit(self):
         self._timer.done()
+        self.rfcontext.set_accel_defer(False)
+        self.update_target(force=True)
 
 
 
@@ -412,11 +434,11 @@ class PolyStrips(RFTool_PolyStrips, PolyStrips_Props, PolyStrips_Ops, PolyStrips
 
     @RFTool_PolyStrips.FSM_State('scale', 'enter')
     def scale_enter(self):
-        self.mousedown = self.rfcontext.actions.mouse
+        self.mousedown = self.actions.mouse
         self.rfwidget = None #self.rfwidgets['default']
         self.rfcontext.undo_push('scale')
         self.move_done_pressed = None
-        self.move_done_released = {'insert', 'insert alt0', 'insert alt1'}
+        self.move_done_released = 'action'
         self.move_cancelled = 'cancel'
 
         falloff = options['polystrips scale falloff']
@@ -441,21 +463,23 @@ class PolyStrips(RFTool_PolyStrips, PolyStrips_Props, PolyStrips_Ops, PolyStrips
                 self.scale_bmv[bmv] += [(c, bmv.co-c, s)]
 
         self._timer = self.actions.start_timer(120.0)
+        self.rfcontext.set_accel_defer(True)
 
     @RFTool_PolyStrips.FSM_State('scale')
-    @RFTool.dirty_when_done
     # @profiler.function
     def scale(self):
-        if self.rfcontext.actions.pressed(self.move_done_pressed):
+        if self.actions.pressed(self.move_done_pressed):
             return 'main'
-        if self.rfcontext.actions.released(self.move_done_released):
+        if self.actions.released(self.move_done_released, ignoremods=True):
             return 'main'
-        if self.rfcontext.actions.pressed(self.move_cancelled):
+        if self.actions.pressed(self.move_cancelled):
             self.rfcontext.undo_cancel()
             return 'main'
 
+        if self.actions.mousemove or not self.actions.mousemove_prev: return
+
         vec0 = self.mousedown - self.scale_from
-        vec1 = self.rfcontext.actions.mouse - self.scale_from
+        vec1 = self.actions.mouse - self.scale_from
         scale = vec1.length / vec0.length
 
         snap2D_vert = self.rfcontext.snap2D_vert
@@ -468,9 +492,13 @@ class PolyStrips(RFTool_PolyStrips, PolyStrips_Props, PolyStrips_Ops, PolyStrips
             bmv.co = n / len(l)
             snap_vert(bmv)
 
+        self.rfcontext.dirty()
+
     @RFTool_PolyStrips.FSM_State('scale', 'exit')
     def scale_exit(self):
         self._timer.done()
+        self.rfcontext.set_accel_defer(False)
+        self.update_target(force=True)
 
 
     @RFTool_PolyStrips.FSM_State('move all', 'can enter')
@@ -483,39 +511,48 @@ class PolyStrips(RFTool_PolyStrips, PolyStrips_Props, PolyStrips_Ops, PolyStrips
 
     @RFTool_PolyStrips.FSM_State('move all', 'enter')
     def moveall_enter(self):
-        lmb_drag = self.rfcontext.actions.using('action')
-        self.rfcontext.actions.unpress()
-        self.mousedown = self.rfcontext.actions.mouse
+        lmb_drag = self.actions.using('action')
+        self.actions.unpress()
         self.rfwidget = None  # self.rfwidgets['default']
         self.rfcontext.undo_push('move grabbed')
-        self.move_done_pressed = None if lmb_drag else 'confirm'
-        self.move_done_released = 'action' if lmb_drag else None
-        self.move_cancelled = 'cancel'
-        self._timer = self.actions.start_timer(120.0)
+        self.moveall_opts = {
+            'mousedown': self.actions.mouse,
+            'move_done_pressed': None if lmb_drag else 'confirm',
+            'move_done_released': 'action' if lmb_drag else None,
+            'move_cancelled': 'cancel',
+            'timer': self.actions.start_timer(120.0),
+        }
+        self.rfcontext.set_accel_defer(True)
 
     @RFTool_PolyStrips.FSM_State('move all')
-    @RFTool_PolyStrips.dirty_when_done
     # @profiler.function
     def moveall(self):
-        if self.rfcontext.actions.pressed(self.move_done_pressed):
+        opts = self.moveall_opts
+
+        if self.actions.pressed(opts['move_done_pressed']):
             return 'main'
-        if self.rfcontext.actions.released(self.move_done_released):
+        if self.actions.released(opts['move_done_released']):
             return 'main'
-        if self.rfcontext.actions.pressed(self.move_cancelled):
+        if self.actions.pressed(opts['move_cancelled']):
             self.rfcontext.undo_cancel()
             return 'main'
 
-        delta = Vec2D(self.rfcontext.actions.mouse - self.mousedown)
+        if self.actions.mousemove or not self.actions.mousemove_prev: return
+
+        delta = Vec2D(self.actions.mouse - opts['mousedown'])
         set2D_vert = self.rfcontext.set2D_vert
         for bmv,xy in self.bmverts:
             if not bmv.is_valid: continue
             set2D_vert(bmv, xy + delta)
         self.rfcontext.update_verts_faces(v for v,_ in self.bmverts)
+        self.rfcontext.dirty()
         #self.update()
 
     @RFTool_PolyStrips.FSM_State('move all', 'exit')
     def moveall_exit(self):
-        self._timer.done()
+        self.moveall_opts['timer'].done()
+        self.rfcontext.set_accel_defer(False)
+        self.update_target(force=True)
 
 
 
@@ -561,6 +598,8 @@ class PolyStrips(RFTool_PolyStrips, PolyStrips_Props, PolyStrips_Ops, PolyStrips
                     faces_drawn.add(bmf1)
                 if is_visible(p1): pts_inner += [Point_to_Point2D(p1)]
                 if is_visible(p2): pts_inner += [Point_to_Point2D(p2)]
+            pts_outer = [p for p in pts_outer if p]
+            pts_inner = [p for p in pts_inner if p]
             self.rfcontext.drawing.draw2D_points(pts_outer, (1.00,1.00,1.00,1.0), radius=size_outer, border=border_outer, borderColor=(0.00,0.00,0.00,0.5))
             self.rfcontext.drawing.draw2D_points(pts_inner, (0.25,0.25,0.25,0.8), radius=size_inner, border=border_inner, borderColor=(0.75,0.75,0.75,0.4))
 
@@ -599,6 +638,36 @@ class PolyStrips(RFTool_PolyStrips, PolyStrips_Props, PolyStrips_Ops, PolyStrips
             bgl.glDepthRange(0.0, 1.0)
             bgl.glDepthMask(bgl.GL_TRUE)
 
+        if False:
+            # draw spline for each strip
+            for strip in self.strips:
+                pp = None
+                for (_,p,_) in strip.curve.tessellation:
+                    p = self.rfcontext.Point_to_Point2D(p)
+                    if p and pp:
+                        self.rfcontext.drawing.draw2D_line(
+                            pp, p,
+                            (1,1,1,0.5),
+                            width=2, stipple=[2,2],
+                        )
+                    pp = p
+        if False and hasattr(self, 'count_data'):
+            # draw strip segment count change data (splines for edges)
+            splines = self.count_data['splines']
+            for spline in splines:
+                for cb in spline.tessellation:
+                    pp = None
+                    for (_,p,_) in cb:
+                        p = self.rfcontext.Point_to_Point2D(p)
+                        if p and pp:
+                            self.rfcontext.drawing.draw2D_line(
+                                pp, p,
+                                (1,1,0.2,0.5),
+                                width=2, stipple=[2,2],
+                            )
+                        pp = p
+            # self.rfcontext.drawing.draw2D_points([self.rfcontext.Point_to_Point2D(p) for p in self.count_data['points']], (1, 0.5, 0.5, 1.0), radius=5)
+
     @RFTool_PolyStrips.Draw('post2d')
     def draw_post2d(self):
         self.rfcontext.drawing.set_font_size(12)
@@ -606,6 +675,7 @@ class PolyStrips(RFTool_PolyStrips, PolyStrips_Props, PolyStrips_Ops, PolyStrips
         text_draw2D = self.rfcontext.drawing.text_draw2D
 
         for strip in self.strips:
+            strip = [f for f in strip if f.is_valid]
             c = len(strip)
             vs = [Point_to_Point2D(f.center()) for f in strip]
             vs = [Vec2D(v) for v in vs if v]

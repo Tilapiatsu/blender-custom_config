@@ -34,6 +34,7 @@ The shortcuts for each tool is a number at top of keyboard (not numpad numbers).
 | {{strokes tool}}    | : | Strokes | [help](strokes.md) |
 | {{patches tool}}    | : | Patches | [help](patches.md) |
 | {{polypen tool}}    | : | PolyPen | [help](polypen.md) |
+| {{knife tool}}      | : | Knife | [help](knife.md) |
 | {{loops tool}}      | : | Loops | [help](loops.md) |
 | {{tweak tool}}      | : | Tweak | [help](tweak.md) |
 | {{relax tool}}      | : | Relax | [help](relax.md) |
@@ -44,6 +45,18 @@ Note: selection and the undo stack is maintained between tools.
 
 Press {{pie menu}} at any time to show the tool pie menu.
 
+
+## Quick Tool Shortcuts
+
+Pressing the tool's quick shortcut will temporarily switch to that tool.
+RetopoFlow will switch back to the previously selected tool once you are done.
+
+|  |  |  |
+| --- | --- | --- |
+| {{loops quick}} | : | Loops |
+| {{knife quick}} | : | Knife |
+| {{tweak quick}} | : | Tweak |
+| {{relax quick}} | : | Relax |
 
 
 ## Universal Shortcuts
@@ -57,9 +70,13 @@ For example, pressing `G` in Contours will slide the selected loop.
 | {{select single, select single add}}  | : | select single |
 | {{select paint, select paint add}}    | : | selection painting |
 | {{select smart, select smart add}}    | : | smart selection |
+| {{select path add}}                   | : | select along shortest path |
 | {{select all}}                        | : | select / deselect all |
 | {{deselect all}}                      | : | deselect all |
 | {{select invert}}                     | : | invert selection |
+| {{hide selected}}                     | : | hide selected geometry |
+| {{hide unselected}}                   | : | hide unselected geometry |
+| {{reveal hidden}}                     | : | reveal hidden geometry |
 | {{action}}                            | : | transform selection when mouse hovers selected geometry |
 | {{grab}}                              | : | grab and move selected geometry |
 | {{rotate}}                            | : | rotate selected geometry |

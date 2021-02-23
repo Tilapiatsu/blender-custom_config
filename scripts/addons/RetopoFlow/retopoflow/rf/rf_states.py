@@ -1,5 +1,5 @@
 '''
-Copyright (C) 2020 CG Cookie
+Copyright (C) 2021 CG Cookie
 http://cgcookie.com
 hello@cgcookie.com
 
@@ -22,11 +22,17 @@ Created by Jonathan Denning, Jonathan Williamson, and Patrick Moore
 import math
 import time
 import random
+from itertools import chain
+from collections import deque
+
+from ..rfmesh.rfmesh_wrapper import RFVert, RFEdge, RFFace
 
 from ...addon_common.common.blender import tag_redraw_all
+from ...addon_common.common.decorators import timed_call
 from ...addon_common.common.drawing import Cursors
 from ...addon_common.common.maths import Vec2D, Point2D, RelPoint2D, Direction2D
 from ...addon_common.common.profiler import profiler
+from ...addon_common.common.ui_core import UI_Element
 from ...addon_common.cookiecutter.cookiecutter import CookieCutter
 from ...config.options import options
 
@@ -79,57 +85,57 @@ class RetopoFlow_States(CookieCutter):
 
     def which_pie_menu_section(self):
         delta = self.actions.mouse - self.pie_menu_center
-        angle = math.floor(-(math.atan2(delta.y, delta.x) * 180 / math.pi - 90 - 360 / 16) % 360 / (360 / 8))
-        return None if delta.length < self.drawing.scale(50) else angle
+        if delta.length < self.drawing.scale(50): return None
+        count = len(self.pie_menu_options)
+        clock_deg = (math.atan2(-delta.y, delta.x) * 180 / math.pi - self.pie_menu_rotation) % 360
+        section = math.floor((clock_deg + 360 / count / 2) % 360 / (360 / count))
+        return section
 
     @CookieCutter.FSM_State('pie menu', 'enter')
     def pie_menu_enter(self):
-        options = self.pie_menu_options
-        dial = {
-            1: [0],
-            2: [0, 4],
-            3: [0, 3, 5],
-            4: [0, 2, 4, 6],
-            5: [0, 2, 3, 4, 6],
-            6: [7, 0, 1, 3, 4, 5],
-            7: [0, 2, 3, 4, 5, 6, 7],
-            8: [0, 1, 2, 3, 4, 5, 6, 7],
-        }[len(options)]
-        self.pie_menu_options = [None] * 8
-        for (sct,text,img) in self.ui_pie_sections:
-            text.innerText = ''
-            sct.style = 'display:none'
-            img.src = ''
-            sct.del_pseudoclass('hover')
-            sct.del_class('highlighted')
-        for i_option, i_section in enumerate(dial):
-            option = options[i_option]
-            (sct,text,img) = self.ui_pie_sections[i_section]
-            if option is None: continue
-            if type(option) is str: option = {'text':option, 'value':option}
-            elif type(option) is tuple: option = {'text':option[0], 'value':option[1]}
-            text.innerText = option['text']
-            sct.style = ''
-            if option['value'] == self.pie_menu_highlighted:
-                sct.add_class('highlighted')
-            if option.get('image', None):
-                img.src = option['image']
-                img.dirty()
-            self.pie_menu_options[i_section] = option['value']
-
-        self.ui_pie_menu.style = f'display: block'
-        self.document.force_clean(self.actions.context)
+        size = 512
+        size_opt = 72
         doc_h = self.document.body.height_pixels
-        # NOTE: I DO NOT KNOW WHY self.ui_pie_table.width_pixels DOES NOT RETURN THE CORRECT THING!
-        centered = self.actions.mouse - Vec2D((self.ui_pie_table.height_pixels / 2, doc_h - self.ui_pie_table.height_pixels / 2))
+        centered = self.actions.mouse - Vec2D((size / 2, doc_h - size / 2)) - Vec2D((36, -36))
+        ui_pie_menu_contents = self.ui_pie_menu.getElementById('pie-menu-contents')
+        ui_pie_menu_contents.clear_children()
+        ui_pie_menu_contents.style = f'left:{centered.x}px; top:{centered.y}px; width:{size}px; height:{size}px; border-radius:{int(size/2)}px; padding:{int(size/2)}px'
+        count = len(self.pie_menu_options)
+        self.ui_pie_sections = []
+        for i_option, option in enumerate(self.pie_menu_options):
+            if not option:
+                self.ui_pie_sections.append(None)
+                continue
+            if type(option) is str:   option = (option,)
+            if type(option) is tuple: option = { k:v for k,v in zip(['text', 'value', 'image'], option) }
+            option.setdefault('value', option['text'])
+            option.setdefault('image', '')
+            self.pie_menu_options[i_option] = option['value']
+            r = ((i_option / count) * 360 + self.pie_menu_rotation) * (math.pi / 180)
+            left, top = (size*0.40) * math.cos(r) - (size_opt/2), -((size*0.40) * math.sin(r) - (size_opt/2))
+            ui = UI_Element.DIV(
+                style=f'left:{int(left)}px; top:{int(top)}px; width:{size_opt}px; height:{size_opt}px',
+                classes=f"pie-menu-option {'highlighted' if option['value'] == self.pie_menu_highlighted else ''}",
+                children=[
+                    UI_Element.DIV(classes='pie-menu-option-text', innerText=option['text']),
+                    UI_Element.IMG(classes='pie-menu-option-image', src=option['image'], style=f'width:{size_opt}px')
+                ],
+                parent=ui_pie_menu_contents,
+            )
+            self.ui_pie_sections.append(ui)
+
+        size_opt = 100
+        UI_Element.DIV(
+            style=f'left:{-size_opt/2}px; top:{size_opt/2}px; width:{size_opt}px; height:{size_opt}px; border-radius:{size_opt/2}px',
+            classes=f'pie-menu-center',
+            parent=ui_pie_menu_contents,
+        )
+
+        self.ui_pie_menu.is_visible = True
         self.pie_menu_center = self.actions.mouse
-        self.ui_pie_table.style = f'left: {centered.x}px; top: {centered.y}px;'
         self.pie_menu_mouse = self.actions.mouse
         self.document.focus(self.ui_pie_menu)
-
         self.document.force_clean(self.actions.context)
-        # self.document.center_on_mouse(self.ui_pie_table)
-        # self.document.sticky_element = win
 
     @CookieCutter.FSM_State('pie menu')
     def pie_menu_main(self):
@@ -137,7 +143,7 @@ class RetopoFlow_States(CookieCutter):
         confirm_r = self.actions.released(self.pie_menu_release, ignoremods=True)
         if confirm_p or confirm_r:
             # setting display to none in case callback needs to show some UI
-            self.ui_pie_menu.style = f'display: none'
+            self.ui_pie_menu.is_visible = False
             i_option = self.which_pie_menu_section()
             option = self.pie_menu_options[i_option] if i_option is not None else None
             if option is not None or self.pie_menu_always_callback:
@@ -146,15 +152,16 @@ class RetopoFlow_States(CookieCutter):
         if self.actions.pressed('cancel'):
             return 'pie menu wait'
         i_section = self.which_pie_menu_section()
-        for i_s,(sct,text,img) in enumerate(self.ui_pie_sections):
+        for i_s,ui in enumerate(self.ui_pie_sections):
+            if not ui: continue
             if i_s == i_section:
-                sct.add_pseudoclass('hover')
+                ui.add_pseudoclass('hover')
             else:
-                sct.del_pseudoclass('hover')
+                ui.del_pseudoclass('hover')
 
     @CookieCutter.FSM_State('pie menu', 'exit')
     def pie_menu_exit(self):
-        self.ui_pie_menu.style = f'display: none'
+        self.ui_pie_menu.is_visible = False
 
     @CookieCutter.FSM_State('pie menu wait')
     def pie_menu_wait(self):
@@ -195,8 +202,8 @@ class RetopoFlow_States(CookieCutter):
 
             # toggle ui
             if self.actions.pressed('toggle ui'):
-                hide = self.ui_main.is_visible or self.ui_tiny.is_visible
-                if hide:
+                self.ui_hide = self.ui_main.is_visible or self.ui_tiny.is_visible
+                if self.ui_hide:
                     self._reshow_main = self.ui_main.is_visible
                     self.ui_main.is_visible = False
                     self.ui_tiny.is_visible = False
@@ -207,16 +214,20 @@ class RetopoFlow_States(CookieCutter):
                         self.ui_main.is_visible = True
                     else:
                         self.ui_tiny.is_visible = True
-                    self.ui_options.is_visible = self.ui_show_options.disabled
-                    self.ui_geometry.is_visible = self.ui_show_geometry.disabled
+                    self.ui_options.is_visible = self.ui_main.getElementById('show-options').disabled
+                    self.ui_geometry.is_visible = self.ui_main.getElementById('show-geometry').disabled
                 return
 
             if self.actions.pressed('pie menu'):
-                self.show_pie_menu([{'text':rftool.name, 'image':rftool.icon, 'value':rftool} for rftool in self.rftools], self.select_rftool, highlighted=self.rftool)
+                self.show_pie_menu([
+                    {'text':rftool.name, 'image':rftool.icon, 'value':rftool}
+                    for rftool in self.rftools
+                ], self.select_rftool, highlighted=self.rftool)
                 return
 
             # if self.actions.pressed('SHIFT+F5'): breakit = 42 / 0
             # if self.actions.pressed('SHIFT+F6'): assert False
+            # if self.actions.pressed('SHIFT+F7'): self.alert_user(message='Foo', level='exception', msghash='2ec5e386ae05c1abeb66dce8e1f1cb95')
 
             if self.actions.pressed('SHIFT+F10'):
                 profiler.clear()
@@ -231,10 +242,13 @@ class RetopoFlow_States(CookieCutter):
                 return
 
             for rftool in self.rftools:
-                if not rftool.shortcut: continue
+                if rftool == self.rftool: continue
                 if self.actions.pressed(rftool.shortcut):
                     self.select_rftool(rftool)
                     return
+                if self.actions.pressed(rftool.quick_shortcut, unpress=False):
+                    self.select_rftool(rftool, quick=True)
+                    return 'quick switch'
 
             # if self.actions.pressed('F7'):
             #     assert False, 'test exception throwing'
@@ -269,6 +283,18 @@ class RetopoFlow_States(CookieCutter):
                 self.select_invert()
                 return
 
+            if self.actions.pressed('hide selected'):
+                self.hide_selected()
+                return
+
+            if self.actions.pressed('hide unselected'):
+                self.hide_unselected()
+                return
+
+            if self.actions.pressed('reveal hidden'):
+                self.reveal_hidden()
+                return
+
             if self.actions.pressed('delete'):
                 self.show_delete_dialog()
                 return
@@ -285,14 +311,16 @@ class RetopoFlow_States(CookieCutter):
                     ('Dissolve Edges', ('Dissolve', 'Edges')),
                     ('Dissolve Verts', ('Dissolve', 'Vertices')),
                     #'Dissolve Loops',
-                ], callback, release='delete pie menu', always_callback=True)
+                ], callback, release='delete pie menu', always_callback=True, rotate=-60)
                 return
 
             if self.actions.pressed('smooth edge flow'):
                 self.smooth_edge_flow(iterations=options['smooth edge flow iterations'])
                 return
 
+        return self.modal_main_rest()
 
+    def modal_main_rest(self):
         self.ignore_ui_events = False
 
         ct, nt = time.time(), self._next_normal_check
@@ -327,6 +355,18 @@ class RetopoFlow_States(CookieCutter):
 
             if self.actions.pressed('scale'):
                 return 'scale selected'
+
+
+    @CookieCutter.FSM_State('quick switch')
+    def quick_switch(self):
+        if self.rftool._fsm.state == 'main' and (not self.rftool.rfwidget or self.rftool.rfwidget._fsm.state == 'main'):
+            if self.actions.released(self.rftool.quick_shortcut):
+                return 'main'
+        self.modal_main_rest()
+
+    @CookieCutter.FSM_State('quick switch', 'exit')
+    def quick_switch_exit(self):
+        self.select_rftool(self.rftool_return)
 
 
     def setup_action(self, pt0, pt1, fn_callback, done_pressed=None, done_released=None, cancel_pressed=None):
@@ -386,8 +426,10 @@ class RetopoFlow_States(CookieCutter):
         opts['move_cancelled'] = 'cancel'
         opts['timer'] = self.actions.start_timer(120.0)
         opts['mouselast'] = self.actions.mouse
+        opts['lasttime'] = 0
         self.rotate_selected_opts = opts
         self.undo_push('rotate')
+        self.set_accel_defer(True)
 
     @CookieCutter.FSM_State('rotate selected')
     # @profiler.function
@@ -402,7 +444,9 @@ class RetopoFlow_States(CookieCutter):
             return 'main'
 
         if (self.actions.mouse - opts['mouselast']).length == 0: return
+        if time.time() < opts['lasttime'] + 0.05: return
         opts['mouselast'] = self.actions.mouse
+        opts['lasttime'] = time.time()
 
         delta = Direction2D(self.actions.mouse - opts['center'])
         dx,dy = opts['rotate_x'].dot(delta),opts['rotate_y'].dot(delta)
@@ -423,6 +467,7 @@ class RetopoFlow_States(CookieCutter):
     def rotate_selected_exit(self):
         opts = self.rotate_selected_opts
         opts['timer'].done()
+        self.set_accel_defer(False)
 
 
 
@@ -443,8 +488,10 @@ class RetopoFlow_States(CookieCutter):
         opts['move_cancelled'] = 'cancel'
         opts['timer'] = self.actions.start_timer(120.0)
         opts['mouselast'] = self.actions.mouse
+        opts['lasttime'] = 0
         self.scale_selected_opts = opts
         self.undo_push('scale')
+        self.set_accel_defer(True)
 
     @CookieCutter.FSM_State('scale selected')
     # @profiler.function
@@ -459,7 +506,9 @@ class RetopoFlow_States(CookieCutter):
             return 'main'
 
         if (self.actions.mouse - opts['mouselast']).length == 0: return
+        if time.time() < opts['lasttime'] + 0.05: return
         opts['mouselast'] = self.actions.mouse
+        opts['lasttime'] = time.time()
 
         dist = (self.actions.mouse - opts['center']).length
 
@@ -476,93 +525,288 @@ class RetopoFlow_States(CookieCutter):
     def scale_selected_exit(self):
         opts = self.scale_selected_opts
         opts['timer'].done()
+        self.set_accel_defer(False)
 
 
-
-
-    def setup_selection_painting(self, bmelem_type, select=None, sel_only=True, deselect_all=False, fn_filter_bmelem=None, kwargs_select=None, kwargs_deselect=None, kwargs_filter=None, **kwargs):
-        if type(bmelem_type) is str:
-            accel_nearest2D = {
-                'vert': self.accel_nearest2D_vert,
-                'edge': self.accel_nearest2D_edge,
-                'face': self.accel_nearest2D_face,
-            }[bmelem_type]
-        else:
-            def mix(*args, **kwargs):
-                bmelem, dist = None, float('inf')
-                if 'vert' in bmelem_type:
-                    _bmelem, _dist = self.accel_nearest2D_vert(*args, **kwargs)
-                    if _bmelem and _dist < dist: bmelem,dist = _bmelem,_dist
-                if 'edge' in bmelem_type:
-                    _bmelem, _dist = self.accel_nearest2D_edge(*args, **kwargs)
-                    if _bmelem and _dist < dist: bmelem,dist = _bmelem,_dist
-                if 'face' in bmelem_type:
-                    _bmelem, _dist = self.accel_nearest2D_face(*args, **kwargs)
-                    if _bmelem and _dist < dist: bmelem,dist = _bmelem,_dist
-                return bmelem,dist
-            accel_nearest2D = mix
-
-        fn_filter_bmelem = fn_filter_bmelem or (lambda _: True)
+    def select_path(self, bmelem_types, fn_filter_bmelem=None, kwargs_select=None, kwargs_filter=None, **kwargs):
         kwargs_filter = kwargs_filter or {}
-        kwargs_select = kwargs_select or {}
+        fn_filter = (lambda e: fn_filter_bmelem(e, **kwargs_filter)) if fn_filter_bmelem else (lambda _: True)
+
+        vis_accel = self.get_vis_accel()
+        nearest2D_vert = self.accel_nearest2D_vert
+        nearest2D_edge = self.accel_nearest2D_edge
+        nearest2D_face = self.accel_nearest2D_face
+
+        def get_bmelem(*args, **kwargs):
+            nonlocal fn_filter, bmelem_types, vis_accel, nearest2D_vert, nearest2D_edge, nearest2D_face
+            if 'vert' in bmelem_types:
+                bmelem, _ = nearest2D_vert(*args, vis_accel=vis_accel, **kwargs)
+                if bmelem and fn_filter(bmelem): return bmelem
+            if 'edge' in bmelem_types:
+                bmelem, _ = nearest2D_edge(*args, vis_accel=vis_accel, **kwargs)
+                if bmelem and fn_filter(bmelem): return bmelem
+            if 'face' in bmelem_types:
+                bmelem, _ = nearest2D_face(*args, vis_accel=vis_accel, **kwargs)
+                if bmelem and fn_filter(bmelem): return bmelem
+            return None
+
+        bmelem = get_bmelem(max_dist=options['select dist'])  # find what's under the mouse
+        if not bmelem:
+            # print('found nothing under mouse')
+            return   # nothing there; leave!
+
+        bmelem_types = { RFVert: {'vert'}, RFEdge: {'edge'}, RFFace: {'face'} }[type(bmelem)]
+        kwargs_select   = kwargs_select   or {}
+        kwargs.update(kwargs_select)
+        kwargs['only'] = False
+
+        # find all other visible elements
+        vis_elems = self.accel_vis_verts | self.accel_vis_edges | self.accel_vis_faces
+
+        # walk from bmelem to all other connected visible geometry
+        path = {}
+        working = deque()
+        working.append((bmelem, None))
+        def add(o, bme):
+            nonlocal vis_elems, path, working
+            if o not in vis_elems or o in path: return
+            if not fn_filter(o): return
+            working.append((o, bme))
+        closest = None
+        while working:
+            bme, from_bme = working.popleft()
+            if bme in path: continue
+            path[bme] = from_bme
+            if bme.select:
+                # found closest!
+                closest = bme
+                break
+            if 'vert' in bmelem_types:
+                for c in bme.link_edges:
+                    o = c.other_vert(bme)
+                    add(o, bme)
+            if 'edge' in bmelem_types:
+                for c in bme.verts:
+                    for o in c.link_edges:
+                        add(o, bme)
+            if 'face' in bmelem_types:
+                for c in bme.edges:
+                    for o in c.link_faces:
+                        add(o, bme)
+
+        if not closest:
+            # print('could not find closest element')
+            return
+
+        self.undo_push('select path')
+        while closest:
+            self.select(closest, **kwargs)
+            closest = path[closest]
+
+
+    def setup_smart_selection_painting(self, bmelem_types, selecting=True, deselect_all=False, fn_filter_bmelem=None, kwargs_select=None, kwargs_deselect=None, kwargs_filter=None, **kwargs):
+        kwargs_filter = kwargs_filter or {}
+        fn_filter = (lambda e: fn_filter_bmelem(e, **kwargs_filter)) if fn_filter_bmelem else (lambda _: True)
+
+        vis_accel = self.get_vis_accel()
+        nearest2D_vert = self.accel_nearest2D_vert
+        nearest2D_edge = self.accel_nearest2D_edge
+        nearest2D_face = self.accel_nearest2D_face
+
+        def get_bmelem(*args, **kwargs):
+            nonlocal fn_filter, bmelem_types, vis_accel, nearest2D_vert, nearest2D_edge, nearest2D_face
+            if 'vert' in bmelem_types:
+                bmelem, _ = nearest2D_vert(*args, vis_accel=vis_accel, **kwargs)
+                if bmelem and fn_filter(bmelem): return bmelem
+            if 'edge' in bmelem_types:
+                bmelem, _ = nearest2D_edge(*args, vis_accel=vis_accel, **kwargs)
+                if bmelem and fn_filter(bmelem): return bmelem
+            if 'face' in bmelem_types:
+                bmelem, _ = nearest2D_face(*args, vis_accel=vis_accel, **kwargs)
+                if bmelem and fn_filter(bmelem): return bmelem
+            return None
+
+        bmelem = get_bmelem(max_dist=options['select dist'])  # find what's under the mouse
+        if not bmelem: return   # nothing there; leave!
+
+        bmelem_types = { RFVert: {'vert'}, RFEdge: {'edge'}, RFFace: {'face'} }[type(bmelem)]
+        selecting |= not bmelem.select              # if not explicitly selecting, start selecting only if elem under mouse is not selected
+        kwargs_select   = kwargs_select   or {}
         kwargs_deselect = kwargs_deselect or {}
+        kwargs.update(kwargs_select if selecting else kwargs_deselect)
+        if selecting: kwargs['only'] = False
 
-        def get_bmelem(use_filter=True):
-            nonlocal accel_nearest2D, fn_filter_bmelem
-            bmelem, dist = accel_nearest2D(max_dist=options['select dist'])
-            if not use_filter or not bmelem: return bmelem
-            return bmelem if fn_filter_bmelem(bmelem, **kwargs_filter) else None
+        # find all other visible elements
+        vis_elems = self.accel_vis_verts | self.accel_vis_edges | self.accel_vis_faces
 
-        if select is None:
-            # look at what's under the mouse and check if select add is used
-            bmelem = get_bmelem(use_filter=False)
-            if not bmelem: return               # nothing there; leave!
-            if not bmelem.select: select = True # bmelem is not selected, so we are selecting
-            else: select = sel_only             # bmelem is selected, so we are deselecting if "select add"
-            deselect_all = sel_only             # deselect all if not "select add"
-        else:
-            bmelem = None
+        # walk from bmelem to all other connected visible geometry
+        path = {}
+        working = deque()
+        working.append((bmelem, None))
+        def add(o, bme):
+            nonlocal vis_elems, path, working
+            if o not in vis_elems or o in path: return
+            if not fn_filter(o): return
+            working.append((o, bme))
+        while working:
+            bme, from_bme = working.popleft()
+            if bme in path: continue
+            path[bme] = from_bme
+            if 'vert' in bmelem_types:
+                for c in bme.link_edges:
+                    o = c.other_vert(bme)
+                    add(o, bme)
+            if 'edge' in bmelem_types:
+                for c in bme.verts:
+                    for o in c.link_edges:
+                        add(o, bme)
+            if 'face' in bmelem_types:
+                for c in bme.edges:
+                    for o in c.link_faces:
+                        add(o, bme)
 
-        if select:
-            kwargs.update(kwargs_select)
-        else:
-            kwargs.update(kwargs_deselect)
+        op = (lambda e: self.select(e, **kwargs)) if selecting else (lambda e: self.deselect(e, **kwargs))
 
         self.selection_painting_opts = {
-            'select': select,
-            'get': get_bmelem,
-            'kwargs': kwargs,
+            'bmelem':    bmelem,
+            'selecting': selecting,
+            'get':       get_bmelem,
+            'kwargs':    kwargs,
+            'path':      path,
+            'op':        op,
+            'deselect':  deselect_all,
+            'previous':  [],
+            'lastelem':  None,
         }
 
-        self.undo_push('select' if select else 'deselect')
+        self.undo_push('smart select' if selecting else 'smart deselect')
         if deselect_all: self.deselect_all()
-        if bmelem: self.select(bmelem, only=False, **kwargs)
+        op(bmelem)
 
-        return 'selection painting'
+        return 'smart selection painting'
 
-    @CookieCutter.FSM_State('selection painting', 'enter')
-    def selection_painting_enter(self):
+    @CookieCutter.FSM_State('smart selection painting', 'enter')
+    def smart_selection_painting_enter(self):
         self._last_mouse = None
+        self.set_accel_defer(True)
 
-    @CookieCutter.FSM_State('selection painting')
-    def selection_painting(self):
-        assert self.selection_painting_opts
-        if self.actions.mousemove:
-            tag_redraw_all('RF selection_painting')
+    @CookieCutter.FSM_State('smart selection painting')
+    def smart_selection_painting(self):
         if self.actions.pressed('cancel'):
-            self.selection_painting_opts = None
+            self.undo_cancel()
             return 'main'
         if not self.actions.using({'select paint', 'select paint add'}, ignoremods=True):
-            self.selection_painting_opts = None
             return 'main'
-        if self._last_mouse == self.actions.mouse: return
-        self._last_mouse = self.actions.mouse
-        bmelem = self.selection_painting_opts['get']()
-        if not bmelem or bmelem.select == self.selection_painting_opts['select']:
-            return
-        if self.selection_painting_opts['select']:
-            self.select(bmelem, only=False, **self.selection_painting_opts['kwargs'])
-        else:
-            self.deselect(bmelem, **self.selection_painting_opts['kwargs'])
+
+        opts = self.selection_painting_opts
+
+        if not self.actions.mousemove_stop: return
+
+        bmelem = opts['get']()
+        if not bmelem: return
+        if bmelem not in opts['path']: return
+        if bmelem == opts['lastelem']: return
+
+        opts['lastelem'] = bmelem
+
+        for bme,s in opts['previous']: bme.select = s
+        opts['previous'] = []
+        while bmelem:
+            opts['previous'].append((bmelem, bmelem.select))
+            opts['op'](bmelem)
+            bmelem = opts['path'][bmelem]
+
+        tag_redraw_all('RF selection_painting')
+
+    @CookieCutter.FSM_State('smart selection painting', 'exit')
+    def smart_selection_painting_exit(self):
+        self.selection_painting_opts = None
+        self.set_accel_defer(False)
+
+
+    # def setup_selection_painting(self, bmelem_type, select=None, sel_only=True, deselect_all=False, fn_filter_bmelem=None, kwargs_select=None, kwargs_deselect=None, kwargs_filter=None, **kwargs):
+    #     if type(bmelem_type) is str:
+    #         accel_nearest2D = {
+    #             'vert': self.accel_nearest2D_vert,
+    #             'edge': self.accel_nearest2D_edge,
+    #             'face': self.accel_nearest2D_face,
+    #         }[bmelem_type]
+    #     else:
+    #         def mix(*args, **kwargs):
+    #             bmelem, dist = None, float('inf')
+    #             if 'vert' in bmelem_type:
+    #                 _bmelem, _dist = self.accel_nearest2D_vert(*args, **kwargs)
+    #                 if _bmelem and _dist < dist: bmelem,dist = _bmelem,_dist
+    #             if 'edge' in bmelem_type:
+    #                 _bmelem, _dist = self.accel_nearest2D_edge(*args, **kwargs)
+    #                 if _bmelem and _dist < dist: bmelem,dist = _bmelem,_dist
+    #             if 'face' in bmelem_type:
+    #                 _bmelem, _dist = self.accel_nearest2D_face(*args, **kwargs)
+    #                 if _bmelem and _dist < dist: bmelem,dist = _bmelem,_dist
+    #             return bmelem,dist
+    #         accel_nearest2D = mix
+
+    #     fn_filter_bmelem = fn_filter_bmelem or (lambda _: True)
+    #     kwargs_filter = kwargs_filter or {}
+    #     kwargs_select = kwargs_select or {}
+    #     kwargs_deselect = kwargs_deselect or {}
+
+    #     def get_bmelem(use_filter=True):
+    #         nonlocal accel_nearest2D, fn_filter_bmelem
+    #         bmelem, dist = accel_nearest2D(max_dist=options['select dist'])
+    #         if not use_filter or not bmelem: return bmelem
+    #         return bmelem if fn_filter_bmelem(bmelem, **kwargs_filter) else None
+
+    #     if select is None:
+    #         # look at what's under the mouse and check if select add is used
+    #         bmelem = get_bmelem(use_filter=False)
+    #         if not bmelem: return               # nothing there; leave!
+    #         if not bmelem.select: select = True # bmelem is not selected, so we are selecting
+    #         else: select = sel_only             # bmelem is selected, so we are deselecting if "select add"
+    #         deselect_all = sel_only             # deselect all if not "select add"
+    #     else:
+    #         bmelem = None
+
+    #     if select:
+    #         kwargs.update(kwargs_select)
+    #     else:
+    #         kwargs.update(kwargs_deselect)
+
+    #     self.selection_painting_opts = {
+    #         'select': select,
+    #         'get': get_bmelem,
+    #         'kwargs': kwargs,
+    #     }
+
+    #     self.undo_push('select' if select else 'deselect')
+    #     if deselect_all: self.deselect_all()
+    #     if bmelem: self.select(bmelem, only=False, **kwargs)
+
+    #     return 'selection painting'
+
+    # @CookieCutter.FSM_State('selection painting', 'enter')
+    # def selection_painting_enter(self):
+    #     self._last_mouse = None
+
+    # @CookieCutter.FSM_State('selection painting')
+    # def selection_painting(self):
+    #     assert self.selection_painting_opts
+    #     if self.actions.mousemove:
+    #         tag_redraw_all('RF selection_painting')
+    #     if self.actions.pressed('cancel'):
+    #         self.selection_painting_opts = None
+    #         return 'main'
+    #     if not self.actions.using({'select paint', 'select paint add'}, ignoremods=True):
+    #         self.selection_painting_opts = None
+    #         return 'main'
+    #     if self._last_mouse == self.actions.mouse: return
+    #     self._last_mouse = self.actions.mouse
+    #     bmelem = self.selection_painting_opts['get']()
+    #     if not bmelem or bmelem.select == self.selection_painting_opts['select']:
+    #         return
+    #     if self.selection_painting_opts['select']:
+    #         self.select(bmelem, only=False, **self.selection_painting_opts['kwargs'])
+    #     else:
+    #         self.deselect(bmelem, **self.selection_painting_opts['kwargs'])
 
 
