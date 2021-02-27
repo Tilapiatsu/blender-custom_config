@@ -262,3 +262,6 @@
 [submodule "scripts/addons/render-strip"]
 	path = scripts/addons/render-strip
 	url = https://github.com/luckykadam/render-strip.git
+[submodule "scripts/addons/lattice_magic"]
+	path = scripts/addons/lattice_magic
+	url = https://gitlab.com/blender/lattice_magic.git
