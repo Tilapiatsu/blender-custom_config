@@ -766,7 +766,7 @@ class BlUtil:
             return [v for k, v in BlUtil.Data.all_iter(non_removable, exclude)]
         
         @staticmethod
-        def get_users_map(bpy_datas):
+        def get_users_map(bpy_datas, use_fake_user=True):
             if hasattr(bpy_datas, "values"): bpy_datas = bpy_datas.values() # dict
             
             users_map = {}
@@ -775,19 +775,15 @@ class BlUtil:
                 if isinstance(bpy_data, tuple): bpy_data = bpy_data[1] # all_iter()
                 
                 for item in bpy_data:
-                    users_map[(bpy_data, item)] = item.users
+                    users = item.users
+                    if not use_fake_user: users -= int(item.use_fake_user)
+                    users_map[(bpy_data, item)] = users
             
             return users_map
         
         @staticmethod
-        def clear_orphaned(users_map0, users_map1):
-            modified = False
-            
-            for key, users0 in users_map0.items():
-                users1 = users_map1.get(key, 0)
-                if users0 == users1: continue
-                if users1 > 0: continue
-                
+        def clear_orphaned(users_map0, users_map1, check='OLD'):
+            def remove(users_map1, key):
                 bpy_data, item = key
                 
                 try:
@@ -796,27 +792,54 @@ class BlUtil:
                     pass
                 
                 users_map1.pop(key, None)
-                
-                modified = True
+            
+            modified = False
+            
+            if check == 'OLD':
+                check_old = True
+                check_new = False
+            elif check == 'NEW':
+                check_old = False
+                check_new = True
+            else:
+                check_old = True
+                check_new = True
+            
+            if check_old:
+                # If object had users, but now doesn't, remove it
+                for key, users0 in users_map0.items():
+                    users1 = users_map1.get(key, 0)
+                    if (users1 > 0) or (users0 == users1): continue
+                    remove(users_map1, key)
+                    modified = True
+            
+            if check_new:
+                # If object has no users and wasn't present before, remove it
+                for key, users1 in tuple(users_map1.items()):
+                    if (users1 > 0) or (key in users_map0): continue
+                    remove(users_map1, key)
+                    modified = True
             
             return modified
         
         class OrphanCleanup:
-            def __init__(self, exclude=()):
+            def __init__(self, exclude=(), use_fake_user=True, check='OLD'):
                 self.exclude = exclude
+                self.use_fake_user = use_fake_user
+                self.check = check
             
             def __enter__(self):
                 self.bpy_datas = BlUtil.Data.all_list(False, exclude=self.exclude)
-                self.users_map0 = BlUtil.Data.get_users_map(self.bpy_datas)
+                self.users_map0 = BlUtil.Data.get_users_map(self.bpy_datas, self.use_fake_user)
             
             def __exit__(self, exc_type, exc_value, exc_traceback):
                 bpy_datas = self.bpy_datas
                 users_map0 = self.users_map0
-                users_map1 = BlUtil.Data.get_users_map(bpy_datas)
+                users_map1 = BlUtil.Data.get_users_map(bpy_datas, self.use_fake_user)
                 
-                while BlUtil.Data.clear_orphaned(users_map0, users_map1):
+                while BlUtil.Data.clear_orphaned(users_map0, users_map1, self.check):
                     users_map0 = users_map1
-                    users_map1 = BlUtil.Data.get_users_map(bpy_datas)
+                    users_map1 = BlUtil.Data.get_users_map(bpy_datas, self.use_fake_user)
     
     class Collection:
         @staticmethod
@@ -2568,5 +2591,74 @@ class BpyPath:
                 prev, axis = curr, new_axis
         
         return [(file_path, indices[axis], count) for file_path, indices, axis, count in results]
+    
+    @staticmethod
+    def properties(obj, raw=None, no_readonly=False, names=False):
+        # Inspired by BKE_bpath_traverse_id(...) in source\blender\blenkernel\intern\bpath.c
+        
+        if (not obj) or (not hasattr(obj, "bl_rna")): return
+        
+        if no_readonly and isinstance(obj, bpy.types.ID) and obj.library: return
+        
+        rna_props = obj.bl_rna.properties
+        
+        for p in rna_props:
+            if not BpyPath.is_path_property(p): continue
+            if p.is_readonly and no_readonly: continue
+            
+            if raw is None:
+                yield obj, (p.identifier if names else p)
+            elif p.identifier.endswith("_raw"):
+                if raw: yield obj, (p.identifier if names else p)
+            elif (not raw) or (p.identifier+"_raw" not in rna_props):
+                yield obj, (p.identifier if names else p)
+        
+        point_cache = getattr(obj, "point_cache", None)
+        if isinstance(point_cache, bpy.types.PointCache):
+            yield from BpyPath.properties(point_cache, raw, no_readonly, names)
+        
+        if isinstance(obj, bpy.types.Object):
+            for modifier in obj.modifiers:
+                yield from BpyPath.properties(modifier, raw, no_readonly, names)
+            for particle_system in obj.particle_systems:
+                yield from BpyPath.properties(particle_system, raw, no_readonly, names)
+        elif isinstance(obj, bpy.types.Modifier):
+            if obj.type == 'FLUID': # Blender >= 2.82
+                yield from BpyPath.properties(obj.domain_settings, raw, no_readonly, names)
+            elif obj.type == 'FLUID_SIMULATION': # Blender < 2.82
+                yield from BpyPath.properties(obj.settings, raw, no_readonly, names)
+            elif obj.type == 'SMOKE': # Blender < 2.82
+                yield from BpyPath.properties(obj.domain_settings, raw, no_readonly, names)
+        elif isinstance(obj, bpy.types.PointCache):
+            for point_cache_item in obj.point_caches:
+                yield from BpyPath.properties(point_cache_item, raw, no_readonly, names)
+        elif isinstance(obj, bpy.types.Material):
+            yield from BpyPath.properties(obj.node_tree, raw, no_readonly, names)
+        elif isinstance(obj, bpy.types.NodeTree):
+            for node in obj.nodes:
+                yield from BpyPath.properties(node, raw, no_readonly, names)
+        elif isinstance(obj, bpy.types.Scene):
+            yield from BpyPath.properties(obj.rigidbody_world, raw, no_readonly, names)
+            yield from BpyPath.properties(obj.sequence_editor, raw, no_readonly, names)
+        elif isinstance(obj, bpy.types.SequenceEditor):
+            for sequence in obj.sequences_all:
+                yield from BpyPath.properties(sequence, raw, no_readonly, names)
+        elif isinstance(obj, bpy.types.Sequence):
+            # Not all sequence subtypes have proxy or elements
+            yield from BpyPath.properties(getattr(obj, "proxy", None), raw, no_readonly, names)
+            for element in getattr(obj, "elements", ()):
+                yield from BpyPath.properties(element, raw, no_readonly, names)
+    
+    path_property_subtypes = {'FILE_PATH', 'DIR_PATH', 'FILE_NAME'}
+    @staticmethod
+    def is_path_property(p):
+        if p.type != 'STRING': return False
+        if p.subtype in BpyPath.path_property_subtypes: return True
+        # Not all file/dir path-like properties are marked with a subtype
+        p_id_low = p.identifier.lower()
+        conditionA = ("file" in p_id_low) or ("dir" in p_id_low) or ("cache" in p_id_low)
+        conditionB = ("path" in p_id_low) or ("name" in p_id_low) or ("proxy" in p_id_low)
+        conditionC = ("directory" in p_id_low)
+        return (conditionA and conditionB) or conditionC
 
 BpyPath.operator_presets_dir = BpyPath.join(bpy.utils.resource_path('USER'), "scripts", "presets", "operator")

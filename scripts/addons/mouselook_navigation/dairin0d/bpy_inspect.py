@@ -133,9 +133,15 @@ class BlRna:
         bpy_args = dict(name=rna_prop.name, description=rna_prop.description, options=set())
         def map_arg(rna_name, bpy_name, is_option=False):
             if is_option:
-                if getattr(rna_prop, rna_name, False): bpy_args["options"].add(bpy_name)
+                if getattr(rna_prop, rna_name, False):
+                    bpy_args["options"].add(bpy_name)
             else:
-                if hasattr(rna_prop, rna_name): bpy_args[bpy_name] = BlRna.serialize_value(getattr(rna_prop, rna_name), False)
+                # Some built-in enum properties may have incorrectly specified RNA, leading to
+                # warnings like "pyrna_enum_to_py: current value ... matches no enum in ..."
+                # The best we can do is merely to minimize the number of such warnings.
+                value = getattr(rna_prop, rna_name, BlRna) # any invalid default will do
+                if value is not BlRna:
+                    bpy_args[bpy_name] = BlRna.serialize_value(value, False)
         
         def fix_enum_default():
             # Some built-in properties may have invalid defaults.
@@ -145,8 +151,11 @@ class BlRna:
             item_keys = {item[0] for item in items}
             value = bpy_args["default"]
             if isinstance(value, str):
+                # Some built-in properties may not even have items (e.g.
+                # "sort_method" in the built-in importers/exporters) :-(
                 if value not in item_keys:
-                    bpy_args["default"] = items[0][0]
+                    # For no-items enums, default=None seems to not cause errors
+                    bpy_args["default"] = (items[0][0] if items else None)
             else:
                 bpy_args["default"] = {key for key in value if key in item_keys}
         
@@ -1281,6 +1290,10 @@ class ObjectTypeInfo:
             if mode_info: result.append(mode_info)
         
         return result
+    
+    def is_convertible(self, obj_type):
+        blender_version = self.conversions.get(obj_type)
+        return (False if blender_version is None else bpy.app.version >= blender_version)
 
 class BlEnums:
     extensible_classes = (bpy.types.PropertyGroup, bpy.types.ID, bpy.types.Bone, bpy.types.PoseBone) # see bpy_struct documentation
@@ -1400,6 +1413,12 @@ class BlEnums:
     def get_mode_name(cls, mode):
         mode = mode.replace("GPENCIL", "GREASE_PENCIL")
         return " ".join([word.capitalize() for word in mode.split("_")])
+    
+    @classmethod
+    def is_convertible(cls, src_type, dst_type):
+        src_info = cls.object_infos.get(src_type)
+        dst_info = cls.object_infos.get(dst_type)
+        return (src_info.is_convertible(dst_info.name) if src_info and dst_info else False)
     
     # Panel.bl_context is not an enum property, so we can't get all possible values through introspection
     panel_contexts = {

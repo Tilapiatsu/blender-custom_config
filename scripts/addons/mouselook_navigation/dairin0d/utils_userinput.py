@@ -15,6 +15,8 @@
 #
 #  ***** END GPL LICENSE BLOCK *****
 
+from collections import namedtuple
+
 import bpy
 
 #from bl_keymap_utils import keymap_hierarchy
@@ -23,29 +25,37 @@ from .utils_python import reverse_enumerate
 from .bpy_inspect import BlRna
 
 class InputKeyMonitor:
-    all_keys = bpy.types.Event.bl_rna.properties["type"].enum_items.keys()
-    all_modifiers = {'alt', 'ctrl', 'oskey', 'shift'}
-    all_events = bpy.types.Event.bl_rna.properties["value"].enum_items.keys()
-    
     def __init__(self, event=None):
         self.event = ""
+        self.prev_states = {}
         self.states = {}
         self.invoke_key = 'NONE'
         self.invoke_event = 'NONE'
+        self.update_counter = 0
+        
         if event is not None:
             self.invoke_key = event.type
             self.invoke_event = event.value
             self.update(event)
     
     def __getitem__(self, name):
-        if ":" in name:
+        if name.endswith(":ON"):
+            return self.states.setdefault(name, False)
+        elif name.endswith(":OFF"):
+            return not self.states.setdefault(name, False)
+        elif ":" not in name:
+            return self.states.setdefault(name, False)
+        else:
             return self.event == name
-        return self.states.setdefault(name, False)
     
     def __setitem__(self, name, state):
         self.states[name] = state
     
     def update(self, event):
+        self.update_counter += 1
+        
+        self.prev_states.update(self.states)
+        
         if (event.value == 'PRESS') or (event.value == 'DOUBLE_CLICK'):
             self.states[event.type] = True
         elif event.value == 'RELEASE':
@@ -58,90 +68,136 @@ class InputKeyMonitor:
         
         self.event = event.type+":"+event.value
     
-    def keychecker(self, keys):
-        km = self
-        keys = self.parse_keys(keys)
-        def check(state=True):
-            for key in keys:
-                if key.startswith("!"):
-                    if km[key[1:]] != state:
-                        return True
-                else:
-                    if km[key] == state:
-                        return True
-            return False
-        check.is_event = ((":" in keys[0]) if keys else False)
+    def keychecker(self, shortcut, default_state=False):
+        key_infos = self.get_keys(shortcut, self.invoke_key)
+        state_infos = [info for info in key_infos if info.event in self._state_events]
+        event_infos = [info for info in key_infos if info.event not in self._state_events]
+        
+        events_set = {info.full for info in event_infos}
+        event_state = {"state": default_state, "counter": self.update_counter}
+        
+        def get_event_toggle(info):
+            return self.event == info.full
+        
+        def get_state_toggle(info, mask_pos, mask_neg):
+            state0 = int(self.prev_states.get(info.key, False))
+            state1 = int(self.states.get(info.key, False))
+            delta = state1 - state0
+            if info.invert: delta = -delta
+            return ((delta & mask_pos) > 0) or ((delta & mask_neg) < 0)
+        
+        def get_event_on(info):
+            return event_state["state"]
+        
+        def get_state_on(info):
+            return self.states.get(info.key, False) != info.invert
+        
+        def check(mode):
+            if (self.event in events_set) and (self.update_counter != event_state["counter"]):
+                event_state["state"] = not event_state["state"]
+                event_state["counter"] = self.update_counter
+            
+            if mode == 'ON|TOGGLE':
+                for info in state_infos:
+                    if get_state_on(info): return 'ON'
+                for info in event_infos:
+                    if get_event_toggle(info): return 'TOGGLE'
+                return None
+            elif mode in {'TOGGLE', 'PRESS', 'RELEASE'}:
+                mask_pos = (0 if mode == 'RELEASE' else -1)
+                mask_neg = (0 if mode == 'PRESS' else -1)
+                for info in state_infos:
+                    if get_state_toggle(info, mask_pos, mask_neg): return True
+                for info in event_infos:
+                    if get_event_toggle(info): return True
+                return False
+            elif mode in {'ON', 'OFF'}:
+                invert = (mode == 'OFF')
+                for info in state_infos:
+                    if get_state_on(info) != invert: return True
+                for info in event_infos:
+                    if get_event_on(info) != invert: return True
+                return False
+        
         return check
     
-    def combine_key_parts(self, key, keyset, use_invoke_key=False):
-        elements = key.split()
-        combined0 = "".join(elements)
-        combined1 = "_".join(elements)
-        
-        if use_invoke_key and (combined0 == "{INVOKEKEY}"):
-            return self.invoke_key
-        
-        if combined0 in keyset:
-            return combined0
-        elif combined1 in keyset:
-            return combined1
-        
-        return ""
+    class KeyInfo:
+        __slots__ = ["full", "key", "event", "is_state", "invert"]
+        def __init__(self, full):
+            self.full = full
+            self.key, self.event = full.split(":")
+            self.is_state = (self.event == 'ON') or (self.event == 'OFF')
+            self.invert = (self.event == 'OFF')
     
-    def parse_keys(self, keys_string):
-        parts = keys_string.split(":")
-        keys_string = parts[0]
-        event_id = ""
-        if len(parts) > 1:
-            event_id = self.combine_key_parts(parts[1].upper(), self.all_events)
-            if event_id:
-                event_id = ":"+event_id
+    _invoke_key = '<INVOKE_KEY>'
+    _modifier_keys = {'shift', 'ctrl', 'alt', 'oskey'}
+    _variant_modifiers = {'shift', 'ctrl', 'alt'}
+    _variant_prefixes = ["LEFT_", "RIGHT_", "NDOF_BUTTON_"]
+    _state_events = {'ON', 'OFF'}
+    _keymap_keys = {item.identifier for item in bpy.types.KeyMapItem.bl_rna.properties["type"].enum_items} - {'NONE'}
+    _keymap_events = {item.identifier for item in bpy.types.KeyMapItem.bl_rna.properties["value"].enum_items} - {'NOTHING'}
+    _all_keys = _keymap_keys | _modifier_keys
+    _all_events = _keymap_events | _state_events
+    
+    @classmethod
+    def _iterate_key_variants(cls, key, events, invoke_key=None):
+        if key == cls._invoke_key: key = invoke_key
         
-        keys = []
-        for key in keys_string.split(","):
-            key = key.strip()
-            is_negative = key.startswith("!")
-            prefix = ""
-            if is_negative:
-                key = key[1:]
-                prefix = "!"
-            
-            key_id = self.combine_key_parts(key.upper(), self.all_keys, True)
-            modifier_id = self.combine_key_parts(key.lower(), self.all_modifiers)
-            
-            if key_id:
-                keys.append(prefix+key_id+event_id)
-            elif modifier_id:
-                if len(event_id) != 0:
-                    modifier_id = modifier_id.upper()
-                    if modifier_id == 'OSKEY': # has no left/right/ndof variants
-                        keys.append(prefix+modifier_id+event_id)
-                    else:
-                        keys.append(prefix+"LEFT_"+modifier_id+event_id)
-                        keys.append(prefix+"RIGHT_"+modifier_id+event_id)
-                        keys.append(prefix+"NDOF_BUTTON_"+modifier_id+event_id)
-                else:
-                    keys.append(prefix+modifier_id)
+        if key not in cls._all_keys: return
         
-        return keys
+        is_keymap = not invoke_key
+        
+        all_events = (cls._keymap_events if is_keymap else cls._all_events)
+        
+        is_modifier = (key in cls._modifier_keys)
+        is_variant_modifier = (key in cls._variant_modifiers)
+        key_upper = key.upper()
+        
+        for event in events:
+            if event not in all_events: continue
+            
+            if is_variant_modifier and (is_keymap or (event not in cls._state_events)):
+                for prefix in cls._variant_prefixes:
+                    yield f"{prefix}{key_upper}:{event}"
+            elif is_keymap and is_modifier:
+                yield f"{key_upper}:{event}"
+            else:
+                yield f"{key}:{event}"
+    
+    @classmethod
+    def get_keys(cls, shortcut, invoke_key=None):
+        if isinstance(shortcut, str): shortcut = cls.parse(shortcut)
+        return [cls.KeyInfo(variant) for key, events in shortcut
+                for variant in cls._iterate_key_variants(key, events, invoke_key)]
+    
+    @classmethod
+    def parse(cls, shortcut):
+        result = []
+        
+        for part in shortcut.split(","):
+            subparts = [subpart.strip() for subpart in part.split(":")]
+            result.append((subparts[0], set(subparts[1:])))
+        
+        return result
 
 class ModeStack:
-    def __init__(self, keys, transitions, default_mode, mode='NONE'):
+    def __init__(self, keys, transitions, default_mode, mode=None, search_direction=-1):
         self.keys = keys
         self.prev_state = {}
         self.transitions = set(transitions)
-        self.mode = mode
+        self.mode = (default_mode if mode is None else mode)
         self.default_mode = default_mode
         self.stack = [self.default_mode] # default mode should always be in the stack!
+        self.search_direction = search_direction
     
     def update(self):
-        for name in self.keys:
-            keychecker = self.keys[name]
-            is_on = int(keychecker())
+        for name, keychecker in self.keys.items():
+            result = keychecker('ON|TOGGLE')
             
-            if keychecker.is_event:
-                delta_on = is_on * (-1 if name in self.stack else 1)
+            if result == 'TOGGLE':
+                delta_on = (1 if self.mode != name else -1)
             else:
+                is_on = int(bool(result))
                 delta_on = is_on - self.prev_state.get(name, 0)
                 self.prev_state[name] = is_on
             
@@ -161,7 +217,12 @@ class ModeStack:
             self.stack.remove(name)
     
     def find_transition(self):
-        for i in range(len(self.stack)-1, -1, -1):
+        if self.search_direction < 0:
+            indices = range(len(self.stack)-1, -1, -1)
+        else:
+            indices = range(len(self.stack))
+        
+        for i in indices:
             name = self.stack[i]
             if self.transition_allowed(self.mode, name):
                 self.mode = name

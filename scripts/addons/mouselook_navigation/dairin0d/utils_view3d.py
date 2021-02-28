@@ -257,9 +257,15 @@ class SmartView3D:
     lock_camera = property(__get, __set)
     
     def __get(self):
-        return self.userprefs.inputs.use_camera_lock_parent
+        if hasattr(self.userprefs.inputs, "use_camera_lock_parent"):
+            return self.userprefs.inputs.use_camera_lock_parent
+        else: # Blender 2.92 release candidate and later versions
+            return (self.camera.use_camera_lock_parent if self.camera else False)
     def __set(self, value):
-        self.userprefs.inputs.use_camera_lock_parent = value
+        if hasattr(self.userprefs.inputs, "use_camera_lock_parent"):
+            self.userprefs.inputs.use_camera_lock_parent = value
+        else: # Blender 2.92 release candidate and later versions
+            if self.camera: self.camera.use_camera_lock_parent = value
     lock_camera_parent = property(__get, __set)
     
     def __get(self):
@@ -453,9 +459,6 @@ class SmartView3D:
         else:
             rv3d.view_rotation = rotation
         if self.force_update: rv3d.update()
-    
-    # self.force_update = kwargs.get("force_update", False)
-    # self.use_matrix = kwargs.get("use_matrix", False)
     
     def __cam_set_matrix(self, m):
         cam = self.space_data.camera
@@ -754,8 +757,10 @@ class SmartView3D:
         b = region_2d_to_location_3d(region, rv3d, xy.to_2d(), far).to_3d()
         return a, b
     
-    def read_zbuffer(self, xy, wh=(1, 1), centered=False, cached=True, coords='REGION'):
-        xy = self.convert_ui_coord(xy, coords, 'WINDOW', False)
+    def read_zbuffer(self, xy, wh=(1, 1), centered=False, coords='REGION'):
+        # In Blender 2.80+, instead of a single buffer for the whole window,
+        # there seems to be a separate buffer for each region
+        xy = self.convert_ui_coord(xy, coords, 'REGION', False)
         return cgl.read_zbuffer(xy, wh, centered)
     
     def zbuf_to_depth(self, zbuf):
@@ -772,8 +777,8 @@ class SmartView3D:
         else:
             zbuf = (depth - near) / (far - near)
     
-    def depth(self, xy, cached=True, coords='REGION'):
-        return self.zbuf_to_depth(self.read_zbuffer(xy, cached=cached, coords=coords)[0])
+    def depth(self, xy, coords='REGION'):
+        return self.zbuf_to_depth(self.read_zbuffer(xy, coords=coords)[0])
     
     # NDC means "normalized device coordinates"
     def to_ndc(self, pos, to_01=False):
@@ -993,7 +998,7 @@ class SmartView3D:
             return RaycastResult()
     
     # success, object, matrix, location, normal
-    def depth_cast(self, xy, radius=0, pattern='RADIAL', search_z=False, cached=True, coords='REGION'):
+    def depth_cast(self, xy, radius=0, pattern='RADIAL', search_z=False, coords='REGION'):
         xy = self.convert_ui_coord(xy, coords, 'REGION', False)
         
         radius = int(radius)
@@ -1002,7 +1007,7 @@ class SmartView3D:
         sz = radius * 2 + 1 # kernel size
         w, h = sz, sz
         
-        zbuf = self.read_zbuffer(xy, (sz, sz), centered=True, cached=cached)
+        zbuf = self.read_zbuffer(xy, (sz, sz), centered=True)
         
         def get_pos(x, y):
             wnd_x = min(max(x+radius, 0), w-1)
@@ -1103,7 +1108,6 @@ class SmartView3D:
                 
                 if success:
                     polygon = baked_obj.data.polygons[index]
-                    #tessface = baked_obj.data.tessfaces[index] # this will error if tessfaces are not calculated
                     
                     if midpoints: location, normal = Vector(polygon.center), Vector(polygon.normal)
                     
