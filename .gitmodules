@@ -265,3 +265,6 @@
 [submodule "scripts/addons/lattice_magic"]
 	path = scripts/addons/lattice_magic
 	url = https://gitlab.com/blender/lattice_magic.git
+[submodule "scripts/addons/autoMaterial"]
+	path = scripts/addons/autoMaterial
+	url = https://github.com/Pullusb/autoMaterial.git
