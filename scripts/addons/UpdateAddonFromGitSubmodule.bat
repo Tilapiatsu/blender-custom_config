@@ -1,5 +1,6 @@
 
 set param=/e /purge /r:10 /w:1 /bytes /fp
+set param2=/e /r:10 /w:1 /bytes /fp
 
 robocopy "..\GIT\Capsule\Capsule" "Capsule" %param%
 robocopy "..\GIT\simple-asset-manager\SimpleAssetManager" "SimpleAssetManager" %param%
@@ -47,6 +48,7 @@ copy "..\GIT\oscuart\oscurart_edit_split_normals.py" .
 copy "..\GIT\oscuart\oscurart_bake_pbr.py" .
 copy "..\GIT\Export-Paper-Model\object_convert_to_armature.py" .
 robocopy "..\GIT\uvpacker\uv-packer" "uv-packer" %param%
+robocopy "..\GIT\uvpacker_exe" "uv-packer" %param2%
 robocopy "..\GIT\bpy_photogrametry\io_mesh_fast_obj" "io_mesh_fast_obj" %param%
 
 copy "..\GIT\HEAVYPOLY\scripts\startup\HEAVYPOLY_OPERATORS.py" "..\startup\"
