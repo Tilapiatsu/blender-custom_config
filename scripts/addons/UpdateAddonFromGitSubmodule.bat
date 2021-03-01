@@ -46,6 +46,7 @@ copy "..\GIT\Asset-Creation-Toolset\Asset_Creation_Toolset_2_6_1_281.py" .
 copy "..\GIT\oscuart\oscurart_edit_split_normals.py" .
 copy "..\GIT\oscuart\oscurart_bake_pbr.py" .
 copy "..\GIT\Export-Paper-Model\object_convert_to_armature.py" .
+robocopy "..\GIT\uvpacker\uv-packer" "uv-packer" %param%
 robocopy "..\GIT\bpy_photogrametry\io_mesh_fast_obj" "io_mesh_fast_obj" %param%
 
 copy "..\GIT\HEAVYPOLY\scripts\startup\HEAVYPOLY_OPERATORS.py" "..\startup\"

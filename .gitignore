@@ -26,6 +26,7 @@ scripts/addons/Hair_Extension_ToolKit*/*
 scripts/addons/BakeWrangler/*
 scripts/addons/quad_remesher/*
 scripts/addons/hairNet/*
+scripts/addons/uv-packer/*
 scripts/presets/interface_theme/blender_pro.xml
 .vscode/settings.json
 

@@ -268,3 +268,6 @@
 [submodule "scripts/addons/autoMaterial"]
 	path = scripts/addons/autoMaterial
 	url = https://github.com/Pullusb/autoMaterial.git
+[submodule "scripts/GIT/uvpacker"]
+	path = scripts/GIT/uvpacker
+	url = https://github.com/3d-io/uvpacker-blender-addon.git
