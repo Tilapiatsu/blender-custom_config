@@ -81,3 +81,24 @@ def get_log_file_path():
 	addon_path = os.path.split(os.path.abspath(__file__))[0]
 	temp_path = os.path.join(addon_path,"scripts","render_log.log")
 	return temp_path
+
+
+
+# フォルダー内のファイルをカウント
+def save_number_from_files(files,basename):
+	'''
+	Returns the new highest count number from file names
+	as 3 digit string.
+	'''
+	highest = 0
+	if files:
+		for f in files:
+			# find last numbers in the filename
+			try: spname = f.split(basename)[-1]
+			except: spname = f
+
+			suffix = re.findall(r'\d+', spname)
+			if suffix:
+				if int(suffix[-1]) > highest:
+					highest = int(suffix[-1])
+	return str(highest+1).zfill(3)

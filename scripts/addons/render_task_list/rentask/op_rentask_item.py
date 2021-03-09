@@ -453,6 +453,7 @@ class RENTASKLIST_OT_rentask_load_setting(Operator):
 		item = colle[self.item]
 		tgt_sc = get_item_scene(item)
 
+		props.rentask_index = self.item
 
 		if self.frame:
 			if item.frame:

@@ -1,5 +1,5 @@
 '''
-Render Task List Addon (C) 2020 Bookyakuno
+Render Task List Addon (C) 2020-2021 Bookyakuno
 Created by Bookyakuno
 License : GNU General Public License version3 (http://www.gnu.org/licenses/)
 '''
@@ -8,8 +8,8 @@ bl_info = {
 	"name": "Render Task List",
 	"author": "Bookyakuno",
 	"description": "Manage rendering settings, batch rendering",
-	"version": (1, 0, 0),
-	"blender": (2, 91, 0),
+	"version": (1, 2, 0),
+	"blender": (2, 92, 0),
 	"location": "View3D > Side Menu(N key) > Addons > Render Task List",
 	"warning": "",
 	"wiki_url": "",
@@ -64,6 +64,7 @@ class RENTASKLIST_MT_AddonPreferences(AddonPreferences):
 	bl_idname = __name__.partition('.')[0]
 
 	category : StringProperty( name="Tab Category", description="Choose a name for the category of the panel", default="Addons", update=update_panel)
+
 
 
 	def draw(self, context):

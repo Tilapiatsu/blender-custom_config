@@ -2,13 +2,13 @@ import bpy, os, sys, subprocess, datetime
 import ast # 文字列を辞書にする
 from bpy.props import *
 from bpy.types import Operator
-from .def_rentask_pre import create_filepath
 from ..utils import (
 get_item_scene,
 get_task_temp_path,
 get_log_file_path,
 )
 from .def_rentask_invoke import *
+from .def_rentask_end_process import *
 from .def_rentask_pre import *
 from .def_rentask_post import *
 from .op_rentask_convert_dic import *
@@ -23,15 +23,6 @@ class RENTASKLIST_OT_rentask_run(Operator):
 	bl_options = {'REGISTER','UNDO'}
 
 	run_from_script_text : StringProperty()
-
-
-	# @classmethod
-	# def poll(cls, context):
-	# 	sc = bpy.context.scene
-	# 	props = sc.rentask
-	# 	ptask_main = props.rentask_main
-	# 	colle = props.rentask_colle
-	# 	return not (len(colle) == 0 and ptask_main.bfile_type == "EXTERNAL")
 
 
 	# invoke
@@ -49,6 +40,7 @@ class RENTASKLIST_OT_rentask_run(Operator):
 		self.remove_sc_l = []
 		self.render_count_now = 1
 		self.filepath = ""
+		self.current_task = None
 		cmd_dic = {}
 
 
@@ -86,8 +78,12 @@ class RENTASKLIST_OT_rentask_run(Operator):
 			cmd_dic = ast.literal_eval(self.run_from_script_text)
 			item = colle.add()
 			for key in cmd_dic.keys():
+				# if key == "__end_processing_type__":
+				# 	continue
 				setattr(item,key,cmd_dic[key])
-
+			# if "__end_processing_type__" in cmd_dic:
+			print(cmd_dic["__end_processing_type__"])
+			ptask_main.end_processing_type = cmd_dic["__end_processing_type__"]
 			item.blendfile = ""
 			self.plan_sc_list.append(item)
 
@@ -151,7 +147,9 @@ class RENTASKLIST_OT_rentask_run(Operator):
 
 		# レンダリング
 		if self.rendering is False:
-			self.do_rendering(context)
+			if not self.current_task == self.plan_sc_list[0]:
+				self.do_rendering(context)
+				self.current_task = self.plan_sc_list[0]
 
 		return {'RUNNING_MODAL'}
 
@@ -187,8 +185,13 @@ class RENTASKLIST_OT_rentask_run(Operator):
 		# レンダリング前の様々な設定変更
 		is_anime, scene_name, view_layer_name = pre_set_render_setting(self, context, tgt_sc=tgt_sc, item=item)
 
+
+		if tgt_sc.render.filepath in {"/tmp\\",""}:
+			bool_write_still = False
+		else:
+			bool_write_still = True
+
 		pre_hide_data(self, item)
-		sc = bpy.context.scene
 
 
 		# 進捗メッセージ
@@ -204,7 +207,7 @@ class RENTASKLIST_OT_rentask_run(Operator):
 		animation=is_anime,
 		scene=scene_name,
 		layer=view_layer_name,
-		write_still=True,
+		write_still=bool_write_still,
 		)
 
 	# 終了時の処理
@@ -288,9 +291,6 @@ class RENTASKLIST_OT_rentask_run(Operator):
 				if line == "Blender quit":
 					if 'wtime' in line_dic:
 						ptask_main.time_finish = str(datetime.datetime.strptime(line_dic["wtime"], "%Y-%m-%d %H:%M:%S.%f").replace(microsecond=0))
-
-
-
 
 
 

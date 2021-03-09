@@ -117,6 +117,29 @@ class RENTASKLIST_PR_rentask_colle(PropertyGroup):
 	hide_data_name : StringProperty(name="Hide Data Name")
 	material_override_mat : StringProperty(name="Material Override")
 	material_override_restore_scene_name : StringProperty()
+	fake_normal : BoolProperty(name="Normal Map (Fake)",description="Export a normal map using Matcap.\nTextures are not supported. It is experimental and may not coexist with some options")
 	hide_data_tmp_list : StringProperty()
 	frame_tmp_num : IntProperty(default=-1)
 	samples : IntProperty(name="Samples",min=0)
+
+	# items = [
+	# ("Filmic Log", "Filmic Log", "Log based filmic shaper with 16.5 stops of latitude, and 25 stops of dynamic range"),
+	# ("Linear", "Linear", "Rec. 709 (Full Range), Blender native linear space"),
+	# ("Linear ACES", "Linear ACES", "ACES linear space"),
+	# ("Non-Color", "Non-Color", "Color space used for images which contains non-color data (i,e, normal maps)"),
+	# ("Raw", "Raw"),
+	# ("sRGB", "sRGB", "Standard RGB Display Space"),
+	# ("XYZ", "XYZ"),
+	# ]
+	items = [
+	('NONE','None','None',),
+	('Standard','Standard','Standard',),
+	('Filmic','Filmic','Filmic',),
+	('Filmic Log','Filmic Log','Filmic Log',),
+	('Raw','Raw','Raw',),
+	('False Color','False Color','False Color',),
+	]
+	view_transform : EnumProperty(default="NONE",name = "View Transform", items= items)
+
+	filepath_auto_add_data_name : BoolProperty(name="Auto Add Data Name",description="Add the data name to the output path when the option to duplicate the output file name is enabled.\nWorks when the Scene / View Layer / Camera / Material Override option is enabled",default=False)
+	change_render_layer_node : BoolProperty(name="Change the render layer node to the same settings as the item",description="Change the scene and view layer of the render layer node to the scene and view layer settings for each item.\nNot suitable if you want to combine multiple render layer nodes, as 'all render layer nodes' will change")

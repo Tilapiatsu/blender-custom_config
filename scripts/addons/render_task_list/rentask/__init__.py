@@ -7,6 +7,7 @@ if "bpy" in locals():
 	"def_rentask_bfile_call",
 	"def_rentask_bfile",
 	"def_rentask_covert_log",
+	"def_rentask_end_process",
 	"def_rentask_invoke",
 	"def_rentask_post",
 	"def_rentask_pre",
@@ -15,6 +16,7 @@ if "bpy" in locals():
 	"op_rentask_item",
 	"op_rentask_probar",
 	"op_rentask_run",
+	"def_newsc_fake_normal",
 	]
 	for module in reloadable_modules:
 		if module in locals():
@@ -23,6 +25,7 @@ if "bpy" in locals():
 from .def_rentask_bfile import *
 from .def_rentask_bfile_call import *
 from .def_rentask_covert_log import *
+from .def_rentask_end_process import *
 from .def_rentask_invoke import *
 from .def_rentask_post import *
 from .def_rentask_pre import *
@@ -31,6 +34,7 @@ from .op_rentask_convert_dic import *
 from .op_rentask_item import *
 from .op_rentask_probar import *
 from .op_rentask_run import *
+from .def_newsc_fake_normal import *
 
 classes = (
 RENTASKLIST_OT_probar_modaltimer,

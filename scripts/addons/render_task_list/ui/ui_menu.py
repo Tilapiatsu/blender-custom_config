@@ -1,6 +1,9 @@
 import bpy
 from bpy.props import *
 from bpy.types import Menu
+from ..utils import (
+preference,
+)
 
 
 class RENTASKLIST_MT_rentask_other(Menu):
@@ -8,7 +11,12 @@ class RENTASKLIST_MT_rentask_other(Menu):
 
 	def draw(self, context):
 		props = bpy.context.scene.rentask
+		ptask_main = props.rentask_main
 		layout = self.layout
+
+
+		layout.prop(ptask_main,"add_number_for_dupname")
+		layout.separator()
 		layout.label(text="End Processing Type",icon="NONE")
 		layout.prop(props.rentask_main,"end_processing_type",text="")
 
@@ -18,6 +26,13 @@ class RENTASKLIST_MT_rentask_filepath(Menu):
 
 	def draw(self, context):
 		layout = self.layout
+		props = bpy.context.scene.rentask
+		colle = props.rentask_colle
+		index = props.rentask_index
+		item = colle[index]
+
+		layout.prop(item,"filepath_auto_add_data_name")
+		layout.separator()
 		layout.operator("rentask.rentask_filepath_name_add",text="{path_dir}",icon="ADD").text="{path_dir}"
 		layout.operator("rentask.rentask_filepath_name_add",text="{path_name}",icon="ADD").text="{path_name}"
 		layout.operator("rentask.rentask_filepath_name_add",text="{path_sc_dir}",icon="ADD").text="{path_sc_dir}"

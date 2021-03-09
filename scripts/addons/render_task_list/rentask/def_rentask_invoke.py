@@ -1,13 +1,11 @@
 import bpy, os, re
 from .op_rentask_item import RENTASKLIST_OT_rentask_item_duplicate
-from .def_rentask_pre import create_filepath
 from ..utils import (
 frame_set_format,
 get_item_scene,
 get_item_camera,
 get_item_view_layer
 )
-
 
 # メイン invoke
 def invoke_setting(self, context, event,cmd_dic):
@@ -38,11 +36,8 @@ def invoke_setting(self, context, event,cmd_dic):
 		# マテリアルオーバーライド
 		set_material_override(self,item)
 
-		# if item.light_individually_all:
-		# 	tgt_sc = get_item_scene(item)
-		# 	for obj in tgt_sc.collection.all_objects:
-		# 		if obj.type == "LIGHT":
-		# 			if not obj.hide_render:
+		# フェイクノーマル
+		set_sc_fake_normal(self, item)
 
 		# 非表示データ
 		set_hide_data(self,item)
@@ -57,7 +52,7 @@ def set_material_override(self,item):
 
 	item.material_override_restore_scene_name = item.scene
 
-	dup_sc = duplicate_scene(self)
+	dup_sc = duplicate_scene(self,'FULL_COPY')
 	self.remove_sc_l.append(dup_sc)
 	for obj in dup_sc.collection.all_objects:
 		if obj.type in {'MESH', 'CURVE', 'SURFACE', 'META', 'FONT', 'GPENCIL'}:
@@ -67,6 +62,29 @@ def set_material_override(self,item):
 
 	item.scene = dup_sc.name
 
+
+
+# フェイクノーマル
+def set_sc_fake_normal(self, item):
+	if not item.fake_normal:
+		return
+
+	item.material_override_restore_scene_name = item.scene
+	dup_sc = duplicate_scene(self,'LINK_COPY')
+	self.remove_sc_l.append(dup_sc)
+
+	# シーン設定を変更
+	dup_sc.use_fake_user = True
+	dup_sc.render.engine = 'BLENDER_WORKBENCH'
+	dup_sc.view_settings.view_transform = 'Standard'
+	dup_sc.render.film_transparent = True
+	dup_sc.display.render_aa = '8'
+	dup_sc.display.shading.single_color = (1, 1, 1)
+	dup_sc.display.shading.light = 'MATCAP'
+	dup_sc.display.shading.studio_light = 'check_normal+y.exr'
+	dup_sc.display.shading.color_type = 'SINGLE'
+
+	item.scene = dup_sc.name
 
 
 
@@ -86,6 +104,8 @@ def set_hide_data(self,item):
 				hide_data_tmp_l.append(data_i)
 
 	item.hide_data_tmp_list = ",".join(hide_data_tmp_l)
+
+
 
 
 # タスクの分割 : フレーム
@@ -122,8 +142,11 @@ def split_task_frame(self,context,event):
 			new_item.parent_item_name = item.name
 			if ".." in fl:
 				new_item.mode = "ANIME"
+				new_item.frame_start = int((fl).split("..")[0])
+				new_item.frame_end = int((fl).split("..")[1])
 			else:
 				new_item.mode = "IMAGE"
+
 
 		item.is_excluse_item = True
 
@@ -205,13 +228,13 @@ def split_task_camera(self,context,event):
 
 
 # シーンの複製
-def duplicate_scene(self):
+def duplicate_scene(self,sc_type):
 	item = self.plan_sc_list[0]
 	tgt_sc = get_item_scene(item)
 	old_scene_name = tgt_sc.name
 
 	# シーンの複製
-	bpy.ops.scene.new(type='FULL_COPY')
+	bpy.ops.scene.new(type=sc_type)
 	new_sc = bpy.context.scene
 	new_sc.name = old_scene_name + "_tmp"
 
@@ -236,6 +259,11 @@ def invoke_backup_dic(self, context, event):
 		"frame_current":get_item_scene(c).frame_current,
 		"cycles_samples":get_item_scene(c).cycles.samples,
 		"eevee_samples":get_item_scene(c).eevee.taa_render_samples,
+		"view_transform":get_item_scene(c).view_settings.view_transform,
+		"compnode":[(nd, nd.scene, nd.layer)
+				for nd in bpy.context.scene.node_tree.nodes
+				if nd.type == "R_LAYERS"
+			],
 		}
 		for c in self.plan_sc_list
 		}

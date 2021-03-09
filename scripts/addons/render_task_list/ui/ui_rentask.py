@@ -1,5 +1,5 @@
 import bpy, re, ast
-from ..rentask.def_rentask_pre import create_filepath
+from ..rentask import def_rentask_pre
 from ..utils import (
 frame_set_format,
 get_item_scene,
@@ -195,16 +195,12 @@ def draw_setting(self, context, layout):
 	row_fp = row.row(align=True)
 	row_fp.prop(item,"filepath")
 	row_fp.menu("RENTASKLIST_MT_rentask_filepath",text="",icon="COLLAPSEMENU")
+	result_filepath = ""
 	if not item.blendfile:
 		if item.filepath:
 			# ファイルパスのプレビュー
-			result_filepath = create_filepath(self, context, tgt_sc, item)
-			col.label(text=result_filepath,icon="BLANK1")
-
-		else:
-			col.label(text="")
-	else:
-		col.label(text="")
+			result_filepath = def_rentask_pre.create_filepath(self, context, tgt_sc, item)
+	col.label(text=result_filepath,icon="BLANK1")
 
 	col.separator()
 
@@ -231,8 +227,17 @@ def draw_setting(self, context, layout):
 	elif item.mode == "ANIME":
 		row = col.row(align=True)
 		row.alignment="RIGHT"
-		all_f = tgt_sc.frame_end - tgt_sc.frame_start + 1
-		row.label(text="%s-%s (%s)" % (tgt_sc.frame_start,str(tgt_sc.frame_end),str(all_f)))
+		frame_s = tgt_sc.frame_start
+		frame_e = tgt_sc.frame_end
+
+		if not item.frame_start == -1:
+			frame_s = item.frame_start
+		if not item.frame_end == -1:
+			frame_e = item.frame_end
+
+
+		all_f = frame_e - frame_s + 1
+		row.label(text="%s-%s (%s)" % (frame_s,str(frame_e),str(all_f)))
 
 		col_frame = col.column(align=True)
 		col_frame.use_property_split = True
@@ -314,6 +319,7 @@ def draw_setting(self, context, layout):
 	row.active = (not item.file_format == "NONE")
 	row.label(text="",icon="FILE")
 	row.prop(item, "file_format")
+	col.separator()
 	row = col.row(align=True)
 	row.active = (not item.samples == 0)
 	row.use_property_split = True
@@ -344,12 +350,20 @@ def draw_advanced_settings(self, context, layout):
 	if not props.ui.rentask.toggle_advanced_settings:
 		return
 
+
+
 	row = col.row(align=True)
 	row.active = (not item.engine == "NONE")
 	row.label(text="",icon="SHADING_RENDERED")
 	row.prop(item, "engine")
 	if item.engine == "OTHER":
 		col.prop(item, "engine_other")
+
+	col.separator()
+	row = col.row(align=True)
+	row.active = (not item.view_transform == "NONE")
+	row.label(text="",icon="BLANK1")
+	row.prop(item, "view_transform")
 	col.separator()
 	# other
 	row = col.row(align=True)
@@ -437,3 +451,8 @@ def draw_advanced_settings(self, context, layout):
 		sp.prop(item,"material_override_mat",text="")
 	else:
 		sp.prop_search(item, "material_override_mat", bpy.data, "materials",text="")
+
+	col.prop(item,"fake_normal")
+	row = col.row(align=True)
+	row.active = bool(item.scene or item.view_layer)
+	row.prop(item,"change_render_layer_node")
