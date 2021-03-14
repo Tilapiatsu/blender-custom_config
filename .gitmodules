@@ -271,3 +271,6 @@
 [submodule "scripts/GIT/uvpacker"]
 	path = scripts/GIT/uvpacker
 	url = https://github.com/3d-io/uvpacker-blender-addon.git
+[submodule "scripts/addons/Softwarp"]
+	path = scripts/addons/Softwarp
+	url = https://github.com/jeacom25b/Softwrap.git
