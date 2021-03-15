@@ -921,17 +921,18 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		eraser_radius=[('data_path_primary', 'tool_settings.vertex_paint.brush.texture_slot.angle'), 
 		('rotation_path', 'tool_settings.vertex_paint.brush.texture_slot.angle'), 
 		('color_path', 'tool_settings.vertex_paint.brush.cursor_color_add'), 
-		('image_id', 'tool_settings.vertex_paint.brush',
-		('release_confirm', True))])
+		('image_id', 'tool_settings.vertex_paint.brush'),
+		('release_confirm', True)])
 
 		self.tool_sample_color('paint.sample_color')
+		self.kmi_set_replace('view3D.toggle_x_symetry', 'X', 'PRESS', shift=True)
 
 		# self.kmi_set_replace('paint.weight_gradient', self.k_manip, 'PRESS', ctrl=True, shift=True, properties=[('type', 'LINEAR')])
 		# self.kmi_set_replace('paint.weight_gradient', self.k_manip, 'PRESS', ctrl=True, shift=True, alt=True, properties=[('type', 'RADIAL')])
 
 		self.kmi_set_replace('wm.tool_set_by_id', self.k_manip, 'PRESS', ctrl=True, shift=True, alt=True, properties=[('name', 'builtin_brush.Draw')])
-		self.kmi_set_replace('paint.tila_brush_select_and_paint', self.k_manip, 'PRESS', shift=True, properties=[('tool', 'VERTEX'), ('brush', 'BLUR')])
-		self.kmi_set_replace('paint.tila_brush_select_and_paint', self.k_manip, 'PRESS', ctrl=True, properties=[('tool', 'VERTEX'), ('brush', 'AVERAGE')])
+		self.kmi_set_replace('paint.tila_brush_select_and_paint', self.k_manip, 'PRESS', shift=True, properties=[('tool', 'VERTEX'), ('mode', 'BLUR'), ('brush', 'Blur')])
+		self.kmi_set_replace('paint.tila_brush_select_and_paint', self.k_manip, 'PRESS', ctrl=True, properties=[('tool', 'VERTEX'), ('mode', 'DRAW'), ('brush', 'Multiply')])
 
 		###### Weight Paint
 		self.kmi_init(name='Weight Paint', space_type='EMPTY', region_type='WINDOW')
@@ -944,20 +945,20 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		('use_secondary', 'tool_settings.unified_paint_settings.use_unified_size'), 
 		('rotation_path', 'tool_settings.weight_paint.brush.texture_slot.angle'), 
 		('color_path', 'tool_settings.weight_paint.brush.cursor_color_add'), 
-		('image_id', 'tool_settings.weight_paint.brush',
-		('release_confirm', True))],
+		('image_id', 'tool_settings.weight_paint.brush'),
+		('release_confirm', True)],
 		opacity=[('data_path_primary', 'tool_settings.weight_paint.brush.strength'), 
 		('data_path_secondary', 'tool_settings.unified_paint_settings.strength'), 
 		('use_secondary', 'tool_settings.unified_paint_settings.use_unified_strength'), 
 		('rotation_path', 'tool_settings.weight_paint.brush.texture_slot.angle'), 
 		('color_path', 'tool_settings.weight_paint.brush.cursor_color_add'), 
-		('image_id', 'tool_settings.weight_paint.brush',
-		('release_confirm', True))],
+		('image_id', 'tool_settings.weight_paint.brush'),
+		('release_confirm', True)],
 		eraser_radius=[('data_path_primary', 'tool_settings.weight_paint.brush.texture_slot.angle'), 
 		('rotation_path', 'tool_settings.weight_paint.brush.texture_slot.angle'), 
 		('color_path', 'tool_settings.weight_paint.brush.cursor_color_add'), 
-		('image_id', 'tool_settings.weight_paint.brush',
-		('release_confirm', True))])
+		('image_id', 'tool_settings.weight_paint.brush'),
+		('release_confirm', True)])
 
 		self.tool_sample_color('paint.weight_sample')
 
@@ -965,10 +966,15 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		self.kmi_set_replace('paint.weight_gradient', self.k_manip, 'PRESS', ctrl=True, shift=True, alt=True, properties=[('type', 'RADIAL')])
 
 		self.kmi_set_replace('wm.tool_set_by_id', self.k_manip, 'PRESS', ctrl=True, shift=True, alt=True, properties=[('name', 'builtin_brush.Draw')])
-		self.kmi_set_replace('paint.tila_brush_select_and_paint', self.k_manip, 'PRESS', shift=True, properties=[('tool', 'WEIGHT'), ('brush', 'BLUR')])
-		self.kmi_set_replace('paint.tila_brush_select_and_paint', self.k_manip, 'PRESS', ctrl=True, properties=[('tool', 'WEIGHT'), ('brush', 'AVERAGE')])
+		self.kmi_set_replace('paint.tila_brush_select_and_paint', self.k_manip, 'PRESS', shift=True, properties=[('tool', 'WEIGHT'), ('mode', 'AVERAGE'), ('brush', 'Average')])
+		self.kmi_set_replace('paint.tila_brush_select_and_paint', self.k_manip, 'PRESS', ctrl=True, properties=[('tool', 'WEIGHT'), ('mode', 'DRAW'), ('brush', 'Subtract')])
 
 		self.kmi_set_replace('paint.weight_set', self.k_linked, 'PRESS')
+
+		self.kmi_set_replace('paint.toggle_brushweight', 'X', 'PRESS')
+
+		self.kmi_set_replace('view3D.toggle_x_symetry', 'X', 'PRESS', shift=True)
+		
 		
 		###### Image Paint
 		self.kmi_init(name='Image Paint', space_type='EMPTY', region_type='WINDOW')
