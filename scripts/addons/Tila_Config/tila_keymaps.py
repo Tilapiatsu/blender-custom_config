@@ -805,7 +805,7 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		self.kmi_set_replace('paint.mask_flood_fill', self.k_context, 'PRESS', ctrl=True, alt=True, shift=True, properties=[('mode', 'INVERT')])
 		self.kmi_set_replace('paint.mask_flood_fill', self.k_context, 'PRESS', ctrl=True, shift=True, properties=[('mode', 'VALUE'), ('value', 0)])
 		self.kmi_set_replace('sculpt.tila_mask_faceset', self.k_context, 'CLICK', ctrl=True, properties=[('mode','MASK')])
-		self.kmi_set_replace('sculpt.tila_mask_faceset', self.k_context, 'CLICK', shift=True, properties=[('mode','UNMASK')])
+		self.kmi_set_replace('sculpt.tila_mask_faceset', self.k_context, 'CLICK', shift=True, properties=[('mode','TOGGLE')])
 
 		self.kmi_set_replace('paint.hide_show', self.k_nav, 'CLICK_DRAG', ctrl=True,  properties=[('action', 'HIDE'), ('wait_for_input', False), ('area', 'INSIDE')], disable_double=True)
 		self.kmi_set_replace('paint.hide_show', self.k_nav, 'CLICK_DRAG', shift=True, properties=[('action', 'HIDE'), ('wait_for_input', False), ('area', 'OUTSIDE')], disable_double=True)
