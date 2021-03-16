@@ -1,0 +1,90 @@
+
+from bpy.props import IntProperty, BoolProperty, EnumProperty
+from mathutils import Vector
+import math
+import bgl
+import bpy
+bl_info = {
+    "name": "Othographic navigation",
+    "description": "This tool help you to navigate in the 3d view in a more easy way",
+    "author": ("Tilapiatsu"),
+    "version": (0, 1, 0),
+    "blender": (2, 80, 0),
+    "location": "",
+    "warning": "",
+    "doc_url": "",
+    "category": "3D View"
+}
+
+
+class TILA_OrthographicNavigation(bpy.types.Operator):
+    bl_idname = "view3d.tila_orthographic_navigation"
+    bl_label = "Othographic Navigation"
+
+    direction : bpy.props.EnumProperty(name="direction", items=[("UP", "Up", ""), ("DOWN", "Doww", ""), ("LEFT", "Left", ""), ("RIGHT", "Right", "")])
+    angle : bpy.props.FloatProperty(name="angle", default=90)
+    move_threshold : bpy.props.FloatProperty(name='move_threshold', default=50)
+
+    dir = {'UP': 'ORBITUP', 'DOWN': 'ORBITDOWN', 'LEFT': 'ORBITLEFT', 'RIGHT': 'ORBITRIGHT'}
+
+    def set_initial_position(self, event):
+        self.initial_mouseposition = event.mouse_x, event.mouse_y
+
+    def need_switch_view(self, event):
+        delta_x = event.mouse_x - self.initial_mouseposition[0]
+        delta_y = event.mouse_y - self.initial_mouseposition[1]
+        if delta_x > self.move_threshold:
+            self.set_initial_position(event)
+            return True, 'LEFT'
+        elif delta_x < - self.move_threshold:
+            self.set_initial_position(event)
+            return True, 'RIGHT'
+        elif delta_y > self.move_threshold:
+            self.set_initial_position(event)
+            return True, 'DOWN'
+        elif delta_y < - self.move_threshold:
+            self.set_initial_position(event)
+            return True, 'UP'
+        else:
+            return False, 'NONE'
+
+    def switch_view(self, event):
+        try:
+            need_switch, direction = self.need_switch_view(event)
+            if need_switch:
+                # need to check view_matrix to get better rotation for TOP and BOTTOM VIEW https://docs.blender.org/api/current/bpy.types.RegionView3D.html?highlight=orthographic#bpy.types.RegionView3D.is_orthographic_side_view
+                
+                bpy.ops.view3d.view_orbit(angle=self.angle, type=self.dir[direction])
+                bpy.ops.view3d.view_axis(type='FRONT', relative=True)
+        except RuntimeError as e:
+            print('Runtime Error :\n{}'.format(e))
+
+    def modal(self, context, event):
+        if self.region.is_perspective:
+            self.region.view_perspective = 'ORTHO'
+            bpy.ops.view3d.view_axis(type='FRONT', relative=True)
+        if event.type == 'MOUSEMOVE' and event.value == 'PRESS':
+            self.switch_view(event)
+            return {'RUNNING_MODAL'}
+        if event.type in {'ESC'}:  # Cancel
+            return {'CANCELLED'}
+        elif event.type == 'MOUSEMOVE' and event.value == 'RELEASE':
+            return {'CANCELLED'}
+        return {'RUNNING_MODAL'}
+
+    def invoke(self, context, event):
+        context.window_manager.modal_handler_add(self)
+        self.region = bpy.context.region_data
+        self.set_initial_position(event)
+        return {'RUNNING_MODAL'}
+
+
+classes = (
+    TILA_OrthographicNavigation,
+)
+
+
+register, unregister = bpy.utils.register_classes_factory(classes)
+
+if __name__ == "__main__":
+    register()

@@ -61,7 +61,7 @@ modules =   (
 			'rotate_an_hdri',
 			'blenderbezierutils',
 			'oscurart_edit_split_normals',
-			'mouselook_navigation',
+			# 'mouselook_navigation',
 			'vertex_color_master',
 			'BakeWrangler',
 			'atomic_data_manager',
