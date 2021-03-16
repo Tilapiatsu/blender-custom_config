@@ -800,16 +800,19 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		self.kmi_set_replace('sculpt.dynamic_topology_toggle', 'D', 'PRESS', ctrl=True, alt=True, shift=True)
 		
 		self.kmi_set_replace('paint.brush_select', self.k_manip, 'PRESS', ctrl=True, shift=True, properties=[('sculpt_tool', 'MASK'),('toggle', True)])
-		self.kmi_set_replace('paint.mask_lasso_gesture', self.k_context, 'PRESS', ctrl=True, properties=[('value', 1.0), ('mode', 'VALUE')])
-		self.kmi_set_replace('paint.mask_lasso_gesture', self.k_context, 'PRESS', shift=True, properties=[('value', 0.0), ('mode', 'VALUE')])
+		self.kmi_set_replace('paint.mask_lasso_gesture', self.k_context, 'CLICK_DRAG', ctrl=True, properties=[('value', 1.0), ('mode', 'VALUE')])
+		self.kmi_set_replace('paint.mask_lasso_gesture', self.k_context, 'CLICK_DRAG', shift=True, properties=[('value', 0.0), ('mode', 'VALUE')])
 		self.kmi_set_replace('paint.mask_flood_fill', self.k_context, 'PRESS', ctrl=True, alt=True, shift=True, properties=[('mode', 'INVERT')])
 		self.kmi_set_replace('paint.mask_flood_fill', self.k_context, 'PRESS', ctrl=True, shift=True, properties=[('mode', 'VALUE'), ('value', 0)])
+		self.kmi_set_replace('sculpt.tila_mask_faceset', self.k_context, 'CLICK', ctrl=True, properties=[('mode','MASK')])
+		self.kmi_set_replace('sculpt.tila_mask_faceset', self.k_context, 'CLICK', shift=True, properties=[('mode','UNMASK')])
 
 		self.kmi_set_replace('paint.hide_show', self.k_nav, 'CLICK_DRAG', ctrl=True,  properties=[('action', 'HIDE'), ('wait_for_input', False), ('area', 'INSIDE')], disable_double=True)
 		self.kmi_set_replace('paint.hide_show', self.k_nav, 'CLICK_DRAG', shift=True, properties=[('action', 'HIDE'), ('wait_for_input', False), ('area', 'OUTSIDE')], disable_double=True)
 		self.kmi_set_replace('paint.hide_show', self.k_nav, 'PRESS', ctrl=True, alt=True, shift=True, properties=[('action', 'SHOW'), ('wait_for_input', False), ('area', 'ALL')], disable_double=True)
 		self.kmi_set_replace('sculpt.face_set_change_visibility', self.k_nav, 'PRESS', properties=[('mode','TOGGLE')], disable_double=True)
 		self.kmi_set_replace('sculpt.face_set_change_visibility', self.k_nav, 'RELEASE', ctrl=True, properties=[('mode','HIDE_ACTIVE')], disable_double=True)
+		
 
 		self.kmi_set_replace('sculpt.face_sets_create', 'W', 'PRESS', properties=[('mode','MASKED')], disable_double=True)
 		self.kmi_set_replace('sculpt.face_sets_create', 'W', 'PRESS', alt=True, properties=[('mode','VISIBLE')], disable_double=True)
