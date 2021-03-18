@@ -23,7 +23,7 @@ class TILA_OrthographicNavigation(bpy.types.Operator):
 
     direction : bpy.props.EnumProperty(name="direction", items=[("UP", "Up", ""), ("DOWN", "Doww", ""), ("LEFT", "Left", ""), ("RIGHT", "Right", "")])
     angle : bpy.props.FloatProperty(name="angle", default=90)
-    move_threshold : bpy.props.FloatProperty(name='move_threshold', default=50)
+    move_threshold : bpy.props.FloatProperty(name='move_threshold', default=100)
 
     dir = {'UP': 'ORBITUP', 'DOWN': 'ORBITDOWN', 'LEFT': 'ORBITLEFT', 'RIGHT': 'ORBITRIGHT'}
 
