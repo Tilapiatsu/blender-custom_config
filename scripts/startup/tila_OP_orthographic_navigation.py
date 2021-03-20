@@ -8,7 +8,7 @@ bl_info = {
     "name": "Othographic navigation",
     "description": "This tool help you to navigate in the 3d view in a more easy way",
     "author": ("Tilapiatsu"),
-    "version": (0, 1, 0),
+    "version": (1, 0, 0),
     "blender": (2, 80, 0),
     "location": "",
     "warning": "",
