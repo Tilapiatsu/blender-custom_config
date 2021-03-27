@@ -135,11 +135,11 @@ def register():
 
 
 	# mouselook_navigation
-	addon = context.preferences.addons.get('mouselook_navigation')
-	addon.preferences.show_zbrush_border = False
-	addon.preferences.show_crosshair = False
-	addon.preferences.show_focus = False
-	addon.preferences.rotation_snap_subdivs = 1
+	# addon = context.preferences.addons.get('mouselook_navigation')
+	# addon.preferences.show_zbrush_border = False
+	# addon.preferences.show_crosshair = False
+	# addon.preferences.show_focus = False
+	# addon.preferences.rotation_snap_subdivs = 1
 
 	# kekit
 	# addon = context.preferences.addons.get('kekit')
@@ -158,6 +158,8 @@ def register():
 	addon.preferences.ts.use_alt = False
 	addon.preferences.ts.use_shift = True
 	addon.preferences.ts.keycode = 'SPACE'
+
+	bpy.ops.wm.save_userpref()
 
 
 
