@@ -49,6 +49,7 @@ scripts/addons/advanced_transform_2_8.py
 scripts/addons/Asset_Creation_Toolset_2_6_1_281.py
 scripts/presets/bkit.json
 scripts/startup/HEAVYPOLY*
+scripts/addons/math_formula/*
 scripts/startup/jmQuickPipe.py
 
 scripts/addons/blenderbezierutils.py

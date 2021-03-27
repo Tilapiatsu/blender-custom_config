@@ -274,3 +274,6 @@
 [submodule "scripts/addons/Softwarp"]
 	path = scripts/addons/Softwarp
 	url = https://github.com/jeacom25b/Softwrap.git
+[submodule "scripts/GIT/WM_Blender-Addons"]
+	path = scripts/GIT/WM_Blender-Addons
+	url = https://github.com/WannesMalfait/Blender-Add-ons.git

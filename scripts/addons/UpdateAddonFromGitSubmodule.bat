@@ -50,6 +50,7 @@ copy "..\GIT\Export-Paper-Model\object_convert_to_armature.py" .
 robocopy "..\GIT\uvpacker\uv-packer" "uv-packer" %param%
 robocopy "..\GIT\uvpacker_exe" "uv-packer" %param2%
 robocopy "..\GIT\bpy_photogrametry\io_mesh_fast_obj" "io_mesh_fast_obj" %param%
+robocopy "..\GIT\WM_Blender-addons\math_formula" "math_formula" %param%
 
 copy "..\GIT\HEAVYPOLY\scripts\startup\HEAVYPOLY_OPERATORS.py" "..\startup\"
 copy "..\GIT\HEAVYPOLY\scripts\startup\HEAVYPOLY_pie_rotate_90.py" "..\startup\"
