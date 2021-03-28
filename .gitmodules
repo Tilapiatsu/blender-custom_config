@@ -277,3 +277,6 @@
 [submodule "scripts/GIT/WM_Blender-Addons"]
 	path = scripts/GIT/WM_Blender-Addons
 	url = https://github.com/WannesMalfait/Blender-Add-ons.git
+[submodule "scripts/addons/MeshSlicer"]
+	path = scripts/addons/MeshSlicer
+	url = https://github.com/TomekSc/MeshSlicer.git
