@@ -2,7 +2,6 @@
 from bpy.props import IntProperty, BoolProperty, EnumProperty
 from mathutils import Vector
 import math
-import bgl
 import bpy
 bl_info = {
     "name": "Othographic navigation",
@@ -15,7 +14,7 @@ bl_info = {
     "doc_url": "",
     "category": "3D View"
 }
-
+# Need to add a mode to align Orthographic view based on the current face selection
 
 class TILA_OrthographicNavigation(bpy.types.Operator):
     bl_idname = "view3d.tila_orthographic_navigation"
@@ -24,6 +23,7 @@ class TILA_OrthographicNavigation(bpy.types.Operator):
     direction : bpy.props.EnumProperty(name="direction", items=[("UP", "Up", ""), ("DOWN", "Doww", ""), ("LEFT", "Left", ""), ("RIGHT", "Right", "")])
     angle : bpy.props.FloatProperty(name="angle", default=90)
     move_threshold : bpy.props.FloatProperty(name='move_threshold', default=100)
+    relative_to_selected_element : bpy.props.BoolProperty(name="relative", default=False)
 
     dir = {'UP': 'ORBITUP', 'DOWN': 'ORBITDOWN', 'LEFT': 'ORBITLEFT', 'RIGHT': 'ORBITRIGHT'}
 
@@ -53,9 +53,12 @@ class TILA_OrthographicNavigation(bpy.types.Operator):
             need_switch, direction = self.need_switch_view(event)
             if need_switch:
                 # need to check view_matrix to get better rotation for TOP and BOTTOM VIEW https://docs.blender.org/api/current/bpy.types.RegionView3D.html?highlight=orthographic#bpy.types.RegionView3D.is_orthographic_side_view
-                
-                bpy.ops.view3d.view_orbit(angle=self.angle, type=self.dir[direction])
-                bpy.ops.view3d.view_axis(type='FRONT', relative=True)
+                if self.use_relatrive_to_selected_element:
+                    bpy.ops.view3d.view_orbit(angle=self.angle, type=self.dir[direction])
+                    bpy.ops.view3d.view_axis(type='FRONT', relative=True, align_active=True)
+                else:
+                    bpy.ops.view3d.view_orbit(angle=self.angle, type=self.dir[direction])
+                    bpy.ops.view3d.view_axis(type='FRONT', relative=True)
         except RuntimeError as e:
             print('Runtime Error :\n{}'.format(e))
 
@@ -75,9 +78,14 @@ class TILA_OrthographicNavigation(bpy.types.Operator):
     def invoke(self, context, event):
         context.window_manager.modal_handler_add(self)
         self.region = bpy.context.region_data
+        self.object = bpy.context.object
+
         self.set_initial_position(event)
         return {'RUNNING_MODAL'}
-
+    
+    @property
+    def use_relatrive_to_selected_element(self):
+        return self.relative_to_selected_element and self.object and self.object.type == 'MESH' and self.object.data.is_editmode
 
 classes = (
     TILA_OrthographicNavigation,

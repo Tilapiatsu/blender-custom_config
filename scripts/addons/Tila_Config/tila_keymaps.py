@@ -516,11 +516,8 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 
 		self.kmi_set_replace('object.switch_object', self.k_cursor, 'CLICK', alt=True, disable_double=True)
 
-		self.kmi_set_replace('view3d.tila_orthographic_navigation', self.k_cursor, 'CLICK_DRAG', ctrl=False, alt=True, shift=False, disable_double=True)
-		# self.kmi_set_replace('view3d.tila_orthographic_navigation', self.k_lasso_through, 'NORTH', ctrl=False, alt=True, shift=False, properties=[('direction', 'UP')], disable_double=True)
-		# self.kmi_set_replace('view3d.tila_orthographic_navigation', self.k_lasso_through, 'SOUTH', ctrl=False, alt=True, shift=False, properties=[('direction', 'DOWN')], disable_double=True)
-		# self.kmi_set_replace('view3d.tila_orthographic_navigation', self.k_lasso_through, 'WEST', ctrl=False, alt=True, shift=False, properties=[('direction', 'LEFT')], disable_double=True)
-		# self.kmi_set_replace('view3d.tila_orthographic_navigation', self.k_lasso_through, 'EAST', ctrl=False, alt=True, shift=False, properties=[('direction', 'RIGHT')], disable_double=True)
+		self.kmi_set_replace('view3d.tila_orthographic_navigation', self.k_cursor, 'CLICK_DRAG', ctrl=False, alt=True, shift=False, disable_double=True, properties=[('relative_to_selected_element', False)])
+		self.kmi_set_replace('view3d.tila_orthographic_navigation', self.k_cursor, 'CLICK_DRAG', ctrl=False, alt=True, shift=True, disable_double=True, properties=[('relative_to_selected_element', True)])
 
 		# KE_Kit
 		self.kmi_set_replace('view3d.ke_get_set_material', 'M', 'PRESS', shift=True)
@@ -666,7 +663,7 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 
 		self.tool_smooth()
 		self.kmi_set_active(False, 'view3d.select_box')
-		self.kmi_set_replace('mesh.smart_bevel', 'B', 'PRESS')
+		self.kmi_set_replace('view3d.smart_bevel', 'B', 'PRESS')
 		self.kmi_set_replace('mesh.hp_extrude', 'E', 'PRESS')
 		self.kmi_set_replace('mesh.knife_tool', 'C', 'PRESS')
 		self.kmi_set_replace('wm.tool_set_by_id', 'C', 'PRESS', alt=True, shift=True, properties=[('name', 'builtin.loop_cut')])
