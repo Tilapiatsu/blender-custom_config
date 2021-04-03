@@ -15,8 +15,9 @@ class TILA_ToggleXSymOperator(bpy.types.Operator):
 	bl_options = {'REGISTER', 'UNDO'}
 
 	def execute(self, context):
-		context.object.data.use_mirror_x = not context.object.data.use_mirror_x
-		self.report({'INFO'}, 'X Symetry {}'.format('ON' if context.object.data.use_mirror_x else 'OFF'))
+		context.object.use_mesh_mirror_x = not context.object.use_mesh_mirror_x
+		self.report({'INFO'}, 'X Symetry {}'.format('ON' if context.object.use_mesh_mirror_x else 'OFF'))
+		bpy.ops.wm.redraw_timer(type='DRAW_WIN_SWAP', iterations=1)
 		return {'FINISHED'}
 
 classes = (TILA_ToggleXSymOperator,)
