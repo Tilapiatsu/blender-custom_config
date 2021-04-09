@@ -50,6 +50,7 @@ scripts/addons/Asset_Creation_Toolset_2_6_1_281.py
 scripts/presets/bkit.json
 scripts/startup/HEAVYPOLY*
 scripts/addons/math_formula/*
+scripts/addons/softwrap2/*
 scripts/startup/jmQuickPipe.py
 
 scripts/addons/blenderbezierutils.py

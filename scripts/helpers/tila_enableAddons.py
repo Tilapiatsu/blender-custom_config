@@ -22,7 +22,7 @@ modules =   (
 			# 'DNoise',
 			'RenderBurst',
 			'magic_uv',
-			'photographer',
+			# 'photographer',
 			'transfer_vertex_order',
 			'PolyQuilt',
 			'slcad_transform',
