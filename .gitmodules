@@ -277,3 +277,6 @@
 [submodule "scripts/addons/MeshSlicer"]
 	path = scripts/addons/MeshSlicer
 	url = https://github.com/TomekSc/MeshSlicer.git
+[submodule "datafiles/scene/Brushes/Tila"]
+	path = datafiles/scene/Brushes/Tila
+	url = https://github.com/Tilapiatsu/blender-brushes.git
