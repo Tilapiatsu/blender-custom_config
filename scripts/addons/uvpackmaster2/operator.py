@@ -169,18 +169,17 @@ class UVP2_OT_PackOperatorGeneric(bpy.types.Operator):
 
     def finish_after_op_done(self):
         return True
-        
-    def op_done(self):
-        return self.curr_phase == UvPackingPhaseCode.DONE
 
     def handle_op_done(self):
-        self.connection_thread.join()
+        self.op_done = True
+        send_finish_confirmation(self.uvp_proc)
 
         try:
             self.uvp_proc.wait(5)
         except:
             raise RuntimeError('The UVP process wait timeout reached')
 
+        self.connection_thread.join()
         self.check_uvp_retcode(self.uvp_proc.returncode)
 
         if not self.p_context.islands_received():
@@ -257,7 +256,7 @@ class UVP2_OT_PackOperatorGeneric(bpy.types.Operator):
 
     def handle_progress_msg(self):
 
-        if self.op_done():
+        if self.op_done:
             return
 
         msg_refresh_interval = 2.0
@@ -347,7 +346,7 @@ class UVP2_OT_PackOperatorGeneric(bpy.types.Operator):
 
     def handle_communication(self):
 
-        if self.op_done():
+        if self.op_done:
             return
 
         msg_received = 0
@@ -397,11 +396,11 @@ class UVP2_OT_PackOperatorGeneric(bpy.types.Operator):
                 self.handle_event(event)
 
                 # Check whether the uvp process is alive
-                if not self.op_done() and self.uvp_proc.poll() is not None:
-                    # In order to avoid race condition we must check for a done message once more
+                if not self.op_done and self.uvp_proc.poll() is not None:
+                    # It should not be required to but check once again to be on the safe side
                     self.handle_communication()
 
-                    if not self.op_done():
+                    if not self.op_done:
                         # Special value indicating a crash
                         self.prefs.uvp_retcode = -1
                         raise RuntimeError('Packer process died unexpectedly')
@@ -446,7 +445,7 @@ class UVP2_OT_PackOperatorGeneric(bpy.types.Operator):
         if cancel:
             return self.cancel(context)
 
-        return {'RUNNING_MODAL'} if not self.op_done() else {'PASS_THROUGH'}
+        return {'RUNNING_MODAL'} if not self.op_done else {'PASS_THROUGH'}
 
     def pre_op_initialize(self):
         pass
@@ -454,6 +453,8 @@ class UVP2_OT_PackOperatorGeneric(bpy.types.Operator):
     def execute(self, context):
         
         cancel = False
+
+        self.op_done = False
         self.uvp_proc = None
 
         self.prefs = get_prefs()
@@ -520,9 +521,6 @@ class UVP2_OT_PackOperatorGeneric(bpy.types.Operator):
             if in_debug_mode():
                 if self.prefs.seed > 0:
                     uvp_args_final += ['-S', str(self.prefs.seed)]
-
-                if self.prefs.simplify_disable:
-                    uvp_args_final.append('-y')
 
                 if self.prefs.wait_for_debugger:
                     uvp_args_final.append('-G')
@@ -884,18 +882,12 @@ class UVP2_OT_PackOperator(UVP2_OT_PackOperatorGeneric):
 
         uvp_args += ['-d', self.prefs.dev_array[self.prefs.sel_dev_idx].id]
 
-        # Overlap check
-        uvp_args.append('-c')
-        # Area measure
-        uvp_args.append('-A')
-
         if self.prefs.pixel_margin_enabled(self.scene_props):
-            pixel_margin = get_pixel_margin(self.p_context.context)
-            uvp_args += ['-M', str(pixel_margin)]
+            uvp_args += ['-M', str(self.scene_props.pixel_margin)]
+            uvp_args += ['-y', str(self.prefs.pixel_margin_tex_size(self.scene_props, self.p_context.context))]
 
             if self.prefs.pixel_padding_enabled(self.scene_props):
-                pixel_padding = get_pixel_padding(self.p_context.context)
-                uvp_args += ['-N', str(pixel_padding)]
+                uvp_args += ['-N', str(self.scene_props.pixel_padding)]
 
             uvp_args += ['-W', self.scene_props.pixel_margin_method]
             uvp_args += ['-Y', str(self.scene_props.pixel_margin_adjust_time)]
@@ -904,14 +896,16 @@ class UVP2_OT_PackOperator(UVP2_OT_PackOperatorGeneric):
             uvp_args += ['-O']
             uvp_args += ['-F', self.scene_props.fixed_scale_strategy]
 
-        if self.prefs.FEATURE_island_rotation and self.scene_props.rot_enable:
-            uvp_args += ['-r', str(self.scene_props.rot_step)]
+        if self.prefs.FEATURE_island_rotation:
+            if self.scene_props.rot_enable:
+                rot_step_value = self.scene_props.rot_step
+                
+                if self.scene_props.prerot_disable:
+                    uvp_args += ['-w']
+            else:
+                rot_step_value = -1
 
-            if self.scene_props.prerot_disable:
-                uvp_args += ['-w']
-
-        if self.prefs.FEATURE_packing_depth:
-            uvp_args += ['-p', str(self.prefs.packing_depth)]
+            uvp_args += ['-r', str(rot_step_value)]
 
         if self.prefs.heuristic_enabled(self.scene_props):
             uvp_args += ['-h', str(self.scene_props.heuristic_search_time), '-j', str(self.scene_props.heuristic_max_wait_time)]

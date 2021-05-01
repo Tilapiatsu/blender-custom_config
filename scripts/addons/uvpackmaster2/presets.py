@@ -24,6 +24,7 @@ from .utils import *
 from .version import UvpVersionInfo
 
 import bpy
+from bpy.props import StringProperty
 from bpy_extras.io_utils import (
         ImportHelper,
         ExportHelper
@@ -422,7 +423,7 @@ class UVP2_OT_SavePreset(bpy.types.Operator, ExportHelper):
     bl_description = 'Save all packer options to a file'
 
     filename_ext = ".uvpp"
-    filter_glob = bpy.props.StringProperty(
+    filter_glob : StringProperty(
         default="*.uvpp",
         options={'HIDDEN'},
         )
@@ -477,7 +478,7 @@ class UVP2_OT_SavePreset(bpy.types.Operator, ExportHelper):
 class UVP2_OT_LoadPresetBase(bpy.types.Operator):
 
     filename_ext = ".uvpp"
-    filter_glob = bpy.props.StringProperty(
+    filter_glob : StringProperty(
         default="*.uvpp",
         options={'HIDDEN'},
         )
@@ -514,7 +515,7 @@ class UVP2_OT_LoadPresetBase(bpy.types.Operator):
         if addon_version == (2,4,5):
             return 9
 
-        if addon_version == (2,5,0):
+        if addon_version in {(2,5,0), (2,5,1), (2,5,2), (2,5,3), (2,5,4), (2,5,5), (2,5,6)}:
             return 10
 
         raise RuntimeError('Unsupported preset version')
@@ -698,7 +699,10 @@ class UVP2_OT_LoadPresetBase(bpy.types.Operator):
 class UVP2_OT_LoadPreset(UVP2_OT_LoadPresetBase, ImportHelper):
 
     filename_ext = UVP2_OT_LoadPresetBase.filename_ext
-    filter_glob = UVP2_OT_LoadPresetBase.filter_glob
+    filter_glob : StringProperty(
+        default="*.uvpp",
+        options={'HIDDEN'},
+        )
 
     bl_idname = 'uvpackmaster2.load_preset'
     bl_label = 'Open Preset'
@@ -712,7 +716,10 @@ class UVP2_OT_LoadPreset(UVP2_OT_LoadPresetBase, ImportHelper):
 class UVP2_OT_LoadTargetBox(UVP2_OT_LoadPresetBase, ImportHelper):
 
     filename_ext = UVP2_OT_LoadPresetBase.filename_ext
-    filter_glob = UVP2_OT_LoadPresetBase.filter_glob
+    filter_glob : StringProperty(
+        default="*.uvpp",
+        options={'HIDDEN'},
+        )
 
     bl_idname = 'uvpackmaster2.load_target_box'
     bl_label = 'Load Box From Preset'
@@ -726,12 +733,6 @@ class UVP2_OT_LoadTargetBox(UVP2_OT_LoadPresetBase, ImportHelper):
         'target_box_p2_y'
     ]
     success_msg = 'Box loaded'
-
-
-    def post_op(self):
-        
-        if is_blender28():
-            bpy.ops.uvpackmaster2.enable_target_box()
 
 
 class UVP2_OT_ResetToDefaults(bpy.types.Operator):

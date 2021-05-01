@@ -80,120 +80,90 @@ class UvIsland:
         UvIsland.NEXT_ISLAND_NUM += 1
 
 
-    def create_uv_bm(self, simple):
+    def create_bm_from_uvs(self, matrix=None, zCoord=0.0):
 
-        if simple:
-            if self.uv_bm_simple is not None:
-                return
-
-            self.uv_bm_simple = bmesh.new()
-            target_bm = self.uv_bm_simple
-        else:
-            if self.uv_bm is not None:
-                return
-
-            self.uv_bm = bmesh.new()
-            target_bm = self.uv_bm
-
-        vertlvl_to_bmvert = dict()
+        target_bm = bmesh.new()
+        uvvert_to_bmvert = dict()
 
         uv_bm_verts = target_bm.verts
         uv_bm_faces = target_bm.faces
-
-        def vertlvl_key(vert_id, lvl):
-            return (vert_id, lvl)
-
-        def lvl_to_Z(lvl):
-            return 100.0 * float(lvl) + self.island_num * 0.005
-
-        def cantor_pairing(num1, num2):
-            sum = num1 + num2
-            return (sum + 1) * sum // 2 + num2
-
-        lvl_count = 1 if simple else 2
-
-        if not simple:
-            delta = (self.island_num % 5) * 0.00001
-            bbox = self.calc_bbox()
-            bbox_center = box_center(bbox)
-            bbox_center = Vector((bbox_center[0], bbox_center[1], 0.0))
-
-            bbox_width = box_width(bbox)
-            bbox_height = box_height(bbox)
-            eps = 0.001
-            width_multiplier = bbox_width if bbox_width > eps else 1.0
-            height_multiplier = bbox_height if bbox_height > eps else 1.0
-
-            matrix = Matrix.Translation(bbox_center)
-            matrix = matrix @ Matrix.Scale(1.0 + delta / width_multiplier, 4, (1.0, 0.0, 0.0)) 
-            matrix = matrix @ Matrix.Scale(1.0 + delta / height_multiplier, 4, (0.0, 1.0, 0.0)) 
-            matrix = matrix @ Matrix.Translation(-bbox_center)
 
         for face_id in self.faces:
             uv_face = self.uv_obj.face_to_verts[face_id]
 
             for vert_id in uv_face:
 
-                for lvl in range(lvl_count):
-                    key = vertlvl_key(vert_id, lvl)
-                    # uv_offset = [0.0, 0.0]
+                if uvvert_to_bmvert.get(vert_id) is None:
 
-                    if vertlvl_to_bmvert.get(key) is None:
+                    uv = self.uv_obj.uv_tuples[vert_id][0]
 
-                        # if lvl > 0:
-                        #     delta = 1e-6
-                        #     hash = cantor_pairing(self.island_num, vert_id) % 4
-                        #     axis = hash // 2
-                        #     sign = 2*(hash % 2) - 1
-                        #     uv_offset[axis] = sign * delta
+                    if matrix is not None:
+                        uv = Vector((uv[0], uv[1], 0.0))
+                        uv = matrix @ uv
 
-                        uv = self.uv_obj.uv_tuples[vert_id][0]
-
-                        if not simple:
-                            uv = Vector((uv[0], uv[1], 0.0))
-                            uv = matrix @ uv
-
-                        uv_bm_verts.new((uv[0], uv[1], lvl_to_Z(lvl)))
-                        vertlvl_to_bmvert[key] = len(uv_bm_verts)-1
-
+                    uv_bm_verts.new((uv[0], uv[1], zCoord))
+                    uvvert_to_bmvert[vert_id] = len(uv_bm_verts)-1
 
         uv_bm_verts.ensure_lookup_table()
-
-        def create_bm_face(vid1, vid2):
-            bm_face_verts = [
-                uv_bm_verts[vertlvl_to_bmvert[vertlvl_key(vid1, 0)]],
-                uv_bm_verts[vertlvl_to_bmvert[vertlvl_key(vid2, 0)]],
-                uv_bm_verts[vertlvl_to_bmvert[vertlvl_key(vid2, 1)]],
-                uv_bm_verts[vertlvl_to_bmvert[vertlvl_key(vid1, 1)]] ]
-
-            try:
-                uv_bm_faces.new(bm_face_verts)
-            except:
-                pass
 
         for face_id in self.faces:
             uv_face = self.uv_obj.face_to_verts[face_id]
 
             hori_face_verts1 = []
-            hori_face_verts2 = []
 
             for i in range(len(uv_face)-1):
                 vid1 = uv_face[i]
-                hori_face_verts1.append(uv_bm_verts[vertlvl_to_bmvert[vertlvl_key(vid1, 0)]])
+                hori_face_verts1.append(uv_bm_verts[uvvert_to_bmvert[vid1]])
 
-                if not simple:
-                    vid2 = uv_face[i+1]
-                    create_bm_face(vid1, vid2)
-
-                    hori_face_verts2.append(uv_bm_verts[vertlvl_to_bmvert[vertlvl_key(vid1, 1)]])
-
-            hori_face_verts1.append(uv_bm_verts[vertlvl_to_bmvert[vertlvl_key(uv_face[-1], 0)]])
+            hori_face_verts1.append(uv_bm_verts[uvvert_to_bmvert[uv_face[-1]]])
             uv_bm_faces.new(hori_face_verts1)
 
-            if not simple:
-                create_bm_face(uv_face[0], uv_face[-1])
-                hori_face_verts2.append(uv_bm_verts[vertlvl_to_bmvert[vertlvl_key(uv_face[-1], 1)]])
-                uv_bm_faces.new(hori_face_verts2)           
+        return target_bm
+
+
+    def create_uv_bm_simple(self):
+
+        if self.uv_bm_simple is not None:
+            return
+
+        self.uv_bm_simple = self.create_bm_from_uvs()
+    
+
+    def create_uv_bm(self):
+
+        if self.uv_bm is not None:
+            return
+
+        lvl0_zCoord = self.island_num * 0.005
+        lvl1_zCoord = lvl0_zCoord + 100.0
+
+        # Create a matrix
+        delta = (self.island_num % 5) * 0.00001
+        bbox = self.calc_bbox()
+        bbox_center = box_center(bbox)
+        bbox_center = Vector((bbox_center[0], bbox_center[1], 0.0))
+
+        bbox_width = box_width(bbox)
+        bbox_height = box_height(bbox)
+        eps = 1.0e-9
+        width_multiplier = bbox_width if bbox_width > eps else 1.0
+        height_multiplier = bbox_height if bbox_height > eps else 1.0
+
+        matrix = Matrix.Translation(bbox_center)
+        matrix = matrix @ Matrix.Scale(1.0 + delta / width_multiplier, 4, (1.0, 0.0, 0.0)) 
+        matrix = matrix @ Matrix.Scale(1.0 + delta / height_multiplier, 4, (0.0, 1.0, 0.0)) 
+        matrix = matrix @ Matrix.Translation(-bbox_center)
+
+        self.uv_bm = self.create_bm_from_uvs(matrix, lvl0_zCoord)
+
+        bmesh.ops.recalc_face_normals(self.uv_bm, faces=self.uv_bm.faces)
+        bmesh.ops.triangulate(self.uv_bm, faces=self.uv_bm.faces, quad_method='BEAUTY', ngon_method='BEAUTY')
+        
+        r = bmesh.ops.extrude_face_region(self.uv_bm, geom=self.uv_bm.faces[:])
+        ex_verts = [e for e in r['geom'] if isinstance(e, bmesh.types.BMVert)]
+
+        for vert in ex_verts:
+            vert.co.z = lvl1_zCoord
 
 
     def create_bvh(self, eps):
@@ -201,7 +171,7 @@ class UvIsland:
         if self.bvh is not None:
             return
 
-        self.create_uv_bm(simple=False)
+        self.create_uv_bm()
 
         self.bvh = bvhtree.BVHTree.FromBMesh(self.uv_bm, epsilon=eps)
         self.overlapping = []
@@ -270,8 +240,7 @@ class UvIsland:
 
         if self.area is None:
 
-            if self.uv_bm_simple is None:
-                self.create_uv_bm(simple=True)
+            self.create_uv_bm_simple()
 
             area = 0.0
             self.uv_bm_simple.faces.ensure_lookup_table()
@@ -838,7 +807,7 @@ class UvContext:
 
     def adjust_scale_to_unselected(self):
 
-        eps = 0.0001
+        eps = 1.0e-9
         avg_scale_ratio = 0.0
 
         valid_count = 0

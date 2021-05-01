@@ -118,7 +118,7 @@ class UVP2_OT_IslandParamGeneric(UVP2_OT_PackOperatorGeneric):
 
     def handle_event_spec(self, event):
 
-        if not self.op_done():
+        if not self.op_done:
             return False
 
         if len(self.disp_metadata) == 0:
@@ -167,27 +167,85 @@ class UVP2_OT_SelectIslandParam(UVP2_OT_IslandParamGeneric):
         self.p_context.update_meshes()
 
 
+class UVP2_OT_SelectNonDefaultIslandParam(UVP2_OT_IslandParamGeneric):
+
+    def require_selection(self):
+
+        return False
+        
+    def send_unselected_islands(self):
+
+        return True
+
+    def process_metadata(self):
+        
+        for i_metadata in self.island_metadata:
+            
+            if i_metadata.param_value == self.param_info.DEFAULT_VALUE:
+                continue
+
+            self.disp_metadata.append(i_metadata)
+            self.p_context.select_island(i_metadata.idx, bool(self.select))
+
+        self.p_context.update_meshes()
+
+
 class UVP2_OT_SetIslandParam(UVP2_OT_ShowIslandParam):
 
     bl_options = {'UNDO'}
 
     def pre_op_initialize(self):
 
-        self.p_context.set_vcolor(
-            self.param_info.get_vcolor_chname(),
-            self.get_vcolor_value(),
-            self.param_info.get_default_vcolor())
+        self.p_context.set_param(
+            self.param_info,
+            self.get_param_value())
         
         self.p_context.update_meshes()
 
-    def get_vcolor_value(self):
-        return self.param_info.param_to_vcolor(getattr(self.scene_props, self.param_info.PROP_NAME))
+    def get_param_value(self):
+        return getattr(self.scene_props, self.param_info.PROP_NAME)
+
+
+class UVP2_OT_SetFreeIslandParam(UVP2_OT_ShowIslandParam):
+
+    bl_options = {'UNDO'}
+
+    def pre_op_initialize(self):
+
+        self.p_context.set_param(
+            self.param_info,
+            self.get_param_value())
+        
+        self.p_context.update_meshes()
+
+    def get_param_value(self):
+
+        param_values = self.p_context.get_all_param_values(self.param_info)
+        param_values.sort()
+
+        def assign_new_value(new_value):
+            return new_value if new_value != self.param_info.DEFAULT_VALUE else new_value + 1
+
+        free_value = assign_new_value(self.param_info.MIN_VALUE)
+
+        for param_value in param_values:
+
+            if free_value == param_value:
+                free_value = assign_new_value(free_value + 1)
+
+            elif free_value < param_value:
+                break
+
+        if free_value > self.param_info.MAX_VALUE:
+            raise RuntimeError('Free value not found')
+
+        return free_value
 
 
 class UVP2_OT_ResetIslandParam(UVP2_OT_SetIslandParam):
 
-    def get_vcolor_value(self):
-        return self.param_info.get_default_vcolor()
+    def get_param_value(self):
+        return self.param_info.DEFAULT_VALUE
 
 
 
@@ -259,7 +317,7 @@ class UVP2_OT_ResetManualGroupIslandParam(UVP2_OT_ManualGroupIslandParamGeneric,
 
 class UVP2_OT_SelectManualGroupIslandParam(UVP2_OT_ManualGroupIslandParamGeneric, UVP2_OT_SelectIslandParam):
 
-    select = BoolProperty(name='', default=True)
+    select : BoolProperty(name='', default=True)
     
     bl_idname = 'uvpackmaster2.select_island_manual_group'
     bl_label = 'Select Islands Assigned To Group'
@@ -291,6 +349,13 @@ class UVP2_OT_SetLockGroupIslandParam(UVP2_OT_LockGroupIslandParamGeneric, UVP2_
     bl_description = "Assign the selected islands to a lock group determined by the 'Lock Group Number' parameter"
 
 
+class UVP2_OT_SetFreeLockGroupIslandParam(UVP2_OT_LockGroupIslandParamGeneric, UVP2_OT_SetFreeIslandParam):
+
+    bl_idname = 'uvpackmaster2.set_free_island_lock_group'
+    bl_label = 'Assign Islands To Free Lock Group'
+    bl_description = "Assign the selected islands to the first free lock group (the lowest lock group not currently used by faces in the UV map)"
+
+
 class UVP2_OT_ResetLockGroupIslandParam(UVP2_OT_LockGroupIslandParamGeneric, UVP2_OT_ResetIslandParam):
 
     bl_idname = 'uvpackmaster2.reset_island_lock_group'
@@ -300,8 +365,18 @@ class UVP2_OT_ResetLockGroupIslandParam(UVP2_OT_LockGroupIslandParamGeneric, UVP
 
 class UVP2_OT_SelectLockGroupIslandParam(UVP2_OT_LockGroupIslandParamGeneric, UVP2_OT_SelectIslandParam):
 
-    select = BoolProperty(name='', default=True)
+    select : BoolProperty(name='', default=True)
     
     bl_idname = 'uvpackmaster2.select_island_lock_group'
     bl_label = 'Select Islands Assigned To Lock Group'
     bl_description = "Select/deselect all islands which are assigned to a lock group determined by the 'Lock Group Number' parameter"
+
+
+class UVP2_OT_SelectNonDefaultLockGroupIslandParam(UVP2_OT_LockGroupIslandParamGeneric, UVP2_OT_SelectNonDefaultIslandParam):
+
+    select : BoolProperty(name='', default=True)
+    
+    bl_idname = 'uvpackmaster2.select_non_default_island_lock_group'
+    bl_label = 'Select All Lock Groups'
+    bl_description = "Select all islands which are assigned to any lock group"
+ 

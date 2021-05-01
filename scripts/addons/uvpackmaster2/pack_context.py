@@ -124,7 +124,7 @@ class PackContext:
             rot_step_array = []
             rot_step_layers = []
             for bm in self.bms:
-                rot_step_layers.append(self.get_or_create_vcolor_layer(bm, RotStepIslandParamInfo.get_vcolor_chname(), RotStepIslandParamInfo.get_default_vcolor()))
+                rot_step_layers.append(self.get_or_create_vcolor_layer(bm, RotStepIslandParamInfo))
 
         if send_lock_groups:
             serialization_flags |= UvMapSerializationFlags.CONTAINS_LOCK_GROUPS
@@ -132,7 +132,7 @@ class PackContext:
             lock_group_array = []
             lock_group_layers = []
             for bm in self.bms:
-                lock_group_layers.append(self.get_or_create_vcolor_layer(bm, LockGroupIslandParamInfo.get_vcolor_chname(), LockGroupIslandParamInfo.get_default_vcolor()))
+                lock_group_layers.append(self.get_or_create_vcolor_layer(bm, LockGroupIslandParamInfo))
 
         if send_verts_3d:
 
@@ -169,10 +169,10 @@ class PackContext:
                     face_groups_array.append(self.get_face_group_method(bm_idx, obj, face, face_selected))
 
                 if send_rot_step:
-                    rot_step_array.append(RotStepIslandParamInfo.vcolor_to_param(self.get_vcolor(rot_step_layers[bm_idx], face)))
+                    rot_step_array.append(self.get_param(RotStepIslandParamInfo, rot_step_layers[bm_idx], face))
 
                 if send_lock_groups:
-                    lock_group_array.append(LockGroupIslandParamInfo.vcolor_to_param(self.get_vcolor(lock_group_layers[bm_idx], face)))
+                    lock_group_array.append(self.get_param(LockGroupIslandParamInfo, lock_group_layers[bm_idx], face))
 
                 for loop in face.loops:
                     uv_tuple = loop[uv_layer].uv.to_tuple(5)
@@ -307,9 +307,7 @@ class PackContext:
 
     def get_face_group_manual(self, bm_idx, obj, face, face_selected):
 
-        return GroupIslandParamInfo.vcolor_to_param(self.get_vcolor(self.manual_group_layers[bm_idx], face))
-
-        raise RuntimeError('Unexpected grouping method encountered')
+        return self.get_param(GroupIslandParamInfo, self.manual_group_layers[bm_idx], face)
 
     def create_material_map(self):
         self.material_map = dict()
@@ -388,7 +386,7 @@ class PackContext:
         if group_method == UvGroupingMethod.MANUAL.code:
             self.manual_group_layers = []
             for bm in self.bms:
-                self.manual_group_layers.append(self.get_or_create_vcolor_layer(bm, GroupIslandParamInfo.get_vcolor_chname(), GroupIslandParamInfo.get_default_vcolor()))
+                self.manual_group_layers.append(self.get_or_create_vcolor_layer(bm, GroupIslandParamInfo))
 
             return self.get_face_group_manual
 
@@ -582,8 +580,11 @@ class PackContext:
         self.solution_matrices = new_solution_matrices
         self.update_meshes()
 
-    def get_or_create_vcolor_layer(self, bm, vcolor_chname, default_value):
+    def get_or_create_vcolor_layer(self, bm, param_info):
         
+        vcolor_chname = param_info.get_vcolor_chname()
+        default_value = param_info.get_default_vcolor()
+
         if vcolor_chname not in bm.loops.layers.color:
             vcolor_layer = bm.loops.layers.color.new(vcolor_chname)
 
@@ -596,13 +597,13 @@ class PackContext:
 
         return vcolor_layer
 
-    def set_vcolor(self, vcolor_chname, value, default_value):
+    def set_vcolor(self, param_info, value):
 
         for bm_idx in range(len(self.bms)):
             bm = self.bms[bm_idx]
             uv_layer = self.uv_layers[bm_idx]
 
-            vcolor_layer = self.get_or_create_vcolor_layer(bm, vcolor_chname, default_value)
+            vcolor_layer = self.get_or_create_vcolor_layer(bm, param_info)
 
             selected_faces = self.get_selected_faces(bm, uv_layer)
             for face in selected_faces:
@@ -612,6 +613,30 @@ class PackContext:
     def get_vcolor(self, vcolor_layer, face):
 
         return face.loops[0][vcolor_layer]
+
+    def set_param(self, param_info, param_value):
+
+        self.set_vcolor(param_info, param_info.param_to_vcolor(param_value))
+
+    def get_param(self, param_info, vcolor_layer, face):
+
+        return param_info.vcolor_to_param(self.get_vcolor(vcolor_layer, face))
+
+    def get_all_param_values(self, param_info):
+
+        output = set()
+    
+        for bm_idx in range(len(self.bms)):
+            bm = self.bms[bm_idx]
+            uv_layer = self.uv_layers[bm_idx]
+
+            vcolor_layer = self.get_or_create_vcolor_layer(bm, param_info)
+
+            faces = bm.faces[:]
+            for face in faces:
+                output.add(self.get_param(param_info, vcolor_layer, face))
+
+        return list(output)
 
     def handle_invalid_islands(self, invalid_islands):
 

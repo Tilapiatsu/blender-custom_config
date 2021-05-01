@@ -171,7 +171,7 @@ class UVP2_OT_SelectIslandsInsideTargetBox(UVP2_OT_TargetBoxUvOperator):
     bl_label = 'Select Islands Inside Box'
     bl_description = ""
 
-    select = BoolProperty(name="Select", default=True)
+    select : BoolProperty(name="Select", default=True)
 
     def process_flags(self):
         
@@ -194,12 +194,12 @@ class UVP2_OT_MoveTargetBoxTile(UVP2_OT_TargetBoxUvOperator):
     bl_label = 'Move Packing Box'
     bl_description = "Move the packing box to an adjacent tile"
 
-    dir_x = IntProperty(
+    dir_x : IntProperty(
         name="Direction X",
         description='',
         default=0)
 
-    dir_y = IntProperty(
+    dir_y : IntProperty(
         name="Direction Y",
         description='',
         default=0)

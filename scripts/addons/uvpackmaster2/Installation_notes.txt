@@ -1,1 +1,0 @@
-In order to use UVP in Blender you MUST follow the setup guide described here: https://glukoz.dev/uvp/blender/help/setup/

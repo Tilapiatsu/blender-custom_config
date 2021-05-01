@@ -29,32 +29,12 @@ from .enums import *
 from .utils import *
 from .connection import *
 
-
+from bpy.props import StringProperty
 from bpy_extras.io_utils import (
         ImportHelper,
         ExportHelper
         )
 
-
-def handle_annotations(cls):
-    
-    if not is_blender28():
-        return cls
-
-    props = {key: value for key, value in cls.__dict__.items() if isinstance(value, tuple)}
-
-    if not props:
-        return cls
-
-    if '__annotations__' not in cls.__dict__:
-        setattr(cls, '__annotations__', {})
-
-    annots = cls.__dict__['__annotations__']
-    for key, value in props.items():
-        annots[key] = value
-        delattr(cls, key)
-
-    return cls
 
 
 def platform_check():
@@ -74,6 +54,8 @@ def platform_check():
 def get_uvp_version():
     uvp_args = [get_uvp_execpath(), '-E', '-o', str(UvPackerOpcode.REPORT_VERSION)]
     uvp_proc = subprocess.Popen(uvp_args, stdin=subprocess.PIPE, stdout=subprocess.PIPE)
+
+    send_finish_confirmation(uvp_proc)
 
     try:
         uvp_proc.wait(5)
@@ -191,7 +173,6 @@ def reset_target_box_params(prefs):
 
 def reset_debug_params(prefs):
     prefs.write_to_file = False
-    prefs.simplify_disable = False
     prefs.seed = 0
 
 
@@ -251,20 +232,19 @@ def unregister_uvp():
 
 def register_uvp(uvp_path):
 
-    prefs = get_prefs()
-    prefs.uvp_path = uvp_path
-    prefs.enabled = True
-    prefs.uvp_initialized = False
-    prefs.label_message = ''
-    prefs.thread_count = multiprocessing.cpu_count()
-    prefs.dev_array.clear()
-    
-    reset_stats(prefs)
-    reset_target_box_params(prefs)
-    reset_debug_params(prefs)
-    reset_feature_codes(prefs)
-
     try:
+        prefs = get_prefs()
+        prefs.uvp_path = uvp_path
+        prefs.enabled = True
+        prefs.uvp_initialized = False
+        prefs.label_message = ''
+        prefs.thread_count = multiprocessing.cpu_count()
+        prefs.dev_array.clear()
+        
+        reset_stats(prefs)
+        reset_target_box_params(prefs)
+        reset_debug_params(prefs)
+        reset_feature_codes(prefs)
 
         if not check_uvp():
             raise RuntimeError('Engine version {} required'.format(UvpVersionInfo.uvp_version_string()))
@@ -329,7 +309,7 @@ class UVP2_OT_SelectUvpEngine(bpy.types.Operator, ImportHelper):
     bl_description = 'Select a path to the UVP engine'
 
     filename_ext = ".uvpini"
-    filter_glob = bpy.props.StringProperty(
+    filter_glob : StringProperty(
         default="*.uvpini",
         options={'HIDDEN'},
         )

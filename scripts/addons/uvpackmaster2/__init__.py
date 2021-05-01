@@ -40,8 +40,8 @@ if "bpy" in locals():
 bl_info = {
     "name": "UVPackmaster2",
     "author": "glukoz",
-    "version": (2, 5, 0),
-    "blender": (2, 90, 0),
+    "version": (2, 5, 6),
+    "blender": (2, 92, 0),
     "location": "",
     "description": "",
     "warning": "",
@@ -111,8 +111,10 @@ if inside_blender:
 
         UVP2_OT_ShowLockGroupIslandParam,
         UVP2_OT_SetLockGroupIslandParam,
+        UVP2_OT_SetFreeLockGroupIslandParam,
         UVP2_OT_ResetLockGroupIslandParam,
         UVP2_OT_SelectLockGroupIslandParam,
+        UVP2_OT_SelectNonDefaultLockGroupIslandParam,
 
         UVP2_OT_EnableTargetBox,
         UVP2_OT_DisableTargetBox,
@@ -153,18 +155,10 @@ if inside_blender:
 
     def register():
 
-        handle_annotations(UVP2_DeviceDesc)
-        handle_annotations(UVP2_PackStats)
-        handle_annotations(UVP2_SceneProps)
-
-        UVP2_Preferences.dev_array = bpy.props.CollectionProperty(type=UVP2_DeviceDesc)
-        UVP2_Preferences.stats_array = bpy.props.CollectionProperty(type=UVP2_PackStats)
-
         bpy.utils.register_class(UVP2_SceneProps)
         bpy.types.Scene.uvp2_props = bpy.props.PointerProperty(type=UVP2_SceneProps)
 
         for cls in classes:
-            handle_annotations(cls)
             bpy.utils.register_class(cls)
 
         register_specific(bl_info)
@@ -175,6 +169,3 @@ if inside_blender:
 
         del bpy.types.Scene.uvp2_props
         bpy.utils.unregister_class(UVP2_SceneProps)
-
-        # del UVP2_Preferences.stats_array
-        # del UVP2_Preferences.dev_array

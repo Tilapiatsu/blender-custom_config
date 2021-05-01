@@ -107,7 +107,7 @@ class UvPackingPhaseCode:
     DONE = 11
 
 class UvTopoAnalysisLevel:
-    DEFAULT = 0
+    SIMPLE = 0
     EXTENDED = 1
     PROCESS_SELF_INTERSECT = 2
     FORCE_EXTENDED = 3

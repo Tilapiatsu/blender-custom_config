@@ -39,7 +39,7 @@ class UVP2_OT_SetRotStep(bpy.types.Operator):
     bl_label = 'Set Rotation Step'
     bl_description = "Set Rotation Step to one of the suggested values"
 
-    rot_step = IntProperty(
+    rot_step : IntProperty(
         name='Rotation Step',
         description='',
         default=90)
@@ -167,8 +167,6 @@ class UVP2_PT_MainBase(UVP2_PT_Generic):
             row = col2.row(align=True)
             row.prop(self.prefs, "write_to_file")
             row = col2.row(align=True)
-            row.prop(self.prefs, "simplify_disable")
-            row = col2.row(align=True)
             row.prop(self.prefs, "wait_for_debugger")
             row = col2.row(align=True)
             row.prop(self.prefs, "seed")
@@ -201,7 +199,7 @@ class UVP2_PT_MainBase(UVP2_PT_Generic):
 
         col.label(text="Last operation status:")
         box = col.box()
-        box.label(text=self.prefs['op_status'] if self.prefs['op_status'] is not '' else '------')
+        box.label(text=self.prefs['op_status'] if self.prefs['op_status'] != '' else '------')
         col.separator()
 
         if len(self.prefs['op_warnings']) > 0:
@@ -421,6 +419,10 @@ class UVP2_PT_LockGroupsBase(UVP2_PT_Generic):
 
         row = container.row(align=True)
         row.operator(UVP2_OT_SetLockGroupIslandParam.bl_idname)
+
+        row = container.row(align=True)
+        row.operator(UVP2_OT_SetFreeLockGroupIslandParam.bl_idname)
+        
         container.separator()
 
         container.label(text="Select islands assigned to a lock group:")
@@ -430,6 +432,9 @@ class UVP2_PT_LockGroupsBase(UVP2_PT_Generic):
         op.select = True
         op = row.operator(UVP2_OT_SelectLockGroupIslandParam.bl_idname, text="Deselect")
         op.select = False
+        
+        # row = container.row(align=True)
+        # row.operator(UVP2_OT_SelectNonDefaultLockGroupIslandParam.bl_idname)
 
         row = container.row(align=True)
         row.operator(UVP2_OT_ResetLockGroupIslandParam.bl_idname)

@@ -25,7 +25,7 @@ import mathutils
 from collections import defaultdict
 
 from .connection import *
-from .prefs import *
+# from .prefs import *
 from .enums import *
 from .os_iface import *
 from .version import UvpVersionInfo
@@ -172,30 +172,6 @@ def get_active_image_ratio(context):
     img_size = get_active_image_size(context)
 
     return float(img_size[0]) / float(img_size[1])
-
-
-def pixel_to_unit(context, pixel_value):
-
-    prefs = get_prefs()
-    scene_props = context.scene.uvp2_props
-
-    if prefs.pack_ratio_enabled(scene_props):
-        img_size = get_active_image_size(context)
-        tex_size = img_size[1]
-    else:
-        tex_size = scene_props.pixel_margin_tex_size
-
-    return float(pixel_value) / tex_size
-
-
-def get_pixel_margin(context):
-
-    return pixel_to_unit(context, context.scene.uvp2_props.pixel_margin)
-
-
-def get_pixel_padding(context):
-    
-    return pixel_to_unit(context, context.scene.uvp2_props.pixel_padding)
 
 
 def validate_target_box(scene_props):

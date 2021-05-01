@@ -75,3 +75,9 @@ def connection_thread_func(stream, queue):
             queue.put(connection_rcv_message(stream))
     except Exception as ex:
         return
+
+
+def send_finish_confirmation(uvp_proc):
+    out_stream = uvp_proc.stdin
+    out_stream.write(bytes('fin', 'utf-8'))
+    out_stream.flush()
