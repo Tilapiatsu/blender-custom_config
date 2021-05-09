@@ -280,6 +280,3 @@
 [submodule "datafiles/scene/Brushes/Tila"]
 	path = datafiles/scene/Brushes/Tila
 	url = https://github.com/Tilapiatsu/blender-brushes.git
-[submodule "scripts/addons/NodeRelax"]
-	path = scripts/addons/NodeRelax
-	url = https://github.com/Shahzod114/NodeRelax-Blender-Addon.git
