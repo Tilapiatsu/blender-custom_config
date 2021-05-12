@@ -283,3 +283,6 @@
 [submodule "scripts/addons/NodeRelax-Blender-Addon"]
 	path = scripts/addons/NodeRelax-Blender-Addon
 	url = https://github.com/Shahzod114/NodeRelax-Blender-Addon.git
+[submodule "scripts/addons/The_Lightmapper"]
+	path = scripts/addons/The_Lightmapper
+	url = https://github.com/Naxela/The_Lightmapper.git
