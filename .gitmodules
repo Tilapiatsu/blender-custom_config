@@ -286,6 +286,3 @@
 [submodule "scripts/addons/The_Lightmapper"]
 	path = scripts/addons/The_Lightmapper
 	url = https://github.com/Naxela/The_Lightmapper.git
-[submodule "scripts/addons/gret"]
-	path = scripts/addons/gret
-	url = https://github.com/greisane/gret.git
