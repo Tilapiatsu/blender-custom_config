@@ -289,3 +289,6 @@
 [submodule "scripts/addons/gret"]
 	path = scripts/addons/gret
 	url = https://github.com/greisane/gret.git
+[submodule "scripts/addons/PrintNodes"]
+	path = scripts/addons/PrintNodes
+	url = https://github.com/Yeetus3141/PrintNodes.git
