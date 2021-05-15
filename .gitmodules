@@ -208,9 +208,6 @@
 [submodule "scripts/addons/DreamUV"]
 	path = scripts/addons/DreamUV
 	url = https://github.com/leukbaars/DreamUV.git
-[submodule "Scripts/GIT/BEER"]
-	path = Scripts/GIT/BEER
-	url = https://github.com/BlenderNPR/BEER.git
 [submodule "scripts/GIT/OpenColorIO"]
 	path = scripts/GIT/OpenColorIO
 	url = https://github.com/colour-science/OpenColorIO-Configs.git
