@@ -286,3 +286,9 @@
 [submodule "scripts/addons/PrintNodes"]
 	path = scripts/addons/PrintNodes
 	url = https://github.com/Yeetus3141/PrintNodes.git
+[submodule "scripts/GIT/BEER"]
+	path = scripts/GIT/BEER
+	url = https://github.com/BlenderNPR/BEER.git
+[submodule "scripts/GIT/Lodify"]
+	path = scripts/GIT/Lodify
+	url = https://github.com/DB3D/Lodify.git
