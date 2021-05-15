@@ -187,9 +187,6 @@
 [submodule "scripts/GIT/Export-Paper-Model"]
 	path = scripts/GIT/Export-Paper-Model
 	url = https://github.com/addam/Export-Paper-Model-from-Blender.git
-[submodule "Scripts/GIT/Lodify"]
-	path = Scripts/GIT/Lodify
-	url = https://github.com/DB3D/Lodify.git
 [submodule "scripts/addons/UvSquares"]
 	path = scripts/addons/UvSquares
 	url = https://github.com/Radivarig/UvSquares.git
