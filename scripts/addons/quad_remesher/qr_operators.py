@@ -33,6 +33,8 @@ import time
 # --- global variables ---
 verboseDebug = False
 
+__QR_plugin_version__ = "1.1"
+
 
 
 # ----- misc functions -----
@@ -62,18 +64,46 @@ def unixifyPath(path):
 	return path
 
 def getQREngineFolder():
-    isMacOS = (platform.system()=="Darwin") or (platform.system()=="macosx")
-    if (isMacOS):
-        engineFolder = "/Users/Shared/Exoside/QuadRemesher/Datas_Blender/QuadRemesherEngine_1.0"
-    else:
-        #appData = os.getenv('APPDATA')  windows ... UserName/../Roaming... 
-        appData = os.getenv('ALLUSERSPROFILE')  # on windows : C:\Users\All Users == C:\ProgramData\
-        engineFolder = os.path.join(appData, "Exoside/QuadRemesher/Datas_Blender/QuadRemesherEngine_1.0")
-    return engineFolder
+	isMacOS = (platform.system()=="Darwin") or (platform.system()=="macosx")
+	if (isMacOS):
+		engineFolder = "/Users/Shared/Exoside/QuadRemesher/Datas_Blender/QuadRemesherEngine_1.1"
+	else:
+		#appData = os.getenv('APPDATA')  windows ... UserName/../Roaming... 
+		appData = os.getenv('ALLUSERSPROFILE')  # on windows : C:\Users\All Users == C:\ProgramData\
+		engineFolder = os.path.join(appData, "Exoside/QuadRemesher/Datas_Blender/QuadRemesherEngine_1.1")
+	return engineFolder
 	
 
 def export_selected_mesh_fbx(filepath):
 	bpy.ops.export_scene.fbx(filepath=filepath, use_selection=True)
+
+'''
+def export_selected_mesh_extra_maps(filepath, o):
+	# https://docs.blender.org/api/current/bpy.types.FaceMaps.html
+	# https://docs.blender.org/api/2.90/bpy.types.FaceMap.html
+	mapCount = len(o.face_maps)
+	print ("MapCount = %d" % mapCount)
+	index = -1
+	for fm in o.face_maps:
+		index = index+1
+		print ("------------- FaceMap[%d]  %d   name=", index, fm.index, fm.name)
+		# select this face map	
+		bpy.ops.object.mode_set(mode='EDIT')
+		bpy.ops.mesh.select_all(action='DESELECT')		
+		o.face_maps.active_index = index
+			
+		# select all faces of this face map
+		bpy.ops.object.face_map_select()
+			
+		# set materialId for selected faces:
+		# NB: in Edit Mode ".select" returns the selected status when entering the EditMode !!! ????!!!!!
+		bpy.ops.object.mode_set(mode='OBJECT')
+		for f in o.data.polygons:
+			#print("test select polygon %d -> %d" % (f.index, f.select))
+			if f.select:
+				print("face[%d] FaceSet = %d" % (f.index, index))
+				#f.material_index = matIndex
+'''
 
 # NB: the imported objects are automatically selected.
 def import_mesh_fbx(filepath):
@@ -87,11 +117,30 @@ def import_mesh_fbx(filepath):
 		bpy.context.view_layer.objects.active = retopo_object
 		#bpy.context.render_layer.objects.active = retopo_object
 
+'''
+# reproduce crash on 2.83 and 2.90
+def test_crash():
+	sel_objects = bpy.context.selected_objects
+	if len(sel_objects) != 1:
+		return
+	input_obj = sel_objects[0]
 
-# return (ProgressValue, ProgressText)      (specific values : -10="no progress file")
-def update_progress_bar(theOp):
+	# 1 - export
+	myfilepath = "C:/Users/Public/testcrash.fbx"
+	bpy.ops.export_scene.fbx(filepath=myfilepath, use_selection=True)
+
+	# 2 - hide
+	input_obj.hide_set(state=True)   # NB: 2.8 only, 2.7 must use 'hide'
+
+	# 3 - import
+	bpy.ops.import_scene.fbx(filepath=myfilepath)
+'''
+
+# return (ProgressValue, ProgressText)      (specific values : -10="no progress file", -3:crashed,  -11 bad progress file format)
+def get_progress_status(theOp):
 
 	ProgressText = ""
+	ProgressValueFloat = None
 	
 	# read progress file:
 	progressLines=[]
@@ -100,7 +149,7 @@ def update_progress_bar(theOp):
 		progressLines = pf.read().splitlines()
 		pf.close()
 	except Exception:
-		return -10, ""
+		return -10, "" # means no progress file
 	
 	if len(progressLines)>=1:
 		#console_print(progressLines[0])
@@ -119,7 +168,15 @@ def update_progress_bar(theOp):
 			if ProgressValueFloat == 2:
 				return ProgressValueFloat, ""
 
-			newPBarValue = int( (99.0 * ProgressValueFloat + 1.0) )
+			# check process is running: (NB need to be done in 2 cases : during remeshing + if remesher can't
+			if (theOp.RemeshingTimerCounter > 2 and theOp.RemeshingTimerCounter % 3 == 0): # only every 3 timer (~1 sec)
+				if (theOp.remeshProcess.poll() != None):
+					ProgressValueFloat = -3    # this means that the remesher crashed
+					ProgressText = "Remeshing Failed! (-3)"
+					return ProgressValueFloat, ProgressText
+			
+
+			#newPBarValue = int( (99.0 * ProgressValueFloat + 1.0) )
 			
 			# update Blender progress
 			#wm = bpy.context.window_manager
@@ -130,7 +187,7 @@ def update_progress_bar(theOp):
 			#props.progress_value = newPBarValue
 			
 			# INFO:
-			theOp.report({'INFO'}, "Remeshing progress:"+str(newPBarValue)+"% (ESC=Abort)")
+			#theOp.report({'INFO'}, "Remeshing progress:"+str(newPBarValue)+"% (ESC=Abort)")
 
 			# force redraw
 			#bpy.ops.wm.redraw_timer(type='DRAW_WIN_SWAP', iterations=1)
@@ -139,12 +196,13 @@ def update_progress_bar(theOp):
 			
 			return ProgressValueFloat, ProgressText
 	
-	# check process is running:
-	if (theOp.remeshProcess.poll() != None):
-		ProgressValueFloat = -3    # this means that the remesher crashed
-		ProgressText = "Remeshing Failed! (-3)"
-		return ProgressValueFloat, ProgressText
-	
+	# check process is running: (before any no progress file written)
+	if (theOp.RemeshingTimerCounter > 5 and theOp.RemeshingTimerCounter % 3 == 0): # only every 3 timer (~1 sec)
+		if (theOp.remeshProcess.poll() != None):
+			ProgressValueFloat = -4    # this means that the remesher crashed
+			ProgressText = "Remeshing Failed! (-4)"
+			return ProgressValueFloat, ProgressText
+
 	ProgressValueFloat = -11
 	ProgressText = "Remeshing Failed! (Bad ProgressFile Data)"
 	return ProgressValueFloat, ProgressText
@@ -191,9 +249,10 @@ def InstallQuadRemesherEngineIfNeeded(op, context, enginePath):
 			zip_file_name = os.path.join(engineFolder, "../install_engine.zip")
 			import urllib.request
 			if isMacOSX:
-				urllib.request.urlretrieve("http://exoside.com/quadremesherdata/quad_remesher_engine_1.0_macOS.zip", zip_file_name)
+				#NB: https fails on macOS
+				urllib.request.urlretrieve("http://exoside.com/quadremesherdata/quad_remesher_engine_1.1_macOS.zip", zip_file_name)
 			else:
-				urllib.request.urlretrieve("https://exoside.com/quadremesherdata/quad_remesher_engine_1.0_win.zip", zip_file_name)
+				urllib.request.urlretrieve("https://exoside.com/quadremesherdata/quad_remesher_engine_1.1_win.zip", zip_file_name)
 			if not os.path.exists(zip_file_name):
 				op.report({'ERROR'}, "Failed to download Quad Remesher Engine.")
 				return 2
@@ -295,6 +354,7 @@ def doRemeshing_Start(theOp, context) :
 
 	settingsFilename = os.path.join(export_path, 'RetopoSettings.txt')
 	inputFilename = os.path.join(export_path, 'inputMesh.fbx')
+	inputFilename_extraMaps = os.path.join(export_path, 'inputMesh_extra.exm')
 	theOp.retopoFilename = os.path.join(export_path, 'retopo.fbx')
 	theOp.progressFilename = os.path.join(export_path, 'progress.txt')
 
@@ -307,6 +367,7 @@ def doRemeshing_Start(theOp, context) :
 
 	# unixify path
 	inputFilename = unixifyPath(inputFilename)
+	inputFilename_extraMaps = unixifyPath(inputFilename_extraMaps)
 	theOp.retopoFilename = unixifyPath(theOp.retopoFilename)
 	settingsFilename = unixifyPath(settingsFilename)
 	enginePath = unixifyPath(enginePath)
@@ -326,6 +387,7 @@ def doRemeshing_Start(theOp, context) :
 	settings_file = open(settingsFilename, "w")
 	settings_file.write('HostApp=Blender\n')
 	settings_file.write('FileIn="%s"\n' % inputFilename)
+	#settings_file.write('FileIn2="%s"\n' % inputFilename_extraMaps)
 	settings_file.write('FileOut="%s"\n' % theOp.retopoFilename)
 	settings_file.write('ProgressFile="%s"\n' % theOp.progressFilename)
 
@@ -352,6 +414,7 @@ def doRemeshing_Start(theOp, context) :
 
 	# 1.2 - Export Selected Mesh
 	export_selected_mesh_fbx(inputFilename)
+	#export_selected_mesh_extra_maps(inputFilename_extraMaps, theOp.the_input_object)
 	if (verboseDebug): print(" inputFile exported!")
 	
 
@@ -370,6 +433,7 @@ def doRemeshing_Start(theOp, context) :
 		if (verboseDebug): print("    settings_path=" + settingsFilename + "\n")
 		theOp.remeshProcess = subprocess.Popen([enginePath, "-s", settingsFilename])   #NB: Popen automatically add quotes around parameters when there are SPACES inside
 		if (verboseDebug): print("  -> theOp.remeshProcess = " + str(theOp.remeshProcess) + "\n")
+		#NB: theOp.remeshProcess.poll()!=None can be done just after subprocess.Popen(...), no need to wait for something... (checked)
 
 	except Exception:
 		import traceback
@@ -388,23 +452,33 @@ def doRemeshing_Start(theOp, context) :
 
 
 def doRemeshing_Finish(theOp, context) :
+
+	inputObject = theOp.the_input_object
+	#inputObject = context.selected_objects[0]
+
 	# ----------------- 3 - Import Remeshing result -------------------------
 	# mode is changed by fbx-import: need to save and restore it
-	current_mode = bpy.context.object.mode 
+	#current_mode = bpy.context.object.mode 
+	current_mode = inputObject.mode
+	props = bpy.context.scene.qremesher	
+
+	# Fix Crash with 2.83 and 2.90: 
+	# Before 2.83 crash: Hide InputMeshObj, then load retopo. But this crashes  Blender (in import_mesh_fbx).
+	# Just switching : LoadRetopo, Then hide InputMeshObj -> works in 2.83 !
 	
-	# first hide the selected object
-	theOp.the_input_object.hide_set(state=True)   # NB: 2.8 only, 2.7 must use 'hide'
-	
+	# first hide the selected object (old code, see crash 2.83)
+	#if getattr(props, 'hide_input'):
+	#	inputObject.hide_set(state=True)   # NB: 2.8 only, 2.7 must use 'hide'
+
 	# get the Smooth/Flat shading value of the input object (assuming constant all over the mesh...)
 	inputUseSmoothShading = True
 	try:
-		if len(theOp.the_input_object.data.polygons) >= 1:
-			inputUseSmoothShading = theOp.the_input_object.data.polygons[0].use_smooth
+		if len(inputObject.data.polygons) >= 1:
+			inputUseSmoothShading = inputObject.data.polygons[0].use_smooth
 			# add warning for "Use Normals Splitting":
 			if inputUseSmoothShading == False:
-				props = bpy.context.scene.qremesher
 				if getattr(props, 'use_normals'):
-					theOp.report({'WARNING'}, "QuadRemesher Engine has been downloaded and installed, please click <<Remesh It>> again...")
+					theOp.report({'WARNING'}, "Remeshing with 'Use Normals Splitting' enabled and with 'Flat Shading' generally leads to poor results. You probably should switch one of them.")
 			if (verboseDebug): print ("poly[0] : use_smooth = %d" % (inputUseSmoothShading))
 	except Exception:
 		#import traceback
@@ -414,6 +488,10 @@ def doRemeshing_Finish(theOp, context) :
 		
 	# then import result (and automatically select it)
 	import_mesh_fbx(theOp.retopoFilename)
+
+	# hide the selected object (see note about crash 2.83)
+	if getattr(props, 'hide_input'):
+		inputObject.hide_set(state=True)   # NB: 2.8 only, 2.7 must use 'hide'
 
 	# set the shade flat/smooth... (NB: by default, the output retopo.fbx has no normals -> Blender imports it as Shade Smooth (tested with 2.80))
 	if inputUseSmoothShading == False:
@@ -465,6 +543,7 @@ class QREMESHER_OT_remesh(bpy.types.Operator):
 	progressFilename = ""
 	Aborted = False
 	StartRemeshingTime = 0
+	RemeshingTimerCounter = 0
 	
 	@classmethod
 	def poll(self, context):
@@ -472,12 +551,15 @@ class QREMESHER_OT_remesh(bpy.types.Operator):
 
 	def execute(self, context):
 		#console_print("execute called!!!")
+		#test_crash()
+		#return {'FINISHED'}
 		
 		doRemeshing_Start(self, context)
 		
 		if (self.IsRemeshing):
 			wm = context.window_manager  
 			# add timer
+			self.RemeshingTimerCounter = 0
 			self.timer = wm.event_timer_add(0.3, window=context.window)  
 			wm.modal_handler_add(self)  
 			return {'RUNNING_MODAL'}  
@@ -496,6 +578,7 @@ class QREMESHER_OT_remesh(bpy.types.Operator):
 		self.progressFilename = ""
 		self.Aborted = False
 		self.StartRemeshingTime = 0
+		self.RemeshingTimerCounter = 0
 
 
 	def modal(self, context, event):  
@@ -505,9 +588,11 @@ class QREMESHER_OT_remesh(bpy.types.Operator):
 			self.onEndingOperator(context, False)
 			return {'CANCELLED'}
 			
-		if event.type == 'TIMER':  
-			# update progress bar
-			ProgressValueFloat, ProgressText = update_progress_bar(self) 
+		if event.type == 'TIMER':
+			self.RemeshingTimerCounter = self.RemeshingTimerCounter + 1
+			
+			# update progress bar (and detect crash) + update progress bar
+			ProgressValueFloat, ProgressText = get_progress_status(self)
 			
 			# Choose: RUNNING/FINISHED/CANCELLED
 			CurTimeFromStart = time.time() - self.StartRemeshingTime
@@ -529,7 +614,10 @@ class QREMESHER_OT_remesh(bpy.types.Operator):
 			elif ProgressValueFloat < 0:	# error returned
 				console_print(' RETURNING ERROR.... ProgressValueFloat='+str(ProgressValueFloat))
 				self.onEndingOperator(context, False)
-				self.report({'ERROR'}, "Remeshing FAILED !")
+				if (ProgressText != None and len(ProgressText)>0):
+					self.report({'ERROR'}, ProgressText)
+				else:
+					self.report({'ERROR'}, "Remeshing FAILED !")
 				return {'FINISHED'}
 				
 			elif ProgressValueFloat == 2:   # SUCCESS -> import the result
@@ -539,8 +627,17 @@ class QREMESHER_OT_remesh(bpy.types.Operator):
 				self.report({'INFO'}, "Remeshing Succeded !")
 				
 				return {'FINISHED'}
-				
-			return {'RUNNING_MODAL'}  
+			
+			# in [0, 1] : RUNNING
+			if ProgressValueFloat >= 0 and ProgressValueFloat <= 1.0:
+				newPBarValue = int( (99.0 * ProgressValueFloat + 1.0) )
+				#console_print('ProgressValueFloat=%s   newPBarValue=%s' % (str(ProgressValueFloat),str(newPBarValue)))
+				self.report({'INFO'}, "Remeshing progress:"+str(newPBarValue)+"% (ESC=Abort)")
+			else:
+				self.report({'INFO'}, "Remeshing progress... (ESC=Abort)")
+
+			return {'RUNNING_MODAL'}
+			
 		return {'RUNNING_MODAL'}
 		#return {'PASS_THROUGH'}
 
@@ -630,6 +727,8 @@ class QREMESHER_OT_reset_settings(bpy.types.Operator):
 		props.symmetry_y = False
 		props.symmetry_z = False
 
+		props.hide_input = True
+		
 		return {'FINISHED'}
 
 
@@ -657,6 +756,8 @@ class QREMESHER_OT_facemap_to_materials(bpy.types.Operator):
 		o = sel_objects[0]
 		#print ("%d face maps!" % len(o.face_maps))
 		
+		#test: export_selected_mesh_extra_maps("", o)
+
 		# reset all materialIds:
 		for f in o.data.polygons:
 			f.material_index = 0
@@ -702,7 +803,7 @@ class QREMESHER_OT_facemap_to_materials(bpy.types.Operator):
 			
 			
 		# CHECKING:
-		for f in o.data.polygons: print(str(f.material_index))
+		#for f in o.data.polygons: print(str(f.material_index))
 		
 		return {'FINISHED'}
 		

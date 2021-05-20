@@ -20,12 +20,16 @@
 
 # <pep8 compliant>
 
+__QR_plugin_version__ = "1.1"
+
 bl_info = {
-	"name": "Quad Remesher Bridge",
+	#"name": "Quad Remesher "+__QR_plugin_version__+" Bridge",  # (it break the display of all plugins... in prefs>Addons)
+	"name": "Quad Remesher 1.1 Bridge",
 	"author": "Maxime",
-	"version": (1, 0, 0),
+	"version": (1, 1, 0),    # see __QR_plugin_version__
 	"blender": (2, 80, 0),
-	"description": "Quad Remesher Bridge",
+	#"description": "Quad Remesher "+__QR_plugin_version__+" Bridge",
+	"description": "Quad Remesher 1.1 Bridge",
 	"location": "",
 	"warning": "",
 	"wiki_url": "",
@@ -41,7 +45,6 @@ from bl_operators.presets import AddPresetBase
 from .qr_operators import (QREMESHER_OT_remesh, QREMESHER_OT_reset_settings, QREMESHER_OT_license_manager, QREMESHER_OT_facemap_to_materials)
 
 addon_name = __name__.split(".")[0]
-
 
 #def addon_prefs():
 #	return bpy.context.preferences.addons[addon_name].preferences
@@ -101,9 +104,10 @@ class QRSettingsPropertyGroup(bpy.types.PropertyGroup):
 	useMaterials_Tooltip="If On, QuadRemesher will use existing 'Materials' to guide the quad remeshing on Materials borders.\nMaterialIds will be maintained after remeshing."
 	useNormals_Tooltip="TAKE CARE: this option is usefull in specific cases, BUT should be 'Off' by default (facetted mesh). Read the doc for more informations..."
 	useNormals_Tooltip+="\nIf On, QuadRemesher will use the existing 'Normals' to guide the remeshing on edge loops where the normals are split/creased.\nBy default Blenders creates mesh with normals split everywhere.\nIt usefull to enable this option only with SmoothShade + AutoSmooth enabled...\nOn smooth organic shapes, it's advised to disable it."
-	detectHardEdges_Tooltip="If On, QuadRemesher will detect/compute Hard-Edges automatically based on the geometry (using a mix of edge's angles and other geometrical considerations).\nThis is useful is you have not defined some Harden/Soften edges and if you want QuadRemesher to find hard angles automatically.\nIf 'Use existing Hard/Soft Edges' is checked, it's better to uncheck 'Detect Hard Edges'.\nOn smooth organic shapes, it's advised to disable it."
+	detectHardEdges_Tooltip="If On, QuadRemesher will detect/compute Hard-Edges automatically based on the geometry (using a mix of edge's angles and other geometrical considerations).\nIf 'Use Normals Splitting' is checked, it's often better to uncheck 'Detect Hard Edges by angle'.\nOn smooth organic shapes, it's advised to disable it."
 	symToolTip = "These options allows to perform symmetrical quad remeshing. It's possible to combine all 3 symmetry axis."
 	#symToolTip += "\nTAKE CARE: The axis are Local Coordinates axis! It's advised to set the Gizmo in 'Object' mode to better see the Local Coordinates axis."
+	hideInputTip = "If On (default), the input object will be hidden after remeshing."
 	
 	# Quads size settings
 	adaptive_size: bpy.props.FloatProperty(name="Adaptive size", 
@@ -137,6 +141,8 @@ class QRSettingsPropertyGroup(bpy.types.PropertyGroup):
 	symmetry_y: bpy.props.BoolProperty(name="Y", default=False, description=symToolTip)
 	symmetry_z: bpy.props.BoolProperty(name="Z", default=False, description=symToolTip)
 	
+	hide_input: bpy.props.BoolProperty(name="Hide Input Object", default=True, description=hideInputTip)
+	
 	# progress bar value
 	progress_value: bpy.props.FloatProperty(default=0, subtype='PERCENTAGE', precision=1, min=0, soft_min=0, soft_max=100, max=100)
     
@@ -165,22 +171,22 @@ def draw_panel_content(context, layout):
 
 	col.separator()
 
-	# --- Quad Size settings.... ---
+	# --- Quad Size settings ---
 	box = col.box()
-	box.label(text="  Quad Size settings...")
+	box.label(text="  Quad Size Settings")
 
 	box.prop(props, 'adaptive_size')
 	box.prop(props, 'adapt_quad_count')
 	box.prop(props, 'use_vertex_color')
 
-	box.separator()
+	#box.separator()
 	box.prop(props, 'painted_quad_density')
 
 	col.separator()
 
-	# --- Quad Size settings.... ---
+	# --- Quad Size settings ---
 	box = col.box()
-	box.label(text="  Edge loops control...")
+	box.label(text="  Edge Loops Control")
 
 	box.prop(props, 'use_materials')
 	box.prop(props, 'use_normals')
@@ -190,12 +196,13 @@ def draw_panel_content(context, layout):
 
 	# --- Misc.... ---
 	box = col.box()
-	box.label(text="  Misc...")
+	box.label(text="  Misc")
 	box.label(text="Symmetry:")
 	myrow = box.row(align=True)
 	myrow.prop(props, 'symmetry_x')
 	myrow.prop(props, 'symmetry_y')
 	myrow.prop(props, 'symmetry_z')
+	box.prop(props, 'hide_input')
 	box.operator(QREMESHER_OT_reset_settings.bl_idname)
 	box.operator(QREMESHER_OT_license_manager.bl_idname)
 	box.operator(QREMESHER_OT_facemap_to_materials.bl_idname)
@@ -207,7 +214,7 @@ class QREMESHER_PT_qremesher(bpy.types.Panel):
 	bl_space_type = 'VIEW_3D'
 	bl_region_type = 'UI'
 	bl_category = 'Quad Remesh'		# name of the VerticalTab
-	bl_label = "Quad Remesher"
+	bl_label = "Quad Remesher "+__QR_plugin_version__
 
 	bl_idname = "QREMESHER_PT_qremesher"
 
