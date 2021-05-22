@@ -292,3 +292,6 @@
 [submodule "scripts/GIT/Lodify"]
 	path = scripts/GIT/Lodify
 	url = https://github.com/DB3D/Lodify.git
+[submodule "scripts/addons/ez_baker"]
+	path = scripts/addons/ez_baker
+	url = https://gitlab.com/AquaticNightmare/ez_baker.git
