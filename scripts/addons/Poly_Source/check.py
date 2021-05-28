@@ -103,7 +103,7 @@ def check_draw_bgl(self, context):
             if obj.type == 'MESH':
 
                 me = obj.data
-                if len(me.polygons) < 15000:
+                if len(me.polygons) < 50000:
 
                     if context.mode == 'EDIT_MESH' and props.use_mod_che == False:
                         bm = bmesh.from_edit_mesh(obj.data)
@@ -115,7 +115,7 @@ def check_draw_bgl(self, context):
 
                             ob_eval = obj.evaluated_get(depsgraph)
                             me = ob_eval.to_mesh()
-               
+                
 
                         bm = bmesh.new()
                         bm.from_mesh(me, face_normals=True, use_shape_key=False)
@@ -170,7 +170,7 @@ def check_draw_bgl(self, context):
                         for n in bm.faces:
                             if len(n.verts) == props.custom_count_verts:
                                 custom_faces.append(n.index)
-                     
+                        
                                 
                         copy = bm.copy()
                         copy.faces.ensure_lookup_table()
@@ -275,10 +275,10 @@ class PS_GT_check(Gizmo):
     def draw(self, context):
         check_draw_bgl(self, context)
 
-    """ def test_select(self, context, location):
+    def test_select(self, context, location):
         if context.area.type == 'VIEW_3D':
             context.area.tag_redraw()
-        return -1 """
+        return -1
 
 
 
@@ -303,13 +303,13 @@ class PS_GGT_check_group(GizmoGroup):
         self.mesh = mesh 
 
 
-    def draw_prepare(self, context):
+    """ def draw_prepare(self, context):
         settings = context.scene.ps_set_
         mesh = self.mesh
         if settings.mesh_check == True:
             mesh.hide = False
         else:
-            mesh.hide = True
+            mesh.hide = True """
 
 
 

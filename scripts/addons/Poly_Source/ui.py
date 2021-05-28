@@ -23,23 +23,31 @@ class PS_PT_settings_draw_mesh(Panel):
         return activate()
 
     def draw(self, context):
+        pcoll = preview_collections["main"]
+        calculate_icon = pcoll["calculate_icon"]
+        check_icon = pcoll["check_icon"]
+        box_icon = pcoll["box_icon"]
+        grid_icon = pcoll["grid_icon"]
+        draw_icon = pcoll["draw_icon"]
+
+
         props = context.preferences.addons[__package__.split(".")[0]].preferences
         settings = context.scene.ps_set_
 
         layout = self.layout
      
 
-        # Retopology
+        # --- Retopology
         #layout.prop(props, "draw_", toggle=True) # TODO TEST 
 
 
 
         if settings.retopo_mode == False: 
-            layout.prop(settings, "retopo_mode", toggle=True)
+            layout.prop(settings, "retopo_mode", icon_value=draw_icon.icon_id)
 
         else:
             box = layout.box()
-            box.prop(settings, "retopo_mode", toggle=True)
+            box.prop(settings, "retopo_mode", icon_value=draw_icon.icon_id)
 
             row_W = box.row(align=True)
             row_W.scale_x = 1.0
@@ -61,11 +69,11 @@ class PS_PT_settings_draw_mesh(Panel):
 
         # --- Mesh Check
         if settings.mesh_check == False: 
-            layout.prop(settings, "mesh_check", toggle=True)
+            layout.prop(settings, "mesh_check", icon_value=check_icon.icon_id)
                 
         else:
             box = layout.box()
-            box.prop(settings, "mesh_check", toggle=True)
+            box.prop(settings, "mesh_check", icon_value=check_icon.icon_id)
     
             row = box.row()
             col = row.column()
@@ -99,13 +107,13 @@ class PS_PT_settings_draw_mesh(Panel):
 
 
 
-        # Polycount
+        # --- Polycount
         if settings.polycount == False:
-            layout.prop(settings, "polycount", toggle=True)
+            layout.prop(settings, "polycount", icon_value=calculate_icon.icon_id)
         
         else:
             box = layout.box()
-            box.prop(settings, "polycount", toggle=True)
+            box.prop(settings, "polycount", icon_value=calculate_icon.icon_id)
         
             row = box.row(align=True)
             row.prop(settings, "tris_count")
@@ -114,13 +122,58 @@ class PS_PT_settings_draw_mesh(Panel):
 
 
 
+
+        # --- Envira Grid
+        if settings.draw_envira_grid == False:
+            layout.prop(settings, "draw_envira_grid", icon_value=grid_icon.icon_id)
+        
+        else:
+            box = layout.box()
+            row = box.row()
+            row.prop(settings, "draw_envira_grid", icon_value=grid_icon.icon_id)
+            row.prop(settings, 'box', icon_value=box_icon.icon_id)
+        
+
+            row = box.row()
+            row.prop(settings, 'one_unit', expand=True)
+            row.prop(settings, 'one2one', toggle=True)
+            
+
+            row_all = box.row()
+            if settings.one2one:
+                row_all.prop(settings, 'unit_x')
+
+            else:
+                row = row_all.row(align=True)
+                row.prop(settings, 'unit_x')
+                row.prop(settings, 'unit_y')
+
+            box.prop(settings, 'float_z')
+            box.prop(settings, 'padding')
+
+            """ layout.prop(settings, 'array')
+            if settings.array:
+                layout.prop(settings, 'array_count') """
+
+            if settings.box:
+                box.prop(settings, 'box_height')
+
+            box.prop(settings, 'draw_unit_grid')
+            if settings.draw_unit_grid:
+                box.prop(settings, 'one_unit_length')
+
+
+
+        # --- Operators
         box = layout.box()
         box.prop(props, "max_points")
         if context.mode == 'EDIT_MESH':
             box.prop(context.space_data.overlay, "show_occlude_wire")
-        box.operator("ps.clear_dots", icon='SHADERFX')
-        box.operator("ps.remove_vertex_non_manifold", icon='SHADERFX')
-
+        
+        row = box.row(align=True)
+        row.operator("ps.clear_dots", icon='SHADERFX')
+        row.operator("ps.remove_vertex_non_manifold", icon='SHADERFX')
+        box.operator("ps.cylinder_optimizer", icon='MESH_CYLINDER')
         
 
 
@@ -332,6 +385,12 @@ def register():
     pcoll.load("ngon_icon", os.path.join(my_icons_dir, "ngon.png"), 'IMAGE')
     pcoll.load("quad_icon", os.path.join(my_icons_dir, "quad.png"), 'IMAGE')
     pcoll.load("tris_icon", os.path.join(my_icons_dir, "triangle.png"), 'IMAGE')
+
+    pcoll.load("grid_icon", os.path.join(my_icons_dir, "grid.png"), 'IMAGE')
+    pcoll.load("box_icon", os.path.join(my_icons_dir, "box.png"), 'IMAGE')
+    pcoll.load("draw_icon", os.path.join(my_icons_dir, "draw.png"), 'IMAGE')
+    pcoll.load("calculate_icon", os.path.join(my_icons_dir, "calculate.png"), 'IMAGE')
+    pcoll.load("check_icon", os.path.join(my_icons_dir, "check.png"), 'IMAGE')
     preview_collections["main"] = pcoll
 
     
