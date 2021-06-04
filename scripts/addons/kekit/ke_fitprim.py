@@ -2,18 +2,21 @@ bl_info = {
     "name": "keFitPrim",
     "author": "Kjell Emanuelsson",
     "category": "Modeling",
-    "version": (1, 4, 0),
+    "version": (1, 6, 3),
     "blender": (2, 80, 0),
 }
 import bpy
 import blf
 import bmesh
 from .ke_utils import get_loops, average_vector, get_distance, correct_normal, get_midpoint, get_closest_midpoint, \
-    rotation_from_vector, point_to_plane, get_selection_islands, mouse_raycast
+    rotation_from_vector, point_to_plane, get_selection_islands, mouse_raycast, pie_pos_offset, flatten, tri_order, \
+    get_layer_collection
+
 from mathutils import Vector, Matrix
 from math import cos, pi, sqrt
-from bpy_extras.view3d_utils import region_2d_to_location_3d
-
+from cmath import sqrt as cmath_sqrt
+from bpy_extras.view3d_utils import region_2d_to_location_3d, region_2d_to_vector_3d
+from mathutils.geometry import intersect_ray_tri
 
 # -------------------------------------------------------------------------------------------------------------------
 def draw_callback_px(self, context, pos):
@@ -43,55 +46,16 @@ def draw_callback_px(self, context, pos):
         return {'CANCELLED'}
 
 
-def get_sides(obj_mtx, start_vec, vecs, vps, legacy=True):
-    side, center = 0.0, (0,0,0)
-    sides = []
-    # pick sides by angles
-    for i, v in enumerate(vecs):
-        vec = v
-        if start_vec.dot(v) < 0:
-            vec.negate()
-        angle = start_vec.angle(vec)
-        if -0.33 < angle < 0.33:
-            sides.append(vps[i])
-
-    # ...else pick sides by (hacky) area as fallback
-    if len(sides) < 2:
-        s = []
-        for i in vps:
-            s.append(get_distance(i[0].co, i[1].co))
-        side = (sum(s) / len(s)) / 2
-        poslist = [obj_mtx @ v.co for vertpair in vps for v in vertpair]
-        center = Vector(average_vector(poslist))
-
-        return side, [vps[0], vps[1]], center
-
-    sides = get_loops(sides, legacy)
-
-    side_lengths = []
-
-    if len(sides) == 2:
-        # print("rectangle mode")
-        v1 = round(get_distance(obj_mtx @ sides[0][0].co, obj_mtx @ sides[-1][0].co), 4)
-        v2 = round(get_distance(obj_mtx @ sides[0][0].co, obj_mtx @ sides[0][-1].co), 4)
-        v3 = round(get_distance(obj_mtx @ sides[0][0].co, obj_mtx @ sides[-1][-1].co), 4)
-        side_lengths.append(v1)
-        side_lengths.append(v2)
-        side_lengths.append(v3)
-        side = sorted(side_lengths)[0]
-        poslist = [obj_mtx @ v.co for vertpair in vps for v in vertpair]
-        center = Vector(average_vector(poslist))
-
+def findHeight(p1, p2, b, c):
+    # Using Heron's formula w bizarre cmath workarounds imsure
+    a = max(p1, p2) - min(p1, p2)
+    s = (a + b + c) / 2
+    area = cmath_sqrt(s * (s - a) * (s - b) * (s - c))
+    area = round(float(area.real + area.imag), 4)
+    if area == 0 or a == 0:
+        return None
     else:
-        # print("ngon mode")
-        poslist = [obj_mtx @ vp[0].co for vp in vps]
-        radpos = poslist[0]
-        center = Vector(average_vector(poslist))
-        rad = get_distance(center, radpos)
-        pi_rad = rad * cos(pi / len(vps))
-        side = pi_rad * 2
-
-    return side, sides, center
+        return (area * 2) / a
 
 
 def get_shortest(wmat, edges):
@@ -102,39 +66,155 @@ def get_shortest(wmat, edges):
         d = round(get_distance(v1, v2), 4)
         s.append(d)
     return sorted(s)[0]
-# ---------------------------------------------------------------- ---------------------------------------------------
 
+
+def get_view_type():
+    for area in bpy.context.screen.areas:
+        if area.type == 'VIEW_3D':
+            for space in area.spaces:
+                if space.type == 'VIEW_3D':
+                    if len(space.region_quadviews) > 0:
+                        return "QUAD"
+                    elif space.region_3d.is_perspective:
+                        return "PERSP"
+                    else:
+                        return "ORTHO"
+
+
+def get_sides(obj_mtx, vecs, vps):
+    psides = [] # has parallells
+    start_vec = []
+    h,p1,p2,b,c = None, None, None, None, None
+    center, side = None, None
+
+    # Find sides...improvised mess, optimize later...maybe
+    dotsum = 0
+    for i, v in enumerate(vecs):
+        osides = []
+        rem = []
+
+        for oi, ov in enumerate(vecs):
+            d = round(abs(v.dot(ov)),4)
+            if d == 1 and vps[i] != vps[oi]:
+                osides.append(vps[oi])
+                rem.extend(ov)
+                dotsum += d
+
+        if osides:
+            p = [vps[i]] + osides
+            psides.append(p)
+            for r in rem:
+                if r in vecs:
+                    vecs.remove(r)
+    if psides:
+        s = get_loops(psides[0])
+        if len(s) == 2:
+            if s[1]:
+                s1 = [obj_mtx @ v.co for v in s[0]]
+                s2 = [obj_mtx @ v.co for v in s[1]]
+                p1 = round(get_distance(s1[0], s1[-1]), 4)
+                p2 = round(get_distance(s2[0], s2[-1]), 4)
+            else:
+                # print("failsafe")
+                s1 = [obj_mtx @ v.co for v in s[0]]
+                p1 = round(get_distance(s1[0], s1[-1]), 4)
+                p2 = p1
+
+        other_sides = [i for i in vps if i not in psides[0]]
+        os = get_loops(other_sides)
+
+        if len(os) == 2:
+            if os[1]:
+                os1 = [obj_mtx @ v.co for v in os[0]]
+                os2 = [obj_mtx @ v.co for v in os[1]]
+                b = round(get_distance(os1[0], os1[-1]), 4)
+                c = round(get_distance(os2[0], os2[-1]), 4)
+                #check if not parallel for trapezoid
+                v1 = Vector((os1[0] - os1[-1])).normalized()
+                v2 = Vector((os2[0] - os2[-1])).normalized()
+                p = round(abs(v1.dot(v2)),4)
+                # print("other sides dot", p)
+                if p != 1:
+                    h = findHeight(p1, p2, b, c)
+
+    vcos = list(set(flatten(vps)))
+    poslist = [obj_mtx @ v.co for v in vcos]
+    center = Vector(average_vector(poslist))
+
+    if dotsum == len(vps) and dotsum != 4:
+        # cylinder, probably. ->ngon
+        h, p1, p2 = None, None, None
+
+    if h is not None:
+        print("Trapezoid mode")
+        side = h
+
+    elif p1 and p2:
+        print("Rectangle mode")
+        if p1 < p2:
+            side = p1
+        else:
+            side = p2
+
+        start_vec = Vector((s1[0] - s1[-1])).normalized()
+
+        if b and c:
+            # Re-swap to shorter side for rec fit
+            if sum((b,c)) < sum((p1,p2)):
+                if b < c:
+                    side = b
+                else:
+                    side = c
+                start_vec = Vector((os1[0] - os1[-1])).normalized()
+
+    else:
+        print("Ngon mode")
+        radpos = poslist[0]
+        rad = get_distance(center, radpos)
+        pi_rad = rad * cos(pi / len(vps))
+        side = pi_rad * 2
+
+    if not start_vec: # failsafe
+        start_vec = vecs[0]
+
+    # Weighted center override
+    if h is None:
+        avg = Vector()
+        w = 0
+        for vp in vps:
+            d = get_distance(vp[0].co, vp[1].co)
+            avgp = average_vector((obj_mtx @ vp[0].co, obj_mtx @ vp[1].co))
+            avg += avgp * d
+            w += d
+        center = avg / w
+
+    return side, center, start_vec
+
+# -------------------------------------------------------------------------------------------------------------------
 
 class VIEW3D_OT_ke_fitprim(bpy.types.Operator):
     bl_idname = "view3d.ke_fitprim"
     bl_label = "ke_fitprim"
-    bl_description = "Creates (unit or unit+height) box or cylinder primitve based on selection." \
-                     "VERTEX: Fits *along* 2 Selected verts. EDGE: Fits *in* selection/s. POLY: Fits *on* selection/s."
+    bl_description = "Creates (unit or unit+height) box or cylinder primitve based on selection (or not = ground)\n" \
+                     "VERTEX: Fits *along* 2 Selected verts\n" \
+                     "EDGE: Fits *in* selection(s) \n" \
+                     "POLY: Fits *on* selection(s)"
     bl_options = {'REGISTER', 'UNDO'}
 
-    ke_fitprim_option: bpy.props.EnumProperty(
-        items=[("BOX", "Box Mode", "", "BOX_MODE", 1),
-               ("CYL", "Cylinder Mode", "", "CYL_MODE", 2),
-               ("SPHERE", "UV Sphere", "", "SPHERE", 3),
-               ("QUADSPHERE", "QuadSphere", "", "QUADSPHERE", 4),
-               ("BOX_OBJ", "Box Mode Obj", "", "BOX_MODE_OBJ", 5),
-               ("CYL_OBJ", "Cylinder Mode Obj", "", "CYL_MODE_OBJ", 6),
-               ("SPHERE_OBJ", "UV Sphere Obj", "", "SPHERE_OBJ", 7),
-               ("QUADSPHERE_OBJ", "QuadSphere Obj", "", "QUADSPHERE_OBJ", 8),
-               ("BOX_PM", "", "BOX_MODE_PM", 9),
-               ("CYL_PM", "", "CYL_MODE_PM", 10),
-               ("SPHERE_PM", "", "SPHERE_PM", 11),
-               ("QUADSPHERE_PM", "", "QUADSPHERE_PM", 12),
-               ("BOX_OBJ_PM", "", "BOX_MODE_OBJ_PM", 13),
-               ("CYL_OBJ_PM", "", "CYL_MODE_OBJ_PM", 14),
-               ("SPHERE_OBJ_PM", "", "SPHERE_OBJ_PM", 15),
-               ("QUADSPHERE_OBJ_PM", "", "QUADSPHERE_OBJ_PM", 16)
+    ke_fitprim_option : bpy.props.EnumProperty(
+        items=[("BOX", "Box Mode", "", 1),
+               ("CYL", "Cylinder Mode", "", 2),
+               ("SPHERE", "UV Sphere", "", 3),
+               ("QUADSPHERE", "QuadSphere", "", 4),
+               ("PLANE", "Plane", "", 5)
                ],
-    name="FitPrim Options",
-        default="BOX")
+        name="FitPrim Options", options={"HIDDEN"},
+        default="PLANE")
 
-    ke_fitprim_itemize: bpy.props.BoolProperty(
-        name="Make Object", description="Makes new object from edit mesh fitprim", default=False)
+    ke_fitprim_pieslot : bpy.props.StringProperty(default="NONE", description="Pie-Slot Mouse Offset",options={"HIDDEN"})
+
+    ke_fitprim_itemize : bpy.props.BoolProperty(
+        name="Make Object", description="Makes new object also from Edit mode", default=False, options={"HIDDEN"})
 
     itemize = False
     boxmode = True
@@ -155,11 +235,8 @@ class VIEW3D_OT_ke_fitprim(bpy.types.Operator):
     hcol = (1,1,1,1)
     tcol = (1,1,1,1)
     scol = (1,1,1,1)
-
-    def draw(self, context):
-        layout = self.layout
-        layout.enabled = False
-        layout.label(text="Undo Only")
+    og_cloc = []
+    og_crot = []
 
     def invoke(self, context, event):
         self.screen_x = int(bpy.context.region.width *.5)
@@ -167,38 +244,9 @@ class VIEW3D_OT_ke_fitprim(bpy.types.Operator):
         self.mouse_pos[1] = int(event.mouse_region_y)
 
         # Pie-Menu offset compensations:
-        if self.ke_fitprim_option == "BOX_PM":
-            self.mouse_pos = self.mouse_pos[0], self.mouse_pos[1] - 115
-            self.ke_fitprim_option = "BOX"
-
-        elif self.ke_fitprim_option == "BOX_OBJ_PM":
-            self.mouse_pos = self.mouse_pos[0], self.mouse_pos[1] + 115
-            self.ke_fitprim_option = "BOX_OBJ"
-
-        elif self.ke_fitprim_option == "CYL_OBJ_PM":
-            self.mouse_pos = self.mouse_pos[0] + 152, self.mouse_pos[1]
-            self.ke_fitprim_option = "CYL_OBJ"
-
-        elif self.ke_fitprim_option == "CYL_PM":
-            self.mouse_pos = self.mouse_pos[0] - 152, self.mouse_pos[1]
-            self.ke_fitprim_option = "CYL"
-
-        elif self.ke_fitprim_option == "SPHERE_OBJ_PM":
-            self.mouse_pos = self.mouse_pos[0] + 124, self.mouse_pos[1] - 71
-            self.ke_fitprim_option = "SPHERE_OBJ"
-
-        elif self.ke_fitprim_option == "SPHERE_PM":
-            self.mouse_pos = self.mouse_pos[0] - 124, self.mouse_pos[1] - 71
-            self.ke_fitprim_option = "SPHERE"
-
-        elif self.ke_fitprim_option == "QUADSPHERE_OBJ_PM":
-            self.mouse_pos = self.mouse_pos[0] + 136, self.mouse_pos[1] + 70
-            self.ke_fitprim_option = "QUADSPHERE_OBJ"
-
-        elif self.ke_fitprim_option == "QUADSPHERE_PM":
-            self.mouse_pos = self.mouse_pos[0] - 136, self.mouse_pos[1] + 70
-            self.ke_fitprim_option = "QUADSPHERE"
-
+        if self.ke_fitprim_pieslot:
+            self.mouse_pos = pie_pos_offset(self.mouse_pos, self.ke_fitprim_pieslot)
+            self.ke_fitprim_pieslot = "NONE"
         return self.execute(context)
 
     def modal(self, context, event):
@@ -232,7 +280,10 @@ class VIEW3D_OT_ke_fitprim(bpy.types.Operator):
                 bpy.ops.object.mode_set(mode='OBJECT')
                 bpy.ops.object.shade_smooth()
                 bpy.context.object.data.use_auto_smooth = True
-                bpy.ops.view3d.snap_cursor_to_center()
+                # bpy.ops.view3d.snap_cursor_to_center()
+                cursor = context.scene.cursor
+                cursor.location = self.og_cloc
+                cursor.rotation_euler = self.og_crot
 
             if not self.select and not self.itemize and not self.edit_mode == "OBJECT":
                 bpy.ops.mesh.select_all(action='DESELECT')
@@ -250,14 +301,17 @@ class VIEW3D_OT_ke_fitprim(bpy.types.Operator):
         self.tcol = context.preferences.addons['kekit'].preferences.modal_color_text
         self.scol = context.preferences.addons['kekit'].preferences.modal_color_subtext
 
-        if self.ke_fitprim_option == "BOX" or self.ke_fitprim_option == "BOX_OBJ":
+        if self.ke_fitprim_option == "BOX":
             self.boxmode, self.world = True, False
-        elif self.ke_fitprim_option == "CYL" or self.ke_fitprim_option == "CYL_OBJ":
+        elif self.ke_fitprim_option == "CYL":
             self.boxmode, self.world = False, False
-        elif self.ke_fitprim_option == "SPHERE" or self.ke_fitprim_option == "SPHERE_OBJ":
+        elif self.ke_fitprim_option == "SPHERE":
             self.boxmode, self.world, self.sphere = False, False, True
-        elif self.ke_fitprim_option == "QUADSPHERE" or self.ke_fitprim_option == "QUADSPHERE_OBJ":
+        elif self.ke_fitprim_option == "QUADSPHERE":
             self.boxmode, self.world, self.sphere = False, False, True
+        else:
+            self.boxmode, self.world, self.sphere = False, False, False
+
 
         if bpy.context.scene.kekit.fitprim_item:
             self.itemize = True
@@ -267,17 +321,34 @@ class VIEW3D_OT_ke_fitprim(bpy.types.Operator):
         self.modal = bpy.context.scene.kekit.fitprim_modal
         self.cyl_sides = bpy.context.scene.kekit.fitprim_sides
         self.select = bpy.context.scene.kekit.fitprim_select
-        self.unit = bpy.context.scene.kekit.fitprim_unit
+        self.unit = round(bpy.context.scene.kekit.fitprim_unit, 4)
         self.sphere_ring = bpy.context.scene.kekit.fitprim_sphere_ring
         self.sphere_seg = bpy.context.scene.kekit.fitprim_sphere_seg
         self.quadsphere_seg = bpy.context.scene.kekit.fitprim_quadsphere_seg
 
-        if self.ke_fitprim_option in {'BOX_OBJ', 'CYL_OBJ', 'SPHERE_OBJ', 'QUADSPHERE_OBJ'}:
-            self.itemize = True
-
         self.edit_mode = bpy.context.mode
         sel_verts = []
+        sel_verts2 = []
         multi_object_mode = False
+
+        cursor = context.scene.cursor
+        self.og_cloc = cursor.location.copy()
+        self.og_crot = cursor.rotation_euler.copy()
+        og_orientation = str(context.scene.transform_orientation_slots[0].type)
+
+        if self.itemize or self.edit_mode == "OBJECT" and context.object is not None:
+            # make sure the new object is in the same layer as context object
+            objc = context.object.users_collection[0]
+            layer_collection = context.view_layer.layer_collection
+            layer_coll = get_layer_collection(layer_collection, objc.name)
+            alc = context.view_layer.active_layer_collection
+
+            if objc.name != alc.name and alc.name != "Master Collection":
+                context.view_layer.active_layer_collection = layer_coll
+
+            elif objc.name != "Master Collection" and objc.name != alc.name:
+                context.view_layer.active_layer_collection = layer_coll
+
         # -----------------------------------------------------------------------------------------
         # MULTI OBJECT CHECK & SETUP
         # -----------------------------------------------------------------------------------------
@@ -290,6 +361,7 @@ class VIEW3D_OT_ke_fitprim(bpy.types.Operator):
 
             obj = bpy.context.active_object
             obj_mtx = obj.matrix_world.copy()
+            second_obj = []
 
             bm = bmesh.from_edit_mesh(obj.data)
             bm.faces.ensure_lookup_table()
@@ -345,38 +417,70 @@ class VIEW3D_OT_ke_fitprim(bpy.types.Operator):
             if not self.edit_mode == "OBJECT":
                 bpy.ops.object.mode_set(mode="OBJECT")
 
-            hit_obj, hit_wloc, hit_normal, hit_face = mouse_raycast(context, self.mouse_pos)
+            hit_obj, hit_wloc, hit_normal, hit_face = mouse_raycast(context, self.mouse_pos, evaluated=True)
 
             if not self.edit_mode == "OBJECT":
                 bpy.ops.object.mode_set(mode="EDIT")
 
+            if self.edit_mode != "OBJECT" and hit_obj is not None:
+                if len(hit_obj.modifiers) > 0:
+                    self.report({"INFO"}, "FitPrim: Selected elements required in Edit Mode if Modifiers exist")
+                    return {"CANCELLED"}
+
             if hit_obj and hit_face is not None:
+                # mouse over placement on face
                 self.world = False
-
-                # rounding
-                side = sqrt(hit_obj.data.polygons[hit_face].area)
-                if side > 1:
-                    side = round(side)
-                if side < 0.01:
-                    side = 0.01
-
                 mtx = hit_obj.matrix_world
-                offset = hit_normal * (side / 2)
-                setpos = mtx @ hit_obj.data.polygons[hit_face].center + offset
+                eks = hit_obj.data.polygons[hit_face].edge_keys
+                vecs = []
 
-                ek = hit_obj.data.polygons[hit_face].edge_keys[0]
-                ev1 = mtx @ hit_obj.data.vertices[ek[0]].co
-                ev2 = mtx @ hit_obj.data.vertices[ek[1]].co
+                for vp in eks:
+                    vc1 = mtx @ hit_obj.data.vertices[vp[0]].co
+                    vc2 = mtx @ hit_obj.data.vertices[vp[1]].co
+                    vecs.append(Vector(vc1 - vc2).normalized())
 
-                tangent = ev1 - ev2
-                normal = correct_normal(mtx, hit_normal)
-                setrot = rotation_from_vector(hit_normal, tangent)
+                evps = []
+                for vp in eks:
+                    v1, v2 = hit_obj.data.vertices[vp[0]], hit_obj.data.vertices[vp[1]]
+                    evps.append([v1,v2])
+
+                side, center, start_vec = get_sides(mtx, vecs, evps)
+
+                if self.ke_fitprim_option == "PLANE" and self.edit_mode == "OBJECT":
+                    setpos = center
+                    # setpos = mtx @ hit_obj.data.polygons[hit_face].center
+                    side *= 2
+
+                else:
+                    offset = hit_normal * (side / 2)
+                    setpos = center + offset
+                    # setpos = mtx @ hit_obj.data.polygons[hit_face].center + offset
+
+                setrot = rotation_from_vector(hit_normal, start_vec)
 
             else:
-                screenpos = region_2d_to_location_3d(context.region, context.space_data.region_3d, self.mouse_pos,(0, 0, 0))
-                setpos = screenpos
-                side = self.unit
+                # view placement compensation & Z0 drop
+                view_vec = region_2d_to_vector_3d(context.region, context.space_data.region_3d, self.mouse_pos)
+                view_pos = context.space_data.region_3d.view_matrix.inverted().translation
+
+                if get_view_type() != "ORTHO":
+                    ground = ((0,0,0),(0,1,0),(1,0,0))
+                    raypos = intersect_ray_tri(ground[0], ground[1], ground[2], view_vec, view_pos, False)
+                    snap_val = str(self.unit).split('.')
+                    if int(snap_val[0]) > 0 :
+                        snap = 0
+                    else:
+                        snap = len(snap_val[1])
+
+                    setpos = Vector((round(raypos[0], snap), round(raypos[1], snap), self.unit/2))
+                else:
+                    setpos = region_2d_to_location_3d(context.region, context.space_data.region_3d, self.mouse_pos, view_vec)
+
                 self.world = True
+
+                side = self.unit
+                if self.ke_fitprim_option == "PLANE" and self.edit_mode == "OBJECT":
+                    side *=2
 
             distance = side
             sel_mode = (True,False,False)
@@ -384,39 +488,82 @@ class VIEW3D_OT_ke_fitprim(bpy.types.Operator):
         # -----------------------------------------------------------------------------------------
         # VERT MODE(s)
         # -----------------------------------------------------------------------------------------
-        elif sel_mode[0] and len(sel_verts) == 1 and not multi_object_mode:
-            # 1-VERT MODE
-            self.world = True
-            side = get_shortest(obj_mtx, sel_verts[0].link_edges[:])
-            distance = side
-            setpos = obj_mtx @ sel_verts[0].co
-
         elif sel_mode[0]:
-            # 2+ Vert mode
-            if multi_object_mode:
-                p1 = obj_mtx @ sel_verts[0].co
-                p2 = obj_mtx2 @ sel_verts2[0].co
-                side = [other_side]
-                con_edges = sel_verts[0].link_edges[:]
-                side.append(get_shortest(obj_mtx,  con_edges))
-                side = sorted(side)[0]
+
+            if len(sel_verts) == 1 and not multi_object_mode:
+                # 1-VERT MODE
+                self.world = True
+                side = get_shortest(obj_mtx, sel_verts[0].link_edges[:])
+                distance = side
+                setpos = obj_mtx @ sel_verts[0].co
+
+            elif len(sel_verts) == 2 and not multi_object_mode or \
+                    multi_object_mode and len(sel_verts2) == 1 and len(sel_verts) == 1:
+                # 2 Vert mode
+                if multi_object_mode:
+                    p1 = obj_mtx @ sel_verts[0].co
+                    p2 = obj_mtx2 @ sel_verts2[0].co
+                    side = [other_side]
+                    con_edges = sel_verts[0].link_edges[:]
+                    side.append(get_shortest(obj_mtx,  con_edges))
+                    side = sorted(side)[0]
+                else:
+                    p1 = obj_mtx @ sel_verts[0].co
+                    p2 = obj_mtx @ sel_verts[1].co
+                    con_edges = sel_verts[0].link_edges[:] + sel_verts[1].link_edges[:]
+                    side = get_shortest(obj_mtx, con_edges)
+
+                v_1 = p1 - p2
+                v_2 = Vector((0, 0, 1))
+                if abs(v_1.dot(v_2)) == 1 :
+                    v_2 = Vector((1, 0, 0))
+                n_v = v_1.cross(v_2).normalized()
+                u_v = n_v.cross(v_1).normalized()
+                t_v = u_v.cross(n_v).normalized()
+
+                setrot = Matrix((u_v, n_v, t_v)).to_4x4().inverted()
+                distance = get_distance(p1, p2)
+                setpos = Vector(get_midpoint(p1, p2))
+
+            elif len(sel_verts) == 4 or multi_object_mode and len(sel_verts2) + len(sel_verts) <= 4:
+                # 4-vert Rectangle mode
+                # holy brute force batman
+                if not second_obj:
+                    second_obj = obj
+                tri = tri_order(((obj, sel_verts), (second_obj, sel_verts2)))
+                q = tri[-1]
+                # just placing a unit prim with min side in the center (for this one) so disregarding other vecs
+                v1 = Vector(tri[0][0].matrix_world @ tri[0][1].co - tri[1][0].matrix_world @ tri[1][1].co)
+                v2 = Vector(tri[0][0].matrix_world @ tri[0][1].co - tri[2][0].matrix_world @ tri[2][1].co)
+                # v3 = Vector(q[0].matrix_world @ q[1].co - tri[1][0].matrix_world @ tri[1][1].co)
+                # v4 = Vector(q[0].matrix_world @ q[1].co - tri[2][0].matrix_world @ tri[2][1].co)
+
+                d1 = get_distance(tri[0][0].matrix_world @ tri[0][1].co, tri[1][0].matrix_world @ tri[1][1].co)
+                # d2 = get_distance(tri[0][0].matrix_world @ tri[0][1].co, tri[2][0].matrix_world @ tri[2][1].co)
+                # d3 = get_distance(q[0].matrix_world @ q[1].co, tri[1][0].matrix_world @ tri[1][1].co)
+                d4 = get_distance(q[0].matrix_world @ q[1].co, tri[2][0].matrix_world @ tri[2][1].co)
+
+                if d1 < d4:
+                    side = d1
+                else:
+                    side = d4
+                distance = side
+
+                ap1 = average_vector([obj_mtx @ v.co for v in sel_verts])
+                if sel_verts2:
+                    ap2 = average_vector([obj_mtx2 @ v.co for v in sel_verts2])
+                    setpos = average_vector((ap1, ap2))
+                else:
+                    setpos = ap1
+
+                n = v1.normalized().cross(v2.normalized())
+                u = n.cross(v1.normalized())
+                t = u.cross(n)
+                setrot = Matrix((u, n, t)).to_4x4().inverted()
+
             else:
-                p1 = obj_mtx @ sel_verts[0].co
-                p2 = obj_mtx @ sel_verts[1].co
-                con_edges = sel_verts[0].link_edges[:] + sel_verts[1].link_edges[:]
-                side = get_shortest(obj_mtx, con_edges)
-
-            v_1 = p1 - p2
-            v_2 = Vector((0, 0, 1))
-            if v_1.dot(v_2) < 0 :
-                v_2 = Vector((1, 0, 0))
-            n_v = v_1.cross(v_2).normalized()
-            u_v = n_v.cross(v_1).normalized()
-            t_v = u_v.cross(n_v).normalized()
-
-            setrot = Matrix((u_v, n_v, t_v)).to_4x4().inverted()
-            distance = get_distance(p1, p2)
-            setpos = Vector(get_midpoint(p1, p2))
+                self.report({"INFO"}, "FitPrim: Invalid Vert Mode Selection: Select 1, 2 or 4 verts")
+                return {"CANCELLED"}
 
         # -----------------------------------------------------------------------------------------
         # EDGE MODE
@@ -425,7 +572,7 @@ class VIEW3D_OT_ke_fitprim(bpy.types.Operator):
 
             one_line, loops, loops2 = False, [], []
             sel_edges = [e for e in bm.edges if e.select]
-            vps = [e.verts for e in sel_edges]
+            vps = [e.verts[:] for e in sel_edges]
 
             active_edge = bm.select_history.active
             if active_edge:
@@ -460,17 +607,31 @@ class VIEW3D_OT_ke_fitprim(bpy.types.Operator):
 
             elif active_edge:  # same (active) obj island selections
                 if len(sel_edges) > 1:
+
                     if len(sel_edges) == 2 and not bool(set(sel_edges[0].verts).intersection(sel_edges[1].verts)):
                         a1p, a2p = sel_edges[0].verts, sel_edges[1].verts
                         a1, a2 = obj_mtx @ a1p[0].co, obj_mtx @ a1p[1].co
-                        # b1, b2 = obj_mtx @ a2p[0].co, obj_mtx @ a2p[1].co
                         b_avg = average_vector([obj_mtx @ a2p[0].co, obj_mtx @ a2p[1].co])
 
-                        u_v = Vector(a1 - (obj_mtx @ a2p[0].co)).normalized()
-                        t_v = Vector(a1 - a2).normalized()
-                        n_v = u_v.cross(t_v).normalized()
+                        lf1 = sel_edges[0].link_faces[:]
+                        lf = [f for f in sel_edges[1].link_faces[:] if f in lf1]
 
-                        setrot = rotation_from_vector(n_v, t_v, rotate90=True)
+                        v1 = Vector((obj_mtx @ a1p[0].co - obj_mtx @ a1p[1].co)).normalized()
+                        v2 = Vector((obj_mtx @ a2p[0].co - obj_mtx @ a2p[1].co)).normalized()
+
+                        if not lf:
+                            u_v = Vector(a1 - (obj_mtx @ a2p[0].co)).normalized()
+                            t_v = Vector(a1 - a2).normalized()
+                            n_v = u_v.cross(t_v).normalized()
+                            setrot = rotation_from_vector(n_v, t_v, rotate90=True)
+                        else:
+                            n = correct_normal(obj_mtx, lf[0].normal)
+                            # t = average_vector((v1, v2))
+                            # if sum(t) == 0:
+                            #     print("AVG FAIL")
+                            t = v1
+                            setrot = rotation_from_vector(n, t, rotate90=True)
+
                         spacing, mp = get_closest_midpoint(a1, a2, b_avg)
                         setpos = mp
                         side = spacing
@@ -497,8 +658,9 @@ class VIEW3D_OT_ke_fitprim(bpy.types.Operator):
 
                     u_v = Vector((0, 0, 1))
                     t_v = Vector(a1 - a2).normalized()
-                    if u_v.dot(t_v) > 0:
+                    if abs(u_v.dot(t_v)) == 1:
                         u_v = Vector((1, 0, 0))
+
                     n_v = u_v.cross(t_v).normalized()
 
                     setrot = rotation_from_vector(n_v, t_v, rotate90=False)
@@ -508,24 +670,23 @@ class VIEW3D_OT_ke_fitprim(bpy.types.Operator):
 
                 elif len(loops) == 1 or len(sel_edges) == 1:
                     # print ("single obj - single loop")
-                    vecs = [(obj_mtx @ vp[0].co) - (obj_mtx @ vp[1].co) for vp in vps]
-                    start_vec = vecs[-1]
-
+                    single_line = False
                     if len(sel_edges) != 1:
-                        side, sides, center = get_sides(obj_mtx, start_vec, vecs, vps)
+                        if loops[0][0] != loops[0][-1]:
+                            single_line = True
 
-                        # ONE LINE (ONE EDGE or SINGLE STRAIGHT LINE) MODE------------------------------
-                        if len(sides) == 1 and len(sides[0]) == len(sel_verts):
-                            # print("1 side --> one line:", sides[0])
-                            one_line = sides[0][0], sides[0][-1]
+                    if len(sel_edges) != 1 and not single_line:
+                        vecs = [Vector((obj_mtx @ vp[0].co) - (obj_mtx @ vp[1].co)).normalized() for vp in vps]
+                        normal = average_vector([correct_normal(obj_mtx, v.normal) for v in flatten(vps)])
 
-                    elif len(sel_edges) == 1:
+                        side, center, start_vec = get_sides(obj_mtx, vecs, vps)
+                        distance = side
+                        setpos = center
+                        setrot = rotation_from_vector(normal, start_vec)
+
+                    elif len(sel_edges) == 1 or single_line:
                         # print("1 edge --> one line", one_line)
-                        one_line = sel_verts
-
-                    if one_line:
-                        # print ("one line. center, points, normal:", center, one_line, active_edge_normal)
-                        p1, p2 = obj_mtx @ one_line[0].co, obj_mtx @ one_line[1].co
+                        p1, p2 = obj_mtx @ sel_verts[0].co, obj_mtx @ sel_verts[1].co
                         t_v = Vector(p1 - p2).normalized()
                         n_v = active_edge_normal
 
@@ -533,27 +694,10 @@ class VIEW3D_OT_ke_fitprim(bpy.types.Operator):
                         distance = get_distance(p1, p2)
                         setpos = get_midpoint(p1, p2)
                         side = distance
-
                     else:
-                        # RECT CHECK SIDES OR NGON MODE--------------------------------------------
-                        # print("Edge Rect/Ngon mode. Sides:", len(sides))
-                        b_candidate = sides[0][0].link_edges
-                        b_candidate = [e.verts for e in b_candidate]
-                        b = [v for vp in b_candidate for v in vp if v not in sides[0] and v in sel_verts]
-                        if b:
-                            b = obj_mtx @ b[0].co
-                            a = obj_mtx @ sides[0][0].co - obj_mtx @ sides[0][1].co
-                            b = obj_mtx @ sides[0][0].co - b
+                        print("Unexpected: Aborting operation.")
+                        return {'CANCELLED'}
 
-                            t_v = Vector(a).normalized()
-                            u_v = Vector(b).normalized()
-                            n_v = u_v.cross(t_v).normalized()
-
-                            setrot = rotation_from_vector(n_v, t_v, rotate90=True)
-                            distance = side
-                            setpos = center
-                        else:
-                            side = None
 
         # -----------------------------------------------------------------------------------------
         # FACE MODE
@@ -607,13 +751,7 @@ class VIEW3D_OT_ke_fitprim(bpy.types.Operator):
                     # Ngon mode
                     first_island = sel_verts
 
-
-            # GET PRIMARY SELECTION VALUES
-            ngoncheck = len(active_face.verts)
-            if sel_mode[2] and len(sel_verts) < 4:
-                ngoncheck = 5  # todo: better solution for tris...
-
-
+            # GETVALUES
             if island_mode or fail_island:
                 bpy.ops.mesh.select_all(action='DESELECT')
 
@@ -625,28 +763,26 @@ class VIEW3D_OT_ke_fitprim(bpy.types.Operator):
                 bpy.ops.mesh.select_mode(type='FACE')
                 bm.faces.ensure_lookup_table()
 
+            faces = [f for f in bm.faces if f.select]
+            normal = average_vector([correct_normal(obj_mtx, f.normal) for f in faces])
             bpy.ops.mesh.region_to_loop()
-            # return {'FINISHED'}
 
             sel_edges = [e for e in bm.edges if e.select]
-            vps = [e.verts for e in sel_edges]
-            vecs = [(obj_mtx @ vp[0].co) - (obj_mtx @ vp[1].co) for vp in vps]
+            vps = [e.verts[:] for e in sel_edges]
+            vecs = [Vector((obj_mtx @ vp[0].co) - (obj_mtx @ vp[1].co)).normalized() for vp in vps]
 
-            normal = correct_normal(obj_mtx, active_face.normal)
-            start_vec = vecs[-1]
+            side, center, start_vec = get_sides(obj_mtx, vecs, vps)
             setrot = rotation_from_vector(normal, start_vec)
-
-            # print("Rectangle or Ngon mode",ngoncheck, island_mode, fail_island)
-            if ngoncheck <= 4:
-                side, sides, center = get_sides(obj_mtx, start_vec, vecs, vps, legacy=False)
-            else:
-                side, sides, center = get_sides(obj_mtx, start_vec, vecs, vps, legacy=True)
 
         # -----------------------------------------------------------------------------------------
         # PROCESS
         # -----------------------------------------------------------------------------------------
         if side:
-            if len(sel_verts) == 0 or sel_mode[0] or sel_mode[1]:
+            if self.ke_fitprim_option == "PLANE" and self.edit_mode != "OBJECT":
+                if sel_mode[2]:
+                    setpos = center
+
+            elif len(sel_verts) == 0 or sel_mode[0] or sel_mode[1]:
                 side *= .5
                 distance = distance / 2
                 if self.sphere and sel_mode[0]:
@@ -669,9 +805,12 @@ class VIEW3D_OT_ke_fitprim(bpy.types.Operator):
                 if not island_mode and self.sphere:
                     setpos = setpos - offset
 
+
             # SET FINAL ROTATION
             if self.world:
                 setrot = (0, 0, 0)
+                if self.ke_fitprim_option == "PLANE" and not sel_verts:
+                    setpos[2] = 0
             else:
                 setrot = setrot.to_euler()
 
@@ -682,14 +821,13 @@ class VIEW3D_OT_ke_fitprim(bpy.types.Operator):
             if self.itemize:
                 if self.edit_mode != "OBJECT":
                     bpy.ops.object.mode_set(mode="OBJECT")
-                cursor = bpy.context.scene.cursor
-                og_orientation = str(context.scene.transform_orientation_slots[0].type)
-                og_cloc = [i for i in cursor.location]
-                og_crot = [i for i in cursor.rotation_euler]
                 bpy.ops.transform.select_orientation(orientation='GLOBAL')
                 cursor.location = setpos
                 cursor.rotation_euler = setrot
 
+            # -----------------------------------------------------------------------------------------
+            # CUBE
+            # -----------------------------------------------------------------------------------------
             if self.boxmode:
                 bpy.ops.mesh.primitive_box_add(width=side, depth=side, height=distance,
                                                align='WORLD', location=setpos, rotation=setrot)
@@ -697,14 +835,37 @@ class VIEW3D_OT_ke_fitprim(bpy.types.Operator):
                     bpy.ops.object.shade_smooth()
                     bpy.context.object.data.use_auto_smooth = True
 
-            elif self.sphere and not self.ke_fitprim_option in {"QUADSPHERE", "QUADSPHERE_OBJ"}:
+            # -----------------------------------------------------------------------------------------
+            # PLANE
+            # -----------------------------------------------------------------------------------------
+            elif self.ke_fitprim_option == "PLANE":
+
+                # side *= 2
+                enter = True
+
+                if self.edit_mode == 'OBJECT' or self.itemize:
+                    enter = False
+
+                bpy.ops.mesh.primitive_plane_add(enter_editmode=enter, align='WORLD', location=setpos,
+                                                 rotation=setrot, size=side, scale=(1, 1, 1))
+                if self.itemize or self.edit_mode == "OBJECT":
+                    bpy.ops.object.shade_smooth()
+                    bpy.context.object.data.use_auto_smooth = True
+
+            # -----------------------------------------------------------------------------------------
+            # SPHERE
+            # -----------------------------------------------------------------------------------------
+            elif self.sphere and not self.ke_fitprim_option == "QUADSPHERE":
                 bpy.ops.mesh.primitive_uv_sphere_add(segments=self.sphere_seg, ring_count=self.sphere_ring, radius=side,
                                                      align='WORLD', location=setpos, rotation=setrot)
                 if self.itemize or self.edit_mode == "OBJECT":
                     bpy.ops.object.shade_smooth()
                     bpy.context.object.data.use_auto_smooth = True
 
-            elif self.ke_fitprim_option == "QUADSPHERE" or self.ke_fitprim_option == "QUADSPHERE_OBJ":
+            # -----------------------------------------------------------------------------------------
+            # QUADSPHERE
+            # -----------------------------------------------------------------------------------------
+            elif self.ke_fitprim_option == "QUADSPHERE":
                 cutnr = self.quadsphere_seg
 
                 # calc compensated subd radius from cube
@@ -734,6 +895,9 @@ class VIEW3D_OT_ke_fitprim(bpy.types.Operator):
                     bpy.ops.object.shade_smooth()
                     bpy.context.object.data.use_auto_smooth = True
 
+            # -----------------------------------------------------------------------------------------
+            # CYLINDER
+            # -----------------------------------------------------------------------------------------
             else:
                 bpy.ops.mesh.primitive_cylinder_add(vertices=self.cyl_sides, radius=side, depth=distance * 2,
                                                     enter_editmode=False, align='WORLD',
@@ -752,44 +916,36 @@ class VIEW3D_OT_ke_fitprim(bpy.types.Operator):
                     bpy.context.space_data.overlay.show_cursor = False
                     return {'RUNNING_MODAL'}
 
+
             if multi_object_mode and not self.itemize:
                 second_obj.select_set(state=True)
                 obj.select_set(state=True)
                 bpy.ops.object.editmode_toggle()
                 bpy.ops.object.editmode_toggle()
-
         else:
-            self.report({"INFO"}, "FitPrim: Incorrect Selection? / Edit Mode? / No Active Element?")
+            self.report({"INFO"}, "FitPrim: Invalid Selection / No Active Element?")
 
         if not self.select and not self.itemize and not self.edit_mode == "OBJECT":
             bpy.ops.mesh.select_all(action='DESELECT')
 
         if self.itemize:
             bpy.ops.transform.select_orientation(orientation=og_orientation)
-            cursor.location = og_cloc
-            cursor.rotation_euler = og_crot
+            cursor.location = self.og_cloc
+            cursor.rotation_euler = self.og_crot
             bpy.context.active_object.select_set(state=True)
 
         self.ke_fitprim_itemize = False
         return {"FINISHED"}
 
-
 # -------------------------------------------------------------------------------------------------
 # Class Registration & Unregistration
 # -------------------------------------------------------------------------------------------------
-classes = (VIEW3D_OT_ke_fitprim,
-           )
-
 
 def register():
-    for c in classes:
-        bpy.utils.register_class(c)
-
+    bpy.utils.register_class(VIEW3D_OT_ke_fitprim)
 
 def unregister():
-    for c in reversed(classes):
-        bpy.utils.unregister_class(c)
-
+    bpy.utils.unregister_class(VIEW3D_OT_ke_fitprim)
 
 if __name__ == "__main__":
     register()

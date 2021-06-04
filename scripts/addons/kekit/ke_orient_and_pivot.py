@@ -3,7 +3,7 @@ bl_info = {
     "author": "Kjell Emanuelsson 2019",
     "category": "Modeling",
     "wiki_url": "http://artbykjell.com",
-    "version": (1, 0, 0),
+    "version": (1, 0, 1),
     "blender": (2, 80, 0),
 }
 
@@ -19,10 +19,10 @@ class VIEW3D_OT_ke_opc(bpy.types.Operator):
     bl_options = {'REGISTER'}
 
     combo: bpy.props.EnumProperty(
-        items=[("1", "OPC1", ""),
-               ("2", "OPC2", ""),
-               ("3", "OPC3", ""),
-               ("4", "OPC4", "")],
+        items=[("1", "OPC1", "", 1),
+               ("2", "OPC2", "", 2),
+               ("3", "OPC3", "", 3),
+               ("4", "OPC4", "", 4)],
         name="Combo",
         default="1")
 
@@ -70,20 +70,12 @@ class VIEW3D_OT_ke_opc(bpy.types.Operator):
 # -------------------------------------------------------------------------------------------------
 # Class Registration & Unregistration
 # -------------------------------------------------------------------------------------------------
-classes = (
-           VIEW3D_OT_ke_opc,
-           )
-
 
 def register():
-    for c in classes:
-        bpy.utils.register_class(c)
-
+    bpy.utils.register_class(VIEW3D_OT_ke_opc)
 
 def unregister():
-    for c in reversed(classes):
-        bpy.utils.unregister_class(c)
-
+    bpy.utils.unregister_class(VIEW3D_OT_ke_opc)
 
 if __name__ == "__main__":
     register()

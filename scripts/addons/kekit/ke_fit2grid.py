@@ -2,7 +2,7 @@ bl_info = {
     "name": "ke_fit2grid",
     "author": "Kjell Emanuelsson",
     "category": "Modeling",
-    "version": (1, 0, 1),
+    "version": (1, 0, 2),
     "blender": (2, 80, 0),
 }
 import bpy
@@ -26,8 +26,7 @@ class VIEW3D_OT_ke_fit2grid(bpy.types.Operator):
 
     @classmethod
     def poll(cls, context):
-        return (context.object is not None and
-                context.object.type == 'MESH' and context.object.data.is_editmode)
+        return context.object is not None
 
     def execute(self, context):
         if not self.set_grid:
@@ -35,65 +34,66 @@ class VIEW3D_OT_ke_fit2grid(bpy.types.Operator):
         else:
             grid_setting = self.set_grid
 
-        obj = context.active_object
-        od = obj.data
-        bm = bmesh.from_edit_mesh(od)
-        obj_mtx = obj.matrix_world.copy()
+        obj = context.object
 
-        verts = [v for v in bm.verts if v.select]
+        if obj.type == 'MESH' and obj.data.is_editmode:
+            od = obj.data
+            bm = bmesh.from_edit_mesh(od)
+            obj_mtx = obj.matrix_world.copy()
 
-        if verts:
-            vert_cos = [obj_mtx @ v.co for v in verts]
-            modified = []
+            verts = [v for v in bm.verts if v.select]
 
-            for v,co in zip(verts, vert_cos):
-                new_coords = fit_to_grid(co, grid_setting)
-                old_coords = tuple([round(i, 5) for i in co])
+            if verts:
+                vert_cos = [obj_mtx @ v.co for v in verts]
+                modified = []
 
-                if new_coords != old_coords:
-                    new_coords = new_coords
-                    v.co = obj_mtx.inverted() @ Vector(new_coords)
-                    modified.append(v)
+                for v,co in zip(verts, vert_cos):
+                    new_coords = fit_to_grid(co, grid_setting)
+                    old_coords = tuple([round(i, 5) for i in co])
 
-            bpy.ops.mesh.select_all(action='DESELECT')
+                    if new_coords != old_coords:
+                        new_coords = new_coords
+                        v.co = obj_mtx.inverted() @ Vector(new_coords)
+                        modified.append(v)
 
-            if modified:
-                for v in modified:
-                    v.select = True
+                bpy.ops.mesh.select_all(action='DESELECT')
 
-            bmesh.update_edit_mesh(od)
-            bm.free()
-            bpy.ops.object.mode_set(mode="OBJECT")
-            bpy.ops.object.mode_set(mode='EDIT')
+                if modified:
+                    for v in modified:
+                        v.select = True
 
-            if modified:
-                bpy.ops.mesh.select_mode(type="VERT")
-                self.report({"INFO"}, "Fit2Grid: %i vert(s) not on grid" % len(modified))
+                bmesh.update_edit_mesh(od)
+                bm.free()
+                bpy.ops.object.mode_set(mode="OBJECT")
+                bpy.ops.object.mode_set(mode='EDIT')
+
+                if modified:
+                    bpy.ops.mesh.select_mode(type="VERT")
+                    self.report({"INFO"}, "Fit2Grid: %i vert(s) not on grid" % len(modified))
+                else:
+                    self.report({"INFO"}, "Fit2Grid: On grid - All good!")
+
             else:
-                self.report({"INFO"}, "Fit2Grid: On grid - All good!")
+                self.report({"INFO"}, "Fit2Grid: Nothing Selected?")
+
+        elif context.mode == "OBJECT":
+            new_loc = fit_to_grid(obj.location, grid_setting)
+            obj.location = new_loc
 
         else:
-            self.report({"INFO"}, "Fit2Grid: Nothing Selected?")
-
-        # todo: Add Object location snap too
+            self.report({"INFO"}, "Fit2Grid: Invalid object/mode - Aborted")
 
         return {'FINISHED'}
 
 # -------------------------------------------------------------------------------------------------
 # Class Registration & Unregistration
 # -------------------------------------------------------------------------------------------------
-classes = (VIEW3D_OT_ke_fit2grid,
-           )
 
 def register():
-    for c in classes:
-        bpy.utils.register_class(c)
-
+    bpy.utils.register_class(VIEW3D_OT_ke_fit2grid)
 
 def unregister():
-    for c in reversed(classes):
-        bpy.utils.unregister_class(c)
-
+    bpy.utils.unregister_class(VIEW3D_OT_ke_fit2grid)
 
 if __name__ == "__main__":
     register()

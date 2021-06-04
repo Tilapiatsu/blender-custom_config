@@ -2,7 +2,7 @@ bl_info = {
     "name": "keZeroScale",
     "author": "Kjell Emanuelsson",
     "category": "Modeling",
-    "version": (1, 0, 2),
+    "version": (1, 0, 6),
     "blender": (2, 9, 0),
 }
 import bpy
@@ -17,18 +17,17 @@ class MESH_OT_ke_zeroscale(bpy.types.Operator):
     bl_description = "Instantly zero-scales selected elements to A: Vertical or Horisontal screen global axis (pie)" \
 					 "B: The normal of the active element. No active element = Average selection pos. (pie)" \
                      "C: To the Cursor (mind the rotation!)"
-
-    bl_options = {'REGISTER'}
+    bl_options = {'REGISTER', 'UNDO'}
 
     orient_type: bpy.props.EnumProperty(
         items=[("GLOBAL", "Global", "", "GLOBAL", 1),
                ("NORMAL", "Normal", "", "NORMAL", 2),
                ("CURSOR", "Cursor", "", "CURSOR", 3),
                ],
-        name="Orientation",
+        name="Orientation", options={"HIDDEN"},
         default="GLOBAL")
 
-    screen_axis: bpy.props.IntProperty(default=1, min=0, max=2)
+    screen_axis: bpy.props.IntProperty(default=1, min=0, max=2, options={"HIDDEN"})
 
     @classmethod
     def poll(cls, context):
@@ -49,7 +48,6 @@ class MESH_OT_ke_zeroscale(bpy.types.Operator):
         if self.orient_type == "CURSOR":
             avg_pos = context.scene.cursor.location
             om = context.scene.cursor.matrix.to_3x3()
-            print(om)
             zerovalue = (1,1,0)
             vplane = (False,False,True)
 
@@ -67,10 +65,6 @@ class MESH_OT_ke_zeroscale(bpy.types.Operator):
             avg_pos = obj.matrix_world @ Vector(active_pos)
             om = ((1, 0, 0), (0, 1, 0), (0, 0, 1))
 
-        # print(self.orient_type)
-
-        # if self.screen_axis == 0:
-        #     self.orient_type = "GLOBAL"
 
         if self.orient_type == "GLOBAL":
             bpy.ops.transform.select_orientation(orientation='GLOBAL')
@@ -96,12 +90,9 @@ class MESH_OT_ke_zeroscale(bpy.types.Operator):
             else:
                 zerovalue = (1, 1, 0)
 
-            # self.orient_type = "GLOBAL"
             bpy.ops.transform.select_orientation(orientation='LOCAL')
             bpy.context.scene.tool_settings.transform_pivot_point = 'ACTIVE_ELEMENT'
 
-        # else: # bkp
-        #     zerovalue = (1, 1, 0)
         if self.orient_type == "NORMAL":
             omt = "GLOBAL"
         else:
@@ -124,21 +115,15 @@ class MESH_OT_ke_zeroscale(bpy.types.Operator):
 
         return {'FINISHED'}
 
-
 # -------------------------------------------------------------------------------------------------
 # Class Registration & Unregistration
 # -------------------------------------------------------------------------------------------------
-classes = (
-    MESH_OT_ke_zeroscale,
-)
 
 def register():
-    for cls in classes:
-        bpy.utils.register_class(cls)
+    bpy.utils.register_class(MESH_OT_ke_zeroscale)
 
 def unregister():
-    for cls in reversed(classes):
-        bpy.utils.unregister_class(cls)
+    bpy.utils.unregister_class(MESH_OT_ke_zeroscale)
 
 if __name__ == "__main__":
     register()

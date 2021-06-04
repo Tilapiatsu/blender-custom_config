@@ -142,12 +142,12 @@ class VIEW3D_OT_ke_vert_count_select(bpy.types.Operator):
     bl_options = {'REGISTER', 'UNDO'}
 
     sel_count: bpy.props.EnumProperty(
-        items=[("0", "Loose Vert", "", "0", 1),
-               ("1", "Loose Edge", "", "1", 2),
-               ("2", "2 Edges", "", "2", 3),
-               ("3", "Tri", "", "3", 4),
-               ("4", "Quad", "", "4", 5),
-               ("5", "Ngon", "", "5", 6)],
+        items=[("0", "Loose Vert", "", 1),
+               ("1", "Loose Edge", "", 2),
+               ("2", "2 Edges", "", 3),
+               ("3", "Tri", "", 4),
+               ("4", "Quad", "", 5),
+               ("5", "Ngon", "", 6)],
         name="Select Geo by Vert Count",
         default="3")
 
@@ -206,14 +206,14 @@ class VIEW3D_OT_ke_vert_count_select(bpy.types.Operator):
 class VIEW3D_OT_ke_purge(bpy.types.Operator):
     bl_idname = "view3d.ke_purge"
     bl_label = "Purge Unused Data"
-    bl_description = "Purge specific unused data blocks"
+    bl_description = "Purge specific unused data blocks\nNote: Deleted meshes will still 'use' materials: Purge meshes first"
     bl_options = {'REGISTER', 'UNDO'}
 
     block_type: bpy.props.EnumProperty(
-        items=[("MESH", "Mesh", "", "MESH", 1),
-               ("MATERIAL", "Materials", "", "MATERIAL", 2),
-               ("TEXTURE", "Textures", "", "TEXTURE", 3),
-               ("IMAGE", "Images", "", "IMAGE", 4)],
+        items=[("MESH", "Mesh", "", 1),
+               ("MATERIAL", "Materials", "", 2),
+               ("TEXTURE", "Textures", "", 3),
+               ("IMAGE", "Images", "", 4)],
         name="Purge Data",
         default="MATERIAL")
 

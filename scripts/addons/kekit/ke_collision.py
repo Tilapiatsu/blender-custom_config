@@ -2,7 +2,7 @@ bl_info = {
     "name": "keCollision",
     "author": "Kjell Emanuelsson",
     "category": "Modeling",
-    "version": (1, 0, 0),
+    "version": (1, 0, 1),
     "blender": (2, 80, 0),
 }
 import bpy
@@ -16,8 +16,8 @@ class VIEW3D_OT_ke_collision(bpy.types.Operator):
     bl_description = "Creates BOX or CONVEX HULL collision-style object from element or obj selection. Multi-object edit mode support."
     bl_options = {'REGISTER', 'UNDO'}
 
-    col_type : bpy.props.EnumProperty(items=[("BOX", "Box", ""),
-                                            ("CONVEX", "Convex Hull", ""),
+    col_type : bpy.props.EnumProperty(items=[("BOX", "Box", "", 1),
+                                            ("CONVEX", "Convex Hull", "", 2),
                                             ], name="Collision Type", default="BOX")
 
     @classmethod
@@ -186,18 +186,13 @@ class VIEW3D_OT_ke_collision(bpy.types.Operator):
 # -------------------------------------------------------------------------------------------------
 # Class Registration & Unregistration
 # -------------------------------------------------------------------------------------------------
-classes = (VIEW3D_OT_ke_collision,
-           )
 
 def register():
-    for c in classes:
-        bpy.utils.register_class(c)
+    bpy.utils.register_class(VIEW3D_OT_ke_collision)
 
 
 def unregister():
-    for c in reversed(classes):
-        bpy.utils.unregister_class(c)
-
+    bpy.utils.unregister_class(VIEW3D_OT_ke_collision)
 
 if __name__ == "__main__":
     register()

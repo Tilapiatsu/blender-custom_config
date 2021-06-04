@@ -2,7 +2,7 @@ bl_info = {
     "name": "keQuickMeasure",
     "author": "Kjell Emanuelsson",
     "category": "Modeling",
-    "version": (1, 4, 5),
+    "version": (1, 5, 1),
     "blender": (2, 80, 0),
 }
 import bpy
@@ -10,7 +10,7 @@ import bgl
 import blf
 import gpu
 from gpu_extras.batch import batch_for_shader
-from mathutils import Vector
+# from mathutils import Vector
 from math import ceil
 from bpy_extras.view3d_utils import location_3d_to_region_2d
 from .ke_utils import get_distance, get_midpoint, get_scene_unit, chunk
@@ -25,9 +25,20 @@ def bb(self, context):
         y.append(i[1])
         z.append(i[2])
     x, y, z = sorted(x), sorted(y), sorted(z)
-    if len(x) > 1:
-        unit = get_scene_unit((x[-1] - x[0]) * (y[-1] - y[0]))
-        self.area = str(round(unit[1],3)) + unit[0] + "\u00b2"
+
+    if len(x) > 1: # any coords
+        # XY, XZ, YZ
+        if self.area_mode[1]:
+            unit = get_scene_unit((x[-1] - x[0]) * (z[-1] - z[0]), nearest=True)
+            am = "Area XZ:"
+        elif self.area_mode[2]:
+            unit = get_scene_unit((y[-1] - y[0]) * (z[-1] - z[0]), nearest=True)
+            am = "Area YZ:"
+        else:
+            unit = get_scene_unit((x[-1] - x[0]) * (y[-1] - y[0]), nearest=True)
+            am = "Area XY:"
+        self.area = am + str(round(unit[1],3)) + unit[0] + "\u00b2"
+
     self.lines = [
         ((x[0], y[0], z[0]), (x[0], y[0], z[-1])),
         ((x[0], y[0], z[0]), (x[-1], y[0], z[0])),
@@ -47,7 +58,7 @@ def bb(self, context):
     for i in self.lines:
         d = get_distance(i[0], i[1])
         self.sizes.append(d)
-        unit = get_scene_unit(d)
+        unit = get_scene_unit(d, nearest=True)
         value = str(round(unit[1], 4)) + unit[0]
         self.stat.append(value)
 
@@ -107,23 +118,53 @@ def sel_check(self, context, sel_save_check=False):
 
     # Process indices per object for coordinates --------------------------------------------------------------------
     if sel_verts:
+        convert_stats = False
 
         for indices, obj in zip(sel_verts, sel_obj):
             obj.update_from_editmode()
             self.vpos.extend([obj.matrix_world @ obj.data.vertices[v].co for v in indices])
-            # vc.extend([o.matrix_world @ Vector(b) for b in o.bound_box]) # todo: obj mode - Why not wrk w rot?!
 
         if context.mode == "EDIT_MESH":
             if self.edit_mode[0]:
-                if self.vertmode == "Distance" and len(self.vpos) > 1:
+
+                if self.sel_save_mode and self.vertmode == "Distance" and len(self.vpos) > 1:
                     self.stat = [round(get_distance(self.vpos[0], self.vpos[1]), 4)]
                     self.lines = [(self.vpos[0], self.vpos[1])]
+                    convert_stats = True
+
+                elif not self.sel_save_mode and self.vertmode == "Distance":
+                    if len(self.vpos) > 0:
+                        if len(self.vpos) == 1:
+                            new = self.vpos
+                        else:
+                            new = [pos for pos in self.vpos if pos not in self.vert_history[1:]]
+                        self.vert_history.extend(new)
+                    else:
+                        self.vert_history = []
+
+                    if self.vertmode == "Distance" and len(self.vert_history) > 1:
+                        vl = self.vert_history
+
+                        if len(vl) % 2 != 0:
+                            exv = vl[-2]
+                            vl.insert(-2, exv)
+
+                        vps = chunk(vl, 2)
+                        self.lines = vps
+                        for vp in vps:
+                            d = round(get_distance(vp[0], vp[1]), 4)
+                            self.stat.append(d)
+
+                        convert_stats = True
+
                 elif self.vertmode == "BBox" and len(self.vpos) > 1:
                     bb(self, context)
                 else:
                     self.lines = None
 
             elif self.edit_mode[1]:
+                convert_stats = True
+                self.vert_history = []
                 vps = chunk(self.vpos, 2)
                 self.lines = vps
                 for vp in vps:
@@ -131,10 +172,26 @@ def sel_check(self, context, sel_save_check=False):
                     self.stat.append(d)
 
             elif self.edit_mode[2]:
+                self.vert_history = []
                 if len(self.vpos) < 3:
                     self.lines = None
                 else:
                     bb(self,context)
+
+            if convert_stats:
+                # Total distance calc
+                t = round((ceil(sum(self.stat * 10000)) / 10000), 3)
+                unit, value = get_scene_unit(t, nearest=True)
+                value = round(value, 4)
+                self.dtot = str(value) + unit
+
+                # unit conversion
+                conv = []
+                for s in self.stat:
+                    u,v = get_scene_unit(s, nearest=True)
+                    cs = str(round(v,4)) + u
+                    conv.append(cs)
+                self.stat = conv
 
         else:  # OBJECT MODE
             if self.vpos:
@@ -209,14 +266,14 @@ def draw_callback_px(self, context):
     else:
         ua = "Z"
 
-    if self.lines:
+    if self.lines and self.txt_pos and self.stat:
         # draw stats
         count = 0
         blf.enable(font_id, 4)
         blf.size(font_id, 14, 72)
         blf.color(font_id, 0.9, 0.9, 0.9, 1)
         blf.shadow(font_id, 3, 0, 0, 0, 1)
-        blf.shadow_offset(font_id, 2, -2)
+        blf.shadow_offset(font_id, 1, -1)
 
         for t, s in zip(self.txt_pos, self.stat):
             blf.position(font_id, t[0], t[1], 0)
@@ -237,8 +294,7 @@ def draw_callback_px(self, context):
                     blf.draw(font_id, s)
 
                 elif self.edit_mode[0] and self.vertmode == "Distance" or self.edit_mode[1]:
-                    unit = get_scene_unit(float(s))
-                    blf.draw(font_id, str(round(unit[1], 4)) + str(unit[0]))
+                    blf.draw(font_id, s)
             else:
                 blf.draw(font_id, str(s))
 
@@ -254,32 +310,35 @@ def draw_callback_px(self, context):
     else:
         hoff = 0
 
+    if self.edit_mode[0] and not self.obj_mode:
+        vmode = self.vertmode
+    else:
+        vmode = ""
+
     if not self.lines:
         blf.color(font_id, self.scol[0], self.scol[1], self.scol[2], self.scol[3])
         blf.size(font_id, 15, 72)
         blf.position(font_id, hpos, vpos + 106 - hoff, 0)
-        blf.draw(font_id, "[ Invalid Selection ]")
+        blf.draw(font_id, "[ Invalid Selection ] %s" %vmode)
     else:
         if self.sel_save_mode:
             blf.color(font_id, self.scol[0], self.scol[1], self.scol[2], self.scol[3])
             blf.size(font_id, 15, 72)
             blf.position(font_id, hpos, vpos + 134 - hoff, 0)
-            blf.draw(font_id, "[ --- Using Saved Selection --- ]")
+            blf.draw(font_id, "[ --- Using Saved Selection (F)--- ] %s" %vmode)
 
         blf.color(font_id, self.hcol[0], self.hcol[1], self.hcol[2], self.hcol[3])
         blf.size(font_id, 20, 72)
         blf.position(font_id, hpos, vpos + 106 - hoff, 0)
-
         if self.edit_mode[1] and not self.obj_mode:
-            t = ceil(sum(self.stat * 10000)) / 10000
-            blf.draw(font_id, "Quick Measure  [Edges Total: %s]" % str(t))
+            blf.draw(font_id, "Quick Measure [Total: %s]" %self.dtot )
         elif self.edit_mode[0] and not self.obj_mode:
             if self.vertmode == "Distance":
-                blf.draw(font_id, "Quick Measure [Vert Mode: %s]"  % self.vertmode)
+                blf.draw(font_id, "Quick Measure (V): %s  (C or Space-click) Clear [Total: %s]"  % (self.vertmode, self.dtot))
             else:
-                blf.draw(font_id, "Quick Measure [Vert Mode: %s] Area XY: %s"  % (self.vertmode, self.area) )
+                blf.draw(font_id, "Quick Measure (V): %s [%s]"  % (self.vertmode, self.area) )
         else:
-            blf.draw(font_id, "Quick Measure [Area XY: %s]" % self.area)
+            blf.draw(font_id, "Quick Measure [%s]" % self.area)
 
     # Instructions
     blf.color(font_id, self.tcol[0], self.tcol[1], self.tcol[2], self.tcol[3])
@@ -290,14 +349,14 @@ def draw_callback_px(self, context):
         blf.draw(font_id, "Change / Update Mode: (1)Verts, (2)Edges, (3)Faces, (4)Objects")
         blf.position(font_id, hpos, vpos + 56, 0)
         if self.edit_mode[0]:
-            blf.draw(font_id, "Stop: (Esc), (Enter), (Spacebar).      Toggle Vert Mode: (V)")
+            blf.draw(font_id, "Stop: (Esc), (Enter), (Spacebar). Toggle Vert Mode: (V)   Clear Sel: (C) or space-click")
         else:
             blf.draw(font_id, "Stop: (Esc), (Enter), (Spacebar)")
 
         blf.position(font_id, hpos, vpos + 36, 0)
         blf.draw(font_id, "(G)rab, (R)otate, (S)cale. +X,Y/>,Z")
         blf.position(font_id, hpos, vpos + 16, 0)
-        blf.draw(font_id, "Freeze Selection: (F) Toggle")
+        blf.draw(font_id, "Freeze Selection: (F) Toggle    Area: (A) Cycle")
         blf.position(font_id, hpos, vpos - 4, 0)
         blf.draw(font_id, "Round-Snap: (T) By %s-Axis(M). Unit-scale:%s(N). Round-Snap All Axis (B)." %(ua, self.unit_size) )
 
@@ -361,7 +420,8 @@ def snapscale(self, context, all_axis=False):
 class VIEW3D_OT_ke_quickmeasure(bpy.types.Operator):
     bl_idname = "view3d.ke_quickmeasure"
     bl_label = "Quick Measure"
-    bl_description = "Contextual measurement types by mesh selection (Obj & Edit modes). *QM FreezeMode* starts in freeze mode."
+    bl_description = "Contextual measurement types by mesh selection (Obj & Edit modes).\n" \
+                     "*QM FreezeMode* starts in freeze mode."
     bl_options = {'REGISTER'}
 
     qm_start: bpy.props.EnumProperty(
@@ -378,6 +438,7 @@ class VIEW3D_OT_ke_quickmeasure(bpy.types.Operator):
 
     _handle = None
     _handle_px = None
+    _timer = None
     lines = None
     bb_lines = None
     txt_pos = []
@@ -386,15 +447,18 @@ class VIEW3D_OT_ke_quickmeasure(bpy.types.Operator):
     edit_mode = None
     obj_mode = False
     stat = "Stat Info"
+    dtot = ""
     screen_x = 64
     vertmode = "Distance"
     area = "N/A"
+    area_mode = [True, False, False] # XY, XZ, YZ
     auto_update = True
     sel_upd = False
     sel_save_mode = False
     sel_save = []
     sel_save_obj = []
     help_mode = False
+    vert_history = []
 
     unit_size = False
     user_axis = 2
@@ -406,20 +470,34 @@ class VIEW3D_OT_ke_quickmeasure(bpy.types.Operator):
     scol = (1,1,1,1)
 
     def modal(self, context, event):
-        if event.type in {'ONE', 'TWO', 'THREE', 'TAB'}:
+        if event.type in {'ONE', 'TWO', 'THREE'} and event.value == 'RELEASE':
+            if event.type == "ONE":
+                bpy.ops.view3d.ke_selmode(edit_mode = "VERT")
+                bpy.ops.view3d.select(deselect_all=True)
+            elif event.type == "TWO":
+                bpy.ops.view3d.ke_selmode(edit_mode = "EDGE")
+            elif event.type == "THREE":
+                bpy.ops.view3d.ke_selmode(edit_mode = "FACE")
+            self.vert_history = []
             sel_check(self, context)
-            return {'PASS_THROUGH'}
+            context.area.tag_redraw()
 
-        elif event.type == 'FOUR':
+        elif event.type in {'FOUR', 'TAB'} and event.value == 'RELEASE':
+            bpy.ops.object.editmode_toggle()
             sel_check(self, context)
-            if not self.obj_mode:
-                return {'PASS_THROUGH'}
+            context.area.tag_redraw()
 
         if event.type == 'V' and event.value == 'RELEASE':
             if self.vertmode == "Distance":
                 self.vertmode = "BBox"
             else:
                 self.vertmode = "Distance"
+            self.vert_history = []
+            sel_check(self, context)
+            context.area.tag_redraw()
+
+        elif event.type == 'C' and event.value == 'RELEASE':
+            bpy.ops.view3d.select(deselect_all=True)
             sel_check(self, context)
 
         if context.area and self.sel_upd:
@@ -427,6 +505,7 @@ class VIEW3D_OT_ke_quickmeasure(bpy.types.Operator):
                 sel_check(self, context)
             elif context.mode == "OBJECT":
                 sel_check(self, context)
+            context.area.tag_redraw()
 
         if self.lines and context.area and event.type == 'TIMER':
             txt_calc(self, context)
@@ -449,18 +528,21 @@ class VIEW3D_OT_ke_quickmeasure(bpy.types.Operator):
             context.area.tag_redraw()
 
         elif event.type in {'ESC', 'RETURN', 'SPACE'}:
+            wm = context.window_manager
+            wm.event_timer_remove(self._timer)
             bpy.types.SpaceView3D.draw_handler_remove(self._handle, 'WINDOW')
             bpy.types.SpaceView3D.draw_handler_remove(self._handle_px, 'WINDOW')
             context.area.tag_redraw()
-            wm = context.window_manager
-            wm.event_timer_remove(self._timer)
             return {'FINISHED'}
 
         elif event.type == "LEFTMOUSE" or event.type == "RIGHTMOUSE":
             self.sel_upd = True
             return {'PASS_THROUGH'}
 
-        elif event.shift or event.ctrl or event.alt:
+        elif event.ctrl or event.alt:
+            return {'PASS_THROUGH'}
+
+        elif event.shift and not self.edit_mode[0] and not self.obj_mode and self.vertmode != "Distance":
             return {'PASS_THROUGH'}
 
         elif event.type == 'G':
@@ -474,6 +556,16 @@ class VIEW3D_OT_ke_quickmeasure(bpy.types.Operator):
 
         elif event.type in {'X', 'Y', 'Z', 'GRLESS'}:
             return {'PASS_THROUGH'}
+
+        elif event.type == 'A'and event.value == 'RELEASE':
+            if self.area_mode[0]:
+                self.area_mode[0], self.area_mode[1], self.area_mode[2] = False, True, False
+            elif self.area_mode[1]:
+                self.area_mode[0], self.area_mode[1], self.area_mode[2] = False, False, True
+            elif self.area_mode[2]:
+                self.area_mode[0], self.area_mode[1], self.area_mode[2] = True, False, False
+            sel_check(self, context)
+            context.area.tag_redraw()
 
         elif event.type in {'NUMPAD_PLUS', 'NUMPAD_MINUS', 'NUMPAD_1', 'NUMPAD_2', 'NUMPAD_3', 'NUMPAD_4', 'NUMPAD_5',
                             'NUMPAD_6', 'NUMPAD_7', 'NUMPAD_8', 'NUMPAD_9', 'WHEELUPMOUSE', 'WHEELDOWNMOUSE'}:
@@ -533,6 +625,10 @@ class VIEW3D_OT_ke_quickmeasure(bpy.types.Operator):
         bpy.app.handlers.frame_change_post.clear()
         sel_check(self, context, sel_save_check=True)
 
+        # if self.edit_mode[0] and len(self.vpos) > 1:
+        #     new = [pos for pos in self.vpos if pos not in self.vert_history]
+        #     self.vert_history.extend(new[:2])
+
         if context.area.type == 'VIEW_3D':
             if self.qm_start == "SEL_SAVE":
                 self.sel_save_mode = True
@@ -560,17 +656,12 @@ class VIEW3D_OT_ke_quickmeasure(bpy.types.Operator):
 # -------------------------------------------------------------------------------------------------
 # Class Registration & Unregistration
 # -------------------------------------------------------------------------------------------------
-classes = (
-    VIEW3D_OT_ke_quickmeasure,
-)
 
 def register():
-    for c in classes:
-        bpy.utils.register_class(c)
+    bpy.utils.register_class(VIEW3D_OT_ke_quickmeasure)
 
 def unregister():
-    for c in reversed(classes):
-        bpy.utils.unregister_class(c)
+    bpy.utils.unregister_class(VIEW3D_OT_ke_quickmeasure)
 
 if __name__ == "__main__":
     register()

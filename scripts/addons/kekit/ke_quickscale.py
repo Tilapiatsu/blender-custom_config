@@ -2,16 +2,16 @@ bl_info = {
     "name": "keQuickScale",
     "author": "Kjell Emanuelsson",
     "category": "Modeling",
-    "version": (1, 0, 0),
+    "version": (1, 0, 2),
     "blender": (2, 80, 0),
 }
 import bpy
-
+from .ke_utils import average_vector
 
 class VIEW3D_OT_ke_quickscale(bpy.types.Operator):
     bl_idname = "view3d.ke_quickscale"
     bl_label = "Quick Scale"
-    bl_description = "Set dimension (in current scene unit). Unit sized from chosen axis. Obj & Edit mode (selection)"
+    bl_description = "Set dimension (Unit meter) or Unit sized to fit value with chosen axis. Obj & Edit mode (selection)"
     bl_options = {'REGISTER'}
 
     user_axis : bpy.props.IntProperty(default=2)
@@ -72,12 +72,15 @@ class VIEW3D_OT_ke_quickscale(bpy.types.Operator):
         else:
             edit_val =  user_value / dimension[self.user_axis]
             new_dimensions = [edit_val, edit_val, edit_val]
+            c = average_vector(vpos)
+            c_o = (c[0], c[1], z[0])
 
             if not unit_size:
                 new_dimensions[other_axis[0]] = 1
                 new_dimensions[other_axis[1]] = 1
 
             bpy.ops.transform.resize(value=new_dimensions, orient_type='GLOBAL', orient_matrix_type='GLOBAL',
+                                     center_override=c_o,
                                      constraint_axis=(False, False, False), mirror=False, use_proportional_edit=False,
                                      use_proportional_connected=False, use_proportional_projected=False, snap=False,
                                      gpencil_strokes=False, texture_space=False, remove_on_cancel=False,
@@ -88,17 +91,12 @@ class VIEW3D_OT_ke_quickscale(bpy.types.Operator):
 # -------------------------------------------------------------------------------------------------
 # Class Registration & Unregistration
 # -------------------------------------------------------------------------------------------------
-classes = (
-    VIEW3D_OT_ke_quickscale,
-)
 
 def register():
-    for c in classes:
-        bpy.utils.register_class(c)
+    bpy.utils.register_class(VIEW3D_OT_ke_quickscale)
 
 def unregister():
-    for c in reversed(classes):
-        bpy.utils.unregister_class(c)
+    bpy.utils.unregister_class(VIEW3D_OT_ke_quickscale)
 
 if __name__ == "__main__":
     register()

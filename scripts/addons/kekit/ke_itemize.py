@@ -2,7 +2,7 @@ bl_info = {
     "name": "keItemize",
     "author": "Kjell Emanuelsson",
     "category": "Modeling",
-    "version": (1, 2, 0),
+    "version": (1, 2, 2),
     "blender": (2, 80, 0),
 }
 import bpy
@@ -30,7 +30,7 @@ class MESH_OT_ke_itemize(bpy.types.Operator):
                      "will be used for rotation/position (the bottom). Edge mode auto-connects linked elements."
     bl_options = {'REGISTER', 'UNDO'}
 
-    mode: bpy.props.EnumProperty(items=[("DEFAULT", "Default", ""), ("DUPE", "Duplicate", "")],
+    mode: bpy.props.EnumProperty(items=[("DEFAULT", "Default", "", 1), ("DUPE", "Duplicate", "", 2)],
                                  name="Mode", default="DEFAULT")
 
     @classmethod
@@ -180,18 +180,12 @@ class MESH_OT_ke_itemize(bpy.types.Operator):
 # -------------------------------------------------------------------------------------------------
 # Class Registration & Unregistration
 # -------------------------------------------------------------------------------------------------
-classes = (MESH_OT_ke_itemize,
-           )
 
 def register():
-    for c in classes:
-        bpy.utils.register_class(c)
-
+    bpy.utils.register_class(MESH_OT_ke_itemize)
 
 def unregister():
-    for c in reversed(classes):
-        bpy.utils.unregister_class(c)
-
+    bpy.utils.unregister_class(MESH_OT_ke_itemize)
 
 if __name__ == "__main__":
     register()

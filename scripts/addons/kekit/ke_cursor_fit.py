@@ -3,7 +3,7 @@ bl_info = {
     "author": "Kjell Emanuelsson 2020",
     "category": "Modeling",
     "wiki_url": "http://artbykjell.com",
-    "version": (1, 4, 0),
+    "version": (1, 4, 5),
     "blender": (2, 80, 0),
 }
 
@@ -29,8 +29,10 @@ def set_cursor(rotmat, pos=[]):
 class VIEW3D_OT_cursor_fit_selected_and_orient(bpy.types.Operator):
     bl_idname = "view3d.cursor_fit_selected_and_orient"
     bl_label = "Cursor snap to selected and orient"
-    bl_description = "Snap Cursor to selected + orient to FACE/VERT/EDGE normal. No selection = Cursor reset " \
-                     "Note: Works with mouse over on faces in Object mode."
+    bl_description = "Snap Cursor to selected + orient to FACE/VERT/EDGE normal. \n" \
+                     "No selection = Cursor reset\n" \
+                     "Object mode: Mouse over object places Cursor on face center OR\n" \
+                     "Obj selected and mouse over nothing, matches obj rot/loc."
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'UI'
     bl_options = {'REGISTER'}
@@ -276,7 +278,6 @@ class VIEW3D_OT_cursor_fit_selected_and_orient(bpy.types.Operator):
         elif bpy.context.mode == "OBJECT":
             sel_obj = [o for o in context.selected_objects]
             hit_obj, hit_wloc, hit_normal, hit_face = mouse_raycast(context, self.mouse_pos)
-
             if hit_normal and hit_obj:
                 obj_mtx = hit_obj.matrix_world.copy()
 
@@ -285,20 +286,33 @@ class VIEW3D_OT_cursor_fit_selected_and_orient(bpy.types.Operator):
                 bm.faces.ensure_lookup_table()
 
                 normal = bm.faces[hit_face].normal
-                tangent = bm.faces[hit_face].calc_tangent_edge_pair()
+                tangent = bm.faces[hit_face].calc_tangent_edge()
                 pos = obj_mtx @ bm.faces[hit_face].calc_center_median()
 
                 rot_mtx = rotation_from_vector(normal, tangent, rw=False)
                 rot_mtx = obj_mtx @ rot_mtx
                 set_cursor(rot_mtx, pos=pos)
 
-            elif sel_obj and not hit_normal:
+            elif len(sel_obj) == 1 and hit_obj not in sel_obj:
                 context.scene.cursor.location = sel_obj[0].location
                 context.scene.cursor.rotation_euler = sel_obj[0].rotation_euler
+                if self.cursorOP:
+                    bpy.ops.transform.select_orientation(orientation="CURSOR")
+                    bpy.context.tool_settings.transform_pivot_point = "CURSOR"
+
+            elif len(sel_obj) > 1 and hit_obj not in sel_obj:
+                v = Vector(sel_obj[0].location - sel_obj[-1].location).normalized()
+                if round(abs(v.dot(Vector((1,0,0)) )),3) == 1:
+                    u = Vector((0,0,1))
+                else:
+                    u = Vector((-1,0,0))
+                t = v.cross(u).normalized()
+                rot_mtx = rotation_from_vector(v, t, rw=False)
+                context.scene.cursor.rotation_euler = rot_mtx.to_euler()
+                context.scene.cursor.location = average_vector([o.location for o in sel_obj])
 
             else:
                 bpy.ops.view3d.snap_cursor_to_center()
-
 
         if not self.cursorOP:
             # RESET OP TRANSFORMS
@@ -311,26 +325,18 @@ class VIEW3D_OT_cursor_fit_selected_and_orient(bpy.types.Operator):
         else:
             context.scene.cursor.rotation_mode = 'XYZ'
 
-
         return {'FINISHED'}
 
 
 # -------------------------------------------------------------------------------------------------
 # Class Registration & Unregistration
 # -------------------------------------------------------------------------------------------------
-classes = (
-           VIEW3D_OT_cursor_fit_selected_and_orient,
-           )
 
 def register():
-    for c in classes:
-        bpy.utils.register_class(c)
-
+    bpy.utils.register_class(VIEW3D_OT_cursor_fit_selected_and_orient)
 
 def unregister():
-    for c in reversed(classes):
-        bpy.utils.unregister_class(c)
-
+    bpy.utils.unregister_class(VIEW3D_OT_cursor_fit_selected_and_orient)
 
 if __name__ == "__main__":
     register()

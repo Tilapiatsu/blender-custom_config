@@ -2,7 +2,7 @@ bl_info = {
     "name": "keMouseAxisMove",
     "author": "Kjell Emanuelsson",
     "category": "Modeling",
-    "version": (1, 0, 2),
+    "version": (1, 0, 8),
     "blender": (2, 80, 0),
 }
 
@@ -20,10 +20,11 @@ class VIEW3D_OT_ke_mouse_axis_move(bpy.types.Operator):
     bl_options = {'REGISTER', 'UNDO'}
 
     mode: bpy.props.EnumProperty(
-        items=[("MOVE", "Move", "", "MOVE", 1),
-               ("DUPE", "Duplicate", "", "DUPE", 2),
-               ("ROT", "Rotate", "", "ROT", 3),
-               ("SCL", "Resize", "", "SCL", 4)
+        items=[("MOVE", "Move", "", 1),
+               ("DUPE", "Duplicate", "", 2),
+               ("ROT", "Rotate", "", 3),
+               ("SCL", "Resize", "", 4),
+               ("CURSOR", "Cursor", "", 5)
                ],
         name="Mode",
         default="MOVE")
@@ -33,6 +34,16 @@ class VIEW3D_OT_ke_mouse_axis_move(bpy.types.Operator):
     tm = Matrix().to_3x3()
     rv = None
     ot = "GLOBAL"
+
+    @classmethod
+    def description(cls, context, properties):
+        if properties.mode == "DUPE":
+            return "Duplicates mesh/object before running Mouse Axis Move"
+        elif properties.mode == "CURSOR":
+            return "Mouse Axis Move for the Cursor. Global orientation or Cursor orientation (used in all modes except Global)"
+        else:
+            return "Runs Grab, Rotate or Resize with Axis auto-locked based on your mouse movement (or viewport when Rot) " \
+                   "using recalculated orientation based on the selected Orientation type."
 
     @classmethod
     def poll(cls, context):
@@ -56,74 +67,70 @@ class VIEW3D_OT_ke_mouse_axis_move(bpy.types.Operator):
         og = getset_transform(setglobal=False)
         self.ot = og[0]
 
-        #check type
-        if context.object.type in {'MESH', 'CURVE', 'SURFACE', 'META', 'FONT', 'HAIR', 'GPENCIL'}:
-            em = bool(context.object.data.is_editmode)
-        else:
-            em = "OBJECT"
-
-        if og[0] == "GLOBAL":
-            self.rv = self.tm[0].to_3d(), self.tm[1].to_3d(), self.tm[2].to_3d()
-
-        elif og[0] == "CURSOR":
-            cm = context.scene.cursor.matrix.to_3x3()
-            self.rv = cm[0], cm[1], cm[2]
-
-        elif og[0] == "LOCAL" or og[0] == "NORMAL" and not em :
-            self.tm = context.object.matrix_world.to_3x3()
-            self.rv = self.tm[0].to_3d(), self.tm[1].to_3d(), self.tm[2].to_3d()
-
-        elif og[0] == "VIEW":
-            vm = context.space_data.region_3d.view_matrix.to_3x3()
-            self.rv = vm[0], vm[1], vm[2]
-
-        elif og[0] == "GIMBAL":
-            self.report({"INFO"}, "Gimbal Orientation not supported")
-            return {'CANCELLED'}
-
-        # NORMAL / SELECTION
-        elif em:
-            context.object.update_from_editmode()
-            sel = [v for v in context.object.data.vertices if v.select]
-            if sel:
-                try:
-                    bpy.ops.transform.create_orientation(name='keTF', use_view=False, use=True, overwrite=True)
-                    self.tm = context.scene.transform_orientation_slots[0].custom_orientation.matrix.copy()
-                    bpy.ops.transform.delete_orientation()
-                    restore_transform(og)
-                    self.rv = self.tm[0].to_3d(), self.tm[1].to_3d(), self.tm[2].to_3d()
-                except RuntimeError:
-                    print("Fallback: Invalid selection for Orientation - Using Local")
-                    # Normal O. with a entire cube selected will fail create_o.
-                    bpy.ops.transform.select_orientation(orientation='LOCAL')
-                    self.tm = context.object.matrix_world.to_3x3()
-                    self.rv = self.tm[0].to_3d(), self.tm[1].to_3d(), self.tm[2].to_3d()
+        if self.mode == "CURSOR":
+            if og[0] == "GLOBAL":
+                pass
             else:
-                self.report({"INFO"}, " No elements selected ")
+                og[0] = "CURSOR"
+                self.tm = context.scene.cursor.matrix.to_3x3()
+
+        else:
+            # check type
+            if context.object.type in {'MESH', 'CURVE', 'SURFACE', 'META', 'FONT', 'HAIR', 'GPENCIL'}:
+                em = bool(context.object.data.is_editmode)
+            else:
+                em = "OBJECT"
+
+            if og[0] == "GLOBAL":
+                pass
+
+            elif og[0] == "CURSOR":
+                self.tm = context.scene.cursor.matrix.to_3x3()
+
+            elif og[0] == "LOCAL" or og[0] == "NORMAL" and not em:
+                self.tm = context.object.matrix_world.to_3x3()
+
+            elif og[0] == "VIEW":
+                self.tm = context.space_data.region_3d.view_matrix.inverted().to_3x3()
+
+            elif og[0] == "GIMBAL":
+                self.report({"INFO"}, "Gimbal Orientation not supported")
                 return {'CANCELLED'}
-        else:
-            self.report({"INFO"}, "Unsupported Orientation Mode")
-            return {'CANCELLED'}
 
-        if self.rv is not None:
-            # abs-ahoy - just need the axis, no direction. there prob is a more optimal way for all this...
-            self.rv = [Vector((abs(self.rv[0][0]), abs(self.rv[0][1]), abs(self.rv[0][2]))).normalized(), \
-                      Vector((abs(self.rv[1][0]), abs(self.rv[1][1]), abs(self.rv[1][2]))).normalized(), \
-                      Vector((abs(self.rv[2][0]), abs(self.rv[2][1]), abs(self.rv[2][2]))).normalized()]
-        else:
-            self.report({"INFO"}, "Aborted: Unexpected state") # justincase
-            return {'CANCELLED'}
-
-        if self.mode == "DUPE":
-            if em:
-                bpy.ops.mesh.duplicate('INVOKE_DEFAULT')
+            # NORMAL / SELECTION
+            elif em:
+                context.object.update_from_editmode()
+                sel = [v for v in context.object.data.vertices if v.select]
+                if sel:
+                    try:
+                        bpy.ops.transform.create_orientation(name='keTF', use_view=False, use=True, overwrite=True)
+                        self.tm = context.scene.transform_orientation_slots[0].custom_orientation.matrix.copy()
+                        bpy.ops.transform.delete_orientation()
+                        restore_transform(og)
+                    except RuntimeError:
+                        print("Fallback: Invalid selection for Orientation - Using Local")
+                        # Normal O. with a entire cube selected will fail create_o.
+                        bpy.ops.transform.select_orientation(orientation='LOCAL')
+                        self.tm = context.object.matrix_world.to_3x3()
+                else:
+                    self.report({"INFO"}, " No elements selected ")
+                    return {'CANCELLED'}
             else:
-                bpy.ops.object.duplicate('INVOKE_DEFAULT')
+                self.report({"INFO"}, "Unsupported Orientation Mode")
+                return {'CANCELLED'}
+
+            if self.mode == "DUPE":
+                if em:
+                    bpy.ops.mesh.duplicate('INVOKE_DEFAULT')
+                else:
+                    if bpy.context.scene.kekit.tt_linkdupe:
+                        bpy.ops.object.duplicate('INVOKE_DEFAULT', linked=True)
+                    else:
+                        bpy.ops.object.duplicate('INVOKE_DEFAULT', linked=False)
 
         context.window_manager.modal_handler_add(self)
 
         return {'RUNNING_MODAL'}
-
 
     def modal(self, context, event):
 
@@ -133,23 +140,19 @@ class VIEW3D_OT_ke_mouse_axis_move(bpy.types.Operator):
             t1 = abs(new_mouse_pos[0] - self.mouse_pos[0])
             t2 = abs(new_mouse_pos[1] - self.mouse_pos[1])
 
-            if t1 > 10 or t2 > 10:
+            if t1 > 10 or t2 > 10 or self.mode == "ROT":
 
                 if self.mode == "ROT":
-                    # doesnt really need the modal mouse mode, but meh.
+                    # no need to track mouse vec
                     rm = context.space_data.region_3d.view_matrix
-                    v = Vector(rm[2]).to_3d()
+                    v = self.tm.inverted() @ Vector(rm[2]).to_3d()
+                    x, y, z = abs(v[0]), abs(v[1]), abs(v[2])
+
                 else:
                     # mouse vec end
                     newpos = self.get_mpos(context, new_mouse_pos, context.object.location)
-                    v = Vector(newpos - self.startpos).normalized()
-
-                v = Vector((abs(v[0]), abs(v[1]), abs(v[2])))
-
-                # compare mouse vec to rotation vecs and pick axis to lock
-                x = v.dot(self.rv[0].normalized())
-                y = v.dot(self.rv[1].normalized())
-                z = v.dot(self.rv[2].normalized())
+                    v = self.tm.inverted() @ Vector(self.startpos - newpos).normalized()
+                    x, y, z = abs(v[0]), abs(v[1]), abs(v[2])
 
                 if x > y and x > z:
                     axis = True, False, False
@@ -173,8 +176,17 @@ class VIEW3D_OT_ke_mouse_axis_move(bpy.types.Operator):
                                              constraint_axis=axis, mirror=True, use_proportional_edit=False,
                                              proportional_edit_falloff='SMOOTH', proportional_size=1,
                                              use_proportional_connected=False, use_proportional_projected=False)
+
+                elif self.mode == "CURSOR":
+                    bpy.ops.transform.translate('INVOKE_DEFAULT', orient_type=self.ot, orient_matrix_type=self.ot,
+                                                constraint_axis=axis, mirror=True, use_proportional_edit=False,
+                                                proportional_edit_falloff='SMOOTH', cursor_transform=True,
+                                                use_proportional_connected=False, use_proportional_projected=False)
                 else:
-                    bpy.ops.transform.translate('INVOKE_DEFAULT', constraint_axis=axis)
+                    bpy.ops.transform.translate('INVOKE_DEFAULT', orient_type=self.ot, orient_matrix_type=self.ot,
+                                                constraint_axis=axis, mirror=True, use_proportional_edit=False,
+                                                proportional_edit_falloff='SMOOTH', proportional_size=1,
+                                                use_proportional_connected=False, use_proportional_projected=False)
 
                 return {'FINISHED'}
 
@@ -187,18 +199,12 @@ class VIEW3D_OT_ke_mouse_axis_move(bpy.types.Operator):
 # -------------------------------------------------------------------------------------------------
 # Class Registration & Unregistration
 # -------------------------------------------------------------------------------------------------
-classes = (VIEW3D_OT_ke_mouse_axis_move,
-           )
 
 def register():
-    for c in classes:
-        bpy.utils.register_class(c)
-
+    bpy.utils.register_class(VIEW3D_OT_ke_mouse_axis_move)
 
 def unregister():
-    for c in reversed(classes):
-        bpy.utils.unregister_class(c)
-
+    bpy.utils.unregister_class(VIEW3D_OT_ke_mouse_axis_move)
 
 if __name__ == "__main__":
     register()

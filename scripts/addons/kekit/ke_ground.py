@@ -2,7 +2,7 @@ bl_info = {
 	"name": "keGround",
 	"author": "Kjell Emanuelsson",
 	"category": "Modeling",
-	"version": (2, 1, 0),
+	"version": (2, 1, 1),
 	"blender": (2, 80, 0),
 }
 import bpy
@@ -28,13 +28,13 @@ class VIEW3D_OT_ke_ground(bpy.types.Operator):
 	bl_options = {'REGISTER', 'UNDO'}
 
 	ke_ground_option: bpy.props.EnumProperty(
-		items=[("GROUND", "Ground to Z0", "", "GROUND", 1),
-			   ("CENTER", "Ground & Center on Z", "", "CENTER", 2),
-			   ("CENTER_ALL", "Center XYZ", "", "CENTER_ALL", 3),
-			   ("CENTER_GROUND", "Center XY & Ground Z", "", "CENTER_GROUND", 4),
-			   ("UNDER", "(Under)Ground to Z0", "", "UNDER", 5),
-			   ("CUSTOM", "Ground to custom Z", "", "CUSTOM", 6),
-			   ("CUSTOM_CENTER", "Center to custom Z", "", "CUSTOM_CENTER", 7)],
+		items=[("GROUND", "Ground to Z0", "", 1),
+			   ("CENTER", "Ground & Center on Z", "", 2),
+			   ("CENTER_ALL", "Center XYZ", "", 3),
+			   ("CENTER_GROUND", "Center XY & Ground Z", "", 4),
+			   ("UNDER", "(Under)Ground to Z0", "", 5),
+			   ("CUSTOM", "Ground to custom Z", "", 6),
+			   ("CUSTOM_CENTER", "Center to custom Z", "", 7)],
 		name="Operation",
 		default="GROUND")
 
@@ -144,17 +144,12 @@ class VIEW3D_OT_ke_ground(bpy.types.Operator):
 # -------------------------------------------------------------------------------------------------
 # Class Registration & Unregistration
 # -------------------------------------------------------------------------------------------------
-classes = (
-	VIEW3D_OT_ke_ground,
-)
 
 def register():
-	for c in classes:
-		bpy.utils.register_class(c)
+	bpy.utils.register_class(VIEW3D_OT_ke_ground)
 
 def unregister():
-	for c in reversed(classes):
-		bpy.utils.unregister_class(c)
+	bpy.utils.unregister_class(VIEW3D_OT_ke_ground)
 
 if __name__ == "__main__":
 	register()

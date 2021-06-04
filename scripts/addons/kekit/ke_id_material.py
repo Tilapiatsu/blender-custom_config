@@ -2,7 +2,7 @@ bl_info = {
     "name": "keIDMaterial",
     "author": "Kjell Emanuelsson",
     "category": "Modeling",
-    "version": (1, 0, 0),
+    "version": (1, 0, 1),
     "blender": (2, 80, 0),
 }
 
@@ -151,18 +151,12 @@ class VIEW3D_OT_ke_id_material(Operator):
 # -------------------------------------------------------------------------------------------------
 # Class Registration & Unregistration
 # -------------------------------------------------------------------------------------------------
-classes = (VIEW3D_OT_ke_id_material,
-           )
 
 def register():
-    for c in classes:
-        register_class(c)
-
+    register_class(VIEW3D_OT_ke_id_material)
 
 def unregister():
-    for c in reversed(classes):
-        unregister_class(c)
-
+    unregister_class(VIEW3D_OT_ke_id_material)
 
 if __name__ == "__main__":
     register()

@@ -1,7 +1,30 @@
 import bpy
+import bmesh
 from mathutils import Matrix, Vector
 from bpy_extras.view3d_utils import region_2d_to_vector_3d, region_2d_to_origin_3d, location_3d_to_region_2d
 from math import radians, sqrt
+
+
+def pie_pos_offset(xy, v):
+    scl = bpy.context.preferences.view.ui_scale
+    if v == "N":
+        return xy[0], xy[1] - (115 * scl)
+    elif v == "S":
+        return xy[0], xy[1] + (115 * scl)
+    elif v == "W":
+        return xy[0] + (152 * scl), xy[1]
+    elif v == "E":
+        return xy[0] - (152 * scl), xy[1]
+    elif v == "NW":
+        return xy[0] + (124 * scl), xy[1] - (71 * scl)
+    elif v == "NE":
+        return xy[0] - (124 * scl), xy[1] - (71 * scl)
+    elif v == "SW":
+        return xy[0] + (136 * scl), xy[1] + (70 * scl)
+    elif v == "SE":
+        return xy[0] - (136 * scl), xy[1] + (70 * scl)
+    else:
+        return xy
 
 
 def getset_transform(o="GLOBAL", p="MEDIAN_POINT",setglobal=True):
@@ -14,6 +37,30 @@ def getset_transform(o="GLOBAL", p="MEDIAN_POINT",setglobal=True):
 def restore_transform(og_op):
     bpy.ops.transform.select_orientation(orientation=og_op[0])
     bpy.context.scene.tool_settings.transform_pivot_point = og_op[1]
+
+
+def get_layer_collection(layerColl, collName):
+    # todo: find better solution to set active coll
+    found = None
+    if layerColl.name == collName:
+        return layerColl
+    for layer in layerColl.children:
+        found = get_layer_collection(layer, collName)
+        if found:
+            return found
+
+
+def wempty(context):
+    exist = [o for o in context.scene.objects if o.type == "EMPTY" and o.name == "World Origo Empty"]
+    if not exist:
+        e = bpy.data.objects.new("empty", None)
+        context.scene.collection.objects.link(e)
+        e.name = "World Origo Empty"
+        e.empty_display_size = 1
+        e.empty_display_type = 'PLAIN_AXES'
+        e.hide_viewport = True
+        return e
+    return exist[0]
 
 
 def get_duplicates(alist):
@@ -29,18 +76,54 @@ def get_duplicates(alist):
     return dupes
 
 
-def get_selected(context, sel_type="MESH"):
+def get_selected(context, sel_type="MESH", use_cat=False):
     '''Get a selected Object by Type, Active or not'''
     obj = None
+    cat = {'MESH', 'CURVE', 'SURFACE', 'META', 'FONT', 'HAIR', 'GPENCIL'}
     sel_obj = [o for o in context.selected_objects]
-    if sel_obj:
+    if sel_obj and not use_cat:
         sel_obj = [o for o in sel_obj if o.type == sel_type]
-    if context.active_object:
         if context.active_object.type == sel_type:
+            obj = context.active_object
+    else:
+        sel_obj = [o for o in sel_obj if o.type in cat]
+        if context.active_object.type in cat:
             obj = context.active_object
     if not obj and sel_obj:
         obj = sel_obj[0]
     return obj
+
+
+def vertloops(vertpairs):
+    '''Sort verts from list of vert pairs'''
+    loop_vp = [i for i in vertpairs]
+    loops = []
+    while len(loop_vp) > 0:
+        vpsort = [loop_vp[0][0], loop_vp[0][1]]
+        loop_vp.pop(0)
+        loops.append(vpsort)
+        for n in range(0, len(vertpairs)):
+            i = 0
+            for e in loop_vp:
+                if vpsort[0] == e[0]:
+                    vpsort.insert(0, e[1])
+                    loop_vp.pop(i)
+                    break
+                elif vpsort[0] == e[1]:
+                    vpsort.insert(0, e[0])
+                    loop_vp.pop(i)
+                    break
+                elif vpsort[-1] == e[0]:
+                    vpsort.append(e[1])
+                    loop_vp.pop(i)
+                    break
+                elif vpsort[-1] == e[1]:
+                    vpsort.append(e[0])
+                    loop_vp.pop(i)
+                    break
+                else:
+                    i = i + 1
+    return loops
 
 
 def get_loops(vertpairs, legacy=False):
@@ -124,6 +207,55 @@ def rotation_from_vector(normal_vec, tangent_vec, rotate90=True, rw=True):
     return matrix
 
 
+def sort_quad(vl):
+    '''sort verts in CW -or- CCW quad, for when it doesnt matter'''
+    vcos = [v.co for v in vl]
+    tri = tri_points_order(vcos)
+    vs = [vl[tri[0]], vl[tri[1]], vl[tri[2]]]
+    last = [i for i in vl if i not in vs][0]
+    vs.insert(2, last)
+    return vs
+
+
+def tri_order(p):
+    '''Sort (min) 3 first verts from tuple or tuple of tuples (obj, vertlist)'''
+    sets = []
+    tri = []
+    if len(p) > 1 and type(p[0]) != tuple:
+        p = ((p),)
+    # setup paired lists
+    for pair in p:
+        if pair[1]:
+            s = [pair[0], [v for v in pair[1]]]
+            sets.append(s)
+    sets = sorted(sets, key=len)
+    # get three first verts+
+    count = 0
+    for s in sets:
+        if count < 3:
+            if type(s[1]) != list:
+                l = [s[1],]
+            else:
+                l = s[1]
+            for i in l:
+                tri.append([s[0], i] )
+                count += 1
+    # Fail insufficient points
+    if count < 3:
+        return None
+    # side lengths -hypot for tri
+    vc1 = tri[0][0].matrix_world @ tri[0][1].co
+    vc2 = tri[1][0].matrix_world @ tri[1][1].co
+    vc3 = tri[2][0].matrix_world @ tri[2][1].co
+    torder = tri_points_order((vc1, vc2, vc3))
+    ot = [tri[i] for i in torder]
+    q = [i for i in tri if i not in ot]
+    if q:
+        for i in q:
+            ot.append(i)
+    return ot
+
+
 def tri_points_order(vcoords):
     # Avoiding the hypotenuse (always longest) for vec
     vp = vcoords[0], vcoords[1], vcoords[2]
@@ -163,6 +295,53 @@ def tri_points_vectors(objmtx, normal, coords):
     return n_v, t_v
 
 
+def mouse_sc_raycast(context, co2d):
+    '''Raycast that works in edit mode - caution: returns evaluated face idx does not match'''
+    view_vector = region_2d_to_vector_3d(context.region, context.region_data, co2d)
+    ray_origin = region_2d_to_origin_3d(context.region, context.region_data, co2d)
+    viewlayer = context.view_layer
+
+    hidden = []
+    hit_index = None
+    hit_obj = None
+    hit_loc = None
+    hit_normal = None
+    hit_mtx = None
+    hit = False
+    is_visible = False
+
+    # scene invisible is dfferent from view invisible, so we must do this dance
+    while not is_visible:
+        result, location, normal, index, obj, matrix = context.scene.ray_cast(context.evaluated_depsgraph_get(),
+                                                                              ray_origin, view_vector, distance=9001)
+        if obj is not None:
+            is_visible = obj.visible_get(view_layer=viewlayer)
+
+            if not is_visible:
+                obj.hide_viewport = True
+                hidden.append(obj)
+
+            if is_visible:
+                if obj.type == 'MESH':
+                    hit_index = index
+                    hit_obj = obj
+                    hit_normal = normal
+                    # hit_normal = correct_normal(matrix, normal)
+                    hit_loc = location
+                    hit_mtx = matrix
+                    hit = result
+        else:
+            hit_obj = None
+            hit_index = None
+            is_visible = True
+
+    if hidden:
+        for o in hidden:
+            o.hide_viewport = False
+
+    return hit, hit_loc, hit_normal, hit_index, hit_obj, hit_mtx
+
+
 def obj_raycast(obj, matrix, ray_origin, ray_target):
     matrix_inv = matrix.inverted()
     ray_origin_obj = matrix_inv @ ray_origin
@@ -176,7 +355,7 @@ def obj_raycast(obj, matrix, ray_origin, ray_target):
         return None, None, None
 
 
-def mouse_raycast(context, mouse_pos):
+def mouse_raycast(context, mouse_pos, evaluated=False):
     region = context.region
     rv3d = context.region_data
 
@@ -187,14 +366,37 @@ def mouse_raycast(context, mouse_pos):
     hit_length_squared = -1.0
     hit_obj, hit_wloc, hit_normal, hit_face = None, None, None, None
 
-    cat = {'MESH', 'CURVE', 'SURFACE', 'META', 'FONT', 'HAIR', 'GPENCIL'}
-    objects = [o for o in context.visible_objects if o.type in cat]
-    for dup in objects:
-        # only need mesh really?
-        if dup.type == 'MESH':
+    # cat = {'MESH', 'CURVE', 'SURFACE', 'META', 'FONT', 'HAIR', 'GPENCIL'}
+    cat = ["MESH"]
+    # todo: Make hit curves returnable objs w. evaluated
+
+    if not evaluated:
+        objects = [o for o in context.visible_objects]
+        depsgraph = objects.copy()
+        objects = [o.name for o in context.visible_objects]
+    else:
+        objects = [o.name for o in context.visible_objects]
+        depsgraph = context.evaluated_depsgraph_get()
+        depsgraph = depsgraph.object_instances
+
+    for dup in depsgraph:
+        if evaluated:
+            if dup.is_instance:
+                obj = dup.instance_object
+                obj_mtx = dup.matrix_world.copy()
+            else:
+                obj = dup.object
+                obj_mtx = obj.matrix_world.copy()
+        else:
             obj = dup
-            obj_mtx = dup.matrix_world.copy()
-            hit, normal, face_index = obj_raycast(obj, obj_mtx, ray_origin, ray_target)
+            obj_mtx = obj.matrix_world.copy()
+
+        if obj.type in cat and obj.name in objects:
+            try:
+                hit, normal, face_index = obj_raycast(obj, obj_mtx, ray_origin, ray_target)
+            except RuntimeError:
+                print("Raycast Failed: Unsupported object type?")
+                pass
 
             if hit is not None:
                 hit_world = obj_mtx @ hit
@@ -207,7 +409,7 @@ def mouse_raycast(context, mouse_pos):
                     hit_obj = obj
 
     if hit_obj:
-        return  hit_obj, hit_wloc, hit_normal, hit_face
+        return hit_obj, hit_wloc, hit_normal, hit_face
     else:
         return None, None, None, None
 
@@ -248,11 +450,6 @@ def point_axis_raycast(context, vec_point, axis=2, targetcap=-10000):
         return best_obj, hit_wloc, hit_normal, hit_face
     else:
         return None, None, None, None
-
-
-def relative_position_to_mouse(context, pos, mouse_pos):
-    # TBD - WIP: return distance?, world axis direction
-    return None
 
 
 def walk_island(vert):
@@ -322,6 +519,9 @@ def flatten(nested):
         except TypeError:
             yield item
 
+def flattened(lol):
+    return list(flatten(lol))
+
 
 def get_distance(v1, v2):
     dist = [(a - b)**2 for a, b in zip(v1, v2)]
@@ -337,9 +537,16 @@ def chunk(l, n):
     return [l[i:i + n] for i in range(0, len(l), n)]
 
 
-def average_vector(vectors):
-    return Vector(sum(vectors, Vector()) / len(vectors))
+def remap(x, in_min, in_max, out_min, out_max):
+    return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min
 
+
+def average_vector(vectors):
+    try:
+        return Vector(sum(vectors, Vector()) / len(vectors))
+    except ZeroDivisionError:
+        print("Zero Division Error: Invalid Selection?")
+        return None
 
 def cross_coords(coordlist):
     # first 3 coords as tri-plane
@@ -482,31 +689,73 @@ def get_vert_nearest_mouse(context, mousepos, verts, mtx):
     return merge_point
 
 
-def get_scene_unit(value):
-    #insp:Jayanam
+def get_scene_unit(value, nearest=False):
+    '''Converts value to current scene setting'''
     unit_length = bpy.context.scene.unit_settings.length_unit
     unit_scale = bpy.context.scene.unit_settings.scale_length
+    unit_system = bpy.context.scene.unit_settings.system
     value = value * unit_scale
-    if unit_length == 'KILOMETERS' :
-        return 'km', value * 0.001
+    factor, unit = 1, ""
+
+    if unit_length == 'ADAPTIVE':
+        nearest = True
+
+    if nearest and unit_system == 'METRIC':
+        if value == 0:
+            unit = 'm'
+        elif value >= 1000:
+            unit, value = 'km', value * 0.001
+        elif 1000 > value >= 1:
+            unit = 'm'
+        elif 1 > value >= 0.01:
+            unit, value = 'cm', value * 100
+        elif 0.01 > value >= 0.001:
+            unit, value = 'mm', value * 1000
+        elif value < 0.001:
+            unit, value = '\u00b5'+'m', value * 1000000
+
+    elif nearest and unit_system == 'IMPERIAL':
+        if value == 0:
+            unit = '\u0027'
+        else:
+            value = round((value * 3.280839895013123),3)  # feet
+            if value >= 5280:
+                unit, value = 'mi', value / 5280
+            elif value >= 1:
+                unit, value = '\u0027', value
+            elif value > 0.0833333333:
+                unit, value = '\u0022', round((value * 12), 2)
+            else:
+                unit, value = ' thou', int(value * 12000)
+
+    elif unit_length == 'KILOMETERS':
+        unit, factor = 'km', 0.001
     elif unit_length == 'METERS':
-        return 'm', value
+        unit, factor = 'm', 1
     elif unit_length == 'CENTIMETERS':
-        return 'cm', value * 100
+        unit, factor = 'cm', 100
     elif unit_length == 'MILLIMETERS':
-        return 'mm', value * 1000
+        unit, factor = 'mm', 1000
     elif unit_length == 'MICROMETERS':
-        return '\u00b5'+'m', value * 1000000
+        unit, factor = '\u00b5'+'m', 1000000
     elif unit_length == 'MILES':
-        return 'mi', value * 0.00062137119223733
+        unit, factor = 'mi', 0.00062137119223733
     elif unit_length == 'FEET':
-        return '\u0027', value * 3.280839895013123
+        unit, factor = '\u0027', 3.280839895013123
     elif unit_length == 'INCHES':
-        return '\u0022', value * 39.37007874015748
+        unit, factor = '\u0022', 39.37007874015748
     elif unit_length == 'THOU':
-        return 'thou', value * 39370.07874015748
+        unit, factor = 'thou', 39370.07874015748
     else:
-        return 'bu', value #1
+        unit, factor = 'bu', 1
+
+    value = value / factor
+    value = round(value, 4)
+    # de-floating whole nrs
+    if value.is_integer():
+        value = int(value)
+
+    return unit, value
 
 
 def shift_list(array, s):

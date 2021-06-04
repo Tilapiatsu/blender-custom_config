@@ -2,7 +2,7 @@ bl_info = {
     "name": "keUnbevel",
     "author": "Kjell Emanuelsson",
     "category": "Modeling",
-    "version": (1, 1, 0),
+    "version": (1, 1, 1),
     "blender": (2, 80, 0),
 }
 
@@ -70,22 +70,15 @@ class MESH_OT_ke_unbevel(Operator):
 
         return {"FINISHED"}
 
-
 # -------------------------------------------------------------------------------------------------
 # Class Registration & Unregistration
 # -------------------------------------------------------------------------------------------------
-classes = (MESH_OT_ke_unbevel,
-           )
 
 def register():
-    for c in classes:
-        bpy.utils.register_class(c)
-
+    bpy.utils.register_class(MESH_OT_ke_unbevel)
 
 def unregister():
-    for c in reversed(classes):
-        bpy.utils.unregister_class(c)
-
+    bpy.utils.unregister_class(MESH_OT_ke_unbevel)
 
 if __name__ == "__main__":
     register()

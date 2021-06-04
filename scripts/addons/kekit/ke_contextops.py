@@ -2,7 +2,7 @@ bl_info = {
 	"name": "keContextOps",
 	"author": "Kjell Emanuelsson",
 	"category": "Modeling",
-	"version": (1, 3, 7),
+	"version": (1, 3, 9),
 	"blender": (2, 80, 0),
 }
 
@@ -73,13 +73,36 @@ class MESH_OT_ke_contextextrude(Operator):
 				context.object.data.is_editmode)
 
 	def execute(self, context):
-		sel_mode = bpy.context.tool_settings.mesh_select_mode[:]
+		use_tt = context.scene.kekit.tt_extrude
+		sel_mode = context.tool_settings.mesh_select_mode[:]
+
 		if sel_mode[0]:
-			bpy.ops.mesh.extrude_vertices_move('INVOKE_DEFAULT')
+			if use_tt:
+				am = bool(context.scene.tool_settings.use_mesh_automerge)
+				if am:
+					context.scene.tool_settings.use_mesh_automerge = False
+				bpy.ops.mesh.extrude_vertices_move(MESH_OT_extrude_verts_indiv=None, TRANSFORM_OT_translate=None)
+				if am:
+					context.scene.tool_settings.use_mesh_automerge = True
+				bpy.ops.view3d.ke_tt('INVOKE_DEFAULT', mode="MOVE")
+			else:
+				bpy.ops.mesh.extrude_vertices_move('INVOKE_DEFAULT')
+
 		elif sel_mode[1]:
-			bpy.ops.mesh.extrude_edges_move('INVOKE_DEFAULT')
+			if use_tt:
+				am = bool(context.scene.tool_settings.use_mesh_automerge)
+				if am:
+					context.scene.tool_settings.use_mesh_automerge = False
+				bpy.ops.mesh.extrude_edges_move(MESH_OT_extrude_edges_indiv=None, TRANSFORM_OT_translate=None)
+				if am:
+					context.scene.tool_settings.use_mesh_automerge = True
+				bpy.ops.view3d.ke_tt('INVOKE_DEFAULT', mode="MOVE")
+			else:
+				bpy.ops.mesh.extrude_edges_move('INVOKE_DEFAULT')
+
 		elif sel_mode[2]:
 			bpy.ops.view3d.edit_mesh_extrude_move_normal('INVOKE_DEFAULT')
+
 		return {'FINISHED'}
 
 
@@ -105,8 +128,14 @@ class VIEW3D_OT_ke_contextdelete(Operator):
 				bpy.ops.mesh.delete(type='FACE')
 
 		elif ctx_mode == "OBJECT":
-			bpy.ops.object.delete()
-			for item in bpy.context.selected_objects:
+			sel = context.selected_objects[:]
+			if context.scene.kekit.h_delete:
+				for o in sel:
+					context.view_layer.objects.active = o
+					bpy.ops.object.select_grouped(type='CHILDREN_RECURSIVE', extend=True)
+				sel = context.selected_objects[:]
+
+			for item in sel:
 				bpy.data.objects.remove(item, do_unlink=True)
 
 		return {'FINISHED'}
@@ -244,10 +273,10 @@ class VIEW3D_OT_ke_selmode(Operator):
 	bl_description = "Set Element Mode - Direct to selection mode from Object Mode"
 
 	edit_mode: bpy.props.EnumProperty(
-		items=[("VERT", "Vertex Edit Mode", "", "VERT", 1),
-			   ("EDGE", "Edge Edit Mode", "", "EDGE", 2),
-			   ("FACE", "Face Edit Mode", "", "FACE", 3),
-			   ("OBJECT", "Object Mode", "", "OBJECT", 4)],
+		items=[("VERT", "Vertex Edit Mode", "", 1),
+			   ("EDGE", "Edge Edit Mode", "", 2),
+			   ("FACE", "Face Edit Mode", "", 3),
+			   ("OBJECT", "Object Mode", "", 4)],
 		name="Edit Mode",
 		default="FACE")
 
@@ -261,8 +290,12 @@ class VIEW3D_OT_ke_selmode(Operator):
 	def execute(self, context):
 		em = self.edit_mode
 		mode = bpy.context.mode
+		edit_only = False
 
-		obj = get_selected(context)
+		obj = get_selected(context, use_cat=True)
+		if obj:
+			if obj.type != "MESH" and self.edit_mode != "OBJECT":
+				edit_only = True
 
 		hit_obj = False
 		mouse_over = bpy.context.scene.kekit.selmode_mouse
@@ -286,20 +319,24 @@ class VIEW3D_OT_ke_selmode(Operator):
 
 				if em != "OBJECT":
 					bpy.ops.object.mode_set(mode="EDIT")
-					bpy.ops.mesh.select_mode(type=em)
+					if not edit_only:
+						bpy.ops.mesh.select_mode(type=em)
 
 			elif not hit_obj and obj:
 				if em != "OBJECT":
 					bpy.ops.object.mode_set(mode="EDIT")
-					bpy.ops.mesh.select_mode(type=em)
+					if not edit_only:
+						bpy.ops.mesh.select_mode(type=em)
 
 		elif obj:
 			if em != "OBJECT":
 				if mode == 'OBJECT':
 					bpy.ops.object.mode_set(mode="EDIT")
-					bpy.ops.mesh.select_mode(type=em)
+					if not edit_only:
+						bpy.ops.mesh.select_mode(type=em)
 				else:
-					bpy.ops.mesh.select_mode(type=em)
+					if not edit_only:
+						bpy.ops.mesh.select_mode(type=em)
 			else:
 				if mode != 'OBJECT':
 					bpy.ops.object.mode_set(mode="OBJECT")
@@ -371,6 +408,7 @@ class MESH_OT_ke_maya_connect(Operator):
 	bl_idname = "mesh.ke_maya_connect"
 	bl_label = "Maya Connect"
 	bl_description = "EDGE (or FACE) selection: Subdivide, VERTS: Connect Verts"
+	bl_options = {'REGISTER', 'UNDO'}
 
 	@classmethod
 	def poll(cls, context):
@@ -388,6 +426,9 @@ class MESH_OT_ke_maya_connect(Operator):
 
 		elif sel_mode[1] or sel_mode[2]:
 			bpy.ops.mesh.subdivide('INVOKE_DEFAULT')
+
+		bpy.ops.ed.undo_push()
+
 		return {'FINISHED'}
 
 
@@ -398,20 +439,20 @@ class MESH_OT_ke_triple_connect_spin(Operator):
 	bl_options = {'REGISTER', 'UNDO'}
 
 	connect_mode: bpy.props.EnumProperty(
-		items=[("PATH", "Vertex Path", "", "PATH", 1),
-			   ("PAIR", "Vertex Pair", "", "PAIR", 2)],
+		items=[("PATH", "Vertex Path", "", 1),
+			   ("PAIR", "Vertex Pair", "", 2)],
 		name="Vertex Connect Mode",
 		default="PATH")
 
 	spin_mode: bpy.props.EnumProperty(
-		items=[("CW", "Clockwise", "", "CW", 1),
-			   ("CCW", "Counter Clockwise", "", "CCW", 2)],
+		items=[("CW", "Clockwise", "", 1),
+			   ("CCW", "Counter Clockwise", "", 2)],
 		name="Edge Spin Mode",
 		default="CW")
 
 	triple_mode: bpy.props.EnumProperty(
-		items=[("BEAUTY", "Beauty Method", "", "BEAUTY", 1),
-			   ("FIXED", "Fixed/Clip Method", "", "FIXED", 2)],
+		items=[("BEAUTY", "Beauty Method", "", 1),
+			   ("FIXED", "Fixed/Clip Method", "", 2)],
 		name="Face Triangulation Mode",
 		default="BEAUTY")
 
@@ -460,92 +501,6 @@ class MESH_OT_ke_triple_connect_spin(Operator):
 		return {'FINISHED'}
 
 
-class VIEW3D_OT_ke_vptransform(Operator):
-	bl_idname = "view3d.ke_vptransform"
-	bl_label = "VP-Transform"
-	bl_description = "Runs Grab,Rotate or Scale with View Planes auto-locked based on your viewport rotation."
-	bl_options = {'REGISTER'}
-
-	transform: bpy.props.EnumProperty(
-		items=[("TRANSLATE", "Translate", "", "TRANSLATE", 1),
-			   ("ROTATE", "Rotate", "", "ROTATE", 2),
-			   ("RESIZE", "Resize", "", "RESIZE", 3),
-			   ("COPYGRAB", "Duplcate & Move", "", "COPYGRAB", 4),
-			   ],
-		name="Transform",
-		default="ROTATE")
-	world_only: bpy.props.BoolProperty(default=True)
-	rot_got: bpy.props.BoolProperty(default=True)
-	loc_got: bpy.props.BoolProperty(default=False)
-	scl_got: bpy.props.BoolProperty(default=False)
-
-	@classmethod
-	def poll(cls, context):
-		return context.object is not None
-
-	def execute(self, context):
-		self.world_only = bpy.context.scene.kekit.vptransform
-		self.rot_got = bpy.context.scene.kekit.rot_got
-		self.loc_got = bpy.context.scene.kekit.loc_got
-		self.scl_got = bpy.context.scene.kekit.scl_got
-
-		if self.world_only:
-			# set Global
-			bpy.ops.transform.select_orientation(orientation='GLOBAL')
-			og_transform = "GLOBAL"
-		else:
-			# check current transform
-			og_transform = str(context.scene.transform_orientation_slots[0].type)
-
-		# Get Viewplane
-		rm = context.space_data.region_3d.view_matrix
-		v = Vector(rm[2])
-		xz, xy, yz = Vector((0, 1, 0)), Vector((0, 0, 1)), Vector((1, 0, 0))
-		dic = {(True, False, True): abs(xz.dot(v)), (True, True, False): abs(xy.dot(v)),
-			   (False, True, True): abs(yz.dot(v))}
-		vplane = sorted(dic, key=dic.get)[-1]
-
-		# Set Transforms
-		if self.transform == 'TRANSLATE':
-			if self.loc_got:
-				if og_transform == "GLOBAL":
-					bpy.ops.transform.translate('INVOKE_DEFAULT', constraint_axis=vplane)
-				else:
-					bpy.ops.wm.tool_set_by_id(name="builtin.move")
-			else:
-				bpy.ops.transform.translate('INVOKE_DEFAULT', constraint_axis=vplane)
-
-		elif self.transform == 'ROTATE':
-			if self.rot_got:
-				if og_transform == "GLOBAL":
-					bpy.ops.transform.rotate('INVOKE_DEFAULT', constraint_axis=vplane)
-				else:
-					bpy.ops.wm.tool_set_by_id(name="builtin.rotate")
-			else:
-				bpy.ops.transform.rotate('INVOKE_DEFAULT', constraint_axis=vplane)
-
-		elif self.transform == 'RESIZE':
-			if self.scl_got:
-				if og_transform == "GLOBAL":
-					bpy.ops.transform.resize('INVOKE_DEFAULT', constraint_axis=vplane)
-				else:
-					bpy.ops.wm.tool_set_by_id(name="builtin.scale")
-			else:
-				bpy.ops.transform.resize('INVOKE_DEFAULT', constraint_axis=vplane)
-
-		# Copygrab
-		elif self.transform == 'COPYGRAB':
-			if context.mode == 'EDIT_MESH' and context.object.type == 'MESH':
-				bpy.ops.mesh.duplicate('INVOKE_DEFAULT')
-			elif context.mode == 'OBJECT':
-				bpy.ops.object.duplicate('INVOKE_DEFAULT')
-			else:
-				return {'CANCELLED'}
-			bpy.ops.transform.translate('INVOKE_DEFAULT', constraint_axis=vplane)
-
-		return {'FINISHED'}
-
-
 # -------------------------------------------------------------------------------------------------
 # Class Registration & Unregistration
 # -------------------------------------------------------------------------------------------------
@@ -561,7 +516,6 @@ classes = (
 	MESH_OT_ke_maya_connect,
 	MESH_OT_ke_triple_connect_spin,
 	VIEW3D_OT_ke_selmode,
-	VIEW3D_OT_ke_vptransform,
 	MESH_OT_ke_contextslide,
 )
 

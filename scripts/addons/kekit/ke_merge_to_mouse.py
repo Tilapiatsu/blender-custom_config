@@ -2,7 +2,7 @@ bl_info = {
     "name": "Merge To Mouse",
     "author": "Kjell Emanuelsson 2019",
     "wiki_url": "http://artbykjell.com",
-    "version": (1, 3, 5),
+    "version": (1, 3, 6),
     "blender": (2, 80, 0),
 }
 import bpy
@@ -144,19 +144,12 @@ class MESH_OT_merge_to_mouse(Operator):
 # -------------------------------------------------------------------------------------------------
 # Class Registration & Unregistration
 # -------------------------------------------------------------------------------------------------
-classes = (
-    MESH_OT_merge_to_mouse,
-    )
 
 def register():
-
-    for cls in classes:
-        bpy.utils.register_class(cls)
+    bpy.utils.register_class(MESH_OT_merge_to_mouse)
 
 def unregister():
-    for cls in reversed(classes):
-        bpy.utils.unregister_class(cls)
-
+    bpy.utils.unregister_class(MESH_OT_merge_to_mouse)
 
 if __name__ == "__main__":
     register()
