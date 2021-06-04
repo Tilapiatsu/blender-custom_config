@@ -36,6 +36,7 @@ def region_2d_to_orig_and_view_vector(region, rv3d, coord):
 
     dx = (2.0 * coord[0] / x) - 1.0
     dy = (2.0 * coord[1] / y) - 1.0
+    # print("region size", x, y, dx, dy, persinv[3].xyz.length)
 
     if rv3d.is_perspective:
         origin_start = viewinv.translation.copy()
@@ -50,9 +51,11 @@ def region_2d_to_orig_and_view_vector(region, rv3d, coord):
 
         origin_start = ((persinv.col[0].xyz * dx) +
                         (persinv.col[1].xyz * dy) +
-                        viewinv.translation)
-        # S.L in ortho view, origin may be plain wrong so add arbitrary distance ..
-        origin_start -= view_vector * 1000
+                        persinv.translation)
+
+        if rv3d.view_perspective != 'CAMERA':
+            # S.L in ortho view, origin may be plain wrong so add arbitrary distance ..
+            origin_start -= view_vector * 1000
 
     view_vector.normalize()
     return view_vector, origin_start

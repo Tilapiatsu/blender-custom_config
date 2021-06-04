@@ -32,7 +32,9 @@ import bpy
 try:
     from .snap_context import SnapContext
     USE_GL = True
-except ImportError:
+except ImportError as ex:
+    import traceback
+    traceback.print_exc()
     print("Snap to curves will be disabled")
     USE_GL = False
     pass
@@ -58,6 +60,7 @@ EDGE_PARALLEL = 64
 FACE_CENTER = 128
 FACE_NORMAL = 256
 ORIGIN = 512
+BOUNDS = 1024
 
 SNAP_TO_ISOLATED_MESH = True
 SNAP_TO_BASE_MESH = True
@@ -73,6 +76,8 @@ def debug_typ(typ):
         s.append("FACE")
     if typ & ORIGIN:
         s.append("ORIGIN")
+    if typ & BOUNDS:
+        s.append("BOUNDS")
     return " ".join(s)
 
 
@@ -224,6 +229,7 @@ class SlCadSnap:
                 elif o.type == "MESH" and snap_to_loose:
                     self.gl_stack.add_obj(o)
             self.gl_stack.add_origins(context)
+            self.gl_stack.add_bounds(context)
 
     def exit(self):
         # cleanup exclude
@@ -250,23 +256,38 @@ class SlCadSnap:
     def _event_pixel_coord(self, event):
         return Vector((event.mouse_region_x, event.mouse_region_y))
 
-    def _region_2d_to_orig_and_vect(self, coord):
+    def _region_2d_to_orig_and_vect(self, coord, clamp=None):
+
         viewinv = self._rv3d.view_matrix.inverted()
         persinv = self._rv3d.perspective_matrix.inverted()
         dx = (2.0 * coord[0] / self._region.width) - 1.0
         dy = (2.0 * coord[1] / self._region.height) - 1.0
+
         if self._rv3d.is_perspective:
             origin_start = viewinv.translation.copy()
             out = Vector((dx, dy, -0.5))
             w = out.dot(persinv[3].xyz) + persinv[3][3]
             view_vector = ((persinv @ out) / w) - origin_start
+
         else:
             view_vector = -viewinv.col[2].xyz
-
             origin_start = ((persinv.col[0].xyz * dx) +
                             (persinv.col[1].xyz * dy) +
-                            viewinv.translation)
-
+                            persinv.translation)
+            if self._rv3d.view_perspective != 'CAMERA':
+                # this value is scaled to the far clip already
+                origin_offset = persinv.col[2].xyz
+                if clamp is not None:
+                    # Since far clip can be a very large value,
+                    # the result may give with numeric precision issues.
+                    # To avoid this problem, you can optionally clamp the far clip to a
+                    # smaller value based on the data you're operating on.
+                    if clamp < 0.0:
+                        origin_offset.negate()
+                        clamp = -clamp
+                    if origin_offset.length > clamp:
+                        origin_offset.length = clamp
+                origin_start -= origin_offset
         view_vector.normalize()
         return origin_start, view_vector
 
@@ -788,7 +809,7 @@ class SlCadSnap:
         skip_face = False
 
         if self.gl_stack is not None and (self.snap_mode & (
-                VERT | EDGE | EDGE_CENTER | EDGE_PERPENDICULAR | EDGE_PARALLEL | ORIGIN)
+                VERT | EDGE | EDGE_CENTER | EDGE_PERPENDICULAR | EDGE_PARALLEL | ORIGIN | BOUNDS)
         ):
             # if DEBUG_GL:
             #    self.gl_stack.draw()

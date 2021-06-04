@@ -58,6 +58,7 @@ from .slcad_snap import (
     GRID,
     FACE_NORMAL,
     ORIGIN,
+    BOUNDS,
     X_AXIS, Y_AXIS, Z_AXIS
 )
 
@@ -138,6 +139,14 @@ C_NORMAL = 16
 C_SCREEN = 32
 
 
+# wtf ???
+if bpy.app.version >= (2, 93, 0):
+    KEYCONFIG_NAME = "Blender"
+else:
+    KEYCONFIG_NAME = "blender"
+
+
+
 class IconsManager:
 
     def __del__(self):
@@ -189,6 +198,7 @@ default_keymap = {
     "EDGE_PARALLEL": ("P", "Parallel", False, False, True),
     "FACE_NORMAL": ("N", "Normal"),
     "ORIGIN": ("O", "Origin"),
+    "BOUNDS": ("B", "Bounding box"),
     "X": ("X", "Axis X"),
     "Y": ("Y", "Axis Y"),
     "Z": ("Z", "Axis Z"),
@@ -1040,7 +1050,7 @@ def header_draw(self, context):
 
 def draw_settings(context, layout, tool):
     prefs = context.preferences.addons[__package__].preferences
-    km = context.window_manager.keyconfigs['blender addon'].keymaps['3D View Tool: Cad Transform'].keymap_items
+    km = context.window_manager.keyconfigs["%s addon" % KEYCONFIG_NAME].keymaps['3D View Tool: Cad Transform'].keymap_items
     props = tool.operator_properties("slcad.translate")
     is_panel = context.region.type in {'UI', 'WINDOW'}
 
@@ -1073,10 +1083,10 @@ def draw_settings(context, layout, tool):
             layout.separator()
             layout.label(text="Snap modes:")
             for i, short in enumerate(prefs.keymap):
-                if i == 10:
+                if i == 11:
                     layout.separator()
                     layout.label(text="Constraint:")
-                elif i == 16:
+                elif i == 17:
                     layout.separator()
                     layout.label(text="Options")
                 short.draw(layout, use_row=True)
@@ -1106,12 +1116,14 @@ class SLCAD_main:
             ('FACE_CENTER', "Face Center", "Face Center", 'SNAP_FACE_CENTER', FACE_CENTER),
             ('FACE_NORMAL', "Face Normal", "Face Normal", 'SNAP_NORMAL', FACE_NORMAL),
             ('ORIGIN', "Object origin / cursor", "Object origin / cursor", 'OBJECT_ORIGIN', ORIGIN),
+            ('BOUNDS', "Object bounding box", "Object bounding box", 'SHADING_BBOX', BOUNDS),
         ),
         options={'ENUM_FLAG'},
         get=get_snap_mode_ex,
         set=set_snap_mode_ex,
         update=update_snap_mode_ex
     )
+    #
 
     x_ray: BoolProperty(
         name="Xray",
@@ -1458,6 +1470,9 @@ class SLCAD_main:
 
                 elif prefs.match("ORIGIN", signature):
                     slcadsnap.toggle_snap_mode(ORIGIN)
+
+                elif prefs.match("BOUNDS", signature):
+                    slcadsnap.toggle_snap_mode(BOUNDS)
 
                 elif prefs.match("EDGE_PERPENDICULAR", signature):
                     # Toggle exclusive
@@ -3681,8 +3696,8 @@ def registerKeymaps():
 
 def unregisterKeymaps():
     keyconfigs = bpy.context.window_manager.keyconfigs
-    defaultmap = keyconfigs.get("blender").keymaps
-    addonmap = keyconfigs.get("blender addon").keymaps
+    defaultmap = keyconfigs.get(KEYCONFIG_NAME).keymaps
+    addonmap = keyconfigs.get("%s addon" % KEYCONFIG_NAME).keymaps
 
     for km_name, km_args, km_content in [keymap]:
         km = addonmap.find(km_name, **km_args)
@@ -3702,9 +3717,44 @@ def getToolList(spaceType, contextMode):
     return cls._tools[contextMode]
 
 
-def registerTools(mode):
+def registerTools(mode, after=None):
     tools = getToolList('VIEW_3D', mode)
-    tools += None, toolCadTransform
+
+    tool_def_insert = (None, toolCadTransform)
+
+    def skip_to_end_of_group(seq, i):
+        i_prev = i
+        while i < len(seq) and seq[i] is not None:
+            i_prev = i
+            i += 1
+        return i_prev
+
+    changed = False
+    if after is not None:
+        for i, item in enumerate(tools):
+            if item is None:
+                pass
+            elif isinstance(item, ToolDef):
+                if item.idname in after:
+                    i = skip_to_end_of_group(item, i)
+                    tools[i + 1:i + 1] = tool_def_insert
+                    changed = True
+                    break
+            elif isinstance(item, tuple):
+                for j, sub_item in enumerate(item, 1):
+                    if isinstance(sub_item, ToolDef):
+                        if sub_item.idname in after:
+                            j = skip_to_end_of_group(item, j)
+                            item = item[:j + 1] + tool_def_insert + item[j + 1:]
+                            tools[i] = item
+                            changed = True
+                            break
+                if changed:
+                    break
+
+    if not changed:
+        tools.extend(tool_def_insert)
+
     del tools
 
 
@@ -3717,12 +3767,9 @@ def unregisterTools(mode):
 
 
 def register():
+
     global icon_man
     icon_man.load()
-
-    if bpy.app.background:
-        print("{} {} : not loaded in background instance".format(bl_info['name'], __version__))
-        return
 
     try:
         register_class(SLCAD_keymap)
@@ -3735,9 +3782,9 @@ def register():
         register_class(SLCAD_PT_tools_options_object)
         register_class(SLCAD_PT_tools_options_mesh)
         register_class(SLCAD_PT_tools_options_curve)
-        registerTools('OBJECT')
-        registerTools('EDIT_MESH')
-        registerTools('EDIT_CURVE')
+        registerTools('OBJECT', after="builtin.transform")
+        registerTools('EDIT_MESH', after="builtin.transform")
+        registerTools('EDIT_CURVE', after="builtin.transform")
         registerKeymaps()
         # register_tool(SLCAD_transform, after={"builtin.transform"}, separator=True) #, group=True)
     except Exception as ex:
@@ -3748,8 +3795,6 @@ def register():
 
 
 def unregister():
-    if bpy.app.background:
-        return
 
     unregisterKeymaps()
     # unregister_tool(SLCAD_transform)

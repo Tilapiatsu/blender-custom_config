@@ -28,7 +28,13 @@ import gpu
 from mathutils import Vector, Matrix
 
 from .bgl_ext import VoidBufValue
-from .drawing import GPU_Indices, gpu_Indices_enable_state, gpu_Indices_restore_state
+from .drawing import (
+    GPU_Indices,
+    TYP_OBJ,
+    TYP_ORIGIN,
+    TYP_BOUNDS,
+    check_error
+)
 from .utils_projection import (
     region_2d_to_orig_and_view_vector as _get_ray,
     intersect_boundbox_threshold,
@@ -43,12 +49,18 @@ SEGS_CENTER = 16
 SEGS_PERPENDICULAR = 32
 SEGS_PARALLEL = 64
 ORIGIN = 512
+BOUNDS = 1024
+
+
+# display snap buffer as blender image
+DEBUG_SNAP_BUFFER = False
 
 
 class _SnapObjectData:
-    def __init__(self, data, omat):
+    def __init__(self, data, omat, typ=TYP_OBJ):
         self.data = data
         self.mat = omat
+        self.typ = typ
 
 
 class SnapContext:
@@ -80,22 +92,30 @@ class SnapContext:
         self._texture = None
         self.winsize = Vector((0, 0))
 
+        self.buffer_type = bgl.Buffer(bgl.GL_INT, 1)
+
     def init_context(self, context):
         self.region = context.region
         self.rv3d = context.space_data.region_3d
         # self.depth_range = Vector((space.clip_start, space.clip_end))
         w, h = self.region.width, self.region.height
         self._offscreen = gpu.types.GPUOffScreen(w, h)
+        self.winsize = Vector((w, h))
+
         self._texture = self._offscreen.color_texture
         bgl.glBindTexture(bgl.GL_TEXTURE_2D, self._texture)
+        check_error("glBindTexture")
         NULL = VoidBufValue(0)
         bgl.glTexImage2D(bgl.GL_TEXTURE_2D, 0, bgl.GL_R32UI, w, h, 0,
                          bgl.GL_RED_INTEGER, bgl.GL_UNSIGNED_INT, NULL.buf)
+        check_error("glTexImage2D")
         del NULL
         bgl.glTexParameteri(bgl.GL_TEXTURE_2D, bgl.GL_TEXTURE_MIN_FILTER, bgl.GL_NEAREST)
+        check_error("glTexParameteri")
         bgl.glTexParameteri(bgl.GL_TEXTURE_2D, bgl.GL_TEXTURE_MAG_FILTER, bgl.GL_NEAREST)
+        check_error("glTexParameteri")
         bgl.glBindTexture(bgl.GL_TEXTURE_2D, 0)
-        self.winsize = Vector((self._offscreen.width, self._offscreen.height))
+        check_error("glBindTexture")
 
     def _get_snap_obj_by_index(self, index):
         for snap_obj in self.snap_objects[:self.drawn_count]:
@@ -112,6 +132,7 @@ class SnapContext:
         offset = 1
         last_snap_obj = None
         r_value = 0
+
         while m < maxi:
             # axis x, y
             for i in range(2):
@@ -146,13 +167,13 @@ class SnapContext:
                 seg_co = [snap_obj.mat @ Vector(v) for v in gpu_data.get_seg_co(index)]
                 fac = intersect_ray_segment_fac(*seg_co, *self.last_ray)
 
-                if (self._snap_mode & KNOT) and (fac < 0.25 or fac > 0.75):
+                if (self._snap_mode & KNOT) and (not (0.75 > fac > 0.25) or not (self._snap_mode & SEGS_CENTER)):
                     co = seg_co[0] if fac < 0.5 else seg_co[1]
                     dist = self._max_pixel_dist(co)
                     if dist < self._dist_px:
                         return co, [co], dist, None, KNOT
 
-                if (self._snap_mode & SEGS_CENTER) and (0.75 > fac > 0.25):
+                if (self._snap_mode & SEGS_CENTER) and ((0.75 > fac > 0.25) or not (self._snap_mode & KNOT)):
                     co = 0.5 * (seg_co[0] + seg_co[1])
                     dist = self._max_pixel_dist(co)
                     if dist < self._dist_px:
@@ -182,6 +203,15 @@ class SnapContext:
                         return co, [co], dist, None, ORIGIN
             index -= gpu_data.num_origins
 
+        # bounding box
+        if gpu_data.draw_bounds and (self._snap_mode & BOUNDS):
+            if index < gpu_data.num_bounds:
+                co = Vector(gpu_data.get_bounds_co(index))
+                dist = self._max_pixel_dist(co)
+                if dist < self._dist_px:
+                    return co, [co], dist, None, BOUNDS
+            index -= gpu_data.num_bounds
+
         return None
 
     def _get_snap_obj_by_obj(self, obj):
@@ -198,7 +228,9 @@ class SnapContext:
         self.drawn_count = 0
         self._offset_cur = 1
         bgl.glClearColor(0.0, 0.0, 0.0, 0.0)
+        check_error("glClearColor")
         bgl.glClear(bgl.GL_COLOR_BUFFER_BIT | bgl.GL_DEPTH_BUFFER_BIT)
+        check_error("glClear")
 
     def update_drawn_snap_object(self, snap_obj):
         if len(snap_obj.data) > 1:
@@ -214,20 +246,33 @@ class SnapContext:
         self._snap_buffer = bgl.Buffer(bgl.GL_FLOAT, (self.threshold, self.threshold))
 
     def set_snap_mode(self, snap_mode):
-        s = snap_mode & (KNOT | SEGS | SEGS_CENTER | SEGS_PERPENDICULAR | SEGS_PARALLEL | ORIGIN)
+        s = snap_mode & (KNOT | SEGS | SEGS_CENTER | SEGS_PERPENDICULAR | SEGS_PARALLEL | ORIGIN | BOUNDS)
         if s != self._snap_mode:
             self._snap_mode = s
             self.update_all()
 
+    def add_bounds(self, context):
+        bounds = []
+        for o in context.visible_objects:
+            tM = o.matrix_world
+            bounds.extend([tM @  Vector(p) for p in o.bound_box])
+
+        matrix = Matrix()
+        self.snap_objects.append(_SnapObjectData([bounds], matrix, TYP_BOUNDS))
+
+        return self.snap_objects[-1]
+
     def add_origins(self, context):
         # check isolate mode
-        origins = [o.matrix_world.translation.copy()
-                   for o in context.visible_objects
+        origins = [
+                o.matrix_world.translation.copy()
+                for o in context.visible_objects
                 ]
+        # adds cursor to origins
         origins.append(context.scene.cursor.location.copy())
 
         matrix = Matrix()
-        self.snap_objects.append(_SnapObjectData([origins], matrix))
+        self.snap_objects.append(_SnapObjectData([origins], matrix, TYP_ORIGIN))
 
         return self.snap_objects[-1]
 
@@ -237,9 +282,9 @@ class SnapContext:
         matrix = obj.matrix_world.copy()
         snap_obj = self._get_snap_obj_by_obj(obj)
         if not snap_obj:
-            self.snap_objects.append(_SnapObjectData([obj], matrix))
+            self.snap_objects.append(_SnapObjectData([obj], matrix, TYP_OBJ))
         else:
-            self.snap_objects.append(_SnapObjectData(snap_obj.data, matrix))
+            self.snap_objects.append(_SnapObjectData(snap_obj.data, matrix, TYP_OBJ))
 
         return self.snap_objects[-1]
 
@@ -249,8 +294,8 @@ class SnapContext:
 
     def draw(self):
         # For debug purposes
-        gpu_Indices_enable_state()
-        _offset_cur = 128
+        # gpu_Indices_enable_state()
+        _offset_cur = 0
         proj_mat = self.rv3d.perspective_matrix.copy()
 
         multisample_enabled = bgl.glIsEnabled(bgl.GL_MULTISAMPLE)
@@ -277,13 +322,14 @@ class SnapContext:
             if len(snap_obj.data) == 1:
                 # tim = time.time()
                 snap_obj.data.append(
-                    GPU_Indices(obj)
+                    GPU_Indices(obj, snap_obj.typ)
                 )
                 # print("create data %.4f" % (time.time() - tim))
 
             snap_obj.data[1].set_draw_mode(
                 (self._snap_mode & (KNOT | SEGS | SEGS_CENTER | SEGS_PERPENDICULAR | SEGS_PARALLEL)) > 0,
-                (self._snap_mode & ORIGIN) > 0
+                (self._snap_mode & ORIGIN) > 0,
+                (self._snap_mode & BOUNDS) > 0
             )
 
             snap_obj.data[1].set_ModelViewMatrix(snap_obj.mat)
@@ -296,7 +342,7 @@ class SnapContext:
         if multisample_enabled:
             bgl.glEnable(bgl.GL_MULTISAMPLE)
 
-        gpu_Indices_restore_state()
+        # gpu_Indices_restore_state()
 
     def snap(self, mval):
         t = time.time()
@@ -304,18 +350,21 @@ class SnapContext:
         ret = None
         self.mval[:] = mval
 
-        gpu_Indices_enable_state()
         with self._offscreen.bind():
 
             multisample_enabled = bgl.glIsEnabled(bgl.GL_MULTISAMPLE)
+            check_error("glIsEnabled")
 
             if multisample_enabled:
                 bgl.glDisable(bgl.GL_MULTISAMPLE)
+                check_error("glDisable")
 
             dither_enabled = bgl.glIsEnabled(bgl.GL_DITHER)
+            check_error("glIsEnabled")
 
             if dither_enabled:
                 bgl.glDisable(bgl.GL_DITHER)
+                check_error("glDisable")
 
             proj_mat = self.rv3d.perspective_matrix.copy()
 
@@ -330,9 +379,13 @@ class SnapContext:
                 obj = snap_obj.data[0]
 
                 # origins
-                if obj.__class__.__name__ == 'list':
+                if snap_obj.typ == TYP_ORIGIN: #obj.__class__.__name__ == 'list':
                     # filter by visibility
                     in_threshold = (self._snap_mode & ORIGIN)
+
+                elif snap_obj.typ == TYP_BOUNDS:
+                    in_threshold = (self._snap_mode & BOUNDS)
+
                 else:
                     # allow to hide some objects from snap, eg active object when moving
                     if obj is None or obj.name in self._exclude or not obj.visible_get():
@@ -348,7 +401,9 @@ class SnapContext:
                         mat_inv = snap_obj.mat.inverted()
                         ray_orig_local = mat_inv @ ray_orig
                         ray_dir_local = ray_dir @ snap_obj.mat
-                        in_threshold = intersect_boundbox_threshold(self, MVP, ray_orig_local, ray_dir_local, bbmin, bbmax)
+                        in_threshold = intersect_boundbox_threshold(
+                            self, MVP, ray_orig_local, ray_dir_local, bbmin, bbmax
+                        )
 
                     else:
                         dist = self._max_pixel_dist(snap_obj.mat.translation)
@@ -363,13 +418,14 @@ class SnapContext:
                         # tim = time.time()
 
                         snap_obj.data.append(
-                            GPU_Indices(obj)
+                            GPU_Indices(obj, snap_obj.typ)
                             )
                         # print("create data %.4f" % (time.time() - tim))
 
                     snap_obj.data[1].set_draw_mode(
                         (self._snap_mode & (KNOT | SEGS | SEGS_CENTER | SEGS_PERPENDICULAR | SEGS_PARALLEL)) > 0,
-                        (self._snap_mode & ORIGIN) > 0
+                        (self._snap_mode & ORIGIN) > 0,
+                        (self._snap_mode & BOUNDS) > 0
                     )
                     snap_obj.data[1].set_ModelViewMatrix(snap_obj.mat)
                     snap_obj.data[1].draw(self._offset_cur)
@@ -380,30 +436,73 @@ class SnapContext:
                         self.snap_objects[i], self.snap_objects[self.drawn_count]
                     self.drawn_count += 1
 
+            bgl.glGetIntegerv(bgl.GL_READ_BUFFER, self.buffer_type)
+            check_error("glGetIntegerv(bgl.GL_READ_BUFFER)")
+
             bgl.glReadBuffer(bgl.GL_COLOR_ATTACHMENT0)
+            check_error("glReadBuffer(bgl.GL_COLOR_ATTACHMENT0)")
+
             bgl.glReadPixels(
                     int(self.mval[0]) - self._dist_px, int(self.mval[1]) - self._dist_px,
                     self.threshold, self.threshold, bgl.GL_RED_INTEGER, bgl.GL_UNSIGNED_INT, self._snap_buffer)
-            bgl.glReadBuffer(bgl.GL_BACK)
+
+            check_error("glReadPixels snap_buffer")
 
             snap_obj, index = self._get_nearest_index()
 
             if snap_obj:
                 ret = self._get_loc(snap_obj, index)
+                # print(ret, index)
+
+            # self.as_image(0, 0, self._offscreen.width, self._offscreen.height, "full_screen")
+            if DEBUG_SNAP_BUFFER:
+                self.as_image(
+                    int(self.mval[0]) - self._dist_px,
+                    int(self.mval[1]) - self._dist_px,
+                    self.threshold,
+                    self.threshold,
+                    "snap_buffer"
+                )
 
             # print(ret)
-            # print(self._snap_buffer[:])
             if dither_enabled:
                 bgl.glEnable(bgl.GL_DITHER)  # dithering and AA break color coding, so disable #
+                check_error("glEnable")
+
             if multisample_enabled:
                 bgl.glEnable(bgl.GL_MULTISAMPLE)
-
-        # self._offscreen.unbind()
-        gpu_Indices_restore_state()
+                check_error("glEnable")
 
         # print("curve snap %s %.4f" % (len(self.snap_objects), time.time() - t))
 
         return snap_obj, ret
+
+    def as_image(self, x, y, w, h, image_name):
+        import bpy
+
+        buffer = bgl.Buffer(bgl.GL_FLOAT, w * h) # * 4)
+
+        bgl.glReadBuffer(bgl.GL_COLOR_ATTACHMENT0)
+        check_error("glReadBuffer(bgl.GL_COLOR_ATTACHMENT0)")
+
+        bgl.glReadPixels(x, y, w, h, bgl.GL_RED_INTEGER, bgl.GL_UNSIGNED_INT, buffer)
+        check_error("glReadPixels as_image")
+
+        if image_name not in bpy.data.images:
+            image = bpy.data.images.new(image_name,  w, h)
+        else:
+            image = bpy.data.images[image_name]
+            #if image.size[:] != (w, h):
+            image.scale(w, h)
+
+        pix = []
+        for v in buffer:
+            # pix.extend([v / self._offset_cur, 0, 0, 1])
+            pix.extend([v, 0, 0, 1])
+
+        image.pixels = pix
+        # image.pixels = [v / 255 for v in buffer]
+        image.update()
 
     def free(self):
         self.__del__()
