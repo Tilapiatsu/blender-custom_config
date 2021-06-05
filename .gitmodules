@@ -298,3 +298,6 @@
 [submodule "scripts/addons/meshroom2blender"]
 	path = scripts/addons/meshroom2blender
 	url = https://github.com/tibicen/meshroom2blender.git
+[submodule "scripts/GIT/Blender-Addon-Photogrammetry-Importer"]
+	path = scripts/GIT/Blender-Addon-Photogrammetry-Importer
+	url = https://github.com/SBCV/Blender-Addon-Photogrammetry-Importer.git
