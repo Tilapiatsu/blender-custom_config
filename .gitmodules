@@ -295,3 +295,6 @@
 [submodule "scripts/addons/ez_baker"]
 	path = scripts/addons/ez_baker
 	url = https://gitlab.com/AquaticNightmare/ez_baker.git
+[submodule "scripts/addons/meshroom2blender"]
+	path = scripts/addons/meshroom2blender
+	url = https://github.com/tibicen/meshroom2blender.git
