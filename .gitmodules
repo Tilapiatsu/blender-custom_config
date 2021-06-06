@@ -301,3 +301,6 @@
 [submodule "scripts/GIT/Blender-Addon-Photogrammetry-Importer"]
 	path = scripts/GIT/Blender-Addon-Photogrammetry-Importer
 	url = https://github.com/SBCV/Blender-Addon-Photogrammetry-Importer.git
+[submodule "scripts/addons/blender-Universal_Multi_Importer"]
+	path = scripts/addons/blender-Universal_Multi_Importer
+	url = https://github.com/Tilapiatsu/blender-Universal_Multi_Importer.git
