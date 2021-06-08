@@ -304,3 +304,6 @@
 [submodule "scripts/addons/Universal_Multi_Importer"]
 	path = scripts/addons/Universal_Multi_Importer
 	url = https://github.com/Tilapiatsu/blender-Universal_Multi_Importer.git
+[submodule "scripts/addons/TexTools"]
+	path = scripts/addons/TexTools
+	url = https://github.com/SavMartin/TexTools-Blender.git
