@@ -138,6 +138,7 @@ class TILA_multires_rebuild_subdiv(bpy.types.Operator):
 
 		if event.type == 'TIMER':
 			if self.cancelling:
+				print('TILA Multires Rebuild : Rebuild Cancelled')
 				self.report({'INFO'}, 'TILA Multires Rebuild : Rebuild Cancelled')
 				return {"FINISHED"}
 
@@ -150,6 +151,7 @@ class TILA_multires_rebuild_subdiv(bpy.types.Operator):
 				self.processing = None
 
 			else:
+				print('TILA Multires Rebuild : Rebuild Complete')
 				self.report({'INFO'}, 'TILA Multires Rebuild : Rebuild Complete')
 				bpy.context.window_manager.event_timer_remove(self._timer)
 				self.init_default()
@@ -158,6 +160,7 @@ class TILA_multires_rebuild_subdiv(bpy.types.Operator):
 		return {"PASS_THROUGH"}
 
 	def rebuild(self, context, ob):
+		print('Rebuild in progress : {}'.format(ob.name))
 		self.report({'INFO'}, 'Rebuild in progress : {}'.format(ob.name))
 		bpy.context.view_layer.objects.active = ob
 		multires_modifier = [m for m in ob.modifiers if m.type == self.modifier_type]
