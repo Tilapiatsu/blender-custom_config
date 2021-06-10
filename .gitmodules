@@ -307,3 +307,6 @@
 [submodule "scripts/addons/TexTools"]
 	path = scripts/addons/TexTools
 	url = https://github.com/SavMartin/TexTools-Blender.git
+[submodule "scripts/addons/GrabDoc"]
+	path = scripts/addons/GrabDoc
+	url = https://github.com/oRazeD/GrabDoc.git
