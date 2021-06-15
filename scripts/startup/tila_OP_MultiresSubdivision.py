@@ -170,7 +170,9 @@ class TILA_multires_rebuild_subdiv(bpy.types.Operator):
 		else:
 			multires_modifier = multires_modifier[0]
 
-		bpy.ops.object.multires_rebuild_subdiv(modifier=multires_modifier.name)
+		try:
+			bpy.ops.object.multires_rebuild_subdiv(modifier=multires_modifier.name)
+		except : pass
 
 		multires_modifier.levels = 0
 		multires_modifier.sculpt_levels = 0
