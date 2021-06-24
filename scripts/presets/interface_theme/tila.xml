@@ -378,7 +378,7 @@
         edge_bevel="#007ed7"
         edge_facesel="#6b6b6b"
         freestyle_edge_mark="#0162a7"
-        face="#1c58581a"
+        face="#35585f6e"
         face_select="#ffffff0d"
         face_dot="#ffffff"
         facedot_size="2"
@@ -1322,22 +1322,22 @@
         >
         <space>
           <ThemeSpaceGeneric
-            back="#282828"
+            back="#161616"
             title="#ffffff"
             text="#c3c3c3"
             text_hi="#ffffff"
-            header="#454545ff"
+            header="#222222ff"
             header_text="#eeeeee"
             header_text_hi="#ffffff"
-            button="#424242ff"
+            button="#2c2c2cff"
             button_title="#ffffff"
             button_text="#e5e5e5"
             button_text_hi="#ffffff"
-            navigation_bar="#00000000"
+            navigation_bar="#161616ff"
             execution_buts="#00000000"
-            tab_active="#4b4b4b"
+            tab_active="#274961"
             tab_inactive="#2b2b2b"
-            tab_back="#232323ff"
+            tab_back="#424242ff"
             tab_outline="#232323"
             >
             <panelcolors>
