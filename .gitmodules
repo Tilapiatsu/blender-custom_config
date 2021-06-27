@@ -310,3 +310,6 @@
 [submodule "scripts/addons/GrabDoc"]
 	path = scripts/addons/GrabDoc
 	url = https://github.com/oRazeD/GrabDoc.git
+[submodule "scripts/addons/MaterialUtilities"]
+	path = scripts/addons/MaterialUtilities
+	url = https://github.com/ChrisHinde/MaterialUtilities.git
