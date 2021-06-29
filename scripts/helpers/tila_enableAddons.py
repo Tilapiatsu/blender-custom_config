@@ -20,7 +20,7 @@ modules =   (
 			'object_boolean_tools',
 			'optiloops',
 			# 'DNoise',
-			'RenderBurst',
+			# 'RenderBurst',
 			'magic_uv',
 			# 'photographer',
 			'transfer_vertex_order',
