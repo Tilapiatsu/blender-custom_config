@@ -2,7 +2,7 @@ bl_info = {
     "name": "keTransformToolToggle",
     "author": "Kjell Emanuelsson",
     "category": "Modeling",
-    "version": (1, 0, 3),
+    "version": (1, 0, 5),
     "blender": (2, 90, 0),
 }
 
@@ -37,9 +37,11 @@ class VIEW3D_OT_KE_TT(bpy.types.Operator):
             return "TT Rotate - can be toggled between using Default Transform Tools / MouseAxis / Viewplane"
         elif properties.mode == "ROTATE":
             return "TT Scale - can be toggled between using Default Transform Tools / MouseAxis / Viewplane"
+        elif properties.mode == "TOGGLE_DUPE":
+            return "TT Linked Dupe Toggle - Duplicate Linked or not using TT Dupe\n Also used by MouseAxis Dupe & VPtransform Dupe"
         else:
-            return "Toggles TT Move/Rotate/Scale between using Default Transform Tools / MouseAxis / Viewplane\n" \
-                   "Note: Preferred default mode can be set by saving kit settings"
+            return "Toggles TT Move/Rotate/Scale between using Default Transform / MouseAxis / Viewplane\n" \
+                   "Note: Preferred default state can be set by saving kit settings"
 
     def execute(self, context):
         tt_handles = bpy.context.scene.kekit.tt_handles
@@ -177,7 +179,7 @@ class VIEW3D_OT_ke_vptransform(bpy.types.Operator):
 
     @classmethod
     def poll(cls, context):
-        return context.object is not None
+        return context.selected_objects is not None
 
     def execute(self, context):
         self.world_only = bpy.context.scene.kekit.vptransform
@@ -247,7 +249,7 @@ class VIEW3D_OT_ke_vptransform(bpy.types.Operator):
         return {'FINISHED'}
 
 
-classes = (VIEW3D_OT_KE_TT, VIEW3D_HT_KE_TT, VIEW3D_OT_ke_vptransform)
+classes = (VIEW3D_OT_KE_TT, VIEW3D_OT_ke_vptransform)
 
 def register():
     for c in classes:

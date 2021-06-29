@@ -199,7 +199,9 @@ default_values = {
     'snap_name2'            : "Snap Combo 2",
     'snap_name3'            : "Snap Combo 3",
     'snap_name4'            : "Snap Combo 4",
-    'tt_linkdupe'           : False
+    'tt_linkdupe'           : False,
+    'dlc_so'                : False,
+    'shading_tris'          : False
 
 }
 
@@ -244,7 +246,7 @@ class kekit_properties(PropertyGroup):
     unrotator_connect : BoolProperty(description="Connect linked faces from selection", default=v["unrotator_connect"])
     unrotator_nolink : BoolProperty(description="Duplicated Objects will not be data-linked", default=v["unrotator_nolink"])
     unrotator_nosnap : BoolProperty(description="Toggles on face surface snapping or not",default=v["unrotator_nosnap"])
-    unrotator_invert : BoolProperty(description="Invert (Z) rotation", default=v["unrotator_invert"])
+    unrotator_invert : BoolProperty(description="Invert (Z) rotation (Separate from the redo-panel)", default=v["unrotator_invert"])
     unrotator_center: BoolProperty(description="Place geo on the target face center",default=v["unrotator_center"])
     # Orientation & Pivot Combo 1
     opc1_obj_o: EnumProperty(items=[("1GLOBAL", "Global", ""),("2LOCAL", "Local", ""),("3NORMAL", "Normal", ""),("4GIMBAL", "Gimbal", ""),("5VIEW", "View", ""),("6CURSOR", "Cursor", "")],name="Orientation", default=v["opc1_obj_o"])
@@ -356,7 +358,7 @@ class kekit_properties(PropertyGroup):
     tt_hide : BoolProperty(description="Hide the viewport TT Toggle header icons", default=v["tt_hide"])
     tt_mode : BoolVectorProperty(description="Toggles between default transform tools, MouseAxis or VP", size=3, default=v["tt_mode"])
     tt_handles : BoolProperty(description="TT Default uses the handle tools or the classic style ('Grab' etc.)", default=v["tt_handles"])
-    tt_select : BoolProperty(description="Switches to Select Tool if default handle tools are active when toggling TT", default=v["tt_select"])
+    tt_select : BoolProperty(description="Switches to Select Tool (Tweak) for when default handle tools are active when toggling TT", default=v["tt_select"])
     tt_extrude : BoolProperty(description="Use TT Mode for transform: Default, MouseAxis and VP, except faces", default=v["tt_extrude"])
     tt_linkdupe : BoolProperty(description="Global TT Duplicate Linked Toggle (includes Mouse Axis Dupe & VP Dupe)", default=v["tt_linkdupe"])
     # Use Render Slot Cycling
@@ -385,8 +387,10 @@ class kekit_properties(PropertyGroup):
     snap_name2 : StringProperty(description="Snapping Combo 2 Name", default=v["snap_name2"])
     snap_name3 : StringProperty(description="Snapping Combo 3 Name", default=v["snap_name3"])
     snap_name4 : StringProperty(description="Snapping Combo 4 Name", default=v["snap_name4"])
-
-
+    # DLC sel only
+    dlc_so : BoolProperty(name="DLC Selection Only", description="No auto-pick, selected element only (nearest selected edge in face limit selection)", default=v["dlc_so"])
+    # Shading Toggle Tri mode
+    shading_tris : BoolProperty(name="Shading Toggle Triangulate", description="Use Triangulate Modifier (always last) for more accurate shading", default=v["shading_tris"])
 
 # MENU OP FOR PREFS SAVING
 

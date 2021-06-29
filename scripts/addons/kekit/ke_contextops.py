@@ -130,9 +130,7 @@ class VIEW3D_OT_ke_contextdelete(Operator):
 		elif ctx_mode == "OBJECT":
 			sel = context.selected_objects[:]
 			if context.scene.kekit.h_delete:
-				for o in sel:
-					context.view_layer.objects.active = o
-					bpy.ops.object.select_grouped(type='CHILDREN_RECURSIVE', extend=True)
+				bpy.ops.object.select_grouped(type='CHILDREN_RECURSIVE', extend=True)
 				sel = context.selected_objects[:]
 
 			for item in sel:

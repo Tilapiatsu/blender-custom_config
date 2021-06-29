@@ -2,7 +2,7 @@ bl_info = {
 	"name": "kekit_misc",
 	"author": "Kjell Emanuelsson",
 	"category": "Modeling",
-	"version": (1, 3, 9),
+	"version": (1, 4, 0),
 	"blender": (2, 80, 0),
 }
 import bpy
@@ -31,6 +31,7 @@ class VIEW3D_OT_ke_shading_toggle(Operator):
 	def execute(self, context):
 		aso = []
 		cm = str(context.mode)
+		tri_mode = bpy.context.scene.kekit.shading_tris
 
 		if cm != "OBJECT":
 			bpy.ops.object.mode_set(mode="OBJECT")
@@ -38,6 +39,18 @@ class VIEW3D_OT_ke_shading_toggle(Operator):
 				cm = "EDIT"
 
 		for obj in context.selected_objects:
+
+			if tri_mode:
+				tmod = None
+				mindex = len(obj.modifiers) - 1
+				for m in obj.modifiers:
+					if m.name == "Triangulate Shading":
+						tmod = m
+						bpy.ops.object.modifier_move_to_index(modifier="Triangulate Shading", index=mindex)
+
+				if tmod is None:
+					obj.modifiers.new(name="Triangulate Shading", type="TRIANGULATE")
+
 			try:
 				current = obj.data.polygons[0].use_smooth
 			except AttributeError:
@@ -57,10 +70,10 @@ class VIEW3D_OT_ke_shading_toggle(Operator):
 
 		if aso:
 			if len(aso) > 5:
-				t = "'" + "','".join(aso[:5]) + "'" + "... " + "(%s objects)" % str(len(aso))
+				t = "'" + "','".join(aso[:5]) + "'" + ".. " + "(%s objects)" % str(len(aso))
 			else:
 				t = "'" + "','".join(aso) + "'"
-			self.report({"INFO"}, "Auto Smooth disabled: %s" % t)
+			self.report({"INFO"}, "Auto Smooth toggled: %s" % t)
 
 		return {"FINISHED"}
 

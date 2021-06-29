@@ -2,13 +2,13 @@ bl_info = {
     "name": "keUnrotator",
     "author": "Kjell Emanuelsson",
     "category": "Modeling",
-    "version": (3, 1, 0),
+    "version": (3, 1, 1),
     "blender": (2, 90, 0),
 }
 import bpy
 import bmesh
 from .ke_utils import average_vector, mouse_raycast, tri_points_order, getset_transform, restore_transform, \
-    correct_normal, rotation_from_vector
+    correct_normal, rotation_from_vector, get_islands
 from mathutils import Vector, Quaternion
 from math import radians
 
@@ -29,6 +29,7 @@ class VIEW3D_OT_ke_unrotator(bpy.types.Operator):
 
     rot_offset: bpy.props.FloatProperty(name="Rotation Offset", default=0,
                                         min=-360.0, max=360.0, step=500, subtype='ANGLE', precision=0)
+    inv : bpy.props.BoolProperty(name="Invert Z", default=False)
 
     center = False
     mouse_pos = Vector((0, 0))
@@ -62,6 +63,7 @@ class VIEW3D_OT_ke_unrotator(bpy.types.Operator):
             layout.use_property_split = True
             col = layout.column()
             col.prop(self, "rot_offset")
+            col.prop(self, "inv", toggle=True)
             col.separator()
             sub = col.column(align=True)
             sub.label(text="Note: Rotation Offset requires unchanged viewport")
@@ -168,14 +170,24 @@ class VIEW3D_OT_ke_unrotator(bpy.types.Operator):
             sel_verts = [v for v in bm.verts if v.select]
 
             active_h = bm.select_history.active
-            # boundary convert lacking set active
-            if sel_edges and not active_h:
-                active_h = sel_edges[-1]
 
-            if not active_h:
-                self.report({"INFO"}, "Unrotator: No Active Element?")
-                return {"CANCELLED"}
+            # Making sure an active element is in the selection
+            if sel_mode[1] and sel_edges:
+                if active_h not in sel_edges:
+                    bm.select_history.add(sel_edges[-1])
+                    active_h = bm.select_history.active
 
+            elif sel_mode[0] and sel_verts:
+                if active_h not in sel_verts:
+                    bm.select_history.add(sel_verts[-1])
+                    active_h = bm.select_history.active
+
+            elif sel_mode[2] and sel_poly:
+                if active_h not in sel_poly:
+                    bm.select_history.add(sel_poly[-1])
+                    active_h = bm.select_history.active
+
+            # Verify valid selections
             if len(sel_verts) >= 3 and active_h:
                 if sel_mode[0]:
                     sel_check = True
@@ -188,8 +200,23 @@ class VIEW3D_OT_ke_unrotator(bpy.types.Operator):
             if sel_check and connect:
                 bpy.ops.mesh.select_linked()
                 linked_verts = [v for v in bm.verts if v.select]
+
             elif sel_check and not connect:
+                # still calc the linked avg pos
                 linked_verts = sel_verts
+                islands = get_islands(bm, sel_verts)
+                for island in islands:
+                    if any(v in sel_verts for v in island):
+                        linked_verts = island
+                        break
+
+            # Linked Selection center pos
+            bm.verts.ensure_lookup_table()
+            linked_verts_co = [v.co for v in linked_verts]
+            avg_pos = obj_mtx @ Vector(average_vector(linked_verts_co))
+            sel_cos = [v.co for v in sel_verts]
+            avg_sel_pos = obj_mtx @ Vector(average_vector(sel_cos))
+            center_d = Vector(avg_sel_pos - avg_pos).normalized()
 
             # -----------------------------------------------------------------------------------------
             # Check mouse over target - place check
@@ -243,11 +270,8 @@ class VIEW3D_OT_ke_unrotator(bpy.types.Operator):
                 v1 = p2 - p1
                 normal = v1.cross(v2).normalized()
                 tangent = Vector(v1).normalized()
-                # Direction flip check
-                vn1 = obj_mtx @ sel_verts[h[0]].normal
-                vn2 = obj_mtx @ sel_verts[h[1]].normal
-                vn3 = obj_mtx @ sel_verts[h[2]].normal
-                d = normal.dot(average_vector((vn1, vn2, vn3)))
+                # Direction flip check against center mass
+                d = normal.dot(center_d)
                 if d <= 0:
                     normal.negate()
 
@@ -264,9 +288,9 @@ class VIEW3D_OT_ke_unrotator(bpy.types.Operator):
                 v2 = correct_normal(obj_mtx, sorted(vecs)[0])
                 # Normal is crossp
                 normal = tangent.cross(v2).normalized()
-                # Direction flip check
-                d = average_vector(([obj_mtx @ v.normal for v in sel_verts]))
-                if normal.dot(d) <= 0:
+                # Direction flip check against center mass
+                d = normal.dot(center_d)
+                if d <= 0:
                     normal.negate()
 
             elif sel_mode[2] and sel_check:
@@ -280,6 +304,8 @@ class VIEW3D_OT_ke_unrotator(bpy.types.Operator):
             # Process & Execute transforms!
             # -----------------------------------------------------------------------------------------
             if actual_invert:
+                normal.negate()
+            if self.inv:
                 normal.negate()
 
             rotm = rotation_from_vector(normal, tangent)
@@ -314,12 +340,10 @@ class VIEW3D_OT_ke_unrotator(bpy.types.Operator):
                 cursor.location = hit_wloc
                 bpy.ops.view3d.snap_selected_to_cursor(use_offset=True)
                 cursor.location = ogcpos
+                if not sel_mode[2]:
+                    bpy.context.scene.tool_settings.transform_pivot_point = "MEDIAN_POINT"
 
             else:
-                # Linked Selection center pos
-                bm.verts.ensure_lookup_table()
-                linked_verts_co = [v.co for v in linked_verts]
-                avg_pos = obj_mtx @ Vector(average_vector(linked_verts_co))
                 # Compensate z pos to rot-in-place-ish
                 nv = [v.co for v in bm.verts if v.select]
                 npos = obj_mtx @ Vector(average_vector(nv))
@@ -388,20 +412,22 @@ class VIEW3D_OT_ke_unrotator(bpy.types.Operator):
                         return {'RUNNING_MODAL'}
 
         # Finalize....
-        if sel_mode[1] and mode != "OBJECT":
-            # add active edge for reasons..
-            bm.edges.ensure_lookup_table()
+        # todo: Replace the cursor hack and not use active element etc. and this workaround.  TBD.
+        if not sel_mode[2] and mode != "OBJECT" and self.ke_unrotator_option == "DUPE":
             bpy.ops.mesh.select_all(action='DESELECT')
-            for v in sel_edges:
-                bm.edges[v.index].select = True
-            bm.select_history.clear()
-            bm.select_history.add(sel_edges[0])
+            if sel_mode[1]:
+                bm.edges.ensure_lookup_table()
+                for e in sel_edges:
+                    bm.edges[e.index].select = True
+            elif sel_mode[0]:
+                bm.verts.ensure_lookup_table()
+                for v in sel_verts:
+                    bm.verts[v.index].select = True
             bmesh.update_edit_mesh(obj.data, True)
 
         restore_transform(og)
 
         return {"FINISHED"}
-
 
     def modal(self, context, event):
 

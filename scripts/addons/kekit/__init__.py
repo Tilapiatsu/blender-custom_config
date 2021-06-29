@@ -2,7 +2,7 @@ bl_info = {
     "name": "keKIT",
     "author": "Kjell Emanuelsson",
     "category": "Modeling",
-    "version": (1, 4, 3, 2),
+    "version": (1, 4, 3, 5),
     "blender": (2, 80, 0),
     "location": "View3D > Sidebar",
     "warning": "",
@@ -55,7 +55,7 @@ from bpy.types import Panel
 from urllib import request
 
 
-version = 1.432
+version = 1.435
 new_version = None
 
 # -------------------------------------------------------------------------------------------------
@@ -231,7 +231,12 @@ class VIEW3D_PT_kekit_modeling(Panel):
     def draw(self, context):
         layout = self.layout
         col = layout.column(align=True)
-        col.operator('view3d.ke_shading_toggle', text="Flat/Smooth Shading Toggle")
+        row = col.row(align=True)
+        row.operator('view3d.ke_shading_toggle', text="Flat/Smooth Shading Toggle")
+        row2 = row.row(align=True)
+        row2.alignment="RIGHT"
+        row2.prop(context.scene.kekit, "shading_tris", text="T", toggle=True)
+
         col.operator('MESH_OT_merge_to_mouse', icon="MOUSE_MOVE", text="Merge To Mouse")
 
         row = col.row(align=True)
@@ -277,6 +282,9 @@ class VIEW3D_PT_kekit_modeling(Panel):
         row = layout.row(align=True)
         row.operator('MESH_OT_ke_direct_loop_cut', text="Direct Loop Cut").mode = "DEFAULT"
         row.operator('MESH_OT_ke_direct_loop_cut', text="DLC & Slide").mode = "SLIDE"
+        row2 = row.row(align=True)
+        row2.alignment="RIGHT"
+        row2.prop(context.scene.kekit, "dlc_so", text="S", toggle=True)
 
 
 class VIEW3D_PT_kekit_id_material(Panel):
