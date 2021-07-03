@@ -480,7 +480,7 @@ def get_select_class(self,context):
             bm.faces.ensure_lookup_table()
             for index in my_faces:
                 bm.faces[index].select_set(True)   
-    bmesh.update_edit_mesh(me, True)
+    bmesh.update_edit_mesh(me, loop_triangles=True)
         
         
 class MESH_OT_Check_manual_Flush(Operator):
