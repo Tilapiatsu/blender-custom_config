@@ -514,7 +514,7 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		if kmi:
 			kmi.active = True
 
-		self.kmi_set_replace('object.switch_object', self.k_cursor, 'CLICK', alt=True, disable_double=True)
+		self.kmi_set_replace('object.transfer_mode', self.k_cursor, 'CLICK', alt=True, disable_double=True)
 
 		self.kmi_set_replace('view3d.tila_orthographic_navigation', self.k_cursor, 'CLICK_DRAG', ctrl=False, alt=True, shift=False, disable_double=True, properties=[('relative_to_selected_element', False)])
 		self.kmi_set_replace('view3d.tila_orthographic_navigation', self.k_cursor, 'CLICK_DRAG', ctrl=False, alt=True, shift=True, disable_double=True, properties=[('relative_to_selected_element', True)])
@@ -712,10 +712,10 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		kmi = self.kmi_find(idname='wm.call_menu', type='V', ctrl=True)
 		if kmi:
 			kmi.shift = True
-		
-		self.kmi_set_replace('mesh.ke_copyplus', 'C', "PRESS", ctrl=True, properties=[('mode', 'COPY')], disable_double=True)
-		self.kmi_set_replace('mesh.ke_copyplus', 'X', "PRESS", ctrl=True, properties=[('mode', 'CUT')], disable_double=True)
-		self.kmi_set_replace('mesh.ke_copyplus', 'V', "PRESS", ctrl=True, properties=[('mode', 'PASTE')], disable_double=True)
+
+		self.kmi_set_replace('view3d.ke_copyplus', 'C', "PRESS", ctrl=True, properties=[('mode', 'COPY')], disable_double=True)
+		self.kmi_set_replace('view3d.ke_copyplus', 'X', "PRESS", ctrl=True, properties=[('mode', 'CUT')], disable_double=True)
+		self.kmi_set_replace('view3d.ke_copyplus', 'V', "PRESS", ctrl=True, properties=[('mode', 'PASTE')], disable_double=True)
 		
 
 		# MACHINE3tools
