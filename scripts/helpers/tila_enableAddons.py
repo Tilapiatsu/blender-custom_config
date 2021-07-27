@@ -18,7 +18,7 @@ modules =   (
 			'mesh_snap_utilities_line',
 			# 'Principled-Baker',
 			'object_boolean_tools',
-			'Optiloops',
+			'optiloops_v1_2_0',
 			# 'DNoise',
 			# 'RenderBurst',
 			'magic_uv',
