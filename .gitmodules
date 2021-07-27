@@ -109,8 +109,8 @@
 [submodule "scripts/addons/bezier_utils"]
 	path = scripts/addons/bezier_utils
 	url = https://github.com/Shriinivas/blenderbezierutils.git
-[submodule "scripts/addons/optiloops"]
-	path = scripts/addons/optiloops
+[submodule "scripts/GIT/optiloops"]
+	path = scripts/GIT/optiloops
 	url = https://github.com/vilemduha/optiloops.git
 [submodule "scripts/addons/SimpleLattice"]
 	path = scripts/addons/SimpleLattice
