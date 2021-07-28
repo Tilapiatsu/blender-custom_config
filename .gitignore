@@ -38,6 +38,7 @@ scripts/addons/oscurart_edit_split_normals.py
 scripts/addons/oscurart_bake_pbr.py
 scripts/addons/object_convert_to_armature.py
 scripts/addons/Lodify.py
+scripts/addons/optiloops_v1_2_0.py
 
 scripts/addons/io_mesh_fast_obj/*
 scripts/addons/carbon_tools.py
