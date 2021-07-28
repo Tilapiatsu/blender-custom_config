@@ -3,7 +3,7 @@ import bpy, os, addon_utils
 
 modules =   (
 			'mesh_f2',
-			'TexTools',
+			# 'TexTools',
 			'io_import_images_as_planes',
 			'mesh_f2',
 			'fspy_blender',

@@ -343,7 +343,7 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 			self.kmi_set_replace(sculpt, 'W', 'PRESS', ctrl=True, alt=True, shift=True)
 
 	def tool_smooth(self):
-		self.kmi_set_replace('wm.tool_set_by_id', 'S', 'PRESS', shift=True, properties=[('name', 'builtin.smooth')])
+		self.kmi_set_replace('mesh.vertices_smooth', 'S', 'PRESS', ctrl=True, alt=True, shift=False, properties=[('repeat', 50)])
 	
 	def tool_proportional(self):
 		self.modal_set_replace('PROPORTIONAL_SIZE', 'MOUSEMOVE', 'ANY', alt=True)
@@ -663,19 +663,19 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 
 		self.tool_smooth()
 		self.kmi_set_active(False, 'view3d.select_box')
-		self.kmi_set_replace('view3d.smart_bevel', 'B', 'PRESS')
-		self.kmi_set_replace('mesh.hp_extrude', 'E', 'PRESS')
-		self.kmi_set_replace('mesh.knife_tool', 'C', 'PRESS')
+		self.kmi_set_replace('view3d.smart_bevel', 'B', 'PRESS', disable_double=True)
+		self.kmi_set_replace('mesh.hp_extrude', 'E', 'PRESS', disable_double=True)
+		self.kmi_set_replace('mesh.knife_tool', 'C', 'PRESS', disable_double=True)
 		self.kmi_set_replace('wm.tool_set_by_id', 'C', 'PRESS', alt=True, shift=True, properties=[('name', 'builtin.loop_cut')])
 		self.kmi_set_replace('mesh.bridge_edge_loops', 'B', 'PRESS', shift=True)
 		self.kmi_set_replace('mesh.edge_collapse', 'DEL', 'PRESS', shift=True)
 		self.kmi_set_replace('mesh.fill', 'P', 'PRESS', shift=True, properties=[('use_beauty', True)])
 		self.kmi_set_replace('mesh.fill_grid', 'P', 'PRESS', alt=True, properties=[('use_interp_simple', False)])
-		self.kmi_set_replace('mesh.edge_face_add', 'P', 'PRESS')
-		self.kmi_set_replace('mesh.flip_normals', 'F', 'PRESS')
-		self.kmi_set_replace('mesh.subdivide', 'D', 'PRESS')
+		self.kmi_set_replace('mesh.edge_face_add', 'P', 'PRESS', disable_double=True)
+		self.kmi_set_replace('mesh.flip_normals', 'F', 'PRESS', disable_double=True)
+		self.kmi_set_replace('mesh.subdivide', 'D', 'PRESS', disable_double=True)
 		self.kmi_set_replace('transform.shrink_fatten', 'E', 'PRESS', alt=True, shift=True, disable_double=True)
-		self.kmi_set_replace('transform.vert_slide', 'S', 'PRESS', ctrl=True, alt=True, properties=[('correct_uv', True)])
+		# self.kmi_set_replace('transform.vert_slide', 'S', 'PRESS', ctrl=True, alt=True, properties=[('correct_uv', True)])
 
 		self.kmi_set_replace('wm.tool_set_by_id', 'F', 'PRESS', shift=True, properties=[('name', 'mesh_tool.poly_quilt')], disable_double=True)
 
@@ -694,7 +694,7 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 
 		self.kmi_set_replace('mesh.toggle_use_automerge', 'BACK_SLASH', 'PRESS')
 		# self.kmi_set_replace('object.merge_tool', 'M', 'PRESS')
-		# self.kmi_set_replace('transform.tosphere', 'S', 'PRESS', ctrl=True, alt=True, shift=True, disable_double=True)
+		self.kmi_set_replace('wm.call_menu_pie', 'S', 'PRESS', ctrl=False, alt=False, shift=True, properties=[('name', 'VIEW3D_MT_snap_pie')], disable_double=True)
 		self.kmi_set_replace('wm.call_menu_pie', 'S', 'PRESS', alt=True, shift=True, properties=[('name', 'TILA_MT_pie_normal')], disable_double=True)
 		self.kmi_set_replace('wm.call_menu_pie', 'S', 'PRESS', ctrl=True, alt=True, shift=True, properties=[('name', 'TILA_MT_pie_uv')], disable_double=True)
 
@@ -724,7 +724,7 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 			kmi.active = True
 
 		# F2
-		self.kmi_set_replace('mesh.f2', 'P', 'PRESS', disable_double=True)
+		# self.kmi_set_replace('mesh.f2', 'P', 'PRESS', disable_double=True)
 
 		# MAXVIZ
 		self.kmi_set_replace('mesh.quick_pivot', 'S', 'PRESS', alt=True, disable_double=True)
@@ -1173,27 +1173,9 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		self.right_mouse()
 		self.kmi_set_replace('wm.tool_set_by_id', 'G', 'PRESS', properties=[('name', 'builtin_brush.Grab')])
 
-		self.tool_radial_control(radius=[('data_path_primary', 'tool_settings.gpencil_sculpt_paint.brush.size'), 
-		('data_path_secondary', 'tool_settings.unified_paint_settings.size'), 
-		('use_secondary', 'tool_settings.unified_paint_settings.use_unified_size'), 
-		('rotation_path', 'tool_settings.gpencil_sculpt_paint.brush.texture_slot.angle'), 
-		('color_path', 'tool_settings.gpencil_sculpt_paint.brush.cursor_color_add'), 
-		('image_id', 'tool_settings.gpencil_sculpt_paint.brush'),
-		('fill_color_path', 'tool_settings.gpencil_sculpt_paint.brush.color'), 
-		('fill_color_override_path', 'tool_settings.unified_paint_settings.color'), 
-		('fill_color_override_test_path', 'tool_settings.unified_paint_settings.use_unified_color'),
-		('zoom_path', 'space_data.zoom'), ('secondary_tex', True),
+		self.tool_radial_control(radius=[('data_path_primary', 'tool_settings.gpencil_sculpt_paint.brush.size'),
 		('release_confirm', True)],
-		opacity=[('data_path_primary', 'tool_settings.gpencil_sculpt_paint.brush.strength'), 
-		('data_path_secondary', 'tool_settings.unified_paint_settings.strength'), 
-		('use_secondary', 'tool_settings.unified_paint_settings.use_unified_strength'), 
-		('rotation_path', 'tool_settings.gpencil_sculpt_paint.brush.texture_slot.angle'), 
-		('color_path', 'tool_settings.gpencil_sculpt_paint.brush.cursor_color_add'), 
-		('image_id', 'tool_settings.gpencil_sculpt_paint.brush'),
-		('fill_color_path', 'tool_settings.gpencil_sculpt_paint.brush.color'), 
-		('fill_color_override_path', 'tool_settings.unified_paint_settings.color'), 
-		('fill_color_override_test_path', 'tool_settings.unified_paint_settings.use_unified_color'),
-		('secondary_tex', True),
+		opacity=[('data_path_primary', 'tool_settings.gpencil_sculpt_paint.brush.strength'),
 		('release_confirm', True)],
 		eraser_radius=[('data_path_primary', 'tool_settings.gpencil_sculpt_paint.brush.texture_slot.angle'), 
 		('rotation_path', 'tool_settings.gpencil_sculpt_paint.brush.texture_slot.angle'), 

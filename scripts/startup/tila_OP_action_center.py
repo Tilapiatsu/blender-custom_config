@@ -35,7 +35,12 @@ class TILA_action_center(bpy.types.Operator):
 
     def get_face_selection(self, context):
         pass
+    
+    def set_transform_orientation(self, context, value):
+        for i in range(1,4):
+            context.scene.transform_orientation_slots[i].type = value
 
+    
     def run_tool(self, context, event=None, update=False):
         try:
             event_type = None if event is None else event.type
@@ -43,16 +48,16 @@ class TILA_action_center(bpy.types.Operator):
             if self.action_center == 'AUTO':
                 self.report({'INFO'}, 'Automatic Action Center')
                 if event_type is None:
-                    context.scene.transform_orientation_slots[1].type = 'GLOBAL'
+                    self.set_transform_orientation(context, 'GLOBAL')
                     context.scene.tool_settings.transform_pivot_point = 'CURSOR'
                     bpy.ops.view3d.snap_cursor_to_selected()
                 if event_type == 'RIGHTMOUSE' and event.value == 'PRESS':
-                    context.scene.transform_orientation_slots[1].type = 'GLOBAL'
+                    self.set_transform_orientation(context, 'GLOBAL')
                     context.scene.tool_settings.transform_pivot_point = 'CURSOR'
                     bpy.ops.view3d.snap_cursor_to_selected()
                     bpy.ops.view3d.cursor3d('INVOKE_DEFAULT', use_depth=False, orientation='NONE')
                 if event_type == 'MOUSEMOVE' and  event.value == 'PRESS':
-                    context.scene.transform_orientation_slots[1].type = 'GLOBAL'
+                    self.set_transform_orientation(context, 'GLOBAL')
                     context.scene.tool_settings.transform_pivot_point = 'CURSOR'
                     bpy.ops.view3d.snap_cursor_to_selected()
                     self.set_snapping_settings(context)
@@ -62,7 +67,7 @@ class TILA_action_center(bpy.types.Operator):
                 
             if self.action_center == 'SELECTION':
                 self.report({'INFO'}, 'Selection Action Center')
-                context.scene.transform_orientation_slots[1].type = 'NORMAL'
+                self.set_transform_orientation(context, 'NORMAL')
                 context.scene.tool_settings.transform_pivot_point = 'MEDIAN_POINT'
             if self.action_center == 'SELECTION_BORDER':
                 self.report({'INFO'}, 'Selection Border Action Center')
@@ -72,8 +77,8 @@ class TILA_action_center(bpy.types.Operator):
 
             if self.action_center == 'SELECTION_CENTER_AUTO_AXIS':
                 self.report({'INFO'}, 'Selection Center Auto Axis Action Center')
+                self.set_transform_orientation(context, 'GLOBAL')
                 context.scene.tool_settings.transform_pivot_point = 'MEDIAN_POINT'
-                context.scene.transform_orientation_slots[1].type = 'GLOBAL'
             if self.action_center == 'ELEMENT':
                 self.report({'INFO'}, 'Element Action Center')
                 context.scene.tool_settings.use_snap = True
@@ -83,15 +88,15 @@ class TILA_action_center(bpy.types.Operator):
                 if event_type == 'MOUSEMOVE' and  event.value == 'PRESS':
                     self.set_snapping_settings(context)
                     bpy.ops.transform.translate('INVOKE_DEFAULT', snap=True, snap_align=True, cursor_transform=True, release_confirm=True, orient_type='NORMAL')
-                context.scene.transform_orientation_slots[1].type = 'CURSOR'
+                    self.set_transform_orientation(context, 'CURSOR')
                 context.scene.tool_settings.transform_pivot_point = 'CURSOR'
             if self.action_center == 'VIEW':
                 self.report({'INFO'}, 'View Action Center')
-                context.scene.transform_orientation_slots[1].type = 'VIEW'
+                self.set_transform_orientation(context, 'VIEW')
                 context.scene.tool_settings.transform_pivot_point = 'MEDIAN_POINT'
             if self.action_center == 'ORIGIN':
                 self.report({'INFO'}, 'Origin Action Center')
-                context.scene.transform_orientation_slots[1].type = 'CURSOR'
+                self.set_transform_orientation(context, 'CURSOR')
                 context.scene.tool_settings.transform_pivot_point = 'CURSOR'
                 context.scene.cursor.location[0] = 0
                 context.scene.cursor.location[1] = 0
@@ -101,7 +106,7 @@ class TILA_action_center(bpy.types.Operator):
                 context.scene.cursor.rotation_euler[2] = 0
             if self.action_center == 'PARENT':
                 self.report({'INFO'}, 'Parent Action Center')
-                context.scene.transform_orientation_slots[1].type = 'CURSOR'
+                self.set_transform_orientation(context, 'CURSOR')
                 context.scene.tool_settings.transform_pivot_point = 'CURSOR'
                 parent = context.object if context.object.parent is None else context.object.parent
                 context.scene.cursor.location[0] = parent.location[0]
@@ -112,23 +117,23 @@ class TILA_action_center(bpy.types.Operator):
                 context.scene.cursor.rotation_euler[2] = parent.rotation_euler[2]
             if self.action_center == 'GLOBAL':
                 self.report({'INFO'}, 'Global Action Center')
-                context.scene.transform_orientation_slots[1].type = 'GLOBAL'
+                self.set_transform_orientation(context, 'GLOBAL')
                 context.scene.tool_settings.transform_pivot_point = 'MEDIAN_POINT'
             if self.action_center == 'GLOBAL_INDIVIDUAL':
                 self.report({'INFO'}, 'Global Individual Action Center')
-                context.scene.transform_orientation_slots[1].type = 'GLOBAL'
+                self.set_transform_orientation(context, 'GLOBAL')
                 context.scene.tool_settings.transform_pivot_point = 'INDIVIDUAL_ORIGINS'
             if self.action_center == 'LOCAL':
                 self.report({'INFO'}, 'Local Action Center')
-                context.scene.transform_orientation_slots[1].type = 'NORMAL'
+                self.set_transform_orientation(context, 'NORMAL')
                 context.scene.tool_settings.transform_pivot_point = 'INDIVIDUAL_ORIGINS'
             if self.action_center == 'PIVOT':
                 self.report({'INFO'}, 'Pivot Action Center')
-                context.scene.transform_orientation_slots[1].type = 'LOCAL'
+                self.set_transform_orientation(context, 'LOCAL')
                 context.scene.tool_settings.transform_pivot_point = 'MEDIAN_POINT'
             if self.action_center == 'PIVOT_CENTER_PARENT_AXIS':
                 self.report({'INFO'}, 'Pivot Center Parent Axis Action Center')
-                context.scene.transform_orientation_slots[1].type = 'CURSOR'
+                self.set_transform_orientation(context, 'CURSOR')
                 context.scene.tool_settings.transform_pivot_point = 'CURSOR'
                 parent = context.object if context.object.parent is None else context.object.parent
                 context.scene.cursor.location[0] = context.object.location[0]
@@ -139,14 +144,14 @@ class TILA_action_center(bpy.types.Operator):
                 context.scene.cursor.rotation_euler[2] = parent.rotation_euler[2]
             if self.action_center == 'PIVOT_WORLD_AXIS':
                 self.report({'INFO'}, 'Pivot Wold Axis Action Center')
-                context.scene.transform_orientation_slots[1].type = 'GLOBAL'
+                self.set_transform_orientation(context, 'GLOBAL')
                 context.scene.tool_settings.transform_pivot_point = 'CURSOR'
                 context.scene.cursor.location[0] = context.object.location[0]
                 context.scene.cursor.location[1] = context.object.location[1]
                 context.scene.cursor.location[2] = context.object.location[2]
             if self.action_center == 'CURSOR':
                 self.report({'INFO'}, 'Cursor Action Center')
-                context.scene.transform_orientation_slots[1].type = 'CURSOR'
+                self.set_transform_orientation(context, 'CURSOR')
                 context.scene.tool_settings.transform_pivot_point = 'CURSOR'
             if self.action_center == 'CUSTOM':
                 self.report({'INFO'}, 'Custom Action Center')
@@ -160,38 +165,10 @@ class TILA_action_center(bpy.types.Operator):
         if event.type in {'ESC'}:  # Cancel
             self.revert_state(context)
             return {'CANCELLED'}
-        # if event.type == 'R':
-        #    bpy.ops.wm.tool_set_by_id('INVOKE_DEFAULT', name='builtin.rotate')
-        #    self.revert_state(context)
-        #    return {'FINISHED'}
-        # if event.type == 'G':
-        #     bpy.ops.wm.tool_set_by_id('INVOKE_DEFAULT', name='builtin.move')
-        #     self.revert_state(context)
-        #     return {'FINISHED'}
-        # if event.type == 'S':
-        #     bpy.ops.wm.tool_set_by_id('INVOKE_DEFAULT', name='builtin.scale')
-        #     self.revert_state(context)
-        #     return {'FINISHED'}
         if event.type == 'RIGHTMOUSE' and event.value == 'PRESS' or event.type == 'MOUSEMOVE' and event.value == 'PRESS':
             self.run_tool(context, event)
         if event.type == 'LEFTMOUSE' and event.value == 'RELEASE':
             self.run_tool(context, event, update=True)
-        # if event.type == 'X' and event.value == 'PRESS' and event.alt and not event.ctrl and not event.shift:
-        #     bpy.ops.wm.call_menu(name='TILA_MT_action_center')
-        #     return {'FINISHED'}
-        # if event.type == 'LEFTMOUSE' and event.value == 'PRESS' and event.alt and event.ctrl and not event.shift:
-        #     bpy.ops.view3d.zoom('INVOKE_DEFAULT')
-        #     return {'RUNNING_MODAL'}
-        # if event.type == 'LEFTMOUSE' and event.value == 'PRESS' and event.alt and not event.ctrl and event.shift:
-        #     bpy.ops.view3d.move('INVOKE_DEFAULT')
-        #     return {'RUNNING_MODAL'}
-        # if event.type == 'LEFTMOUSE' and event.value == 'PRESS' and event.alt and not event.ctrl and not event.shift:
-        #     bpy.ops.view3d.rotate('INVOKE_DEFAULT')
-        #     return {'RUNNING_MODAL'}
-
-        # elif event.type == 'MOUSEMOVE' and event.value == 'RELEASE':
-        #     self.run_tool(context, event)
-        #     return {'RUNNING_MODAL'}
         return {'RUNNING_MODAL'}
 
     def execute(self, context):
