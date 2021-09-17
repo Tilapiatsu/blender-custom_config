@@ -1,0 +1,34 @@
+=================================================
+Bystedts Blender Baker 1.0.1
+2021-09-03
+--------------------------------------------------
+Features:
+
+Smart renaming of bake passes names when changing bake_type
+--------------------------------------------------
+Bugs:
+
+Fixed 
+
+Removing a bake collection with object that does not belong to 
+another collection removes object from blender file
+
+Fixed issue where Blender freezes if bake objects are in a collection
+that is excluded in the view layer
+
+Fixed crash at delete scene that seems to be related to deleting
+scenes while a function is running in a timer
+
+Fixed issue with baking combined pass
+
+Added check to only set outside pointing normals to objects that has 
+inverted scaling. Otherwise planes can get inverted normals.
+
+Baking lowres gives washed out texture results when user has other than "None"
+in bpy.context.scene.view_settings.look in default settings
+
+=================================================
+Bystedts Blender Baker 1.0.0 
+2021-08-29
+--------------------------------------------------
+First release. 

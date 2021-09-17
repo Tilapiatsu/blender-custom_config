@@ -1,5 +1,6 @@
 import bpy
 from . import bake_manager
+from . import string_manager
 from enum import Enum
 
 from bpy.props import (
@@ -57,6 +58,64 @@ def get_bake_type_string(bake_type, no_underscore = False):
     bake_type = bake_types_list[bake_type].replace("_", " ", 1000)
     return bake_type
 
+def on_bake_type_update(self, context):
+
+    from . import string_manager as sm
+
+    # Get bake_pass from id data from self
+    scene_string = repr(self.id_data)
+    bake_pass_string = repr(self.path_from_id())
+    bake_pass_string = bake_pass_string.replace("'", "")
+    bake_pass = eval(scene_string + "." + bake_pass_string)
+    bake_type = bake_pass.bake_type
+
+    # Set old type if the custom attribute is missing
+    old_type = bake_pass.get('old_type')
+    if not old_type:
+        bake_pass['old_type'] = bake_type
+        old_type = ""
+
+    # Rename if name is empty
+    if bake_pass.name == "":
+        print("renamed because name was empty")
+        bake_pass.name = bake_type
+        bake_pass['old_type'] = bake_type
+        return
+
+    print("\n old_type = " + old_type)
+    old_name = ""
+    new_name = ""
+
+    print(bake_pass.name +".find(" + sm.to_camelcase(old_type) + ") = " + str(bake_pass.name.find(sm.to_camelcase(old_type))))
+    
+    if old_type == "":
+        bake_pass.name = bake_type
+        bake_pass['old_type'] = bake_type
+        return
+
+    # Camelcase
+    if bake_pass.name.find(sm.to_camelcase(old_type)) > -1:
+        print(old_type + " is camelcase")
+        old_name = sm.to_camelcase(old_type)
+        new_name = sm.to_camelcase(bake_type)
+        
+    # Underscore
+    elif bake_pass.name.find(sm.to_underscore(old_type)) > -1:
+        print(old_type + " is underscore")
+        old_name = sm.to_underscore(old_type)
+        new_name = sm.to_underscore(bake_type)
+
+    # Uppercase
+    elif bake_pass.name.find(old_type.upper()) > -1:
+        print(old_type + " is uppercase")
+        old_name = old_type.upper()
+        new_name = bake_type.upper()
+
+    print("working with " + bake_pass.name + ". Replaceing " + old_name + " with " + new_name)
+    bake_pass.name = bake_pass.name.replace(old_name, new_name)
+    bake_pass['old_type'] = bake_type
+
+
 
 class BakePass(bpy.types.PropertyGroup):
 
@@ -101,7 +160,8 @@ class BakePass(bpy.types.PropertyGroup):
         name="Bake type", 
         description = "Bake type", 
         items = bake_type_items, 
-        default = "BASE COLOR")
+        default = "BASE COLOR",
+        update = on_bake_type_update)
     
     sample_type: bpy.props.EnumProperty(
         name="Sample type", 
@@ -265,7 +325,7 @@ def is_temporary_scene_bake_pass(bake_pass):
 
 def add_bakepass(context, BakeType):
     new_bake_pass = context.scene.bake_passes.add()
-    new_bake_pass.name = "New bake pass"
+    new_bake_pass.name = "Base Color"
 
 class RENDER_OT_delete_bake_pass(bpy.types.Operator):
     """Delete bake pass"""

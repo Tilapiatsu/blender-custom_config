@@ -244,7 +244,6 @@ def get_objects_with_high_res_objects(context):
 def get_high_res_objects(context, objects):
     '''
     returns a list with all high res objects connected to objects
-    NEW FIXED!
     '''
     # Ensure objects can be iterated
     if not type(objects) == list:
@@ -255,8 +254,19 @@ def get_high_res_objects(context, objects):
     for object in objects:
         for hi_res_object_prop in object.high_res_objects:
             high_res_object = hi_res_object_prop.high_res_object
-            if high_res_object and not high_res_object in high_res_object_list:
-                high_res_object_list.append(high_res_object)
+            
+            if not high_res_object:
+                continue
+
+            # If high res object is in a collection that is excluded in the 
+            # view layer, then continue
+            if not high_res_object in context.view_layer.objects.values():
+                continue
+            
+            if high_res_object in high_res_object_list:
+                continue
+
+            high_res_object_list.append(high_res_object)
 
     return high_res_object_list
 
@@ -264,7 +274,6 @@ def purge_objects_without_scene_user(context, objects):
     '''
     Completely remove objects that is not used in any scene
     Return filtered list with objects that exists in a scene
-    NEW FIXED!
     '''
 
     # Ensure objects can be iterated
@@ -295,7 +304,6 @@ def get_high_res_objects_missing_in_scene(context, objects):
     '''
     Collects high res objects from selected objects. 
     Returns a list with missing bake objects in the active scene
-    NEW FIXED!
     '''
     high_res_objects = get_high_res_objects(context, objects)
     objects_missing_in_scene = []

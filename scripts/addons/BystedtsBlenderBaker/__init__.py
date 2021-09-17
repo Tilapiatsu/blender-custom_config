@@ -16,7 +16,7 @@ bl_info = {
     "author" : "Daniel Bystedt",    
     "description" : "Simplify Blender baking workflow",
     "blender" : (2, 93, 0),
-    "version" : (1, 0, 0),
+    "version" : (1, 0, 1),
     "location" : "View3D > Sidebar",
     "warning" : "",
     "support": "COMMUNITY",
@@ -54,7 +54,9 @@ modules = (
     '.viewport_manager',
     '.file_manager',
     '.mesh_manager',
-    '.bound_box_manager'
+    '.bound_box_manager',
+    '.string_manager',
+    
 )
 
 
@@ -90,6 +92,7 @@ from . import file_manager
 from . import mesh_manager
 from . import scene_manager
 from . import bound_box_manager
+from . import string_manager 
 
 
 ''''''

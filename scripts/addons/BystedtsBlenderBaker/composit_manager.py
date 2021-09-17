@@ -37,9 +37,10 @@ def initialize_compositing_scene(context, bake_render_settings):
     Initialize a compositing scene with correct settings
     '''
     # initialize new scene
-    scene_manager.create_scene(context, "comp_scene")
+    scene_manager.create_scene(context, "comp_scene", delete_after_bake = True)
 
     context.scene.view_settings.view_transform = 'Standard'
+    context.scene.view_settings.look = 'None'
     
     # Use linear color space when working with Non-Color
     if bake_render_settings['color_space'] == 'Non-Color':
@@ -113,7 +114,7 @@ def create_compositing_tree(context, object, image, bake_pass, setup_type_list, 
 
     # Remove temp comp scene
     context.window.scene = original_scene
-    scene_manager.delete_scene(comp_scene.name)
+    #scene_manager.delete_scene(context, comp_scene.name)
 
     
 def render_and_save_image(context, render_settings, image_folder_name, file_name):
@@ -132,12 +133,15 @@ def render_and_save_image(context, render_settings, image_folder_name, file_name
     if not os.path.exists(absolute_folder_path):
         os.makedirs(absolute_folder_path)    
 
-    # Save image
-    bpy.data.images["Render Result"].save_render(filepath = full_save_path)
-    
+
     # Convert path from backslash to frontslash 
     full_save_path = full_save_path.replace("\\", "/")
     bpy.data.images[file_name].filepath = full_save_path
+
+    # Save image - important to have after convert path because of linux
+    bpy.data.images["Render Result"].save_render(filepath = full_save_path)
+
+    # Reload image
     bpy.data.images[file_name].source = 'FILE'
     bpy.data.images[file_name].reload()
 

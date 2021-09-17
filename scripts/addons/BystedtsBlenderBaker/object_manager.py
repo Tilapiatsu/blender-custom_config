@@ -79,6 +79,17 @@ def add_materials_to_objects_in_collection(context, collection):
     # Restore selection
     select_objects(context, 'REPLACE', original_selection, active_object = active_object)
 
+def flag_objects_for_recalculate_normals(context, objects):
+    '''
+    If object has negative scale in any axis - flag for normal recalculate
+    in a custom attribute
+    '''
+    for object in objects:
+        for i in range(0,3):
+            if object.scale[i] < 0:
+                object['recalculate_normals'] = True
+                continue
+
 def select_objects(context, action, object_list, set_first_as_active = False, active_object = None):
     '''
     Selects objects. action can be 'ADD' or 'REPLACE'
@@ -346,14 +357,24 @@ def join_high_poly_objects(context, objects):
     resulting object
 
     Do not join objects with high polygon count, but return them. This
-    is handy for sculpted objects with a multires modifier
+    is handy for sculpted objects with a multires modifier. This
+    is taken hand of outside of this function, but worth noting here
     '''   
 
     # Select objects
     select_objects(context, 'REPLACE', objects, set_first_as_active = True)
     
+    # Unparent - Tricky to detect negative scale when parented. Therefore unparent
+    bpy.ops.object.parent_clear(type='CLEAR_KEEP_TRANSFORM')
+
+    # Flag if objects should recalculate normals (when scale is inverted)
+    flag_objects_for_recalculate_normals(context, objects)
+    
     # Apply transforms
     bpy.ops.object.transform_apply(location=True, rotation=True, scale=True)
+
+    # Set normals to outside, after applying transform
+    mesh_manager.set_normals_to_outside(context, objects)
 
     # Rename uv maps if needed for the join process
     # Make sure all objects active UV has same name so that it is not lost during the join process
@@ -368,8 +389,10 @@ def join_high_poly_objects(context, objects):
     # Join objects
     joined_object = join_objects_and_rename(context, objects, "Joined high poly object")
 
+    '''
     # Make sure normals are pointing out since inverted scale migh be used
     mesh_manager.set_normals_to_outside(context, [joined_object])
+    '''
 
     # Delete the old duplicated meshes so that they don't take up memory
     mesh_manager.delete_meshes(context, meshes_to_remove)
@@ -392,6 +415,8 @@ def join_objects_for_baking(context, objects, make_duplicate = False):
     dupli_objects = context.selected_objects
     hi_res_objs = high_res_objects_manager.get_high_res_objects(context, dupli_objects)
 
+    # Unparent - Tricky to detect negative scale when parented. Therefore unparent
+    bpy.ops.object.parent_clear(type='CLEAR_KEEP_TRANSFORM')
 
     for object in dupli_objects:
         # Make sure no modifiers that can result in overlapping
@@ -405,20 +430,22 @@ def join_objects_for_baking(context, objects, make_duplicate = False):
     apply_modifiers(context, [object], 'RENDER')
     meshes_to_remove = mesh_manager.get_meshes_list_from_objects(objects)
     
+    # Flag if objects should recalculate normals (when scale is inverted)
+    flag_objects_for_recalculate_normals(context, objects)
+
+    # Apply scale to fix issues with extrusion if scale is not 1,1,1
+    select_objects(context, 'REPLACE', objects, True)
+    bpy.ops.object.transform_apply(location=False, rotation=False, scale=True)
 
     # Apply custom split normal to each object
     mesh_manager.apply_custom_split_normal(context, objects)
 
-    # Join and rename
-    joined_object = join_objects_and_rename(context, objects, "Joined bake target object")
-    
-    # Apply scale to fix issues with extrusion if scale is not 1,1,1
-    select_objects(context, 'REPLACE', [joined_object], True)
-    bpy.ops.object.transform_apply(location=False, rotation=False, scale=True)
-
     # Make sure normals are pointing out since inverted scale migh be used
     mesh_manager.set_normals_to_outside(context, objects)
 
+    # Join and rename
+    joined_object = join_objects_and_rename(context, objects, "Joined bake target object")
+    
     # Add connection to high res objects to the new joined object
     high_res_objects_manager.add_high_res_objects_to_objects(context, hi_res_objs, [joined_object])
     

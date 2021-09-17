@@ -34,13 +34,15 @@ def ensure_visibility_for_baking(context, collection):
         'hide_select': collection.hide_select,
         'hide_viewport': collection.hide_viewport,
         'hide_render': collection.hide_render,
-        'view_layer_hide_viewport': context.view_layer.layer_collection.children[collection.name].hide_viewport
+        'view_layer_hide_viewport': context.view_layer.layer_collection.children[collection.name].hide_viewport,
+        'exclude': context.view_layer.layer_collection.children[collection.name].exclude
     }
 
     collection.hide_select = False
     collection.hide_viewport = False
     collection.hide_render = False
     context.view_layer.layer_collection.children[collection.name].hide_viewport = False
+    context.view_layer.layer_collection.children[collection.name].exclude = False
 
     return visibility_settings
 
@@ -53,6 +55,7 @@ def set_visibility(context, collection, visibility_settings):
     collection.hide_viewport = visibility_settings['hide_viewport']
     collection.hide_render = visibility_settings['hide_render']   
     context.view_layer.layer_collection.children[collection.name].hide_viewport = visibility_settings['view_layer_hide_viewport']
+    context.view_layer.layer_collection.children[collection.name].exclude = visibility_settings['exclude']
 
 def filter_objects_by_bake_collections(context, objects, collections):
     '''
@@ -346,7 +349,8 @@ class COLLECTION_OT_delete_collection(bpy.types.Operator):
         # Put the object in the scene collection unless it is existing in another
         # collection in the scene
         for object in collection.all_objects:
-            if get_scene_collections_by_object(context, object):
+            object_collections = get_scene_collections_by_object(context, object)
+            if len(object_collections) > 1:
                 continue
             try:
                 context.scene.collection.objects.link(object)

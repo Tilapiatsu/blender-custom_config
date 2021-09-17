@@ -3,6 +3,51 @@ import os
 from . import bake_manager
 from . import bake_passes
 
+def get_mode(context):
+    '''
+    Get current mode. THe strange thing is that edit mode is called
+    'EDIT_MESH' in context.mode, but when setting mode it is called 'EDIT'
+    '''
+
+    mode = context.mode
+    if mode == 'EDIT_MESH':
+        mode = 'EDIT'
+
+    return mode
+
+def get_selection_data(context):
+    '''
+    Store active and selected objects in a format that can 
+    easily be restored
+    '''
+    selection_data = {
+        'active_object': context.active_object,
+        'selected_objects': context.selected_objects
+    }
+
+    return selection_data
+
+def restore_selected_objects(context, selection_data):
+    '''
+    Restore selection from selection data
+    '''
+    orig_mode = get_mode(context)
+    bpy.ops.object.mode_set(mode = 'OBJECT')   
+
+    bpy.ops.object.select_all(action='DESELECT')
+
+    # Restore active object
+    #print("active object is type " + type(selection_data['active_object']))
+    #print("active object = " + repr(selection_data['active_object']))
+    if selection_data['active_object']:
+        context.view_layer.objects.active = selection_data['active_object']
+    
+    # Restore selected objects
+    for object in selection_data['selected_objects']:
+        object.select_set(state = True)
+
+    bpy.ops.object.mode_set(mode = orig_mode) 
+
 def get_bake_render_settings(context, bake_settings_scene = None, bake_pass = None):
     '''
     Get bake render settings from current scene, if no other scene is specified
@@ -97,7 +142,6 @@ def get_bake_render_settings(context, bake_settings_scene = None, bake_pass = No
 
     elif bake_pass.bake_type == "METALLIC":
         bake_type_settings = {
-            #'context.scene.cycles.bake_type': 'EMIT',
             'color_space': 'Non-Color',
             'bit_depth': '8'  
         }  
@@ -105,7 +149,6 @@ def get_bake_render_settings(context, bake_settings_scene = None, bake_pass = No
 
     elif bake_pass.bake_type == "DISPLACEMENT":
         bake_type_settings = {
-            #'context.scene.cycles.bake_type': 'EMIT',
             'color_space': 'Non-Color',
             'bit_depth': '32'  
         }  
@@ -113,15 +156,20 @@ def get_bake_render_settings(context, bake_settings_scene = None, bake_pass = No
 
     elif bake_pass.bake_type == "BASE COLOR":
         bake_type_settings = {
-            #'context.scene.cycles.bake_type': 'EMIT',
             'color_space': 'sRGB',
             'bit_depth': '8'  
         }  
         render_settings.update(bake_type_settings)  
-
+    
+    elif bake_pass.bake_type == "COMBINED":
+        bake_type_settings = {
+            'color_space': 'sRGB',
+            'bit_depth': '8'  
+        }  
+        render_settings.update(bake_type_settings)  
+        
     else:
         bake_type_settings = {
-            #'context.scene.cycles.bake_type': bake_pass.bake_type,
             'color_space': 'Non-Color',
             'bit_depth': '8'       
         }
@@ -253,7 +301,7 @@ def set_settings(context, settings_dictionary):
     Key example:  'context.scene.cycles.samples'
     Key without '.' will be ignored
     '''
-
+    print("init set_settings")
     for key, value in settings_dictionary.items():
         
         # If key can be used to change property directly (e.g. key contains '.')
@@ -261,6 +309,7 @@ def set_settings(context, settings_dictionary):
             exec_string = key + ' = ' + repr(value)
 
             try:
+                #print(exec_string)
                 exec(exec_string)
             except:
                 print("Could not set " + exec_string + " in function set_settings")

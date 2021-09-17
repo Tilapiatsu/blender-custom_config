@@ -2,18 +2,42 @@ import bpy
 import bmesh
 import math
 from . import object_manager
+from . import settings_manager
 
-def set_normals_to_outside(context, objects):
+def set_normals_to_outside(context, objects, only_recalculate_if_flagged = True):
     '''
     Set normals of objects so that they point outside of the mesh 
-    (convex direction)
+    (convex direction).
+
+    Set normals is an issue with planes, since it can invert normals. 
+    Do not recalculate normals if:
+    - object has a dimension that is close to zero (i.e. flat plane)
+    Make sure normals are set BEFORE joining objects, since joining
+    changes bounding box!
+
     '''
-    if not context.mode == 'EDIT':
-        bpy.ops.object.mode_set(mode='EDIT') 
-        
-    bpy.ops.mesh.select_all(action = 'SELECT')
-    bpy.ops.mesh.normals_make_consistent(inside=False)
-    bpy.ops.object.mode_set(mode='OBJECT')     
+    orig_mode = settings_manager.get_mode(context)
+    selection_data = settings_manager.get_selection_data(context)
+
+    for object in objects:
+        # Continue if this object should not be included in normal recalculation
+        if only_recalculate_if_flagged:
+            if not object.get('recalculate_normals'):
+                continue
+
+        # Select object
+        bpy.ops.object.mode_set(mode = 'OBJECT')
+        object_manager.select_objects(context, 'REPLACE', [object], True)
+
+        # Select all elements in edit mode
+        bpy.ops.object.mode_set(mode = 'EDIT')
+        bpy.ops.mesh.select_all(action = 'SELECT')
+        print("set normal to outside on object " + object.name)
+        bpy.ops.mesh.normals_make_consistent(inside=False)
+ 
+    # Restore mode, selection and active object
+    bpy.ops.object.mode_set(mode = orig_mode)   
+    settings_manager.restore_selected_objects(context, selection_data)
 
 def apply_custom_split_normal(context, objects):
     '''

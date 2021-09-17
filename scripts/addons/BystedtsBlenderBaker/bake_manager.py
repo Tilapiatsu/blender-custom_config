@@ -432,7 +432,7 @@ def handle_bake_scene(context, bake_render_settings):
         orig_scene = context.scene
         bake_render_settings['orig_scene'] = orig_scene
         
-        scene_manager.create_scene(context, bake_scene_name)
+        scene_manager.create_scene(context, bake_scene_name, delete_after_bake = True)
         #object_manager.link_objects_to_active_scene(context, bake_render_settings['hi_res_objs'])
         object_manager.link_objects_to_active_scene(context, [bake_render_settings['combined_bake_object']])
 
@@ -540,7 +540,7 @@ def post_baking_cleanup(context, bake_render_settings):
     # Restore scene
     if bake_render_settings['bake_scene'] == 'TEMPORARY': 
         scene_manager.open_scene(context, bake_render_settings['orig_scene'].name)
-        scene_manager.delete_scene(bake_render_settings['bake_scene_name'])
+        #scene_manager.delete_scene(context, bake_render_settings['bake_scene_name'])
         
 
     # Restore the high res objects original locations
@@ -625,7 +625,7 @@ def bake_texture(context, objects, image_folder = '', bake_pass = None, bake_col
     # If no high res objects are connected to the objects
     if (bake_render_settings.get('connected_high_res_object_count') == 0 
         and context.scene.BBB_props.bake_workflow == 'HIGHRES_TO_LOWRES'):
-        return "No high res object(s) connected to objects"
+        return "No high res object(s) connected to objects or is excluded in view layer"
     else:
         pass
 
@@ -637,7 +637,8 @@ def bake_texture(context, objects, image_folder = '', bake_pass = None, bake_col
     collection_visibility_settings = collection_manager.ensure_visibility_for_baking(context, bake_collection)
 
     # Make sure high res collections are visible (and thereby bakeable)
-    high_res_objects_manager.ensure_render_visiblity_on_high_res_collections(context, objects)
+    if context.scene.BBB_props.bake_workflow == 'HIGHRES_TO_LOWRES':
+        high_res_objects_manager.ensure_render_visiblity_on_high_res_collections(context, objects)
 
     # Make sure high res and bake target objects can be selected during baking process
     object_manager.set_object_hide_select_state(context, bake_render_settings, False)
@@ -733,6 +734,7 @@ def bake_texture(context, objects, image_folder = '', bake_pass = None, bake_col
         bake_render_settings['joined_high_poly_objects'], 
         bake_render_settings)
 
+
     # Do the baking ==============================
     try:
         bpy.ops.object.bake(type = bake_render_settings['cycles_bake_type'])
@@ -743,12 +745,15 @@ def bake_texture(context, objects, image_folder = '', bake_pass = None, bake_col
     # Resize and save image
     resize_image_to_resolution(context, bake_image, bake_render_settings, True)
 
-
     post_baking_cleanup(context, bake_render_settings)
 
     post_baking_compositing(context, bake_render_settings)
 
-    delete_intermediate_bake_image(context, bake_render_settings)
+    # Note that scenes are deleted in the modal operator
+    # RENDER_OT_bake_with_bake_passes. Specifically the "finish" function.
+    # This is to avoid crash when trying to delete scenes in a modal process with timer
+
+    #delete_intermediate_bake_image(context, bake_render_settings)
         
     restore_visibility_and_render_settings(
         context,
