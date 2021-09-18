@@ -2,15 +2,16 @@ bl_info = {
 	"name": "kekit_misc",
 	"author": "Kjell Emanuelsson",
 	"category": "Modeling",
-	"version": (1, 4, 0),
+	"version": (1, 4, 2),
 	"blender": (2, 80, 0),
 }
 import bpy
 import bmesh
 from math import degrees, radians
-from mathutils import Vector
+from mathutils import Vector, Matrix
 from bpy.types import Operator
-from .ke_utils import mouse_raycast
+from bpy_extras.view3d_utils import location_3d_to_region_2d, region_2d_to_location_3d
+from .ke_utils import mouse_raycast, getset_transform, get_distance, correct_normal
 from sys import platform
 from bpy.app.handlers import persistent
 
@@ -18,10 +19,254 @@ from bpy.app.handlers import persistent
 # -------------------------------------------------------------------------------------------------
 # Misc operators
 # -------------------------------------------------------------------------------------------------
+
+class MESH_OT_ke_mouse_side_of_active(Operator):
+	bl_idname = "mesh.ke_mouse_side_of_active"
+	bl_label = "Mouse Side of Active"
+	bl_description = "Side of Active, but with active vert, edge or face and mouse position " \
+					 "to calculate which side of the active element to select"
+	bl_options = {'REGISTER', 'UNDO'}
+
+	mouse_pos : bpy.props.IntVectorProperty(size=2)
+
+	axis_mode : bpy.props.EnumProperty(
+		items=[("GLOBAL", "Global", "", 1),
+			   ("LOCAL", "Local", "", 2),
+			   ("NORMAL", "Normal", "", 3),
+			   ("GIMBAL", "Gimbal", "", 4),
+			   ("VIEW", "View", "", 5),
+			   ("CURSOR", "Cursor", "", 6),
+			   ("MOUSE", "Mouse Pick", "", 7)
+			   ],
+		name="Axis Mode", default="MOUSE")
+
+	axis_sign : bpy.props.EnumProperty(
+		items=[("POS", "Positive Axis", "", 1),
+			   ("NEG", "Negative Axis", "", 2),
+			   ("ALIGN", "Aligned Axis", "", 3),
+			   ("MOUSE", "Mouse Pick", "", 4)
+			   ],
+		name="Axis Sign", default="MOUSE")
+
+	axis : bpy.props.EnumProperty(
+		items=[("X", "X", "", 1),
+			   ("Y", "Y", "", 2),
+			   ("Z", "Z", "", 3),
+			   ("MOUSE", "Mouse Pick", "", 4)
+			   ],
+		name="Axis", default="MOUSE")
+
+	threshold : bpy.props.FloatProperty(min=0, max=10, default=0, name="Threshold")
+
+	mouse_pick = ""
+
+	def draw(self, context):
+		layout = self.layout
+		col = layout.column()
+		col.use_property_split = True
+		col.prop(self, "axis_mode")
+		col.prop(self, "axis_sign")
+		col.prop(self, "axis")
+		col.prop(self, "threshold")
+		col.separator(factor=1)
+		col = layout.column()
+		col.active = False
+		col.alignment = "RIGHT"
+		col.label(text=self.mouse_pick)
+
+
+	@classmethod
+	def poll(cls, context):
+		return (context.object is not None and
+				context.object.type == 'MESH' and
+				context.object.data.is_editmode and
+				context.space_data.type == "VIEW_3D")
+
+	def invoke(self, context, event):
+		self.mouse_pos[0] = int(event.mouse_region_x)
+		self.mouse_pos[1] = int(event.mouse_region_y)
+		return self.execute(context)
+
+	def execute(self, context):
+
+		if self.axis_mode != "MOUSE":
+			m_axis_mode = self.axis_mode
+		else:
+			m_axis_mode = getset_transform(setglobal=False)[0]
+
+		sel_mode = bpy.context.tool_settings.mesh_select_mode[:]
+		obj = context.object
+		obj_mtx = obj.matrix_world
+		tm = Matrix().to_3x3()
+
+		me = obj.data
+		bm = bmesh.from_edit_mesh(me)
+		bm.verts.ensure_lookup_table()
+		ae = bm.select_history.active
+		og_ae = ae
+
+		if ae is None:
+			self.report({"INFO"}, "No active element selected")
+			return {"CANCELLED"}
+
+		# Set active vert to furthest from mouse if not vert mode
+		if not isinstance(ae, bmesh.types.BMVert):
+			bpy.ops.mesh.select_mode(type='VERT')
+			bpy.ops.mesh.select_all(action="DESELECT")
+
+			candidate = []
+			c_d = 0
+			for v in ae.verts:
+				sco = location_3d_to_region_2d(context.region, context.region_data, obj_mtx @ v.co, (0, 0, 0))
+				d = get_distance(self.mouse_pos, sco)
+				if d > c_d or not candidate:
+					candidate = v
+					c_d = d
+
+			bm.select_history.add(candidate)
+			ae = candidate
+
+		else:
+			for v in bm.verts:
+				v.select = False
+
+		ae.select = True
+		bmesh.update_edit_mesh(me)
+
+		ae_wco = obj_mtx @ ae.co
+		mouse_wpos = region_2d_to_location_3d(context.region, context.region_data, self.mouse_pos, ae_wco)
+
+		# ORIENTATION  ---------------------------------------------------------------------------------------
+		if m_axis_mode == "LOCAL":
+			tm = obj_mtx.to_3x3()
+
+		elif m_axis_mode == "CURSOR":
+			tm = context.scene.cursor.matrix.to_3x3()
+
+		elif m_axis_mode == "NORMAL":
+			normal = correct_normal(obj_mtx, ae.normal)
+			# Blender default method (for tangent/rot mtx calc) in this case? IDFK, seems to match...
+			tm = normal.to_track_quat('Z', 'Y').to_matrix().to_3x3()
+			# ...with compensating rotation
+			tm @= Matrix.Rotation(radians(180.0), 3, 'Z')
+
+		elif m_axis_mode == "VIEW":
+			tm = context.space_data.region_3d.view_matrix.inverted().to_3x3()
+
+		# else : GLOBAL default transf.mtx for the rest
+
+		# AXIS CALC ---------------------------------------------------------------------------------------
+		v = tm.inverted() @ Vector(mouse_wpos - ae_wco).normalized()
+		x, y, z = abs(v[0]), abs(v[1]), abs(v[2])
+
+		m_axis_sign = "POS"
+
+		if x > y and x > z:
+			m_axis = "X"
+			if v[0] < 0:
+				m_axis_sign = "NEG"
+		elif y > x and y > z:
+			m_axis = "Y"
+			if v[1] < 0:
+				m_axis_sign = "NEG"
+		else:
+			m_axis = "Z"
+			if v[2] < 0:
+				m_axis_sign = "NEG"
+
+		# Check overrides
+		if self.axis_sign != "MOUSE":
+			sign = self.axis_sign
+		else:
+			sign = m_axis_sign
+		if self.axis != "MOUSE":
+			axis = self.axis
+		else:
+			axis = m_axis
+
+		bpy.ops.mesh.select_axis(orientation=m_axis_mode, sign=sign, axis=axis, threshold=self.threshold)
+
+		if sel_mode[1]:
+			bpy.ops.mesh.select_mode(type='EDGE')
+			bm.select_history.add(og_ae)
+			og_ae.select_set(True)
+
+		if sel_mode[2]:
+			bpy.ops.mesh.select_mode(type='FACE')
+			bm.select_history.add(og_ae)
+			og_ae.select_set(True)
+
+		if m_axis_sign == "POS":
+			rs = "+      "
+		else:
+			rs = "-      "
+		self.mouse_pick = "Mouse Pick:  " + m_axis_mode.capitalize() + " " + m_axis + rs
+
+		return {'FINISHED'}
+
+
+
+class VIEW3D_OT_ke_unhide_or_local(Operator):
+	bl_idname = "view3d.ke_unhide_or_local"
+	bl_label = "Unhide or Local Off"
+	bl_description = "Unhides hidden items OR toggles Local mode OFF, if currently in Local mode"
+	bl_options = {'REGISTER'}
+
+	@classmethod
+	def poll(cls, context):
+		return context.space_data.type == "VIEW_3D"
+
+	def execute(self, context):
+		if context.space_data.local_view:
+			bpy.ops.view3d.localview(frame_selected=False)
+		else:
+			bpy.ops.object.hide_view_clear(select=False)
+		return {"FINISHED"}
+
+
+class VIEW3D_OT_ke_lock(Operator):
+	bl_idname = "view3d.ke_lock"
+	bl_label = "Lock & Unlock"
+	bl_description = "Lock/Lock Unselected: Disable Selection for selected/unselected object(s)\n" \
+					 "(Status in Outliner (check filter))\n" \
+					 "Unlock: Enables Selection for all objects"
+
+	mode : bpy.props.EnumProperty(
+		items=[("LOCK", "Lock", "", 1),
+			   ("LOCK_UNSELECTED", "Lock Unselected", "", 2),
+			   ("UNLOCK", "Unlock", "", 3)
+			   ],
+		name="Lock & Unlock",
+		options={'HIDDEN'},
+		default="LOCK")
+
+	@classmethod
+	def poll(cls, context):
+		return context.space_data.type == "VIEW_3D"
+
+	def execute(self, context):
+
+		if self.mode == "LOCK":
+			for obj in context.selected_objects:
+				obj.hide_select = True
+
+		elif self.mode == "LOCK_UNSELECTED":
+			sel = context.selected_objects[:]
+			for obj in context.scene.objects:
+				if obj not in sel:
+					obj.hide_select = True
+
+		elif self.mode == "UNLOCK":
+			for obj in context.scene.objects:
+				obj.hide_select = False
+
+		return {'FINISHED'}
+
+
 class VIEW3D_OT_ke_shading_toggle(Operator):
 	bl_idname = "view3d.ke_shading_toggle"
 	bl_label = "Shading Toggle"
-	bl_description = "Toggles selected object(s) between Flat & Smooth shading.\nAlso works in Edit mode. Disables Auto Smooth"
+	bl_description = "Toggles selected object(s) between Flat & Smooth shading.\nAlso works in Edit mode."
 	bl_options = {'REGISTER', 'UNDO'}
 
 	@classmethod
@@ -40,40 +285,46 @@ class VIEW3D_OT_ke_shading_toggle(Operator):
 
 		for obj in context.selected_objects:
 
-			if tri_mode:
-				tmod = None
-				mindex = len(obj.modifiers) - 1
-				for m in obj.modifiers:
-					if m.name == "Triangulate Shading":
-						tmod = m
-						bpy.ops.object.modifier_move_to_index(modifier="Triangulate Shading", index=mindex)
-
-				if tmod is None:
-					obj.modifiers.new(name="Triangulate Shading", type="TRIANGULATE")
-
 			try:
 				current = obj.data.polygons[0].use_smooth
 			except AttributeError:
 				self.report({"WARNING"}, "Invalid Object selected for Smooth/Flat Shading Toggle - Cancelled")
 				return {"CANCELLED"}
 
-			if obj.data.use_auto_smooth:
-				obj.data.use_auto_smooth = False
-				aso.append(obj.name)
+			if tri_mode:
+				tmod = None
+				mindex = len(obj.modifiers) - 1
+				for m in obj.modifiers:
+					if m.name == "Triangulate Shading":
+						tmod = m
+						if current is False:
+							bpy.ops.object.modifier_remove(modifier="Triangulate Shading")
+						else:
+							bpy.ops.object.modifier_move_to_index(modifier="Triangulate Shading", index=mindex)
+
+				if tmod is None and current:
+					obj.modifiers.new(name="Triangulate Shading", type="TRIANGULATE")
 
 			val = [not current]
 			values = val * len(obj.data.polygons)
 			obj.data.polygons.foreach_set("use_smooth", values)
 			obj.data.update()
 
+			if not current is True:
+				mode = " > Smooth"
+			else:
+				mode = " > Flat"
+			aso.append(obj.name + mode)
+
+
 		bpy.ops.object.mode_set(mode=cm)
 
-		if aso:
-			if len(aso) > 5:
-				t = "'" + "','".join(aso[:5]) + "'" + ".. " + "(%s objects)" % str(len(aso))
-			else:
-				t = "'" + "','".join(aso) + "'"
-			self.report({"INFO"}, "Auto Smooth toggled: %s" % t)
+		if len(aso) > 5:
+			t = "%s objects" %str(len(aso))
+			# t = "'" + "','".join(aso[:5]) + "'" + ".. " + "(%s objects)" % str(len(aso))
+		else:
+			t = ", ".join(aso)
+		self.report({"INFO"}, "Toggled: %s" % t)
 
 		return {"FINISHED"}
 
@@ -101,6 +352,12 @@ class SCREEN_OT_ke_render_visible(Operator):
 		# print("Render Done")
 
 	def execute(self, context):
+		# Camera Check
+		cam = [o for o in context.scene.objects if o.type == "CAMERA"]
+		if not cam:
+			self.report({'INFO'}, "No Cameras found?")
+			return {"CANCELLED"}
+
 		# Load Handlers
 		handlers = [h.__name__ for h in bpy.app.handlers.render_post]
 		handlers_active = True if [h == 'post_render' for h in handlers] else False
@@ -174,6 +431,12 @@ class SCREEN_OT_ke_render_slotcycle(Operator):
 		# print("Render Done")
 
 	def execute(self, context):
+		# Camera Check
+		cam = [o for o in context.scene.objects if o.type == "CAMERA"]
+		if not cam:
+			self.report({'INFO'}, "No Cameras found?")
+			return {"CANCELLED"}
+
 		# Load Handlers
 		handlers = [h.__name__ for h in bpy.app.handlers.render_post]
 		handlers_active = True if [h == 'post_render' for h in handlers] else False
@@ -228,6 +491,31 @@ class SCREEN_OT_ke_render_slotcycle(Operator):
 			self.report({'INFO'}, "Not ready: Another render still in progress.")
 
 		return {"FINISHED"}
+
+
+class VIEW3D_OT_ke_cursor_clear_rotation(Operator):
+	bl_idname = "view3d.ke_cursor_clear_rot"
+	bl_label = "Clear Cursor Rotation"
+	bl_description = "Clear the cursor's rotation (only)"
+	bl_space_type = 'VIEW_3D'
+	bl_region_type = 'UI'
+	bl_options = {'REGISTER', 'UNDO'}
+
+	@classmethod
+	def poll(cls, context):
+		return context.space_data.type == "VIEW_3D"
+
+	def execute(self, context):
+		c = context.scene.cursor
+		if c.rotation_mode == "QUATERNION":
+			c.rotation_quaternion = 1, 0, 0, 0
+		elif c.rotation_mode == "AXIS_ANGLE":
+			c.rotation_axis_angle = 0, 0, 1, 0
+		else:
+			c.rotation_euler = 0, 0, 0
+
+		return {'FINISHED'}
+
 
 
 class VIEW3D_OT_ke_cursor_bookmark(Operator):
@@ -342,7 +630,7 @@ class MESH_OT_ke_select_invert_linked(Operator):
 				v.select = False
 
 		bm.select_flush_mode()
-		bmesh.update_edit_mesh(me, True)
+		bmesh.update_edit_mesh(me)
 
 		return {"FINISHED"}
 
@@ -390,7 +678,7 @@ class MESH_OT_ke_select_collinear(Operator):
 				count += 1
 
 		bm.select_flush_mode()
-		bmesh.update_edit_mesh(obj.data, True)
+		bmesh.update_edit_mesh(obj.data)
 
 		if count > 0:
 			self.report({"INFO"}, "Total Collinear Verts Found: %s" % count)
@@ -404,8 +692,9 @@ class MESH_OT_ke_select_collinear(Operator):
 class MESH_OT_ke_select_boundary(Operator):
 	bl_idname = "mesh.ke_select_boundary"
 	bl_label = "select boundary(+active)"
-	bl_description = "Select Boundary edges & sets one edge active.\n" \
-					 "Nothing selected = Selects all boundary edges in the object"
+	bl_description = "Select Boundary edges & sets one edge active\n" \
+					 "Run again on a selected boundary to toggle to inner region selection\n" \
+					 "Nothing selected = Selects all -border- edges"
 	bl_options = {'REGISTER', 'UNDO'}
 
 	@classmethod
@@ -417,21 +706,119 @@ class MESH_OT_ke_select_boundary(Operator):
 	def execute(self, context):
 		og_mode = context.tool_settings.mesh_select_mode[:]
 		obj = bpy.context.active_object
+		if obj is None:
+			obj = context.object
+
 		bm = bmesh.from_edit_mesh(obj.data)
 
 		sel_verts = [v for v in bm.verts if v.select]
+		og_edges = [e for e in bm.edges if e.select]
+
 		if len(sel_verts) == 0:
 			bpy.ops.mesh.select_all(action='SELECT')
 
 		bpy.ops.mesh.region_to_loop()
 
 		sel_edges = [e for e in bm.edges if e.select]
+
 		if sel_edges:
+			sel_check = [e for e in bm.edges if e.select]
+			toggle = set(og_edges) == set(sel_check)
+
+			if toggle:
+				bpy.ops.mesh.loop_to_region()
+
 			bm.select_history.clear()
 			bm.select_history.add(sel_edges[0])
-			bmesh.update_edit_mesh(obj.data, True)
 		else:
 			context.tool_settings.mesh_select_mode = og_mode
+
+		bmesh.update_edit_mesh(obj.data)
+
+		return {'FINISHED'}
+
+
+class VIEW3D_OT_selected_to_origin(Operator):
+	bl_idname = "view3d.selected_to_origin"
+	bl_label = "Selection to Origin"
+	bl_description = "Places Selected Object Geo or Element Mode Selection at objects Origin (Location only)\n" \
+					 "Object Mode function uses Set Origin - All options available in redo panel"
+	bl_space_type = 'VIEW_3D'
+	bl_region_type = 'UI'
+	bl_options = {'REGISTER', 'UNDO'}
+
+	o_type : bpy.props.EnumProperty(
+		items=[("GEOMETRY_ORIGIN", "Geometry to Origin", "", 1),
+			   ("ORIGIN_GEOMETRY", "Origin to Geometry", "", 2),
+			   ("ORIGIN_CURSOR", "Origin to 3D Cursor", "", 3),
+			   ("ORIGIN_CENTER_OF_MASS", "Origin to Center of Mass (Surface)", "", 4),
+			   ("ORIGIN_CENTER_OF_VOLUME", "Origin to Center of Mass (Volume)", "", 5)
+			   ],
+		name="Type",
+		default="GEOMETRY_ORIGIN")
+
+	o_center : bpy.props.EnumProperty(
+		items=[("MEDIAN", "Median Center", "", 1),
+			   ("BOUNDS", "Bounds Center", "", 2)
+			   ],
+		name="Center",
+		default="MEDIAN")
+
+	@classmethod
+	def poll(cls, context):
+		return (context.object is not None and
+				context.object.type == 'MESH')
+
+	def execute(self, context):
+
+		sel_obj = [o for o in context.selected_objects if o.type == "MESH"]
+		if not sel_obj:
+			self.report({'INFO'}, "Selection Error: No object(s) selected?")
+			return {"CANCELLED"}
+
+		og_mode = str(context.mode)
+
+		if og_mode != "OBJECT":
+
+			if self.o_type == "GEOMETRY_ORIGIN":
+				c = context.scene.cursor
+				og_cursor_loc = Vector(c.location)
+				og_cursor_mode = str(c.rotation_mode)
+				c.rotation_mode = "XYZ"
+				og_cursor_rot = Vector(c.rotation_euler)
+				c.rotation_euler = 0, 0, 0
+
+				bpy.ops.object.mode_set(mode='OBJECT')
+
+				for o in sel_obj:
+					o.select_set(False)
+
+				for o in sel_obj:
+					o.select_set(True)
+					bpy.context.view_layer.objects.active = o
+					bpy.ops.object.mode_set(mode='EDIT')
+					if og_mode == "OBJECT":
+						bpy.ops.mesh.select_all(action="SELECT")
+					c.location = o.location
+					bpy.ops.view3d.snap_selected_to_cursor(use_offset=True)
+					o.select_set(False)
+					bpy.ops.object.mode_set(mode='OBJECT')
+
+				c.location = og_cursor_loc
+				c.rotation_euler = og_cursor_rot
+				c.rotation_mode = og_cursor_mode
+
+				for o in sel_obj:
+					o.select_set(True)
+
+				bpy.ops.object.mode_set(mode='EDIT')
+
+			else:
+				bpy.ops.object.mode_set(mode='OBJECT')
+				bpy.ops.object.origin_set(type=self.o_type, center=self.o_center)
+
+		else:
+			bpy.ops.object.origin_set(type=self.o_type, center=self.o_center)
 
 		return {'FINISHED'}
 
@@ -1150,6 +1537,7 @@ class ke_popup_info(bpy.types.Operator):
 classes = (
 	MESH_OT_ke_select_boundary,
 	VIEW3D_OT_origin_to_selected,
+	VIEW3D_OT_selected_to_origin,
 	VIEW3D_OT_ke_overlays,
 	VIEW3D_OT_ke_spacetoggle,
 	VIEW3D_OT_ke_focusmode,
@@ -1159,6 +1547,7 @@ classes = (
 	MESH_OT_ke_extract_and_edit,
 	MESH_OT_ke_select_collinear,
 	MESH_OT_ke_select_invert_linked,
+	VIEW3D_OT_ke_cursor_clear_rotation,
 	VIEW3D_OT_ke_cursor_bookmark,
 	VIEW3D_OT_ke_align_object_to_active,
 	VIEW3D_OT_ke_swap,
@@ -1168,6 +1557,9 @@ classes = (
 	OBJECT_OT_ke_straighten,
 	OBJECT_OT_ke_object_op,
 	VIEW3D_OT_ke_shading_toggle,
+	VIEW3D_OT_ke_unhide_or_local,
+	VIEW3D_OT_ke_lock,
+	MESH_OT_ke_mouse_side_of_active,
 	ke_popup_info
 )
 

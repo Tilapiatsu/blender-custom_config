@@ -2,7 +2,7 @@ bl_info = {
     "name": "keMouseAxisMove",
     "author": "Kjell Emanuelsson",
     "category": "Modeling",
-    "version": (1, 1, 2),
+    "version": (1, 1, 4),
     "blender": (2, 80, 0),
 }
 
@@ -37,6 +37,7 @@ class VIEW3D_OT_ke_mouse_axis_move(bpy.types.Operator):
     obj = None
     obj_loc = None
     em_types = {'MESH', 'CURVE', 'SURFACE', 'META', 'FONT', 'HAIR', 'GPENCIL'}
+    em_normal_mode = False
 
     @classmethod
     def description(cls, context, properties):
@@ -59,6 +60,7 @@ class VIEW3D_OT_ke_mouse_axis_move(bpy.types.Operator):
         return region_2d_to_location_3d(region, rv3d, coord, pos)
 
     def invoke(self, context, event):
+
         sel_obj = [o for o in context.selected_objects]
         if sel_obj:
             if len(sel_obj) > 1:
@@ -82,12 +84,11 @@ class VIEW3D_OT_ke_mouse_axis_move(bpy.types.Operator):
             self.report({"INFO"}, " No valid objects selected ")
             return {'CANCELLED'}
 
-
         # mouse track start
         self.mouse_pos[0] = int(event.mouse_region_x)
         self.mouse_pos[1] = int(event.mouse_region_y)
 
-        # Mouse vec start
+        # Mouse vec start ( lazy edit mode overwrite later)
         if self.mode != "ROT":
             self.startpos = self.get_mpos(context, self.mouse_pos, self.obj_loc)
 
@@ -129,12 +130,19 @@ class VIEW3D_OT_ke_mouse_axis_move(bpy.types.Operator):
             elif em != "OBJECT":
                 self.obj.update_from_editmode()
                 sel = [v for v in self.obj.data.vertices if v.select]
+                sel_co = average_vector([self.obj.matrix_world @ v.co for v in sel])
+                # Use selection for mouse start 2d pos instead of obj loc
+                self.startpos = self.get_mpos(context, self.mouse_pos, sel_co)
+
                 if sel:
                     try:
                         bpy.ops.transform.create_orientation(name='keTF', use_view=False, use=True, overwrite=True)
                         self.tm = context.scene.transform_orientation_slots[0].custom_orientation.matrix.copy()
                         bpy.ops.transform.delete_orientation()
                         restore_transform(og)
+                        # if og[1] == "ACTIVE_ELEMENT":
+                        self.em_normal_mode = True
+
                     except RuntimeError:
                         print("Fallback: Invalid selection for Orientation - Using Local")
                         # Normal O. with a entire cube selected will fail create_o.
@@ -146,6 +154,7 @@ class VIEW3D_OT_ke_mouse_axis_move(bpy.types.Operator):
             else:
                 self.report({"INFO"}, "Unsupported Orientation Mode")
                 return {'CANCELLED'}
+
 
             if self.mode == "DUPE":
                 if em != "OBJECT":
@@ -211,6 +220,8 @@ class VIEW3D_OT_ke_mouse_axis_move(bpy.types.Operator):
                                                 proportional_edit_falloff='SMOOTH', cursor_transform=True,
                                                 use_proportional_connected=False, use_proportional_projected=False)
                 else:
+                    if self.em_normal_mode:
+                        axis = False, False, True
                     bpy.ops.transform.translate('INVOKE_DEFAULT', orient_type=self.ot, orient_matrix_type=self.ot,
                                                 constraint_axis=axis, mirror=True, use_proportional_edit=False,
                                                 proportional_edit_falloff='SMOOTH', proportional_size=1,
@@ -223,7 +234,6 @@ class VIEW3D_OT_ke_mouse_axis_move(bpy.types.Operator):
             return {'CANCELLED'}
 
         return {'RUNNING_MODAL'}
-
 # -------------------------------------------------------------------------------------------------
 # Class Registration & Unregistration
 # -------------------------------------------------------------------------------------------------

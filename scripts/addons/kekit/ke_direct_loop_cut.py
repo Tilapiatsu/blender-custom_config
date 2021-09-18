@@ -2,7 +2,7 @@ bl_info = {
     "name": "keDirectLoopCut",
     "author": "Kjell Emanuelsson",
     "category": "Modeling",
-    "version": (2, 1, 0),
+    "version": (2, 1, 1),
     "blender": (2, 80, 0),
 }
 

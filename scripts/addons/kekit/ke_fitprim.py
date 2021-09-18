@@ -2,7 +2,7 @@ bl_info = {
     "name": "keFitPrim",
     "author": "Kjell Emanuelsson",
     "category": "Modeling",
-    "version": (1, 6, 3),
+    "version": (1, 6, 4),
     "blender": (2, 80, 0),
 }
 import bpy
@@ -86,6 +86,8 @@ def get_sides(obj_mtx, vecs, vps):
     start_vec = []
     h,p1,p2,b,c = None, None, None, None, None
     center, side = None, None
+    s1 = [Vector((0, 0, 0)), Vector((0, 0, 1))]
+    os1 = [Vector((1, 0, 0)), Vector((0, 0, 1))]
 
     # Find sides...improvised mess, optimize later...maybe
     dotsum = 0
@@ -238,6 +240,14 @@ class VIEW3D_OT_ke_fitprim(bpy.types.Operator):
     og_cloc = []
     og_crot = []
 
+    tick = 0
+    tock = 0
+    input_nrs = []
+
+    numbers = ('ZERO', 'ONE', 'TWO', 'THREE', 'FOUR', 'FIVE', 'SIX', 'SEVEN', 'EIGHT', 'NINE')
+    numpad = ('NUMPAD_0', 'NUMPAD_1', 'NUMPAD_2', 'NUMPAD_3', 'NUMPAD_4', 'NUMPAD_5', 'NUMPAD_6', 'NUMPAD_7',
+              'NUMPAD_8', 'NUMPAD_9')
+
     def invoke(self, context, event):
         self.screen_x = int(bpy.context.region.width *.5)
         self.mouse_pos[0] = int(event.mouse_region_x)
@@ -250,6 +260,41 @@ class VIEW3D_OT_ke_fitprim(bpy.types.Operator):
         return self.execute(context)
 
     def modal(self, context, event):
+        if event.type == 'TIMER':
+            self.tick += 1
+
+        if event.type in (self.numbers + self.numpad) and event.value == 'PRESS':
+            if event.type in self.numbers:
+                nr = self.numbers.index(event.type)
+            else:
+                nr = self.index(event.type)
+
+            self.input_nrs.append(nr)
+            self.tock = int(self.tick)
+
+        if self.tick - self.tock >= 1:
+            nrs = len(self.input_nrs)
+            if nrs != 0:
+                if nrs == 3:
+                    val = (self.input_nrs[0] * 100) + (self.input_nrs[1] * 10) + self.input_nrs[2]
+                elif nrs == 2:
+                    val = (self.input_nrs[0] * 10) + self.input_nrs[1]
+                else:
+                    val = self.input_nrs[0]
+
+                if val < 3:
+                    val = 3
+
+                if val != self.cyl_sides:
+                    self.cyl_sides = val
+                    bpy.ops.mesh.delete(type='FACE')
+                    bpy.ops.mesh.primitive_cylinder_add(vertices=self.cyl_sides, radius=self.settings[0],
+                                                        depth=self.settings[1] * 2, enter_editmode=False, align='WORLD',
+                                                        location=self.settings[2], rotation=self.settings[3])
+                    context.area.tag_redraw()
+                    self.input_nrs = []
+
+
         if event.type == 'WHEELUPMOUSE' and 2 < self.cyl_sides < 256:
             self.cyl_sides += 1
             bpy.ops.mesh.delete(type='FACE')
@@ -274,6 +319,8 @@ class VIEW3D_OT_ke_fitprim(bpy.types.Operator):
 
         elif event.type in {'LEFTMOUSE', 'RIGHTMOUSE', 'ESC', 'RET', 'SPACE'}:
             context.area.tag_redraw()
+            context.window_manager.event_timer_remove(self._timer)
+
             bpy.types.SpaceView3D.draw_handler_remove(self._handle, 'WINDOW')
 
             if self.itemize or self.edit_mode == "OBJECT":
@@ -513,7 +560,7 @@ class VIEW3D_OT_ke_fitprim(bpy.types.Operator):
                     con_edges = sel_verts[0].link_edges[:] + sel_verts[1].link_edges[:]
                     side = get_shortest(obj_mtx, con_edges)
 
-                v_1 = p1 - p2
+                v_1 = Vector(p1 - p2).normalized()
                 v_2 = Vector((0, 0, 1))
                 if abs(v_1.dot(v_2)) == 1 :
                     v_2 = Vector((1, 0, 0))
@@ -758,7 +805,7 @@ class VIEW3D_OT_ke_fitprim(bpy.types.Operator):
                 for v in first_island:
                     bm.verts[v.index].select = True
 
-                bmesh.update_edit_mesh(obj.data, True)
+                bmesh.update_edit_mesh(obj.data)
                 bpy.ops.mesh.select_mode(type='VERT')
                 bpy.ops.mesh.select_mode(type='FACE')
                 bm.faces.ensure_lookup_table()
@@ -909,6 +956,8 @@ class VIEW3D_OT_ke_fitprim(bpy.types.Operator):
 
                     self.settings = (side, distance, setpos, setrot)
                     context.window_manager.modal_handler_add(self)
+
+                    self._timer = context.window_manager.event_timer_add(0.5, window=context.window)
 
                     args = (self, context, self.screen_x)
                     self._handle = bpy.types.SpaceView3D.draw_handler_add(draw_callback_px, args, 'WINDOW',

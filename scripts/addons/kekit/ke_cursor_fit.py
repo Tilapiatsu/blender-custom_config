@@ -272,7 +272,7 @@ class VIEW3D_OT_cursor_fit_selected_and_orient(bpy.types.Operator):
                     bpy.ops.view3d.snap_cursor_to_center()
 
                 bm.select_flush_mode()
-                bmesh.update_edit_mesh(obj.data, True)
+                bmesh.update_edit_mesh(obj.data)
 
         # OBJECT MODE -----------------------------------------------------------------------
         elif bpy.context.mode == "OBJECT":

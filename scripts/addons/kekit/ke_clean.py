@@ -50,7 +50,7 @@ class VIEW3D_OT_ke_clean(bpy.types.Operator):
                 v.select = True
 
         bm.select_flush_mode()
-        bmesh.update_edit_mesh(obj.data, True)
+        bmesh.update_edit_mesh(obj.data)
 
 
     def execute(self, context):
@@ -159,6 +159,10 @@ class VIEW3D_OT_ke_vert_count_select(bpy.types.Operator):
     def execute(self, context):
 
         sel_obj = [o for o in context.selected_objects if o.type == "MESH"]
+        if not sel_obj:
+            self.report({"INFO"}, "Object must be selected!")
+            return {"CANCELLED"}
+
         if context.mode == 'OBJECT':
             bpy.ops.object.mode_set(mode="EDIT")
         bpy.ops.mesh.select_all(action='DESELECT')
@@ -193,7 +197,7 @@ class VIEW3D_OT_ke_vert_count_select(bpy.types.Operator):
                     v.select = True
 
             bm.select_flush_mode()
-            bmesh.update_edit_mesh(o.data, True)
+            bmesh.update_edit_mesh(o.data)
 
         if nr >= 3:
             bpy.context.tool_settings.mesh_select_mode = (False, False, True)

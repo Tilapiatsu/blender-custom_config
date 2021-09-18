@@ -2,7 +2,7 @@ import bpy
 import bmesh
 from mathutils import Vector
 from bpy.types import Operator
-from .ke_utils import mouse_raycast
+from .ke_utils import mouse_raycast, get_selected
 
 
 class VIEW3D_OT_ke_get_set_editmesh(Operator):
@@ -30,44 +30,36 @@ class VIEW3D_OT_ke_get_set_editmesh(Operator):
     def invoke(self, context, event):
         self.mouse_pos[0] = event.mouse_region_x
         self.mouse_pos[1] = event.mouse_region_y
-
         return self.execute(context)
 
     def execute(self, context):
         elementpick = bool(context.scene.kekit.getset_ep)
-        no_active = False
+        cat = {'MESH', 'CURVE', 'SURFACE', 'META', 'FONT', 'HAIR', 'GPENCIL', 'ARMATURE'}
 
-        sel_mode = str(bpy.context.mode)
-        if sel_mode == "EDIT_MESH":
-            sel_mode = "EDIT"
-
-        og_obj = bpy.context.active_object
-
-        if og_obj:
+        # sel by viewpicker since raycasting is only good for "real mesh" ?
+        if context.mode != "OBJECT":
             bpy.ops.object.mode_set(mode='OBJECT')
-        else:
-            no_active = True
 
-        hit_obj, hit_wloc, hit_normal, hit_face = mouse_raycast(context, self.mouse_pos)
+        og_obj = get_selected(context, use_cat=True, cat=cat)
+        bpy.ops.view3d.select(extend=self.extend, location=(int(self.mouse_pos[0]), int(self.mouse_pos[1])))
+        hit_obj = context.object
 
-        if hit_obj is not None:
+        if og_obj and self.extend:
+            og_obj.select_set(True)
 
-            hit_original = hit_obj.original
+        if hit_obj:
+            context.view_layer.objects.active = hit_obj
 
-            if no_active: og_obj = hit_original
+            if hit_obj.type in cat:
+                if hit_obj.type == 'GPENCIL':
+                    bpy.ops.object.mode_set(mode='EDIT_GPENCIL')
+                else:
+                    bpy.ops.object.mode_set(mode='EDIT')
 
-            hit_original.select_set(True)
-
-            if og_obj and not self.extend and not no_active:
-                og_obj.select_set(False)
-
-            context.view_layer.objects.active = hit_original
-
-            bpy.ops.object.mode_set(mode='EDIT')
-
-            if elementpick and sel_mode != "OBJECT":
-                # Element Selection mode by viewpicker - a bit convoluted, but hey..
+            if elementpick and hit_obj.type == "MESH":
+                # Element Selection mode by viewpicker & restore, not very clean, but hey..
                 self.extend = True
+                element = ""
                 og_selmode = context.tool_settings.mesh_select_mode[:]
 
                 bm = bmesh.from_edit_mesh(context.object.data)
@@ -94,9 +86,6 @@ class VIEW3D_OT_ke_get_set_editmesh(Operator):
 
                     bm.select_flush(False)
 
-                else:
-                    element = ""
-
                 if element == "BMVert":
                     context.tool_settings.mesh_select_mode = (True, False, False)
                 elif element == "BMEdge":
@@ -105,9 +94,6 @@ class VIEW3D_OT_ke_get_set_editmesh(Operator):
                     context.tool_settings.mesh_select_mode = (False, False, True)
                 else:
                     context.tool_settings.mesh_select_mode = og_selmode
-
-        else:
-            bpy.ops.object.mode_set(mode=sel_mode)
 
         self.extend = False
 
@@ -121,7 +107,6 @@ class VIEW3D_OT_ke_get_set_material(Operator):
     bl_options = {'REGISTER', 'UNDO'}
 
     offset: bpy.props.IntVectorProperty(name="Offset", default=(0, 0), size=2, options={'HIDDEN'})
-
     mouse_pos = Vector((0, 0))
 
     @classmethod
@@ -134,20 +119,43 @@ class VIEW3D_OT_ke_get_set_material(Operator):
         return self.execute(context)
 
     def execute(self, context):
+        cat = {'MESH', 'CURVE', 'SURFACE', 'META', 'FONT', 'HAIR'}
+        target_index = None
+        nonmesh_target = False
+
         sel_obj = bpy.context.selected_objects[:]
         sel_mode = bpy.context.mode[:]
+        og_active_obj = context.active_object
+
         bpy.ops.object.mode_set(mode='OBJECT')
+
+        # sel_type_non = []
+        for o in sel_obj:
+            if o.type not in cat:
+                self.report({"INFO"}, "GetSetMaterial: Invalid Object Type Selected")
+                return {"CANCELLED"}
 
         obj, hit_wloc, hit_normal, face_index = mouse_raycast(context, self.mouse_pos, evaluated=True)
 
-        if face_index is not None:
-            target_index = obj.data.polygons[face_index].material_index
+        # Double-check with viewpicker since raycasting is only good for "real mesh" ?
+        if face_index is None:
+            bpy.ops.view3d.select(extend=False, location=(int(self.mouse_pos[0]), int(self.mouse_pos[1])))
+            obj = context.object
+            if obj.type in cat and obj.type != 'MESH':
+                nonmesh_target = True
+                target_index = 0
+
+        if face_index is not None or nonmesh_target :
+            if target_index is None:
+                target_index = obj.data.polygons[face_index].material_index
             slots = obj.material_slots[:]
 
             if slots:
                 target_material = obj.material_slots[target_index].material
                 for o in sel_obj:
                     o.select_set(False)
+                if nonmesh_target:
+                    obj.select_set(False)
 
                 for o in sel_obj:
                     o.select_set(True)
@@ -158,9 +166,10 @@ class VIEW3D_OT_ke_get_set_material(Operator):
                             if slot.material.name == target_material.name:
                                 og_mat = slot_index
 
-                    bpy.ops.object.mode_set(mode='EDIT')
-                    if sel_mode == "OBJECT":
-                        bpy.ops.mesh.select_all(action='SELECT')
+                    if o.type == "MESH":
+                        bpy.ops.object.mode_set(mode='EDIT')
+                        if sel_mode == "OBJECT":
+                            bpy.ops.mesh.select_all(action='SELECT')
 
                     if og_mat is not None:
                         # print("Found & Assigned Existing Material Slot")
@@ -173,8 +182,14 @@ class VIEW3D_OT_ke_get_set_material(Operator):
                         o.active_material = bpy.data.materials[target_material.name]
                         bpy.ops.object.material_slot_assign()
 
+                    if o.type != "MESH":
+                        # non-mesh just use the top slot
+                        for s in range(len(o.material_slots)):
+                            bpy.ops.object.material_slot_move(direction='UP')
+
                     if sel_mode == "OBJECT":
                         bpy.ops.object.mode_set(mode='OBJECT')
+
                     o.select_set(False)
 
                 for o in sel_obj:
@@ -198,6 +213,17 @@ class VIEW3D_OT_ke_get_set_material(Operator):
                 bpy.ops.object.mode_set(mode='OBJECT')
 
             return {'FINISHED'}
+
+        else:
+            # Restore sel
+            if obj:
+                obj.select_set(False)
+            for o in sel_obj:
+                o.select_set(True)
+            if og_active_obj:
+                context.view_layer.objects.active = og_active_obj
+            self.report({"INFO"}, "GetSetMaterial: No Material found")
+            return {'CANCELLED'}
 
         if sel_mode == "EDIT_MESH":
             bpy.ops.object.mode_set(mode='EDIT')

@@ -2,7 +2,7 @@ bl_info = {
     "name": "keKIT",
     "author": "Kjell Emanuelsson",
     "category": "Modeling",
-    "version": (1, 4, 3, 5),
+    "version": (1, 4, 5, 4),
     "blender": (2, 80, 0),
     "location": "View3D > Sidebar",
     "warning": "",
@@ -55,7 +55,7 @@ from bpy.types import Panel
 from urllib import request
 
 
-version = 1.435
+version = 1.454
 new_version = None
 
 # -------------------------------------------------------------------------------------------------
@@ -71,25 +71,15 @@ class VIEW3D_PT_kekit_selection(Panel):
 
     def draw(self, context):
         layout = self.layout
-        row = layout.row(align=True)
-        row.operator("VIEW3D_OT_cursor_fit_selected_and_orient", text="Cursor Fit & Align")
-        row.alignment="CENTER"
-        row.prop(context.scene.kekit, "cursorfit", text="O&P")
-        row = layout.row(align=True)
-        row.operator("view3d.ke_quick_origin_move").mode = "MOVE"
-        row.operator("view3d.ke_quick_origin_move", text="QOM AutoAxis").mode = "AUTOAXIS"
         col = layout.column(align=True)
-        col.label(text="Align Object(s) To")
-        row = col.row(align=True)
-        row.operator('VIEW3D_OT_ke_object_to_cursor', text="Cursor")
-        row.operator('VIEW3D_OT_ke_align_object_to_active', text="Active Object").align = "BOTH"
 
-        col.label(text="Align Origin(s) To")
         row = col.row(align=True)
-        row.operator('VIEW3D_OT_ke_origin_to_cursor', text="Cursor")
-        row.operator('VIEW3D_OT_align_origin_to_selected', text="Selection")
-        # row.operator('VIEW3D_OT_align_origin_to_selected', text="Sel.Loc").align = "LOCATION"
-        row.operator('VIEW3D_OT_origin_to_selected', text="Sel.Loc")
+        row.operator("VIEW3D_OT_cursor_fit_selected_and_orient", text="Cursor Fit & Align")
+        split = row.row(align=True)
+        split.alignment = "RIGHT"
+        split.prop(context.scene.kekit, "cursorfit", text="O&P")
+        row = col.row(align=True)
+        row.operator("view3d.ke_cursor_clear_rot")
 
         col.label(text="Align View To")
         row = col.row(align=True)
@@ -97,11 +87,43 @@ class VIEW3D_PT_kekit_selection(Panel):
         row.operator('view3d.ke_view_align_toggle', text="Selected").mode = 'SELECTION'
         row.operator('view3d.ke_view_align_snap', text="Ortho Snap").contextual = False
 
-        col.separator()
-        col.operator('object.ke_straighten')
-        col.operator('VIEW3D_OT_ke_swap', text="Swap Places")
+        row = col.row(align=True)
+        row.operator("screen.ke_frame_view", text="Frame All or Selected")
+        split = row.row(align=True)
+        split.alignment = "RIGHT"
+        split.prop(bpy.context.scene.kekit, "frame_mo", text="GO")
+
+        col.label(text="Align Origin(s) To")
+        row = col.row(align=True)
+        row.operator('VIEW3D_OT_ke_origin_to_cursor', text="Cursor")
+        row.operator('VIEW3D_OT_align_origin_to_selected', text="Selection")
+        row.operator('VIEW3D_OT_origin_to_selected', text="Sel.Loc")
+        row = col.row(align=True)
+
+        row.operator("view3d.ke_quick_origin_move", icon="TRANSFORM_ORIGINS").mode = "MOVE"
+        split = row.row(align=True)
+        split.alignment = "RIGHT"
+        split.operator("view3d.ke_quick_origin_move", icon="TRANSFORM_ORIGINS", text="AutoAxis").mode = "AUTOAXIS"
+
+        col.label(text="Align Object(s) To")
+        row = col.row(align=True)
+        row.operator('VIEW3D_OT_ke_object_to_cursor', text="Cursor")
+        row.operator('VIEW3D_OT_ke_align_object_to_active', text="Active Object").align = "BOTH"
+        row.operator('view3d.selected_to_origin', text="Origin")
+
+        # col.separator(factor=space_val)
+        col.operator('object.ke_straighten', icon="CON_ROTLIMIT" )
+        col.operator('VIEW3D_OT_ke_swap', text="Swap Places", icon="CON_TRANSLIKE")
+
+        col.label(text="Select")
+        row = col.row(align=True)
+        row.operator('view3d.ke_lock', icon="RESTRICT_SELECT_ON", text="Lock").mode = "LOCK"
+        row.operator('view3d.ke_lock', icon="RESTRICT_SELECT_ON", text="Lock Unselected").mode = "LOCK_UNSELECTED"
+        row.operator('view3d.ke_lock', icon="RESTRICT_SELECT_OFF", text="Unlock").mode = "UNLOCK"
+        col.operator('view3d.ke_unhide_or_local', icon="HIDE_OFF")
         col.operator("MESH_OT_ke_select_boundary", text="Select Boundary (+Active)")
         col.operator('MESH_OT_ke_select_invert_linked', text="Select Inverted Linked")
+        col.operator('mesh.ke_mouse_side_of_active', icon="MOUSE_MOVE")
 
 
 class VIEW3D_PT_ke_bookmarks(Panel):
@@ -259,9 +281,19 @@ class VIEW3D_PT_kekit_modeling(Panel):
         row.prop(context.scene.kekit, "qs_user_value", text="QScale")
         row.scale_x = 0.15
         row.prop(context.scene.kekit, "qs_unit_size", text="U", toggle=True)
-        row.operator('VIEW3D_OT_ke_quickscale', text="X").user_axis = 0
-        row.operator('VIEW3D_OT_ke_quickscale', text="Y").user_axis = 1
-        row.operator('VIEW3D_OT_ke_quickscale', text="Z").user_axis = 2
+
+        qsx = row.operator('VIEW3D_OT_ke_quickscale', text="X")
+        qsy = row.operator('VIEW3D_OT_ke_quickscale', text="Y")
+        qsz = row.operator('VIEW3D_OT_ke_quickscale', text="Z")
+        qsx.user_axis = "0"
+        qsy.user_axis = "1"
+        qsz.user_axis = "2"
+        qsx.unit_size = context.scene.kekit.qs_unit_size
+        qsy.unit_size = context.scene.kekit.qs_unit_size
+        qsz.unit_size = context.scene.kekit.qs_unit_size
+        qsx.user_value = context.scene.kekit.qs_user_value
+        qsy.user_value = context.scene.kekit.qs_user_value
+        qsz.user_value = context.scene.kekit.qs_user_value
 
         col.separator(factor=0.5)
 
@@ -461,11 +493,13 @@ class VIEW3D_PT_Context_Tools(Panel):
         srow.operator('view3d.ke_tt', text="TT Scale").mode = "SCALE"
         srow = scol.row(align=True)
         srow.operator('view3d.ke_tt', text="TT Dupe").mode = "DUPE"
-        srow.operator('view3d.ke_tt', text="TT Mode Cycle").mode = "TOGGLE_CYCLE"
+        srow.operator('view3d.ke_tt', text="TT Cycle").mode = "TOGGLE_CYCLE"
         srow = scol.row(align=True)
-        srow.prop(context.scene.kekit, "tt_handles", text="Handles")
-        srow.prop(context.scene.kekit, "tt_hide", text="Hide")
-        srow.prop(context.scene.kekit, "tt_select", text="Select")
+        srow.prop(context.scene.kekit, "tt_handles", text="Use Handles")
+        srow.prop(context.scene.kekit, "mam_scl", text="Use MAS")
+        srow = scol.row(align=True)
+        srow.prop(context.scene.kekit, "tt_hide", text="Hide Icons")
+        srow.prop(context.scene.kekit, "tt_select", text="Select-Tool")
         scol.separator()
         scol.operator("view3d.ke_tt", text="Dupe Linked (Global)", icon='LINKED', depress=tt_link).mode = "TOGGLE_DUPE"
         col.separator()
@@ -499,17 +533,21 @@ class VIEW3D_PT_Context_Tools(Panel):
         row.prop(context.scene.kekit, "scl_got", text="SGOT")
 
         col = layout.column(align=True)
-        col.operator('view3d.ke_view_align_snap', text="View Align Snap Contextual").contextual = True
-        col.operator("screen.ke_frame_view", text="Frame All or Selected")
-        col.operator('MESH_OT_ke_contextbevel', text="Context Bevel")
         row = col.row(align=True)
-        row.operator('MESH_OT_ke_contextextrude', text="Context Extrude")
-        row.alignment = "CENTER"
-        row.prop(bpy.context.scene.kekit, "tt_extrude", text="TT")
+        split = row.split(factor=.8)
+        split.operator('MESH_OT_ke_contextbevel', text="Context Bevel")
+        split.prop(bpy.context.scene.kekit, "korean", text="K/F", toggle=True)
+
         row = col.row(align=True)
-        row.operator('VIEW3D_OT_ke_contextdelete', text="Context Delete")
-        row.alignment = "CENTER"
-        row.prop(bpy.context.scene.kekit, "h_delete", text="H")
+        split = row.split(factor=.8)
+        split.operator('MESH_OT_ke_contextextrude', text="Context Extrude")
+        split.prop(bpy.context.scene.kekit, "tt_extrude", text="TT")
+
+        row = col.row(align=True)
+        split = row.split(factor=.8)
+        split.operator('VIEW3D_OT_ke_contextdelete', text="Context Delete")
+        split.prop(bpy.context.scene.kekit, "h_delete", text="H")
+
         col.operator('MESH_OT_ke_contextdissolve', text="Context Dissolve")
         col.operator('VIEW3D_OT_ke_contextselect', text="Context Select")
         col.operator('VIEW3D_OT_ke_contextselect_extend', text="Context Select Extend")
@@ -557,7 +595,7 @@ class VIEW3D_PT_PieMenus(Panel):
     def draw(self, context):
         layout = self.layout
         # layout.label(text="keKit Pie Menus")
-        pie = layout.menu_pie().column()
+        pie = layout.column()
         pie.operator("ke.call_pie", text="keShading", icon="DOT").name = "KE_MT_shading_pie"
         pie.operator("wm.call_menu_pie", text="keSnapping", icon="DOT").name = "VIEW3D_MT_ke_pie_snapping"
         pie.operator("wm.call_menu_pie", text="keStepRotate", icon="DOT").name = "VIEW3D_MT_ke_pie_step_rotate"
@@ -566,7 +604,9 @@ class VIEW3D_PT_PieMenus(Panel):
         pie.operator("wm.call_menu_pie", text="keOrientPivot", icon="DOT").name = "VIEW3D_MT_ke_pie_orientpivot"
         pie.operator("wm.call_menu_pie", text="keOverlays", icon="DOT").name = "VIEW3D_MT_ke_pie_overlays"
         pie.operator("wm.call_menu_pie", text="keSnapAlign", icon="DOT").name = "VIEW3D_MT_ke_pie_align"
-        pie.operator("wm.call_menu_pie", text="keFitPrim", icon="DOT").name = "VIEW3D_MT_ke_pie_fitprim"
+        row = pie.row(align=True)
+        row.operator("wm.call_menu_pie", text="keFitPrim", icon="DOT").name = "VIEW3D_MT_ke_pie_fitprim"
+        row.operator("wm.call_menu_pie", text="+Add", icon="DOT").name = "VIEW3D_MT_ke_pie_fitprim_add"
         pie.operator("wm.call_menu_pie", text="keSubd", icon="DOT").name = "VIEW3D_MT_ke_pie_subd"
         pie.operator("wm.call_menu_pie", text="keMaterials", icon="DOT").name = "VIEW3D_MT_PIE_ke_materials"
         pie.operator("wm.call_menu_pie", text="View&CursorBookmarks", icon="DOT").name = "VIEW3D_MT_ke_pie_vcbookmarks"
@@ -1094,6 +1134,7 @@ class VIEW3D_PT_kekit(Panel):
         col.separator(factor=0.5)
         col.operator('view3d.ke_bg_sync', icon="SHADING_TEXTURE")
 
+
 # -------------------------------------------------------------------------------------------------
 # Prefs & Properties
 # -------------------------------------------------------------------------------------------------
@@ -1128,7 +1169,7 @@ def update_panel(self, context):
 def version_check():
     v = 0
     try:
-        v = float(request.urlopen("https://artbykjell.com/bversion.html").read())
+        v = float(request.urlopen("https://artbykjell.com/bversion.v").read())
     except:
         pass
     if v > version:

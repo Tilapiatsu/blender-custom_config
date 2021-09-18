@@ -93,55 +93,72 @@ class VIEW3D_OT_ke_id_material(Operator):
 
         for obj in sel_obj:
 
-            obj.update_from_editmode()
             context.view_layer.objects.active = obj
 
-            if sel_mode == "EDIT_MESH":
-                sel_poly = [p for p in obj.data.polygons if p.select]
-                if not sel_poly:
-                    break
-            elif sel_mode == "OBJECT":
-                bpy.ops.object.mode_set(mode='EDIT')
-                bpy.ops.mesh.select_all(action='SELECT')
+            if obj.type != "MESH":
+                bpy.ops.object.material_slot_add()
+                obj.active_material = bpy.data.materials[m_name]
+                bpy.ops.object.material_slot_assign()
 
-            # slotcount = len(obj.material_slots[:])
-            existing_idm = bpy.data.materials.get(m_name)
+                # non-mesh just use the top slot
+                for s in range(len(obj.material_slots)):
+                    bpy.ops.object.material_slot_move(direction='UP')
 
-            if existing_idm:
-                using_slot = get_material_index(obj, m_name)
-            else:
-                using_slot = None
-
-            if using_slot is not None:
-                # print("EXISTING MATERIAL FOUND - SLOT RE-USED")
-                obj.active_material_index = using_slot
-
-            elif existing_idm and using_slot is None:
-                # print("EXISTING MATERIAL FOUND - SLOT ADDED")
-                obj.data.materials.append(existing_idm)
-                obj.active_material_index = get_material_index(obj, m_name)
+                bpy.ops.object.material_slot_remove_unused()
 
             else:
-                # print("NEW MATERIAL ADDED")
-                new = bpy.data.materials.new(name=m_name)
-                obj.data.materials.append(new)
-                obj.active_material_index = get_material_index(obj, m_name)
+                obj.update_from_editmode()
 
-            bpy.ops.object.material_slot_assign()
+                if sel_mode == "EDIT_MESH":
+                    sel_poly = [p for p in obj.data.polygons if p.select]
+                    if not sel_poly:
+                        break
+                elif sel_mode == "OBJECT":
+                    bpy.ops.object.mode_set(mode='EDIT')
+                    bpy.ops.mesh.select_all(action='SELECT')
 
-            # Clean up materials & slots
-            bpy.ops.object.mode_set(mode='OBJECT')
-            bpy.ops.object.material_slot_remove_unused()
-            if sel_mode == 'EDIT_MESH':
-                bpy.ops.object.mode_set(mode='EDIT')
+                # slotcount = len(obj.material_slots[:])
+                existing_idm = bpy.data.materials.get(m_name)
 
-            # # Set Colors
-            context.object.active_material.diffuse_color = m_col
+                if existing_idm:
+                    using_slot = get_material_index(obj, m_name)
+                else:
+                    using_slot = None
 
-            if object_color:
-                context.object.color = m_col
+                if using_slot is not None:
+                    # print("EXISTING MATERIAL FOUND - SLOT RE-USED")
+                    obj.active_material_index = using_slot
 
-            obj.update_from_editmode()
+                elif existing_idm and using_slot is None:
+                    # print("EXISTING MATERIAL FOUND - SLOT ADDED")
+                    obj.data.materials.append(existing_idm)
+                    obj.active_material_index = get_material_index(obj, m_name)
+
+                else:
+                    # print("NEW MATERIAL ADDED")
+                    new = bpy.data.materials.new(name=m_name)
+                    obj.data.materials.append(new)
+                    obj.active_material_index = get_material_index(obj, m_name)
+
+                bpy.ops.object.material_slot_assign()
+
+                # Clean up materials & slots
+                bpy.ops.object.mode_set(mode='OBJECT')
+                bpy.ops.object.material_slot_remove_unused()
+                if sel_mode == 'EDIT_MESH':
+                    bpy.ops.object.mode_set(mode='EDIT')
+
+                # # Set Colors
+                context.object.active_material.diffuse_color = m_col
+
+                if m_col[3] != 1:
+                    context.object.active_material.blend_method = 'BLEND'
+                    context.object.active_material.shadow_method = 'NONE'
+
+                if object_color:
+                    context.object.color = m_col
+
+                obj.update_from_editmode()
 
         bpy.ops.ed.undo_push()
 

@@ -1,10 +1,10 @@
 bl_info = {
     "name": "Mouse Mirror & Flip",
     "author": "Kjell Emanuelsson 2021",
-    "wiki_url": "http://artbykjell.com",
-    "version": (1, 1, 3),
+    "version": (1, 1, 7),
     "blender": (2, 80, 0),
 }
+
 import bpy
 import bmesh
 from mathutils import Vector, Matrix
@@ -28,11 +28,22 @@ class VIEW3D_OT_ke_mouse_mirror_flip(Operator):
         name="Mode",
         default="MIRROR")
 
+    linked: bpy.props.BoolProperty(name="Linked Duplicate", default=False)
+
     mouse_pos = Vector((0, 0))
     startpos = Vector((0, 0, 0))
     tm = Matrix().to_3x3()
     rv = None
     ot = "GLOBAL"
+
+    def draw(self, context):
+        layout = self.layout
+        col = layout.column()
+        row = col.row()
+        row.enabled = not context.object.data.is_editmode and self.mode == "MIRROR"
+        row.use_property_split = True
+        row.prop(self, "linked", expand=True)
+        layout.separator(factor=1)
 
     @classmethod
     def poll(cls, context):
@@ -57,7 +68,9 @@ class VIEW3D_OT_ke_mouse_mirror_flip(Operator):
     def invoke(self, context, event):
         self.mouse_pos[0] = int(event.mouse_region_x)
         self.mouse_pos[1] = int(event.mouse_region_y)
+        return self.execute(context)
 
+    def execute(self, context):
         cursor = context.scene.cursor
         cursor_mode = False
         normal_mode = False
@@ -71,15 +84,18 @@ class VIEW3D_OT_ke_mouse_mirror_flip(Operator):
         else:
             em = False
 
+        if context.active_object is not None:
+            og_obj = [context.active_object]
+        else:
+            og_obj = [context.object]
+
         if self.mode == "MIRROR":
             if em and og[0] != "NORMAL":
-                bpy.ops.mesh.duplicate('INVOKE_DEFAULT')
+                bpy.ops.mesh.duplicate()
             elif not em:
-                bpy.ops.object.duplicate('INVOKE_DEFAULT')
+                bpy.ops.object.duplicate()
 
-        og_sel_obj = context.selected_objects[:]
         active_obj = get_selected(context, use_cat=True)
-
 
         # Mouse vec start
         if og[0] == "CURSOR":
@@ -94,7 +110,6 @@ class VIEW3D_OT_ke_mouse_mirror_flip(Operator):
         # GLOBAL -------------------------------------------------------------------------------------------
         if og[0] == "GLOBAL":
             if not em:
-                bpy.ops.object.transform_apply(location=False, rotation=True, scale=True)
                 avg_pos = active_obj.location
             else:
                 bbcoords = [active_obj.matrix_world @ v.co for v in active_obj.data.vertices if v.select]
@@ -102,16 +117,10 @@ class VIEW3D_OT_ke_mouse_mirror_flip(Operator):
 
         # CURSOR -------------------------------------------------------------------------------------------
         elif og[0] == "CURSOR":
-            if og[1] != "CURSOR":
-                self.tm = Matrix(((1, 0, 0), (0, 1, 0), (0, 0, 1)))
-            else:
-                self.tm = cursor.matrix.to_3x3()
+            bpy.context.scene.tool_settings.transform_pivot_point = 'CURSOR'
+            self.tm = cursor.matrix.to_3x3()
             avg_pos = cursor.location
-            if not em:
-                bpy.ops.object.editmode_toggle()
-                bpy.ops.mesh.select_all(action='SELECT')
-                em = True
-                cursor_mode = True
+            cursor_mode = True
 
         # LOCAL -------------------------------------------------------------------------------------------
         elif og[0] == "LOCAL":
@@ -206,7 +215,7 @@ class VIEW3D_OT_ke_mouse_mirror_flip(Operator):
                     if f != active:
                         f.select = False
 
-            bmesh.update_edit_mesh(mesh, True)
+            bmesh.update_edit_mesh(mesh)
 
             try:
                 bpy.ops.transform.create_orientation(name='keTF', use_view=False, use=True, overwrite=True)
@@ -222,12 +231,12 @@ class VIEW3D_OT_ke_mouse_mirror_flip(Operator):
             # reselect original selection (to encompass all element islands )
             for i in og_sel:
                 i.select = True
-            bmesh.update_edit_mesh(mesh, True)
+            bmesh.update_edit_mesh(mesh)
 
             bpy.ops.mesh.select_linked(delimit=set())
 
             if self.mode == "MIRROR":
-                bpy.ops.mesh.duplicate('INVOKE_DEFAULT')
+                bpy.ops.mesh.duplicate()
 
             avg_pos = active_obj.matrix_world @ (average_vector([v.co for v in active_verts]))
 
@@ -271,47 +280,41 @@ class VIEW3D_OT_ke_mouse_mirror_flip(Operator):
                 else:
                     avg_pos = Vector(bbmax)
 
-
         # Global offset fix
         if og[0] == "GLOBAL":
             avg_pos = Vector((0, 0, 0))
 
         # PROCESS
-        bpy.ops.transform.resize(value=scale_value, orient_type=self.ot,
-                                 orient_matrix=self.tm,
-                                 orient_matrix_type=self.ot, constraint_axis=axis, mirror=True,
-                                 use_proportional_edit=False, proportional_edit_falloff='SMOOTH', proportional_size=1.0,
-                                 use_proportional_connected=False, use_proportional_projected=False, snap=False,
-                                 snap_target='CLOSEST', snap_point=(0.0, 0.0, 0.0), snap_align=False,
-                                 snap_normal=(0.0, 0.0, 0.0), gpencil_strokes=False, texture_space=False,
-                                 remove_on_cancel=False, center_override=avg_pos, release_confirm=False,
-                                 use_accurate=False)
+        if not em and cursor_mode:
+            bpy.ops.transform.mirror(orient_type=self.ot, orient_matrix=self.tm,
+                                     orient_matrix_type=self.ot, constraint_axis=axis)
+        else:
+            bpy.ops.transform.resize(value=scale_value, orient_type=self.ot,
+                                     orient_matrix=self.tm,
+                                     orient_matrix_type=self.ot, constraint_axis=axis, mirror=True,
+                                     use_proportional_edit=False, proportional_edit_falloff='SMOOTH',
+                                     proportional_size=1.0, use_proportional_connected=False,
+                                     use_proportional_projected=False, snap=False,
+                                     snap_target='CLOSEST', snap_point=(0.0, 0.0, 0.0), snap_align=False,
+                                     snap_normal=(0.0, 0.0, 0.0), gpencil_strokes=False, texture_space=False,
+                                     remove_on_cancel=False, center_override=avg_pos, release_confirm=False,
+                                     use_accurate=False)
 
         if em:
             bpy.ops.mesh.flip_normals()
-            if cursor_mode:
-                # bpy.ops.object.editmode_toggle()
-                bpy.ops.mesh.separate(type='SELECTED')
-                bpy.ops.object.mode_set(mode="OBJECT")
-                for o in og_sel_obj:
-                    o.select_set(False)
-                bpy.ops.view3d.ke_origin_to_cursor()
-                bpy.ops.transform.select_orientation(orientation='CURSOR')
-                context.view_layer.objects.active = context.selected_objects[-1]
-                # context.active_object.select_set = False
-        else:
-            bpy.ops.object.transform_apply(location=False, rotation=False, scale=True)
-            bpy.ops.object.editmode_toggle()
-            bpy.ops.mesh.select_all(action='SELECT')
-            # bpy.ops.mesh.flip_normals()
-            bpy.ops.mesh.normals_make_consistent(inside=False)
-            bpy.ops.object.editmode_toggle()
 
+        if not em:
+            restore_transform(og)
 
-        # if bbmax and self.mode == "MIRROR":
-        restore_transform(og)
+        if self.linked and not em and self.mode == "MIRROR":
+            og_obj[0].select_set(True)
+            bpy.context.view_layer.objects.active = og_obj[0]
+            bpy.ops.object.make_links_data(type='OBDATA')
+            og_obj[0].select_set(False)
+            bpy.context.view_layer.objects.active = active_obj
 
         return {'FINISHED'}
+
 
 # -------------------------------------------------------------------------------------------------
 # Class Registration & Unregistration

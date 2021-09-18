@@ -2,7 +2,7 @@ bl_info = {
 	"name": "keGround",
 	"author": "Kjell Emanuelsson",
 	"category": "Modeling",
-	"version": (2, 1, 1),
+	"version": (2, 1, 2),
 	"blender": (2, 80, 0),
 }
 import bpy
@@ -46,17 +46,19 @@ class VIEW3D_OT_ke_ground(bpy.types.Operator):
 
 	@classmethod
 	def poll(cls, context):
-		return (context.object is not None and
-				context.object.type == 'MESH')
+		return context.object is not None
 
 	def execute(self, context):
-		sel_obj = [o for o in context.selected_objects if o.type == "MESH"]
+		sel_obj = [o for o in context.selected_objects]
 		if not sel_obj:
 			self.report({"INFO"}, "Ground: Selection Error?")
 			return {'CANCELLED'}
 
 		offset = 0
-		editmode = bool(context.object.data.is_editmode)
+		if context.object.type == "MESH":
+			editmode = bool(context.object.data.is_editmode)
+		else:
+			editmode = False
 
 		bpy.ops.object.mode_set(mode='OBJECT')
 		bpy.ops.object.select_all(action="DESELECT")
@@ -64,14 +66,20 @@ class VIEW3D_OT_ke_ground(bpy.types.Operator):
 		for o in sel_obj:
 			o.select_set(True)
 			context.view_layer.objects.active = o
-			if editmode:
-				vc = [o.matrix_world @ v.co for v in o.data.vertices if v.select]
+
+			if o.type == 'MESH':
+				if editmode:
+					vc = [o.matrix_world @ v.co for v in o.data.vertices if v.select]
+				else:
+					vc = [o.matrix_world @ v.co for v in o.data.vertices]
+				vz = []
+				for co in vc:
+					vz.append(co[2])
+				zs = sorted(vz)
 			else:
-				vc = [o.matrix_world @ v.co for v in o.data.vertices]
-			vz = []
-			for co in vc:
-				vz.append(co[2])
-			zs = sorted(vz)
+				vc = [o.location, o.location]
+				zs = [vc[0][2], vc[1][2]]
+
 
 			if self.ke_ground_raycasting and vc:
 				coords = sorted(vc, key=lambda x: x[2])

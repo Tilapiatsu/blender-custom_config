@@ -2,7 +2,7 @@ bl_info = {
     "name": "keQuickMeasure",
     "author": "Kjell Emanuelsson",
     "category": "Modeling",
-    "version": (1, 5, 1),
+    "version": (1, 5, 3),
     "blender": (2, 80, 0),
 }
 import bpy
@@ -180,17 +180,14 @@ def sel_check(self, context, sel_save_check=False):
 
             if convert_stats:
                 # Total distance calc
-                t = round((ceil(sum(self.stat * 10000)) / 10000), 3)
-                unit, value = get_scene_unit(t, nearest=True)
-                value = round(value, 4)
+                unit, value = get_scene_unit(sum(self.stat), nearest=True)
                 self.dtot = str(value) + unit
 
                 # unit conversion
                 conv = []
                 for s in self.stat:
                     u,v = get_scene_unit(s, nearest=True)
-                    cs = str(round(v,4)) + u
-                    conv.append(cs)
+                    conv.append(str(v) + u)
                 self.stat = conv
 
         else:  # OBJECT MODE
@@ -422,7 +419,6 @@ class VIEW3D_OT_ke_quickmeasure(bpy.types.Operator):
     bl_label = "Quick Measure"
     bl_description = "Contextual measurement types by mesh selection (Obj & Edit modes).\n" \
                      "*QM FreezeMode* starts in freeze mode."
-    bl_options = {'REGISTER'}
 
     qm_start: bpy.props.EnumProperty(
         items=[("DEFAULT", "Default Mode", "", "DEFAULT", 1),
@@ -433,7 +429,7 @@ class VIEW3D_OT_ke_quickmeasure(bpy.types.Operator):
 
     @classmethod
     def poll(cls, context):
-        return (context.object is not None and
+        return (context.scene.kekit.qm_running == False and context.object is not None and
                 context.object.type == 'MESH')
 
     _handle = None
@@ -533,6 +529,7 @@ class VIEW3D_OT_ke_quickmeasure(bpy.types.Operator):
             bpy.types.SpaceView3D.draw_handler_remove(self._handle, 'WINDOW')
             bpy.types.SpaceView3D.draw_handler_remove(self._handle_px, 'WINDOW')
             context.area.tag_redraw()
+            context.scene.kekit.qm_running = False
             return {'FINISHED'}
 
         elif event.type == "LEFTMOUSE" or event.type == "RIGHTMOUSE":
@@ -625,10 +622,6 @@ class VIEW3D_OT_ke_quickmeasure(bpy.types.Operator):
         bpy.app.handlers.frame_change_post.clear()
         sel_check(self, context, sel_save_check=True)
 
-        # if self.edit_mode[0] and len(self.vpos) > 1:
-        #     new = [pos for pos in self.vpos if pos not in self.vert_history]
-        #     self.vert_history.extend(new[:2])
-
         if context.area.type == 'VIEW_3D':
             if self.qm_start == "SEL_SAVE":
                 self.sel_save_mode = True
@@ -644,6 +637,7 @@ class VIEW3D_OT_ke_quickmeasure(bpy.types.Operator):
             wm.modal_handler_add(self)
 
             context.area.tag_redraw()
+            context.scene.kekit.qm_running = True
             return {'RUNNING_MODAL'}
 
         else:

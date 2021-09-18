@@ -2,16 +2,17 @@ bl_info = {
 	"name": "keContextOps",
 	"author": "Kjell Emanuelsson",
 	"category": "Modeling",
-	"version": (1, 3, 9),
+	"version": (1, 4, 0),
 	"blender": (2, 80, 0),
 }
 
 import bpy
 import bmesh
 from mathutils import Vector
+from math import sqrt
 from bpy.types import Operator
-from .ke_utils import get_loops, mouse_raycast, get_selected
-from bpy_extras.view3d_utils import region_2d_to_location_3d
+from .ke_utils import get_loops, mouse_raycast, get_selected, average_vector, get_duplicates
+from bpy_extras.view3d_utils import region_2d_to_location_3d, location_3d_to_region_2d
 
 # from bpy.props import EnumProperty
 # import rna_keymap_ui
@@ -54,9 +55,12 @@ class MESH_OT_ke_contextbevel(Operator):
 		if sel_mode[0]:
 			bpy.ops.mesh.bevel('INVOKE_DEFAULT', affect='VERTICES')
 		elif sel_mode[1]:
-			bpy.ops.mesh.bevel('INVOKE_DEFAULT', affect='EDGES')
+			if context.scene.kekit.korean:
+				bpy.ops.mesh.bevel('INVOKE_DEFAULT', segments=2, profile=1, affect='EDGES')
+			else:
+				bpy.ops.mesh.bevel('INVOKE_DEFAULT', affect='EDGES')
 		elif sel_mode[2]:
-			bpy.ops.mesh.inset('INVOKE_DEFAULT', use_outset=False, )
+			bpy.ops.mesh.inset('INVOKE_DEFAULT', use_outset=False)
 
 		return {'FINISHED'}
 
@@ -276,9 +280,13 @@ class VIEW3D_OT_ke_selmode(Operator):
 			   ("FACE", "Face Edit Mode", "", 3),
 			   ("OBJECT", "Object Mode", "", 4)],
 		name="Edit Mode",
-		default="FACE")
+		default="OBJECT")
 
-	mouse_pos = Vector((0, 0))
+	mouse_pos = [0, 0]
+
+	@classmethod
+	def poll(cls, context):
+		return context.object is not None
 
 	def invoke(self, context, event):
 		self.mouse_pos[0] = event.mouse_region_x
@@ -286,62 +294,72 @@ class VIEW3D_OT_ke_selmode(Operator):
 		return self.execute(context)
 
 	def execute(self, context):
-		em = self.edit_mode
-		mode = bpy.context.mode
-		edit_only = False
+		mode = str(context.mode)
+		has_componentmodes = {"MESH", "ARMATURE", "GPENCIL"}
+		has_editmode_only = {"CURVE", "SURFACE", "LATTICE", "META", "HAIR", "FONT"}
 
-		obj = get_selected(context, use_cat=True)
-		if obj:
-			if obj.type != "MESH" and self.edit_mode != "OBJECT":
-				edit_only = True
+		# Mouse Over select option
+		if context.scene.kekit.selmode_mouse and context.space_data.type == "VIEW_3D":
+			og_obj = context.object
 
-		hit_obj = False
-		mouse_over = bpy.context.scene.kekit.selmode_mouse
-
-		if mouse_over:
-			if context.object.type == 'MESH':
+			if mode != "OBJECT":
 				bpy.ops.object.mode_set(mode="OBJECT")
-			hit_obj, hit_wloc, hit_normal, hit_face = mouse_raycast(context, self.mouse_pos)
 
-			if hit_obj:
-				layer_objects = context.view_layer.objects[:]
+			bpy.ops.view3d.select(extend=False, deselect=False, toggle=False, deselect_all=False, center=False,
+								  enumerate=False, object=False, location=self.mouse_pos)
 
-				for o in context.selected_objects:
-					o.select_set(False)
+			sel_obj = context.object
 
-				for o in layer_objects:
-					if o.name == hit_obj.name:
-						o.select_set(True)
-						context.view_layer.objects.active = o
-						break
+			if og_obj == sel_obj:
+				if mode == "OBJECT" and sel_obj.type in (has_componentmodes | has_editmode_only):
+					bpy.ops.object.editmode_toggle()
+				return {"FINISHED"}
 
-				if em != "OBJECT":
-					bpy.ops.object.mode_set(mode="EDIT")
-					if not edit_only:
-						bpy.ops.mesh.select_mode(type=em)
-
-			elif not hit_obj and obj:
-				if em != "OBJECT":
-					bpy.ops.object.mode_set(mode="EDIT")
-					if not edit_only:
-						bpy.ops.mesh.select_mode(type=em)
-
-		elif obj:
-			if em != "OBJECT":
-				if mode == 'OBJECT':
-					bpy.ops.object.mode_set(mode="EDIT")
-					if not edit_only:
-						bpy.ops.mesh.select_mode(type=em)
-				else:
-					if not edit_only:
-						bpy.ops.mesh.select_mode(type=em)
+			if mode != "OBJECT" and sel_obj.type in (has_componentmodes | has_editmode_only):
+				bpy.ops.object.editmode_toggle()
 			else:
-				if mode != 'OBJECT':
-					bpy.ops.object.mode_set(mode="OBJECT")
-				else:
-					bpy.ops.object.mode_set(mode="EDIT")
+				mode = "OBJECT"
 
-		return {'FINISHED'}
+		# Set selection mode
+		if context.active_object is not None:
+			obj = context.active_object
+		else:
+			obj = context.object
+
+		if obj.type in has_componentmodes:
+
+			if self.edit_mode != "OBJECT":
+
+				if obj.type == "ARMATURE":
+					bpy.ops.object.posemode_toggle()
+
+				elif obj.type == "GPENCIL":
+					if mode == "OBJECT":
+						bpy.ops.gpencil.editmode_toggle()
+					if self.edit_mode == "VERT":
+						context.scene.tool_settings.gpencil_selectmode_edit = 'POINT'
+					elif self.edit_mode == "EDGE":
+						context.scene.tool_settings.gpencil_selectmode_edit = 'STROKE'
+					elif self.edit_mode == "FACE":
+						obj.data.use_curve_edit = not obj.data.use_curve_edit
+				else:
+					if mode == "OBJECT":
+						bpy.ops.object.editmode_toggle()
+					bpy.ops.mesh.select_mode(type=self.edit_mode)
+			else:
+				if obj.type == "GPENCIL":
+					bpy.ops.gpencil.editmode_toggle()
+				else:
+					bpy.ops.object.editmode_toggle()
+
+		elif obj.type in has_editmode_only:
+			bpy.ops.object.editmode_toggle()
+
+		else:
+			# print("Object does not have an Edit Mode")
+			return {"CANCELLED"}
+
+		return {"FINISHED"}
 
 
 class MESH_OT_ke_bridge_or_fill(Operator):
@@ -408,11 +426,109 @@ class MESH_OT_ke_maya_connect(Operator):
 	bl_description = "EDGE (or FACE) selection: Subdivide, VERTS: Connect Verts"
 	bl_options = {'REGISTER', 'UNDO'}
 
+	region = None
+	rv3d = None
+	screen_x = 0
+	mtx = None
+	mouse_pos = [0, 0]
+	visited = []
+
 	@classmethod
 	def poll(cls, context):
 		return (context.object is not None and
 				context.object.type == 'MESH' and
 				context.object.data.is_editmode)
+
+
+	def pick_closest_edge(self, edges):
+		pick, prev = None, 9001
+		for e in edges:
+			emp = average_vector([self.mtx @ v.co for v in e.verts])
+			p = location_3d_to_region_2d(self.region, self.rv3d, emp)
+			dist = sqrt((self.mouse_pos[0] - p.x) ** 2 + (self.mouse_pos[1] - p.y) ** 2)
+			if dist < prev:
+				pick, prev = e, dist
+		return pick
+
+	def get_edge_rings(self, start_edge, sel):
+		max_count = 1000
+		ring_edges = []
+		area_bools = []
+		faces_visited = []
+
+		for loop in start_edge.link_loops:
+			abools = []
+			start = loop
+			edges = [loop.edge]
+
+			i = 0
+			while i < max_count:
+				loop = loop.link_loop_radial_next.link_loop_next.link_loop_next
+
+				if len(loop.face.edges) != 4:
+					# self.nq_report += 1
+					break
+
+				if loop.face in sel:
+					abools.append(True)
+					faces_visited.extend([loop.face])
+				else:
+					abools.append(False)
+
+				edges.append(loop.edge)
+
+				if loop == start or loop.edge.is_boundary:
+					break
+				i += 1
+
+			ring_edges.append(edges)
+			area_bools.append(abools)
+
+		nr = len(ring_edges)
+
+		if nr == 2:
+			# crappy workaround - better solution tbd
+			if len(ring_edges[0]) == 1 and ring_edges[0][0] == start_edge:
+				ring_edges = [ring_edges[1]]
+				nr = 1
+			elif len(ring_edges[1]) == 1 and ring_edges[1][0] == start_edge:
+				ring_edges = [ring_edges[0]]
+				nr = 1
+
+		ring = []
+
+		if nr == 1:
+			# 1-directional (Border edge starts)
+			ring = [start_edge]
+			if len(area_bools[0]) == 0:
+				ab = area_bools[1]
+			else:
+				ab = area_bools[0]
+
+			for b, e in zip(ab, ring_edges[0][1:]):
+				if b: ring.append(e)
+
+		elif nr == 2:
+			# Splicing bi-directional loops
+			ring = [start_edge]
+			for b, e in zip(area_bools[0], ring_edges[0][1:]):
+				if b and e != start_edge: ring.append(e)
+
+			rest = []
+			for b, e in zip(area_bools[1], ring_edges[1][1:]):
+				if b and e not in ring: rest.append(e)
+
+			rest.reverse()
+			ring = rest + ring
+
+		return ring, list(set(faces_visited))
+
+
+	def invoke(self, context, event):
+		self.mouse_pos[0] = event.mouse_region_x
+		self.mouse_pos[1] = event.mouse_region_y
+		return self.execute(context)
+
 
 	def execute(self, context):
 		sel_mode = bpy.context.tool_settings.mesh_select_mode[:]
@@ -422,10 +538,176 @@ class MESH_OT_ke_maya_connect(Operator):
 			except:
 				bpy.ops.mesh.vert_connect('INVOKE_DEFAULT')
 
-		elif sel_mode[1] or sel_mode[2]:
-			bpy.ops.mesh.subdivide('INVOKE_DEFAULT')
+		elif sel_mode[1]:
+			# Sel check
+			sel_obj = [o for o in context.selected_objects if o.type == "MESH"]
+			if not sel_obj:
+				sel_obj = [context.object]
 
-		bpy.ops.ed.undo_push()
+			tot = []
+			report = []
+
+			for obj in sel_obj:
+				me = obj.data
+				bm = bmesh.from_edit_mesh(me)
+				bm.edges.ensure_lookup_table()
+
+				sel = [e for e in bm.edges if e.select]
+				if sel:
+					tot.append(len(sel))
+					for e in sel:
+						e.select = False
+
+					new_edges = bmesh.ops.subdivide_edges(bm, edges=sel, cuts=1, use_grid_fill=False)
+					for e in new_edges['geom_inner']:
+						e.select = True
+
+					bmesh.update_edit_mesh(me)
+				else:
+					report.append(obj.name)
+
+			if any(t == 1 for t in tot):
+				# print("Single Edge selected - Switching to Vert Mode")
+				bpy.ops.mesh.select_mode(type='VERT')
+				sel_mode = (True, False, False)
+
+			if report:
+				r = ", ".join(report)
+				self.report({"INFO"}, 'No edges selected on "%s"' % r)
+
+		elif sel_mode[2]:
+
+			for area in bpy.context.screen.areas:
+				if area.type == 'VIEW_3D':
+					self.region = area.regions[-1]
+					self.rv3d = area.spaces.active.region_3d
+
+			self.screen_x = int(self.region.width * .5)
+
+			sel_obj = context.selected_objects[:]
+			if not sel_obj:
+				self.report({"INFO"}, "No objects selected!")
+				return {'CANCELLED'}
+
+			for obj in sel_obj:
+
+				self.mtx = obj.matrix_world.copy()
+				me = obj.data
+				bm = bmesh.from_edit_mesh(me)
+				bm.edges.ensure_lookup_table()
+
+				sel_poly = [p for p in bm.faces if p.select]
+				sel_verts = [v.index for v in bm.verts if v.select]
+
+				if len(sel_poly) == 1:
+					start_edge = self.pick_closest_edge(sel_poly[0].edges)
+					ring, null = self.get_edge_rings(start_edge, sel_poly)
+
+					for e in bm.edges:
+						e.select = False
+
+					new_edges = bmesh.ops.subdivide_edges(bm, edges=ring, cuts=1, use_grid_fill=False)
+					for e in new_edges['geom_inner']:
+						e.select = True
+
+				elif len(sel_poly) > 1:
+					p_edges = []
+					for p in sel_poly:
+						p_edges.extend(p.edges)
+
+					shared_edges = get_duplicates(p_edges)
+					sed_bkp = shared_edges.copy()
+
+					if not shared_edges:
+						self.report({"INFO"}, "Invalid (Discontinuous?) selection")
+						return {"CANCELLED"}
+
+					rings = []
+					ring, self.visited = self.get_edge_rings(shared_edges[0], sel_poly)
+					rings.append(ring)
+
+					if (len(ring) - 2) != len(shared_edges):
+
+						sel1 = [v.index for v in bm.verts if v.select]
+
+						sanity = 9001
+						shared_edges = [e for e in shared_edges if e not in ring]
+
+						while shared_edges or sanity > 0:
+							if shared_edges:
+								ring, fvis = self.get_edge_rings(shared_edges[0], sel_poly)
+								self.visited.extend(fvis)
+								rings.append(ring)
+								shared_edges = [e for e in shared_edges if e not in ring]
+							else:
+								break
+							sanity -= 1
+
+						# improvised solution here...as we go ;D
+						occurances = [[x, self.visited.count(x)] for x in set(self.visited)]
+						corners = []
+						cedges = []
+						for item in occurances:
+							if item[1] > 1:
+								corners.append(item[0])
+								cedges.extend(item[0].edges)
+
+						new_rings = []
+
+						for r in rings:
+							discard = []
+							for e in r:
+								if e not in sed_bkp and e in cedges:
+									discard.append(e)
+
+							c = [e for e in r if e not in discard]
+							new_rings.append(c)
+
+						rings = new_rings
+
+						for e in bm.edges:
+							e.select_set(False)
+
+						for r in rings:
+							for e in r:
+								e.select_set(True)
+
+						# I should find a cleaner bmesh solution for cornering, but meh...
+						bpy.ops.mesh.subdivide('INVOKE_DEFAULT')
+
+						bm.verts.ensure_lookup_table()
+						sel2 = [v for v in bm.verts if v.select]
+
+						bpy.ops.mesh.select_all(action="DESELECT")
+
+						for v in sel2:
+							if v.index not in sel1:
+								v.select_set(True)
+
+						bpy.ops.mesh.select_mode(type='VERT')
+
+					else:
+						# Sinple one-ring direction cut
+						if rings:
+
+							for e in bm.edges:
+								e.select = False
+
+							for ring in rings:
+								new_edges = bmesh.ops.subdivide_edges(bm, edges=ring, cuts=1, use_grid_fill=False)
+								for e in new_edges['geom_inner']:
+									e.select = True
+
+						bm.verts.ensure_lookup_table()
+
+				else:
+					self.report({"INFO"}, "Nothing selected?")
+					return {"CANCELLED"}
+
+				bmesh.update_edit_mesh(me)
+
+		if not sel_mode[0]:
+			bpy.ops.mesh.select_mode(type='EDGE')
 
 		return {'FINISHED'}
 

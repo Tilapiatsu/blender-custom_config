@@ -2,7 +2,7 @@ bl_info = {
     "name": "Merge To Mouse",
     "author": "Kjell Emanuelsson 2019",
     "wiki_url": "http://artbykjell.com",
-    "version": (1, 3, 6),
+    "version": (1, 3, 8),
     "blender": (2, 80, 0),
 }
 import bpy
@@ -15,8 +15,9 @@ from .ke_utils import get_loops, flatten, get_vert_nearest_mouse, get_area_and_t
 class MESH_OT_merge_to_mouse(Operator):
     bl_idname = "mesh.merge_to_mouse"
     bl_label = "Merge to Mouse"
-    bl_description = "Vert/Face Mode: Merge SELECTED vertices TO the selected (or edgelinked) vert CLOSEST to the Mouse Pointer. " \
-                     "Edge Mode: Collapse SELECTED edges TO edge(s) CLOSEST to the Mouse Pointer"
+    bl_description = "Vert/Face Mode: Merge SELECTED verts to the selected (+ edgelinked) vert CLOSEST to the Mouse\n" \
+                     "Edge Mode: Collapse SELECTED edges to edge(s) CLOSEST to the Mouse\n" \
+                     "Note: In Quad Windows, Merge to Last is used instead"
     bl_options = {'REGISTER', 'UNDO'}
 
     mouse_pos = Vector((0, 0))
@@ -33,6 +34,8 @@ class MESH_OT_merge_to_mouse(Operator):
         return self.execute(context)
 
     def execute(self, context):
+
+        # IDC...maybe later
         areatype = get_area_and_type()[1]
         if areatype == "QUAD":
             bpy.ops.mesh.merge(type='LAST')
@@ -92,6 +95,11 @@ class MESH_OT_merge_to_mouse(Operator):
 
             vlink_edges = list(flatten(vlink_edges))
             vps = [e.verts[:] for e in vlink_edges]
+
+            if not vps:
+                self.report({"INFO"}, "Invalid Selection: Edges do not share face?")
+                return {"CANCELLED"}
+
             vert_loops = get_loops(vps)
 
             merge_loops = []
@@ -104,8 +112,11 @@ class MESH_OT_merge_to_mouse(Operator):
                         merge_loops.append(vc)
                         break
 
+            if any(len(loop) != 2 for loop in merge_loops):
+                self.report({"INFO"}, "Invalid Selection")
+                return {"CANCELLED"}
+
             for mloop in merge_loops:
-                # pos = obj_mtx @ mloop[0].co  # NO WORLDSPACE HERE, NO NO! ;D
                 pos = mloop[0].co
                 bmesh.ops.pointmerge(bm, verts=mloop, merge_co=pos)
                 bmesh.update_edit_mesh(mesh)
@@ -129,12 +140,11 @@ class MESH_OT_merge_to_mouse(Operator):
                 merge_point = get_vert_nearest_mouse(context, self.mouse_pos, sel_verts, obj_mtx)
 
                 if merge_point:
-                    bm.select_history.add(merge_point)
-                    bm.verts[merge_point.index].select = True
-                    bpy.ops.mesh.merge(type='LAST', uvs=True)
-
+                    if merge_point not in sel:
+                        sel.append(merge_point)
+                    bmesh.ops.pointmerge(bm, verts=sel, merge_co=merge_point.co)
                     bm.select_flush_mode()
-                    bmesh.update_edit_mesh(obj.data, True)
+                    bmesh.update_edit_mesh(obj.data)
 
         bpy.context.tool_settings.mesh_select_mode = (sel_mode[0], sel_mode[1], sel_mode[2])
 

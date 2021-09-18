@@ -1,12 +1,13 @@
 bl_info = {
     "name": "keFrameView",
     "author": "Kjell Emanuelsson",
-    "version": (0, 0, 1),
+    "version": (0, 1, 7),
     "blender": (2, 9, 0),
     "description": "Frame All or Selected",
 }
 
 import bpy
+import bmesh
 
 
 class SCREEN_OT_ke_frame_view(bpy.types.Operator):
@@ -15,69 +16,175 @@ class SCREEN_OT_ke_frame_view(bpy.types.Operator):
     bl_description = "Frame Selection, or everything if nothing is selected."
     bl_options = {'REGISTER'}
 
-    # for now
     @classmethod
     def poll(cls, context):
-        return context.space_data.type == "VIEW_3D"
+        spaces = {"GRAPH_EDITOR", "DOPESHEET_EDITOR", "VIEW_3D", "NODE_EDITOR", "IMAGE_EDITOR"}
+        return context.space_data.type in spaces
 
     def execute(self, context):
+        mesh_only = bpy.context.scene.kekit.frame_mo
+        cat = {'LIGHT', 'LIGHT_PROBE', 'CAMERA', 'SPEAKER', 'EMPTY', 'LATTICE', 'VOLUME'}
+        space = context.space_data.type
 
-        # print("Current Space:", context.space_data.type)
-        # todo: Rework for all the contexts
-        # GRAPH_EDITOR, DOPESHEET_EDITOR, VIEW_3D, NODE_EDITOR
+        if space == "VIEW_3D":
+            sel_mode = bpy.context.mode
+            sel_obj = [o for o in context.selected_objects]
+            active = [context.active_object]
 
-        sel_mode = bpy.context.mode
-        sel_obj =  [o for o in context.selected_objects]
-        active = [context.active_object]
+            temp_hide = []
+            if mesh_only and not sel_obj:
+                for o in context.scene.objects:
+                    if o.type in cat and not o.hide_viewport:
+                        temp_hide.append(o)
+                        o.hide_viewport = True
 
-        if sel_mode == "OBJECT":
-            if active and sel_obj:
-                bpy.ops.view3d.view_selected('INVOKE_DEFAULT', use_all_regions=False)
-            else:
-                bpy.ops.view3d.view_all('INVOKE_DEFAULT', center=True)
+            # Not sure when 'paint' changed order, including both...
+            if sel_mode in {'SCULPT', 'VERTEX_PAINT', 'WEIGHT_PAINT', 'TEXTURE_PAINT', 'PARTICLE_EDIT',
+                            'SCULPT_GPENCIL', 'PAINT_GPENCIL', 'WEIGHT_GPENCIL', 'VERTEX_GPENCIL',
+                            'PAINT_VERTEX', 'PAINT_WEIGHT', 'PAINT_TEXTURE'}:
+                # Framing object in these modes
+                sel_mode = "OBJECT"
 
-        elif sel_mode == "POSE":
-            if context.selected_bones or context.selected_pose_bones_from_active_object:
-                bpy.ops.view3d.view_selected('INVOKE_DEFAULT', use_all_regions=False)
-            else:
-                bpy.ops.view3d.view_all('INVOKE_DEFAULT', center=True)
+            if sel_mode == "OBJECT":
+                if active and sel_obj:
+                    bpy.ops.view3d.view_selected('INVOKE_DEFAULT')
+                else:
+                    bpy.ops.view3d.view_all('INVOKE_DEFAULT')
 
-        elif sel_mode in {"EDIT_MESH", "EDIT_CURVE", "EDIT_SURFACE"}:
-            if not sel_obj and active:
-                sel_obj = active
+            elif sel_mode == "POSE":
+                if context.selected_bones or context.selected_pose_bones_from_active_object:
+                    bpy.ops.view3d.view_selected('INVOKE_DEFAULT')
+                else:
+                    bpy.ops.view3d.view_all('INVOKE_DEFAULT')
 
-            sel_check = False
+            elif sel_mode in {"EDIT_MESH", "EDIT_CURVE", "EDIT_SURFACE", "EDIT_LATTICE", "EDIT_GPENCIL",
+                              "EDIT_ARMATURE", "POSE"}:
 
-            for o in sel_obj:
-                o.update_from_editmode()
+                if not sel_obj and active:
+                    sel_obj = active
 
-                if o.type == "MESH":
-                    for v in o.data.vertices:
-                        if v.select:
+                if not sel_obj:
+                    return {"CANCELLED"}
+
+                sel_check = False
+
+                for o in sel_obj:
+                    o.update_from_editmode()
+
+                    if o.type == "MESH":
+                        for v in o.data.vertices:
+                            if v.select:
+                                sel_check = True
+                                break
+
+                    elif o.type == "CURVE":
+                        for sp in o.data.splines:
+                            for cp in sp.bezier_points:
+                                if cp.select_control_point:
+                                    sel_check = True
+                                    break
+
+                    elif o.type == "SURFACE":
+                        for sp in o.data.splines:
+                            for cp in sp.points:
+                                if cp.select:
+                                    sel_check = True
+                                    break
+
+                    elif o.type == "LATTICE":
+                        for p in o.data.points:
+                            if p.select:
+                                sel_check = True
+                                break
+
+                    elif o.type == "GPENCIL":
+                        stroke = o.data.layers.active.active_frame.strokes[0]
+                        if any(p.select for p in stroke.points):
                             sel_check = True
                             break
 
-                elif o.type == "CURVE":
-                    for sp in o.data.splines:
-                        for cp in sp.bezier_points:
-                            if cp.select_control_point:
-                                sel_check = True
-                                break
+                    elif o.type == "ARMATURE":
+                        if sel_mode == "POSE":
+                            sel = context.selected_pose_bones
+                        else:
+                            sel = context.selected_editable_bones
+                        if sel:
+                            sel_check = True
 
-                elif o.type == "SURFACE":
-                    for sp in o.data.splines:
-                        for cp in sp.points:
-                            if cp.select:
-                                sel_check = True
-                                break
+                if sel_check:
+                    bpy.ops.view3d.view_selected('INVOKE_DEFAULT')
+                else:
+                    if mesh_only and not temp_hide:
+                        for o in context.scene.objects:
+                            if o.type in cat and not o.hide_viewport:
+                                temp_hide.append(o)
+                                o.hide_viewport = True
 
-            if sel_check:
-                bpy.ops.view3d.view_selected('INVOKE_DEFAULT', use_all_regions=False)
+                    bpy.ops.view3d.view_all('INVOKE_DEFAULT')
+
+            if mesh_only and temp_hide:
+                for o in temp_hide:
+                    o.hide_viewport = False
+
+
+        elif space == "GRAPH_EDITOR":
+            sel = []
+            for c in context.selected_visible_fcurves:
+                for kp in c.keyframe_points:
+                    if kp.select_control_point:
+                        sel.append(kp)
+            if sel:
+                bpy.ops.graph.view_selected('INVOKE_DEFAULT')
             else:
-                bpy.ops.view3d.view_all('INVOKE_DEFAULT', center=True)
+                bpy.ops.graph.view_all('INVOKE_DEFAULT')
+
+        elif space == "DOPESHEET_EDITOR":
+            obj = context.object
+            action = obj.animation_data.action
+            sel = []
+            for fcurve in action.fcurves:
+                for kp in fcurve.keyframe_points:
+                    if kp.select_control_point:
+                        sel.append(kp)
+            if sel:
+                bpy.ops.action.view_selected('INVOKE_DEFAULT')
+            else:
+                bpy.ops.action.view_all('INVOKE_DEFAULT')
+
+        elif space == "NODE_EDITOR":
+            sel = context.selected_nodes[:]
+            if sel:
+                bpy.ops.node.view_selected('INVOKE_DEFAULT')
+            else:
+                bpy.ops.node.view_all('INVOKE_DEFAULT')
+
+        elif space == "IMAGE_EDITOR":
+            # AKA UV Editor...
+            sel = False
+            if context.object.data.is_editmode:
+
+                sel_sync = bool(context.scene.tool_settings.use_uv_select_sync)
+                bm = bmesh.from_edit_mesh(bpy.context.active_object.data)
+                uv_layer = bm.loops.layers.uv.verify()
+
+                for face in bm.faces:
+                    for loop in face.loops:
+                        uv = loop[uv_layer]
+                        if sel_sync:
+                            if loop.vert.select:
+                                sel = True
+                                break
+                        else:
+                            if uv.select:
+                                sel = True
+                                break
+
+                if sel:
+                    bpy.ops.image.view_selected('INVOKE_DEFAULT')
+                else:
+                    bpy.ops.image.view_all('INVOKE_DEFAULT')
 
         return {'FINISHED'}
-
 
 # -------------------------------------------------------------------------------------------------
 # Class Registration & Unregistration

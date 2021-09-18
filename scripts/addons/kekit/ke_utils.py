@@ -63,32 +63,49 @@ def wempty(context):
     return exist[0]
 
 
-def get_duplicates(alist):
-    checked = {}
-    dupes = []
-    for x in alist:
-        if x not in checked:
-            checked[x] = 1
+# def get_duplicates(alist):
+#     checked = {}
+#     dupes = []
+#     for x in alist:
+#         if x not in checked:
+#             checked[x] = 1
+#         else:
+#             if checked[x] == 1:
+#                 dupes.append(x)
+#             checked[x] += 1
+#     return dupes
+
+def get_duplicates(L):
+    '''viaJohnLaRooy'''
+    seen = set()
+    seen2 = set()
+    seen_add = seen.add
+    seen2_add = seen2.add
+    for item in L:
+        if item in seen:
+            seen2_add(item)
         else:
-            if checked[x] == 1:
-                dupes.append(x)
-            checked[x] += 1
-    return dupes
+            seen_add(item)
+    return list(seen2)
 
 
-def get_selected(context, sel_type="MESH", use_cat=False):
+def get_selected(context, sel_type="MESH", use_cat=False,
+                 cat = {'MESH', 'CURVE', 'SURFACE', 'META', 'FONT', 'HAIR', 'GPENCIL'}):
     '''Get a selected Object by Type, Active or not'''
     obj = None
-    cat = {'MESH', 'CURVE', 'SURFACE', 'META', 'FONT', 'HAIR', 'GPENCIL'}
     sel_obj = [o for o in context.selected_objects]
+    ao = context.active_object
+
     if sel_obj and not use_cat:
         sel_obj = [o for o in sel_obj if o.type == sel_type]
-        if context.active_object.type == sel_type:
-            obj = context.active_object
+        if ao:
+            if ao.type == sel_type:
+                obj = ao
     else:
         sel_obj = [o for o in sel_obj if o.type in cat]
-        if context.active_object.type in cat:
-            obj = context.active_object
+        if ao:
+            if ao.type in cat:
+                obj = ao
     if not obj and sel_obj:
         obj = sel_obj[0]
     return obj

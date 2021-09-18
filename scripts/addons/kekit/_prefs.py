@@ -201,8 +201,11 @@ default_values = {
     'snap_name4'            : "Snap Combo 4",
     'tt_linkdupe'           : False,
     'dlc_so'                : False,
-    'shading_tris'          : False
-
+    'shading_tris'          : False,
+    'frame_mo'              : False,
+    'mam_scl'               : True,
+    'qm_running'            : False,
+    'korean'                : False
 }
 
 # PROCESS
@@ -272,6 +275,7 @@ class kekit_properties(PropertyGroup):
     selmode_mouse : BoolProperty(description="Mouse-Over Mode Toggle", default=v["selmode_mouse"])
     # QuickMeasure  - default: 1
     quickmeasure : BoolProperty(default=v["quickmeasure"])
+    qm_running : BoolProperty(default=v["qm_running"])
     # Fit2Grid - default : 0.01
     fit2grid : FloatProperty(min=.00001, max=10000, default=v["fit2grid"])
     # ViewPlane Contextual - default : 1
@@ -391,6 +395,13 @@ class kekit_properties(PropertyGroup):
     dlc_so : BoolProperty(name="DLC Selection Only", description="No auto-pick, selected element only (nearest selected edge in face limit selection)", default=v["dlc_so"])
     # Shading Toggle Tri mode
     shading_tris : BoolProperty(name="Shading Toggle Triangulate", description="Use Triangulate Modifier (always last) for more accurate shading", default=v["shading_tris"])
+    # Frame All Mesh Only
+    frame_mo: BoolProperty(name="Geo Only", description="Ignore non-geo objects (lights, cameras etc) for Frame All (not selected)", default=v["frame_mo"])
+    # Mouse Axis Move - Scale ignore
+    mam_scl: BoolProperty(name="MAS", description="Mouse Axis Scale - Uncheck for default (unlocked) Scale behaviour for TT Scale MouseAxis", default=v["mam_scl"])
+    # korean toggle
+    korean: BoolProperty(name="Korean/Flat Bevel Toggle", description="Toggles Korean / Flat Bevel preset as default for Context Bevel and keKit subdtools bevels", default=v["korean"])
+
 
 # MENU OP FOR PREFS SAVING
 
@@ -398,9 +409,6 @@ class VIEW3D_OT_ke_prefs_save(Operator):
     bl_idname = "view3d.ke_prefs_save"
     bl_label = "Save Settings"
     bl_description = "Saves current kit settings (prefs-file, global & persistent)"
-    bl_space_type = 'VIEW_3D'
-    bl_region_type = 'UI'
-    bl_options = {'REGISTER'}
 
     def execute(self, context):
         prefs = get_scene_prefs(context)
@@ -456,8 +464,7 @@ class kekit_addon_preferences(AddonPreferences):
             col.context_pointer_set("keymap", km)
             rna_keymap_ui.draw_kmi([], kc, km, kmi, col, 0)
         else:
-            col.label(text="keShading Pie - No hotkey entry found - Restore 'Global View 3d Generic'")
-            # col.operator(Template_Add_Hotkey.bl_idname, text="Add hotkey entry)", icon='ZOOM_IN') # not working.skip.
+            col.label(text="keShading Pie: No hotkey entry found - Restore in keymap prefs (3D View / 3D View Generic)")
 
 
 # -------------------------------------------------------------------------------------------------

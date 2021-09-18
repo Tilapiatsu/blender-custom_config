@@ -112,6 +112,8 @@ class VIEW3D_OT_ke_pieops(Operator):
                     b.width = 0.01
                     b.limit_method = 'WEIGHT'
                     b.segments = 2
+                    if context.scene.kekit.korean:
+                        b.profile = 1
                     bpy.ops.object.modifier_move_to_index(modifier=b.name, index=0)
 
             elif self.op == "ANGLE_BEVEL":
@@ -121,8 +123,12 @@ class VIEW3D_OT_ke_pieops(Operator):
                     b.name = "ABevel"
                     b.width = 0.005
                     b.limit_method = 'ANGLE'
-                    b.angle_limit = 1.22348
-                    b.segments = 3
+                    b.angle_limit = 1.0472
+                    if context.scene.kekit.korean:
+                        b.profile = 1
+                        b.segments = 2
+                    else:
+                        b.segments = 3
 
             elif self.op == "LATTICE":
                 print("WIP - Lattice")
@@ -185,6 +191,14 @@ class VIEW3D_OT_ke_pieops(Operator):
                     m = active.modifiers[-1]
                     m.name = "kSolidify"
                     m.thickness = -0.01
+
+            # SOLIDIFY ---------------------------------------------------------------
+            elif self.op == "WEIGHTED_NORMAL":
+                if active:
+                    context.object.data.use_auto_smooth = True
+                    bpy.ops.object.modifier_add(type='WEIGHTED_NORMAL')
+                    m = active.modifiers[-1]
+                    m.name = "kWeightedNormal"
 
             # SHADING ---------------------------------------------------------------
             elif self.op == "SHADE_SMOOTH":
@@ -288,6 +302,7 @@ class VIEW3D_MT_PIE_ke_subd(Menu):
         mirror_mods = []
         solidify_mods = []
         subd_mods = []
+
         # ke Transfer Union Surface Object, ke TransferUnion Reciever Object
         # todo: separate pie setup for TU
         cat = {'MESH', 'CURVE', 'SURFACE', 'META', 'FONT', 'HAIR', 'GPENCIL'}
@@ -379,8 +394,8 @@ class VIEW3D_MT_PIE_ke_subd(Menu):
                 c.separator(factor=0.5)
         else:
             s = c.box().column()
-            s.operator("ke.pieops", text="Add SUBD", icon="MOD_SUBSURF").op = "SUBD"
-            # s.separator(factor=0.9)
+            s.operator('view3d.ke_subd', text="SubD Toggle").level_mode = "TOGGLE"
+            # s.operator("ke.pieops", text="Add SUBD", icon="MOD_SUBSURF").op = "SUBD"
             c.separator(factor=0.7)
 
         if solidify_mods:
@@ -400,7 +415,9 @@ class VIEW3D_MT_PIE_ke_subd(Menu):
             c.separator(factor=0.7)
             c.operator("ke.pieops", text="Add Solidify").op = "SOLIDIFY"
 
-        c.label(text="(WIP TU)") # Set TransferUnion
+        # c.label(text="(WIP TU)") # Todo Set TransferUnion
+        c.separator(factor=0.7)
+        c.operator("ke.pieops", text="Weighted Normal").op = "WEIGHTED_NORMAL"
         # top.label(text="(WIP MT)") # Set MaskTransfer
 
         # BEVEL
@@ -420,7 +437,13 @@ class VIEW3D_MT_PIE_ke_subd(Menu):
                 sub.operator("ke.pieops", text="", icon="X").op = "DELETE." + str(m.name)
                 s.prop(m, "width", text="Width")
                 s.prop(m, "segments", text="Segments")
-                s.prop_menu_enum(m, "offset_type",text="  Offset Type")
+                s.prop(m, "profile")
+                row = s.row(align=True)
+                row.prop(m, "miter_outer", expand=True, toggle=True)
+                row = s.row(align=True)
+                row.alignment = "RIGHT"
+                row.prop(m, "use_clamp_overlap", text="Clamp", toggle=False)
+                row.prop_menu_enum(m, "offset_type",text="Type >")
                 b.separator(factor=0.7)
             if not bevm:
                 b.operator("ke.pieops", text="Add Weight Bevel", icon="MOD_BEVEL").op = "W_BEVEL"
@@ -444,7 +467,13 @@ class VIEW3D_MT_PIE_ke_subd(Menu):
                 s.prop(m, "width", text="Width")
                 s.prop(m, "segments", text="Segments")
                 s.prop(m, "angle_limit", text="Angle")
-                s.prop_menu_enum(m, "offset_type", text="  Offset Type")
+                s.prop(m, "profile")
+                row = s.row(align=True)
+                row.prop(m, "miter_outer", expand=True, toggle=True)
+                row = s.row(align=True)
+                row.alignment = "RIGHT"
+                row.prop(m, "use_clamp_overlap", text="Clamp", toggle=False)
+                row.prop_menu_enum(m, "offset_type", text="Type >")
                 b.separator(factor=0.7)
             if not bevm:
                 b.operator("ke.pieops", text="Add Angle Bevel", icon="MOD_BEVEL").op = "ANGLE_BEVEL"
@@ -460,6 +489,7 @@ class VIEW3D_MT_PIE_ke_subd(Menu):
         top.operator("ke.pieops", text="Toggle All Edit Vis",  icon="EDITMODE_HLT").op = "MOD_EDIT_VIS"
         top.operator("ke.pieops", text="Toggle All Viewp Vis", icon="RESTRICT_VIEW_OFF").op = "MOD_VIS"
         top.separator(factor=0.3)
+        top.prop(bpy.context.scene.kekit, "korean", text="Korean Bevels")
         row = top.row(align=True)
         row.operator("ke.pieops", text=" Flat ").op = "SHADE_FLAT"
         row.operator("ke.pieops", text="Smooth").op = "SHADE_SMOOTH"
@@ -570,6 +600,111 @@ class VIEW3D_MT_PIE_ke_fitprim(Menu):
             SE.ke_fitprim_pieslot = "SE"
 
 
+class VIEW3D_MT_PIE_ke_fitprim_add(Menu):
+    bl_label = "ke.fit_prim_add"
+    bl_idname = "VIEW3D_MT_ke_pie_fitprim_add"
+
+    @classmethod
+    def poll(cls, context):
+        return context.space_data.type == "VIEW_3D"
+
+    def draw(self, context):
+        cm = context.mode
+        layout = self.layout
+        pie = layout.menu_pie()
+
+        if cm == "EDIT_MESH":
+
+            W = pie.operator("view3d.ke_fitprim", text="Cylinder", icon='MESH_CYLINDER')
+            W.ke_fitprim_option = "CYL"
+            W.ke_fitprim_pieslot = "W"
+
+            E = pie.operator("view3d.ke_fitprim", text="Cylinder Obj", icon='MESH_CYLINDER')
+            E.ke_fitprim_option = "CYL"
+            E.ke_fitprim_pieslot = "E"
+            E.ke_fitprim_itemize = True
+
+            S = pie.operator("view3d.ke_fitprim", text="Cube", icon='CUBE')
+            S.ke_fitprim_option = "BOX"
+            S.ke_fitprim_pieslot = "S"
+
+            N = pie.operator("view3d.ke_fitprim", text="Cube Obj", icon='MESH_CUBE')
+            N.ke_fitprim_option = "BOX"
+            N.ke_fitprim_pieslot = "N"
+            N.ke_fitprim_itemize = True
+
+            col = pie.box().column()
+            NW = col.operator("view3d.ke_fitprim", text="Sphere", icon='SPHERE')
+            NW.ke_fitprim_option = "SPHERE"
+            NW.ke_fitprim_pieslot = "NW"
+            NW2 = col.operator("view3d.ke_fitprim", text="QuadSphere", icon='SPHERE')
+            NW2.ke_fitprim_option = "QUADSPHERE"
+            NW2.ke_fitprim_pieslot = "NW"
+
+            col = pie.box().column()
+            NE = col.operator("view3d.ke_fitprim", text="Sphere Obj", icon='MESH_UVSPHERE')
+            NE.ke_fitprim_option = "SPHERE"
+            NE.ke_fitprim_pieslot = "NE"
+            NE.ke_fitprim_itemize = True
+            NE2 = col.operator("view3d.ke_fitprim", text="QuadSphere Obj", icon='MESH_UVSPHERE')
+            NE2.ke_fitprim_option = "QUADSPHERE"
+            NE2.ke_fitprim_pieslot = "NE"
+            NE2.ke_fitprim_itemize = True
+
+            SW = pie.operator("view3d.ke_fitprim", text="Plane", icon='MESH_PLANE')
+            SW.ke_fitprim_option = "PLANE"
+            SW.ke_fitprim_pieslot = "SW"
+
+            SE = pie.operator("view3d.ke_fitprim", text="Plane Obj", icon='MESH_PLANE')
+            SE.ke_fitprim_option = "PLANE"
+            SE.ke_fitprim_pieslot = "SE"
+            SE.ke_fitprim_itemize = True
+
+
+        if cm == "OBJECT":
+            # WEST
+            op = pie.operator("view3d.ke_fitprim", text="Cylinder", icon='MESH_CYLINDER')
+            op.ke_fitprim_option = "CYL"
+            op.ke_fitprim_pieslot = "W"
+
+            # EAST
+            cbox = pie.box()
+            cbox.scale_x = 2.3
+            cbox.emboss = "NONE"
+            col = cbox.column_flow(columns=2)
+            col.emboss = "PULLDOWN_MENU"
+            col.menu_contents("VIEW3D_MT_add")
+            # Silly filler to get Lights menu on the left column
+            col.label(text="")
+            col.label(text="")
+            col.label(text="")
+            col.label(text="")
+
+            # SOUTH
+            op = pie.operator("view3d.ke_fitprim", text="Plane", icon='MESH_PLANE')
+            op.ke_fitprim_option = "PLANE"
+            op.ke_fitprim_pieslot = "S"
+
+            # NORTH
+            op = pie.operator("view3d.ke_fitprim", text="Cube", icon='MESH_CUBE')
+            op.ke_fitprim_option = "BOX"
+            op.ke_fitprim_pieslot = "N"
+
+            # NORTHWEST
+            op = pie.operator("view3d.ke_fitprim", text="Sphere", icon='MESH_UVSPHERE')
+            op.ke_fitprim_option = "SPHERE"
+            op.ke_fitprim_pieslot = "NW"
+
+            # NORTHEAST
+            pie.separator()
+
+            # SOUTHWEST
+            op = pie.operator("view3d.ke_fitprim", text="QuadSphere", icon='MESH_UVSPHERE')
+            op.ke_fitprim_option = "QUADSPHERE"
+            op.ke_fitprim_pieslot = "SW"
+            # SOUTHEAST - BLANK
+
+
 class VIEW3D_MT_PIE_ke_align(Menu):
     bl_label = "keSnapAlign"
     bl_idname = "VIEW3D_MT_ke_pie_align"
@@ -596,6 +731,7 @@ class VIEW3D_MT_PIE_ke_align(Menu):
         selbox.operator("view3d.snap_selected_to_cursor", text="Selection to Cursor", icon='RESTRICT_SELECT_OFF').use_offset = False
         selbox.operator("view3d.snap_selected_to_cursor", text="Sel.to Cursor w.Offset", icon='RESTRICT_SELECT_OFF').use_offset = True
         selbox.operator("view3d.snap_selected_to_active", text="Selection to Active", icon='RESTRICT_SELECT_OFF')
+        selbox.operator("view3d.selected_to_origin", text="Sel.to Origin (Set Origin)", icon='RESTRICT_SELECT_OFF')
         spacer = c.column()
         spacer.label(text="")
         main.label(text="")
@@ -609,9 +745,10 @@ class VIEW3D_MT_PIE_ke_align(Menu):
         main.label(text="")
         cbox = main.box().column()
         cbox.operator("view3d.snap_cursor_to_center", text="Cursor to World Origin", icon='CURSOR')
-        cbox.operator("view3d.snap_cursor_to_grid", text="Cursor to Grid", icon='CURSOR')
         cbox.operator("view3d.snap_cursor_to_selected", text="Cursor to Selected", icon='CURSOR')
         cbox.operator("view3d.snap_cursor_to_active", text="Cursor to Active", icon='CURSOR')
+        cbox.operator("view3d.snap_cursor_to_grid", text="Cursor to Grid", icon='CURSOR')
+        cbox.operator("view3d.ke_cursor_clear_rot", icon='CURSOR')
         spacer = c.column()
         spacer.label(text="")
 
@@ -1562,6 +1699,7 @@ classes = (
     VIEW3D_MT_PIE_ke_orientpivot,
     VIEW3D_MT_PIE_ke_align,
     VIEW3D_MT_PIE_ke_fitprim,
+    VIEW3D_MT_PIE_ke_fitprim_add,
     VIEW3D_MT_PIE_ke_subd,
     VIEW3D_MT_PIE_ke_materials,
     VIEW3D_MT_PIE_ke_step_rotate,

@@ -2,11 +2,11 @@ bl_info = {
     "name": "keCollision",
     "author": "Kjell Emanuelsson",
     "category": "Modeling",
-    "version": (1, 0, 1),
+    "version": (1, 0, 4),
     "blender": (2, 80, 0),
 }
 import bpy
-from .ke_utils import average_vector
+from .ke_utils import average_vector, get_layer_collection
 from mathutils import Vector
 
 
@@ -20,23 +20,84 @@ class VIEW3D_OT_ke_collision(bpy.types.Operator):
                                             ("CONVEX", "Convex Hull", "", 2),
                                             ], name="Collision Type", default="BOX")
 
+    col_mode : bpy.props.BoolProperty(
+        name="Separate Collision Objects",
+        default=False, description="Object Mode: Collision object for each selected, or one combined")
+
+    col_vp : bpy.props.BoolProperty(
+        name="Collision Style Shading",
+        default=True, description="Sets collision object(s) viewport color & in-front shading")
+
+    ref_vp : bpy.props.BoolProperty(
+        name="Reference Style Shading",
+        default=False, description="Sets collision object(s) viewport to bounds display & not show in renders")
+
+
+    def draw(self, context):
+        layout = self.layout
+        col = layout.column()
+        row = col.row()
+        row.use_property_split = True
+        row.prop(self, "col_type", expand=True)
+        layout.separator(factor=1)
+        col = layout.column(align=True)
+        split = col.split(factor=.3)
+        split.label(text="")
+        split.prop(self, "col_mode", toggle=True)
+        col = layout.column(align=True)
+        split = col.split(factor=.3)
+        split.label(text="")
+        split.prop(self, "col_vp", toggle=True)
+        col = layout.column(align=True)
+        split = col.split(factor=.3)
+        split.label(text="")
+        split.prop(self, "ref_vp", toggle=True)
+        layout.separator(factor=1)
+
+
     @classmethod
     def poll(cls, context):
-        return (context.object is not None and
-                context.object.type == 'MESH')
+        return context.object is not None
+
+    def bbox_calc(self, bbx, bby, bbz):
+        bbx.sort()
+        bby.sort()
+        bbz.sort()
+        sideX = bbx[-1] - bbx[0]
+        sideY = bby[-1] - bby[0]
+        sideZ = bbz[-1] - bbz[0]
+        minmax = (Vector((bbx[0], bby[0], bbz[0])), Vector((bbx[-1], bby[-1], bbz[-1])))
+        avg_pos = average_vector(minmax)
+        return avg_pos, sideX, sideY, sideZ
+
+    def set_shading(self, obj):
+        if self.col_vp:
+            obj.color = (0.20, 0.35, 1, 0.75)
+            obj.show_in_front = True
+        if self.ref_vp:
+            obj.hide_render = True
+            obj.display_type = 'WIRE'
 
     def execute(self, context):
-        sel_obj = [o for o in context.selected_objects if o.type == "MESH"]
+        sel_obj = [o for o in context.selected_objects if o.type == "MESH" or o.type == "EMPTY"]
         sel_count = len(sel_obj)
-        og_obj = None
 
         if sel_count == 0:
             self.report({'INFO'}, "Selection Error: No valid/active object(s) selected?")
             return {"CANCELLED"}
 
-        elif sel_count == 1:
+        if context.active_object is not None:
             og_obj = context.active_object
-            og_name = str(og_obj.name)
+        else:
+            og_obj = sel_obj[0]
+
+        og_name = str(og_obj.name)
+
+        # setting active collection to same as selected object - sigh:
+        obj_collection = sel_obj[0].users_collection[0]
+        layer_collection = context.view_layer.layer_collection
+        layer_coll = get_layer_collection(layer_collection, obj_collection.name)
+        context.view_layer.active_layer_collection = layer_coll
 
         mode = str(context.mode)
 
@@ -55,8 +116,9 @@ class VIEW3D_OT_ke_collision(bpy.types.Operator):
                 bpy.context.view_layer.objects.active = new_obj[0]
                 if sel_count > 1:
                     bpy.ops.object.join('INVOKE_DEFAULT')
+
                 col_obj = bpy.context.view_layer.objects.active
-                col_obj.color = (0.20, 0.35, 1, 0.9)
+                self.set_shading(col_obj)
 
                 if og_obj:
                     col_obj.name = og_name + '_col'
@@ -82,16 +144,7 @@ class VIEW3D_OT_ke_collision(bpy.types.Operator):
                         bby.append(co[1])
                         bbz.append(co[2])
 
-                bbx.sort()
-                bby.sort()
-                bbz.sort()
-
-                sideX = bbx[-1] - bbx[0]
-                sideY = bby[-1] - bby[0]
-                sideZ = bbz[-1] - bbz[0]
-
-                minmax = (Vector((bbx[0], bby[0], bbz[0])), Vector((bbx[-1], bby[-1], bbz[-1])))
-                avg_pos = average_vector(minmax)
+                avg_pos, sideX, sideY, sideZ = self.bbox_calc(bbx, bby, bbz)
 
                 bpy.ops.mesh.primitive_box_add(width=sideX/2, depth=sideY/2, height=sideZ/2,
                                                align='WORLD', location=avg_pos, rotation=(0,0,0))
@@ -103,83 +156,152 @@ class VIEW3D_OT_ke_collision(bpy.types.Operator):
                     col_obj.name = col_obj.name + '_col'
 
                 col_obj = bpy.context.view_layer.objects.active
-                col_obj.color = (0.20, 0.35, 1, 0.9)
+                self.set_shading(col_obj)
 
 
         elif mode == "OBJECT":
             new_sel = []
+            bpy.ops.object.select_all(action="DESELECT")
 
             if self.col_type == "CONVEX":
 
-                for o in sel_obj:
-                    bpy.context.view_layer.objects.active = o
+                if self.col_mode:
 
-                    all_obj = [o for o in context.scene.objects if o.type == "MESH"]
+                    for o in sel_obj:
+                        # New Mesh
+                        mesh = bpy.data.meshes.new(name=og_name + '_col')
+                        col_obj = bpy.data.objects.new(mesh.name, mesh)
+                        obj_collection.objects.link(col_obj)
+                        bpy.context.view_layer.objects.active = col_obj
 
-                    bpy.ops.object.select_all(action="DESELECT")
+                        # Data for CH
+                        vco = []
 
-                    o.select_set(True)
-                    og_name = str(o.name)
+                        if o.type == "EMPTY" and o.instance_collection is not None:
+                            s_o = o.instance_collection.objects[:]
+                            for obj in s_o:
+                                vco.extend([o.matrix_world @ (obj.matrix_world @ v.co) for v in obj.data.vertices])
+                        else:
+                            vco = [o.matrix_world @ v.co for v in o.data.vertices]
 
-                    bpy.ops.object.duplicate()
-                    o.select_set(False)
+                        mesh.from_pydata(vco, [], [])
 
-                    col_obj = [ob for ob in context.scene.objects if ob.type == "MESH" and ob not in all_obj][-1]
-                    col_obj.select_set(True)
+                        # Use CH Op
+                        bpy.ops.object.mode_set(mode='EDIT')
+                        bpy.ops.mesh.select_all(action="SELECT")
+                        bpy.ops.mesh.convex_hull(delete_unused=True, use_existing_faces=False, make_holes=False,
+                                                 join_triangles=True, face_threshold=0.10472, shape_threshold=0.698132,
+                                                 uvs=False, vcols=False, seam=False, sharp=False, materials=False)
+                        bpy.ops.object.mode_set(mode='OBJECT')
 
-                    col_obj.color = (0.20, 0.35, 1, 0.9)
-                    if og_obj:
-                        col_obj.name = og_name + '_col'
-                    else:
-                        col_obj.name = col_obj.name + '_col'
+                        new_sel.append(col_obj)
+                        self.set_shading(col_obj)
+                        col_obj.select_set(False)
 
+                else:
+                    # Data for CH
+                    vco = []
+                    for o in sel_obj:
+                        if o.type == "EMPTY" and o.instance_collection is not None:
+                            s_o = o.instance_collection.objects[:]
+                            for obj in s_o:
+                                vco.extend([o.matrix_world @ (obj.matrix_world @ v.co) for v in obj.data.vertices])
+                        else:
+                            vco.extend([o.matrix_world @ v.co for v in o.data.vertices])
+
+                    # New Mesh
+                    mesh = bpy.data.meshes.new(name=og_name + '_col')
+                    col_obj = bpy.data.objects.new(mesh.name, mesh)
+                    obj_collection.objects.link(col_obj)
+                    bpy.context.view_layer.objects.active = col_obj
+
+                    mesh.from_pydata(vco, [], [])
+
+                    # Use CH Op
                     bpy.ops.object.mode_set(mode='EDIT')
                     bpy.ops.mesh.select_all(action="SELECT")
-                    bpy.ops.mesh.convex_hull(delete_unused=True, use_existing_faces=True, make_holes=False,
+                    bpy.ops.mesh.convex_hull(delete_unused=True, use_existing_faces=False, make_holes=False,
                                              join_triangles=True, face_threshold=0.10472, shape_threshold=0.698132,
                                              uvs=False, vcols=False, seam=False, sharp=False, materials=False)
-
                     bpy.ops.object.mode_set(mode='OBJECT')
+
                     new_sel.append(col_obj)
+                    self.set_shading(col_obj)
+                    col_obj.select_set(False)
+
 
             elif self.col_type == "BOX":
-                for o in sel_obj:
-                    vco = [o.matrix_world @ v.co for v in o.data.vertices]
 
+                if self.col_mode:
+
+                    for o in sel_obj:
+                        bbx, bby, bbz = [], [], []
+
+                        if o.type == "EMPTY" and o.instance_collection is not None:
+                            cbbox = []
+                            s_o = o.instance_collection.objects[:]
+                            for obj in s_o:
+                                vecs = [Vector(vec) for vec in obj.bound_box]
+                                cbbox.extend([o.matrix_world @ (obj.matrix_world @ v) for v in vecs])
+                            for co in cbbox:
+                                bbx.append(co[0])
+                                bby.append(co[1])
+                                bbz.append(co[2])
+                        else:
+                            vecs = [Vector(vec) for vec in o.bound_box]
+                            vco = [o.matrix_world @ v for v in vecs]
+                            for co in vco:
+                                bbx.append(co[0])
+                                bby.append(co[1])
+                                bbz.append(co[2])
+
+                        avg_pos, sideX, sideY, sideZ = self.bbox_calc(bbx, bby, bbz)
+
+                        bpy.ops.mesh.primitive_box_add(width=sideX / 2, depth=sideY / 2, height=sideZ / 2,
+                                                       align='WORLD', location=avg_pos, rotation=(0, 0, 0))
+
+                        new_obj = bpy.context.view_layer.objects.active
+                        new_obj.name = o.name + '_col'
+                        new_sel.append(new_obj)
+                        self.set_shading(new_obj)
+
+                else:
                     bbx, bby, bbz = [], [], []
-                    for co in vco:
-                        bbx.append(co[0])
-                        bby.append(co[1])
-                        bbz.append(co[2])
+                    for o in sel_obj:
 
-                    bbx.sort()
-                    bby.sort()
-                    bbz.sort()
+                        if o.type == "EMPTY" and o.instance_collection is not None:
+                            cbbox = []
+                            s_o = o.instance_collection.objects[:]
+                            for obj in s_o:
+                                vecs = [Vector(vec) for vec in obj.bound_box]
+                                cbbox.extend([o.matrix_world @ (obj.matrix_world @ v) for v in vecs])
+                            for co in cbbox:
+                                bbx.append(co[0])
+                                bby.append(co[1])
+                                bbz.append(co[2])
+                        else:
+                            vecs = [Vector(vec) for vec in o.bound_box]
+                            vco = [o.matrix_world @ v for v in vecs]
+                            for co in vco:
+                                bbx.append(co[0])
+                                bby.append(co[1])
+                                bbz.append(co[2])
 
-                    sideX = bbx[-1] - bbx[0]
-                    sideY = bby[-1] - bby[0]
-                    sideZ = bbz[-1] - bbz[0]
-
-                    minmax = (Vector((bbx[0], bby[0], bbz[0])), Vector((bbx[-1], bby[-1], bbz[-1])))
-                    avg_pos = average_vector(minmax)
-
+                    avg_pos, sideX, sideY, sideZ = self.bbox_calc(bbx, bby, bbz)
 
                     bpy.ops.mesh.primitive_box_add(width=sideX / 2, depth=sideY / 2, height=sideZ / 2,
                                                    align='WORLD', location=avg_pos, rotation=(0, 0, 0))
 
-                    col_obj = [o for o in context.scene.objects if o.type == "MESH"][-1]
-                    if og_obj:
-                        col_obj.name = og_name + '_col'
-                    else:
-                        col_obj.name = col_obj.name + '_col'
-
-                    col_obj = bpy.context.view_layer.objects.active
-                    col_obj.color = (0.20, 0.35, 1, 0.9)
-                    new_sel.append(col_obj)
-
+                    new_obj = bpy.context.view_layer.objects.active
+                    new_obj.name = sel_obj[0].name + '_col'
+                    new_sel.append(new_obj)
+                    self.set_shading(new_obj)
 
             for i in new_sel:
                 i.select_set(True)
+
+        if self.col_vp:
+            context.space_data.shading.color_type = 'OBJECT'
 
         return {"FINISHED"}
 

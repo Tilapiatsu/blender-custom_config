@@ -71,13 +71,19 @@ class VIEW3D_OT_KE_TT(bpy.types.Operator):
                 bpy.ops.view3d.ke_vptransform('INVOKE_DEFAULT', transform='ROTATE')
 
         elif self.mode == "SCALE":
+
             if tt_mode[0]:
                 if tt_handles:
                     bpy.ops.wm.tool_set_by_id(name="builtin.scale")
                 else:
                     bpy.ops.transform.resize('INVOKE_DEFAULT')
+
             elif tt_mode[1]:
-                bpy.ops.view3d.ke_mouse_axis_move('INVOKE_DEFAULT', mode='SCL')
+                if not context.scene.kekit.mam_scl:
+                    bpy.ops.transform.resize('INVOKE_DEFAULT')
+                else:
+                    bpy.ops.view3d.ke_mouse_axis_move('INVOKE_DEFAULT', mode='SCL')
+
             elif tt_mode[2]:
                 bpy.ops.view3d.ke_vptransform('INVOKE_DEFAULT', transform='RESIZE')
 

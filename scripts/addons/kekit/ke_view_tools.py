@@ -2,7 +2,7 @@ bl_info = {
 	"name": "kekit_view_tools",
 	"author": "Kjell Emanuelsson",
 	"category": "Modeling",
-	"version": (1, 0, 2),
+	"version": (1, 0, 3),
 	"blender": (2, 80, 0),
 }
 import bpy
@@ -123,7 +123,7 @@ class VIEW3D_OT_ke_view_align(Operator):
 		rv3d.view_rotation = unrotated
 		rv3d.view_location = avg_pos
 
-		bmesh.update_edit_mesh(o.data, True)
+		bmesh.update_edit_mesh(o.data)
 
 		return {'FINISHED'}
 
@@ -487,6 +487,10 @@ class VIEW3D_OT_ke_vp_step_rotate(Operator):
 		# extract user direction
 		val = int(self.mode[-3:])
 		if self.mode[0] == "N":
+			val *= -1
+
+		# No idea what changed
+		if bpy.app.version > (2, 92, 0):
 			val *= -1
 
 		# get viewport rel to world axis and rotate

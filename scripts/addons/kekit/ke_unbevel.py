@@ -62,7 +62,7 @@ class MESH_OT_ke_unbevel(Operator):
                 bpy.ops.mesh.merge(type='LAST', uvs=True)
 
             bm.normal_update()
-            bmesh.update_edit_mesh(od, True)
+            bmesh.update_edit_mesh(od)
             bpy.ops.mesh.select_mode(type='EDGE')
 
         else:
