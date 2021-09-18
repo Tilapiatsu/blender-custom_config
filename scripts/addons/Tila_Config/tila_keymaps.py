@@ -678,6 +678,8 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		self.kmi_set_replace('mesh.flip_normals', 'F', 'PRESS', disable_double=True)
 		self.kmi_set_replace('mesh.subdivide', 'D', 'PRESS', disable_double=True)
 		self.kmi_set_replace('transform.shrink_fatten', 'E', 'PRESS', alt=True, shift=True, disable_double=True)
+		self.kmi_set_replace('transform.edge_bevelweight', 'E', 'PRESS', ctrl=True, shift=True, disable_double=True)
+		
 		# self.kmi_set_replace('transform.vert_slide', 'S', 'PRESS', ctrl=True, alt=True, properties=[('correct_uv', True)])
 
 		self.kmi_set_replace('wm.tool_set_by_id', 'F', 'PRESS', shift=True, properties=[('name', 'mesh_tool.poly_quilt')], disable_double=True)
