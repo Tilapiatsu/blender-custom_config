@@ -101,7 +101,7 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 			# self.kmi_set_replace("popup.hp_properties", 'Q', 'PRESS', disable_double=True)
 			self.kmi_set_replace('popup.hp_materials', 'M', 'PRESS', disable_double=True)
 			self.kmi_set_replace('popup.hp_render', 'EQUAL', 'PRESS', disable_double=True)
-			self.kmi_set_replace('wm.call_menu_pie', 'D', 'PRESS', alt=True, shift=True, properties=[('name', 'HP_MT_pie_rotate90')])
+			# self.kmi_set_replace('wm.call_menu_pie', 'D', 'PRESS', alt=True, shift=True, properties=[('name', 'HP_MT_pie_rotate90')])
    
 		self.kmi_set_replace('wm.call_menu_pie', 'A', 'PRESS', ctrl=True, alt=True, shift=True, properties=[('name', 'HP_MT_pie_add')])
 		self.kmi_set_replace('wm.call_menu_pie', 'TAB', 'PRESS', ctrl=True, shift=True, properties=[('name', 'HP_MT_pie_areas')])
@@ -536,7 +536,7 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		self.kmi_init(name='3D View Generic', space_type='VIEW_3D', region_type='WINDOW')
 
 		# MACHINE3tools
-		self.kmi_set_replace('wm.call_menu_pie', 'Z', "PRESS", properties=[('name', 'MACHIN3_MT_shading_pie')], disable_double=True)
+		# self.kmi_set_replace('wm.call_menu_pie', 'Z', "PRESS", properties=[('name', 'MACHIN3_MT_shading_pie')], disable_double=True)
 
 		###### 3d Cursor
 		self.kmi_set_replace('view3d.cursor3d', self.k_cursor, 'CLICK', ctrl=True, alt=True, shift=True, properties=[('use_depth', True), ('orientation','GEOM')], disable_double=True)
@@ -632,6 +632,9 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		self.kmi_set_replace('uv.toolkit_align_uv', 'LEFT_ARROW', 'PRESS', ctrl=True, alt=False, shift=False, disable_double=True, properties=[('align_uv', 'MIN_U')])
 		self.kmi_set_replace('uv.toolkit_align_uv', 'RIGHT_ARROW', 'PRESS', ctrl=True, alt=False, shift=False, disable_double=True, properties=[('align_uv', 'MAX_U')])
 
+		# Machin3Tools
+		self.kmi_set_replace('wm.call_menu_pie', 'D', "PRESS", alt=True, shift=True,  properties=[('name', 'MACHIN3_MT_uv_align_pie')], disable_double=True)
+
 		###### Mesh
 		self.kmi_init(name='Mesh', space_type='EMPTY', region_type='WINDOW')
 		self.global_keys()
@@ -666,7 +669,7 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		self.kmi_set_replace('view3d.smart_bevel', 'B', 'PRESS', disable_double=True)
 		self.kmi_set_replace('mesh.hp_extrude', 'E', 'PRESS', disable_double=True)
 		self.kmi_set_replace('mesh.knife_tool', 'C', 'PRESS', disable_double=True)
-		self.kmi_set_replace('wm.tool_set_by_id', 'C', 'PRESS', alt=True, shift=True, properties=[('name', 'builtin.loop_cut')])
+		# self.kmi_set_replace('wm.tool_set_by_id', 'C', 'PRESS', alt=True, shift=True, properties=[('name', 'builtin.loop_cut')])
 		self.kmi_set_replace('mesh.bridge_edge_loops', 'B', 'PRESS', shift=True)
 		self.kmi_set_replace('mesh.edge_collapse', 'DEL', 'PRESS', shift=True)
 		self.kmi_set_replace('mesh.fill', 'P', 'PRESS', shift=True, properties=[('use_beauty', True)])
@@ -716,12 +719,14 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		self.kmi_set_replace('view3d.ke_copyplus', 'C', "PRESS", ctrl=True, properties=[('mode', 'COPY')], disable_double=True)
 		self.kmi_set_replace('view3d.ke_copyplus', 'X', "PRESS", ctrl=True, properties=[('mode', 'CUT')], disable_double=True)
 		self.kmi_set_replace('view3d.ke_copyplus', 'V', "PRESS", ctrl=True, properties=[('mode', 'PASTE')], disable_double=True)
-		
+
+		self.kmi_set_replace('mesh.ke_direct_loop_cut', 'C', "PRESS", alt=True, shift=True, properties=[('mode', 'SLIDE')], disable_double=True)
 
 		# MACHINE3tools
 		kmi = self.kmi_set_replace('machin3.clean_up', 'NUMPAD_MINUS', "PRESS", ctrl=True, alt=True, shift=True)
 		if kmi:
 			kmi.active = True
+		self.kmi_set_replace('wm.call_menu_pie', 'D', "PRESS", alt=True, shift=True,  properties=[('name', 'MACHIN3_MT_align_pie')], disable_double=True)
 
 		# F2
 		# self.kmi_set_replace('mesh.f2', 'P', 'PRESS', disable_double=True)
