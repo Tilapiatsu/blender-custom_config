@@ -75,6 +75,7 @@ bpy.context.preferences.inputs.view_zoom_axis = "HORIZONTAL"
 bpy.context.preferences.inputs.ndof_view_navigate_method = "FREE"
 bpy.context.preferences.inputs.view_rotate_method = "TRACKBALL"
 bpy.context.preferences.inputs.view_rotate_sensitivity_trackball = 2
+bpy.context.preferences.inputs.drag_threshold_tablet = 1
 bpy.context.preferences.inputs.ndof_view_rotate_method = "TRACKBALL"
 bpy.context.preferences.inputs.use_auto_perspective = True
 bpy.context.preferences.inputs.use_mouse_depth_navigate = True
