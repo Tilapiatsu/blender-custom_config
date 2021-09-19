@@ -50,7 +50,10 @@ def initialize_compositing_scene(context, bake_render_settings):
     context.scene.render.resolution_y = bake_render_settings['resolution_y']
     settings_manager.set_settings(context, bake_render_settings)
 
-    bpy.ops.object.camera_add()
+    print("before adding a cameera, mode is " + str(context.mode))
+    context_override = {'scene': bpy.data.scenes['comp_scene']}
+    bpy.ops.object.camera_add(context_override)
+
     # Assign camera as render camera
     for object in context.scene.objects:
         if object.type == 'CAMERA':
@@ -66,7 +69,7 @@ def initialize_compositing_scene(context, bake_render_settings):
 def create_compositing_tree(context, object, image, bake_pass, setup_type_list, background_image = None, bake_collection = None):
     '''
     Create a compositing tree and process image
-    setup_types = 'CHANNEL_TRANSFER', 'DENOISE', 'MIX', 'ANTI_ALIASING'
+    setup_types = 'CHANNEL_TRANSFER', 'DENOISE', 'MIX', 'ANTI_ALIASING', 'NORMALIZE', 'POINTINESS'
     '''    
     original_scene = context.window.scene
     image_name = bake_manager.get_bake_image_name(context, object, bake_pass)
@@ -96,6 +99,9 @@ def create_compositing_tree(context, object, image, bake_pass, setup_type_list, 
                 latest_node = setup_mix(context, latest_node, background_image, bake_pass)
                 file_name = background_image.name
 
+            if setup_type == 'NORMALIZE':
+                latest_node = setup_normalize(context, latest_node, bake_pass)
+
         # Output compositior node
         compositor_node = setup_node(context, latest_node, "CompositorNodeComposite")
 
@@ -112,10 +118,12 @@ def create_compositing_tree(context, object, image, bake_pass, setup_type_list, 
         render_and_save_image(context, render_settings, image_folder_name, image_name)
 
 
-    # Remove temp comp scene
-    context.window.scene = original_scene
-    #scene_manager.delete_scene(context, comp_scene.name)
-
+    # Restore original scene - use scene name in order to not crash 
+    # when the bake takes a long time (not joining high poly objects)
+    try:
+        context.window.scene = bpy.data.scenes[original_scene.name]
+    except:
+        pass
     
 def render_and_save_image(context, render_settings, image_folder_name, file_name):
 
@@ -136,8 +144,11 @@ def render_and_save_image(context, render_settings, image_folder_name, file_name
 
     # Convert path from backslash to frontslash 
     full_save_path = full_save_path.replace("\\", "/")
-    bpy.data.images[file_name].filepath = full_save_path
-
+    try:
+        bpy.data.images[file_name].filepath = full_save_path
+    except:
+        pass
+    
     # Save image - important to have after convert path because of linux
     bpy.data.images["Render Result"].save_render(filepath = full_save_path)
 
@@ -149,7 +160,7 @@ def render_and_save_image(context, render_settings, image_folder_name, file_name
 def setup_node(context, input_node, new_node_bl_idname):
     node_tree = context.scene.node_tree
     node_1 = node_tree.nodes.new(new_node_bl_idname)    
-    node_tree.links.new(input_node.outputs["Image"], node_1.inputs["Image"])
+    node_tree.links.new(input_node.outputs[0], node_1.inputs["Image"])
     return node_1
 
 
@@ -169,8 +180,25 @@ def setup_anti_aliasing(context, input_node, bake_pass = None):
     node_1.contrast_limit = 0.25
     node_1.corner_rounding = 0.25
 
+    return node_1
 
+def setup_normalize(context, input_node, bake_pass = None):
+    
 
+    node_tree = context.scene.node_tree
+    node_1 = node_tree.nodes.new('CompositorNodeNormalize')
+    
+    node_tree.links.new(input_node.outputs["Image"], node_1.inputs["Value"])
+    
+    return node_1
+
+def setup_contrast_for_pointiness(context, input_node, bake_pass = None):
+
+    node_tree = context.scene.node_tree
+    node_1 = node_tree.nodes.new('CompositorNodeBrightContrast')
+    node_1.inputs['Contrast'].default_value = 90
+    node_tree.links.new(input_node.outputs["Image"], node_1.inputs["Image"])
+    
     return node_1
 
 def setup_mix(context, input_node, mix_image, bake_pass = None):
@@ -217,35 +245,48 @@ def setup_channel_transfer(context, bake_pass, bake_collection):
         R_source_image = image_manager.get_image_by_bake_type(bake_pass.R_source, bake_collection)
         G_source_image = image_manager.get_image_by_bake_type(bake_pass.G_source, bake_collection)
         B_source_image = image_manager.get_image_by_bake_type(bake_pass.B_source, bake_collection)
+        A_source_image = image_manager.get_image_by_bake_type(bake_pass.A_source, bake_collection)
 
     except:
         print("Could not find source image during setup_channel_transfer")
         return None
 
+
     # Connect R
-    R_image_node = node_tree.nodes.new("CompositorNodeImage")
-    R_image_node.image = R_source_image
-    R_sep_RGBA_node = node_tree.nodes.new("CompositorNodeSepRGBA")
-    node_tree.links.new(R_image_node.outputs["Image"], R_sep_RGBA_node.inputs["Image"])
-    target_channel = bake_pass.transfer_target_channel_R
-    node_tree.links.new(R_sep_RGBA_node.outputs["R"], combine_RGBA_node.inputs[target_channel])
+    if not bake_pass.R_source == "" and not bake_pass.transfer_source_channelR == 'NONE':
+        R_image_node = node_tree.nodes.new("CompositorNodeImage")
+        R_image_node.image = R_source_image
+        R_sep_RGBA_node = node_tree.nodes.new("CompositorNodeSepRGBA")
+        node_tree.links.new(R_image_node.outputs["Image"], R_sep_RGBA_node.inputs["Image"])
+        source_channel = bake_pass.transfer_source_channelR
+        node_tree.links.new(R_sep_RGBA_node.outputs[source_channel], combine_RGBA_node.inputs["R"])
 
     # Connect G
-    G_image_node = node_tree.nodes.new("CompositorNodeImage")
-    G_image_node.image = G_source_image
-    G_sep_RGBA_node = node_tree.nodes.new("CompositorNodeSepRGBA")
-    node_tree.links.new(G_image_node.outputs["Image"], G_sep_RGBA_node.inputs["Image"])
-    target_channel = bake_pass.transfer_target_channel_G
-    node_tree.links.new(G_sep_RGBA_node.outputs["G"], combine_RGBA_node.inputs[target_channel])
-
+    if not bake_pass.G_source == "" and not bake_pass.transfer_source_channelG == 'NONE':
+        G_image_node = node_tree.nodes.new("CompositorNodeImage")
+        G_image_node.image = G_source_image
+        G_sep_RGBA_node = node_tree.nodes.new("CompositorNodeSepRGBA")
+        node_tree.links.new(G_image_node.outputs["Image"], G_sep_RGBA_node.inputs["Image"])
+        source_channel = bake_pass.transfer_source_channelG
+        node_tree.links.new(G_sep_RGBA_node.outputs[source_channel], combine_RGBA_node.inputs["G"])
 
     # Connect B
-    B_image_node = node_tree.nodes.new("CompositorNodeImage")
-    B_image_node.image = B_source_image
-    B_sep_RGBA_node = node_tree.nodes.new("CompositorNodeSepRGBA")
-    node_tree.links.new(B_image_node.outputs["Image"], B_sep_RGBA_node.inputs["Image"])
-    target_channel = bake_pass.transfer_target_channel_B
-    node_tree.links.new(B_sep_RGBA_node.outputs["B"], combine_RGBA_node.inputs[target_channel])
+    if not bake_pass.B_source == "" and not bake_pass.transfer_source_channelB == 'NONE':
+        B_image_node = node_tree.nodes.new("CompositorNodeImage")
+        B_image_node.image = B_source_image
+        B_sep_RGBA_node = node_tree.nodes.new("CompositorNodeSepRGBA")
+        node_tree.links.new(B_image_node.outputs["Image"], B_sep_RGBA_node.inputs["Image"])
+        source_channel = bake_pass.transfer_source_channelB
+        node_tree.links.new(B_sep_RGBA_node.outputs[source_channel], combine_RGBA_node.inputs["B"])
+
+    # Connect Alpha
+    if not bake_pass.A_source == "" and not bake_pass.transfer_source_channelA == 'NONE':
+        A_image_node = node_tree.nodes.new("CompositorNodeImage")
+        A_image_node.image = A_source_image
+        A_sep_RGBA_node = node_tree.nodes.new("CompositorNodeSepRGBA")
+        node_tree.links.new(A_image_node.outputs["Image"], A_sep_RGBA_node.inputs["Image"])
+        source_channel = bake_pass.transfer_source_channelA
+        node_tree.links.new(A_sep_RGBA_node.outputs[source_channel], combine_RGBA_node.inputs["A"])
 
 
     # Return latest node

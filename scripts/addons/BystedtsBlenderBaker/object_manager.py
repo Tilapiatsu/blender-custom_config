@@ -17,6 +17,39 @@ def link_objects_to_active_scene(context, object_list):
         except:
             print("Could not move " + object.name + "to temporary scene collection. Perhaps it's alredy added")
 
+def set_up_modifers_for_skew_normals(context, source_object, target_object, bevel_method, angle = 30):
+    '''
+    Sets up modifiers in order to fix skewed normals during baking
+    source_object is used to transfer normals
+    '''
+    
+    angle = numpy.radians(angle)
+    context_override = context_override = {'active_object': target_object, 'selected_objects': [target_object], 'object':target_object }
+
+    # Bevel
+    bpy.ops.object.modifier_add(context_override, type='BEVEL')
+
+    mod = target_object.modifiers[len(target_object.modifiers)-1]
+    mod.segments = 2
+    mod.limit_method = bevel_method
+    mod.angle_limit = angle
+    mod.profile = 1
+
+
+    # Normals transfer
+    bpy.ops.object.modifier_add(context_override, type='DATA_TRANSFER')
+    mod = target_object.modifiers[len(target_object.modifiers)-1]
+    mod.object = source_object
+    mod.use_object_transform = False
+
+    mod.use_loop_data = True
+    mod.data_types_loops = {'CUSTOM_NORMAL'}
+
+    # Auto smooth
+    target_object.data.use_auto_smooth = True
+
+
+
 def delete_objects(context, object_list):
     '''
     Deletes objects in list and handles selection
@@ -480,14 +513,16 @@ def explode_locations_of_objects_and_highres_objects(context, objects, bake_loca
     all_high_res_objects = []
 
     rows = sqrt(len(dupli_objects))
-    rows = int(rows)
     object_count = len(dupli_objects)
+    rows = rows + ((object_count - (rows * rows)) * 0.5) 
+    print("Rows = " + str(rows))
+    rows = int(numpy.ceil(rows))
 
     # Oversized placement grid because it's simpler to wrap my brain around
     # Using object_count + 1 to leave the 0,0,0 placement empty. That placement
     # is reserved for objects with mirror modifiers with mirror_object that uses
     # all axes in the mirror modifier
-    placement_grid = [[[False for x in range(object_count + 1)] for y in range(object_count + 1)] for z in range(object_count + 1)]
+    placement_grid = [[[False for x in range(rows + 1)] for y in range(rows + 1)] for z in range(rows + 1)]
 
     if bake_locations == 'EXPLODED':
         # Explode objects

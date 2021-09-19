@@ -99,13 +99,37 @@ def get_bake_render_settings(context, bake_settings_scene = None, bake_pass = No
 
     render_settings['file_extension'] = get_file_extention(image_settings.file_format)
 
+    # Channel transfer
+    # Because of unexpected value output with other image formats, 
+    # use open EXR, since other image formats RGB values can be affected
+    # by ALPHA values
+    if bake_pass.bake_type == "CHANNEL_TRANSFER":
+        render_settings['bpy.context.scene.render.image_settings.file_format'] = 'OPEN_EXR'
+        # Set RGB or RGBA based on UI settings
+        if bake_pass.A_source == "" or bake_pass.transfer_source_channelA == 'NONE':
+            render_settings['bpy.context.scene.render.image_settings.color_mode'] = 'RGB'
+        else:
+            render_settings['bpy.context.scene.render.image_settings.color_mode'] = 'RGBA'
+        render_settings['file_extension'] = "exr"
+        render_settings['context.scene.render.image_settings.color_depth'] = '16'
+
 
     # Normal map type
     if bake_pass.bake_type == "NORMAL":
-        if bake_pass.normal_map_type == 'OPEN_GL':
-            render_settings['context.scene.render.bake.normal_g'] = 'POS_Y'
-        else:
-            render_settings['context.scene.render.bake.normal_g'] = 'NEG_Y'
+        
+        render_settings['context.scene.render.bake.normal_space'] = bake_pass.normal_space
+        print("\n render_settings['context.scene.render.bake.normal_space'] == " + render_settings['context.scene.render.bake.normal_space'])
+        if bake_pass.normal_space == 'TANGENT':
+            if bake_pass.normal_map_type == 'OPEN_GL':
+                render_settings['context.scene.render.bake.normal_g'] = 'POS_Y'
+            else:
+                render_settings['context.scene.render.bake.normal_g'] = 'NEG_Y'
+        if bake_pass.normal_space == 'OBJECT':
+            render_settings['context.scene.render.bake.normal_r'] = bake_pass.normal_r
+            render_settings['context.scene.render.bake.normal_g'] = bake_pass.normal_g
+            render_settings['context.scene.render.bake.normal_b'] = bake_pass.normal_b
+
+
 
     # Bake workflow
     render_settings['bake_workflow'] = props.bake_workflow
@@ -133,8 +157,6 @@ def get_bake_render_settings(context, bake_settings_scene = None, bake_pass = No
 
     elif bake_pass.bake_type == "NORMAL":
         bake_type_settings = {
-            #'context.scene.cycles.bake_type': 'NORMAL',
-            'context.scene.render.bake.normal_space': 'TANGENT',
             'color_space': 'Non-Color',
             'bit_depth': '16'  
         }  

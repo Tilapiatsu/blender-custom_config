@@ -2,6 +2,14 @@ import bpy
 from . import custom_properties
 
 
+def allow_cleanup():
+    
+    cleanup_flags = {}
+    cleanup_flags['objects'] = True
+    cleanup_flags['scenes'] = True
+    
+    return cleanup_flags
+
 def print_list(list_to_print, list_name = '', use_info = False):
     for each in list_to_print:
         print(each)
