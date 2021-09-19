@@ -736,6 +736,10 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		# MAXVIZ
 		self.kmi_set_replace('mesh.quick_pivot', 'S', 'PRESS', alt=True, disable_double=True)
 
+		# EdgeFlow
+		self.kmi_set_replace('mesh.set_edge_flow', 'F', 'PRESS', alt=True, properties=[('tension', 180), ('iterations', 1), ('min_angle', 120)], disable_double=True)
+
+
 		###### Object Mode
 		self.kmi_init(name='Object Mode', space_type='EMPTY', region_type='WINDOW')
 		self.global_keys()
