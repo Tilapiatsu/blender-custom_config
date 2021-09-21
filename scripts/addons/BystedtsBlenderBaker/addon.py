@@ -295,7 +295,8 @@ class RENDER_OT_bake_with_bake_passes(bpy.types.Operator):
 
         debug.print_image_node_image_names_in_objects_materials(context, self.objects)
         
-        #scene_manager.remove_temporary_scenes_after_bake(context)
+        if debug.allow_cleanup()['scenes']:
+            scene_manager.remove_temporary_scenes_after_bake(context)
 
         return {'FINISHED'}
 

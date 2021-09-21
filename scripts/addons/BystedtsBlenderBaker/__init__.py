@@ -16,7 +16,7 @@ bl_info = {
     "author" : "Daniel Bystedt",    
     "description" : "Simplify Blender baking workflow",
     "blender" : (2, 93, 0),
-    "version" : (1, 0, 1),
+    "version" : (1, 2, 0),
     "location" : "View3D > Sidebar",
     "warning" : "",
     "support": "COMMUNITY",
@@ -56,6 +56,8 @@ modules = (
     '.mesh_manager',
     '.bound_box_manager',
     '.string_manager',
+    '.preset_manager',
+    '.material_manager',
     
 )
 
@@ -93,6 +95,8 @@ from . import mesh_manager
 from . import scene_manager
 from . import bound_box_manager
 from . import string_manager 
+from . import preset_manager
+from . import material_manager
 
 
 ''''''
@@ -106,8 +110,8 @@ def register():
     collection_manager.register()
     UI.register()
     material_preview_manager.register()
-
-    pass
+    preset_manager.register()
+    scene_manager.register()
 
     # Sybren example
     # https://docs.blender.org/api/master/bpy.props.html#collection-example
@@ -129,6 +133,6 @@ def unregister():
     high_res_objects_manager.unregister()
     addon.unregister()
     collection_manager.unregister()
-
-    pass
+    preset_manager.unregister()
+    scene_manager.unregister()
     

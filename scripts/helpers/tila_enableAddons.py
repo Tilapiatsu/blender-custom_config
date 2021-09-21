@@ -28,7 +28,7 @@ modules =   (
 			'slcad_transform',
 			'EasyHDRI',
 			'Lodify',
-			'bakeToVertexColor',
+			'BystedtsBlenderBaker',
 			'SSGI',
 			# 'MeasureIt-ARCH',
 			'RetopoFlow',

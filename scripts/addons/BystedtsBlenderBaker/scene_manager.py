@@ -72,6 +72,28 @@ def open_scene(context, scene_name):
     except:
         pass
 
-classes = (
+class SCENE_OT_delete_temporary_bake_scenes(bpy.types.Operator):
+    '''
+    Delete temporary bake scenes
+    '''
+    bl_idname = "scene.delete_temporary_bake_scenes"
+    bl_label = "Delete temporary bake scenes"
+    bl_description = "Delete temporary bake scenes that are created under the hood during baking"
+    
 
+    def execute(self, context):   
+        remove_temporary_scenes_after_bake(context)
+        return {'FINISHED'}  
+
+classes = (
+    SCENE_OT_delete_temporary_bake_scenes,
 )
+
+def register():
+    for clas in classes:    
+        print("\n #### registered this cool class" + repr(clas))
+        bpy.utils.register_class(clas)
+
+def unregister():
+    for clas in classes:
+        bpy.utils.unregister_class(clas)

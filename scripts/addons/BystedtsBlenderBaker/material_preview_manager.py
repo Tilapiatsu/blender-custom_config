@@ -127,6 +127,7 @@ def add_images_to_material(material, material_match_string):
             image_node.location = [-1400, 250]
         elif image.get('bake_type') == 'NORMAL':
             material.node_tree.links.new(image_node.outputs["Color"], normal_node.inputs["Color"])
+            normal_node.space = image.get('normal_space')
             image_node.location = [-1000, -700]
         elif image.get('bake_type') == 'DIFFUSE':
             material.node_tree.links.new(image_node.outputs["Color"], ao_mix_node.inputs["Color1"])
@@ -298,7 +299,10 @@ def preview_bake_texture(context, bake_pass):
         
         if not image.get('bake_type') == bake_pass_type:
             continue
-        
+
+        if image.get('bake_type') == "AOV" and not image.get('aov_name') == bake_pass.aov_name:
+            continue
+
         image_found = True
 
         try:

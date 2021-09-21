@@ -1,4 +1,27 @@
 =================================================
+Bystedts Blender Baker 1.2.0
+2021-09-18
+
+- Added functionality for saving and loading presets including bake passes.
+- Added object space to normal bake pass 
+- Added fix for skewed normals when baking high res to low res
+- Force open exr image output format in order to get correct values
+- Implemented alpha chanel in channel transfer bake pass
+- Added option for optimizing baking time by joining high poly objects (on per default)
+- Added functionality to remove temporary bake scenes due to bug in last release
+
+
+Added bake passes:
+- AOV
+- Pointiness
+- Material ID (by using material name)
+
+Bug fixes
+- Cleaning up temporary bake scenes was turned off by mistake in last release. Now fixed
+
+
+--------------------------------------------------
+=================================================
 Bystedts Blender Baker 1.0.1
 2021-09-03
 --------------------------------------------------

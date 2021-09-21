@@ -31,7 +31,20 @@ class RENDER_PT_bbb_settings(bpy.types.Panel):
 
         properties = scene.BBB_props
 
+        #=================
+        # Save and Load presets 
+
+        box = layout.box()
+        col = box.column()
+        col.label(text = "Save and Load presets")
+        grid = col.grid_flow(row_major = True, columns = 2,)
+
+        grid.operator('bbb.read_preset_file', icon = 'FILE_FOLDER')
+
+        grid.operator('bbb.write_preset_file', icon = 'FILE_NEW')
+
         #BOX==================
+
         col = layout.column()
         grid = col.grid_flow(row_major = True, columns = 2,)
 
@@ -88,7 +101,7 @@ class RENDER_PT_bbb_settings(bpy.types.Panel):
         # Bake settings
 
         box = layout.box()
-        col = box.column()
+        col = box.column(align = True)
 
         grid = col.grid_flow(row_major = True, columns = 2,)
 
@@ -127,8 +140,22 @@ class RENDER_PT_bbb_settings(bpy.types.Panel):
         grid.label(text='Margin multiplier (' + str(margin_value) + " px)")
         grid.prop(properties, "margin_multiplier", text = "")
 
+        col.separator(factor = 1.0)
+        grid = col.grid_flow(row_major = True, columns = 2,)
+
+        if scene.BBB_props.bake_workflow == 'HIGHRES_TO_LOWRES':
+            grid.label(text='Fix skewed normals method') 
+            grid.prop(properties, "skew_normals_method", text = "")
+            
+            if scene.BBB_props.skew_normals_method == "ANGLE":
+                grid.label(text='Skewed normal angle') 
+                grid.prop(properties, "skew_normals_angle", text = "")
+
+            grid.label(text='Optimize by joining high poly objects') 
+            grid.prop(properties, "allow_high_poly_objects_to_join", text = "")            
 
 
+        
 class RENDER_PT_bbb_image_settings(bpy.types.Panel):
     
     bl_idname = "BGM_PT_image_format"
@@ -294,6 +321,7 @@ class OBJECT_PT_bake_collections(bpy.types.Panel):
 
         props = col.operator('object.reset_location_of_lowres_and_highres', icon = 'ERROR')       
 
+        props = col.operator('scene.delete_temporary_bake_scenes', icon = 'ERROR')       
 
 
 
@@ -373,65 +401,6 @@ class OBJECT_PT_high_res_objects(bpy.types.Panel):
         grid.operator('object.select_high_res_objects', icon='RESTRICT_SELECT_OFF')
         grid.operator('object.clear_high_res_objects_from_selected', text = "Remove all high poly from selected", icon = 'CANCEL')
 
-'''
-class OBJECT_PT_bbb_bake_objects(bpy.types.Panel):
-    bl_idname = "BGM_PT_bake_objects"
-    bl_label = "A bunch of temp utils"
-    bl_space_type = 'VIEW_3D'
-    bl_region_type = 'UI'    
-    bl_category = 'B B B'
-
-    def draw(self, context):
-        layout = self.layout
-        scene = context.scene
-        title_size = 0.6
-
-        col = layout.column()
-        
-        guided_ui_message = handle_guided_UI(context)
-        if guided_ui_message['step'] < 3:
-            col.label(text = guided_ui_message['message'])
-            return 
-
-        #BOX==================
-        box = layout.box()
-        col = box.column()
-
-        #col.prop(scene.BBB_props, "number_of_stored_high_res_objects", text="")
-        
-        try:
-            number_of_stored_high_res_objects = len(bpy.data.window_managers[0]['stored_high_res_objects'])
-        except:
-            number_of_stored_high_res_objects = 0
-
-        #number_of_stored_high_res_objects = scene.BBB_props.number_of_stored_high_res_objects
-        col.label(text='High res objects stored in memory: ' + str(number_of_stored_high_res_objects))
-        #col.operator('object.store_high_res_objects', icon='OBJECT_DATA')
-        #col.operator('object.select_stored_high_res_objects', icon='RESTRICT_SELECT_OFF')
-
-        #col.operator('object.add_stored_objects_to_high_res_on_selected', icon='PLUS')
-        #col.operator('object.list_stored_high_res_objects', icon='INFO')
-
-        layout.separator()
-        #BOX==================
-        box = layout.box()
-        col = box.column()
-
-        col.label(text='High res objects linked to selected')
-        col.operator('object.select_high_res_objects', icon='RESTRICT_SELECT_OFF')
-        col.operator('object.link_high_res_objects_to_scene', icon='LINKED')
-        col.operator('object.list_high_res_objects_on_selected', icon='INFO')
-        #col.operator('object.delete_high_res_on_selected', icon='EVENT_X')
-
-        #BOX==================
-        box = layout.box()
-        col = box.column()
-        col.label(text='Utils')
-        col.operator('object.popupwin_find_hipoly_by_bounding_box', icon='VIEWZOOM')
-        col.operator('object.select_objects_with_missing_high_res', icon='RESTRICT_SELECT_OFF')
-        col.operator('object.explode_selected_lowres_and_linked_high_res')
-        col.operator('object.reset_location_of_lowres_and_highres')
-'''
 class OBJECT_UL_high_res_objects(bpy.types.UIList):
     # Code reference: UI_panel_simple in blender python templates
     # This creates an UI list with images in the blender file
@@ -574,14 +543,47 @@ class OBJECT_PT_bbb_bake_passes(bpy.types.Panel):
             grid.label(text = "Name")          
             grid.prop(bake_pass, "name", text="")
 
+            # Normal 
             if bake_pass.bake_type == "NORMAL":
-                grid.label(text = "Normal map type")
-                grid.prop(bake_pass, "normal_map_type", text="")
+                grid.label(text = "Space")
+                grid.prop(bake_pass, "normal_space", text="")
+                
+                
+                if bake_pass.normal_space == "TANGENT":
+                    grid.label(text = "Normal map type")
+                    grid.prop(bake_pass, "normal_map_type", text="")
+                elif bake_pass.normal_space == "OBJECT":
+                    grid.label(text = "Swzzle X")
+                    grid.prop(bake_pass, "normal_r", text="")   
+                    grid.label(text = "Swzzle Y")
+                    grid.prop(bake_pass, "normal_g", text="")
+                    grid.label(text = "Swzzle Z")
+                    grid.prop(bake_pass, "normal_b", text="")
+                ''''''
+
+            # AOV 
+            if bake_pass.bake_type == "AOV":
+                grid.label(text = "AOV name")
+                grid.prop(bake_pass, "aov_name", text="")
+
+                grid.label(text = "AOV data type")
+                grid.prop(bake_pass, "aov_data_type", text="")
+
+            # AOV 
+            if bake_pass.bake_type == "POINTINESS":
+                grid.label(text = "Pointiness contrast")
+                grid.prop(bake_pass, "pointiness_contrast", text="")
 
             # Channel transfer
             if bake_pass.bake_type == "CHANNEL_TRANSFER":
                 grid.label(text = "Image name override")
                 grid.prop(bake_pass, "image_name_override", text = "")
+
+                main_col.separator()
+                main_col.label(text = "Note that channel override output ")
+                main_col.label(text = "is forced to open EXR for correct values")
+                main_col.separator()
+
 
                 # Red
                 main_col.label(text = "Red channel")
@@ -592,8 +594,8 @@ class OBJECT_PT_bbb_bake_passes(bpy.types.Panel):
                 props.channel = "R_source"
                 grid.label(text = bake_pass.R_source)     
 
-                grid.label(text = "R target channel")
-                grid.prop(bake_pass, "transfer_target_channel_R", text = "")
+                grid.label(text = "R source channel")
+                grid.prop(bake_pass, "transfer_source_channelR", text = "")
 
                 main_col.separator()
 
@@ -606,8 +608,8 @@ class OBJECT_PT_bbb_bake_passes(bpy.types.Panel):
                 props.channel = "G_source"
                 grid.label(text = bake_pass.G_source)  
 
-                grid.label(text = "G target channel")
-                grid.prop(bake_pass, "transfer_target_channel_G", text = "")
+                grid.label(text = "G source channel")
+                grid.prop(bake_pass, "transfer_source_channelG", text = "")
 
                 main_col.separator()
 
@@ -620,8 +622,20 @@ class OBJECT_PT_bbb_bake_passes(bpy.types.Panel):
                 props.channel = "B_source"
                 grid.label(text = bake_pass.B_source)                                             
  
-                grid.label(text = "B target channel")
-                grid.prop(bake_pass, "transfer_target_channel_B", text = "")
+                grid.label(text = "B source channel")
+                grid.prop(bake_pass, "transfer_source_channelB", text = "")
+ 
+                # Alpha
+                main_col.label(text = "Alpha channel")
+                grid = main_col.grid_flow(row_major = True, columns = 2,)
+
+                props = grid.operator('object.popupwin_select_bake_pass', text = "Set A source")
+                props.bake_pass_index = index 
+                props.channel = "A_source"
+                grid.label(text = bake_pass.A_source)                                             
+ 
+                grid.label(text = "Alpha source channel")
+                grid.prop(bake_pass, "transfer_source_channelA", text = "")
  
                 continue
 
@@ -773,20 +787,44 @@ class OBJECT_OT_test_a_function(bpy.types.Operator):
         import time
         print(time.asctime())
 
-        source_object = bpy.context.active_object
-        compare_objects = bpy.context.selected_objects
-        obj = object_manager.get_closest_to_object_bounding_box(source_object, compare_objects, "WORLD")
-        print("\n")
-        
-        if not obj == None:
-            print("CLOSEST OBJECT = " + obj.name)
-        else:
-            print("Did not find a closest object")
-        return {'FINISHED'}
+        source_object = bpy.data.objects['a']
+        target_object = bpy.data.objects['b']
+        bake_manager.fix_skew_normals(
+            context, 
+            [source_object], 
+            [target_object], 
+            )
+
+        return {'FINISHED'}  
+
 #---------------#
 # POPUP windows #
 #---------------# 
               
+
+class OBJECT_OT_popupwin_promp_yes_no(bpy.types.Operator):
+    '''
+    Ask user yes/no
+    '''
+    # This is displayed as a popup window with buttons yes/no
+
+    bl_idname = "object.popupwin_promp_yes_no"
+    bl_label = ""
+    bl_description = ""
+
+
+    def execute(self, context): 
+        def draw(self, context):
+
+            col = self.layout.column()
+
+            col.label(text = "my text")
+
+        menu_title = "User prompt"    
+        context.window_manager.popup_menu(draw, title = menu_title, icon = 'INFO')
+        
+        return {'FINISHED'}
+
 
 
 class OBJECT_OT_popupwin_find_hipoly_by_bounding_box(bpy.types.Operator):
@@ -794,8 +832,6 @@ class OBJECT_OT_popupwin_find_hipoly_by_bounding_box(bpy.types.Operator):
     Find matching hipoly objects based on each selected objects bounding box
     '''
     # This is displayed as a popup window
-    # I've had quite some issues regarding formatting the layout the way I want.
-    # It's unclear why this is an issue
 
     bl_idname = "object.popupwin_find_hipoly_by_bounding_box"
     bl_label = "Find highpoly by bounding box"
@@ -1197,6 +1233,38 @@ class RENDER_PG_bystedts_blender_baker(bpy.types.PropertyGroup):
         min = 0
         )
 
+    skew_normals_items = [
+        ('NONE', 'No skew angle fix', "Don't try to fix skewed normals"),
+        ('ANGLE', 'Angle', "Fix skewed normals by angle"),
+        ('WEIGHT', 'Bevel weight', 'Fix skewed normals by bevel weight')
+    ]
+
+    skew_normals_method: EnumProperty(
+        name="Skew normals method",
+        description="Fix skewed normals by angle or weight",
+        default = 'NONE',
+        items=skew_normals_items
+    )   
+
+    skew_normals_angle: IntProperty(
+        name="Skew normals angle",
+        description="Fix skewed normals on edges above this angle",
+        subtype = 'ANGLE',
+        default = 30,
+        min = 0,
+        max = 180
+    )      
+
+    allow_high_poly_objects_to_join: BoolProperty(
+        name="Optimize by joining high poly objects",
+        description="Optimize baking time by joining high res objects. "\
+            "This can cause issues when using GENERATED as texture mapping"\
+            " since joining will change the object bounding box. This will in turn affect"\
+            " auto texture space. Consider using OBJECT as texture mapping instead of GENERATED if possible",
+        default = True,   
+    )
+
+
     def item_callback(self, context):
         # value, ui label, mouse hover info
         my_list = []
@@ -1388,7 +1456,7 @@ classes = (
     OBJECT_PT_bbb_bake_passes,
     OBJECT_PT_high_res_objects,
     OBJECT_PT_bbb_report,
-    #OBJECT_PT_bbb_debug_panel,
+    OBJECT_PT_bbb_debug_panel,
     RENDER_PG_bbb_image_settings,
     RENDER_PG_bystedts_blender_baker,
     OBJECT_OT_test_a_function,

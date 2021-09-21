@@ -28,7 +28,11 @@ class BakeType(Enum):
     COMBINED = 10,
     METALLIC = 11,
     BASE_COLOR = 12,
-    CHANNEL_TRANSFER = 13
+    DISPLACEMENT = 13,
+    ALPHA = 14,
+    CHANNEL_TRANSFER = 15,
+    AOV = 16,
+    POINTINESS = 17
 
 def get_bake_type_string(bake_type, no_underscore = False):
     '''
@@ -53,7 +57,11 @@ def get_bake_type_string(bake_type, no_underscore = False):
     "COMBINED",
     "METALLIC",
     "BASE_COLOR",
-    "CHANNEL_TRANSFER"        
+    "DISPLACEMENT",
+    "ALPHA",
+    "CHANNEL_TRANSFER",
+    "AOV",
+    "POINTINESS"      
     ]
     bake_type = bake_types_list[bake_type].replace("_", " ", 1000)
     return bake_type
@@ -137,6 +145,7 @@ class BakePass(bpy.types.PropertyGroup):
 
     ui_display: bpy.props.BoolProperty(name="UI display", default = False,  description = "Show or hide in UI")
 
+    # Don't forget to possibly add new passes to is_non_defualt_bake_pass 
     bake_type_items = [
         ("TRANSMISSION", "Transmission", "", 0),
         ("GLOSSY", "Glossy", "", 1),
@@ -154,6 +163,9 @@ class BakePass(bpy.types.PropertyGroup):
         ("DISPLACEMENT", "Displacement", "", 13),
         ("ALPHA", "Alpha", "", 14),
         ("CHANNEL_TRANSFER", "Channel transfer", "", 15),  
+        ("AOV", "AOV", "", 16),
+        ("POINTINESS", "Pointiness", "", 17),
+        ("MATERIAL_ID", "Material ID", "", 18),
     ]
 
     bake_type: bpy.props.EnumProperty(
@@ -214,6 +226,19 @@ class BakePass(bpy.types.PropertyGroup):
         min = 0, 
         soft_max = 256)
 
+    # Normal ========================
+
+    normal_space_items = [
+        ("OBJECT", "Object", "", 0),
+        ("TANGENT", "Tangent", "", 1)
+    ]
+
+    normal_space: bpy.props.EnumProperty(
+        name="Space", 
+        description = "Choose normal space for baking", 
+        items = normal_space_items, 
+        default="TANGENT")
+
     normal_map_type_items = [
         ("OPEN_GL", "Open GL", "", 0),
         ("DIRECT_X", "Direct X", "", 1)
@@ -224,6 +249,36 @@ class BakePass(bpy.types.PropertyGroup):
         description = "Type of normal map", 
         items = normal_map_type_items, 
         default="OPEN_GL")
+
+
+    normal_map_swizzle_items = [
+        ("POS_X", "+ X", "", 0),
+        ("POS_Y", "+ Y", "", 1),
+        ("POS_Z", "+ Z", "", 2),
+        ("NEG_X", "+ X", "", 3),
+        ("NEG_Y", "+ Y", "", 4),
+        ("NEG_Z", "+ Z", "", 5)        
+    ]
+
+    normal_r: bpy.props.EnumProperty(
+        name="Swizzle R", 
+        description = "Type of normal map", 
+        items = normal_map_swizzle_items, 
+        default="POS_X")
+
+    normal_g: bpy.props.EnumProperty(
+        name="Swizzle G", 
+        description = "Type of normal map", 
+        items = normal_map_swizzle_items, 
+        default="POS_Y")
+
+    normal_b: bpy.props.EnumProperty(
+        name="Swizzle B", 
+        description = "Type of normal map", 
+        items = normal_map_swizzle_items, 
+        default="POS_Z")
+
+    # Post process ========================
 
     post_process_items = [
         ("NO_POST_PROCESS", "No post process", "Don't perform post process", 0),
@@ -244,7 +299,7 @@ class BakePass(bpy.types.PropertyGroup):
         description = "Always use the bake pass name when naming images and files", 
         )       
  
-
+    # Channel transfer
     #-----
     R_source: bpy.props.StringProperty(
         name="R source", 
@@ -260,6 +315,11 @@ class BakePass(bpy.types.PropertyGroup):
         name="B source", 
         description = "Which image to transfer blue channel from", 
         )   
+
+    A_source: bpy.props.StringProperty(
+        name="Alpha source", 
+        description = "Which image to transfer alpha channel from", 
+        )   
     #-----
     
     
@@ -267,31 +327,71 @@ class BakePass(bpy.types.PropertyGroup):
         ("R", "R", "Red channel", 0),
         ("G", "G", "Green channel", 1),
         ("B", "B", "Blue channel", 2),
-        ("NONE", "None", "Don't transfer the channel", 3),
+        ("A", "A", "Alpha channel", 3),
+        ("NONE", "None", "Don't transfer the channel", 4),
     ]
 
-    transfer_target_channel_R: bpy.props.EnumProperty(
+    transfer_source_channelR: bpy.props.EnumProperty(
         name="Target channel red", 
         description = "Channel to transfer red to", 
         default = "R", 
         items = channel_items
         )
     
-    transfer_target_channel_G: bpy.props.EnumProperty(
+    transfer_source_channelG: bpy.props.EnumProperty(
         name="Target channel green", 
         description = "Channel to transfer green to", 
         default = "G", 
         items = channel_items
         )
     
-    transfer_target_channel_B: bpy.props.EnumProperty(
+    transfer_source_channelB: bpy.props.EnumProperty(
         name="Target channel blue", 
-        description = "Channel to transfer bluie to", 
+        description = "Channel to transfer blue to", 
         default = "B", 
         items = channel_items
         )
 
-    preview_bake_texture: bpy.props.BoolProperty(name = "Preview bake texture", default = 0)
+    transfer_source_channelA: bpy.props.EnumProperty(
+        name="Target channel alpha", 
+        description = "Channel to transfer alpha to", 
+        default = "A", 
+        items = channel_items
+        )
+
+    # AOV
+    aov_name: bpy.props.StringProperty(
+        name="AOV name", 
+        description = "Name of the AOV in the shading network to bake", 
+        default = "", 
+        )
+
+    aov_data_type_items = [
+        ("COLOR", "Color", "Bake aov color value", 0),
+        ("VALUE ", "Value", "Bake aov color value", 1),
+    ]
+
+
+    aov_data_type: bpy.props.EnumProperty(
+        name="AOV data type", 
+        description = "Bake AOV color or value", 
+        default = "COLOR", 
+        items = aov_data_type_items
+        )
+
+    # Pointiness
+    pointiness_contrast: bpy.props.FloatProperty(
+        name="Pointiness contrast", 
+        description = "Amount of contrast to use on the pointiness", 
+        default = 20, 
+        )
+
+
+    
+
+    preview_bake_texture: bpy.props.BoolProperty(
+        name = "Preview bake texture", 
+        default = 0)
 
 
 
@@ -301,7 +401,10 @@ def is_non_default_bake_pass(bake_pass_type):
         'METALLIC',
         'BASE COLOR',
         'DISPLACEMENT',
-        'ALPHA'
+        'ALPHA',
+        'AOV',
+        'POINTINESS',
+        'MATERIAL_ID',
     ]
     return bake_pass_type in list
 
@@ -309,7 +412,8 @@ def is_low_sample_pass(bake_pass):
     bake_pass_type = bake_pass.bake_type.upper()
     list = [
         'GLOSSY', 'DIFFUSE', 'EMIT', 'ROUGHNESS', 'UV', 'NORMAL',
-        'METALLIC', 'BASE COLOR', 'DISPLACEMENT', 'ALPHA'
+        'METALLIC', 'BASE COLOR', 'DISPLACEMENT', 'ALPHA',
+        'AOV', 'POINTINESS', 'MATERIAL_ID'
     ]
     return bake_pass_type in list   
 
@@ -319,7 +423,7 @@ def is_temporary_scene_bake_pass(bake_pass):
     list = [
         'GLOSSY', 'DIFFUSE', 'EMIT', 'ROUGHNESS', 'UV', 'NORMAL',
         'METALLIC', 'BASE COLOR', 'DISPLACEMENT', 'AO', 'SHADOW',
-        'ALPHA'
+        'ALPHA', 'AOV', "POINTINESS", 'MATERIAL_ID'
     ]
     return bake_pass_type in list       
 
@@ -371,7 +475,7 @@ def get_base_color(bake_type, alpha = 0.0):
         base_color = [0.5, 0.5, 1.0, alpha]
     elif bake_type == "AO":
         base_color = [1.0, 1.0, 1.0, alpha]
-    elif bake_type == "EMIT":
+    elif bake_type == "EMIT" or bake_type == "AOV":
         base_color = [0, 0, 0, alpha]    
     elif bake_type == "ALPHA":
         base_color = [0, 0, 0, alpha]  
