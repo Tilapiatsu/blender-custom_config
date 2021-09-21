@@ -836,6 +836,7 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 
 		# self.kmi_set_replace('view3d.tila_inverse_visibility', self.k_nav, 'PRESS', ctrl=True, shift=True)
 		self.kmi_set_replace('sculpt.face_set_change_visibility', self.k_nav, 'PRESS', ctrl=True, alt=True, shift=True, properties=[('mode', 'INVERT')], disable_double=True)
+		self.kmi_set_replace('sculpt.sculpt.sample_color', 'S', 'PRESS', disable_double=True)
 
 		###### Curve
 		self.kmi_init(name='Curve', space_type='EMPTY', region_type='WINDOW')
