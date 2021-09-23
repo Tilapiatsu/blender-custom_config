@@ -83,6 +83,9 @@ bpy.context.preferences.inputs.use_numeric_input_advanced = True
 # bpy.context.preferences.inputs.use_mouse_emulate_3_button = True
 bpy.context.preferences.inputs.use_zoom_to_mouse = True
 
+# Keymap
+bpy.context.preferences.keymap.use_key_activate_tools = True
+
 # System Settings
 # bpy.context.preferences.system.legacy_compute_device_type = "CUDA"
 
