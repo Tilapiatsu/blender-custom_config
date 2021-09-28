@@ -415,7 +415,7 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		self.kmi_set_replace('wm.tool_set_by_id', self.k_move, 'PRESS', properties=[('name', 'builtin.move')], disable_double=True)
 		self.kmi_set_replace('wm.tool_set_by_id', self.k_rotate, 'PRESS', properties=[('name', 'builtin.rotate')], disable_double=True)
 		self.kmi_set_replace('wm.tool_set_by_id', self.k_scale, 'PRESS', properties=[('name', 'builtin.scale')], disable_double=True)
-		self.kmi_set_replace('wm.tool_set_by_id', "T", 'PRESS', ctrl=True, properties=[('name', 'builtin.transform')], disable_double=True)
+		self.kmi_set_replace('wm.tool_set_by_id', 'T', 'PRESS', ctrl=True, properties=[('name', 'builtin.transform')], disable_double=True)
 
 	def isolate(self):
 		self.kmi_set_replace('view3d.tila_isolate', 'X', 'PRESS', ctrl=True, alt=True, properties=[('force_object_isolate', False)])
@@ -706,7 +706,7 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		self.kmi_set_replace("mesh.edge_rotate", 'V', "PRESS", properties=[('use_ccw', False)], disable_double=True)
 		self.kmi_set_replace("mesh.edge_rotate", 'V', "PRESS", shift=True, properties=[('use_ccw', True)], disable_double=True)
 
-		self.kmi_set_replace('mesh.quads_convert_to_tris', 'T', "PRESS", shift=True, properties=[('quad_method','BEAUTY'), ('ngon_method','BEAUTY')])
+		self.kmi_set_replace('mesh.quads_convert_to_tris', 'T', "PRESS", shift=True, properties=[('quad_method','BEAUTY'), ('ngon_method','BEAUTY')], disable_double=True)
 		self.kmi_set_replace('mesh.tris_convert_to_quads', 'T', "PRESS", alt=True, shift=True)
 
 		# KE_Kit
@@ -855,6 +855,8 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		self.kmi_set_replace('curve.draw', 'LEFTMOUSE', 'PRESS', alt=True, ctrl=True, shift=True, properties=[('wait_for_input', False)])
 		self.kmi_set_replace('curve.separate', 'D', 'PRESS', ctrl=True, shift=True)
 		self.kmi_set_replace('curve.subdivide', 'D', 'PRESS')
+		kmi = self.kmi_set_replace('transform.tilt', 'T', 'PRESS', shift=True)
+		kmi.active = True
 
 		self.selection_keys(select_tool='curve.select',
 					  		lasso_tool='curve.select_lasso',
