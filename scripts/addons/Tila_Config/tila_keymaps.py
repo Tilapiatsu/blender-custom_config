@@ -519,6 +519,8 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		self.kmi_set_replace('view3d.tila_orthographic_navigation', self.k_cursor, 'CLICK_DRAG', ctrl=False, alt=True, shift=False, disable_double=True, properties=[('relative_to_selected_element', False)])
 		self.kmi_set_replace('view3d.tila_orthographic_navigation', self.k_cursor, 'CLICK_DRAG', ctrl=False, alt=True, shift=True, disable_double=True, properties=[('relative_to_selected_element', True)])
 
+		self.kmi_set_replace('view3d.tila_action_center', 'S', 'PRESS', ctrl=True, alt=True, shift=True, disable_double=True, properties=[('action_center', 'CURSOR')])
+
 		# KE_Kit
 		self.kmi_set_replace('view3d.ke_get_set_material', 'M', 'PRESS', shift=True)
 
@@ -701,7 +703,7 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		# self.kmi_set_replace('object.merge_tool', 'M', 'PRESS')
 		self.kmi_set_replace('wm.call_menu_pie', 'S', 'PRESS', ctrl=False, alt=False, shift=True, properties=[('name', 'VIEW3D_MT_snap_pie')], disable_double=True)
 		self.kmi_set_replace('wm.call_menu_pie', 'S', 'PRESS', alt=True, shift=True, properties=[('name', 'TILA_MT_pie_normal')], disable_double=True)
-		self.kmi_set_replace('wm.call_menu_pie', 'S', 'PRESS', ctrl=True, alt=True, shift=True, properties=[('name', 'TILA_MT_pie_uv')], disable_double=True)
+		# self.kmi_set_replace('wm.call_menu_pie', 'S', 'PRESS', ctrl=True, alt=True, shift=True, properties=[('name', 'TILA_MT_pie_uv')], disable_double=True)
 
 		self.kmi_set_replace("mesh.edge_rotate", 'V', "PRESS", properties=[('use_ccw', False)], disable_double=True)
 		self.kmi_set_replace("mesh.edge_rotate", 'V', "PRESS", shift=True, properties=[('use_ccw', True)], disable_double=True)
