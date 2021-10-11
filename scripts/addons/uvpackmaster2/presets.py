@@ -515,7 +515,7 @@ class UVP2_OT_LoadPresetBase(bpy.types.Operator):
         if addon_version == (2,4,5):
             return 9
 
-        if addon_version in {(2,5,0), (2,5,1), (2,5,2), (2,5,3), (2,5,4), (2,5,5), (2,5,6)}:
+        if addon_version in {(2,5,0), (2,5,1), (2,5,2), (2,5,3), (2,5,4), (2,5,5), (2,5,6), (2,5,7), (2,5,8)}:
             return 10
 
         raise RuntimeError('Unsupported preset version')
