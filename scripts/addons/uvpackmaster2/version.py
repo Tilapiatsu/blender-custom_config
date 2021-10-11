@@ -37,11 +37,11 @@ class UvpEditionInfo:
 class UvpVersionInfo:
     ADDON_VERSION_MAJOR = 2
     ADDON_VERSION_MINOR = 5
-    ADDON_VERSION_PATCH = 6
+    ADDON_VERSION_PATCH = 8
 
     UVP_VERSION_MAJOR = 2
     UVP_VERSION_MINOR = 5
-    UVP_VERSION_PATCH = 6
+    UVP_VERSION_PATCH = 8
 
     RELEASE_SUFFIX = get_release_suffix()
 

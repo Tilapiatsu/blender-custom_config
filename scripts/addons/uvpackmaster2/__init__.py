@@ -40,8 +40,8 @@ if "bpy" in locals():
 bl_info = {
     "name": "UVPackmaster2",
     "author": "glukoz",
-    "version": (2, 5, 6),
-    "blender": (2, 92, 0),
+    "version": (2, 5, 8),
+    "blender": (2, 93, 0),
     "location": "",
     "description": "",
     "warning": "",
