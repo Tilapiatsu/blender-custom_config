@@ -319,3 +319,6 @@
 [submodule "scripts/addons/Renderman"]
 	path = scripts/addons/Renderman
 	url = https://github.com/prman-pixar/RenderManForBlender.git
+[submodule "scripts/addons/camera_shakify"]
+	path = scripts/addons/camera_shakify
+	url = https://github.com/cessen/camera_shakify.git
