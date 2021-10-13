@@ -20,6 +20,7 @@ class TILA_SeparateShapeKey(bpy.types.Operator):
 
 	mode : bpy.props.EnumProperty(items=[("EXPLODE", "Explode", ""), ("NAME", "Name", "")], default="EXPLODE")
 	shapekey_name : bpy.props.StringProperty(name='Shapekey Name', default='')
+	case_sensitive : bpy.props.BoolProperty(name="Case Sensitive", default=False)
 
 	compatible_type = ['MESH']
 	processing = None
@@ -66,7 +67,7 @@ class TILA_SeparateShapeKey(bpy.types.Operator):
 				
 		elif self.mode == "NAME":
 			if not len(self.shapekey_name):
-				print('Tila Separate ShapeKey : shapekey_name should be specified')
+				print('Tila Separate ShapeKey : shapekey_name is not defined')
 				return
 
 			self.extract_shapekey(context, ob, shapekey_name_list, self.shapekey_name)
@@ -82,13 +83,25 @@ class TILA_SeparateShapeKey(bpy.types.Operator):
 
 		index_target = self.shapekey_set_active_by_name(duplicate, shapekey_name)
 
-		if index_target is None: 
+		if index_target is None:
+			# remove the duplicate
+			bpy.ops.object.delete()
 			return
 			
 		else: # Shapekey_name exist in the current object_to_process
 			base = shapekey_name_list[0]
 			others = shapekey_name_list[1:]
+
+			if not self.case_sensitive:
+				# Convert to lower case
+				base = base.lower()
+
 			for sk in others:
+				if not self.case_sensitive:
+					# Convert to lower case
+					sk = sk.lower()
+					shapekey_name = shapekey_name.lower()
+
 				if sk == shapekey_name:
 					self.shapekey_set_mute_by_name(ob, sk, False)
 					self.shapekey_set_value_by_name(ob, sk, 1.0)
@@ -119,6 +132,11 @@ class TILA_SeparateShapeKey(bpy.types.Operator):
 		try:
 			if ob.data.shape_keys is None:
 				return return_none()
+			if not self.case_sensitive:
+				uc_keyname = ob.data.shape_keys.key_blocks.keys()
+				lc_keyname = [k.lower() for k in uc_keyname]
+				if shapekey_name in lc_keyname:
+					shapekey_name = uc_keyname[lc_keyname.index(shapekey_name)]
 			index = ob.data.shape_keys.key_blocks.keys().index(shapekey_name)
 		except ValueError or AttributeError:
 			return return_none()
@@ -138,6 +156,11 @@ class TILA_SeparateShapeKey(bpy.types.Operator):
 		try:
 			if ob.data.shape_keys is None:
 				return return_none()
+			if not self.case_sensitive:
+				uc_keyname = ob.data.shape_keys.key_blocks.keys()
+				lc_keyname = [k.lower() for k in uc_keyname]
+				if shapekey_name in lc_keyname:
+					shapekey_name = uc_keyname[lc_keyname.index(shapekey_name)]
 			index = ob.data.shape_keys.key_blocks.keys().index(shapekey_name)
 		except ValueError or AttributeError:
 			return return_none()
@@ -157,6 +180,11 @@ class TILA_SeparateShapeKey(bpy.types.Operator):
 		try:
 			if ob.data.shape_keys is None:
 				return return_none()
+			if not self.case_sensitive:
+				uc_keyname = ob.data.shape_keys.key_blocks.keys()
+				lc_keyname = [k.lower() for k in uc_keyname]
+				if shapekey_name in lc_keyname:
+					shapekey_name = uc_keyname[lc_keyname.index(shapekey_name)]
 			index = ob.data.shape_keys.key_blocks.keys().index(shapekey_name)
 		except ValueError or AttributeError:
 			return return_none()
@@ -168,11 +196,9 @@ class TILA_SeparateShapeKey(bpy.types.Operator):
 	def invoke(self, context, event):
 		self.object_to_process = [o for o in bpy.context.selected_objects if o.type in self.compatible_type]
 
-		if self.mode == "NAME":
-			wm = context.window_manager
-			return wm.invoke_props_dialog(self)
-		else:
-			return self.execute(context)
+		wm = context.window_manager
+		return wm.invoke_props_dialog(self, width=400)
+
 			
 	def execute(self, context):
 		self._timer = bpy.context.window_manager.event_timer_add(0.1, window=bpy.context.window)
@@ -184,7 +210,10 @@ class TILA_SeparateShapeKey(bpy.types.Operator):
 		layout = self.layout
 		col = layout.column()
 		col.label(text='Enter name of the shapekey you want to separate')
-		col.prop(self, 'shapekey_name')
+		col.prop(self, 'mode')
+		if self.mode == 'NAME':
+			col.prop(self, 'case_sensitive')
+			col.prop(self, 'shapekey_name')
 
 classes = (
 	TILA_SeparateShapeKey,
