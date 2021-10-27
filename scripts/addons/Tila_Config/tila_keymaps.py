@@ -620,7 +620,10 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 
 
 		self.kmi_set_replace('uv.toolkit_straighten', 'G', 'PRESS', ctrl=True, disable_double=True, properties=[('gridify', False)])
-		self.kmi_set_replace('uv.toolkit_unwrap_selected', 'E', 'PRESS', ctrl=True, disable_double=True, properties=[('gridify', False)])
+		self.kmi_set_replace('uv.toolkit_unwrap_selected', 'E', 'PRESS', ctrl=True, disable_double=True, properties=[('gridify', False), ('method', 'ANGLE_BASED')])
+		k = self.kmi_find('uv.toolkit_distribute')
+		k.active = False
+		self.kmi_set_replace('uv.toolkit_distribute', 'D', 'PRESS', disable_double=True, properties=[('preserve_edge_length', True)])
 		self.kmi_set_replace('uvpackmaster2.uv_pack', 'P', 'PRESS', ctrl=True, disable_double=True)
 
 
