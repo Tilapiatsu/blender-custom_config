@@ -384,7 +384,7 @@
         face_dot="#ffffff"
         facedot_size="2"
         freestyle_face_mark="#013f6bff"
-        face_back="#ff000015"
+        face_back="#ff000025"
         face_front="#0000ff00"
         nurb_uline="#b8e1ff"
         nurb_vline="#5fbcff"
