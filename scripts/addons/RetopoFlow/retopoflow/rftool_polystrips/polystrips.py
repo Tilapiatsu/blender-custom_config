@@ -31,23 +31,12 @@ from ..rftool import RFTool
 from ...addon_common.common.decorators import timed_call
 
 
-class RFTool_PolyStrips(RFTool):
-    name        = 'PolyStrips'
-    description = 'Create and edit strips of quads'
-    icon        = 'polystrips-icon.png'
-    help        = 'polystrips.md'
-    shortcut    = 'polystrips tool'
-    statusbar   = '{{insert}} Insert strip of quads\t{{brush radius}} Brush size\t{{action}} Grab selection\t{{increase count}} Increase segments\t{{decrease count}} Decrease segments'
-    ui_config   = 'polystrips_options.html'
-
-
 ################################################################################################
 # following imports must happen *after* the above class, because each subclass depends on
 # above class to be defined
 
 from .polystrips_ops   import PolyStrips_Ops
 from .polystrips_props import PolyStrips_Props
-from .polystrips_rfwidgets import PolyStrips_RFWidgets
 from .polystrips_utils import (
     RFTool_PolyStrips_Strip,
     hash_face_pair,
@@ -61,20 +50,47 @@ from .polystrips_utils import (
 from ...addon_common.common.bezier import CubicBezierSpline, CubicBezier
 from ...addon_common.common.blender import matrix_vector_mult
 from ...addon_common.common.debug import dprint
-from ...addon_common.common.drawing import Drawing, Cursors
+from ...addon_common.common.drawing import Drawing, Cursors, DrawCallbacks
+from ...addon_common.common.fsm import FSM
 from ...addon_common.common.maths import Vec2D, Point, rotate2D, Direction2D, Point2D, RelPoint2D
 from ...addon_common.common.profiler import profiler
 from ...addon_common.common.utils import iter_pairs
 
-from ...config.options import options
+from ...config.options import options, themes
+
+from ..rfwidgets.rfwidget_brushstroke import RFWidget_BrushStroke_Factory
+from ..rfwidgets.rfwidget_default import RFWidget_Default_Factory
+
+from ...addon_common.common.boundvar import BoundBool, BoundInt, BoundFloat, BoundString
 
 
-class PolyStrips(RFTool_PolyStrips, PolyStrips_Props, PolyStrips_Ops, PolyStrips_RFWidgets):
-    @RFTool_PolyStrips.on_init
+class PolyStrips(RFTool, PolyStrips_Props, PolyStrips_Ops):
+    name        = 'PolyStrips'
+    description = 'Create and edit strips of quads'
+    icon        = 'polystrips-icon.png'
+    help        = 'polystrips.md'
+    shortcut    = 'polystrips tool'
+    statusbar   = '{{insert}} Insert strip of quads\t{{brush radius}} Brush size\t{{action}} Grab selection\t{{increase count}} Increase segments\t{{decrease count}} Decrease segments'
+    ui_config   = 'polystrips_options.html'
+
+    RFWidget_Default = RFWidget_Default_Factory.create('PolyStrips default')
+    RFWidget_BrushStroke = RFWidget_BrushStroke_Factory.create(
+        'PolyStrips stroke',
+        BoundInt('''options['polystrips radius']''', min_value=1),
+        outer_border_color=themes['polystrips']
+    )
+    RFWidget_Move = RFWidget_Default_Factory.create('PolyStrips move', 'HAND')
+
+    @RFTool.on_init
     def init(self):
-        self.init_rfwidgets()
+        self.rfwidgets = {
+            'default':     self.RFWidget_Default(self),
+            'brushstroke': self.RFWidget_BrushStroke(self),
+            'move':        self.RFWidget_Move(self),
+        }
+        self.rfwidget = None
 
-    @RFTool_PolyStrips.on_reset
+    @RFTool.on_reset
     def reset(self):
         self.strips = []
         self.strip_pts = []
@@ -85,7 +101,7 @@ class PolyStrips(RFTool_PolyStrips, PolyStrips_Props, PolyStrips_Ops, PolyStrips
         self.stroke_cbs = CubicBezierSpline()
         self.clear_count_data()
 
-    @RFTool_PolyStrips.on_target_change
+    @RFTool.on_target_change
     # @profiler.function
     def update_target(self, force=False):
         if not force and self._fsm.state in {'move handle', 'rotate', 'scale'}: return
@@ -153,14 +169,14 @@ class PolyStrips(RFTool_PolyStrips, PolyStrips_Props, PolyStrips_Ops, PolyStrips
     def update_strip_viz(self):
         self.strip_pts = [[strip.curve.eval(i/10) for i in range(10+1)] for strip in self.strips]
 
-    @RFTool_PolyStrips.on_target_change
-    @RFTool_PolyStrips.on_view_change
-    @RFTool_PolyStrips.FSM_OnlyInState('main')
+    @RFTool.on_target_change
+    @RFTool.on_view_change
+    @FSM.onlyinstate('main')
     def update_next_state(self):
         self.vis_accel = self.rfcontext.get_vis_accel()
 
 
-    @RFTool_PolyStrips.FSM_State('main')
+    @FSM.on_state('main')
     def main(self):
         Point_to_Point2D = self.rfcontext.Point_to_Point2D
         mouse = self.actions.mouse
@@ -251,11 +267,11 @@ class PolyStrips(RFTool_PolyStrips, PolyStrips_Props, PolyStrips_Ops, PolyStrips
             )
 
 
-    @RFTool_PolyStrips.FSM_State('move handle', 'can enter')
+    @FSM.on_state('move handle', 'can enter')
     def movehandle_canenter(self):
         return len(self.hovering_handles) > 0
 
-    @RFTool_PolyStrips.FSM_State('move handle', 'enter')
+    @FSM.on_state('move handle', 'enter')
     def movehandle_enter(self):
         self.sel_cbpts = []
         self.mod_strips = set()
@@ -284,7 +300,7 @@ class PolyStrips(RFTool_PolyStrips, PolyStrips_Props, PolyStrips_Ops, PolyStrips
         self._timer = self.actions.start_timer(120.0)
         self.rfcontext.set_accel_defer(True)
 
-    @RFTool_PolyStrips.FSM_State('move handle')
+    @FSM.on_state('move handle')
     def movehandle(self):
         if self.actions.pressed(self.move_done_pressed):
             return 'main'
@@ -315,14 +331,14 @@ class PolyStrips(RFTool_PolyStrips, PolyStrips_Props, PolyStrips_Ops, PolyStrips
         self.update_strip_viz()
         self.rfcontext.dirty()
 
-    @RFTool_PolyStrips.FSM_State('move handle', 'exit')
+    @FSM.on_state('move handle', 'exit')
     def movehandle_exit(self):
         self._timer.done()
         self.rfcontext.set_accel_defer(False)
         self.update_target(force=True)
 
 
-    @RFTool_PolyStrips.FSM_State('rotate', 'can enter')
+    @FSM.on_state('rotate', 'can enter')
     def rotate_canenter(self):
         if not self.hovering_handles: return False
 
@@ -350,7 +366,7 @@ class PolyStrips(RFTool_PolyStrips, PolyStrips_Props, PolyStrips_Ops, PolyStrips
         self.rotate_about = Point_to_Point2D(outerP)
         if not self.rotate_about: return False
 
-    @RFTool_PolyStrips.FSM_State('rotate', 'enter')
+    @FSM.on_state('rotate', 'enter')
     def rotate_enter(self):
         for strip in self.mod_strips: strip.capture_edges()
 
@@ -363,7 +379,7 @@ class PolyStrips(RFTool_PolyStrips, PolyStrips_Props, PolyStrips_Ops, PolyStrips
         self._timer = self.actions.start_timer(120.0)
         self.rfcontext.set_accel_defer(True)
 
-    @RFTool_PolyStrips.FSM_State('rotate')
+    @FSM.on_state('rotate')
     # @profiler.function
     def rotate(self):
         if not self.rotate_about: return 'main'
@@ -394,7 +410,7 @@ class PolyStrips(RFTool_PolyStrips, PolyStrips_Props, PolyStrips_Ops, PolyStrips
         self.update_strip_viz()
         self.rfcontext.dirty()
 
-    @RFTool_PolyStrips.FSM_State('rotate', 'exit')
+    @FSM.on_state('rotate', 'exit')
     def rotate_exit(self):
         self._timer.done()
         self.rfcontext.set_accel_defer(False)
@@ -402,7 +418,7 @@ class PolyStrips(RFTool_PolyStrips, PolyStrips_Props, PolyStrips_Ops, PolyStrips
 
 
 
-    @RFTool_PolyStrips.FSM_State('scale', 'can enter')
+    @FSM.on_state('scale', 'can enter')
     # @profiler.function
     def scale_canenter(self):
         if not self.hovering_handles: return False
@@ -434,7 +450,7 @@ class PolyStrips(RFTool_PolyStrips, PolyStrips_Props, PolyStrips_Ops, PolyStrips
 
         self.scale_from = Point_to_Point2D(outerP)
 
-    @RFTool_PolyStrips.FSM_State('scale', 'enter')
+    @FSM.on_state('scale', 'enter')
     def scale_enter(self):
         self.mousedown = self.actions.mouse
         self.rfwidget = None #self.rfwidgets['default']
@@ -467,7 +483,7 @@ class PolyStrips(RFTool_PolyStrips, PolyStrips_Props, PolyStrips_Ops, PolyStrips
         self._timer = self.actions.start_timer(120.0)
         self.rfcontext.set_accel_defer(True)
 
-    @RFTool_PolyStrips.FSM_State('scale')
+    @FSM.on_state('scale')
     # @profiler.function
     def scale(self):
         if self.actions.pressed(self.move_done_pressed):
@@ -496,14 +512,14 @@ class PolyStrips(RFTool_PolyStrips, PolyStrips_Props, PolyStrips_Ops, PolyStrips
 
         self.rfcontext.dirty()
 
-    @RFTool_PolyStrips.FSM_State('scale', 'exit')
+    @FSM.on_state('scale', 'exit')
     def scale_exit(self):
         self._timer.done()
         self.rfcontext.set_accel_defer(False)
         self.update_target(force=True)
 
 
-    @RFTool_PolyStrips.FSM_State('move all', 'can enter')
+    @FSM.on_state('move all', 'can enter')
     # @profiler.function
     def moveall_canenter(self):
         bmfaces = self.rfcontext.get_selected_faces()
@@ -511,7 +527,7 @@ class PolyStrips(RFTool_PolyStrips, PolyStrips_Props, PolyStrips_Ops, PolyStrips
         bmverts = set(bmv for bmf in bmfaces for bmv in bmf.verts)
         self.bmverts = [(bmv, self.rfcontext.Point_to_Point2D(bmv.co)) for bmv in bmverts]
 
-    @RFTool_PolyStrips.FSM_State('move all', 'enter')
+    @FSM.on_state('move all', 'enter')
     def moveall_enter(self):
         lmb_drag = self.actions.using('action')
         self.actions.unpress()
@@ -527,7 +543,7 @@ class PolyStrips(RFTool_PolyStrips, PolyStrips_Props, PolyStrips_Ops, PolyStrips
         self.rfcontext.split_target_visualization_selected()
         self.rfcontext.set_accel_defer(True)
 
-    @RFTool_PolyStrips.FSM_State('move all')
+    @FSM.on_state('move all')
     # @profiler.function
     def moveall(self):
         opts = self.moveall_opts
@@ -551,7 +567,7 @@ class PolyStrips(RFTool_PolyStrips, PolyStrips_Props, PolyStrips_Ops, PolyStrips
         self.rfcontext.dirty()
         #self.update()
 
-    @RFTool_PolyStrips.FSM_State('move all', 'exit')
+    @FSM.on_state('move all', 'exit')
     def moveall_exit(self):
         self.moveall_opts['timer'].done()
         self.rfcontext.set_accel_defer(False)
@@ -560,7 +576,7 @@ class PolyStrips(RFTool_PolyStrips, PolyStrips_Props, PolyStrips_Ops, PolyStrips
 
 
 
-    @RFTool_PolyStrips.Draw('post3d')
+    @DrawCallbacks.on_draw('post3d')
     def draw_post3d_spline(self):
         if not self.strips: return
 
@@ -672,7 +688,7 @@ class PolyStrips(RFTool_PolyStrips, PolyStrips_Props, PolyStrips_Ops, PolyStrips
                         pp = p
             # self.rfcontext.drawing.draw2D_points([self.rfcontext.Point_to_Point2D(p) for p in self.count_data['points']], (1, 0.5, 0.5, 1.0), radius=5)
 
-    @RFTool_PolyStrips.Draw('post2d')
+    @DrawCallbacks.on_draw('post2d')
     def draw_post2d(self):
         self.rfcontext.drawing.set_font_size(12)
         Point_to_Point2D = self.rfcontext.Point_to_Point2D

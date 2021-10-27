@@ -28,17 +28,15 @@ import bpy
 import bgl
 from mathutils import Matrix
 
-from ..rftool import rftools
+from ..rftool import RFTool
 
 from ...addon_common.common.boundvar import BoundBool, BoundInt
 from ...addon_common.common.utils import delay_exec
 from ...config.options import options
 
 
-RFTool_Contours = rftools['RFTool_Contours']
-
 class Contours_Props:
-    @RFTool_Contours.on_init
+    @RFTool.on_init
     def init_props(self):
         self._var_init_count  = BoundInt('''options['contours count']''', min_value=3, max_value=500)
         self._var_cut_count   = BoundInt('''self.var_cut_count''', min_value=3, max_value=500)

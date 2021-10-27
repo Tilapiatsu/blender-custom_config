@@ -55,6 +55,7 @@ kmi_to_char = {
     'SEMI_COLON':   ';', 'COMMA':         ',',
     'LEFT_BRACKET': '[', 'RIGHT_BRACKET': ']',
     'QUOTE':        "'", 'ACCENT_GRAVE':  '`',
+    'GRLESS':       '>',
     'A':'a', 'B':'b', 'C':'c', 'D':'d',
     'E':'e', 'F':'f', 'G':'g', 'H':'h',
     'I':'i', 'J':'j', 'K':'k', 'L':'l',
@@ -81,6 +82,7 @@ kmi_to_char = {
     'SHIFT+SEMI_COLON':   ':', 'SHIFT+COMMA':         '<',
     'SHIFT+LEFT_BRACKET': '{', 'SHIFT+RIGHT_BRACKET': '}',
     'SHIFT+QUOTE':        '"', 'SHIFT+ACCENT_GRAVE':  '~',
+    'SHIFT+GRLESS':       '<',
     'SHIFT+A':'A', 'SHIFT+B':'B', 'SHIFT+C':'C', 'SHIFT+D':'D',
     'SHIFT+E':'E', 'SHIFT+F':'F', 'SHIFT+G':'G', 'SHIFT+H':'H',
     'SHIFT+I':'I', 'SHIFT+J':'J', 'SHIFT+K':'K', 'SHIFT+L':'L',
@@ -216,6 +218,11 @@ class Actions:
         'TIMER', 'TIMER_REPORT', 'TIMERREGION',
     }
 
+    reset_actions = {
+        # any time these actions are received, all action states will be flushed
+        'WINDOW_DEACTIVATE',
+    }
+
     timer_actions = {
         'TIMER'
     }
@@ -327,6 +334,17 @@ class Actions:
         self.r3d = context.space_data.region_3d
         self.window = context.window
 
+        self.timer      = False     # is action from timer?
+        self.time_delta = 0         # elapsed time since last "step" (units=seconds)
+        self.time_last = time.time()
+
+        # IMPORTANT: the following properties are updated external to Actions
+        self.hit_pos  = None    # position of raytraced mouse to scene (updated externally!)
+        self.hit_norm = None    # normal of raytraced mouse to scene (updated externally!)
+
+        self.reset_state(all_state=True)
+
+    def reset_state(self, all_state=False):
         self.actions_using = set()
         self.actions_pressed = set()
         self.actions_prevtime = dict()  # previous time when action was pressed
@@ -337,6 +355,7 @@ class Actions:
 
         self.trackpad = False   # is current action from trackpad?
         self.ndof     = False   # is current action from NDOF?
+        self.scroll   = (0, 0)
 
         # are any of the following modifier keys currently pressed?
         # note: ctrl will be true if either ctrl_left or ctrl_right are true
@@ -350,8 +369,9 @@ class Actions:
         self.alt_left    = False
         self.alt_right   = False
 
-        self.mouse_select     = bprefs.mouse_select()
-        self.mouse            = None    # current mouse position
+        if all_state:
+            self.mouse_select     = bprefs.mouse_select()
+            self.mouse            = None    # current mouse position
         self.mouse_prev       = None    # previous mouse position
         self.mouse_lastb      = None    # last button pressed on mouse
         self.mousemove        = False   # is the current action a mouse move?
@@ -363,19 +383,17 @@ class Actions:
         self.mousedown_right  = None    # mouse position when RMB was pressed
         self.mousedown_drag   = False   # is user dragging?
 
-        self.timer      = False     # is action from timer?
-        self.time_delta = 0         # elapsed time since last "step" (units=seconds)
-        self.time_last = time.time()
-
-        # IMPORTANT: the following properties are updated external to Actions
-        self.hit_pos  = None    # position of raytraced mouse to scene (updated externally!)
-        self.hit_norm = None    # normal of raytraced mouse to scene (updated externally!)
 
     actions_prevtime_default = (0, 0, float('inf'))
     def get_last_press_time(self, event_type):
         return self.actions_prevtime.get(event_type, self.actions_prevtime_default)
 
     def update(self, context, event, print_actions=False):
+        if event.type in self.reset_actions:
+            # print(f'Actions.update: resetting state')
+            self.reset_state()
+            return
+
         self.unpress()
 
         self.context = context
@@ -430,6 +448,15 @@ class Actions:
             else:
                 self.mousedown_drag = False
                 return
+
+        if self.trackpad:
+            pressed = True
+            self.scroll = (event.mouse_x - event.mouse_prev_x, event.mouse_y - event.mouse_prev_y)
+            # print(f'Actions.update: trackpad event {self.scroll}')
+            # for k in dir(event):
+            #     print(f'  {k}: {getattr(event, k)}')
+        else:
+            self.scroll = (0, 0)
 
         if event_type in self.modifier_actions:
             if event_type == 'OSKEY':

@@ -23,15 +23,18 @@ import math
 import time
 import bgl
 import bpy
+from math import isnan
 from mathutils import Vector, Matrix
 from mathutils.geometry import intersect_point_tri_2d
 
 from ..rftool import RFTool
+from ..rfwidget import RFWidget
 from ..rfwidgets.rfwidget_default import RFWidget_Default_Factory
 from ..rfwidgets.rfwidget_brushstroke import RFWidget_BrushStroke_Factory
 
 
 from ...addon_common.common.debug import dprint
+from ...addon_common.common.fsm import FSM
 from ...addon_common.common.globals import Globals
 from ...addon_common.common.profiler import profiler
 from ...addon_common.common.maths import (
@@ -41,9 +44,9 @@ from ...addon_common.common.maths import (
     clamp, mid,
 )
 from ...addon_common.common.bezier import CubicBezierSpline, CubicBezier
-from ...addon_common.common.shaders import circleShader, edgeShortenShader, arrowShader
 from ...addon_common.common.utils import iter_pairs, iter_running_sum, min_index, max_index
 from ...addon_common.common.boundvar import BoundBool, BoundInt, BoundFloat
+from ...addon_common.common.drawing import DrawCallbacks
 from ...config.options import options, themes
 
 from .strokes_utils import (
@@ -54,7 +57,7 @@ from .strokes_utils import (
 )
 
 
-class RFTool_Strokes(RFTool):
+class Strokes(RFTool):
     name        = 'Strokes'
     description = 'Insert edge strips and extrude edges into a patch'
     icon        = 'strokes-icon.png'
@@ -63,24 +66,14 @@ class RFTool_Strokes(RFTool):
     statusbar   = '{{insert}} Insert edge strip and bridge\t{{increase count}} Increase segments\t{{decrease count}} Decrease segments'
     ui_config   = 'strokes_options.html'
 
-class Strokes_RFWidgets:
-    RFWidget_Default = RFWidget_Default_Factory.create()
+    RFWidget_Default = RFWidget_Default_Factory.create('Strokes default')
     RFWidget_BrushStroke = RFWidget_BrushStroke_Factory.create(
+        'Strokes stroke',
         BoundInt('''options['strokes radius']''', min_value=1),
         outer_border_color=themes['strokes'],
     )
-    RFWidget_Move = RFWidget_Default_Factory.create('HAND')
+    RFWidget_Move = RFWidget_Default_Factory.create('Strokes move', 'HAND')
 
-    def init_rfwidgets(self):
-        self.rfwidgets = {
-            'default': self.RFWidget_Default(self),
-            'brush': self.RFWidget_BrushStroke(self),
-            'hover':   self.RFWidget_Move(self),
-        }
-        self.rfwidget = None
-
-
-class Strokes(RFTool_Strokes, Strokes_RFWidgets):
     @property
     def cross_count(self):
         return self.strip_crosses or 0
@@ -103,9 +96,14 @@ class Strokes(RFTool_Strokes, Strokes_RFWidgets):
         self.strip_loops = v
         if self.strip_loops is not None: self.replay()
 
-    @RFTool_Strokes.on_init
+    @RFTool.on_init
     def init(self):
-        self.init_rfwidgets()
+        self.rfwidgets = {
+            'default': self.RFWidget_Default(self),
+            'brush': self.RFWidget_BrushStroke(self),
+            'hover':   self.RFWidget_Move(self),
+        }
+        self.rfwidget = None
         self.strip_crosses = None
         self.strip_loops = None
         self._var_fixed_span_count = BoundInt('''options['strokes span count']''', min_value=1, max_value=128)
@@ -117,7 +115,7 @@ class Strokes(RFTool_Strokes, Strokes_RFWidgets):
         self.ui_summary.innerText = f'Strokes: {mode}'
         self.ui_insert.dirty(cause='insert mode change', children=True)
 
-    @RFTool_Strokes.on_ui_setup
+    @RFTool.on_ui_setup
     def ui(self):
         ui_options = self.document.body.getElementById('strokes-options')
         self.ui_summary = ui_options.getElementById('strokes-summary')
@@ -128,7 +126,7 @@ class Strokes(RFTool_Strokes, Strokes_RFWidgets):
         self.rfwidgets['brush'].get_radius_boundvar().on_change(dirty_radius)
         self.update_span_mode()
 
-    @RFTool_Strokes.on_reset
+    @RFTool.on_reset
     def reset(self):
         self.replay = None
         self.strip_crosses = None
@@ -152,14 +150,14 @@ class Strokes(RFTool_Strokes, Strokes_RFWidgets):
             self._var_cross_count.disabled = self.strip_crosses is None or self.strip_edges
             self._var_loop_count.disabled = self.strip_loops is None
 
-    @RFTool_Strokes.on_target_change
+    @RFTool.on_target_change
     def update_target(self):
         if self.defer_recomputing: return
         if not self.just_created: self.reset()
         else: self.just_created = False
 
-    @RFTool_Strokes.on_target_change
-    @RFTool_Strokes.on_view_change
+    @RFTool.on_target_change
+    @RFTool.on_view_change
     # @profiler.function
     def update(self):
         if self.defer_recomputing: return
@@ -187,7 +185,7 @@ class Strokes(RFTool_Strokes, Strokes_RFWidgets):
     def filter_edge_selection(self, bme):
         return bme.select or len(bme.link_faces) < 2
 
-    @RFTool_Strokes.FSM_State('main')
+    @FSM.on_state('main')
     # @profiler.function
     def modal_main(self):
         if not self.actions.using('action', ignoredrag=True):
@@ -311,7 +309,7 @@ class Strokes(RFTool_Strokes, Strokes_RFWidgets):
                 self.strip_loops -= 1
                 self.replay()
 
-    @Strokes_RFWidgets.RFWidget_BrushStroke.on_actioning
+    @RFWidget.on_actioning('Strokes stroke')
     def stroking(self):
         self.connection_post = None
         hovering_sel_vert,_ = self.rfcontext.accel_nearest2D_vert(max_dist=self.rfwidgets['brush'].radius)
@@ -319,7 +317,7 @@ class Strokes(RFTool_Strokes, Strokes_RFWidgets):
             point_to_point2d = self.rfcontext.Point_to_Point2D
             self.connection_post = (point_to_point2d(hovering_sel_vert.co), self.actions.mouse)
 
-    @Strokes_RFWidgets.RFWidget_BrushStroke.on_action
+    @RFWidget.on_action('Strokes stroke')
     def stroke(self):
         # called when artist finishes a stroke
 
@@ -381,7 +379,7 @@ class Strokes(RFTool_Strokes, Strokes_RFWidgets):
         # print(self.replay)
         if self.replay: self.replay()
 
-    @RFTool_Strokes.dirty_when_done
+    @RFTool.dirty_when_done
     def create_cycle(self):
         Point_to_Point2D = self.rfcontext.Point_to_Point2D
         stroke = [Point_to_Point2D(s) for s in self.strip_stroke3D]
@@ -410,7 +408,7 @@ class Strokes(RFTool_Strokes, Strokes_RFWidgets):
         self.defer_recomputing = False
         self.update()
 
-    @RFTool_Strokes.dirty_when_done
+    @RFTool.dirty_when_done
     def create_strip(self):
         Point_to_Point2D = self.rfcontext.Point_to_Point2D
         stroke = [Point_to_Point2D(s) for s in self.strip_stroke3D]
@@ -458,7 +456,7 @@ class Strokes(RFTool_Strokes, Strokes_RFWidgets):
         self.defer_recomputing = False
         self.update()
 
-    @RFTool_Strokes.dirty_when_done
+    @RFTool.dirty_when_done
     def extrude_cycle(self):
         Point_to_Point2D = self.rfcontext.Point_to_Point2D
         stroke = [Point_to_Point2D(s) for s in self.strip_stroke3D]
@@ -556,7 +554,7 @@ class Strokes(RFTool_Strokes, Strokes_RFWidgets):
         self.defer_recomputing = False
         self.update()
 
-    @RFTool_Strokes.dirty_when_done
+    @RFTool.dirty_when_done
     def extrude_c(self):
         Point_to_Point2D = self.rfcontext.Point_to_Point2D
         stroke = [Point_to_Point2D(s) for s in self.strip_stroke3D]
@@ -647,13 +645,13 @@ class Strokes(RFTool_Strokes, Strokes_RFWidgets):
         self.defer_recomputing = False
         self.update()
 
-    @RFTool_Strokes.dirty_when_done
+    @RFTool.dirty_when_done
     def extrude_t(self):
         self.rfcontext.alert_user(
             'T-shaped extrusions are not handled, yet'
         )
 
-    @RFTool_Strokes.dirty_when_done
+    @RFTool.dirty_when_done
     def extrude_l(self):
         Point_to_Point2D = self.rfcontext.Point_to_Point2D
         stroke = [Point_to_Point2D(s) for s in self.strip_stroke3D]
@@ -725,7 +723,7 @@ class Strokes(RFTool_Strokes, Strokes_RFWidgets):
         self.defer_recomputing = False
         self.update()
 
-    @RFTool_Strokes.dirty_when_done
+    @RFTool.dirty_when_done
     def extrude_strip(self):
         Point_to_Point2D = self.rfcontext.Point_to_Point2D
         stroke = [Point_to_Point2D(s) for s in self.strip_stroke3D]
@@ -814,12 +812,16 @@ class Strokes(RFTool_Strokes, Strokes_RFWidgets):
         per_lens = [l / strip_len for l in edge_lens]
         percentages = [0] + [max(0, min(1, s)) for (w, s) in iter_running_sum(per_lens)]
         nstroke = restroke(stroke, percentages)
-        assert len(nstroke) == len(verts), (
-            'Tessellated stroke (%d) does not match vert count (%d)' % (len(nstroke), len(verts))
-        )
+        assert len(nstroke) == len(verts), f'Tessellated stroke ({len(nstroke)}) does not match vert count ({len(verts)})'
+
         # average distance between stroke and strip
         p0, p1 = Point_to_Point2D(verts[0].co), Point_to_Point2D(verts[-1].co)
         avg_dist = ((p0 - s0).length + (p1 - s1).length) / 2
+        if isnan(avg_dist):
+            self.rfcontext.alert_user(
+                'Could not determine distance between stroke and selected strip.  Please try again.'
+            )
+            return
 
         # determine cross count
         if self.strip_crosses is None:
@@ -903,7 +905,7 @@ class Strokes(RFTool_Strokes, Strokes_RFWidgets):
             self.rfcontext.update_verts_faces(update_verts)
             #self.set_next_state()
 
-    @RFTool_Strokes.FSM_State('move', 'enter')
+    @FSM.on_state('move', 'enter')
     def move_enter(self, bmverts=None, defer_recomputing=True):
         self.rfcontext.undo_push('move grabbed')
 
@@ -918,6 +920,7 @@ class Strokes(RFTool_Strokes, Strokes_RFWidgets):
 
         if not bmverts: bmverts = sel_verts
         self.bmverts = [(bmv, Point_to_Point2D(bmv.co)) for bmv in bmverts]
+        self.bmverts = [(bmv, co) for (bmv, co) in self.bmverts if co]
         self.vis_bmverts = [(bmv, Point_to_Point2D(bmv.co)) for bmv in vis_verts if bmv.is_valid and bmv not in sel_verts]
         self.mousedown = self.rfcontext.actions.mouse
         self.defer_recomputing = defer_recomputing
@@ -925,8 +928,8 @@ class Strokes(RFTool_Strokes, Strokes_RFWidgets):
         self.rfcontext.set_accel_defer(True)
         self._timer = self.actions.start_timer(120)
 
-    @RFTool_Strokes.FSM_State('move')
-    @RFTool_Strokes.dirty_when_done
+    @FSM.on_state('move')
+    @RFTool.dirty_when_done
     # @profiler.function
     def move(self):
         released = self.rfcontext.actions.released
@@ -968,13 +971,13 @@ class Strokes(RFTool_Strokes, Strokes_RFWidgets):
                 set2D_vert(bmv, xy_updated)
         self.rfcontext.update_verts_faces(v for v,_ in self.bmverts)
 
-    @RFTool_Strokes.FSM_State('move', 'exit')
+    @FSM.on_state('move', 'exit')
     def move_exit(self):
         self._timer.done()
         self.rfcontext.set_accel_defer(False)
         self.rfcontext.clear_split_target_visualization()
 
-    @RFTool_Strokes.Draw('post2d')
+    @DrawCallbacks.on_draw('post2d')
     def draw_postpixel(self):
         if self._fsm.state == 'move': return
         bgl.glEnable(bgl.GL_BLEND)

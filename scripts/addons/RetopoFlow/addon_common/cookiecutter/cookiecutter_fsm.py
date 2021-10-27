@@ -17,19 +17,11 @@ from ..common.fsm import FSM
 from ..common.debug import debugger
 
 class CookieCutter_FSM:
-    # fsm = FSM()
-    # FSM_State = fsm.wrapper
-    @classmethod
-    def create_FSM(cls):
-        cls.fsm = FSM()
-        cls.FSM_State = cls.fsm.wrapper
-
     def _cc_fsm_init(self):
-        self.fsm.init(self, start='main')
-        def callback(e): self._handle_exception(e, 'handle exception caught by FSM')
-        #self.fsm.add_exception_callback(callback)
+        self.fsm = FSM(self, start='main')
+        self.fsm.add_exception_callback(lambda e: self._handle_exception(e, 'handle exception caught by FSM'))
+        # def callback(e): self._handle_exception(e, 'handle exception caught by FSM')
+        # self.fsm.add_exception_callback(callback)
 
     def _cc_fsm_update(self):
         self.fsm.update()
-
-CookieCutter_FSM.create_FSM()

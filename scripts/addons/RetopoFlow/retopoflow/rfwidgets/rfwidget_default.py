@@ -26,6 +26,7 @@ from mathutils import Matrix, Vector
 
 from ..rfwidget import RFWidget
 
+from ...addon_common.common.fsm import FSM
 from ...addon_common.common.globals import Globals
 from ...addon_common.common.blender import tag_redraw_all
 from ...addon_common.common.maths import Vec, Point, Point2D, Direction, Color
@@ -44,14 +45,16 @@ class RFWidget_Default_Factory:
     '''
 
     @staticmethod
-    def create(cursor='DEFAULT'):
-
-        class RFW_Default(RFWidget):
+    def create(action_name, cursor='DEFAULT'):
+        class RFWidget_Default(RFWidget):
             rfw_name = 'Default'
             rfw_cursor = cursor
 
-        class RFWidget_Default(RFW_Default):
-            @RFW_Default.FSM_State('main')
+            @RFWidget.on_init
+            def init(self):
+                self.action_name = action_name
+
+            @FSM.on_state('main')
             def modal_main(self):
                 pass
 

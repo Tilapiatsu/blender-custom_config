@@ -1518,7 +1518,7 @@ class UI_Element(UI_Element_Utils, UI_Element_Properties, UI_Element_Dirtiness, 
             self._dirty_properties.discard('blocks')
             return
         if 'blocks' not in self._dirty_properties:
-            for e in self._dirty_callbacks.get('blocks', []): e._compute_blocks()
+            for e in list(self._dirty_callbacks.get('blocks', [])): e._compute_blocks()
             self._dirty_callbacks['blocks'].clear()
             return
 
@@ -1646,8 +1646,12 @@ class UI_Element(UI_Element_Utils, UI_Element_Properties, UI_Element_Dirtiness, 
                 # TODO: set to image size?
                 dpi_mult = Globals.drawing.get_dpi_mult()
                 static_content_size = Size2D()
-                static_content_size.set_all_widths(self._image_data['width'] * dpi_mult)
-                static_content_size.set_all_heights(self._image_data['height'] * dpi_mult)
+                try:
+                    w, h = float(self._image_data['width']), float(self._image_data['height'])
+                    static_content_size.set_all_widths(w * dpi_mult)
+                    static_content_size.set_all_heights(h * dpi_mult)
+                except:
+                    pass
 
         else:
             static_content_size = None
@@ -1775,6 +1779,7 @@ class UI_Element(UI_Element_Utils, UI_Element_Properties, UI_Element_Dirtiness, 
             background_override = None
 
         bgl.glEnable(bgl.GL_BLEND)
+        bgl.glDisable(bgl.GL_CULL_FACE)
         # bgl.glBlendFunc(bgl.GL_SRC_ALPHA, bgl.GL_ONE_MINUS_SRC_ALPHA)
 
         sc = self._style_cache
@@ -1785,7 +1790,7 @@ class UI_Element(UI_Element_Utils, UI_Element_Properties, UI_Element_Dirtiness, 
         ol, ot = int(self._l + ox), int(self._t + oy)
 
         if True: # with profiler.code('drawing mbp'):
-            texture_id = self._image_data['texid'] if self._src in {'image', 'image loading'} else -1
+            texture_id = self._image_data['texid'] if self._src in {'image', 'image loading'} else None
             texture_fit = self._computed_styles.get('object-fit', 'fill')
             ui_draw.draw(ol, ot, self._w, self._h, dpi_mult, self._style_cache, texture_id, texture_fit, background_override=background_override, depth=len(self._selector))
 
@@ -1845,24 +1850,7 @@ class UI_Element(UI_Element_Utils, UI_Element_Properties, UI_Element_Dirtiness, 
                 bgl.glEnable(bgl.GL_BLEND)
                 bgl.glBlendFunc(bgl.GL_ONE, bgl.GL_ONE_MINUS_SRC_ALPHA)
                 texture_id = self._cacheRenderBuf.color_texture
-                if True:
-                    draw_texture_2d(texture_id, (self._l+ox, self._b+oy), self._w, self._h)
-                else:
-                    dpi_mult = Globals.drawing.get_dpi_mult()
-                    texture_fit = 0
-                    background_override = None
-                    ui_draw.draw(self._l+ox, self._t+oy, self._w, self._h, dpi_mult, {
-                        'background-color': (0,0,0,0),
-                        'margin-top': 0,
-                        'margin-right': 0,
-                        'margin-bottom': 0,
-                        'margin-left': 0,
-                        'padding-top': 0,
-                        'padding-right': 0,
-                        'padding-bottom': 0,
-                        'padding-left': 0,
-                        'border-width': 0,
-                        }, texture_id, texture_fit, background_override=background_override)
+                draw_texture_2d(texture_id, (self._l+ox, self._b+oy), self._w, self._h)
             else:
                 bgl.glBlendFunc(bgl.GL_ONE, bgl.GL_ONE_MINUS_SRC_ALPHA)
                 self._draw_real(offset)

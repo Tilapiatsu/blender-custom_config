@@ -37,7 +37,8 @@ from ...addon_common.common.maths import (
 from ...addon_common.common.debug import dprint
 from ...addon_common.common.blender import tag_redraw_all
 from ...addon_common.common.decorators import timed_call
-from ...addon_common.common.drawing import CC_2D_LINE_STRIP, CC_2D_LINE_LOOP, CC_DRAW
+from ...addon_common.common.drawing import CC_2D_LINE_STRIP, CC_2D_LINE_LOOP, CC_DRAW, DrawCallbacks
+from ...addon_common.common.fsm import FSM
 from ...addon_common.common.globals import Globals
 from ...addon_common.common.profiler import profiler
 from ...addon_common.common.utils import iter_pairs
@@ -45,7 +46,7 @@ from ...addon_common.common.utils import iter_pairs
 from ...config.options import options
 
 
-class RFTool_Loops(RFTool):
+class Loops(RFTool):
     name        = 'Loops'
     description = 'Edge loops creation, shifting, and deletion'
     icon        = 'loops-icon.png'
@@ -54,31 +55,25 @@ class RFTool_Loops(RFTool):
     quick_shortcut = 'loops quick'
     statusbar   = '{{insert}} Insert edge loop\t{{smooth edge flow}} Smooth edge flow'
 
-class Loops_RFWidgets:
-    RFWidget_Default = RFWidget_Default_Factory.create()
-    RFWidget_Move = RFWidget_Default_Factory.create('HAND')
-    RFWidget_Crosshair = RFWidget_Default_Factory.create('CROSSHAIR')
+    RFWidget_Default = RFWidget_Default_Factory.create('Loops default')
+    RFWidget_Move = RFWidget_Default_Factory.create('Loops move', 'HAND')
+    RFWidget_Crosshair = RFWidget_Default_Factory.create('Loops crosshair', 'CROSSHAIR')
 
-    def init_rfwidgets(self):
+    @RFTool.on_init
+    def init(self):
         self.rfwidgets = {
             'default': self.RFWidget_Default(self),
             'cut':     self.RFWidget_Crosshair(self),
             'hover':   self.RFWidget_Move(self),
         }
         self.rfwidget = None
-
-
-class Loops(RFTool_Loops, Loops_RFWidgets):
-    @RFTool_Loops.on_init
-    def init(self):
-        self.init_rfwidgets()
         self.previs_timer = self.actions.start_timer(120.0, enabled=False)
 
-    @RFTool_Loops.on_mouse_move
+    @RFTool.on_mouse_move
     def mouse_move(self):
         tag_redraw_all('Loops mouse_move')
 
-    @RFTool_Loops.on_reset
+    @RFTool.on_reset
     def reset(self):
         if self.actions.using('loops quick'):
             self._fsm.force_set_state('quick')
@@ -118,12 +113,12 @@ class Loops(RFTool_Loops, Loops_RFWidgets):
         dot = d01.dot(p - p0)
         return dot / l01 > ratio
 
-    @RFTool_Loops.FSM_State('quick', 'enter')
+    @FSM.on_state('quick', 'enter')
     def quick_enter(self):
         self.hovering_sel_edge = None
         self.rfwidget = self.rfwidgets['cut']
 
-    @RFTool_Loops.FSM_State('quick')
+    @FSM.on_state('quick')
     def quick_main(self):
         if self.actions.pressed('cancel'):
             self.previs_timer.stop()
@@ -136,7 +131,7 @@ class Loops(RFTool_Loops, Loops_RFWidgets):
         if self.hovering_edge and self.rfcontext.actions.pressed('quick insert'):
             return self.insert_edge_loop_strip()
 
-    @RFTool_Loops.FSM_State('main')
+    @FSM.on_state('main')
     def main(self):
         if self.actions.mousemove: return  # ignore mouse moves
 
@@ -286,7 +281,7 @@ class Loops(RFTool_Loops, Loops_RFWidgets):
         self.rfcontext.undo_push('slide edge loop/strip')
         return 'slide'
 
-    @RFTool_Loops.FSM_State('selectadd/deselect')
+    @FSM.on_state('selectadd/deselect')
     def selectadd_deselect(self):
         if not self.rfcontext.actions.using(['select single','select single add']):
             self.rfcontext.undo_push('deselect')
@@ -298,7 +293,7 @@ class Loops(RFTool_Loops, Loops_RFWidgets):
             self.rfcontext.undo_push('select add')
             return 'select'
 
-    @RFTool_Loops.FSM_State('select')
+    @FSM.on_state('select')
     def select(self):
         if not self.rfcontext.actions.using(['select single','select single add']):
             return 'main'
@@ -306,14 +301,14 @@ class Loops(RFTool_Loops, Loops_RFWidgets):
         if not bme or bme.select: return
         self.rfcontext.select(bme, supparts=False, only=False)
 
-    @RFTool_Loops.on_target_change
-    @RFTool_Loops.on_view_change
-    @RFTool_Loops.FSM_OnlyInState({'main', 'quick'})
+    @RFTool.on_target_change
+    @RFTool.on_view_change
+    @FSM.onlyinstate({'main', 'quick'})
     def update_next_state(self):
         self.set_next_state()
 
-    @RFTool_Loops.on_mouse_stop
-    @RFTool_Loops.FSM_OnlyInState({'main', 'quick'})
+    @RFTool.on_mouse_stop
+    @FSM.onlyinstate({'main', 'quick'})
     def update_next_state_mouse(self):
         self.set_next_state()
         tag_redraw_all('Loops mouse stop')
@@ -505,13 +500,13 @@ class Loops(RFTool_Loops, Loops_RFWidgets):
         self.percent_start = 0.0
         self.edit_ok = True
 
-    @RFTool_Loops.FSM_State('slide', 'enter')
+    @FSM.on_state('slide', 'enter')
     def slide_enter(self):
         self.previs_timer.start()
         self.rfcontext.set_accel_defer(True)
         tag_redraw_all('entering slide')
 
-    @RFTool_Loops.FSM_State('slide')
+    @FSM.on_state('slide')
     # @profiler.function
     def slide(self):
         released = self.rfcontext.actions.released
@@ -544,14 +539,14 @@ class Loops(RFTool_Loops, Loops_RFWidgets):
 
         self.rfcontext.dirty()
 
-    @RFTool_Loops.FSM_State('slide', 'exit')
+    @FSM.on_state('slide', 'exit')
     def slide_exit(self):
         self.previs_timer.stop()
         self.rfcontext.set_accel_defer(False)
 
 
-    @RFTool_Loops.Draw('post2d')
-    @RFTool_Loops.FSM_OnlyInState('slide')
+    @DrawCallbacks.on_draw('post2d')
+    @FSM.onlyinstate('slide')
     def draw_postview_slide(self):
         bgl.glEnable(bgl.GL_BLEND)
         # bgl.glEnable(bgl.GL_MULTISAMPLE)
@@ -562,8 +557,8 @@ class Loops(RFTool_Loops, Loops_RFWidgets):
             width=2, stipple=[2,2],
         )
 
-    @RFTool_Loops.Draw('post2d')
-    @RFTool_Loops.FSM_OnlyInState({'main', 'quick'})
+    @DrawCallbacks.on_draw('post2d')
+    @FSM.onlyinstate({'main', 'quick'})
     # @profiler.function
     def draw_postview(self):
         if self.rfcontext._nav or not self.nearest_edge: return

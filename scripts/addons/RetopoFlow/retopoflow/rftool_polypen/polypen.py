@@ -36,16 +36,18 @@ from ...addon_common.common.drawing import (
 )
 from ...addon_common.common.profiler import profiler
 from ...addon_common.common.maths import Point, Point2D, Vec2D, Vec, Direction2D, intersection2d_line_line, closest2d_point_segment
+from ...addon_common.common.fsm import FSM
 from ...addon_common.common.globals import Globals
 from ...addon_common.common.utils import iter_pairs
 from ...addon_common.common.blender import tag_redraw_all
+from ...addon_common.common.drawing import DrawCallbacks
 from ...addon_common.common.boundvar import BoundBool, BoundInt, BoundFloat, BoundString
 
 
 from ...config.options import options, themes
 
 
-class RFTool_PolyPen(RFTool):
+class PolyPen(RFTool):
     name        = 'PolyPen'
     description = 'Create complex topology on vertex-by-vertex basis'
     icon        = 'polypen-icon.png'
@@ -54,13 +56,13 @@ class RFTool_PolyPen(RFTool):
     statusbar   = '{{insert}} Insert'
     ui_config   = 'polypen_options.html'
 
-class PolyPen_RFWidgets:
-    RFWidget_Default   = RFWidget_Default_Factory.create()
-    RFWidget_Crosshair = RFWidget_Default_Factory.create('CROSSHAIR')
-    RFWidget_Move      = RFWidget_Default_Factory.create('HAND')
-    RFWidget_Knife     = RFWidget_Default_Factory.create('KNIFE')
+    RFWidget_Default   = RFWidget_Default_Factory.create('PolyPen default')
+    RFWidget_Crosshair = RFWidget_Default_Factory.create('PolyPen crosshair', 'CROSSHAIR')
+    RFWidget_Move      = RFWidget_Default_Factory.create('PolyPen move', 'HAND')
+    RFWidget_Knife     = RFWidget_Default_Factory.create('PolyPen knife', 'KNIFE')
 
-    def init_rfwidgets(self):
+    @RFTool.on_init
+    def init(self):
         self.rfwidgets = {
             'default': self.RFWidget_Default(self),
             'insert':  self.RFWidget_Crosshair(self),
@@ -68,11 +70,6 @@ class PolyPen_RFWidgets:
             'knife':   self.RFWidget_Knife(self),
         }
         self.rfwidget = None
-
-class PolyPen(RFTool_PolyPen, PolyPen_RFWidgets):
-    @RFTool_PolyPen.on_init
-    def init(self):
-        self.init_rfwidgets()
         self.update_state_info()
         self.first_time = True
         self._var_merge_dist  = BoundFloat( '''options['polypen merge dist'] ''')
@@ -85,21 +82,21 @@ class PolyPen(RFTool_PolyPen, PolyPen_RFWidgets):
         self.ui_options_label.innerText = f'PolyPen: {mode}'
         self.ui_insert_modes.dirty(cause='insert mode change', children=True)
 
-    @RFTool_PolyPen.on_ui_setup
+    @RFTool.on_ui_setup
     def ui(self):
         ui_options = self.document.body.getElementById('polypen-options')
         self.ui_options_label = ui_options.getElementById('polypen-summary-label')
         self.ui_insert_modes  = ui_options.getElementById('polypen-insert-modes')
         self.update_insert_mode()
 
-    @RFTool_PolyPen.on_reset
+    @RFTool.on_reset
     def reset(self):
         self.previs_timer.stop()
 
-    @RFTool_PolyPen.on_reset
-    @RFTool_PolyPen.on_target_change
-    @RFTool_PolyPen.on_view_change
-    @RFTool_PolyPen.FSM_OnlyInState('main')
+    @RFTool.on_reset
+    @RFTool.on_target_change
+    @RFTool.on_view_change
+    @FSM.onlyinstate('main')
     # @profiler.function
     def update_state_info(self):
         if True: # with profiler.code('getting selected geometry'):
@@ -116,8 +113,8 @@ class PolyPen(RFTool_PolyPen, PolyPen_RFWidgets):
         if self.rfcontext.loading_done:
             self.set_next_state(force=True)
 
-    @RFTool_PolyPen.on_mouse_stop
-    @RFTool_PolyPen.FSM_OnlyInState({'main'})
+    @RFTool.on_mouse_stop
+    @FSM.onlyinstate({'main'})
     def update_next_state_mouse(self):
         self.set_next_state(force=True)
         tag_redraw_all('PolyPen mouse stop')
@@ -211,11 +208,11 @@ class PolyPen(RFTool_PolyPen, PolyPen_RFWidgets):
         else:
             assert False, f'Unhandled PolyPen insert mode: {options["polypen insert mode"]}'
 
-    @RFTool_PolyPen.FSM_State('main', 'enter')
+    @FSM.on_state('main', 'enter')
     def main_enter(self):
         self.update_state_info()
 
-    @RFTool_PolyPen.FSM_State('main')
+    @FSM.on_state('main')
     def main(self):
         if self.first_time:
             self.set_next_state(force=True)
@@ -310,7 +307,7 @@ class PolyPen(RFTool_PolyPen, PolyPen_RFWidgets):
         ]
 
 
-    @RFTool_PolyPen.FSM_State('insert')
+    @FSM.on_state('insert')
     def insert(self):
         self.rfcontext.undo_push('insert')
         return self._insert()
@@ -370,7 +367,7 @@ class PolyPen(RFTool_PolyPen, PolyPen_RFWidgets):
 
         return (xy0, xy1, xy2, xy3)
 
-    @RFTool_PolyPen.dirty_when_done
+    @RFTool.dirty_when_done
     def _insert(self):
         self.last_delta = None
         self.move_done_pressed = None
@@ -641,7 +638,7 @@ class PolyPen(RFTool_PolyPen, PolyPen_RFWidgets):
         self.last_delta = None
         self.defer_recomputing = defer_recomputing
 
-    @RFTool_PolyPen.FSM_State('move after select')
+    @FSM.on_state('move after select')
     # @profiler.function
     def modal_move_after_select(self):
         if self.actions.released('action'):
@@ -654,7 +651,7 @@ class PolyPen(RFTool_PolyPen, PolyPen_RFWidgets):
             self.rfcontext.undo_push('move after select')
             return 'move'
 
-    @RFTool_PolyPen.FSM_State('move', 'enter')
+    @FSM.on_state('move', 'enter')
     def move_enter(self):
         self.move_opts = {
             'vis_accel': self.rfcontext.get_custom_vis_accel(selection_only=False, include_edges=False, include_faces=False),
@@ -663,7 +660,7 @@ class PolyPen(RFTool_PolyPen, PolyPen_RFWidgets):
         self.previs_timer.start()
         self.rfcontext.set_accel_defer(True)
 
-    @RFTool_PolyPen.FSM_State('move')
+    @FSM.on_state('move')
     # @profiler.function
     def modal_move(self):
         if self.move_done_pressed and self.actions.pressed(self.move_done_pressed):
@@ -708,7 +705,7 @@ class PolyPen(RFTool_PolyPen, PolyPen_RFWidgets):
         self.rfcontext.update_verts_faces(v for v,_ in self.bmverts)
         self.rfcontext.dirty()
 
-    @RFTool_PolyPen.FSM_State('move', 'exit')
+    @FSM.on_state('move', 'exit')
     def move_exit(self):
         self.previs_timer.stop()
         self.rfcontext.set_accel_defer(False)
@@ -746,8 +743,8 @@ class PolyPen(RFTool_PolyPen, PolyPen_RFWidgets):
                     draw.vertex(co1)
                     draw.vertex(co2)
 
-    @RFTool_PolyPen.Draw('post2d')
-    @RFTool_PolyPen.FSM_OnlyInState('main')
+    @DrawCallbacks.on_draw('post2d')
+    @FSM.onlyinstate('main')
     def draw_postpixel(self):
         # TODO: put all logic into set_next_state(), such as vertex snapping, edge splitting, etc.
 

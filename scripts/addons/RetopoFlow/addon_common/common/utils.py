@@ -41,22 +41,6 @@ from .maths import (
 )
 
 
-##################################################
-
-
-# find functions of object that has key attribute
-# returns list of (attribute value, fn)
-def find_fns(obj, key):
-    cls = type(obj)
-    fn_type = type(find_fns)
-    members = [getattr(cls, k) for k in dir(cls)]
-    methods = [member for member in members if type(member) == fn_type]
-    return [
-        (getattr(method, key), method)
-        for method in methods
-        if hasattr(method, key)
-    ]
-
 
 
 ##################################################
@@ -406,8 +390,8 @@ def shorten_floats(s):
 def get_matrices(ob):
     ''' obtain blender object matrices '''
     mx = ob.matrix_world
-    imx = mx.inverted()
-    return [mx, imx]
+    imx = mx.inverted_safe()
+    return (mx, imx)
 
 
 class AddonLocator(object):

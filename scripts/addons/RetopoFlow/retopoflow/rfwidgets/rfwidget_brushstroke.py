@@ -26,8 +26,10 @@ from mathutils import Matrix, Vector
 
 from ..rfwidget import RFWidget
 
+from ...addon_common.common.fsm import FSM
 from ...addon_common.common.globals import Globals
 from ...addon_common.common.blender import tag_redraw_all
+from ...addon_common.common.drawing import DrawCallbacks
 from ...addon_common.common.boundvar import BoundBool, BoundInt, BoundFloat
 from ...addon_common.common.maths import Vec, Point, Point2D, Direction, Color, Vec2D
 from ...config.options import themes
@@ -40,15 +42,14 @@ class RFWidget_BrushStroke_Factory:
     '''
 
     @staticmethod
-    def create(radius, outer_border_color=Color((0,0,0,0.5)), outer_color=Color((1,1,1,1)), inner_color=Color((1,1,1,0.5)), below_alpha=Color((1,1,1,0.65))):
-
-        class RFW_BrushStroke(RFWidget):
+    def create(action_name, radius, outer_border_color=Color((0,0,0,0.5)), outer_color=Color((1,1,1,1)), inner_color=Color((1,1,1,0.5)), below_alpha=Color((1,1,1,0.65))):
+        class RFWidget_BrushStroke(RFWidget):
             rfw_name = 'Brush Stroke'
             rfw_cursor = 'CROSSHAIR'
 
-        class RFWidget_BrushStroke(RFW_BrushStroke):
-            @RFW_BrushStroke.on_init
+            @RFWidget.on_init
             def init(self):
+                self.action_name = action_name
                 self.stroke2D = []
                 self.tightness = 0.95
                 self.redraw_on_mouse = True
@@ -58,15 +59,25 @@ class RFWidget_BrushStroke_Factory:
                 self.inner_color = inner_color
                 self.color_mult_below = below_alpha
 
-            @RFW_BrushStroke.FSM_State('main', 'enter')
+            @FSM.on_state('main', 'enter')
             def modal_main_enter(self):
                 self.rfw_cursor = 'CROSSHAIR'
-                tag_redraw_all('BrushStroke_PolyStrips main_enter')
+                tag_redraw_all('BrushStroke main_enter')
 
-            @RFW_BrushStroke.FSM_State('main')
+            @FSM.on_state('main')
             def modal_main(self):
                 if self.actions.pressed('insert'):
                     return 'stroking'
+
+                if self.rfcontext.actions.pressed('brush radius increase'):
+                    self.radius += 10
+                    tag_redraw_all('BrushStroke increase radius')
+                    return
+                if self.rfcontext.actions.pressed('brush radius decrease'):
+                    self.radius -= 10
+                    tag_redraw_all('BrushStroke decrease radius')
+                    return
+
                 if self.actions.pressed('brush radius'):
                     return 'brush sizing'
 
@@ -75,17 +86,17 @@ class RFWidget_BrushStroke_Factory:
                     self._fsm.force_set_state('brush sizing')
                     return True
 
-            @RFW_BrushStroke.FSM_State('stroking', 'enter')
+            @FSM.on_state('stroking', 'enter')
             def modal_line_enter(self):
                 self.stroke2D = [self.actions.mouse]
-                tag_redraw_all('BrushStroke_PolyStrips line_enter')
+                tag_redraw_all('BrushStroke line_enter')
 
-            @RFW_BrushStroke.FSM_State('stroking')
+            @FSM.on_state('stroking')
             def modal_line(self):
                 if self.actions.released('insert'):
                     # TODO: tessellate the last steps?
                     self.stroke2D.append(self.actions.mouse)
-                    self.callback_actions()
+                    self.callback_actions(self.action_name)
                     return 'main'
 
                 if self.actions.pressed('cancel'):
@@ -95,23 +106,23 @@ class RFWidget_BrushStroke_Factory:
                 lpos, cpos = self.stroke2D[-1], self.actions.mouse
                 npos = lpos + (cpos - lpos) * (1 - self.tightness)
                 self.stroke2D.append(npos)
-                tag_redraw_all('BrushStroke_PolyStrips line')
-                self.callback_actioning()
+                tag_redraw_all('BrushStroke line')
+                self.callback_actioning(self.action_name)
 
-            @RFW_BrushStroke.FSM_State('stroking', 'exit')
+            @FSM.on_state('stroking', 'exit')
             def modal_line_exit(self):
-                tag_redraw_all('BrushStroke_PolyStrips line_exit')
+                tag_redraw_all('BrushStroke line_exit')
 
-            @RFW_BrushStroke.FSM_State('brush sizing', 'enter')
+            @FSM.on_state('brush sizing', 'enter')
             def modal_brush_sizing_enter(self):
                 if self.actions.mouse.x > self.actions.size.x / 2:
                     self.sizing_pos = self.actions.mouse - Vec2D((self.radius, 0))
                 else:
                     self.sizing_pos = self.actions.mouse + Vec2D((self.radius, 0))
                 self.rfw_cursor = 'MOVE_X'
-                tag_redraw_all('BrushStroke_PolyStrips brush_sizing_enter')
+                tag_redraw_all('BrushStroke brush_sizing_enter')
 
-            @RFW_BrushStroke.FSM_State('brush sizing')
+            @FSM.on_state('brush sizing')
             def modal_brush_sizing(self):
                 if self.actions.pressed('confirm'):
                     self.radius = (self.sizing_pos - self.actions.mouse).length
@@ -137,8 +148,8 @@ class RFWidget_BrushStroke_Factory:
             ###################
             # draw functions
 
-            @RFW_BrushStroke.Draw('post3d')
-            @RFW_BrushStroke.FSM_OnlyInState({'main','stroking'})
+            @DrawCallbacks.on_draw('post3d')
+            @FSM.onlyinstate({'main','stroking'})
             def draw_brush(self):
                 xy = self.rfcontext.actions.mouse
                 p,n,_,_ = self.rfcontext.raycast_sources_mouse()
@@ -166,8 +177,8 @@ class RFWidget_BrushStroke_Factory:
                 bgl.glDepthFunc(bgl.GL_LEQUAL)
                 bgl.glDepthRange(0.0, 1.0)
 
-            @RFW_BrushStroke.Draw('post2d')
-            @RFW_BrushStroke.FSM_OnlyInState('stroking')
+            @DrawCallbacks.on_draw('post2d')
+            @FSM.onlyinstate('stroking')
             def draw_line(self):
                 # draw brush strokes (screen space)
                 #cr,cg,cb,ca = self.line_color
@@ -175,8 +186,8 @@ class RFWidget_BrushStroke_Factory:
                 # bgl.glEnable(bgl.GL_MULTISAMPLE)
                 Globals.drawing.draw2D_linestrip(self.stroke2D, themes['stroke'], width=2, stipple=[5, 5])
 
-            @RFW_BrushStroke.Draw('post2d')
-            @RFW_BrushStroke.FSM_OnlyInState('brush sizing')
+            @DrawCallbacks.on_draw('post2d')
+            @FSM.onlyinstate('brush sizing')
             def draw_brush_sizing(self):
                 bgl.glEnable(bgl.GL_BLEND)
                 # bgl.glEnable(bgl.GL_MULTISAMPLE)

@@ -22,6 +22,7 @@ Created by Jonathan Denning, Jonathan Williamson, and Patrick Moore
 import bgl
 
 from ..rftool import RFTool
+from ..rfwidgets.rfwidget_default import RFWidget_Default_Factory
 from ..rfwidgets.rfwidget_brushfalloff import RFWidget_BrushFalloff_Factory
 
 from ...addon_common.common.drawing import (
@@ -34,6 +35,7 @@ from ...addon_common.common.drawing import (
 from ...addon_common.common.boundvar import BoundBool, BoundInt, BoundFloat, BoundString
 from ...addon_common.common.profiler import profiler
 from ...addon_common.common.maths import Point, Point2D, Vec2D, Color, closest_point_segment
+from ...addon_common.common.fsm import FSM
 from ...addon_common.common.globals import Globals
 from ...addon_common.common.utils import iter_pairs, delay_exec
 from ...addon_common.common.blender import tag_redraw_all
@@ -41,7 +43,7 @@ from ...addon_common.common.blender import tag_redraw_all
 from ...config.options import options, themes
 
 
-class RFTool_Tweak(RFTool):
+class Tweak(RFTool):
     name        = 'Tweak'
     description = 'Adjust vertex positions with a smooth brush'
     icon        = 'tweak-icon.png'
@@ -51,22 +53,22 @@ class RFTool_Tweak(RFTool):
     statusbar   = '{{brush}} Tweak\t{{brush alt}} Tweak selection\t{{brush radius}} Brush size\t{{brush strength}} Brush strength\t{{brush falloff}} Brush falloff'
     ui_config   = 'tweak_options.html'
 
-class Tweak_RFWidgets:
+    RFWidget_Default = RFWidget_Default_Factory.create('Tweak default')
     RFWidget_BrushFalloff = RFWidget_BrushFalloff_Factory.create(
+        'Tweak brush',
         BoundInt('''options['tweak radius']''', min_value=1),
         BoundFloat('''options['tweak falloff']''', min_value=0.00, max_value=100.0),
         BoundFloat('''options['tweak strength']''', min_value=0.01, max_value=1.0),
         fill_color=themes['tweak'],
     )
 
-    def init_rfwidgets(self):
-        self.rfwidget = self.RFWidget_BrushFalloff(self)
-
-
-class Tweak(RFTool_Tweak, Tweak_RFWidgets):
-    @RFTool_Tweak.on_init
+    @RFTool.on_init
     def init(self):
-        self.init_rfwidgets()
+        self.rfwidgets = {
+            'default':     self.RFWidget_Default(self),
+            'brushstroke': self.RFWidget_BrushFalloff(self),
+        }
+        self.rfwidget = None
 
     def reset_current_brush(self):
         options.reset(keys={'tweak radius', 'tweak falloff', 'tweak strength'})
@@ -94,19 +96,24 @@ class Tweak(RFTool_Tweak, Tweak_RFWidgets):
         self.document.body.getElementById(f'tweak-current-strength').dirty(cause='copied preset to current brush')
         self.document.body.getElementById(f'tweak-current-falloff').dirty(cause='copied preset to current brush')
 
-    @RFTool_Tweak.on_ui_setup
+    @RFTool.on_ui_setup
     def ui(self):
         self.update_preset_name(1)
         self.update_preset_name(2)
         self.update_preset_name(3)
         self.update_preset_name(4)
 
-    @RFTool_Tweak.on_reset
+    @RFTool.on_reset
     def reset(self):
         self.sel_only = False
 
-    @RFTool_Tweak.FSM_State('main')
+    @FSM.on_state('main')
     def main(self):
+        if self.actions.using_onlymods(['brush', 'brush alt', 'brush radius', 'brush falloff', 'brush strength']):
+            self.rfwidget = self.rfwidgets['brushstroke']
+        else:
+            self.rfwidget = self.rfwidgets['default']
+
         if self.rfcontext.actions.pressed(['brush', 'brush alt'], unpress=False):
             self.sel_only = self.rfcontext.actions.using('brush alt')
             self.rfcontext.actions.unpress()
@@ -157,7 +164,7 @@ class Tweak(RFTool_Tweak, Tweak_RFWidgets):
         #     self.rfcontext.select(faces, only=False)
         #     return
 
-    # @RFTool_Tweak.FSM_State('selectadd/deselect')
+    # @FSM.on_state('selectadd/deselect')
     # @profiler.function
     # def modal_selectadd_deselect(self):
     #     if not self.rfcontext.actions.using(['select single','select single add']):
@@ -170,7 +177,7 @@ class Tweak(RFTool_Tweak, Tweak_RFWidgets):
     #         self.rfcontext.undo_push('select add')
     #         return 'select'
 
-    # @RFTool_Tweak.FSM_State('select')
+    # @FSM.on_state('select')
     # @profiler.function
     # def modal_select(self):
     #     if not self.rfcontext.actions.using(['select single','select single add']):
@@ -180,13 +187,13 @@ class Tweak(RFTool_Tweak, Tweak_RFWidgets):
     #     self.rfcontext.select(bmf, supparts=False, only=False)
 
 
-    @RFTool_Tweak.FSM_State('move', 'can enter')
+    @FSM.on_state('move', 'can enter')
     def move_can_enter(self):
-        radius = self.rfwidget.get_scaled_radius()
+        radius = self.rfwidgets['brushstroke'].get_scaled_radius()
         nearest = self.rfcontext.nearest_verts_mouse(radius)
         if not nearest: return False
 
-    @RFTool_Tweak.FSM_State('move', 'enter')
+    @FSM.on_state('move', 'enter')
     def move_enter(self):
         # gather options
         opt_mask_boundary = options['tweak mask boundary']
@@ -195,7 +202,7 @@ class Tweak(RFTool_Tweak, Tweak_RFWidgets):
         opt_mask_selected = options['tweak mask selected']
 
         Point_to_Point2D = self.rfcontext.Point_to_Point2D
-        get_strength_dist = self.rfwidget.get_strength_dist
+        get_strength_dist = self.rfwidgets['brushstroke'].get_strength_dist
         def is_visible(bmv):
             # always perform occlusion test
             return self.rfcontext.is_visible(bmv.co, bmv.normal, occlusion_test_override=True)
@@ -203,7 +210,7 @@ class Tweak(RFTool_Tweak, Tweak_RFWidgets):
             return self.rfcontext.symmetry_planes_for_point(bmv.co) if opt_mask_symmetry == 'maintain' else None
 
         # get all verts under brush
-        radius = self.rfwidget.get_scaled_radius()
+        radius = self.rfwidgets['brushstroke'].get_scaled_radius()
         nearest = self.rfcontext.nearest_verts_mouse(radius)
         self.bmverts = [(bmv, on_planes(bmv), Point_to_Point2D(bmv.co), get_strength_dist(d3d)) for (bmv, d3d) in nearest]
 
@@ -227,8 +234,8 @@ class Tweak(RFTool_Tweak, Tweak_RFWidgets):
         self.rfcontext.split_target_visualization(verts=[bmv for (bmv,_,_,_) in self.bmverts])
         self.rfcontext.undo_push('tweak move')
 
-    @RFTool_Tweak.FSM_State('move')
-    @RFTool_Tweak.dirty_when_done
+    @FSM.on_state('move')
+    @RFTool.dirty_when_done
     def move(self):
         if self.rfcontext.actions.released(['brush','brush alt']):
             return 'main'
@@ -262,7 +269,7 @@ class Tweak(RFTool_Tweak, Tweak_RFWidgets):
         for bmf in self.bmfaces:
             update_face_normal(bmf)
 
-    @RFTool_Tweak.FSM_State('move', 'exit')
+    @FSM.on_state('move', 'exit')
     def move_exit(self):
         self.rfcontext.clear_split_target_visualization()
         self._timer.done()

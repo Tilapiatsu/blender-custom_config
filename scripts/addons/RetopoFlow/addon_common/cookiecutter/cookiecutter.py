@@ -35,7 +35,6 @@ from .cookiecutter_ui import CookieCutter_UI
 from .cookiecutter_blender import CookieCutter_Blender
 from .cookiecutter_exceptions import CookieCutter_Exceptions
 
-
 class CookieCutter(Operator, CookieCutter_UI, CookieCutter_FSM, CookieCutter_Blender, CookieCutter_Exceptions):
     '''
     CookieCutter is used to create advanced operators very quickly!
@@ -46,15 +45,30 @@ class CookieCutter(Operator, CookieCutter_UI, CookieCutter_FSM, CookieCutter_Ble
     - provide appropriate values for Blender class attributes: bl_idname, bl_label, etc.
     - provide appropriate dictionary that maps user action labels to keyboard and mouse actions
     - override the start function
-    - register finite state machine state callbacks with the CookieCutter.FSM_State(state) function decorator
+    - register finite state machine state callbacks with the FSM.on_state(state) function decorator
         - state can be any string that is a state in your FSM
         - Must provide at least a 'main' state
-        - return values of each FSM_State decorated function tell FSM which state to switch into
+        - return values of each on_state decorated function tell FSM which state to switch into
             - None, '', or no return: stay in same state
     - register drawing callbacks with the CookieCutter.Draw(mode) function decorator
         - mode: 'pre3d', 'post3d', 'post2d'
 
     '''
+
+    # registry = []
+    # def __init_subclass__(cls, *args, **kwargs):
+    #     super().__init_subclass__(*args, **kwargs)
+    #     if not hasattr(cls, '_cookiecutter_index'):
+    #         # add cls to registry (might get updated later) and add FSM,Draw
+    #         cls._rfwidget_index = len(CookieCutter.registry)
+    #         CookieCutter.registry.append(cls)
+    #         cls.fsm = FSM()
+    #         cls.drawcallbacks = DrawCallbacks()
+    #     else:
+    #         # update registry, but do not add new FSM
+    #         CookieCutter.registry[cls._cookiecutter_index] = cls
+
+
     ############################################################################
     # override the following values and functions
 

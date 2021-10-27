@@ -3,7 +3,7 @@ Copyright (C) 2021 CG Cookie
 http://cgcookie.com
 hello@cgcookie.com
 
-Created by Jonathan Denning, Jonathan Williamson, and Patrick Moore
+Created by Jonathan Denning, Jonathan Williamson
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -19,19 +19,23 @@ Created by Jonathan Denning, Jonathan Williamson, and Patrick Moore
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 '''
 
-from ..rfwidgets.rfwidget_default import RFWidget_Default_Factory
-from ..rfwidgets.rfwidget_linecut import RFWidget_LineCut_Factory
+from inspect import isfunction
 
-class Contours_RFWidgets:
-    RFWidget_Default = RFWidget_Default_Factory.create()
-    RFWidget_Move = RFWidget_Default_Factory.create('HAND')
-    RFWidget_LineCut = RFWidget_LineCut_Factory.create()
 
-    def init_rfwidgets(self):
-        self.rfwidgets = {
-            'default': self.RFWidget_Default(self),
-            'cut':     self.RFWidget_LineCut(self),
-            'hover':   self.RFWidget_Move(self),
-        }
-        self.rfwidget = None
+##################################################
 
+
+# find functions of object that has key attribute
+# returns list of (attribute value, fn)
+def find_fns(obj, key):
+    cls = type(obj)
+    fn_type = type(find_fns)
+    members = [getattr(cls, k) for k in dir(cls)]
+    # test if type is fn_type rather than isfunction() because bpy has problems!
+    # methods = [member for member in members if isfunction(member)]
+    methods = [member for member in members if type(member) == fn_type]
+    return [
+        (getattr(method, key), method)
+        for method in methods
+        if hasattr(method, key)
+    ]

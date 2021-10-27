@@ -22,6 +22,7 @@ Created by Jonathan Denning, Jonathan Williamson, and Patrick Moore
 from functools import wraps
 
 from ..addon_common.common.fsm import FSM
+from ..addon_common.common.functools import find_fns
 from ..addon_common.common.drawing import DrawCallbacks
 from ..addon_common.common.boundvar import (
     BoundVar,
@@ -33,6 +34,14 @@ from ..config.options import options, themes, visualization
 
 
 rftools = {}
+
+def rftool_callback_decorator(event, fn):
+    if not hasattr(fn, '_rftool_callback'):
+        fn._rftool_callback = []
+    fn._rftool_callback += [event]
+    return fn
+
+
 
 class RFTool:
     '''
@@ -46,74 +55,54 @@ class RFTool:
         rftools[cls.__name__] = cls
         if not hasattr(cls, '_rftool_index'):
             # add cls to registry (might get updated later) and add FSM
+            if False: print(f'RFTool: adding to registry at index {len(RFTool.registry)}: {cls} {cls.__name__} ')
             cls._rftool_index = len(RFTool.registry)
             RFTool.registry.append(cls)
-            cls._fsm = FSM()
-            cls.FSM_State = cls._fsm.wrapper
-            cls.FSM_OnlyInState = cls._fsm.onlyinstate_wrapper
-            cls._draw = DrawCallbacks()
-            cls.Draw = cls._draw.wrapper
-            cls._callbacks = {
-                'init':          [],    # called when RF starts up
-                'ui setup':      [],    # called when RF is setting up UI
-                'reset':         [],    # called when RF switches into tool or undo/redo
-                'timer':         [],    # called every timer interval
-                'target change': [],    # called whenever rftarget has changed (selection or edited)
-                'view change':   [],    # called whenever view has changed
-                'mouse move':    [],    # called whenever mouse has moved
-                'mouse stop':    [],    # called whenever mouse has stopped moving
-            }
-            if not hasattr(cls, 'quick_shortcut'):
-                cls.quick_shortcut = None
-            if not hasattr(cls, 'ui_config'):
-                cls.ui_config = None
+            if not hasattr(cls, 'quick_shortcut'): cls.quick_shortcut = None
+            if not hasattr(cls, 'ui_config'): cls.ui_config = None
         else:
             # update registry, but do not add new FSM
+            if False: print(f'RFTool: updating registry at index {cls._rftool_index}: {cls} {cls.__name__}')
             RFTool.registry[cls._rftool_index] = cls
+            pass
         super().__init_subclass__(*args, **kwargs)
+
 
     #####################################################
     # function decorators for different events
 
-    @classmethod
-    def callback_decorator(cls, event):
-        def wrapper(fn):
-            if event not in cls._callbacks: cls._callbacks[event] = []
-            cls._callbacks[event] += [fn]
-            return fn
-        return wrapper
+    @staticmethod
+    def on_init(fn): return rftool_callback_decorator('init', fn)
+    @staticmethod
+    def on_ui_setup(fn): return rftool_callback_decorator('ui setup', fn)
+    @staticmethod
+    def on_reset(fn): return rftool_callback_decorator('reset', fn)
+    @staticmethod
+    def on_timer(fn): return rftool_callback_decorator('timer', fn)
+    @staticmethod
+    def on_target_change(fn): return rftool_callback_decorator('target change', fn)
+    @staticmethod
+    def on_view_change(fn): return rftool_callback_decorator('view change', fn)
+    @staticmethod
+    def on_mouse_move(fn): return rftool_callback_decorator('mouse move', fn)
+    @staticmethod
+    def on_mouse_stop(fn): return rftool_callback_decorator('mouse stop', fn)
 
-    @classmethod
-    def on_init(cls, fn):
-        return cls.callback_decorator('init')(fn)
-
-    @classmethod
-    def on_ui_setup(cls, fn):
-        return cls.callback_decorator('ui setup')(fn)
-
-    @classmethod
-    def on_reset(cls, fn):
-        return cls.callback_decorator('reset')(fn)
-
-    @classmethod
-    def on_timer(cls, fn):
-        return cls.callback_decorator('timer')(fn)
-
-    @classmethod
-    def on_target_change(cls, fn):
-        return cls.callback_decorator('target change')(fn)
-
-    @classmethod
-    def on_view_change(cls, fn):
-        return cls.callback_decorator('view change')(fn)
-
-    @classmethod
-    def on_mouse_move(cls, fn):
-        return cls.callback_decorator('mouse move')(fn)
-
-    @classmethod
-    def on_mouse_stop(cls, fn):
-        return cls.callback_decorator('mouse stop')(fn)
+    def _gather_callbacks(self):
+        rftool_fns = find_fns(self, '_rftool_callback')
+        self._callbacks = {
+            mode: [fn for (modes, fn) in rftool_fns if mode in modes]
+            for mode in [
+                'init',          # called when RF starts up
+                'ui setup',      # called when RF is setting up UI
+                'reset',         # called when RF switches into tool or undo/redo
+                'timer',         # called every timer interval
+                'target change', # called whenever rftarget has changed (selection or edited)
+                'view change',   # called whenever view has changed
+                'mouse move',    # called whenever mouse has moved
+                'mouse stop',    # called whenever mouse has stopped moving
+            ]
+        }
 
     def _callback(self, event, *args, **kwargs):
         ret = []
@@ -125,19 +114,20 @@ class RFTool:
         return fn(*args, **kwargs)
 
 
-    def __init__(self, rfcontext):
+    def __init__(self, rfcontext, start='main', reset_state=None):
         RFTool.rfcontext = rfcontext
         RFTool.drawing = rfcontext.drawing
         RFTool.actions = rfcontext.actions
         RFTool.document = rfcontext.document
         self.rfwidget = None
-        self._fsm.init(self, start='main')
-        self._draw.init(self)
+        self._fsm = FSM(self, start=start, reset_state=reset_state)
+        self._draw = DrawCallbacks(self)
+        self._gather_callbacks()
         self._callback('init')
         self._reset()
 
     def _reset(self):
-        self._fsm.force_set_state('main')
+        self._fsm.force_reset()
         self._callback('reset')
         self._update_all()
 

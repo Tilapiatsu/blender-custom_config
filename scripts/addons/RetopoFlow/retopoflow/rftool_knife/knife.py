@@ -38,16 +38,18 @@ from ...addon_common.common.drawing import (
 from ...addon_common.common.profiler import profiler
 from ...addon_common.common.maths import Point, Point2D, Vec2D, Vec, Direction2D, intersection2d_line_line, closest2d_point_segment
 from ...addon_common.common.globals import Globals
+from ...addon_common.common.fsm import FSM
 from ...addon_common.common.utils import iter_pairs
 from ...addon_common.common.blender import tag_redraw_all
 from ...addon_common.common.boundvar import BoundBool, BoundInt, BoundFloat, BoundString
 from ...addon_common.common.decorators import timed_call
+from ...addon_common.common.drawing import DrawCallbacks
 
 
 from ...config.options import options, themes
 
 
-class RFTool_Knife(RFTool):
+class Knife(RFTool):
     name        = 'Knife'
     description = 'Cut complex topology into existing geometry on vertex-by-vertex basis'
     icon        = 'knife-icon.png'
@@ -57,30 +59,25 @@ class RFTool_Knife(RFTool):
     statusbar   = '{{insert}} Insert'
     ui_config   = 'knife_options.html'
 
-class Knife_RFWidgets:
-    RFWidget_Default   = RFWidget_Default_Factory.create()
-    RFWidget_Knife     = RFWidget_Default_Factory.create('KNIFE')
-    RFWidget_Move      = RFWidget_Default_Factory.create('HAND')
+    RFWidget_Default   = RFWidget_Default_Factory.create('Knife default')
+    RFWidget_Knife     = RFWidget_Default_Factory.create('Knife knife', 'KNIFE')
+    RFWidget_Move      = RFWidget_Default_Factory.create('Knife move', 'HAND')
 
-    def init_rfwidgets(self):
+    @RFTool.on_init
+    def init(self):
         self.rfwidgets = {
             'default': self.RFWidget_Default(self),
             'knife':   self.RFWidget_Knife(self),
             'hover':   self.RFWidget_Move(self),
         }
         self.rfwidget = None
-
-class Knife(RFTool_Knife, Knife_RFWidgets):
-    @RFTool_Knife.on_init
-    def init(self):
-        self.init_rfwidgets()
         self.first_time = True
         self.knife_start = None
         self.quick_knife = False
         self.update_state_info()
         self.previs_timer = self.actions.start_timer(120.0, enabled=False)
 
-    @RFTool_Knife.on_reset
+    @RFTool.on_reset
     def reset(self):
         if self.actions.using('knife quick'):
             self._fsm.force_set_state('quick')
@@ -88,11 +85,10 @@ class Knife(RFTool_Knife, Knife_RFWidgets):
         else:
             self.previs_timer.stop()
 
-    @RFTool_Knife.on_reset
-    @RFTool_Knife.on_target_change
-    @RFTool_Knife.on_view_change
-    # @profiler.function
-    @RFTool_Knife.FSM_OnlyInState({'main', 'quick', 'insert'})
+    @RFTool.on_reset
+    @RFTool.on_target_change
+    @RFTool.on_view_change
+    @FSM.onlyinstate({'main', 'quick', 'insert'})
     def update_state_info(self):
         if True: # with profiler.code('getting selected geometry'):
             self.sel_verts = self.rfcontext.rftarget.get_selected_verts()
@@ -108,7 +104,6 @@ class Knife(RFTool_Knife, Knife_RFWidgets):
         if self.rfcontext.loading_done:
             self.set_next_state(force=True)
 
-    # @profiler.function
     def set_next_state(self, force=False):
         '''
         determines what the next state will be, based on selected mode, selected geometry, and hovered geometry
@@ -122,12 +117,12 @@ class Knife(RFTool_Knife, Knife_RFWidgets):
             self.nearest_geom = self.nearest_vert or self.nearest_edge or self.nearest_face
 
 
-    @RFTool_Knife.FSM_State('quick', 'enter')
+    @FSM.on_state('quick', 'enter')
     def quick_enter(self):
         self.quick_knife = True
         self.rfwidget = self.rfwidgets['knife']
 
-    @RFTool_Knife.FSM_State('quick')
+    @FSM.on_state('quick')
     def quick_main(self):
         if self.actions.pressed({'confirm','cancel'}, ignoremouse=True):
             self.quick_knife = False
@@ -153,12 +148,12 @@ class Knife(RFTool_Knife, Knife_RFWidgets):
             return 'insert'
 
 
-    @RFTool_Knife.FSM_State('main', 'enter')
+    @FSM.on_state('main', 'enter')
     def main_enter(self):
         self.quick_knife = False
         self.update_state_info()
 
-    @RFTool_Knife.FSM_State('main')
+    @FSM.on_state('main')
     def main(self):
         if not self.actions.using_onlymods('insert'):
             self.knife_start = None
@@ -245,7 +240,7 @@ class Knife(RFTool_Knife, Knife_RFWidgets):
         ]
 
 
-    @RFTool_Knife.FSM_State('insert')
+    @FSM.on_state('insert')
     def insert(self):
         self.rfcontext.undo_push('insert')
         return self._insert()
@@ -305,7 +300,7 @@ class Knife(RFTool_Knife, Knife_RFWidgets):
 
         return (xy0, xy1, xy2, xy3)
 
-    @RFTool_Knife.dirty_when_done
+    @RFTool.dirty_when_done
     def _insert(self):
         self.last_delta = None
         self.move_done_pressed = None
@@ -398,7 +393,7 @@ class Knife(RFTool_Knife, Knife_RFWidgets):
                     bmfs_to_shatter |= cur_under | pre_under
                     if cur_under & pre_under and not prev.share_edge(cur):
                         nedge = self.rfcontext.new_edge([prev, cur])
-                    if cur_faces & pre_faces:
+                    if cur_faces & pre_faces and not cur.share_edge(prev):
                         face = next(iter(cur_faces & pre_faces))
                         try:
                             face.split(prev, cur)
@@ -467,9 +462,9 @@ class Knife(RFTool_Knife, Knife_RFWidgets):
         self.last_delta = None
         self.defer_recomputing = defer_recomputing
 
-    @RFTool_Knife.FSM_State('move after select')
+    @FSM.on_state('move after select')
     # @profiler.function
-    @RFTool_Knife.dirty_when_done
+    @RFTool.dirty_when_done
     def modal_move_after_select(self):
         if self.actions.released('action'):
             return 'main' if not self.quick_knife else 'quick'
@@ -481,7 +476,7 @@ class Knife(RFTool_Knife, Knife_RFWidgets):
             self.rfcontext.undo_push('move after select')
             return 'move'
 
-    @RFTool_Knife.FSM_State('move', 'enter')
+    @FSM.on_state('move', 'enter')
     def move_enter(self):
         self.move_opts = {
             'timer': self.actions.start_timer(120),
@@ -490,7 +485,7 @@ class Knife(RFTool_Knife, Knife_RFWidgets):
         self.rfcontext.split_target_visualization_selected()
         self.rfcontext.set_accel_defer(True)
 
-    @RFTool_Knife.FSM_State('move')
+    @FSM.on_state('move')
     # @profiler.function
     def modal_move(self):
         if self.move_done_pressed and self.actions.pressed(self.move_done_pressed):
@@ -535,7 +530,7 @@ class Knife(RFTool_Knife, Knife_RFWidgets):
         self.rfcontext.update_verts_faces(v for v,_ in self.bmverts)
         self.rfcontext.dirty()
 
-    @RFTool_Knife.FSM_State('move', 'exit')
+    @FSM.on_state('move', 'exit')
     def move_exit(self):
         self.move_opts['timer'].done()
         self.rfcontext.set_accel_defer(False)
@@ -612,8 +607,8 @@ class Knife(RFTool_Knife, Knife_RFWidgets):
                     draw.vertex(co1)
                     draw.vertex(co2)
 
-    @RFTool_Knife.Draw('post2d')
-    @RFTool_Knife.FSM_OnlyInState({'main', 'quick'})
+    @DrawCallbacks.on_draw('post2d')
+    @FSM.onlyinstate({'main', 'quick'})
     def draw_postpixel(self):
         # TODO: put all logic into set_next_state(), such as vertex snapping, edge splitting, etc.
 

@@ -26,8 +26,10 @@ from mathutils import Matrix, Vector
 
 from ..rfwidget import RFWidget
 
+from ...addon_common.common.fsm import FSM
 from ...addon_common.common.globals import Globals
 from ...addon_common.common.blender import tag_redraw_all, matrix_vector_mult
+from ...addon_common.common.drawing import DrawCallbacks
 from ...addon_common.common.boundvar import BoundBool, BoundInt, BoundFloat
 from ...addon_common.common.maths import Vec, Point, Point2D, Direction, Color, Vec2D
 from ...config.options import themes
@@ -40,14 +42,14 @@ class RFWidget_BrushFalloff_Factory:
     '''
 
     @staticmethod
-    def create(radius, falloff, strength, fill_color=Color((1,1,1,1)), outer_color=Color((1,1,1,1)), inner_color=Color((1,1,1,0.5)), below_alpha=Color((1,1,1,0.65))):
-        class RFW_BrushFalloff(RFWidget):
+    def create(action_name, radius, falloff, strength, fill_color=Color((1,1,1,1)), outer_color=Color((1,1,1,1)), inner_color=Color((1,1,1,0.5)), below_alpha=Color((1,1,1,0.65))):
+        class RFWidget_BrushFalloff(RFWidget):
             rfw_name = 'Brush Falloff'
             rfw_cursor = 'CROSSHAIR'
 
-        class RFWidget_BrushFalloff(RFW_BrushFalloff):
-            @RFW_BrushFalloff.on_init
+            @RFWidget.on_init
             def init(self):
+                self.action_name = action_name
                 self.outer_color = outer_color
                 self.inner_color = inner_color
                 self.fill_color = fill_color
@@ -56,9 +58,18 @@ class RFWidget_BrushFalloff_Factory:
                 self.scale = 1.0
                 self.redraw_on_mouse = True
 
-            @RFW_BrushFalloff.FSM_State('main')
+            @FSM.on_state('main')
             def main(self):
                 self.update_mouse()
+
+                if self.rfcontext.actions.pressed('brush radius increase'):
+                    self.radius += 10
+                    tag_redraw_all('BrushFalloff increase radius')
+                    return
+                if self.rfcontext.actions.pressed('brush radius decrease'):
+                    self.radius -= 10
+                    tag_redraw_all('BrushFalloff decrease radius')
+                    return
 
                 if self.rfcontext.actions.pressed('brush radius'):
                     self._dist_to_var_fn = self.dist_to_radius
@@ -73,16 +84,16 @@ class RFWidget_BrushFalloff_Factory:
                     self._var_to_dist_fn = self.falloff_to_dist
                     return 'change'
 
-            @RFW_BrushFalloff.FSM_State('change', 'enter')
+            @FSM.on_state('change', 'enter')
             def change_enter(self):
                 dist = self._var_to_dist_fn()
                 actions = self.rfcontext.actions
                 self._change_pre = dist
                 self._change_center = actions.mouse - Vec2D((dist, 0))
                 self._timer = self.actions.start_timer(120)
-                tag_redraw_all('BrushFalloff_Relax change_enter')
+                tag_redraw_all('BrushFalloff change_enter')
 
-            @RFW_BrushFalloff.FSM_State('change')
+            @FSM.on_state('change')
             def change(self):
                 assert self._dist_to_var_fn
                 actions = self.rfcontext.actions
@@ -96,15 +107,15 @@ class RFWidget_BrushFalloff_Factory:
                 dist = (self._change_center - actions.mouse).length
                 self._dist_to_var_fn(dist)
 
-            @RFW_BrushFalloff.FSM_State('change', 'exit')
+            @FSM.on_state('change', 'exit')
             def change_exit(self):
                 self._dist_to_var_fn = None
                 self._var_to_dist_fn = None
                 self._timer.done()
-                tag_redraw_all('BrushFalloff_Relax change_exit')
+                tag_redraw_all('BrushFalloff change_exit')
 
-            @RFW_BrushFalloff.Draw('post3d')
-            @RFW_BrushFalloff.FSM_OnlyInState('main')
+            @DrawCallbacks.on_draw('post3d')
+            @FSM.onlyinstate('main')
             def draw_brush(self):
                 xy = self.rfcontext.actions.mouse
                 p,n,_,_ = self.rfcontext.raycast_sources_mouse()
@@ -139,8 +150,8 @@ class RFWidget_BrushFalloff_Factory:
                 bgl.glDepthFunc(bgl.GL_LEQUAL)
                 bgl.glDepthRange(0.0, 1.0)
 
-            @RFW_BrushFalloff.Draw('post2d')
-            @RFW_BrushFalloff.FSM_OnlyInState('change')
+            @DrawCallbacks.on_draw('post2d')
+            @FSM.onlyinstate('change')
             def draw_brush_sizing(self):
                 #r = (self._change_center - self.actions.mouse).length
                 r = self.radius
@@ -262,9 +273,6 @@ class RFWidget_BrushFalloff_Factory:
             ##################
             # mouse
 
-            ox = Direction((1,0,0))
-            oy = Direction((0,1,0))
-            oz = Direction((0,0,1))
             def update_mouse(self):
                 if self.actions.mouse == self.last_mouse: return
                 self.last_mouse = self.actions.mouse
@@ -285,13 +293,13 @@ class RFWidget_BrushFalloff_Factory:
                 #     self.clear()
                 #     return
                 # xy = self.rfcontext.actions.mouse
-                rmat = Matrix.Rotation(self.oz.angle(n), 4, self.oz.cross(n))
+                rmat = Matrix.Rotation(Direction.Z.angle(n), 4, Direction.Z.cross(n))
                 self.hit = True
                 self.scale = self.rfcontext.size2D_to_size(1.0, xy, depth)
                 self.hit_p = p
-                self.hit_x = Vec(matrix_vector_mult(rmat, self.ox))
-                self.hit_y = Vec(matrix_vector_mult(rmat, self.oy))
-                self.hit_z = Vec(matrix_vector_mult(rmat, self.oz))
+                self.hit_x = Vec(matrix_vector_mult(rmat, Direction.X))
+                self.hit_y = Vec(matrix_vector_mult(rmat, Direction.Y))
+                self.hit_z = Vec(matrix_vector_mult(rmat, Direction.Z))
                 self.hit_rmat = rmat
 
         return RFWidget_BrushFalloff

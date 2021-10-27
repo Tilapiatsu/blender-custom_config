@@ -26,8 +26,10 @@ from mathutils import Matrix, Vector
 
 from ..rfwidget import RFWidget
 
+from ...addon_common.common.fsm import FSM
 from ...addon_common.common.globals import Globals
 from ...addon_common.common.blender import tag_redraw_all
+from ...addon_common.common.drawing import DrawCallbacks
 from ...addon_common.common.maths import Vec, Point, Point2D, Direction, Color
 from ...config.options import themes
 
@@ -44,35 +46,33 @@ class RFWidget_LineCut_Factory:
     '''
 
     @staticmethod
-    def create(line_color=None, circle_color=Color((1,1,1,0.5)), circle_border_color=Color((0,0,0,0.5))):
-
-        class RFW_LineCut(RFWidget):
+    def create(action_name, line_color=None, circle_color=Color((1,1,1,0.5)), circle_border_color=Color((0,0,0,0.5))):
+        class RFWidget_LineCut(RFWidget):
             rfw_name = 'Line'
             rfw_cursor = 'CROSSHAIR'
 
-
-        class RFWidget_LineCut(RFW_LineCut):
-            @RFW_LineCut.on_init
+            @RFWidget.on_init
             def init(self):
+                self.action_name = action_name
                 self.line2D = [None, None]
                 self.line_color = line_color
                 self.circle_color = circle_color
                 self.circle_border_color = circle_border_color
 
-            @RFW_LineCut.FSM_State('main')
+            @FSM.on_state('main')
             def modal_main(self):
                 if self.actions.pressed('insert'):
                     return 'line'
 
-            @RFW_LineCut.FSM_State('line', 'enter')
+            @FSM.on_state('line', 'enter')
             def modal_line_enter(self):
                 self.line2D = [self.actions.mouse, None]
                 tag_redraw_all('Line line_enter')
 
-            @RFW_LineCut.FSM_State('line')
+            @FSM.on_state('line')
             def modal_line(self):
                 if self.actions.released('insert'):
-                    self.callback_actions()
+                    self.callback_actions(self.action_name)
                     return 'main'
 
                 if self.actions.pressed('cancel'):
@@ -82,13 +82,14 @@ class RFWidget_LineCut_Factory:
                 if self.line2D[1] != self.actions.mouse:
                     self.line2D[1] = self.actions.mouse
                     tag_redraw_all('Line line')
+                    self.callback_actioning(self.action_name)
 
-            @RFW_LineCut.FSM_State('line', 'exit')
+            @FSM.on_state('line', 'exit')
             def modal_line_exit(self):
                 tag_redraw_all('Line line_exit')
 
-            @RFW_LineCut.Draw('post2d')
-            @RFW_LineCut.FSM_OnlyInState('line')
+            @DrawCallbacks.on_draw('post2d')
+            @FSM.onlyinstate('line')
             def draw_line(self):
                 #cr,cg,cb,ca = self.line_color
                 p0,p1 = self.line2D

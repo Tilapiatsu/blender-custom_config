@@ -62,6 +62,15 @@ varying vec3 vCNormal;          // normal wrt camera
 varying vec4 vColor;            // color of geometry (considers selection)
 
 
+const bool debug_invert_backfacing = false;
+
+// const vec3 [] face_colors = {
+//     vec3(1.0, 1.0, 1.0),
+//     vec3(1.0, 0.1, 0.1),
+//     vec3(0.1, 1.0, 0.1),
+//     vec3(0.1, 0.1, 1.0)
+// };
+
 /////////////////////////////////////////////////////////////////////////
 // vertex shader
 
@@ -113,6 +122,10 @@ void main() {
 
     vColor = (!use_selection || selected < 0.5) ? color : color_selected;
     vColor.a *= (selected > 0.5) ? 1.0 : 1.0 - hidden;
+
+    if(debug_invert_backfacing && vCNormal.z < 0.0) {
+        vColor = vec4(vec3(1,1,1) - vColor.rgb, vColor.a);
+    }
 }
 
 

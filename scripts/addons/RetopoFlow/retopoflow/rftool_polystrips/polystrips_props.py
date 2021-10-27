@@ -28,17 +28,15 @@ import bpy
 import bgl
 from mathutils import Matrix
 
-from ..rftool import rftools
+from ..rftool import RFTool
 
 from ...addon_common.common.boundvar import BoundInt, BoundFloat
 from ...addon_common.common.utils import delay_exec
 from ...config.options import options
 
 
-RFTool_PolyStrips = rftools['RFTool_PolyStrips']
-
 class PolyStrips_Props:
-    @RFTool_PolyStrips.on_init
+    @RFTool.on_init
     def init_props(self):
         self._var_cut_count = BoundInt('''self.var_cut_count''', min_value=2, max_value=500)
         self._var_scale_falloff = BoundFloat('''options['polystrips scale falloff']''', min_value=0.25, max_value=4.0)
