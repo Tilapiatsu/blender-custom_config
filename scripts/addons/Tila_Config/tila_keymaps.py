@@ -626,11 +626,13 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		self.kmi_set_replace('uv.toolkit_distribute', 'D', 'PRESS', disable_double=True, properties=[('preserve_edge_length', True)])
 		self.kmi_set_replace('uvpackmaster2.uv_pack', 'P', 'PRESS', ctrl=True, disable_double=True)
 
+		# bpy.ops.transform.translate(value=(-1, 0, 0), orient_type='GLOBAL', orient_matrix=((1, 0, 0), (0, 1, 0), (0, 0, 1)), orient_matrix_type='GLOBAL', constraint_axis=(True, True, True), mirror=False, use_proportional_edit=False, proportional_edit_falloff='SMOOTH', proportional_size=1, use_proportional_connected=False, use_proportional_projected=False)
 
-		self.kmi_set_replace('transform.translate', 'UP_ARROW', 'PRESS', ctrl=True, alt=True, shift=True, disable_double=True, properties=[('value', (0.0,1.0,0.0)), ('release_confirm', True)])
-		self.kmi_set_replace('transform.translate', 'DOWN_ARROW', 'PRESS', ctrl=True, alt=True, shift=True, disable_double=True, properties=[('value', (0.0,-1.0,0.0)), ('release_confirm', True)])
-		self.kmi_set_replace('transform.translate', 'LEFT_ARROW', 'PRESS', ctrl=True, alt=True, shift=True, disable_double=True, properties=[('value', (-1.0,0.0,0.0)), ('release_confirm', True)])
-		self.kmi_set_replace('transform.translate', 'RIGHT_ARROW', 'PRESS', ctrl=True, alt=True, shift=True, disable_double=True, properties=[('value', (1.0,0.0,0.0)), ('release_confirm', True)])
+
+		self.kmi_set_replace('transform.translate', 'UP_ARROW', 'PRESS', ctrl=True, alt=True, shift=True, disable_double=True, properties=[('value', (0.0,1.0,0.0)), ('release_confirm', True), ('orient_matrix', ((1, 0, 0), (0, 1, 0), (0, 0, 1))), ('orient_matrix_type','GLOBAL')])
+		self.kmi_set_replace('transform.translate', 'DOWN_ARROW', 'PRESS', ctrl=True, alt=True, shift=True, disable_double=True, properties=[('value', (0.0,-1.0,0.0)), ('release_confirm', True), ('orient_matrix', ((1, 0, 0), (0, 1, 0), (0, 0, 1))), ('orient_matrix_type','GLOBAL')])
+		self.kmi_set_replace('transform.translate', 'LEFT_ARROW', 'PRESS', ctrl=True, alt=True, shift=True, disable_double=True, properties=[('value', (-1.0,0.0,0.0)), ('release_confirm', True), ('orient_matrix', ((1, 0, 0), (0, 1, 0), (0, 0, 1))), ('orient_matrix_type','GLOBAL')])
+		self.kmi_set_replace('transform.translate', 'RIGHT_ARROW', 'PRESS', ctrl=True, alt=True, shift=True, disable_double=True, properties=[('value', (1.0,0.0,0.0)), ('release_confirm', True), ('orient_matrix', ((1, 0, 0), (0, 1, 0), (0, 0, 1))), ('orient_matrix_type','GLOBAL')])
 
 		self.kmi_set_replace('uv.toolkit_align_uv', 'UP_ARROW', 'PRESS', ctrl=True, alt=False, shift=False, disable_double=True, properties=[('align_uv', 'MAX_V')])
 		self.kmi_set_replace('uv.toolkit_align_uv', 'DOWN_ARROW', 'PRESS', ctrl=True, alt=False, shift=False, disable_double=True, properties=[('align_uv', 'MIN_V')])
