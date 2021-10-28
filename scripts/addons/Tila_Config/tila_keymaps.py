@@ -636,6 +636,7 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		self.kmi_set_replace('uv.toolkit_align_uv', 'DOWN_ARROW', 'PRESS', ctrl=True, alt=False, shift=False, disable_double=True, properties=[('align_uv', 'MIN_V')])
 		self.kmi_set_replace('uv.toolkit_align_uv', 'LEFT_ARROW', 'PRESS', ctrl=True, alt=False, shift=False, disable_double=True, properties=[('align_uv', 'MIN_U')])
 		self.kmi_set_replace('uv.toolkit_align_uv', 'RIGHT_ARROW', 'PRESS', ctrl=True, alt=False, shift=False, disable_double=True, properties=[('align_uv', 'MAX_U')])
+		self.kmi_set_replace('wm.call_menu_pie', 'X', 'PRESS', alt=True, disable_double=True, properties=[('name', 'IMAGE_MT_pivot_pie')])
 
 		# Machin3Tools
 		self.kmi_set_replace('wm.call_menu_pie', 'D', "PRESS", alt=True, shift=True,  properties=[('name', 'MACHIN3_MT_uv_align_pie')], disable_double=True)
