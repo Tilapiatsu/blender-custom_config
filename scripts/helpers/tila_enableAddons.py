@@ -72,6 +72,7 @@ modules =   (
 			# 'W_Mesh',
 			'uvpackmaster2',
 			'uv_toolkit',
+			'noodler',
 			# 'lineup_maker',
 			'Tila_Config'
 			)
