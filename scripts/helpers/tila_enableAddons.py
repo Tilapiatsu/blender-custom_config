@@ -77,19 +77,20 @@ modules =   (
 			'Tila_Config'
 			)
 
-def register():
-	# Enabling addons
-	for m in modules:
-		# is_enabled, _ = check(m)
-		# print(is_enabled, m)
-		# if is_enabled:
-		#     bpy.ops.preferences.addon_disable(module=m)
-		#     bpy.context.window_manager.keyconfigs.update()
-		#     print("disableing addon {}".format(m))
+def register(enable_addon=True):
+	if enable_addon:
+		# Enabling addons
+		for m in modules:
+			# is_enabled, _ = check(m)
+			# print(is_enabled, m)
+			# if is_enabled:
+			#     bpy.ops.preferences.addon_disable(module=m)
+			#     bpy.context.window_manager.keyconfigs.update()
+			#     print("disableing addon {}".format(m))
 
-		bpy.ops.preferences.addon_enable(module=m)
-		print('Enabling Addon : {}'.format(m))
-		bpy.context.window_manager.keyconfigs.update()
+			bpy.ops.preferences.addon_enable(module=m)
+			print('Enabling Addon : {}'.format(m))
+			bpy.context.window_manager.keyconfigs.update()
 
 
 		
@@ -123,17 +124,26 @@ def register():
 	addon.preferences.activate_save_pie = True
 	addon.preferences.activate_align_pie = True
 	addon.preferences.activate_cursor_pie = True
-	kmi = bpy.context.window_manager.keyconfigs.addon.keymaps['Window'].keymap_items
-	for k in kmi:
-		if k.type == 'S' and k.properties.name == 'MACHIN3_MT_save_pie':
-			k.active = False
-			k.shift = True
-			bpy.context.window_manager.keyconfigs.update()
+	# kmi = bpy.context.window_manager.keyconfigs.addon.keymaps['Window'].keymap_items
+	# for k in kmi:
+	# 	if k.type == 'S' and k.properties.name == 'MACHIN3_MT_save_pie':
+	# 		k.shift = True
+	# 		bpy.context.window_manager.keyconfigs.update()
 
 	# object_collection_manager
 	addon = context.preferences.addons.get('object_collection_manager')
 	addon.preferences.enable_qcd = False
 
+	# noodler
+	addon = context.preferences.addons.get('noodler')
+	kmi = bpy.context.window_manager.keyconfigs.addon.keymaps['Node Editor'].keymap_items
+	for k in kmi:
+		if k.idname == 'noodler.draw_route':
+			k.type = 'E'
+		if k.idname == 'noodler.chamfer':
+			k.ctrl = False
+		if k.idname == 'noodler.draw_frame':
+			k.ctrl = True
 
 	# mouselook_navigation
 	# addon = context.preferences.addons.get('mouselook_navigation')
