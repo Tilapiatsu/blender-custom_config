@@ -170,6 +170,11 @@ def register(enable_addon=True):
 	addon.preferences.ts.use_shift = True
 	addon.preferences.ts.keycode = 'SPACE'
 
+	user_pref_path = bpy.utils.resource_path(type='USER')
+	asset_library_path = os.path.join(user_pref_path, 'datafiles', 'scene', '00_Asset_Library')
+	bpy.ops.preferences.asset_library_add('EXEC_DEFAULT', directory=asset_library_path)
+	bpy.context.preferences.filepaths.asset_libraries[''].name = 'Tilapiatsu'
+
 	bpy.ops.wm.save_userpref()
 
 
