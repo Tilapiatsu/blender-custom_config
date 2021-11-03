@@ -26,7 +26,8 @@ class TILA_ToggleOverlay(bpy.types.Operator):
                      'show_floor',
                      'show_axis_x',
                      'show_axis_y',
-                     'show_face_orientation']
+                     'show_face_orientation',
+                     'show_faces']
 
     def toggle_state(self, state=None):
         if state is None:
