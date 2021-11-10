@@ -10,9 +10,9 @@ light[0].col.z 0.011088
 light[0].spec.x 0.266761
 light[0].spec.y 0.266761
 light[0].spec.z 0.266761
-light[0].vec.x 0.049767
-light[0].vec.y -0.567349
-light[0].vec.z -0.821972
+light[0].vec.x 0.011358
+light[0].vec.y -0.624669
+light[0].vec.z -0.780807
 light[1].flag 1
 light[1].smooth 0.000000
 light[1].col.x 0.522511
@@ -21,9 +21,9 @@ light[1].col.z 0.522511
 light[1].spec.x 1.000000
 light[1].spec.y 1.000000
 light[1].spec.z 1.000000
-light[1].vec.x -0.075000
-light[1].vec.y 0.700000
-light[1].vec.z 0.710194
+light[1].vec.x 0.000000
+light[1].vec.y 0.675000
+light[1].vec.z 0.737818
 light[2].flag 1
 light[2].smooth 0.728261
 light[2].col.x 0.038403
@@ -43,6 +43,6 @@ light[3].col.z 0.000000
 light[3].spec.x 1.000000
 light[3].spec.y 1.000000
 light[3].spec.z 1.000000
-light[3].vec.x 0.120000
-light[3].vec.y 0.160000
-light[3].vec.z 0.979796
+light[3].vec.x 0.040000
+light[3].vec.y 0.140000
+light[3].vec.z 0.989343
