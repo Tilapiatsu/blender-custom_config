@@ -43,28 +43,38 @@ class PS_PT_settings_draw_mesh(Panel):
 
 
 
-        if settings.retopo_mode == False: 
-            layout.prop(settings, "retopo_mode", icon_value=draw_icon.icon_id)
+        if settings.PS_retopology == False: 
+            layout.prop(settings, "PS_retopology", icon_value=draw_icon.icon_id)
 
         else:
             box = layout.box()
-            box.prop(settings, "retopo_mode", icon_value=draw_icon.icon_id)
+            box.prop(settings, "PS_retopology", icon_value=draw_icon.icon_id)
 
-            row_W = box.row(align=True)
-            row_W.scale_x = 1.0
-            row_W.label(text="Width")
-            row_W.scale_x = 3.0
-            row_W.prop(props, "verts_size")
-            row_W.prop(props, "edge_width")
+            row = box.row(align=True)
+            row.prop(settings, 'draw_verts', icon='VERTEXSEL')
+            row.prop(settings, 'draw_edges', icon='EDGESEL')
+            row.prop(settings, 'draw_faces', icon='FACESEL')
+
+
+            row = box.row(align=True)
+            row.scale_x = 1.0
+            row.label(text="Width")
+            row.scale_x = 3.0
+            row.prop(props, "verts_size")
+            row.prop(props, "edge_width")
 
             box.prop(props, "z_bias", text="Z-Bias:")
+            box.prop(props, "z_offset", text="Z-Offset:")
             box.prop(props, "opacity", text="Opacity:")
 
-            row_P = box.row()
-            row_P.scale_x = 1.0
-            row_P.prop(props, "xray_ret")
-            row_P.scale_x = 1.1
-            row_P.prop(props, "use_mod_ret")
+            row = box.row()
+            row.scale_x = 1.0
+            row.prop(props, "xray_ret")
+            row.scale_x = 1.1
+            row.prop(props, "use_mod_ret")
+
+            box.prop(props, 'maxP_retop')
+
 
 
 
@@ -104,18 +114,20 @@ class PS_PT_settings_draw_mesh(Panel):
             row_P.prop(props, "xray_che")
             row_P.scale_x = 1.1
             row_P.prop(props, "use_mod_che")
-     
+            
+
+            
 
 
 
         # --- Polycount
-        if settings.polycount == False:
-            layout.prop(settings, "polycount", icon_value=calculate_icon.icon_id)
+        if settings.PS_polycount == False:
+            layout.prop(settings, "PS_polycount", icon_value=calculate_icon.icon_id)
         
         else:
             box = layout.box()
-            box.prop(settings, "polycount", icon_value=calculate_icon.icon_id)
-        
+            box.prop(settings, "PS_polycount", icon_value=calculate_icon.icon_id)
+            
             row = box.row(align=True)
             row.prop(settings, "tris_count")
             row.scale_x = 0.4
@@ -125,13 +137,13 @@ class PS_PT_settings_draw_mesh(Panel):
 
 
         # --- Envira Grid
-        if settings.draw_envira_grid == False:
-            layout.prop(settings, "draw_envira_grid", icon_value=grid_icon.icon_id)
+        if settings.PS_envira_grid == False:
+            layout.prop(settings, "PS_envira_grid", icon_value=grid_icon.icon_id)
         
         else:
             box = layout.box()
             row = box.row()
-            row.prop(settings, "draw_envira_grid", icon_value=grid_icon.icon_id)
+            row.prop(settings, "PS_envira_grid", icon_value=grid_icon.icon_id)
             row.prop(settings, 'box', icon_value=box_icon.icon_id)
         
 
@@ -167,7 +179,7 @@ class PS_PT_settings_draw_mesh(Panel):
 
         # --- Operators
         box = layout.box()
-        box.prop(props, "max_points")
+        box.prop(props, "maxP")
         
         if context.mode == 'EDIT_MESH':
             box.prop(context.space_data.overlay, "show_occlude_wire")
@@ -190,7 +202,7 @@ def draw_panel(self, context, row):
             quad = 0
             ngon = 0
             
-            if len(obj.data.vertices) < props.max_points:
+            if len(obj.data.vertices) < props.maxP:
                 if context.mode != 'EDIT_MESH': 
                     for loop in obj.data.polygons:
                         count = loop.loop_total
@@ -242,7 +254,7 @@ def draw_panel(self, context, row):
 
             else:
                 box = row.box()
-                point_max = str(props.max_points)
+                point_max = str(props.maxP)
                 box.label(text="Points > " + point_max, icon='ERROR')
 
 

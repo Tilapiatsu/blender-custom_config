@@ -1,8 +1,8 @@
 bl_info = {
     'name': 'Poly Source',
     "author": "Max Derksen",
-    'version': (1, 7, 2),
-    'blender': (2, 93, 0),
+    'version': (2, 0, 0),
+    'blender': (3, 0, 0),
     'location': 'VIEW 3D > Top Bar',
     'category': 'Mesh',
 }
@@ -11,7 +11,7 @@ bl_info = {
 
 from . import (
     preferences,
-    quad_draw,
+    retopology,
     ui,
     check,
     polycount,
@@ -39,12 +39,19 @@ from .toolkit import (
 )
 
 
+# --- Clean Up
+from .clean_up import (
+    long_tris,
+)
+
+
+
 def register():
     icons.register()
     preferences.register()
     
     ui.register()
-    quad_draw.register()
+    retopology.register()
     check.register()
     polycount.register()
     envira_grid.register()
@@ -63,12 +70,16 @@ def register():
     tk_scripts.register()
 
 
+    # --- Clean Up
+    long_tris.register()
+
+
 def unregister():
     icons.unregister()
     preferences.unregister()
 
     ui.unregister()
-    quad_draw.unregister()
+    retopology.unregister()
     check.unregister()
     polycount.unregister()
     envira_grid.unregister()
@@ -85,3 +96,7 @@ def unregister():
 
     tk_panel.unregister()
     tk_scripts.unregister()
+
+
+    # --- Clean Up
+    long_tris.unregister()
