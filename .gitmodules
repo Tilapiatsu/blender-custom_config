@@ -322,3 +322,6 @@
 [submodule "scripts/addons/camera_shakify"]
 	path = scripts/addons/camera_shakify
 	url = https://github.com/cessen/camera_shakify.git
+[submodule "scripts/addons/simple_renaming_panel"]
+	path = scripts/addons/simple_renaming_panel
+	url = https://github.com/Weisl/simple_renaming_panel.git
