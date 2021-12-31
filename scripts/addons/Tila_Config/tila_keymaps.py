@@ -1073,6 +1073,8 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		self.kmi_set_replace('node.backimage_move', self.k_cursor, 'PRESS', disable_double=True)
 		self.kmi_set_replace('node.backimage_zoom', self.k_lasso_through, 'EAST', alt=True, properties=[('factor', 1.2)], disable_double=True)
 		self.kmi_set_replace('node.backimage_zoom', self.k_lasso_through, 'WEST', alt=True, properties=[('factor', 0.8)], disable_double=True)
+
+		self.kmi_set_replace('node.node_copy_color', 'C', 'PRESS', ctrl=True, shift=True, disable_double=True)
 		
 		# Noodler
 		self.kmi_set_replace('noodler.draw_route', 'E', 'PRESS', disable_double=True)
