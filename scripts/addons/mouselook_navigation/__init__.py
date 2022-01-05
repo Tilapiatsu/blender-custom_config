@@ -19,12 +19,13 @@
 bl_info = {
     "name": "Mouselook Navigation",
     "author": "dairin0d, moth3r",
-    "version": (1, 6, 3),
+    "version": (1, 7, 6),
     "blender": (2, 80, 0),
     "location": "View3D > orbit/pan/dolly/zoom/fly/walk",
     "description": "Provides extra 3D view navigation options (ZBrush mode) and customizability",
     "warning": "Beta version",
     "wiki_url": "https://github.com/dairin0d/blender-2.8-scripts/blob/master/docs/mouselook_navigation/mouselook_navigation.md",
+    "doc_url": "https://github.com/dairin0d/blender-2.8-scripts/blob/master/docs/mouselook_navigation/mouselook_navigation.md",
     "tracker_url": "https://github.com/dairin0d/blender-2.8-scripts/issues/new?labels=mouselook+navigation",
     "category": "3D View"
 }
@@ -64,7 +65,7 @@ dairin0d.load(globals(), {
 })
 
 from . import utils_navigation
-from .utils_navigation import trackball, apply_collisions, calc_selection_center
+from .utils_navigation import trackball, apply_collisions, get_selection_center
 
 addon = AddonManager()
 settings = addon.settings
@@ -405,7 +406,8 @@ class MouselookNavigation:
         flips = settings.flips
         
         use_zoom_to_mouse |= self.force_origin_mouse
-        use_auto_perspective &= self.rotation_snap_autoperspective
+        
+        use_auto_perspective &= (self.rotation_snap_projection_mode != 'NONE')
         
         use_zoom_to_mouse |= (self.use_origin_selection and self.zoom_to_selection)
         
@@ -607,6 +609,12 @@ class MouselookNavigation:
                 
                 if (event.type == 'MOUSEMOVE') or (event.type == 'INBETWEEN_MOUSEMOVE'):
                     if mode == 'ORBIT':
+                        # If we were in an ortho side-view, Blender will continue
+                        # drawing vertical grid unless we trigger some kind of update
+                        # NOTE: view3d.view_orbit also automatically switches to
+                        # Perspective if Auto Perspective is enabled
+                        bpy.ops.view3d.view_orbit(angle=0.0, type='ORBITUP')
+                        
                         # snapping trackball rotation is problematic (I don't know how to do it)
                         if (not self.is_trackball) or is_orbit_snap:
                             self.change_euler(mouse_delta.y * speed_euler.y, mouse_delta.x * speed_euler.x, 0)
@@ -618,7 +626,12 @@ class MouselookNavigation:
                             self.change_rot_mouse(mouse_delta, mouse, speed_rot, trackball_mode)
                         
                         if use_auto_perspective:
-                            self.sv.is_perspective = not is_orbit_snap
+                            if self.rotation_snap_projection_mode == 'ORTHO_PERSPECTIVE':
+                                self.sv.is_perspective = not is_orbit_snap
+                            elif self.rotation_snap_projection_mode == 'ORTHO_ORIGINAL':
+                                self.sv.is_perspective = (False if is_orbit_snap else self._perspective0)
+                        else:
+                            self.sv.is_perspective = self._perspective0
                         
                         if is_orbit_snap:
                             self.snap_rotation(self.rotation_snap_subdivs)
@@ -678,8 +691,10 @@ class MouselookNavigation:
         self.modes_state[mode] = (self.sv.is_perspective, self.sv.distance, self.pos.copy(), self.rot.copy(), self.euler.copy())
         
         self.update_cursor_icon(context)
-        txt = "{} (zoom={:.3f})".format(mode, self.sv.distance)
-        context.area.header_text_set(txt)
+        
+        if settings.override_header:
+            txt = "{} (zoom={:.3f})".format(mode, self.sv.distance)
+            context.area.header_text_set(txt)
         
         if confirm:
             self.cleanup(context)
@@ -1050,7 +1065,7 @@ class MouselookNavigation:
         
         self.explicit_orbit_origin = None
         if self.use_origin_selection:
-            self.explicit_orbit_origin = calc_selection_center(context, True)
+            self.explicit_orbit_origin = get_selection_center(context, True)
         elif self.use_origin_mouse:
             if cast_result.success:
                 self.explicit_orbit_origin = cast_result.location
@@ -1102,7 +1117,7 @@ class MouselookNavigation:
         self.fps_speed_modifier = settings.fps_speed_modifier
         self.zoom_speed_modifier = settings.zoom_speed_modifier
         self.rotation_snap_subdivs = settings.rotation_snap_subdivs
-        self.rotation_snap_autoperspective = settings.rotation_snap_autoperspective
+        self.rotation_snap_projection_mode = settings.rotation_snap_projection_mode
         self.rotation_speed_modifier = settings.rotation_speed_modifier
         self.autolevel_trackball = settings.autolevel_trackball
         self.autolevel_trackball_up = settings.autolevel_trackball_up
@@ -1373,6 +1388,154 @@ def background_timer_update():
     
     return 0 # run each frame
 
+@addon.Operator(idname="mouselook_navigation.subdivision_navigate", label="Navigate subdivision levels",
+    description="Navigate subdivision levels")
+class SubdivisionNavigate:
+    level: 0 | prop("Level", "Subdivision level (or its increment)")
+    auto_subdivide: False | prop("Auto subdivide", "Automatically subdivide when necessary")
+    remove_higher: False | prop("Remove higher levels", "Remove higher levels")
+    relative: True | prop("Relative", "Add level to the modifier's current level")
+    subdiv_type: 'CATMULL_CLARK' | prop("Subdivision method", "How to subdivide when adding a new level", items=[
+        ('CATMULL_CLARK', "Catmull-Clark", "Use Catmull-Clark subdivision"),
+        ('SIMPLE', "Simple", "Use simple subdivision"),
+        ('LINEAR', "Linear", "Use linear interpolation of the sculpted displacement"),
+    ])
+    show_dialog: True | prop("Show dialog", "Show dialog with operator settings before executing")
+    
+    def draw(self, context):
+        layout = self.layout
+        layout.prop(self, "level")
+        layout.prop(self, "relative")
+        layout.prop(self, "auto_subdivide")
+        layout.prop(self, "remove_higher")
+        row = layout.row()
+        row.label(text="Subdivision method")
+        row.prop(self, "subdiv_type", text="")
+    
+    def invoke(self, context, event):
+        if not self.show_dialog: return self.execute(context)
+        return context.window_manager.invoke_props_dialog(self)
+    
+    def execute(self, context):
+        if context.mode == 'SCULPT':
+            bpy.ops.ed.undo_push(message="Sculpt state snapshot")
+        
+        active_obj = BlUtil.Object.active_get(view_layer=context.view_layer)
+        
+        for obj, modifier, level, update in self.gather_targets(context):
+            BlUtil.Object.active_set(obj, view_layer=context.view_layer)
+            update(obj, modifier, level)
+        
+        BlUtil.Object.active_set(active_obj, view_layer=context.view_layer)
+        
+        bpy.ops.ed.undo_push(message=self.bl_label)
+        
+        BlUI.tag_redraw()
+        return {'FINISHED'}
+    
+    def gather_targets(self, context):
+        if getattr(self, "infos", None) is None: self.infos = {}
+        
+        if context.mode == 'OBJECT':
+            objs = context.selected_objects
+        elif BlEnums.mode_infos[context.mode].multi_object:
+            objs = set(context.selected_objects)
+            objs.add(context.active_object)
+        else:
+            objs = [context.active_object]
+        
+        for obj in objs:
+            modifier = self.get_modifier(obj)
+            if not modifier: continue
+            
+            # In Sculpt mode, for some reason automatic undo doesn't affect
+            # multires levels, so we have to store the initial subdivision
+            # levels on the first run, and reuse them on re-runs.
+            key = (obj.name_full, modifier.name, modifier.type)
+            level = self.infos.get(key)
+            if level is None:
+                get_level = getattr(self, "get_level_"+modifier.type.lower(), None)
+                level = get_level(obj, modifier)
+                self.infos[key] = level
+            
+            update = getattr(self, "update_"+modifier.type.lower(), None)
+            
+            yield (obj, modifier, level, update)
+    
+    def get_modifier(self, obj):
+        if obj.type == 'GPENCIL':
+            for modifier in obj.grease_pencil_modifiers:
+                if modifier.type == 'GP_SUBDIV': return modifier
+            
+            if self.auto_subdivide and (self.level > 0):
+                modifier = obj.grease_pencil_modifiers.new("Subdivision", 'GP_SUBDIV')
+                modifier.level = 0
+                self.set_subdiv_type(modifier)
+                return modifier
+        elif obj.type in ('MESH', 'CURVE', 'SURFACE', 'FONT'):
+            for modifier in obj.modifiers:
+                # Multires is always first
+                if modifier.type == 'MULTIRES': return modifier
+                if modifier.type == 'SUBSURF': return modifier
+            
+            if self.auto_subdivide and (self.level > 0):
+                if (obj.type == 'MESH') and (obj.mode == 'SCULPT'):
+                    modifier = obj.modifiers.new("Multires", 'MULTIRES')
+                else:
+                    modifier = obj.modifiers.new("Subdivision", 'SUBSURF')
+                    modifier.levels = 0
+                self.set_subdiv_type(modifier)
+                return modifier
+        
+        return None
+    
+    def set_subdiv_type(self, modifier):
+        # So far, subdivision_type has only CATMULL_CLARK and SIMPLE options.
+        # Until Blender 2.83, GP_SUBDIV had a "simple" property instead.
+        if hasattr(modifier, "subdivision_type"):
+            subdiv_type = self.subdiv_type
+            if subdiv_type != 'CATMULL_CLARK': subdiv_type = 'SIMPLE'
+            modifier.subdivision_type = subdiv_type
+        elif hasattr(modifier, "simple"):
+            modifier.simple = (self.subdiv_type != 'CATMULL_CLARK')
+    
+    def set_level(self, modifier, prop_name, initial_level):
+        level = (max(initial_level + self.level, 0) if self.relative else max(self.level, 0))
+        prev_level = getattr(modifier, prop_name)
+        setattr(modifier, prop_name, level)
+        curr_level = getattr(modifier, prop_name)
+        return (level - prev_level, level - curr_level)
+    
+    def get_level_multires(self, obj, modifier):
+        return (modifier.sculpt_levels if obj.mode == 'SCULPT' else modifier.levels)
+    
+    def update_multires(self, obj, modifier, initial_level):
+        prop_name = ("sculpt_levels" if obj.mode == 'SCULPT' else "levels")
+        prev_delta, curr_delta = self.set_level(modifier, prop_name, initial_level)
+        
+        if self.auto_subdivide and (curr_delta > 0):
+            # Before Blender 2.90, object.multires_subdivide() had no parameters,
+            # and subdivision type was determined by MultiresModifier.subdivision_type.
+            # Since Blender 2.90, it has "modifier" and "mode" parameters instead.
+            op_rna = bpy.ops.object.multires_subdivide.get_rna_type()
+            kwargs = ({"mode": self.subdiv_type} if "mode" in op_rna.properties else {})
+            for i in range(curr_delta):
+                bpy.ops.object.multires_subdivide(modifier=modifier.name, **kwargs)
+        elif self.remove_higher and (prev_delta < 0):
+            bpy.ops.object.multires_higher_levels_delete(modifier=modifier.name)
+    
+    def get_level_subsurf(self, obj, modifier):
+        return modifier.levels
+    
+    def update_subsurf(self, obj, modifier, initial_level):
+        self.set_level(modifier, "levels", initial_level)
+    
+    def get_level_gp_subdiv(self, obj, modifier):
+        return modifier.level
+    
+    def update_gp_subdiv(self, obj, modifier, initial_level):
+        self.set_level(modifier, "level", initial_level)
+
 # Blender's "Assign Shortcut" utility doesn't work with addon preferences and Internal-like
 # properties, so in order to allow users to assign shortcuts, we have to use operators.
 # Importantly, for this to be possible, we have to put them into a known category:
@@ -1449,7 +1612,24 @@ def update_keymaps(activate=True):
 
 @addon.PropertyGroup
 class AutoRegKeymapInfo:
-    mode_names = ['3D View', 'Object Mode', 'Mesh', 'Curve', 'Armature', 'Metaball', 'Lattice', 'Font', 'Pose', 'Vertex Paint', 'Weight Paint', 'Image Paint', 'Sculpt', 'Particle']
+    mode_names = [
+        '3D View',
+        'Object Mode',
+        'Mesh',
+        'Curve',
+        'Armature',
+        'Metaball',
+        'Lattice',
+        'Font',
+        'Pose',
+        'Vertex Paint',
+        'Weight Paint',
+        'Image Paint',
+        'Sculpt',
+        'Particle',
+        'Grease Pencil',
+    ]
+    
     keymaps: {'3D View'} | prop("Keymaps", "To which keymaps this entry should be added", items=mode_names)
     value_type: "" | prop("Type of event", "Type of event")
     any: False | prop("Any", "Any modifier")
@@ -1901,7 +2081,6 @@ class ConfigureShortcutKeys:
         # Make sure we proceed only if invoke() was called earlier
         if not hasattr(self, "button_pointer"): return {'CANCELLED'}
         value = ", ".join(config_key.shortcut for config_key in self.config_keys if config_key.is_valid)
-        print(value)
         setattr(self.button_pointer, self.prop_id, value)
         BlUI.tag_redraw()
         return {'FINISHED'}
@@ -1956,7 +2135,9 @@ class ThisAddonPreferences:
         ('ABOUT', "About", "About"),
     ])
     
-    show_in_header: True | prop("Show in header", f"Show Mouselook Navigation icons in the 3D view's header")
+    override_header: True | prop("Info in header", "Show mode and zoom info in header during the navigation")
+    
+    show_in_header: True | prop("Buttons in header", "Show Mouselook Navigation icons in the 3D view's header")
     
     pass_through: False | prop("Non-blocking", "Other operators can be used while navigating")
     
@@ -2040,7 +2221,13 @@ class ThisAddonPreferences:
         ('CENTER', 'Center'),
     ])
     rotation_snap_subdivs: 2 | prop("Orbit snap subdivs", "Intermediate angles used when snapping (1: 90°, 2: 45°, 3: 30°, etc.)", min=1)
-    rotation_snap_autoperspective: True | prop("Orbit snap->ortho", "If Auto Perspective is enabled, rotation snapping will automatically switch the view to Ortho")
+    rotation_snap_projection_mode: 'DEFAULT' | prop("Projection snapping mode",
+        "If Auto Perspective is enabled, switch the view to Ortho or Perspective when snapping", items=[
+        ('NONE', "Don't change projection", "Stay in the original projection mode"),
+        ('DEFAULT', "Blender's projection", "Use Blender's default Auto Perspective behavior"),
+        ('ORTHO_PERSPECTIVE', "ON: Ortho, OFF: Perspective", "Switch to Ortho when snapping, and to Perspective otherwise"),
+        ('ORTHO_ORIGINAL', "ON: Ortho, OFF: Original", "Switch to Ortho when snapping, and to the initial projection mode otherwise"),
+    ])
     autolevel_trackball: False | prop("Trackball Autolevel", "Autolevel in Trackball mode")
     autolevel_trackball_up: False | prop("Trackball Autolevel up", "Try to autolevel 'upright' in Trackball mode")
     autolevel_speed_modifier: 0.0 | prop("Autolevel speed", "Autoleveling speed", min=0.0)
@@ -2087,6 +2274,7 @@ class ThisAddonPreferences:
         with layout.box():
             with layout.row():
                 layout.label(text="UI:")
+                layout.prop(self, "override_header", toggle=True)
                 layout.prop(self, "show_in_header", toggle=True)
                 layout.prop(self, "use_blender_colors", toggle=True)
             
@@ -2137,7 +2325,7 @@ class ThisAddonPreferences:
             
             with layout.row()(alignment='LEFT'):
                 layout.label(text="Orbit snap:")
-                layout.prop(self, "rotation_snap_autoperspective", text="To Ortho", toggle=True)
+                layout.prop(self, "rotation_snap_projection_mode", text="")
                 with layout.row()(scale_x=0.85):
                     layout.prop(self, "rotation_snap_subdivs", text="Subdivs")
             

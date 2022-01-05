@@ -144,16 +144,6 @@ class AddonManager:
         module_locals = None
         module_name = None
         
-        def fix_doc_url(info):
-            has_doc = "doc_url" in info
-            has_wiki = "wiki_url" in info
-            if bpy.app.version >= (2, 83, 0):
-                if has_wiki and not has_doc:
-                    info["doc_url"] = info.pop("wiki_url")
-            else:
-                if has_doc and not has_wiki:
-                    info["wiki_url"] = info.pop("doc_url")
-        
         for frame_record in reversed(inspect.stack()):
             # Frame record is a tuple of 6 elements:
             # (frame_obj, filename, line_id, func_name, context_lines, context_line_id)
@@ -168,7 +158,6 @@ class AddonManager:
             
             info = frame.f_globals.get("bl_info")
             if info:
-                fix_doc_url(info)
                 module_globals = frame.f_globals
                 module_locals = frame.f_locals
                 module_name = module_globals.get("__name__", "").split(".")[0]
@@ -187,7 +176,7 @@ class AddonManager:
             module_name = os.path.splitext(os.path.basename(_path))[0]
             config_path = cls._textblock_prefix
         else:
-            config_path = bpy.utils.user_resource('CONFIG', module_name)
+            config_path = bpy.utils.user_resource('CONFIG', path=module_name)
         
         name = name or _name
         path = path or _path
@@ -206,7 +195,7 @@ class AddonManager:
             path = cls._textblock_prefix
         
         if not config:
-            config = (bpy.path.clean_name(module_name) if is_textblock else "config") + ".json"
+            config = (BpyPath.clean_name(module_name) if is_textblock else "config") + ".json"
         
         config_path = os.path.join(config_path, config)
         
@@ -667,7 +656,7 @@ class AddonManager:
         
         for key, prop_info in prop_infos.items():
             # Do some autocompletion on property descriptors
-            if "name" not in prop_info: prop_info["name"] = bpy.path.display_name(key)
+            if "name" not in prop_info: prop_info["name"] = BpyPath.display_name(key)
             if "description" not in prop_info: prop_info["description"] = prop_info["name"]
             
             # This is syntactic sugar for the case when callbacks
@@ -988,7 +977,7 @@ class AddonManager:
         if (not hasattr(cls, "bl_idname")) and is_operator:
             cls.bl_idname = ".".join(p.lower() for p in cls.__name__.rsplit("_OT_", 1))
         
-        if not hasattr(cls, "bl_label"): cls.bl_label = bpy.path.clean_name(cls.__name__)
+        if not hasattr(cls, "bl_label"): cls.bl_label = BpyPath.clean_name(cls.__name__)
         
         if hasattr(cls, "bl_label"): cls.bl_label = compress_whitespace(cls.bl_label)
         
