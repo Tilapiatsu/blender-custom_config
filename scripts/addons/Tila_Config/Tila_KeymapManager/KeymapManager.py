@@ -286,11 +286,14 @@ class KeymapManager():
             return None
 
     def kmi_init(self, name, space_type='EMPTY', region_type='WINDOW', modal=False, tool=False, addon=False):
-        self.ukmis = self.kcu.keymaps[name].keymap_items
+        try:
+            self.ukmis = self.kcu.keymaps[name].keymap_items
+        except KeyError:
+            self.ukmis = self.kcu.keymaps.new(name).keymap_items
         try:
             self.akmis = self.kca.keymaps[name].keymap_items
         except KeyError:
-            self.akmis = self.kca.keymaps.new(name)
+            self.akmis = self.kca.keymaps.new(name).keymap_items
 
         if not addon:
             self.km = self.kcu.keymaps.new(name, space_type=space_type, region_type=region_type, modal=modal, tool=tool)

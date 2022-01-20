@@ -505,7 +505,7 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		self.kmi_set_replace('wm.call_menu_pie', 'F', 'PRESS', alt=True, shift=True, properties=[('name', 'UVTOOLKIT_MT_pie_3dview')])
 
 		kmi = self.kmi_find(idname='view3d.toggle_shading', type='Z', shift=True)
-		if kmi:
+		if kmi is not None:
 			kmi.active = False
 		
 		self.kmi_set_replace('view3d.toggle_shading', 'Z', 'PRESS', shift=True, properties=[('type', 'MATERIAL')], disable_double=True)
@@ -623,8 +623,9 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 
 		self.kmi_set_replace('uv.toolkit_straighten', 'G', 'PRESS', ctrl=True, disable_double=True, properties=[('gridify', False)])
 		self.kmi_set_replace('uv.toolkit_unwrap_selected', 'E', 'PRESS', ctrl=True, disable_double=True, properties=[('gridify', False), ('method', 'ANGLE_BASED')])
-		k = self.kmi_find('uv.toolkit_distribute')
-		k.active = False
+		kmi = self.kmi_find('uv.toolkit_distribute')
+		if kmi is not None:
+			kmi.active = False
 		self.kmi_set_replace('uv.toolkit_distribute', 'D', 'PRESS', disable_double=True, properties=[('preserve_edge_length', True)])
 		self.kmi_set_replace('uvpackmaster2.uv_pack', 'P', 'PRESS', ctrl=True, disable_double=True)
 
@@ -721,11 +722,11 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 
 		# KE_Kit
 		kmi = self.kmi_find(idname='wm.call_menu', type='C', ctrl=True)
-		if kmi:
+		if kmi is not None:
 			kmi.shift = True
 
 		kmi = self.kmi_find(idname='wm.call_menu', type='V', ctrl=True)
-		if kmi:
+		if kmi is not None:
 			kmi.shift = True
 
 		self.kmi_set_replace('view3d.ke_copyplus', 'C', "PRESS", ctrl=True, properties=[('mode', 'COPY')], disable_double=True)
@@ -736,7 +737,7 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 
 		# MACHINE3tools
 		kmi = self.kmi_set_replace('machin3.clean_up', 'NUMPAD_MINUS', "PRESS", ctrl=True, alt=True, shift=True)
-		if kmi:
+		if kmi is not None:
 			kmi.active = True
 		self.kmi_set_replace('wm.call_menu_pie', 'D', "PRESS", alt=True, shift=True,  properties=[('name', 'MACHIN3_MT_align_pie')], disable_double=True)
 
@@ -1185,13 +1186,13 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		###### Grease Pencil Stroke Paint (Draw brush)
 		self.kmi_init(name='Grease Pencil Stroke Paint (Draw brush)', space_type='EMPTY', region_type='WINDOW')
 		kmi = self.kmi_find(idname='gpencil.draw', ctrl=False, alt=True, shift=False)
-		if kmi:
+		if kmi is not None:
 			kmi.ctrl = True
 			kmi.alt = False
 			kmi.shift = True
 
 		kmi = self.kmi_find(idname='gpencil.draw', ctrl=False, alt=True, shift=True)
-		if kmi:
+		if kmi is not None:
 			kmi.ctrl = True
 			kmi.alt = True
 			kmi.shift = True
