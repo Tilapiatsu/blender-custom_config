@@ -26,25 +26,25 @@ bpy.context.preferences.view.render_display_type = "WINDOW"
 bpy.context.preferences.view.use_weight_color_range = True
 bpy.context.preferences.view.show_developer_ui = True
 
-try:
-    bpy.context.preferences.experimental.use_sculpt_vertex_colors = True
-except:
-    pass
+# try:
+#     bpy.context.preferences.experimental.use_sculpt_vertex_colors = True
+# except:
+#     pass
 
-try:
-    bpy.context.preferences.experimental.use_tools_missing_icons = True
-except:
-    pass
+# try:
+#     bpy.context.preferences.experimental.use_tools_missing_icons = True
+# except:
+#     pass
 
-try:
-    bpy.context.preferences.experimental.use_new_particle_system = True
-except:
-    pass
+# try:
+#     bpy.context.preferences.experimental.use_new_particle_system = True
+# except:
+#     pass
 
-try:
-    bpy.context.preferences.experimental.use_switch_object_operator = True
-except:
-    pass
+# try:
+#     bpy.context.preferences.experimental.use_switch_object_operator = True
+# except:
+#     pass
 
 # Edit Weight color
 for c in enumerate(bpy.context.preferences.view.weight_color_range.elements):
@@ -85,7 +85,7 @@ bpy.context.preferences.inputs.use_numeric_input_advanced = True
 bpy.context.preferences.inputs.use_zoom_to_mouse = True
 
 # Keymap
-bpy.context.preferences.keymap.use_key_activate_tools = True
+# bpy.context.preferences.keymap.use_key_activate_tools = True
 
 # System Settings
 # bpy.context.preferences.system.legacy_compute_device_type = "CUDA"
