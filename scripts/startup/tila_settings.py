@@ -67,6 +67,7 @@ bpy.context.preferences.view.weight_color_range.elements.new(0.75)
 bpy.context.preferences.view.weight_color_range.elements[3].color = (1,0,0,1)
 
 # Edit Settings
+bpy.context.preferences.edit.object_align = "CURSOR"
 bpy.context.preferences.edit.undo_steps = 200
 bpy.context.preferences.edit.keyframe_new_interpolation_type = "LINEAR"
 
