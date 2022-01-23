@@ -117,9 +117,9 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 			else:
 				self.kmi_set_replace(pan, self.k_manip, "CLICK_DRAG", alt=True, shift=True, disable_double=True)
 		if dolly:
-			self.kmi_set_replace(dolly, self.k_manip, "PRESS", alt=True, ctrl=True, disable_double=True)
+			self.kmi_set_replace(dolly, self.k_manip, "CLICK_DRAG", alt=True, ctrl=True, disable_double=True)
 		if roll:
-			self.kmi_set_replace(roll, self.k_context, "PRESS", alt=True, disable_double=True)
+			self.kmi_set_replace(roll, self.k_context, "CLICK_DRAG", alt=True, disable_double=True)
 
 	def mode_selection(self):
 		self.kmi_set_replace('view3d.tila_smart_editmode', self.k_vert_mode, 'PRESS', properties=[('mode', 0), ('use_extend', False), ('use_expand', False), ('alt_mode', False)], disable_double=True)

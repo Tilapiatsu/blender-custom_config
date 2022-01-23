@@ -286,10 +286,7 @@ class KeymapManager():
             return None
 
     def kmi_init(self, name, space_type='EMPTY', region_type='WINDOW', modal=False, tool=False, addon=False):
-        try:
-            self.ukmis = self.kcu.keymaps[name].keymap_items
-        except KeyError:
-            self.ukmis = self.kcu.keymaps.new(name).keymap_items
+        self.ukmis = self.kcu.keymaps[name].keymap_items
         try:
             self.akmis = self.kca.keymaps[name].keymap_items
         except KeyError:
