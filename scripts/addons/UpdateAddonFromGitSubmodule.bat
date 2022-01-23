@@ -30,7 +30,6 @@ powershell -Command "(gc hairNet\hairNet.py) -replace 'DEBUG = 1', 'DEBUG = 0' |
 
 copy "..\GIT\ProTheme\blender_pro.xml" "..\presets\interface_theme"
 
-copy "..\GIT\flexi-bezier\blenderbezierutils.py" .
 copy "..\GIT\RenderBurst\RenderBurst.py" .
 copy "..\GIT\object-shake\Object_Shake.py" .
 copy "..\GIT\TiNA\TiNA.py" .
