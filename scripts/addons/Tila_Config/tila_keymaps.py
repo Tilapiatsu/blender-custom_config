@@ -122,24 +122,24 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 			self.kmi_set_replace(roll, self.k_context, "CLICK_DRAG", alt=True, disable_double=True)
 
 	def mode_selection(self):
-		self.kmi_set_replace('view3d.tila_smart_editmode', self.k_vert_mode, 'PRESS', properties=[('mode', 0), ('use_extend', False), ('use_expand', False), ('alt_mode', False)], disable_double=True)
-		self.kmi_set_replace('view3d.tila_smart_editmode', self.k_edge_mode, 'PRESS', properties=[('mode', 1), ('use_extend', False), ('use_expand', False), ('alt_mode', False)], disable_double=True)
-		self.kmi_set_replace('view3d.tila_smart_editmode', self.k_face_mode, 'PRESS', properties=[('mode', 2), ('use_extend', False), ('use_expand', False), ('alt_mode', False)], disable_double=True)
+		self.kmi_set_replace('view3d.tila_smart_editmode', self.k_vert_mode, 'PRESS', properties=[('mode', 0), ('use_extend', False), ('use_expand', False), ('alt_mode', False), ('get_border', False)], disable_double=True)
+		self.kmi_set_replace('view3d.tila_smart_editmode', self.k_edge_mode, 'PRESS', properties=[('mode', 1), ('use_extend', False), ('use_expand', False), ('alt_mode', False), ('get_border', False)], disable_double=True)
+		self.kmi_set_replace('view3d.tila_smart_editmode', self.k_face_mode, 'PRESS', properties=[('mode', 2), ('use_extend', False), ('use_expand', False), ('alt_mode', False), ('get_border', False)], disable_double=True)
 
-		self.kmi_set_replace('view3d.tila_smart_editmode', self.k_vert_mode, 'PRESS', shift=True, properties=[('mode', 0), ('use_extend', True), ('use_expand', False), ('alt_mode', False)], disable_double=True)
-		self.kmi_set_replace('view3d.tila_smart_editmode', self.k_edge_mode, 'PRESS', shift=True, properties=[('mode', 1), ('use_extend', True), ('use_expand', False), ('alt_mode', False)], disable_double=True)
+		self.kmi_set_replace('view3d.tila_smart_editmode', self.k_vert_mode, 'PRESS', shift=True, properties=[('mode', 0), ('use_extend', True), ('use_expand', False), ('alt_mode', False), ('get_border', False)], disable_double=True)
+		self.kmi_set_replace('view3d.tila_smart_editmode', self.k_edge_mode, 'PRESS', shift=True, properties=[('mode', 1), ('use_extend', True), ('use_expand', False), ('alt_mode', False, ('get_border', False))], disable_double=True)
 		self.kmi_set_replace('view3d.tila_smart_editmode', self.k_face_mode, 'PRESS', shift=True, properties=[
-							 ('mode', 2), ('use_extend', True), ('use_expand', False), ('alt_mode', False)], disable_double=True)
+							 ('mode', 2), ('use_extend', True), ('use_expand', False), ('alt_mode', False), ('get_border', False)], disable_double=True)
 
-		self.kmi_set_replace('view3d.tila_smart_editmode', self.k_vert_mode, 'PRESS', ctrl=True, properties=[('mode', 0), ('use_extend', False), ('use_expand', True), ('alt_mode', False)], disable_double=True)
+		self.kmi_set_replace('view3d.tila_smart_editmode', self.k_vert_mode, 'PRESS', ctrl=True, properties=[('mode', 0), ('use_extend', False), ('use_expand', True), ('alt_mode', False), ('get_border', False)], disable_double=True)
 		self.kmi_set_replace('view3d.tila_smart_editmode', self.k_edge_mode, 'PRESS', ctrl=True, properties=[
-							 ('mode', 1), ('use_extend', False), ('use_expand', True), ('alt_mode', False)], disable_double=True)
+							 ('mode', 1), ('use_extend', False), ('use_expand', True), ('alt_mode', False), ('get_border', False)], disable_double=True)
 		self.kmi_set_replace('view3d.tila_smart_editmode', self.k_face_mode, 'PRESS', ctrl=True, properties=[
-							 ('mode', 2), ('use_extend', False), ('use_expand', True), ('alt_mode', False)], disable_double=True)
+							 ('mode', 2), ('use_extend', False), ('use_expand', True), ('alt_mode', False), ('get_border', False)], disable_double=True)
 
-		self.kmi_set_replace('view3d.tila_smart_editmode', self.k_vert_mode, 'PRESS', ctrl=True, shift=True, properties=[('mode', 0), ('use_extend', True), ('use_expand', True), ('alt_mode', False)], disable_double=True)
-		self.kmi_set_replace('view3d.tila_smart_editmode', self.k_edge_mode, 'PRESS', ctrl=True, shift=True, properties=[('mode', 1), ('use_extend', True), ('use_expand', True), ('alt_mode', False)], disable_double=True)
-		self.kmi_set_replace('view3d.tila_smart_editmode', self.k_face_mode, 'PRESS', ctrl=True, shift=True, properties=[('mode', 2), ('use_extend', True), ('use_expand', True), ('alt_mode', False)], disable_double=True)
+		self.kmi_set_replace('view3d.tila_smart_editmode', self.k_vert_mode, 'PRESS', ctrl=True, shift=True, properties=[('mode', 0), ('use_extend', True), ('use_expand', True), ('alt_mode', False), ('get_border', False)], disable_double=True)
+		self.kmi_set_replace('view3d.tila_smart_editmode', self.k_edge_mode, 'PRESS', ctrl=True, shift=True, properties=[('mode', 1), ('use_extend', True), ('use_expand', True), ('alt_mode', False), ('get_border', False)], disable_double=True)
+		self.kmi_set_replace('view3d.tila_smart_editmode', self.k_face_mode, 'PRESS', ctrl=True, shift=True, properties=[('mode', 2), ('use_extend', True), ('use_expand', True), ('alt_mode', False), ('get_border', False)], disable_double=True)
 		
 		self.kmi_set_replace('view3d.tila_smart_editmode', self.k_vert_mode, 'PRESS', alt=True, properties=[('mode', 0), ('use_extend', False), ('use_expand', False), ('get_border', True)], disable_double=True)
 		self.kmi_set_replace('view3d.tila_smart_editmode', self.k_edge_mode, 'PRESS', alt=True, properties=[('mode', 1), ('use_extend', False), ('use_expand', False), ('get_border', True)], disable_double=True)
