@@ -104,7 +104,7 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 			# self.kmi_set_replace('wm.call_menu_pie', 'D', 'PRESS', alt=True, shift=True, properties=[('name', 'HP_MT_pie_rotate90')])
    
 		self.kmi_set_replace('wm.call_menu_pie', 'A', 'PRESS', ctrl=True, alt=True, shift=True, properties=[('name', 'HP_MT_pie_add')])
-		self.kmi_set_replace('wm.call_menu_pie', 'TAB', 'PRESS', ctrl=True, shift=True, properties=[('name', 'HP_MT_pie_areas')])
+		self.kmi_set_replace('wm.call_menu_pie', 'TAB', 'PRESS', ctrl=True, shift=True, properties=[('name', 'TILA_MT_pie_areas')])
 		self.kmi_set_replace('wm.call_menu_pie', 'X', 'PRESS', alt=True, shift=True, properties=[('name', 'HP_MT_pie_symmetry')], disable_double=True)
 		
 
