@@ -70,7 +70,7 @@ modules =   (
 			'keymesh',
 			# 'ZWeightTools-1_0_1',
 			# 'W_Mesh',
-			'uvpackmaster2',
+			'uvpackmaster3',
 			'uv_toolkit',
 			'noodler',
 			# 'lineup_maker',
