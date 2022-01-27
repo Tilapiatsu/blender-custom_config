@@ -627,7 +627,7 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		if kmi is not None:
 			kmi.active = False
 		self.kmi_set_replace('uv.toolkit_distribute', 'D', 'PRESS', disable_double=True, properties=[('preserve_edge_length', True)])
-		self.kmi_set_replace('uvpackmaster2.uv_pack', 'P', 'PRESS', ctrl=True, disable_double=True)
+		self.kmi_set_replace('uvpackmaster3.pack', 'P', 'PRESS', ctrl=True, disable_double=True)
 
 		# bpy.ops.transform.translate(value=(-1, 0, 0), orient_type='GLOBAL', orient_matrix=((1, 0, 0), (0, 1, 0), (0, 0, 1)), orient_matrix_type='GLOBAL', constraint_axis=(True, True, True), mirror=False, use_proportional_edit=False, proportional_edit_falloff='SMOOTH', proportional_size=1, use_proportional_connected=False, use_proportional_projected=False)
 
