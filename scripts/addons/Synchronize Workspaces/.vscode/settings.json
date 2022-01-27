@@ -1,0 +1,18 @@
+{
+    "python.linting.pylintEnabled": false,
+    "python.linting.enabled": true,
+    "python.linting.flake8Enabled": false,
+    "python.linting.flake8Args": ["--ignore=E501"],
+    "python.autoComplete.extraPaths": [
+        "C:\\Users\\msoluyanov\\Documents\\Blender\\blender_autocomplete\\3.0"
+    ],
+    "python.linting.pylintArgs": [
+        "--init-hook",
+        "import sys; sys.path.append('C:\\Users\\msoluyanov\\Documents\\Blender\\blender_autocomplete\\3.0')"
+    ],
+    "python.analysis.extraPaths": [
+        "C:\\Users\\msoluyanov\\Documents\\Blender\\blender_autocomplete\\3.0"
+    ],
+    "python.linting.pycodestyleEnabled": true
+    
+}
