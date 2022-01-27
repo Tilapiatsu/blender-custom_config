@@ -27,6 +27,11 @@ scripts/addons/BakeWrangler/*
 scripts/addons/quad_remesher/*
 scripts/addons/hairNet/*
 scripts/addons/uv-packer/*
+scripts/addons/beta_quad/*
+scripts/addons/Scatter5/*
+scripts/addons/blenderkit/*
+scripts/addons_updates/blenderkit_updater/*
+scripts/addons/Scatter5/*
 scripts/presets/interface_theme/blender_pro.xml
 .vscode/settings.json
 
