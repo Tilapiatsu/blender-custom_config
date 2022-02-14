@@ -319,6 +319,3 @@
 [submodule "scripts/addons/simple_renaming_panel"]
 	path = scripts/addons/simple_renaming_panel
 	url = https://github.com/Weisl/simple_renaming_panel.git
-[submodule "scripts/addons/Blender_Studio_Tools"]
-	path = scripts/addons/Blender_Studio_Tools
-	url = git://git.blender.org/blender-studio-tools.git
