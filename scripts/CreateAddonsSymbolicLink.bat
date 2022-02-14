@@ -17,6 +17,8 @@ mklink /d "%currdir%\addons\uvpacker_exe" "%currdir%\GIT\uvpacker_exe"
 @REM mklink /d "%currdir%\addons\io_mesh_fast_obj" "%currdir%\GIT\bpy_photogrametry\io_mesh_fast_obj"
 mklink /d "%currdir%\addons\math_formula" "%currdir%\GIT\WM_Blender-addons\math_formula"
 mklink /d "%currdir%\addons\photogrammetry_importer" "%currdir%\GIT\Blender-Addon-Photogrammetry-Importer\photogrammetry_importer"
+mkdir "%currdir%\startup\bl_app_templates_user\"
+mklink /d "%currdir%\startup\bl_app_templates_user\blender_media_viewer" "%currdir%\GIT\Blender_Studio_Tools\blender-media-viewer\blender_media_viewer"
 
 "%PYTHONPATH%\python.exe" "..\GIT\BEER\Malt\scripts\package_blender_addon.py"
 mklink /d "%currdir%\addons\BlenderMalt" "%currdir%\GIT\BEER\Malt\BlenderMalt"
