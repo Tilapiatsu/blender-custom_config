@@ -73,6 +73,7 @@ modules =   (
 			'uvpackmaster3',
 			'uv_toolkit',
 			'noodler',
+			'NGon Loop Select',
 			# 'lineup_maker',
 			'Tila_Config'
 			)
