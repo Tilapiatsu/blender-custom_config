@@ -48,7 +48,18 @@ class TILA_smart_loopselect(bpy.types.Operator):
 		if bpy.context.tool_settings.mesh_select_mode[2]:
 			return 2
 
+	def init_bmesh(self, context):
+		selection = context.object
+		self.data = selection.data
+		self.bmesh = bmesh.new()
+		self.bmesh.from_mesh(self.data)
+	
+	def free_bmesh(self):
+		self.bm.free()
+
 	def invoke(self, context, event):
+		self.init_bmesh(context)
+
 		def switch_mesh_mode(self, current_mode):
 			if self.mesh_mode[self.mode] == current_mode:
 				bpy.ops.object.editmode_toggle()
@@ -86,56 +97,61 @@ class TILA_smart_loopselect(bpy.types.Operator):
 			bpy.context.scene.tool_settings.particle_edit.select_mode = self.particle_mode[self.mode] 
 
 		def border_edge_selected(self):
-			selection = bpy.context.object
-
-			data = selection.data
-			bm = bmesh.new()
-			bm.from_mesh(data)
-
-			total_edge_sel = data.total_edge_sel
+			total_edge_sel = self.data.total_edge_sel
 
 			if total_edge_sel == 0:
 				return False
 
-			border = [e for e in bm.edges if e.is_boundary and e.select]
-			bm.free()
+			border = [e for e in self.bmesh.edges if e.is_boundary and e.select]
    
-			return len(border) > 0
+			if len(border) > 0:
+				return border[0]
+			else:
+				return None
 		
 		def get_mesh_element_selection(mode):
 			selection = bpy.context.object
 
-			data = selection.data
-			bm = bmesh.new()
-			bm.from_mesh(data)
-   
 			if mode == 'VERT':
-				total_vert_sel = data.total_vert_sel
+				total_vert_sel = self.data.total_vert_sel
 				if total_vert_sel == 0:
 					return []
 
-				return [e for e in bm.verts if e.select]
+				return [e for e in self.bmesh.verts if e.select]
 
 			if mode == 'EDGE':
-				total_edge_sel = data.total_edge_sel
+				total_edge_sel = self.data.total_edge_sel
 				if total_edge_sel == 0:
 					return []
 
-				return [e for e in bm.edges if e.select]
+				return [e for e in self.bmesh.edges if e.select]
  
 			if mode == 'FACE':
-				total_face_sel = data.total_face_sel
+				total_face_sel = self.data.total_face_sel
 				if total_face_sel == 0:
 					return []
 
-				return [e for e in bm.faces if e.select]
-
-			bm.free()
+				return [e for e in self.bmesh.faces if e.select]
 		
 		def select_elements(mode, elements):
 			for e in elements:
 				e.select_set(True)
-  
+
+		def get_linked_border_edge(self, edge):
+			border_edges = []
+			evaluated_faces = []
+			for f in edge.link_faces:
+				if f in evaluated_faces:
+					continue
+
+				evaluated_faces.append(f)
+
+				for e in f.edges:
+					if e.is_boundary:
+							border_edges += get_linked_border_edge(self, e)						
+
+			return border_edges
+
 		if bpy.context.mode == 'EDIT_MESH':
 			method = switch_mesh_mode
 			if self.extend:
@@ -145,14 +161,14 @@ class TILA_smart_loopselect(bpy.types.Operator):
 				bpy.ops.mesh.loop_select(extend=self.extend, ring=False, deselect=False)
 			elif bpy.context.scene.tool_settings.mesh_select_mode[1]:
 				# temporay run the previous loop
-				bpy.ops.mesh.loop_select("INVOKE_DEFAULT", extend=self.extend, deselect=self.deselect)
-				
-				# if border_edge_selected(self):
-				# 	bpy.ops.mesh.select_similar(type='FACE', threshold=0.01)
-				# 	select_elements(self, self.selected_elements)   
-				# else:
-				# 	bpy.ops.ls.select()
-				# 	select_elements(self, self.selected_elements)     
+				# bpy.ops.mesh.loop_select("INVOKE_DEFAULT", extend=self.extend, deselect=self.deselect)
+				border_edge = border_edge_selected(self)
+				if border_edge is not None:
+					select_elements(self, get_linked_border_edge(self, border_edge))
+					select_elements(self, self.selected_elements)   
+				else:
+					bpy.ops.ls.select()
+					select_elements(self, self.selected_elements)     
 
 			elif bpy.context.scene.tool_settings.mesh_select_mode[2]:
 				method(self, 'FACE')
@@ -190,6 +206,8 @@ class TILA_smart_loopselect(bpy.types.Operator):
 
 		else:
 			bpy.ops.object.mode_set(mode='OBJECT')
+
+		self.bmesh.free()
 
 		return {'FINISHED'}
 
