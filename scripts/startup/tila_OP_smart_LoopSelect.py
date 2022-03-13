@@ -31,6 +31,7 @@ class TILA_smart_loopselect(bpy.types.Operator):
 	uv_mode = ['VERTEX', 'EDGE', 'FACE', 'ISLAND']
 	particle_mode = ['PATH', 'POINT', 'TIP']
 	selected_elements = []
+	max_elements = 1000
 
 	@classmethod
 	def poll(cls, context):
@@ -97,15 +98,8 @@ class TILA_smart_loopselect(bpy.types.Operator):
 			bpy.context.scene.tool_settings.particle_edit.select_mode = self.particle_mode[self.mode] 
 
 		def border_edge_selected(self):
-			total_edge_sel = self.data.total_edge_sel
-
-			if total_edge_sel == 0:
-				return False
-
-			border = [e for e in self.bmesh.edges if e.is_boundary and e.select]
-   
-			if len(border) > 0:
-				return border[0]
+			if self.bmesh.select_history[-1].is_boundary:
+				return self.bmesh.select_history[-1]
 			else:
 				return None
 		
@@ -137,18 +131,23 @@ class TILA_smart_loopselect(bpy.types.Operator):
 			for e in elements:
 				e.select_set(True)
 
-		def get_linked_border_edge(self, edge):
-			border_edges = []
-			evaluated_faces = []
-			for f in edge.link_faces:
-				if f in evaluated_faces:
+		def get_linked_border_edge(edge, border_edges, evaluated_verts):
+			if len(border_edges) >= 100:
+				return border_edges
+			for v in edge.verts:
+				if v in evaluated_verts:
 					continue
+				
+				print("Evaluating Verts = ", v.index)
+				evaluated_verts.append(v)
 
-				evaluated_faces.append(f)
-
-				for e in f.edges:
+				for e in v.link_edges:
+					if e in border_edges:
+						continue
 					if e.is_boundary:
-							border_edges += get_linked_border_edge(self, e)						
+						print("Edge contains boundary = ", e.index)
+						border_edges.append(e)
+						border_edges += get_linked_border_edge(e, border_edges, evaluated_verts)
 
 			return border_edges
 
@@ -164,7 +163,8 @@ class TILA_smart_loopselect(bpy.types.Operator):
 				# bpy.ops.mesh.loop_select("INVOKE_DEFAULT", extend=self.extend, deselect=self.deselect)
 				border_edge = border_edge_selected(self)
 				if border_edge is not None:
-					select_elements(self, get_linked_border_edge(self, border_edge))
+					all_borders = get_linked_border_edge(border_edge, [border_edge], [])
+					select_elements(self, all_borders)
 					select_elements(self, self.selected_elements)   
 				else:
 					bpy.ops.ls.select()
