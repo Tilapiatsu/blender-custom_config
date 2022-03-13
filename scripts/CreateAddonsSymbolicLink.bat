@@ -5,7 +5,7 @@ set "currdir=%cd%"
 CALL :MakeSymbolicLink "d" "%currdir%\addons\SimpleAssetManager" "%currdir%\GIT\simple-asset-manager\SimpleAssetManager" 
 CALL :MakeSymbolicLink "d" "%currdir%\addons\fspy" "%currdir%\GIT\fSpy-Blender\fspy_blender"
 CALL :MakeSymbolicLink "d" "%currdir%\addons\mesh_mesh_align_plus" "%currdir%\GIT\mesh_align_plus\mesh_mesh_align_plus"
-CALL :MakeSymbolicLink "d" "%currdir%\addons\screencastkeys" "%currdir%\GIT\ScreenCast-Keys\src\screencastkeys"
+CALL :MakeSymbolicLink "d" "%currdir%\addons\screencast_keys" "%currdir%\GIT\ScreenCast-Keys\src\screencast_keys"
 CALL :MakeSymbolicLink "d" "%currdir%\addons\mira_tools" "%currdir%\GIT\mifthtools\blender\addons\2.8\mira_tools"
 CALL :MakeSymbolicLink "d" "%currdir%\addons\PolyQuilt" "%currdir%\GIT\PolyQuilt\Addons\PolyQuilt"
 CALL :MakeSymbolicLink "d" "%currdir%\addons\vertex_color_master" "%currdir%\GIT\vertex_color_master\vertex_color_master"
@@ -60,6 +60,6 @@ pause
 @REM echo param = %~1
 @REM echo target = %~2
 @REM echo source = %~3
-IF %~1 == d ( rmdir "%~2" ) ELSE ( del "%~2" )
+IF %~1 == d ( rmdir /s /q "%~2" ) ELSE ( del "%~2" )
 mklink /%~1 "%~2" "%~3"
 EXIT /B 0
