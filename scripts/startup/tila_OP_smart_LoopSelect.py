@@ -2,7 +2,7 @@
 from bpy.props import IntProperty, BoolProperty, EnumProperty
 from mathutils import Vector
 import bgl
-import bpy, bmesh
+import bpy, bmesh, math
 bl_info = {
 	"name": "Smart LoopSelect",
 	"description": "Automatically triggers the proper operator depending on the contect",
@@ -49,14 +49,22 @@ class TILA_smart_loopselect(bpy.types.Operator):
 		if bpy.context.tool_settings.mesh_select_mode[2]:
 			return 2
 
+	@property
+	def active_vert(self):
+		return self.bmesh.vert[self.bmesh.select_history.active.index]	
+ 
+	@property
+	def active_edge(self):
+		return self.bmesh.edges[self.bmesh.select_history.active.index]
+
+	@property
+	def active_face(self):
+		return self.bmesh.faces[self.bmesh.select_history.active.index]
+  
 	def init_bmesh(self, context):
 		selection = context.object
 		self.data = selection.data
-		self.bmesh = bmesh.new()
-		self.bmesh.from_mesh(self.data)
-	
-	def free_bmesh(self):
-		self.bm.free()
+		self.bmesh = bmesh.from_edit_mesh(selection.data)
 
 	def invoke(self, context, event):
 		self.init_bmesh(context)
@@ -98,10 +106,21 @@ class TILA_smart_loopselect(bpy.types.Operator):
 			bpy.context.scene.tool_settings.particle_edit.select_mode = self.particle_mode[self.mode] 
 
 		def border_edge_selected(self):
-			if self.bmesh.select_history[-1].is_boundary:
-				return self.bmesh.select_history[-1]
+			if len(self.bmesh.select_history) == 0:
+				return None
+			if self.bmesh.edges[self.bmesh.select_history.active.index].is_boundary:
+				return self.bmesh.edges[self.bmesh.select_history.active.index]
 			else:
 				return None
+		
+		def ngon_edge_selected(self):
+			if len(self.bmesh.select_history) == 0:
+				return None
+			active = self.bmesh.edges[self.bmesh.select_history.active.index]
+			for f in active.link_faces:
+				if len(f.edges) > 4:
+					return f
+			return None
 		
 		def get_mesh_element_selection(mode):
 			selection = bpy.context.object
@@ -131,7 +150,8 @@ class TILA_smart_loopselect(bpy.types.Operator):
 			for e in elements:
 				e.select_set(True)
 
-		def get_linked_border_edge(edge, border_edges, evaluated_verts):
+		#   Dosn't Work
+		def get_linked_border_edges(edge, border_edges, evaluated_verts):
 			if len(border_edges) >= 100:
 				return border_edges
 			for v in edge.verts:
@@ -147,9 +167,16 @@ class TILA_smart_loopselect(bpy.types.Operator):
 					if e.is_boundary:
 						print("Edge contains boundary = ", e.index)
 						border_edges.append(e)
-						border_edges += get_linked_border_edge(e, border_edges, evaluated_verts)
+						border_edges += get_linked_border_edges(e, border_edges, evaluated_verts)
 
 			return border_edges
+
+		def select_loop(self, edge, angle_threshold):
+			print(math.degrees(edge.calc_face_angle(0)))
+			if math.degrees(edge.calc_face_angle(0)) < angle_threshold:
+				bpy.ops.mesh.loop_select("INVOKE_DEFAULT", extend=self.extend, deselect=self.deselect)
+			else:
+				bpy.ops.ls.select()
 
 		if bpy.context.mode == 'EDIT_MESH':
 			method = switch_mesh_mode
@@ -158,17 +185,22 @@ class TILA_smart_loopselect(bpy.types.Operator):
 				self.selected_elements = get_mesh_element_selection(mode=self.mesh_mode[self.mode])
 			if bpy.context.scene.tool_settings.mesh_select_mode[0]:
 				bpy.ops.mesh.loop_select(extend=self.extend, ring=False, deselect=False)
+    
 			elif bpy.context.scene.tool_settings.mesh_select_mode[1]:
-				# temporay run the previous loop
-				# bpy.ops.mesh.loop_select("INVOKE_DEFAULT", extend=self.extend, deselect=self.deselect)
-				border_edge = border_edge_selected(self)
-				if border_edge is not None:
-					all_borders = get_linked_border_edge(border_edge, [border_edge], [])
-					select_elements(self, all_borders)
-					select_elements(self, self.selected_elements)   
+				# select Border edgeloop
+				if border_edge_selected(self) is not None:
+					bpy.ops.mesh.select_border('INVOKE_DEFAULT')
+					select_elements(self, self.selected_elements)
+				
+    			# select ngon borders
+				elif ngon_edge_selected(self) is not None:
+					select_elements(self, ngon_edge_selected(self).edges)
+					select_elements(self, self.selected_elements)
+    			
+       			#  Fallback : select edge loop
 				else:
-					bpy.ops.ls.select()
-					select_elements(self, self.selected_elements)     
+					select_loop(self, self.active_edge, 100)
+					select_elements(self, self.selected_elements) 
 
 			elif bpy.context.scene.tool_settings.mesh_select_mode[2]:
 				method(self, 'FACE')
@@ -207,7 +239,7 @@ class TILA_smart_loopselect(bpy.types.Operator):
 		else:
 			bpy.ops.object.mode_set(mode='OBJECT')
 
-		self.bmesh.free()
+		bmesh.update_edit_mesh(mesh=self.data, loop_triangles=True)
 
 		return {'FINISHED'}
 
