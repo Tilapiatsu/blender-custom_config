@@ -3,6 +3,8 @@ from bpy.props import IntProperty, BoolProperty, EnumProperty
 from mathutils import Vector
 import bgl
 import bpy, bmesh, math
+from bpy_extras.view3d_utils import location_3d_to_region_2d
+
 bl_info = {
 	"name": "Smart LoopSelect",
 	"description": "Automatically triggers the proper operator depending on the contect",
@@ -69,6 +71,9 @@ class TILA_smart_loopselect(bpy.types.Operator):
 			if self.bmesh.select_history.active is not None:
 				self._active_edge = self.bmesh.edges[self.bmesh.select_history.active.index]
 			else:
+				# self.bmesh.select_history.validate()
+				for e in self.bmesh.select_history:
+					print(e.index)
 				self._active_edge = self.bmesh.edges[self.bmesh.select_history[-1].index]
 		return self._active_edge
 
@@ -78,6 +83,8 @@ class TILA_smart_loopselect(bpy.types.Operator):
 			if self.bmesh.select_history.active is not None:
 				self._active_face = self.bmesh.faces[self.bmesh.select_history.active.index]
 			else:
+				for e in self.bmesh.select_history:
+					print(e.index)
 				self._active_face = self.bmesh.faces[self.bmesh.select_history[-1].index]
 		return self._active_face
   
@@ -89,6 +96,9 @@ class TILA_smart_loopselect(bpy.types.Operator):
 	def invoke(self, context, event):
 	 
 		self.init_bmesh(context)
+		self.selected_elements = self.bmesh.select_history
+		if not self.extend and not self.deselect:
+			self.bmesh.select_flush(True)
 
 		def switch_mesh_mode(self, current_mode):
 			if self.mesh_mode[self.mode] == current_mode:
@@ -167,7 +177,7 @@ class TILA_smart_loopselect(bpy.types.Operator):
 
 				return [e for e in self.bmesh.faces if e.select]
 		
-		def select_elements(deselect, elements):
+		def select_elements(self, deselect, elements):
 			for e in elements:
 				e.select_set(not deselect)
 
@@ -197,8 +207,9 @@ class TILA_smart_loopselect(bpy.types.Operator):
 				bpy.ops.mesh.loop_select("INVOKE_DEFAULT", extend=self.extend, deselect=self.deselect)
 			else:
 				bpy.ops.ls.select()
+    
 
-		if bpy.context.mode == 'EDIT_MESH':
+		if bpy.context.mode in ['EDIT_MESH']:
 			# vert selection mode   
 			if bpy.context.scene.tool_settings.mesh_select_mode[0]:
 				bpy.ops.mesh.loop_select('INVOKE_DEFAULT', extend=self.extend, ring=False, deselect=False)
@@ -207,59 +218,37 @@ class TILA_smart_loopselect(bpy.types.Operator):
 			elif bpy.context.scene.tool_settings.mesh_select_mode[1]:
 				# select Border edgeloop
 				if border_edge_selected(self) is not None:
-					bpy.ops.mesh.select_border('INVOKE_DEFAULT')
+					bpy.ops.mesh.select_border('INVOKE_DEFAULT', extend=self.extend, deselect=self.deselect)
 					if self.extend:
-						select_elements(False, self.selected_elements)
+						select_elements(self, False, self.selected_elements)
 				
 				# select ngon borders
 				elif ngon_edge_selected(self) is not None:
-					select_elements(self.deselect, ngon_edge_selected(self).edges)
-					if self.extend:
+					select_elements(self, self.deselect, ngon_edge_selected(self).edges)
+					if self.extend and len(self.selected_elements):
 						select_elements(False, self.selected_elements)
 				
 	   			#  Fallback : select edge loop
 				else:
 					select_edge_loop(self, self.active_edge, 100)
 					if self.extend:
-						select_elements(False, self.selected_elements)
+						select_elements(self, False, self.selected_elements)
 		
 			# Face selection mode
 			elif bpy.context.scene.tool_settings.mesh_select_mode[2]:
 				bpy.ops.mesh.loop_select('INVOKE_DEFAULT', extend=self.extend, ring=False, deselect=False, toggle=False)
 
-		elif bpy.context.mode == 'EDIT_CURVE':
-			if self.alt_mode:
-				bpy.ops.object.mode_set(mode='OBJECT')
-			else:
-				pass
+		elif bpy.context.mode in ['EDIT_CURVE']:
+			pass
 		elif bpy.context.mode in ['EDIT_GPENCIL', 'PAINT_GPENCIL', 'SCULPT_GPENCIL', 'WEIGHT_GPENCIL']:
-			if self.alt_mode:
-				bpy.ops.object.mode_set(mode='OBJECT')
-			else:
-				switch_gpencil_mode(self, bpy.context.scene.tool_settings.gpencil_selectmode_edit)
+			pass
 
 		elif bpy.context.mode in ['PAINT_WEIGHT', 'PAINT_VERTEX']:
-			if self.alt_mode:
-				bpy.ops.object.mode_set(mode='OBJECT')
-			else:
-				if self.mode == 0 and not bpy.context.object.data.use_paint_mask_vertex:                   
-					bpy.context.object.data.use_paint_mask_vertex = True
-				elif self.mode == 2 and not bpy.context.object.data.use_paint_mask:
-					bpy.context.object.data.use_paint_mask = True
-				elif self.mode == 1:
-					pass
-				else:
-					bpy.context.object.data.use_paint_mask_vertex = False
-					bpy.context.object.data.use_paint_mask = False
-		
+			pass
 		elif bpy.context.mode in ['PARTICLE']:
-			if self.alt_mode:
-				bpy.ops.object.mode_set(mode='OBJECT')
-			else:
-				switch_particle_mode(self)
-
+			pass
 		else:
-			bpy.ops.object.mode_set(mode='OBJECT')
+			pass
 
 		bmesh.update_edit_mesh(mesh=self.data, loop_triangles=True)
 

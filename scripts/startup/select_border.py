@@ -32,6 +32,9 @@ class VIEW3D_MT_edit_mesh_selectborder(bpy.types.Operator):
     bl_label = "Select Border Edges"
     bl_options = {'REGISTER', 'UNDO'}
     
+    extend : bpy.props.BoolProperty(name='extend', default=False)
+    deselect : bpy.props.BoolProperty(name='deselect', default=False)
+ 
     @classmethod
     def poll(cls, context):
         ob = context.active_object
@@ -45,6 +48,9 @@ class VIEW3D_MT_edit_mesh_selectborder(bpy.types.Operator):
         # Get a BMesh representation
         bm = bmesh.from_edit_mesh(me)
         
+        self.selected_items = [e.index for e  in bm.select_history]
+            
+        # check if any element selected
         if len(bm.select_history) == 0:
             self.report({'WARNING'}, 'Select edge')
         else:
@@ -68,9 +74,11 @@ class VIEW3D_MT_edit_mesh_selectborder(bpy.types.Operator):
                         border_check = new_edges
 
                 # print(border_edges)
+                
+                border_edges += self.selected_items
 
                 for k in border_edges:
-                    bm.edges[k].select = True
+                    bm.edges[k].select = not self.deselect
             else:
                 self.report({'WARNING'}, 'Select edge is not a boundary edge')#print("Select edge is not a boundary edge")
 
