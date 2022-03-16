@@ -301,9 +301,6 @@
 [submodule "scripts/addons/TexTools"]
 	path = scripts/addons/TexTools
 	url = https://github.com/SavMartin/TexTools-Blender.git
-[submodule "scripts/addons/GrabDoc"]
-	path = scripts/addons/GrabDoc
-	url = https://github.com/oRazeD/GrabDoc.git
 [submodule "scripts/addons/MaterialUtilities"]
 	path = scripts/addons/MaterialUtilities
 	url = https://github.com/ChrisHinde/MaterialUtilities.git
@@ -322,3 +319,6 @@
 [submodule "scripts/GIT/Blender_Studio_Tools"]
 	path = scripts/GIT/Blender_Studio_Tools
 	url = git://git.blender.org/blender-studio-tools.git
+[submodule "scripts/addons/GrabDoc"]
+	path = scripts/addons/GrabDoc
+	url = https://github.com/oRazeD/GrabDoc.git
