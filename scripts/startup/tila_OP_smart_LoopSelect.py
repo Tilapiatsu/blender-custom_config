@@ -203,7 +203,8 @@ class TILA_smart_loopselect(bpy.types.Operator):
 			return border_edges
 
 		def select_edge_loop(self, edge, angle_threshold):
-			if math.degrees(edge.calc_face_angle(0)) < angle_threshold:
+			edge_angle = math.degrees(edge.calc_face_angle(0))
+			if edge_angle < angle_threshold:
 				bpy.ops.mesh.loop_select("INVOKE_DEFAULT", extend=self.extend, deselect=self.deselect)
 			else:
 				bpy.ops.ls.select()
@@ -230,7 +231,7 @@ class TILA_smart_loopselect(bpy.types.Operator):
 				
 	   			#  Fallback : select edge loop
 				else:
-					select_edge_loop(self, self.active_edge, 100)
+					select_edge_loop(self, self.active_edge, 94.5)
 					if self.extend:
 						select_elements(self, False, self.selected_elements)
 		
