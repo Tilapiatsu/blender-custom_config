@@ -168,7 +168,7 @@ class TILA_smart_loopselect(bpy.types.Operator):
 			bpy.ops.mesh.loop_select('INVOKE_DEFAULT', extend=self.extend, deselect=deselect, toggle=False, ring=False)
 		else:
 			self.print_debug('Angle Based Select Loop')
-			bpy.ops.ls.select()
+			bpy.ops.ls.select('INVOKE_DEFAULT', deselect=self.deselect)
     
 	def invoke(self, context, event):
 		self.init_bmesh(context)
@@ -198,13 +198,17 @@ class TILA_smart_loopselect(bpy.types.Operator):
 				# select ngon borders
 				elif self.ngon_edge_selected() is not None:
 					self.print_debug('Select NGon')
-					self.select_elements(self.deselect, self.ngon_edge_selected().edges)
+					ngon_edges = self.ngon_edge_selected().edges
+					self.select_elements(self.deselect, ngon_edges)
 					if self.extend and len(self.selected_elements):
 						self.select_elements(False, self.selected_elements)
+					# re select element under cursor
+					if self.deselect:
+						bpy.ops.view3d.select(deselect=True,  location=loc)
 				
 	   			#  Fallback : select edge loop
 				else:
-					self.select_edge_loop(self.active_edge, 94.5, self.deselect)
+					self.select_edge_loop(self.active_edge, angle_threshold=94.5, deselect=self.deselect)
 					if self.extend:
 						self.select_elements(False, self.selected_elements)
 		
@@ -212,16 +216,16 @@ class TILA_smart_loopselect(bpy.types.Operator):
 			elif bpy.context.scene.tool_settings.mesh_select_mode[2]:
 				bpy.ops.mesh.loop_select('INVOKE_DEFAULT', extend=self.extend, ring=False, deselect=False, toggle=False)
 
-		elif bpy.context.mode in ['EDIT_CURVE']:
-			pass
-		elif bpy.context.mode in ['EDIT_GPENCIL', 'PAINT_GPENCIL', 'SCULPT_GPENCIL', 'WEIGHT_GPENCIL']:
-			pass
-		elif bpy.context.mode in ['PAINT_WEIGHT', 'PAINT_VERTEX']:
-			pass
-		elif bpy.context.mode in ['PARTICLE']:
-			pass
-		else:
-			pass
+		# elif bpy.context.mode in ['EDIT_CURVE']:
+		# 	pass
+		# elif bpy.context.mode in ['EDIT_GPENCIL', 'PAINT_GPENCIL', 'SCULPT_GPENCIL', 'WEIGHT_GPENCIL']:
+		# 	pass
+		# elif bpy.context.mode in ['PAINT_WEIGHT', 'PAINT_VERTEX']:
+		# 	pass
+		# elif bpy.context.mode in ['PARTICLE']:
+		# 	pass
+		# else:
+		# 	pass
 
 		bmesh.update_edit_mesh(mesh=self.data, loop_triangles=True)
 
