@@ -172,10 +172,12 @@ class TILA_smart_loopselect(bpy.types.Operator):
     
 	def invoke(self, context, event):
 		self.init_bmesh(context)
-		
+
+		# re select element under cursor
 		loc = event.mouse_region_x, event.mouse_region_y
+		bpy.ops.view3d.select(extend=True, location=loc)
+		# Store selected Edge in List
 		self.selected_elements = [e for e in self.get_mesh_element_selection(self.mode)]
-		bpy.ops.view3d.select(extend=self.extend, location=loc)
 		if not self.extend and not self.deselect:
 			self.bmesh.select_flush(True)
 
@@ -189,13 +191,14 @@ class TILA_smart_loopselect(bpy.types.Operator):
 				# select Border edgeloop
 				if self.border_edge_selected() is not None:
 					bpy.ops.mesh.select_border('INVOKE_DEFAULT', extend=self.extend, deselect=self.deselect)
+					return {'FINISHED'}
 					if self.extend:
 						self.select_elements(False, self.selected_elements)
 				
 				# select ngon borders
 				elif self.ngon_edge_selected() is not None:
 					self.print_debug('Select NGon')
-					self.select_elements(self.deselect, self.ngon_edge_selected(self).edges)
+					self.select_elements(self.deselect, self.ngon_edge_selected().edges)
 					if self.extend and len(self.selected_elements):
 						self.select_elements(False, self.selected_elements)
 				
