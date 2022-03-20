@@ -170,6 +170,28 @@ class TILA_smart_loopselect(bpy.types.Operator):
 			self.print_debug('Angle Based Select Loop')
 			bpy.ops.ls.select('INVOKE_DEFAULT', deselect=self.deselect)
     
+	def contextual_select(self):
+        # select Border edgeloop
+		if self.border_edge_selected() is not None:
+			bpy.ops.mesh.select_border('INVOKE_DEFAULT', extend=self.extend, deselect=self.deselect)
+		
+		# select ngon borders
+		elif self.ngon_edge_selected() is not None:
+			self.print_debug('Select NGon')
+			ngon_edges = self.ngon_edge_selected().edges
+			self.select_elements(self.deselect, ngon_edges)
+			# if self.extend and len(self.selected_elements):
+			# 	self.select_elements(False, self.selected_elements)
+			# re select element under cursor
+			if self.deselect:
+				bpy.ops.view3d.select(deselect=True,  location=loc)
+		
+		#  Fallback : select edge loop
+		else:
+			self.select_edge_loop(self.active_edge, angle_threshold=94.5, deselect=self.deselect)
+			# if self.extend:
+			# 	self.select_elements(False, self.selected_elements)
+   
 	def invoke(self, context, event):
 		self.init_bmesh(context)
 
@@ -178,43 +200,21 @@ class TILA_smart_loopselect(bpy.types.Operator):
 		bpy.ops.view3d.select(extend=True, location=loc)
 		# Store selected Edge in List
 		self.selected_elements = [e for e in self.get_mesh_element_selection(self.mode)]
-		if not self.extend and not self.deselect:
-			self.bmesh.select_flush(True)
+		# if not self.extend and not self.deselect:
+		# 	self.bmesh.select_flush(True)
 
 		if bpy.context.mode in ['EDIT_MESH']:
 			# vert selection mode   
 			if bpy.context.scene.tool_settings.mesh_select_mode[0]:
-				bpy.ops.mesh.loop_select('INVOKE_DEFAULT', extend=self.extend, ring=False, deselect=False)
+				bpy.ops.mesh.loop_select('INVOKE_DEFAULT', extend=self.extend, ring=False, deselect=self.deselect, toggle=False)
 			
    			# Edge selection mode
 			elif bpy.context.scene.tool_settings.mesh_select_mode[1]:
-				# select Border edgeloop
-				if self.border_edge_selected() is not None:
-					bpy.ops.mesh.select_border('INVOKE_DEFAULT', extend=self.extend, deselect=self.deselect)
-					return {'FINISHED'}
-					if self.extend:
-						self.select_elements(False, self.selected_elements)
-				
-				# select ngon borders
-				elif self.ngon_edge_selected() is not None:
-					self.print_debug('Select NGon')
-					ngon_edges = self.ngon_edge_selected().edges
-					self.select_elements(self.deselect, ngon_edges)
-					if self.extend and len(self.selected_elements):
-						self.select_elements(False, self.selected_elements)
-					# re select element under cursor
-					if self.deselect:
-						bpy.ops.view3d.select(deselect=True,  location=loc)
-				
-	   			#  Fallback : select edge loop
-				else:
-					self.select_edge_loop(self.active_edge, angle_threshold=94.5, deselect=self.deselect)
-					if self.extend:
-						self.select_elements(False, self.selected_elements)
+				self.contextual_select()
 		
 			# Face selection mode
 			elif bpy.context.scene.tool_settings.mesh_select_mode[2]:
-				bpy.ops.mesh.loop_select('INVOKE_DEFAULT', extend=self.extend, ring=False, deselect=False, toggle=False)
+				bpy.ops.mesh.loop_select('INVOKE_DEFAULT', extend=self.extend, ring=False, deselect=self.deselect, toggle=False)
 
 		# elif bpy.context.mode in ['EDIT_CURVE']:
 		# 	pass
