@@ -322,3 +322,6 @@
 [submodule "scripts/addons/GrabDoc"]
 	path = scripts/addons/GrabDoc
 	url = https://github.com/oRazeD/GrabDoc.git
+[submodule "scripts/addons/eyek"]
+	path = scripts/addons/eyek
+	url = https://github.com/p4ymak/eyek.git
