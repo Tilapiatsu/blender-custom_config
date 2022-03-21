@@ -1082,7 +1082,7 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		self.kmi_set_replace('noodler.chamfer', 'B', 'PRESS', disable_double=True)
 		self.kmi_set_replace('noodler.draw_frame', 'J', 'PRESS', ctrl=True, disable_double=True)
 		self.kmi_set_replace('noodler.dependency_select', self.k_manip, 'DOUBLE_CLICK', shift=True, properties=[('mode', "DOWNSTREAM"), ('repsel', True)], disable_double=True)
-		self.kmi_set_replace('noodler.dependency_select', self.k_manip, 'DOUBLE_CLICK', ctrl=True, shift=True, properties=[('mode', "UPSTREAM"), ('repsel', True)], disable_double=True)
+		self.kmi_set_replace('noodler.dependency_select', self.k_manip, 'DOUBLE_CLICK', ctrl=True, properties=[('mode', "UPSTREAM"), ('repsel', True)], disable_double=True)
 
 		###### Animation
 		self.kmi_init(name='Animation', space_type='EMPTY', region_type='WINDOW')
