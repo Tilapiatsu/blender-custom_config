@@ -231,7 +231,7 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		# Loop Select / Deselect / Add
 		if loop_tool:
 			self.kmi_set_replace(loop_tool, self.k_select, 'DOUBLE_CLICK', disable_double=True, properties=[('extend', False), ('deselect', False)])
-			self.kmi_set_replace(loop_tool, self.k_select, 'DOUBLE_CLICK', shift=True, properties=[('extend', True), ('ring', False)], disable_double=True)
+			self.kmi_set_replace(loop_tool, self.k_select, 'DOUBLE_CLICK', shift=True, properties=[('extend', True), ('ring', False), ('deselect', False)], disable_double=True)
 			self.kmi_set_replace(loop_tool, self.k_select, 'DOUBLE_CLICK', ctrl=True, properties=[('extend', False), ('deselect', True)], disable_double=True)
 
 		# Ring Select / Deselect / Add
