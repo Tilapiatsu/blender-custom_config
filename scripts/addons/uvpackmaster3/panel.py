@@ -28,42 +28,6 @@ import bpy
 import bpy_types
 
 
-class UVPM3_OT_SetRotStep(bpy.types.Operator):
-
-    bl_idname = 'uvpackmaster3.set_rot_step'
-    bl_label = 'Set Rotation Step'
-    bl_description = "Set Rotation Step to one of the suggested values"
-
-    rotation_step : IntProperty(
-        name='Rotation Step',
-        description='',
-        default=90)
-
-
-    def execute(self, context):
-        
-        scene_props = context.scene.uvpm3_props
-        scene_props.rotation_step = self.rotation_step
-        return {'FINISHED'}
-    
-
-class UVPM3_MT_SetRotStep(bpy.types.Menu):
-
-    bl_idname = "UVPM3_MT_SetRotStep"
-    bl_label = "Set Rotation Step"
-
-    STEPS = [1, 2, 3, 5, 6, 9, 10, 15, 18, 30, 45, 90, 180]
-
-    def draw(self, context):
-
-        layout = self.layout
-
-        for step in self.STEPS:
-            operator = layout.operator(UVPM3_OT_SetRotStep.bl_idname, text=str(step))
-            operator.rotation_step = step
-
-
-
 UVPM3_PT_SPACE_TYPE = 'IMAGE_EDITOR'
 UVPM3_PT_REGION_TYPE = 'UI'
 UVPM3_PT_CATEGORY = 'UVPackmaster3'
@@ -77,6 +41,49 @@ class UVPM3_PT_Generic(bpy.types.Panel):
     bl_category = UVPM3_PT_CATEGORY
     bl_context = UVPM3_PT_CONTEXT
     bl_order = 1
+
+    @classmethod
+    def _draw_help_operator(self, layout, help_url_suffix):
+
+        help_op = layout.operator(UVPM3_OT_Help.bl_idname, icon='HELP', text='')
+        help_op.url_suffix = help_url_suffix
+
+    @classmethod
+    def draw_enum_in_box(self, obj, prop_id, prop_name, layout, help_url_suffix=None):
+
+        box = layout.box()
+        col = box.column(align=True)
+        col.label(text=prop_name + ':')
+        row = col.row(align=True)
+        row.prop(obj, prop_id, text='')
+
+        if help_url_suffix:
+            self._draw_help_operator(row, help_url_suffix)
+
+        return col
+
+    @classmethod
+    def draw_prop_with_set_menu(self, obj, prop_id, layout, menu_class):
+        split = layout.split(factor=0.8, align=True)
+
+        col_s = split.row(align=True)
+        col_s.prop(obj, prop_id)
+        col_s = split.row(align=True)
+        col_s.menu(menu_class.bl_idname, text='Set')
+        
+    @classmethod
+    def handle_prop(self, obj, prop_name, supported, not_supported_msg, layout):
+
+        if supported:
+            layout.prop(obj, prop_name)
+        else:
+            layout.enabled = False
+            split = layout.split(factor=0.4)
+            col_s = split.column()
+            col_s.prop(obj, prop_name)
+            col_s = split.column()
+            col_s.label(text=not_supported_msg)
+
 
     def get_main_property(self):
         return None
@@ -99,7 +106,7 @@ class UVPM3_PT_Generic(bpy.types.Panel):
 
         self.prefs = get_prefs()
         self.scene_props = context.scene.uvpm3_props
-        self.scripted_props = context.scene.uvpm3_props.scripted_pipeline_props
+        self.scripted_props = context.scene.uvpm3_props.scripted_props
         self.active_mode = self.prefs.get_active_main_mode(self.scene_props, context)
 
         main_property = self.get_main_property()
@@ -109,45 +116,17 @@ class UVPM3_PT_Generic(bpy.types.Panel):
         
         self.draw_impl(context)
 
-    def _draw_help_operator(self, layout):
-
-        help_op = layout.operator(UVPM3_OT_Help.bl_idname, icon='HELP', text='')
-        help_op.url_suffix = self.HELP_URL_SUFFIX
-
-    def draw_enum_in_box(self, obj, prop_id, prop_name, layout, show_help=False):
-
-        box = layout.box()
-        col = box.column(align=True)
-        col.label(text=prop_name + ':')
-        row = col.row(align=True)
-        row.prop(obj, prop_id, text='')
-
-        if show_help:
-            self._draw_help_operator(row)
-
     def prop_with_help(self, obj, prop_id, layout):
 
         row = layout.row(align=True)
         row.prop(obj, prop_id)
-        self._draw_help_operator(row)
+        self._draw_help_operator(row, self.HELP_URL_SUFFIX)
 
     def operator_with_help(self, op_idname, layout):
 
         row = layout.row(align=True)
         row.operator(op_idname)
-        self._draw_help_operator(row)
-
-    def handle_prop(self, obj, prop_name, supported, not_supported_msg, layout):
-
-        if supported:
-            layout.prop(obj, prop_name)
-        else:
-            layout.enabled = False
-            split = layout.split(factor=0.4)
-            col_s = split.column()
-            col_s.prop(obj, prop_name)
-            col_s = split.column()
-            col_s.label(text=not_supported_msg)
+        self._draw_help_operator(row, self.HELP_URL_SUFFIX)
 
     def handle_prop_enum(self, obj, prop_name, prop_label, supported, not_supported_msg, layout):
 
@@ -208,11 +187,7 @@ class UVPM3_PT_EngineStatus(UVPM3_PT_Generic, metaclass=EngineStatusMeta):
         layout = self.layout
         col = layout.column(align=True)
         
-        opt_layout = col
-        opt_layout.label(text='General options:')
-
-        row = opt_layout.row(align=True)
-        row.prop(self.prefs, 'thread_count')
+        self.prefs.draw_general_options(col)
 
         if in_debug_mode():
             col.separator()

@@ -60,14 +60,28 @@ class Scenario(PackScenario):
             for idx2 in range(idx1+1, len(tdensity_clusters)):
                 tdensity_clusters[idx1].validate(tdensity_clusters[idx2])
 
-
         for td_cluster in tdensity_clusters:
 
             task = PackTask(0, self.pack_params)
 
             for group in td_cluster.groups:
-
                 stage_params = StageParams()
+
+                if group.rotation_enable is not None:
+                    stage_params.rotation_enable = group.rotation_enable
+                if group.pre_rotation_disable is not None:
+                    stage_params.pre_rotation_disable = group.pre_rotation_disable
+                if group.rotation_step is not None:
+                    stage_params.rotation_step = group.rotation_step
+                if group.pixel_margin is not None:
+                    stage_params.pixel_margin = group.pixel_margin
+                if group.pixel_padding is not None:
+                    stage_params.pixel_padding = group.pixel_padding
+                if group.extra_pixel_margin_to_others is not None:
+                    stage_params.extra_pixel_margin_to_others = group.extra_pixel_margin_to_others
+                if group.pixel_margin_tex_size is not None:
+                    stage_params.pixel_margin_tex_size = group.pixel_margin_tex_size
+
                 task.add_stage(stage_params, group.stage_target, group.islands, self.static_islands)
 
             self.pack_manager.add_task(task)

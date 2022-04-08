@@ -21,7 +21,7 @@ import bpy
 import blf
 
 
-from .enums import UvpmLogType
+from .enums import OperationStatus, UvpmLogType
 from .utils import in_debug_mode, print_backtrace
 
 
@@ -103,6 +103,12 @@ class EngineOverlayManager(OverlayManager):
 
     INTEND_STR = '  '
 
+    OPSTATUS_TO_COLOR = {
+        OperationStatus.ERROR : ERROR_COLOR,
+        OperationStatus.WARNING : WARNING_COLOR,
+        OperationStatus.CORRECT : OverlayManager.LINE_TEXT_COLOR
+    }
+
     def __init__(self, op, dev_array):
         super().__init__(op.p_context.context, engine_overlay_manager_draw_callback)
         
@@ -153,13 +159,7 @@ def engine_overlay_manager_draw_callback(self, context):
         if status_str is None:
             status_str = ''
 
-        if self.log_manager.type_logged(UvpmLogType.ERROR):
-            status_color = self.ERROR_COLOR
-        elif self.log_manager.type_logged(UvpmLogType.WARNING):
-            status_color = self.WARNING_COLOR
-        else:
-            status_color = self.LINE_TEXT_COLOR
-
+        status_color = self.OPSTATUS_TO_COLOR[self.log_manager.operation_status()]
         hint_str = self.log_manager.last_log(UvpmLogType.HINT)
 
         if hint_str:
@@ -169,12 +169,15 @@ def engine_overlay_manager_draw_callback(self, context):
         self.print_dev_array()
 
         log_print_metadata = (\
-            (UvpmLogType.INFO,   'INFO',     self.LINE_TEXT_COLOR),
-            (UvpmLogType.WARNING,'WARNINGS', self.WARNING_COLOR),
-            (UvpmLogType.ERROR,  'ERRORS',   self.ERROR_COLOR),
+            (UvpmLogType.INFO,   'INFO'),
+            (UvpmLogType.WARNING,'WARNINGS'),
+            (UvpmLogType.ERROR,  'ERRORS')
         )
 
-        for log_type, header, color in log_print_metadata:
+        for log_type, header in log_print_metadata:
+            op_status = self.log_manager.LOGTYPE_TO_OPSTATUS[log_type]
+            color = self.OPSTATUS_TO_COLOR[op_status]
+            
             log_list = self.log_manager.log_list(log_type)
             if len(log_list) > 0:
                 self.print_list(header, log_list, color)

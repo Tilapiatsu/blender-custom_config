@@ -23,7 +23,12 @@ from ..operators.pack_operator import UVPM3_OT_Pack
 from ...box import DEFAULT_TARGET_BOX
 from ...box_utils import BoxRenderer, BoxArrayRenderAccess, CustomTargetBoxAccess
 from ...island_params import ScaleLimitIParamInfo, VColorIParamSerializer, RotStepIParamInfo, LockGroupIParamInfo
-from ...utils import get_active_image_ratio
+from ...utils import get_active_image_ratio, in_debug_mode
+from ...enums import TexelDensityGroupPolicy, GroupLayoutMode
+from ...labels import Labels
+from ...panel import UVPM3_PT_Generic
+from ...operator_misc import UVPM3_MT_SetRotStepGroup, UVPM3_MT_SetPixelMarginTexSizeGroup
+
 
 from ..panels.pack_panels import (
         UVPM3_PT_TileLayout,
@@ -78,6 +83,9 @@ class UVPM3_Mode_Pack(UVPM3_Mode_Main):
     def pre_operation(self):
         
         self.target_boxes = self.get_target_boxes()
+
+    def append_mode_name_to_op_label(self):
+        return True
 
     def packing_operation(self):
 
@@ -161,6 +169,9 @@ class UVPM3_Mode_Pack(UVPM3_Mode_Main):
             script_params.add_param('pixel_margin', self.scene_props.pixel_margin)
             script_params.add_param('pixel_margin_tex_size', self.prefs.pixel_margin_tex_size(self.scene_props, self.context))
 
+            if self.prefs.add_pixel_margin_to_others_enabled(self.scene_props):
+                script_params.add_param('extra_pixel_margin_to_others', self.scene_props.extra_pixel_margin_to_others)
+
             if self.prefs.pixel_padding_enabled(self.scene_props):
                 script_params.add_param('pixel_padding', self.scene_props.pixel_padding)
 
@@ -169,14 +180,9 @@ class UVPM3_Mode_Pack(UVPM3_Mode_Main):
             script_params.add_param('fixed_scale_strategy', int(self.scene_props.fixed_scale_strategy))
 
         if self.prefs.FEATURE_island_rotation:
-            if self.scene_props.rotation_enable:
-                rot_step_value = self.scene_props.rotation_step
-                
-                script_params.add_param('pre_rotation_disable', self.scene_props.pre_rotation_disable)
-            else:
-                rot_step_value = -1
-
-            script_params.add_param('rotation_step', rot_step_value)
+            script_params.add_param('rotation_enable', self.scene_props.rotation_enable)
+            script_params.add_param('pre_rotation_disable', self.scene_props.pre_rotation_disable)
+            script_params.add_param('rotation_step', self.scene_props.rotation_step)
 
         if self.prefs.heuristic_enabled(self.scene_props):
             script_params.add_param('heuristic_search_time', self.scene_props.heuristic_search_time)
@@ -194,7 +200,7 @@ class UVPM3_Mode_Pack(UVPM3_Mode_Main):
             script_params.add_param('normalize_islands', True)
 
         if self.island_rot_step_enabled():
-            script_params.add_param('island_rotation_step_enable', True)
+            script_params.add_param('rotation_step_iparam_name', RotStepIParamInfo.SCRIPT_NAME)
 
         if self.island_scale_limit_enabled():
             script_params.add_param('scale_limit_iparam_name', ScaleLimitIParamInfo.SCRIPT_NAME)
@@ -290,27 +296,6 @@ class UVPM3_Mode_Tiles(UVPM3_Mode_Pack):
 
         return output
 
-    # def setup_script_params(self):
-    #     script_params = super().setup_script_params()
-
-    #     tile_grid_shape = None
-    #     if self.scene_props.use_blender_tile_grid:
-    #         try:
-    #             tile_grid_shape = self.context.space_data.uv_editor.tile_grid_shape
-    #         except:
-    #             pass
-
-    #     if tile_grid_shape is None:
-    #         tile_count_x = self.scene_props.tile_count_x
-    #         tile_count_y = self.scene_props.tile_count_y
-    #     else:
-    #         tile_count_x = tile_grid_shape[0]
-    #         tile_count_y = tile_grid_shape[1]
-
-    #     script_params.add_param('tile_count_x', tile_count_x)
-    #     script_params.add_param('tile_count_y', tile_count_y)
-
-    #     return script_params
 
 
 class UVPM3_Mode_GroupsToTiles(UVPM3_Mode_Pack):
@@ -319,12 +304,151 @@ class UVPM3_Mode_GroupsToTiles(UVPM3_Mode_Pack):
     MODE_NAME = 'Groups To Tiles'
     MODE_PRIORITY = 3000
     MODE_HELP_URL_SUFFIX = "30-packing-modes/30-groups-to-tiles"
+    TEXEL_DENSITY_POLICY_URL_SUFFIX = MODE_HELP_URL_SUFFIX + '#texel-density-policy'
+    GROUP_LAYOUT_MODE_URL_SUFFIX = MODE_HELP_URL_SUFFIX + '#group-layout-mode'
 
     SCENARIO_ID = 'pack.groups_to_tiles'
 
     def grouping_enabled(self):
         
         return True
+
+    def group_target_box_editing(self):
+
+        return True
+
+    def group_pixel_margin_override_enabled(self):
+        return self.prefs.pixel_margin_enabled(self.scene_props)
+
+    def get_group_sparam_handler(self):
+
+        def sparam_handler(group, out_group):
+            overrides = group.overrides
+            out_group['tdensity_cluster'] = group.tdensity_cluster
+
+            def handle_ow_prop(prop_name, cond=True):
+                out_group[prop_name] = getattr(overrides, prop_name) if cond and overrides.override_global_options and getattr(overrides, 'override_' + prop_name) else None
+
+            handle_ow_prop('rotation_enable')
+            handle_ow_prop('pre_rotation_disable')
+            handle_ow_prop('rotation_step')
+
+            pm_override_enabled = self.group_pixel_margin_override_enabled()
+        
+            handle_ow_prop('pixel_margin', pm_override_enabled)
+            handle_ow_prop('pixel_padding', pm_override_enabled)
+            handle_ow_prop('extra_pixel_margin_to_others', pm_override_enabled)
+            handle_ow_prop('pixel_margin_tex_size', pm_override_enabled)
+
+        return sparam_handler
+
+    def draw_grouping_options(self, g_scheme, g_options, layout):
+
+        col = layout
+        UVPM3_PT_Generic.draw_enum_in_box(g_options, 'tdensity_policy', Labels.TEXEL_DENSITY_GROUP_POLICY_NAME, col, self.TEXEL_DENSITY_POLICY_URL_SUFFIX)
+
+        if not g_options.automatic:
+            row = col.box()
+            UVPM3_PT_Generic.handle_prop(g_options.base, 'last_group_complementary', g_scheme.complementary_group_supported(), Labels.LAST_GROUP_COMPLEMENTARY_SUPPORTED_MSG, row)
+
+        mode_layout = UVPM3_PT_Generic.draw_enum_in_box(g_options, 'group_layout_mode', Labels.GROUP_LAYOUT_MODE_NAME, col, self.GROUP_LAYOUT_MODE_URL_SUFFIX)
+
+        if g_options.automatic and GroupLayoutMode.supports_tile_count(g_options.group_layout_mode):
+            row = mode_layout.row(align=True)
+            row.prop(g_options.base, "tile_count_per_group")
+
+        if GroupLayoutMode.supports_tiles_in_row(g_options.group_layout_mode):
+            row = mode_layout.row(align=True)
+            row.prop(g_options.base, "tiles_in_row")
+
+    def draw_group_options(self, g_scheme, group, layout):
+        props_count = 0
+
+        if in_debug_mode():
+            row = layout.row(align=True)
+            row.enabled = False
+            row.prop(group, "num")
+            props_count += 1
+
+        if g_scheme.options.tdensity_policy == TexelDensityGroupPolicy.CUSTOM.code:
+            row = layout.row(align=True)
+            row.enabled = g_scheme.options.tdensity_policy == TexelDensityGroupPolicy.CUSTOM.code
+            row.prop(group, "tdensity_cluster")
+            props_count += 1
+
+        if GroupLayoutMode.supports_tile_count(g_scheme.options.group_layout_mode):
+            row = layout.row(align=True)
+            # row.enabled = g_scheme.options.group_layout_mode == GroupLayoutMode.AUTOMATIC.code
+            row.prop(group, "tile_count")
+            props_count += 1
+
+        overrides = group.overrides
+        box = layout.box()
+        row = box.row(align=True)
+        row.prop(overrides, "override_global_options")
+        props_count += 1
+        
+        if overrides.override_global_options:
+            ow_layout = layout.box()
+            ow_col = ow_layout.column(align=True)
+
+            # ow_col.label(text='(Enable checkboxes on the left to override particular options)')
+            # ow_col.separator()
+
+            ow_col.label(text='Packing Options:')
+
+            row = ow_col.row(align=True)
+            row.prop(overrides, "override_rotation_enable", text='')
+            box_s = row.box()
+            box_s.prop(overrides, "rotation_enable")
+            box_s.enabled = overrides.override_rotation_enable
+
+            row = ow_col.row(align=True)
+            row.prop(overrides, "override_pre_rotation_disable", text='')
+            box_s = row.box()
+            box_s.prop(overrides, "pre_rotation_disable")
+            box_s.enabled = overrides.override_pre_rotation_disable
+
+            row = ow_col.row(align=True)
+            row.prop(overrides, "override_rotation_step", text='')
+
+            row2 = row.row(align=True)
+            row2.enabled = overrides.override_rotation_step
+            UVPM3_PT_Generic.draw_prop_with_set_menu(overrides, "rotation_step", row2, UVPM3_MT_SetRotStepGroup)
+
+            ow_col.separator()
+            ow_col.label(text='Pixel Margin:')
+            if self.group_pixel_margin_override_enabled():
+                row = ow_col.row(align=True)
+                row.prop(overrides, "override_pixel_margin", text='')
+                col_s = row.column(align=True)
+                col_s.prop(overrides, "pixel_margin")
+                col_s.enabled = overrides.override_pixel_margin
+
+                row = ow_col.row(align=True)
+                row.prop(overrides, "override_pixel_padding", text='')
+                col_s = row.column(align=True)
+                col_s.prop(overrides, "pixel_padding")
+                col_s.enabled = overrides.override_pixel_padding
+
+                row = ow_col.row(align=True)
+                row.prop(overrides, "override_extra_pixel_margin_to_others", text='')
+                col_s = row.column(align=True)
+                col_s.prop(overrides, "extra_pixel_margin_to_others")
+                col_s.enabled = overrides.override_extra_pixel_margin_to_others
+
+                row = ow_col.row(align=True)
+                row.prop(overrides, "override_pixel_margin_tex_size", text='')
+
+                row2 = row.row(align=True)
+                row2.enabled = overrides.override_pixel_margin_tex_size
+                UVPM3_PT_Generic.draw_prop_with_set_menu(overrides, "pixel_margin_tex_size", row2, UVPM3_MT_SetPixelMarginTexSizeGroup)
+                
+            else:
+                row = ow_col.box()
+                row.label(text='Enable Pixel Margin globally to enable overriding', icon='ERROR')
+
+        return props_count
 
     def use_main_target_box(self):
 
@@ -336,6 +460,7 @@ class UVPM3_Mode_GroupsToTiles(UVPM3_Mode_Pack):
         box_access.init_access(self.op.g_scheme)
 
         return BoxRenderer(self.context, box_access)
+
 
 class UVPM3_Mode_GroupsTogether(UVPM3_Mode_Pack):
 
@@ -350,13 +475,28 @@ class UVPM3_Mode_GroupsTogether(UVPM3_Mode_Pack):
         
         return True
 
-    def groups_together(self):
+    def draw_grouping_options(self, g_scheme, g_options, layout):
 
+        col = layout
+        row = col.row(align=True)
+        row.prop(g_options.base, "group_compactness")
+
+
+class UVPM3_Mode_GroupsIndependently(UVPM3_Mode_Tiles):
+
+    MODE_ID = 'pack.groups_independently'
+    MODE_NAME = 'Groups Independently'
+    MODE_PRIORITY = 5000
+    MODE_HELP_URL_SUFFIX = "30-packing-modes/50-groups-independently"
+
+    SCENARIO_ID = 'pack.groups_independently'
+
+    def grouping_enabled(self):
+        
         return True
 
-    # def setup_script_params(self):
-    #     script_params = super().setup_script_params()
+    # def draw_grouping_options(self, g_scheme, g_options, layout):
 
-    #     script_params.add_param('group_compactness', self.scene_props.group_compactness)
-    #     return script_params
-
+    #     col = layout
+    #     row = col.row(align=True)
+    #     row.prop(g_options.base, "group_compactness")

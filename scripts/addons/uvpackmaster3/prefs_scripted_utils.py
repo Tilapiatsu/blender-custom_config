@@ -1,9 +1,10 @@
 import bpy
 from bpy.props import IntProperty, FloatProperty, BoolProperty, StringProperty, EnumProperty, PointerProperty
-from .utils import parse_json_file, in_debug_mode, encode_string
+from .utils import parse_json_file, in_debug_mode, encode_string, print_debug, print_log, print_error, print_warning, log_separator
 from .enums import RunScenario
 
 import os
+import sys
 import json
 
 
@@ -20,7 +21,7 @@ def load_scripted_pipeline(root=None):
 
     run_scenarios_dir = os.path.join(root, SCRIPTED_PIPELINE_DIRNAME, SCENARIOS_DIRNAME)
     if not os.path.exists(run_scenarios_dir):
-        print("UVPM3: Missing scenarios root directory")
+        print_error("Missing scenarios root directory")
         return
 
     run_scenarios_subdirs = [os.path.join(run_scenarios_dir, d) for d in os.listdir(run_scenarios_dir)
@@ -30,7 +31,7 @@ def load_scripted_pipeline(root=None):
     for subdir in run_scenarios_subdirs:
         scenario_path = os.path.join(subdir, SCENARIO_FILENAME)
         if not os.path.exists(scenario_path):
-            print("UVPM3: Missing scenario \"{}\"".format(scenario_path))
+            print_error("Missing scenario \"{}\"".format(scenario_path))
             continue
         scenario = parse_json_file(scenario_path)
         if scenario is not None:
@@ -38,7 +39,7 @@ def load_scripted_pipeline(root=None):
             scenario['script_path'] = os.path.abspath(os.path.join(subdir, SCENARIO_SCRIPT_FILENAME))
             scenarios.append(scenario)
         else:
-            print("UVPM3: Cannot parse '{}'".format(scenario_path))
+            print_error("Cannot parse '{}'".format(scenario_path))
 
     return True, scenarios
 
@@ -73,13 +74,17 @@ def _validate_scenario(scenario, processed_scenarios_metadata, processed_props_m
 
 
 def add_dynamic_property(cls, prop_id, prop_func, prop_args):
+    if prop_id in cls.__annotations__:
+        print_warning("Overwriting '{prop_owner}.{prop_id}' with '{prop_type}' property".format(prop_id=prop_id,
+                                                                                                prop_type=prop_args['type'].__name__,
+                                                                                                prop_owner=cls.__name__))
     cls.__annotations__[prop_id] = prop_func(**prop_args)
 
 
-def scripted_pipeline_property_group(collection_name, parent, builtins):
+def scripted_pipeline_property_group(collection_name, parent, properties_classes, builtins):
     result_ok, scenarios = load_scripted_pipeline()
     if not result_ok and not in_debug_mode():
-        print("UVPM3: Initialization error, run Blender with -d parameter to debug")
+        print_error("Initialization error, run Blender with -d parameter to debug")
 
     processed_props_metadata = {collection_name: "Builtin property in '{}'".format(parent.__name__)}
     for builtin in builtins:
@@ -93,25 +98,50 @@ def scripted_pipeline_property_group(collection_name, parent, builtins):
         if not hasattr(cls, "__annotations__"):
             cls.__annotations__ = {}
 
+        for property_class in properties_classes:
+            property_class_errors = []
+            property_class_module = sys.modules.get(property_class.__module__)
+            property_group_id = property_class.SCRIPTED_PROP_GROUP_ID
+            if not isinstance(property_group_id, str):
+                _type_name = type(property_group_id).__name__
+                property_class_errors.append("SCRIPTED_PROP_GROUP_ID should be 'str' not '{}'".format(_type_name))
+            elif property_group_id.strip() == "":
+                property_class_errors.append("SCRIPTED_PROP_GROUP_ID cannot be empty")
+            else:
+                property_group_id_check_str = property_group_id.replace("_", "")
+                if not property_group_id_check_str.isalnum() or not property_group_id_check_str[0].isalpha():
+                    property_class_errors.append("SCRIPTED_PROP_GROUP_ID syntax error")
+
+            if property_class_errors:
+                validate_errors.append(log_separator())
+                validate_errors.append("Property '{}' not created ({})".format(property_class.__name__,
+                                                                                      property_class_module.__file__))
+                validate_errors.extend(property_class_errors)
+                validate_errors.append(log_separator())
+            else:
+                add_dynamic_property(cls, property_group_id, PointerProperty, {"type": property_class})
+
         processed_scenarios_metadata = {}
         for scenario in scenarios:
             scenario_id = scenario.get("id")
             scenario_errors = _validate_scenario(scenario, processed_scenarios_metadata, processed_props_metadata)
             if scenario_errors:
-                validate_errors.append(' ')
-                validate_errors.append("UVPM3: Scenario '{}' not created ({})".format(scenario_id, scenario["file_path"]))
+                validate_errors.append(log_separator())
+                validate_errors.append("Scenario '{}' not created ({})".format(scenario_id, scenario["file_path"]))
                 validate_errors.extend(scenario_errors)
-                validate_errors.append('-'*80)
+                validate_errors.append(log_separator())
             else:
                 RunScenario.add_scenario(scenario)
                 processed_scenarios_metadata[scenario_id] = scenario["file_path"]
 
-        if validate_errors and not in_debug_mode():
-            print("UVPM3: Dynamic properties initialization error for '{}', run Blender with -d parameter to debug".format(cls.__name__))
-        elif validate_errors and in_debug_mode():
-            if in_debug_mode():
+        if validate_errors:
+            print_error("Dynamic properties initialization error for '{}'".format(cls.__name__))
+
+            if not in_debug_mode():
+                print_error("Run Blender with -d parameter to debug")
+            else:
                 for err in validate_errors:
-                    print(err)
+                    print_error(err)
 
         add_dynamic_property(parent, collection_name, PointerProperty, {"type": cls})
         return cls
@@ -144,7 +174,7 @@ class ScriptParams:
         sys_path_param = self.param_dict.setdefault(self.SYS_PATH_PARAM_NAME, [])
         sys_path_param.append(sys_path)
 
-    def add_grouping_scheme(self, g_scheme):
+    def add_grouping_scheme(self, g_scheme, group_sparam_handler):
 
         out_groups = []
         for group in g_scheme.groups:
@@ -153,13 +183,19 @@ class ScriptParams:
             for box in group.target_boxes:
                 out_target_boxes.append(box.coords_tuple())
 
-            out_groups.append(
+            out_group =\
                 {
                     'name': group.name,
                     'num': group.num,
-                    'tdensity_cluster': group.tdensity_cluster,
-                    'target_boxes': out_target_boxes
-                })
+                }
+
+            out_group['target_boxes'] = out_target_boxes
+
+            if group_sparam_handler is not None:
+                group_sparam_handler(group, out_group)
+
+            out_groups.append(out_group)
+
 
         out_g_scheme =\
         {
@@ -171,4 +207,7 @@ class ScriptParams:
         self.param_dict[self.GROUPING_SCHEME_PARAM_NAME] = out_g_scheme
 
     def serialize(self):
+        if in_debug_mode(2):
+            print_debug('Script params: {}'.format(self.param_dict))
+
         return encode_string(json.dumps(self.param_dict))

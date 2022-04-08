@@ -107,17 +107,6 @@ class UvpmFeatureCode:
     ISLAND_ROTATION_STEP = 14
     PACK_TO_TILES = 15
 
-class UvpmRetCode:
-    NOT_SET = -1
-    SUCCESS = 0
-    ERROR = 1
-    NO_SPACE = 2
-    CANCELLED = 3
-    INVALID_ISLANDS = 4
-    NO_SIUTABLE_DEVICE = 5
-    NO_UVS = 6
-    INVALID_INPUT = 7
-
 class UvpmLogType:
     STATUS = 0
     INFO = 1
@@ -125,6 +114,17 @@ class UvpmLogType:
     ERROR = 3
     HINT = 4
 
+class UvpmRetCode:
+    NOT_SET = -1
+    SUCCESS = 0
+    FATAL_ERROR = 1
+    NO_SPACE = 2
+    CANCELLED = 3
+    INVALID_ISLANDS = 4
+    NO_SIUTABLE_DEVICE = 5
+    NO_UVS = 6
+    INVALID_INPUT = 7
+    WARNING = 8
 
 class UvpmPhaseCode:
     RUNNING = 0
@@ -166,6 +166,51 @@ class UvpmDeviceFlags:
 class UvpmIslandIntParams:
     MAX_COUNT = 16
 
+
+class OperationStatus:
+    ERROR = 0
+    WARNING = 1
+    CORRECT = 2
+
+
+class RetCodeMetadata:
+
+    def __init__(self, op_status):
+        self.op_status = op_status
+
+
+RETCODE_METADATA = {
+    UvpmRetCode.NOT_SET : RetCodeMetadata(
+        op_status=None
+    ),
+    UvpmRetCode.SUCCESS : RetCodeMetadata(
+        op_status=OperationStatus.CORRECT
+    ),
+    UvpmRetCode.FATAL_ERROR : RetCodeMetadata(
+        op_status=OperationStatus.ERROR
+    ),
+    UvpmRetCode.NO_SPACE : RetCodeMetadata(
+        op_status=OperationStatus.WARNING
+    ),
+    UvpmRetCode.CANCELLED : RetCodeMetadata(
+        op_status=OperationStatus.CORRECT
+    ),
+    UvpmRetCode.INVALID_ISLANDS : RetCodeMetadata(
+        op_status=OperationStatus.ERROR
+    ),
+    UvpmRetCode.NO_SIUTABLE_DEVICE : RetCodeMetadata(
+        op_status=OperationStatus.ERROR
+    ),
+    UvpmRetCode.NO_UVS : RetCodeMetadata(
+        op_status=OperationStatus.WARNING
+    ),
+    UvpmRetCode.INVALID_INPUT : RetCodeMetadata(
+        op_status=OperationStatus.ERROR
+    ),
+    UvpmRetCode.WARNING : RetCodeMetadata(
+        op_status=OperationStatus.WARNING
+    )
+}
 
 
 class GroupingMethod:
@@ -217,10 +262,40 @@ class TexelDensityGroupPolicy:
 class GroupLayoutMode:
     AUTOMATIC = EnumValue('0', 'Automatic', Labels.GROUP_LAYOUT_MODE_AUTOMATIC_DESC)
     MANUAL = EnumValue('1', 'Manual', Labels.GROUP_LAYOUT_MODE_MANUAL_DESC)
+    AUTOMATIC_HORI = EnumValue('2', 'Automatic (Horizontal)', Labels.GROUP_LAYOUT_MODE_AUTOMATIC_HORI_DESC)
+    AUTOMATIC_VERT = EnumValue('3', 'Automatic (Vertical)', Labels.GROUP_LAYOUT_MODE_AUTOMATIC_VERT_DESC)
 
     @classmethod
     def to_blend_items(cls):
-        return (cls.AUTOMATIC.to_blend_item(), cls.MANUAL.to_blend_item())
+        return\
+            (cls.AUTOMATIC.to_blend_item(),
+             cls.AUTOMATIC_HORI.to_blend_item(),
+             cls.AUTOMATIC_VERT.to_blend_item(),
+             cls.MANUAL.to_blend_item())
+
+    @classmethod
+    def to_blend_items_auto(cls):
+        return (mode.to_blend_item() for mode in cls.automatic_modes())
+
+    @classmethod
+    def automatic_modes(cls):
+        return\
+            (cls.AUTOMATIC,
+             cls.AUTOMATIC_HORI,
+             cls.AUTOMATIC_VERT)
+
+    @classmethod
+    def is_automatic(cls, mode_code):
+        return mode_code in (mode.code for mode in cls.automatic_modes())
+
+    @classmethod
+    def supports_tiles_in_row(cls, mode_code):
+        return\
+            mode_code == cls.AUTOMATIC.code
+
+    @classmethod
+    def supports_tile_count(cls, mode_code):
+        return cls.is_automatic(mode_code)
 
 
 class RunScenario:

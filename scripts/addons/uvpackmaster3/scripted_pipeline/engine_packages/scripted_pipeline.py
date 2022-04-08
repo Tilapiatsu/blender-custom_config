@@ -20,15 +20,35 @@ def TO_ENUM(enum_type, value, default_value=None):
     return enum_type(value)
 
 
-class GroupInfo:
+class Struct(object):
+    def __init__(self, data):
+        for name, value in data.items():
+            setattr(self, name, self._wrap(value))
 
-    def __init__(self, name, num, tdensity_cluster, target_boxes):
+    def _wrap_str(self, value):
+        return value
 
-        self.name = name
-        self.num = num
+    def _wrap(self, value):
+        if isinstance(value, (tuple, list, set, frozenset)): 
+            return type(value)([self._wrap(v) for v in value])
+        elif isinstance(value, dict):
+            return Struct(value)
+        elif isinstance(value, str):
+            return self._wrap_str(value)
+        else:
+            return value
+
+
+class GroupInfo(Struct):
+
+    def __init__(self, in_group):
+        super().__init__(in_group)
+
         self.islands = None
-        self.tdensity_cluster = tdensity_cluster
-        self.target_boxes = target_boxes
+        self.target_boxes = []
+        for box_coords in in_group['target_boxes']:
+            self.target_boxes.append(box_from_coords(box_coords))
+
 
 
 class GroupingScheme:
@@ -60,6 +80,26 @@ class GroupingScheme:
 
             group.islands = g_islands
 
+    def validate_locking(self):
+
+        for group in self.groups:
+            if group.islands is None:
+                continue
+
+            for island in group.islands:
+                if island.parent_count < 2:
+                    continue
+
+                parents = island.parents
+                parent_groups = set()
+                for parent in parents:
+                    parent_groups.add(parent.get_iparam(self.group_iparam_desc))
+
+                    if len(parent_groups) > 1:
+                        packer.send_log(LogType.WARNING, 'Islands from two different groups were locked together!')
+                        packer.send_log(LogType.WARNING, 'In result some islands will be processed as not belonging to the groups they were originally assigned to')
+                        return
+
 
 class GenericScenario:
 
@@ -76,10 +116,14 @@ class GenericScenario:
         packer.send_log(LogType.STATUS, "Topology error")
         packer.send_log(LogType.ERROR, "Islands with invalid topology encountered (check the selected islands)")
 
+    def islands_for_topology_parsing(self):
+        return self.cx.input_islands
+
     def parse_topology(self):
 
+        islands_for_parsing = self.islands_for_topology_parsing()
         invalid_islands = IslandSet()
-        packer.parse_island_topology(self.cx.input_islands, invalid_islands)
+        packer.parse_island_topology(islands_for_parsing, invalid_islands)
         if len(invalid_islands) > 0:
             self.handle_invalid_topology(invalid_islands)
             raise InvalidIslandsError()
@@ -92,7 +136,6 @@ class GenericScenario:
         in_g_scheme = self.cx.params[self.GROUPING_SCHEME_PARAM_NAME]
 
         if in_g_scheme is not None:
-
             group_iparam_desc = self.iparams_manager.iparam_desc(in_g_scheme['iparam_name'])
             if group_iparam_desc is None:
                 raise InputError('Invalid island parameter passed in the grouping scheme')
@@ -100,12 +143,17 @@ class GenericScenario:
             g_scheme = GroupingScheme(in_g_scheme, group_iparam_desc)
 
             for in_group in in_g_scheme['groups']:
+                
 
-                target_boxes = []
-                for box_coords in in_group['target_boxes']:
-                    target_boxes.append(box_from_coords(box_coords))
+                # group = GroupInfo(
+                #     in_group['name'],
+                #     in_group['num'],
+                #     in_group['tdensity_cluster'],
+                #     in_group['rotation_step'],
+                #     in_group['pixel_margin'],
+                #     target_boxes)
 
-                group = GroupInfo(in_group['name'], in_group['num'], in_group['tdensity_cluster'], target_boxes)
+                group = GroupInfo(in_group)
                 g_scheme.add_group(group)
 
             self.g_scheme = g_scheme

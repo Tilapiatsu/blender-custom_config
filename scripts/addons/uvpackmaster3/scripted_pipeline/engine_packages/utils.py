@@ -19,9 +19,11 @@ def flag_islands(input_islands, flagged_islands):
     to_send += flagged_islands
     packer.send_out_islands(to_send, send_flags=True)
 
+
 def box_from_coords(coords):
 
     return Box(Point(coords[0], coords[1]), Point(coords[2], coords[3]))
+
 
 def area_to_string(area):
 

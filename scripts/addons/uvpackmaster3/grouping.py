@@ -1,7 +1,7 @@
 
 from .utils import ShadowedPropertyGroupMeta, ShadowedPropertyGroup
 from .enums import GroupLayoutMode, TexelDensityGroupPolicy
-from .labels import Labels
+from .labels import Labels, PropConstants
 from .box import mark_boxes_dirty
 from .box_utils import disable_box_rendering
 
@@ -17,26 +17,30 @@ class UVPM3_GroupBase(ShadowedPropertyGroup):
 
 class UVPM3_GroupingOptionsBase(UVPM3_GroupBase, metaclass=ShadowedPropertyGroupMeta):
 
-    TILES_IN_ROW_DEFAULT = 10
-    LAST_GROUP_COMPLEMENTARY_DEFAULT = False
-    GROUP_COMPACTNESS_DEFAULT = 0.0
-
     tiles_in_row : IntProperty(
         name=Labels.TILES_IN_ROW_NAME,
-        default=TILES_IN_ROW_DEFAULT,
+        description=Labels.TILES_IN_ROW_DESC,
+        default=PropConstants.TILES_IN_ROW_DEFAULT,
+        min=1,
+        max=100)
+
+    tile_count_per_group : IntProperty(
+        name=Labels.TILE_COUNT_PER_GROUP_NAME,
+        description=Labels.TILE_COUNT_PER_GROUP_DESC,
+        default=PropConstants.TILE_COUNT_PER_GROUP_DEFAULT,
         min=1,
         max=100)
 
     last_group_complementary : BoolProperty(
         name=Labels.LAST_GROUP_COMPLEMENTARY_NAME,
         description=Labels.LAST_GROUP_COMPLEMENTARY_DESC,
-        default=LAST_GROUP_COMPLEMENTARY_DEFAULT,
+        default=PropConstants.LAST_GROUP_COMPLEMENTARY_DEFAULT,
         update=mark_boxes_dirty)
 
     group_compactness : FloatProperty(
         name=Labels.GROUP_COMPACTNESS_NAME,
         description=Labels.GROUP_COMPACTNESS_DESC,
-        default=GROUP_COMPACTNESS_DEFAULT,
+        default=PropConstants.GROUP_COMPACTNESS_DEFAULT,
         min=0.0,
         max=1.0,
         precision=2,
@@ -44,13 +48,15 @@ class UVPM3_GroupingOptionsBase(UVPM3_GroupBase, metaclass=ShadowedPropertyGroup
 
     def __init__(self):
 
-        self.tiles_in_row = self.TILES_IN_ROW_DEFAULT
-        self.last_group_complementary = self.LAST_GROUP_COMPLEMENTARY_DEFAULT
-        self.group_compactness = self.GROUP_COMPACTNESS_DEFAULT
+        self.tiles_in_row = PropConstants.TILES_IN_ROW_DEFAULT
+        self.tile_count_per_group = PropConstants.TILE_COUNT_PER_GROUP_DEFAULT
+        self.last_group_complementary = PropConstants.LAST_GROUP_COMPLEMENTARY_DEFAULT
+        self.group_compactness = PropConstants.GROUP_COMPACTNESS_DEFAULT
 
     def copy_from(self, other):
 
         self.tiles_in_row = int(other.tiles_in_row)
+        self.tile_count_per_group = int(other.tile_count_per_group)
         self.last_group_complementary = bool(other.last_group_complementary)
         self.group_compactness = float(other.group_compactness)
 
@@ -84,6 +90,11 @@ class UVPM3_GroupingOptions(UVPM3_GroupBase, metaclass=ShadowedPropertyGroupMeta
         self.tdensity_policy = str(other.tdensity_policy)
         self.group_layout_mode = str(other.group_layout_mode)
 
+        self.group_initializer = other.group_initializer
+
+    def group_initializer(self, group):
+        pass
+
 
 class UVPM3_AutoGroupingOptions(UVPM3_GroupBase, metaclass=ShadowedPropertyGroupMeta):
 
@@ -96,6 +107,9 @@ class UVPM3_AutoGroupingOptions(UVPM3_GroupBase, metaclass=ShadowedPropertyGroup
         description=Labels.TEXEL_DENSITY_GROUP_POLICY_DESC)
 
     group_layout_mode : EnumProperty(
-        items=GroupLayoutMode.to_blend_items(),
+        items=GroupLayoutMode.to_blend_items_auto(),
         name=Labels.GROUP_LAYOUT_MODE_NAME,
         description=Labels.GROUP_LAYOUT_MODE_DESC)
+
+    def group_initializer(self, group):
+        group.tile_count = self.base.tile_count_per_group

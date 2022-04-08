@@ -82,20 +82,19 @@ class UVPM3_OT_Engine(UVPM3_OT_Generic, DefaultFinishConditionMixin):
         self._timer = None
 
     def check_engine_retcode(self, retcode):
-        self.prefs.engine_retcode = retcode
-
         if retcode in {UvpmRetCode.SUCCESS,
                        UvpmRetCode.INVALID_ISLANDS,
                        UvpmRetCode.NO_SPACE,
                        UvpmRetCode.NO_SIUTABLE_DEVICE,
-                       UvpmRetCode.INVALID_INPUT}:
+                       UvpmRetCode.INVALID_INPUT,
+                       UvpmRetCode.WARNING}:
             return
 
         if retcode == UvpmRetCode.CANCELLED:
             self.log_manager.log(UvpmLogType.STATUS, 'Operation cancelled by the user')
             return
 
-        raise RuntimeError('Pack process returned an error')
+        raise RuntimeError('Engine process returned an error')
 
     def get_scenario_id(self):
 
@@ -105,11 +104,16 @@ class UVPM3_OT_Engine(UVPM3_OT_Generic, DefaultFinishConditionMixin):
         if self.mode is not None and hasattr(self.mode, 'SCENARIO_ID'):
             return self.mode.SCENARIO_ID
 
-        raise RuntimeError("Provide a 'senario_id' method")
+        raise RuntimeError("Provide a 'get_senario_id' method")
 
-    def get_scenario(self):
+    def get_scenario(self, scenario_id):
 
-        return RunScenario.get_scenario(self.get_scenario_id())
+        scenario = RunScenario.get_scenario(scenario_id)
+
+        if scenario is None:
+            raise RuntimeError('Invalid scenario id provided')
+
+        return scenario
 
     def mode_method_std_call(self, default_impl, method_name):
 
@@ -125,6 +129,9 @@ class UVPM3_OT_Engine(UVPM3_OT_Generic, DefaultFinishConditionMixin):
 
     def set_report(self, report_type, report_str):
 
+        if self.isolated_execution() and report_type != 'ERROR':
+            return
+
         self.report({report_type}, report_str)
 
     def add_warning(self, warn_msg):
@@ -139,8 +146,11 @@ class UVPM3_OT_Engine(UVPM3_OT_Generic, DefaultFinishConditionMixin):
 
         return self.mode_method_std_call(lambda: [], 'get_iparam_serializers')
 
-    def update_context_meshes(self):
+    def get_group_sparam_handler(self):
 
+        return self.mode_method_std_call(lambda: None, 'get_group_sparam_handler')
+
+    def update_context_meshes(self):
         if self.p_context is not None:
             self.p_context.update_meshes()
             self.redraw_context_area()
@@ -201,30 +211,29 @@ class UVPM3_OT_Engine(UVPM3_OT_Generic, DefaultFinishConditionMixin):
         try:
             self.engine_proc.wait(5)
         except:
-            raise RuntimeError('The UVPM process wait timeout reached')
+            raise RuntimeError('The engine process wait timeout reached')
 
         self.connection_thread.join()
-        self.check_engine_retcode(self.engine_proc.returncode)
+
+        engine_retcode = self.engine_proc.returncode
+        self.prefs.engine_retcode = engine_retcode
+        self.log_manager.log_engine_retcode(engine_retcode)
+        self.check_engine_retcode(engine_retcode)
 
         if not self.p_context.islands_received():
             self.raiseUnexpectedOutputError()
 
         self.post_operation()
 
-        if self.log_manager.type_logged(UvpmLogType.ERROR):
-            report_type = 'ERROR'
-            report_msg = 'Errors were reported'
-        elif self.log_manager.type_logged(UvpmLogType.WARNING):
-            report_type = 'WARNING'
-            report_msg = 'Warnings were reported'
-        else:
-            report_type = 'INFO'
-            report_msg = 'Done'
-
-        # self.set_report(report_type, report_msg)
-
         if self.finish_after_operation_done():
             raise OpFinishedException()
+
+        if self.log_manager.type_logged(UvpmLogType.ERROR):
+            report_msg = 'Errors were reported'
+        elif self.log_manager.type_logged(UvpmLogType.WARNING):
+            report_msg = 'Warnings were reported'
+        else:
+            report_msg = 'Done'
 
         if self.log_manager.last_log(UvpmLogType.STATUS) is None:
             self.log_manager.log(UvpmLogType.STATUS, report_msg)
@@ -238,14 +247,14 @@ class UVPM3_OT_Engine(UVPM3_OT_Generic, DefaultFinishConditionMixin):
             self.redraw_context_area()
 
     def finish(self, context):
-
+        self.post_main()
         self.exit_common()
         return {'FINISHED', 'PASS_THROUGH'}
 
     def cancel(self, context):
         if self.engine_proc is not None:
             self.engine_proc.terminate()
-        # self.progress_thread.terminate()
+
         self.exit_common()
         return {'FINISHED'}
 
@@ -258,9 +267,10 @@ class UVPM3_OT_Engine(UVPM3_OT_Generic, DefaultFinishConditionMixin):
     def handle_out_islands_msg(self, out_islands_msg):
 
         out_islands = OutIslands(out_islands_msg)
-
         self.p_context.apply_out_islands(out_islands)
-        self.update_context_meshes()
+
+        if self.interactive:
+            self.update_context_meshes()
 
     def handle_benchmark_msg(self, benchmark_msg):
 
@@ -288,7 +298,7 @@ class UVPM3_OT_Engine(UVPM3_OT_Generic, DefaultFinishConditionMixin):
         log_string = decode_string(log_msg)
 
         self.log_manager.log(log_type, log_string)
-        self.redraw_context_area()
+        # self.redraw_context_area()
 
     def handle_engine_msg(self, msg):
 
@@ -330,8 +340,8 @@ class UVPM3_OT_Engine(UVPM3_OT_Generic, DefaultFinishConditionMixin):
 
         self.hang_detected = True
         self.hang_saved_logs = (self.log_manager.last_log(UvpmLogType.STATUS), self.log_manager.last_log(UvpmLogType.HINT))
-        self.log_manager.log(UvpmLogType.STATUS, 'Packer process not responding for a longer time')
-        self.log_manager.log(UvpmLogType.HINT, 'press ESC to abort')
+        self.log_manager.log(UvpmLogType.STATUS, 'Engine process not responding for a longer time')
+        self.log_manager.log(UvpmLogType.HINT, 'press ESC to abort or wait for the process to respond')
         
     def quit_hang_mode(self):
 
@@ -437,21 +447,13 @@ class UVPM3_OT_Engine(UVPM3_OT_Generic, DefaultFinishConditionMixin):
                 if not self.operation_done:
                     # Special value indicating a crash
                     self.prefs.engine_retcode = -1
-                    raise RuntimeError('Packer process died unexpectedly')
-
-            # except OpFinishedException:
-            #     finish = True
-            # except:
-            #     raise
-
-            # if finish:
-            #     return self.finish(context)
+                    raise RuntimeError('Engine process died unexpectedly')
 
         except OpFinishedException:
             finish = True
 
         except OpAbortedException:
-            self.set_report('INFO', 'Packer process killed')
+            self.set_report('INFO', 'Engine process killed')
             cancel = True
 
         except RuntimeError as ex:
@@ -477,8 +479,139 @@ class UVPM3_OT_Engine(UVPM3_OT_Generic, DefaultFinishConditionMixin):
 
         return self.modal_ret_value(event)
 
+    def pre_main(self):
+        pass
+
+    def post_main(self):
+        pass
+
     def pre_operation(self):
         pass
+
+    def scenario_in_progress(self):
+        return self.engine_proc is not None
+
+    def isolated_execution(self):
+        return False
+
+    def execute_scenario(self, scenario):
+
+        if not check_engine():
+            unregister_engine()
+            redraw_ui(context)
+            raise RuntimeError("UVPM engine broken")
+
+        self.prefs.reset_stats()
+        self.p_context = PackContext(self.context)
+
+        self.pre_operation()
+
+        send_unselected = self.send_unselected_islands()
+        send_groups = self.grouping_enabled()
+        send_verts_3d = self.send_verts_3d()
+
+        iparam_serializers = self.get_iparam_serializers()
+
+        if send_groups:
+            self.g_scheme = self.init_grouping_scheme()
+            iparam_serializers.append(GroupingSchemeSerializer(self.g_scheme))
+
+        serialized_maps, selected_cnt, unselected_cnt =\
+            self.p_context.serialize_uv_maps(send_unselected, send_verts_3d, iparam_serializers)
+
+        if self.require_selection():
+            if selected_cnt == 0:
+                raise NoUvFaceError('No UV face selected')
+        
+        else:
+            if selected_cnt + unselected_cnt == 0:
+                raise NoUvFaceError('No UV face visible')
+
+        engine_args_final = [get_engine_execpath(), '-E']
+        engine_args_final += ['-o', str(UvpmOpcode.EXECUTE_SCENARIO)]
+        engine_args_final += ['-t', str(self.prefs.thread_count)]
+
+        if send_unselected:
+            engine_args_final.append('-s')
+
+        if self.packing_operation():
+            engine_args_final.append('-p')
+
+        if in_debug_mode():
+            if self.prefs.seed > 0:
+                engine_args_final += ['-S', str(self.prefs.seed)]
+
+            if self.prefs.wait_for_debugger:
+                engine_args_final.append('-G')
+
+            engine_args_final += ['-T', str(self.prefs.test_param)]
+            print('Pakcer args: ' + ' '.join(x for x in engine_args_final))
+        
+
+        # --- Setup script params ---
+        self.script_params = self.setup_script_params()
+        self.script_params.add_device_settings(self.prefs.device_array())
+
+        if self.skip_topology_parsing():
+            self.script_params.add_param('__skip_topology_parsing', True)
+        
+        packages_dirpath = os.path.join(os.path.abspath(os.path.dirname(__file__)), SCRIPTED_PIPELINE_DIRNAME, ENGINE_PACKAGES_DIRNAME)
+        scenario_dirpath = os.path.abspath(os.path.dirname(scenario['script_path']))
+        self.script_params.add_sys_path(packages_dirpath)
+        self.script_params.add_sys_path(scenario_dirpath)
+
+        if self.g_scheme is not None:
+            self.script_params.add_grouping_scheme(self.g_scheme, self.get_group_sparam_handler())
+        # ------
+
+        out_data = self.script_params.serialize()
+        out_data += serialized_maps
+
+        if self.prefs.write_to_file:
+            out_filepath = os.path.join(tempfile.gettempdir(), 'uv_islands.data')
+            out_file = open(out_filepath, 'wb')
+            out_file.write(out_data)
+            out_file.close()
+
+
+        creation_flags = os_engine_creation_flags()
+        popen_args = dict()
+
+        if creation_flags is not None:
+            popen_args['creationflags'] = creation_flags
+
+        self.engine_proc = subprocess.Popen(engine_args_final,
+                                            stdin=subprocess.PIPE,
+                                            stdout=subprocess.PIPE,
+                                            **popen_args)
+
+        out_stream = self.engine_proc.stdin
+        out_stream.write(out_data)
+        out_stream.flush()
+
+        self.start_time = time.time()
+
+        self.last_msg_time = self.start_time
+        self.hang_detected = False
+        self.hang_timeout = 10.0
+
+        # Start progress monitor thread
+        self.progress_queue = queue.Queue()
+        self.connection_thread = threading.Thread(target=connection_thread_func,
+                                                    args=(self.engine_proc.stdout, self.progress_queue))
+        self.connection_thread.daemon = True
+        self.connection_thread.start()
+        self.progress_array = [0]
+        self.progress_msg = ''
+        self.progress_sec_left = -1
+        self.progress_iter_done = -1
+        self.progress_last_update_time = 0.0
+
+        if self.interactive:
+            ov_dev_array = self.prefs.dev_array if self.packing_operation() else None
+            self.ov_manager = EngineOverlayManager(self, ov_dev_array)
+            self.box_renderer = self.get_box_renderer()
+
 
     def execute(self, context):
 
@@ -507,8 +640,9 @@ class UVPM3_OT_Engine(UVPM3_OT_Generic, DefaultFinishConditionMixin):
         self.operation_num = self.prefs.operation_counter + 1
         self.prefs.operation_counter += 1
 
-        # Disable any box rendering if active
-        disable_box_rendering(None, context)
+        if not self.isolated_execution():
+            # Disable any box rendering if active
+            disable_box_rendering(None, context)
 
         if self.interactive and self.context.area.spaces.active.show_region_hud:
             self.show_region_hud_saved = self.context.area.spaces.active.show_region_hud
@@ -519,140 +653,26 @@ class UVPM3_OT_Engine(UVPM3_OT_Generic, DefaultFinishConditionMixin):
                 self.mode = self.prefs.get_mode(self.mode_id, self.context)
                 self.mode.init_op(self)
 
-            if not check_engine():
-                unregister_engine()
-                redraw_ui(context)
-                raise RuntimeError("UVPM engine broken")
-
-
             def post_log_op(log_type, log_str):
                 if in_debug_mode():
                     print_log(log_str)
+
                 self.redraw_context_area()
 
             self.log_manager = LogManager(post_log_op)
             self.log_manager.log(UvpmLogType.STATUS, self.STATUS_INITIAL)
             self.log_manager.log(UvpmLogType.HINT, self.HINT_INITIAL)
 
+            self.pre_main()
 
-            self.prefs.reset_stats()
-            self.p_context = PackContext(self.context)
-            self.run_scenario = self.get_scenario()
-
-            if self.run_scenario is None:
-                raise RuntimeError('Invalid scenario provided')
-
-            self.pre_operation()
-
-            send_unselected = self.send_unselected_islands()
-            send_groups = self.grouping_enabled()
-            send_verts_3d = self.send_verts_3d()
-
-            iparam_serializers = self.get_iparam_serializers()
-
-            if send_groups:
-                self.g_scheme = self.init_grouping_scheme()
-                iparam_serializers.append(GroupingSchemeSerializer(self.g_scheme))
-
-            serialized_maps, selected_cnt, unselected_cnt =\
-                self.p_context.serialize_uv_maps(send_unselected, send_verts_3d, iparam_serializers)
-
-            if self.require_selection():
-                if selected_cnt == 0:
-                    raise NoUvFaceError('No UV face selected')
-            
-            else:
-                if selected_cnt + unselected_cnt == 0:
-                    raise NoUvFaceError('No UV face visible')
-
-            engine_args_final = [get_engine_execpath(), '-E']
-            engine_args_final += ['-o', str(UvpmOpcode.EXECUTE_SCENARIO)]
-            engine_args_final += ['-t', str(self.prefs.thread_count)]
-
-            if send_unselected:
-                engine_args_final.append('-s')
-
-            if self.packing_operation():
-                engine_args_final.append('-p')
-
-            if in_debug_mode():
-                if self.prefs.seed > 0:
-                    engine_args_final += ['-S', str(self.prefs.seed)]
-
-                if self.prefs.wait_for_debugger:
-                    engine_args_final.append('-G')
-
-                engine_args_final += ['-T', str(self.prefs.test_param)]
-                print('Pakcer args: ' + ' '.join(x for x in engine_args_final))
-            
-
-            # --- Setup script params ---
-            self.script_params = self.setup_script_params()
-            self.script_params.add_device_settings(self.prefs.device_array())
-
-            if self.skip_topology_parsing():
-                self.script_params.add_param('__skip_topology_parsing', True)
-            
-            packages_dirpath = os.path.join(os.path.abspath(os.path.dirname(__file__)), SCRIPTED_PIPELINE_DIRNAME, ENGINE_PACKAGES_DIRNAME)
-            scenario_dirpath = os.path.abspath(os.path.dirname(self.run_scenario['script_path']))
-            self.script_params.add_sys_path(packages_dirpath)
-            self.script_params.add_sys_path(scenario_dirpath)
-
-            if self.g_scheme is not None:
-                self.script_params.add_grouping_scheme(self.g_scheme)
-            # ------
-
-            out_data = self.script_params.serialize()
-            out_data += serialized_maps
-
-            if self.prefs.write_to_file:
-                out_filepath = os.path.join(tempfile.gettempdir(), 'uv_islands.data')
-                out_file = open(out_filepath, 'wb')
-                out_file.write(out_data)
-                out_file.close()
-
-
-            creation_flags = os_engine_creation_flags()
-            popen_args = dict()
-
-            if creation_flags is not None:
-                popen_args['creationflags'] = creation_flags
-
-            self.engine_proc = subprocess.Popen(engine_args_final,
-                                             stdin=subprocess.PIPE,
-                                             stdout=subprocess.PIPE,
-                                             **popen_args)
-
-            out_stream = self.engine_proc.stdin
-            out_stream.write(out_data)
-            out_stream.flush()
-
-            self.start_time = time.time()
-
-            self.last_msg_time = self.start_time
-            self.hang_detected = False
-            self.hang_timeout = 10.0
-
-            # Start progress monitor thread
-            self.progress_queue = queue.Queue()
-            self.connection_thread = threading.Thread(target=connection_thread_func,
-                                                      args=(self.engine_proc.stdout, self.progress_queue))
-            self.connection_thread.daemon = True
-            self.connection_thread.start()
-            self.progress_array = [0]
-            self.progress_msg = ''
-            self.progress_sec_left = -1
-            self.progress_iter_done = -1
-            self.progress_last_update_time = 0.0
-
-            if self.interactive:
-                ov_dev_array = self.prefs.dev_array if self.packing_operation() else None
-                self.ov_manager = EngineOverlayManager(self, ov_dev_array)
-                self.box_renderer = self.get_box_renderer()
+            scenario_id = self.get_scenario_id()
+            if scenario_id is not None:
+                scenario = self.get_scenario(scenario_id)
+                self.execute_scenario(scenario)
 
         except NoUvFaceError as ex:
             self.set_report('WARNING', str(ex))
-            cancel = True
+            # cancel = True
 
         except RuntimeError as ex:
             if in_debug_mode():
@@ -669,39 +689,43 @@ class UVPM3_OT_Engine(UVPM3_OT_Generic, DefaultFinishConditionMixin):
             cancel = True
 
         # MUSTDO: is it needed?
-        self.update_context_meshes()
+        # self.update_context_meshes()
 
         if cancel:
             return self.cancel(context)
 
-        if self.interactive:
-            wm = context.window_manager
-            self._timer = wm.event_timer_add(self.MODAL_INTERVAL_S, window=context.window)
-            wm.modal_handler_add(self)
-            return {'RUNNING_MODAL'}
+        if self.scenario_in_progress():
+            if self.interactive:
+                wm = context.window_manager
+                self._timer = wm.event_timer_add(self.MODAL_INTERVAL_S, window=context.window)
+                wm.modal_handler_add(self)
+                return {'RUNNING_MODAL'}
 
-        class FakeTimerEvent:
-            def __init__(self):
-                self.type = 'TIMER'
-                self.value = 'NOTHING'
-                self.ctrl = False
+            class FakeTimerEvent:
+                def __init__(self):
+                    self.type = 'TIMER'
+                    self.value = 'NOTHING'
+                    self.ctrl = False
 
-        while True:
-            event = FakeTimerEvent()
+            while True:
+                event = FakeTimerEvent()
 
-            ret = self.modal(context, event)
-            if ret.intersection({'FINISHED', 'CANCELLED'}):
-                return ret
+                ret = self.modal(context, event)
+                if ret.intersection({'FINISHED', 'CANCELLED'}):
+                    return ret
 
-            time.sleep(self.MODAL_INTERVAL_S)
+                time.sleep(self.MODAL_INTERVAL_S)
+        else:
+            self.post_main()
+
+        return {'FINISHED'}
 
 
     def invoke(self, context, event):
 
-        self.interactive = True
+        if not self.isolated_execution():
+            self.interactive = True
 
-        self.prefs = get_prefs()
-        # self.scene_props = context.scene.uvpm3_props
         return self.execute(context)
 
     def send_unselected_islands(self):

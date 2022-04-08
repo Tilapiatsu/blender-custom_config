@@ -17,7 +17,7 @@
 # ##### END GPL LICENSE BLOCK #####
 
 
-from .enums import UvpmLogType
+from .enums import UvpmLogType, UvpmRetCode, OperationStatus, RETCODE_METADATA
 
 
 class LogList:
@@ -47,13 +47,19 @@ class LogList:
 
 class LogManager:
 
+    OPSTATUS_PRIORITY = [OperationStatus.ERROR, OperationStatus.WARNING]
+
+    LOGTYPE_TO_OPSTATUS = {
+        UvpmLogType.ERROR : OperationStatus.ERROR,
+        UvpmLogType.WARNING : OperationStatus.WARNING,
+        UvpmLogType.INFO : OperationStatus.CORRECT
+    }
+
+
     def __init__(self, post_log_op=None):
-        # self.info_list = []
-        # self.warning_list = []
-        # self.error_list = []
-        # self.status_history = []
 
         self.post_log_op = post_log_op
+        self.engine_retcode = None
 
         self.log_lists = {
             UvpmLogType.STATUS :     LogList(max_log_count=0),
@@ -62,6 +68,11 @@ class LogManager:
             UvpmLogType.ERROR :      LogList(max_log_count=0),
             UvpmLogType.HINT :       LogList(max_log_count=0)
         }
+        
+
+    def log_engine_retcode(self, engine_retcode):
+        self.engine_retcode = engine_retcode
+
 
     def log_list(self, log_type):
 
@@ -70,6 +81,7 @@ class LogManager:
             raise RuntimeError('Unexpected log type')
 
         return log_list
+
 
     def log(self, log_type, log_str):
 
@@ -80,19 +92,29 @@ class LogManager:
             post_log_op(log_type, log_str)
         
 
-    # def info_logged(self):
-    #     return len(self.info_list) > 0
-
-    # def warning_logged(self):
-    #     return len(self.warning_list) > 0
-
-    # def error_logged(self):
-    #     return len(self.error_list) > 0
-
     def type_logged(self, log_type):
 
         return len(self.log_list(log_type)) > 0
 
+
+    def operation_status(self):
+
+        retcode_op_status = RETCODE_METADATA[self.engine_retcode].op_status if self.engine_retcode is not None else None
+
+        for op_status in self.OPSTATUS_PRIORITY:
+            if retcode_op_status is not None and retcode_op_status == op_status:
+                return op_status
+
+            for log_type, log_op_status in self.LOGTYPE_TO_OPSTATUS.items():
+                if op_status != log_op_status:
+                    continue
+                if self.type_logged(log_type):
+                    return op_status
+
+        return OperationStatus.CORRECT
+
+
     def last_log(self, log_type):
         log_list = self.log_list(log_type)
         return log_list[-1] if len(log_list) > 0 else None
+

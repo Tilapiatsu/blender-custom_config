@@ -39,7 +39,7 @@ def import_submodules(module):
     else:
         module_path = module.__path__[0]
 
-    for file in os.listdir(module_path):
+    for file in sorted(os.listdir(module_path)):
         file_parts = file.split(".")
         if len(file_parts) == 2 and file_parts[1] == "py":
             submodule = importlib.import_module("{}.{}".format(module.__name__, file_parts[0]))

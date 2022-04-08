@@ -34,26 +34,17 @@ def os_cancel_sig():
     return signal.SIGQUIT
 
 def os_engine_path():
-    return None
+    return os.path.join('/opt', 'uvpackmaster', 'engine3')
 
 def os_platform_check(engine_execpath):
-    cmd_line = 'chmod u+x "{}"'.format(engine_execpath)
-    proc = subprocess.Popen(cmd_line, shell=True)
-
-    err_msg = ''
-    try:
-        proc.wait(5)
-        if proc.returncode != 0:
-            raise Exception()
-    except:
-        raise RuntimeError('Could not set the executable flag on the engine binary')
+    pass
 
 def os_get_userdata_path():
     home_path = os.getenv("HOME")
     if not home_path:
         raise RuntimeError('Could not get the home path')
 
-    return os.path.join(home_path, '.uvpackmaster')
+    return os.path.join(home_path, '.config', 'uvpackmaster')
 
 def os_simulate_esc_event():
     # Not implemented
