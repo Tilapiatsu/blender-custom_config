@@ -1,13 +1,12 @@
 import uuid
 
-from .box import UVPM3_Box, DEFAULT_TARGET_BOX, mark_boxes_dirty
-from .utils import ShadowedPropertyGroupMeta, ShadowedPropertyGroup, unique_name, unique_min_num
+from .box import DEFAULT_TARGET_BOX, mark_boxes_dirty
+from .utils import ShadowedPropertyGroupMeta, ShadowedCollectionProperty, unique_name, unique_min_num
 from .enums import GroupLayoutMode, TexelDensityGroupPolicy, GroupingMethod
 from .group_map import *
 from .island_params import IParamSerializer, IParamInfo
-from .island_params import GroupIParamInfoGeneric
-from .labels import Labels
 from .grouping import UVPM3_GroupBase, UVPM3_GroupingOptions
+from .group import UVPM3_GroupInfo
 
 
 import bpy
@@ -25,126 +24,6 @@ def _update_grouping_scheme_name(self, context):
     self['name'] = unique_name(name, grouping_schemes, self)
 
 
-def _update_group_info_name(self, context):
-    if self.name.strip() == '':
-        name = UVPM3_GroupingScheme.get_default_group_name(self.num)
-        self['name'] = name
-    mark_boxes_dirty(self, context)
-
-
-class ShadowedCollectionProperty:
-
-    def __init__(self, elem_type):
-
-        self.elem_type = elem_type
-        self.collection = []
-
-    def add(self):
-
-        self.collection.append(self.elem_type())
-        return self.collection[-1]
-
-    def clear(self):
-
-        self.collection.clear()
-
-    def remove(self, idx):
-
-        del self.collection[idx]
-
-    def __len__(self):
-
-        return len(self.collection)
-
-    def __getitem__(self, idx):
-
-            return self.collection[idx]
-
-    def __iter__(self):
-
-        return iter(self.collection)
-
-
-
-
-class UVPM3_GroupInfo(UVPM3_GroupBase, metaclass=ShadowedPropertyGroupMeta):
-
-    name : StringProperty(name="Name", default="", update=_update_group_info_name)
-    num : IntProperty(name="Group Number", default=0)
-    color : FloatVectorProperty(name="", default=(1.0, 1.0, 0.0), min=0.0, max=1.0, subtype="COLOR", update=mark_boxes_dirty)
-    target_boxes : CollectionProperty(type=UVPM3_Box)
-    active_target_box_idx : IntProperty(name="", default=0, update=mark_boxes_dirty)
-
-    tdensity_cluster : IntProperty(
-        name=Labels.TEXEL_DENSITY_CLUSTER_NAME,
-        description=Labels.TEXEL_DENSITY_CLUSTER_DESC ,
-        default=0,
-        min=0)
-
-    tile_count : IntProperty(
-        name=Labels.TILE_COUNT_NAME,
-        description=Labels.TILE_COUNT_DESC,
-        default=1,
-        min=1,
-        max=100)
-
-    def __init__(self, name=None, num=None):
-
-        self.name = name
-        self.num = num
-        self.color = GroupIParamInfoGeneric.GROUP_COLORS[self.num % len(GroupIParamInfoGeneric.GROUP_COLORS)] if self.num is not None else None
-        self.active_target_box_idx = 0
-        self.tdensity_cluster = 0
-        self.tile_count = 1
-
-        self.target_boxes = ShadowedCollectionProperty(elem_type=UVPM3_Box)
-        # self.add_target_box()
-
-    # def init_defaults(self, name, num):
-    #     self.name = name
-    #     self.num = num
-
-    def copy_from(self, other):
-
-        self.name = str(other.name)
-        self.num = int(other.num)
-        self.color = other.color[:]
-
-        self.target_boxes.clear()
-        for other_box in other.target_boxes:
-            new_box = self.target_boxes.add()
-            new_box.copy_from(other_box)
-
-        self.active_target_box_idx = int(other.active_target_box_idx)
-        self.tdensity_cluster = int(other.tdensity_cluster)
-        self.tile_count = int(other.tile_count)
-
-    def is_default(self):
-        return self.num == 0
-
-    def add_target_box(self, new_box):
-
-        added_box = self.target_boxes.add()
-        added_box.copy_from(new_box)
-        self.active_target_box_idx = len(self.target_boxes)-1
-
-    def remove_target_box(self, box_idx):
-
-        if len(self.target_boxes) <= 1:
-            raise RuntimeError('Group has to have at least one target box')
-
-        self.target_boxes.remove(box_idx)
-        self.active_target_box_idx = min(self.active_target_box_idx, len(self.target_boxes)-1)
-
-    def get_active_target_box(self):
-
-        try:
-            return self.target_boxes[self.active_target_box_idx]
-
-        except IndexError:
-            return None
-
-
 
 class UVPM3_GroupingScheme(UVPM3_GroupBase, metaclass=ShadowedPropertyGroupMeta):
 
@@ -152,7 +31,6 @@ class UVPM3_GroupingScheme(UVPM3_GroupBase, metaclass=ShadowedPropertyGroupMeta)
     MAX_GROUP_NUM = 100
     DEFAULT_GROUP_NUM = MIN_GROUP_NUM
 
-    DEFAULT_GROUP_NAME = 'G'
     DEFAULT_GROUPING_SCHEME_NAME = 'Scheme'
 
     name : StringProperty(name="name", default="", update=_update_grouping_scheme_name)
@@ -182,13 +60,6 @@ class UVPM3_GroupingScheme(UVPM3_GroupBase, metaclass=ShadowedPropertyGroupMeta)
         self.options = UVPM3_GroupingOptions()
 
         self.init_defaults()
-
-        # for group in self.groups:
-
-        #     self.__add_group_to_dictionaries(group)
-
-        #     if self.next_group_num <= group.num:
-        #         self.next_group_num = group.num + 1
 
     def init_defaults(self):
 
@@ -270,7 +141,6 @@ class UVPM3_GroupingScheme(UVPM3_GroupBase, metaclass=ShadowedPropertyGroupMeta)
             return
 
         for g_num, group in self.group_by_num.items():
-            
             if self.options.tdensity_policy == TexelDensityGroupPolicy.INDEPENDENT.code:
                 group.tdensity_cluster = g_num
 
@@ -289,16 +159,26 @@ class UVPM3_GroupingScheme(UVPM3_GroupBase, metaclass=ShadowedPropertyGroupMeta)
             pass
         
         else:
-            assert(self.options.group_layout_mode == GroupLayoutMode.AUTOMATIC.code)
+            if self.options.group_layout_mode == GroupLayoutMode.AUTOMATIC.code:
+                def box_func(group_idx, tile_idx, global_tile_idx):
+                    return DEFAULT_TARGET_BOX.tile_from_num(global_tile_idx, self.options.base.tiles_in_row)
+            elif self.options.group_layout_mode == GroupLayoutMode.AUTOMATIC_HORI.code:
+                def box_func(group_idx, tile_idx, global_tile_idx):
+                    return DEFAULT_TARGET_BOX.tile(tile_idx, group_idx)
+            elif self.options.group_layout_mode == GroupLayoutMode.AUTOMATIC_VERT.code:
+                def box_func(group_idx, tile_idx, global_tile_idx):
+                    return DEFAULT_TARGET_BOX.tile(group_idx, tile_idx)
+            else:
+                assert False           
 
-            tile_num = 0
-            for group in self.groups:
+            global_tile_idx = 0
+            for group_idx, group in enumerate(self.groups):
                 group.target_boxes.clear()
 
-                for i in range(group.tile_count):
+                for tile_idx in range(group.tile_count):
                     new_box = group.target_boxes.add()
-                    new_box.copy_from(DEFAULT_TARGET_BOX.tile_from_num(tile_num, self.options.base.tiles_in_row))
-                    tile_num += 1
+                    new_box.copy_from(box_func(group_idx, tile_idx, global_tile_idx))
+                    global_tile_idx += 1
 
         if self.complementary_group_enabled():
             last_group = self.groups[-1]
@@ -324,17 +204,6 @@ class UVPM3_GroupingScheme(UVPM3_GroupBase, metaclass=ShadowedPropertyGroupMeta)
     def get_group_by_num(self, g_num):
 
         group = self.group_by_num.get(g_num)
-        # if group is None:
-        #     # group = self.group_by_num.get(self.DEFAULT_GROUP_NUM)
-        #     # assert(group is not None)
-
-        #     # TMPCODE:
-        #     assert(self.next_group_num <= g_num)
-        #     while True:
-        #         group = self.add_group()
-        #         if group.num == g_num:
-        #             break
-
         return group
 
     def get_default_group(self):
@@ -346,10 +215,6 @@ class UVPM3_GroupingScheme(UVPM3_GroupBase, metaclass=ShadowedPropertyGroupMeta)
 
         return default_group
 
-    @classmethod
-    def get_default_group_name(cls, g_num):
-        return "{}{}".format(cls.DEFAULT_GROUP_NAME, g_num)
-
     def __add_group_to_dictionaries(self, group):
 
         if self.next_group_num <= group.num:
@@ -358,18 +223,18 @@ class UVPM3_GroupingScheme(UVPM3_GroupBase, metaclass=ShadowedPropertyGroupMeta)
         self.group_by_name[group.name] = group
         self.group_by_num[group.num] = group
 
-    def add_group(self, g_name=DEFAULT_GROUP_NAME, g_num=None):
+    def add_group(self, g_name=UVPM3_GroupInfo.DEFAULT_GROUP_NAME, g_num=None):
 
         if g_num is None:
             g_num = self.next_group_num
 
-        if g_name == self.DEFAULT_GROUP_NAME:
-            g_name = self.get_default_group_name(g_num)
+        if g_name == UVPM3_GroupInfo.DEFAULT_GROUP_NAME:
+            g_name = UVPM3_GroupInfo.get_default_group_name(g_num)
 
         new_group = UVPM3_GroupInfo(g_name, g_num)
         return self.add_group_internal(new_group)
 
-    def add_group_with_target_box(self, g_name=DEFAULT_GROUP_NAME, g_num=None):
+    def add_group_with_target_box(self, g_name=UVPM3_GroupInfo.DEFAULT_GROUP_NAME, g_num=None):
 
         new_group = self.add_group(g_name, g_num)
         self.add_target_box(new_group)
@@ -380,6 +245,7 @@ class UVPM3_GroupingScheme(UVPM3_GroupBase, metaclass=ShadowedPropertyGroupMeta)
 
         added_group = self.groups.add()
         added_group.copy_from(new_group)
+        self.options.group_initializer(added_group)
         
         self.__add_group_to_dictionaries(added_group)
         self.active_group_idx = len(self.groups)-1

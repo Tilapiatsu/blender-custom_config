@@ -88,14 +88,23 @@ class UVPM3_OT_LoadGroupingSchemePreset(LoadPresetInvokeHelper, GroupingSchemePr
     g_scheme_to_overwrite = None
     g_scheme_to_overwrite_idx = -1
 
-    def translate_props(self, grouping_scheme_version, props_dict):
+
+    def translate_props_1to2(self, props_dict):
         pass
+
+    def translate_props(self, grouping_scheme_version, props_dict):
+        translate_array = [
+            self.translate_props_1to2
+        ]
+
+        for i in range(grouping_scheme_version - UvpmVersionInfo.GROUPING_SCHEME_VERSION_FIRST_SUPPORTED, len(translate_array)):
+            translate_array[i](props_dict)
 
     def get_preset_version(self, json_struct):
         return json_struct['grouping_scheme_version']
 
     def validate_preset_version(self, preset_version):
-        return preset_version == UvpmVersionInfo.GROUPING_SCHEME_VERSION
+        return preset_version in range(UvpmVersionInfo.GROUPING_SCHEME_VERSION_FIRST_SUPPORTED, UvpmVersionInfo.GROUPING_SCHEME_VERSION + 1)
 
     def show_confirm_popup(self, context):
         self.init_access(context)

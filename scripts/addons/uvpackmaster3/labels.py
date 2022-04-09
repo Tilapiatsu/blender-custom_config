@@ -46,11 +46,8 @@ class Labels:
     PIXEL_PADDING_NAME='Pixel Padding'
     PIXEL_PADDING_DESC="Distance in pixels between UV islands and the UV target box border. This option is disabled and ignored if set to '0' - in such case the distance will be determined by the island margin"
 
-    PIXEL_MARGIN_METHOD_NAME='Pixel Margin Method'
-    PIXEL_MARGIN_METHOD_DESC='Select a method the packer will use to determine proper pixel margin'
-
-    PIXEL_MARGIN_METHOD_ADJUSTMENT_TIME_DESC="Determine proper pixel margin by running an algorithm for a time specified by the 'Adjustemt Time' parameter. This method gives exact results in a short time in most cases"
-    PIXEL_MARGIN_METHOD_ITERATIVE_DESC="This method guarantees to always determine exact pixel margin, but it requires a number of iterations to be performed and ususally gives slightly worse coverage than the 'Adjustment Time' method. Use the 'Iterative' method only in rare cases when you cannot get good margin results with the 'Adjustemt Time' method, despite setting longer adjustment times. Because the 'Iterative' method gives sightly worse coverage, it is recommended to always combine this option with the 'Heuristic Search' functionality"
+    EXTRA_PIXEL_MARGIN_TO_OTHERS_NAME='Extra Margin To Others'
+    EXTRA_PIXEL_MARGIN_TO_OTHERS_DESC="Specifies an additional pixel margin between islands being packed and the other islands (unselected islands when using the 'Pack To Others' mode). In result the final margin between these islands will be calculated using the formula: 'Pixel Margin' + 'Extra Margin To Others'. When using the 'Groups To Tiles' mode and packing two groups into the same UV space, the islands from the other group are also treated as 'Others'. It means that the 'Extra Margin To Others' parameter will also be taken into account when calculating the margin between islands belonging to different groups."
 
     PIXEL_MARGIN_ADJUST_TIME_NAME='Adjustment Time (s)'
     PIXEL_MARGIN_ADJUST_TIME_DESC="Time in seconds the packer will spend on determing proper pixel margin. Time set to 1 second is enough in most cases, increase this parameter only if you don't get an exact result for a specific UV map. This parameter is only used if the pixel margin method is set to 'Adjustment Time'. For more info click the Help button"
@@ -112,7 +109,7 @@ class Labels:
     PACK_MODE_GROUPS_TO_TILES_DESC="Group islands using the 'Grouping Method' parameter. Pack every group into a separate tile"
 
     TILE_COUNT_NAME="Tile Count"
-    TILE_COUNT_DESC="Specify the number of tiles the given group will be packed into"
+    TILE_COUNT_DESC="Determines the number of tiles the given group will be packed into"
 
     GROUP_METHOD_NAME="Grouping Method"
     GROUP_METHOD_DESC="Grouping method to use"
@@ -127,8 +124,13 @@ class Labels:
     GROUP_LAYOUT_MODE_NAME = 'Group Layout Mode'
     GROUP_LAYOUT_MODE_DESC = 'Determines where in the UV space the particular groups will be packed'
 
-    GROUP_LAYOUT_MODE_AUTOMATIC_DESC="Groups will be automatically packed one after another. Number of tiles for each group is determined by the '{}' per-group parameter".format(TILE_COUNT_NAME)
+    TILES_IN_ROW_NAME="Tiles In Row"
+    TILES_IN_ROW_DESC="Determines the maximum number of tiles in a single tile row. After all tiles in the given row are used, further UV islands will be packed into the tiles from the next row"
+
+    GROUP_LAYOUT_MODE_AUTOMATIC_DESC="Groups will be automatically packed one after another. The number of tiles for each group is determined by the '{}' parameter. The maximum number of tiles in a single row is determined by the '{}' parameter".format(TILE_COUNT_NAME, TILES_IN_ROW_NAME)
     GROUP_LAYOUT_MODE_MANUAL_DESC="Determine target boxes for each group manually"
+    GROUP_LAYOUT_MODE_AUTOMATIC_HORI_DESC="Every group will be automatically packed into the distinct tile row (first group into the first row, second group into the second row etc). The number of tiles for each group is determined by the '{}' parameter".format(TILE_COUNT_NAME)
+    GROUP_LAYOUT_MODE_AUTOMATIC_VERT_DESC="Every group will be automatically packed into the distinct tile column (first group into the first column, second group into the second column etc). The number of tiles for each group is determined by the '{}' parameter".format(TILE_COUNT_NAME)
     
     TEXEL_DENSITY_GROUP_POLICY_NAME = 'Texel Density Policy'
     TEXEL_DENSITY_GROUP_POLICY_DESC = 'Determines how relative texel density of particular groups is processed'
@@ -159,8 +161,8 @@ class Labels:
     USE_BLENDER_TILE_GRID_NAME="Use Blender UDIM Grid"
     USE_BLENDER_TILE_GRID_DESC="If enabled, the tile grid shape is determined by the Blender UV editor settings (N-panel / View tab). Otherwise, the shape is configured using the properties below"
 
-    TILES_IN_ROW_NAME="Tiles In Row"
-    TILES_IN_ROW_DESC="When packing to tiles, this parameter determines the number of UDIM tiles in a single tile row"
+    TILE_COUNT_PER_GROUP_NAME="Tile Count Per Group"
+    TILE_COUNT_PER_GROUP_DESC="Determines the number of tiles every group will be packed into"
 
     LOCK_OVERLAPPING_ENABLE_NAME='Lock Overlapping Enable'
     LOCK_OVERLAPPING_ENABLE_DESC='Treat overlapping islands as a single island'
@@ -222,6 +224,10 @@ class Labels:
     CUSTOM_TARGET_BOX_ENABLE_NAME='Enable Custom Target Box'
     CUSTOM_TARGET_BOX_ENABLE_DESC='Pack to a custom box in the UV space'
 
+    OVERRIDE_GLOBAL_OPTIONS_NAME='Override Global Options'
+    OVERRIDE_GLOBAL_OPTIONS_DESC='Enable overriding of the global options for the given group'
+    OVERRIDE_GLOBAL_OPTION_DESC='Override the given option for the given group'
+
     LAST_GROUP_COMPLEMENTARY_SUPPORTED_MSG="Supported only if '{}' is set to '{}' and the grouping scheme has at least 2 groups".format(TEXEL_DENSITY_GROUP_POLICY_NAME, TEXEL_DENSITY_GROUP_POLICY_UNIFORM_NAME)
     LAST_GROUP_COMPLEMENTARY_NAME='Last Group As Complementary'
     LAST_GROUP_COMPLEMENTARY_DESC="Automatically pack the last group on the top of all other groups. {}".format(LAST_GROUP_COMPLEMENTARY_SUPPORTED_MSG)
@@ -233,3 +239,41 @@ class Labels:
     WRITE_TO_FILE_NAME='Write UV Data To File'
     SIMPLIFY_DISABLE_NAME='Simplify Disable'
     WAIT_FOR_DEBUGGER_NAME='Wait For Debugger'
+
+    APPEND_MODE_NAME_TO_OP_LABEL_NAME="Append Mode To Operator Name"
+    APPEND_MODE_NAME_TO_OP_LABEL_DESC="This option should only be enabled temporarily, only for the time when you want to add an UVPackmaster operator to Quick Favorites. If you add an operator with this option enabled, the selected mode name will be permanently appended to the operator name in the Quick Favorites list. After the operator was added, you can disable this option immediately"
+
+    BOX_RENDER_LINE_WIDTH_NAME="Box Border Width"
+    BOX_RENDER_LINE_WIDTH_DESC="Determines the width of box borders rendered in the UV editor during the operation. WARNING: setting width to a low value is not recommended"
+
+
+class PropConstants:
+
+    ROTATION_ENABLE_DEFAULT = True
+    PRE_ROTATION_DISABLE_DEFAULT = False
+
+    ROTATION_STEP_MIN = 1
+    ROTATION_STEP_MAX = 180
+    ROTATION_STEP_DEFAULT = 90
+
+    PIXEL_MARGIN_MIN = 1
+    PIXEL_MARGIN_MAX = 100
+    PIXEL_MARGIN_DEFAULT = 5
+
+    PIXEL_PADDING_MIN = 0
+    PIXEL_PADDING_MAX = 100
+    PIXEL_PADDING_DEFAULT = 0
+
+    EXTRA_PIXEL_MARGIN_TO_OTHERS_MIN = 0
+    EXTRA_PIXEL_MARGIN_TO_OTHERS_MAX = 100
+    EXTRA_PIXEL_MARGIN_TO_OTHERS_DEFAULT = 0
+
+    PIXEL_MARGIN_TEX_SIZE_MIN = 16
+    PIXEL_MARGIN_TEX_SIZE_MAX = 16384	
+    PIXEL_MARGIN_TEX_SIZE_DEFAULT = 1024
+
+    TILES_IN_ROW_DEFAULT = 10
+    TILE_COUNT_PER_GROUP_DEFAULT = 1
+    LAST_GROUP_COMPLEMENTARY_DEFAULT = False
+    GROUP_COMPACTNESS_DEFAULT = 0.0
+    

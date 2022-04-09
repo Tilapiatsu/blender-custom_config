@@ -1,6 +1,6 @@
 # ##### BEGIN GPL LICENSE BLOCK #####
 #
-#  Copyright (C) 2020 Wheatfield Media INC
+#  Copyright (C) 2022 VFX Grace - All Rights Reserved
 #
 #  This program is free software: you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -19,7 +19,7 @@
 
 
 bl_info = {
-    "name": "CheckToolBox_v1_2",
+    "name": "CheckToolBox_v1_3",
     "author": "Wheatfield Media INC",
     "blender": (2, 80, 0),
     "location": "3D View > Toolbox",

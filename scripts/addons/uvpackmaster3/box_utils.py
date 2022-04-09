@@ -62,13 +62,14 @@ class BoxRenderInfo:
 
 class BoxRenderer(OverlayManager):
 
-    LINE_WIDTH = 4.0
-
     def __init__(self, context, box_access):
     
         self.last_pixel_viewsize = None
         self.__draw_handler = None
+
         self.prefs = get_prefs()
+        self.line_width = self.prefs.box_render_line_width
+
         self.context = context
         self.box_access =  box_access
 
@@ -163,7 +164,7 @@ class BoxRenderer(OverlayManager):
 
         
         self.last_pixel_viewsize = self.get_pixel_viewsize()
-        line_width = self.LINE_WIDTH * self.last_pixel_viewsize
+        line_width = self.line_width * self.last_pixel_viewsize
 
         for box_info in self.box_info_array:
 
@@ -217,7 +218,6 @@ def render_boxes_draw_callback(self, context):
         self.box_access.is_alive()
 
         self.shader.bind()
-        # bgl.glLineWidth(self.LINE_WIDTH)
         bgl.glEnable(bgl.GL_DEPTH_TEST)
 
         if self.batch is not None:

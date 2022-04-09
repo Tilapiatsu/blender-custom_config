@@ -20,6 +20,7 @@ from ...panel import *
 from ...labels import Labels
 
 from ...box_ui import CustomTargetBoxEditUI
+from ...operator_misc import UVPM3_MT_SetRotStepScene, UVPM3_MT_SetPixelMarginTexSizeScene
 
 
 import multiprocessing
@@ -68,21 +69,14 @@ class UVPM3_PT_PackOptions(UVPM3_PT_SubPanel):
         # TODO: missing feature check
         row.prop(self.scene_props, "rotation_enable")
 
-        # box = col.box()
+        box = col.box()
         row = box.row()
         row.enabled = self.scene_props.rotation_enable
         row.prop(self.scene_props, "pre_rotation_disable")
 
         row = col.row(align=True)
         row.enabled = self.scene_props.rotation_enable
-
-        split = row.split(factor=0.8, align=True)
-
-        col_s = split.row(align=True)
-        col_s.prop(self.scene_props, "rotation_step")
-
-        col_s = split.row(align=True)
-        col_s.menu(UVPM3_MT_SetRotStep.bl_idname, text='Set')
+        self.draw_prop_with_set_menu(self.scene_props, "rotation_step", row, UVPM3_MT_SetRotStepScene)
 
         # Fixed Scale
         box = col.box()
@@ -126,16 +120,17 @@ class UVPM3_PT_PixelMargin(UVPM3_PT_SubPanel):
         # Pixel margin
         self.prop_with_help(self.scene_props, "pixel_margin", col)
 
-        # pm_col = col.column(align=True)
-        # pm_col.enabled = self.prefs.pixel_margin_enabled(self.scene_props)
-
         # Pixel padding
         row = col.row(align=True)
         row.prop(self.scene_props, "pixel_padding")
 
+        # Pixel margin to others
+        row = col.row(align=True)
+        row.prop(self.scene_props, "extra_pixel_margin_to_others")
+
         # Pixel Margin Tex Size
         row = col.row(align=True)
-        row.prop(self.scene_props, "pixel_margin_tex_size")
+        self.draw_prop_with_set_menu(self.scene_props, "pixel_margin_tex_size", row, UVPM3_MT_SetPixelMarginTexSizeScene)
 
         if self.prefs.pack_ratio_enabled(self.scene_props):
             row.enabled = False
@@ -188,11 +183,8 @@ class UVPM3_PT_LockOverlapping(UVPM3_PT_SubPanel):
         col = layout.column(align=True)
 
         # Lock overlapping
-        self.draw_enum_in_box(self.scene_props, "lock_overlapping_mode", Labels.LOCK_OVERLAPPING_MODE_NAME, col, show_help=True)
-        # box = col.box()
-        # col2 = box.column()
-        # self.handle_prop_enum(self.scene_props, "lock_overlapping_mode", Labels.LOCK_OVERLAPPING_MODE_NAME, self.prefs.FEATURE_lock_overlapping, Labels.FEATURE_NOT_SUPPORTED_MSG, col2)
-
+        self.draw_enum_in_box(self.scene_props, "lock_overlapping_mode", Labels.LOCK_OVERLAPPING_MODE_NAME, col, self.HELP_URL_SUFFIX)
+        
 
 class UVPM3_PT_LockGroups(UVPM3_PT_SubPanel):
 
@@ -394,7 +386,7 @@ class UVPM3_PT_Help(UVPM3_PT_SubPanel):
         if not self.scene_props.rotation_enable:
             hints.append('Packing will not be optimal with island rotations disabled. Disabling rotations might be reasonable only if you really need to improve the packing speed.')
         else:
-            if self.scene_props.rotation_step not in UVPM3_MT_SetRotStep.STEPS:
+            if self.scene_props.rotation_step not in UVPM3_MT_SetRotStepScene.STEPS:
                 hints.append("It is usually recommended that the Rotation Step value is a divisor of 90 (or 180 at rare cases). You can use the 'Set' menu, next to the 'Rotation Step' parameter, to choose a step from the set of all recommended values.")
 
         if self.prefs.FEATURE_island_rotation and self.scene_props.pre_rotation_disable:

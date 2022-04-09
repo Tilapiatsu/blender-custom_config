@@ -46,31 +46,11 @@ class UVPM3_PT_GroupingBase(UVPM3_PT_Registerable, GroupingSchemeAccess):
         scene_props = context.scene.uvpm3_props
         return prefs.get_mode(scene_props.active_main_mode_id, context).grouping_enabled()
 
+    def should_draw_grouping_options(self):
+        return hasattr(self.active_mode, 'draw_grouping_options')
 
     def draw_grouping_options(self, g_options, layout, g_scheme=None):
-
-        col = layout
-
-        if self.active_mode.groups_together():
-            row = col.row(align=True)
-            row.prop(g_options.base, "group_compactness")
-            return
-
-        self.draw_enum_in_box(g_options, 'tdensity_policy', Labels.TEXEL_DENSITY_GROUP_POLICY_NAME, col)
-
-        if not g_options.automatic:
-            row = col.box()
-            self.handle_prop(g_options.base, 'last_group_complementary', g_scheme.complementary_group_supported(), Labels.LAST_GROUP_COMPLEMENTARY_SUPPORTED_MSG, row)
-
-        # col.separator()
-
-        if not g_options.automatic:
-            self.draw_enum_in_box(g_options, 'group_layout_mode', Labels.GROUP_LAYOUT_MODE_NAME, col)
-
-        if g_options.group_layout_mode == GroupLayoutMode.AUTOMATIC.code:
-            row = col.row(align=True)
-            row.prop(g_options.base, "tiles_in_row")
-
+        self.active_mode.draw_grouping_options(g_scheme, g_options, layout)
 
     def draw_impl(self, context):
 
@@ -95,11 +75,6 @@ class UVPM3_PT_Grouping(UVPM3_PT_GroupingBase):
         main_col = layout.column(align=True)
         main_col.label(text='Select a grouping scheme:')
 
-        # active_grouping_scheme_idx = self.scene_props.active_grouping_scheme_idx
-        # active_grouping_scheme = None
-        # if active_grouping_scheme_idx >= 0 and len(grouping_schemes) and active_grouping_scheme_idx < len(grouping_schemes):
-        #     active_grouping_scheme = self.scene_props.grouping_schemes[self.scene_props.active_grouping_scheme_idx]
-
         row = main_col.row(align=True)
         row.menu(UVPM3_MT_BrowseGroupingSchemes.bl_idname, text="", icon='GROUP_UVS')
 
@@ -118,15 +93,11 @@ class UVPM3_PT_Grouping(UVPM3_PT_GroupingBase):
         if self.active_g_scheme is None:
             return None
 
-        # row.separator()
-        # row.operator(UVPM3_OT_UnlinkGroupingScheme.bl_idname, icon='X', text='')
-
-        # if not groups_together:
-        main_col.separator()
-        main_col.separator()
-        main_col.label(text='Scheme options:')
-        # options_layout = main_col.box()
-        self.draw_grouping_options(self.active_g_scheme.options, main_col, self.active_g_scheme)
+        if self.should_draw_grouping_options():
+            main_col.separator()
+            main_col.separator()
+            main_col.label(text='Scheme options:')
+            self.draw_grouping_options(self.active_g_scheme.options, main_col, self.active_g_scheme)
             
 
     def draw_impl2(self, context):
@@ -141,12 +112,14 @@ class UVPM3_PT_Grouping(UVPM3_PT_GroupingBase):
         row.prop(self.scene_props, "group_method", text='')
 
         if self.scene_props.auto_grouping_enabled():
-            options_box = col.box()
-            options_col = options_box.column(align=True)
-            options_col.label(text='Grouping options:')
-            # options_box = options_col.box()
 
-            self.draw_grouping_options(self.scene_props.auto_group_options, options_col)
+            if self.should_draw_grouping_options():
+                options_box = col.box()
+                options_col = options_box.column(align=True)
+                options_col.label(text='Grouping options:')
+                # options_box = options_col.box()
+
+                self.draw_grouping_options(self.scene_props.auto_group_options, options_col)
 
         else:
             # col.separator()
@@ -198,30 +171,11 @@ class UVPM3_PT_SchemeGroups(UVPM3_PT_GroupingBase):
         col = groups_layout.column(align=True)
         col.separator()
 
-        if not self.active_mode.groups_together():
+        if hasattr(self.active_mode, 'draw_group_options'):
             col.label(text='Group options:')
-            # box = col.box()
             col2 = col.column(align=True)
 
-            props_count = 0
-
-            if in_debug_mode():
-                row = col2.row(align=True)
-                row.enabled = False
-                row.prop(self.active_group, "num")
-                props_count += 1
-
-            if self.active_g_scheme.options.tdensity_policy == TexelDensityGroupPolicy.CUSTOM.code:
-                row = col2.row(align=True)
-                row.enabled = self.active_g_scheme.options.tdensity_policy == TexelDensityGroupPolicy.CUSTOM.code
-                row.prop(self.active_group, "tdensity_cluster")
-                props_count += 1
-
-            if self.active_g_scheme.options.group_layout_mode == GroupLayoutMode.AUTOMATIC.code:
-                row = col2.row(align=True)
-                row.enabled = self.active_g_scheme.options.group_layout_mode == GroupLayoutMode.AUTOMATIC.code
-                row.prop(self.active_group, "tile_count")
-                props_count += 1
+            props_count = self.active_mode.draw_group_options(self.active_g_scheme, self.active_group, col2)
 
             if props_count == 0:
                 box = col2.box()

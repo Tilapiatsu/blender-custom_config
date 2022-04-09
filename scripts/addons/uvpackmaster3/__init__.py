@@ -21,8 +21,8 @@ module_loader.unload_uvpm3_modules(locals())
 bl_info = {
     "name": "UVPackmaster3",
     "author": "glukoz",
-    "version": (3, 0, 4),
-    "blender": (3, 0, 0),
+    "version": (3, 0, 6),
+    "blender": (3, 1, 0),
     "location": "",
     "description": "",
     "warning": "",
@@ -44,6 +44,7 @@ if inside_blender:
     from .operator import *
     from .operator_islands import *
     from .operator_box import *
+    from .operator_misc import *
     from .panel import *
     from .prefs import *
     from .register_utils import *
@@ -51,6 +52,7 @@ if inside_blender:
     from .presets_grouping_scheme import *
     from .mode import *
     from .grouping import *
+    from .group import *
     from .grouping_scheme import *
     from .grouping_scheme_ui import *
 
@@ -80,6 +82,7 @@ if inside_blender:
         UVPM3_OT_BrowseGroupingSchemes,
 
         UVPM3_Box,
+        UVPM3_GroupOverrides,
         UVPM3_GroupInfo,
         UVPM3_GroupingOptionsBase,
         UVPM3_GroupingOptions,
@@ -130,10 +133,12 @@ if inside_blender:
 
         UVPM3_OT_FinishBoxRendering,
         
-        # UVPM3_OT_RenderGroupBoxes,
         UVPM3_OT_RenderGroupingSchemeBoxes,
         UVPM3_OT_SetGroupingSchemeBoxToTile,
         UVPM3_OT_MoveGroupingSchemeBox,
+
+        UVPM3_OT_SelectIslandsInGroupingSchemeBox,
+        UVPM3_OT_SelectIslandsInCustomTargetBox,
 
         UVPM3_OT_RenderCustomTargetBox,
         UVPM3_OT_SetCustomTargetBoxToTile,
@@ -160,9 +165,15 @@ if inside_blender:
         UVPM3_OT_RemoveTargetBox,
         UVPM3_OT_MoveTargetBox,
 
+        UVPM3_OT_SetRotStepScene,
+        UVPM3_MT_SetRotStepScene,
+        UVPM3_OT_SetRotStepGroup,
+        UVPM3_MT_SetRotStepGroup,
 
-        UVPM3_OT_SetRotStep,
-        UVPM3_MT_SetRotStep,
+        UVPM3_OT_SetPixelMarginTexSizeScene,
+        UVPM3_MT_SetPixelMarginTexSizeScene,
+        UVPM3_OT_SetPixelMarginTexSizeGroup,
+        UVPM3_MT_SetPixelMarginTexSizeGroup,
 
         UVPM3_PT_AuxOperations,
         UVPM3_PT_Main,
@@ -173,6 +184,9 @@ if inside_blender:
 
 
     def register():
+        for cls in scripted_properties_classes:
+            bpy.utils.register_class(cls)
+
         for cls in classes:
             bpy.utils.register_class(cls)
 
@@ -195,6 +209,9 @@ if inside_blender:
             bpy.utils.unregister_class(cls)
 
         for cls in reversed(classes):
+            bpy.utils.unregister_class(cls)
+
+        for cls in reversed(scripted_properties_classes):
             bpy.utils.unregister_class(cls)
 
         bpy.utils.unregister_class(UVPM3_PT_EngineStatus)

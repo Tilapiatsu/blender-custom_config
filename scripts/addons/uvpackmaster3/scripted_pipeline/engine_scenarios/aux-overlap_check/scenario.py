@@ -13,13 +13,14 @@ class Scenario(GenericScenario):
 
         flag_islands(islands_to_check, overlapping)
 
+        ret_code = RetCode.NOT_SET
+
         if len(overlapping) > 0:
-            log_type = LogType.WARNING
+            ret_code = RetCode.WARNING
             log_msg = 'Overlapping islands detected (check selected islands)'
         else:
-            log_type = LogType.INFO
+            ret_code = RetCode.SUCCESS
             log_msg = 'No overlapping islands detected'
 
-        packer.send_log(log_type, log_msg)
-        packer.send_log(LogType.STATUS, 'Done')
-        return RetCode.SUCCESS
+        packer.send_log(LogType.STATUS, log_msg)
+        return ret_code

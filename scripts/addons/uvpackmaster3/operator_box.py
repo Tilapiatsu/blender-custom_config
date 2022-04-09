@@ -23,8 +23,10 @@ from .utils import *
 from .grouping_scheme import GroupingSchemeAccess
 from .box import UVPM3_Box
 from .box_utils import BoxRenderInfo, BoxRenderer, BoxRenderAccess, CustomTargetBoxAccess, TextChunk, disable_box_rendering
+from .operator import UVPM3_OT_Engine
+from .prefs_scripted_utils import ScriptParams
 
-from bpy.props import IntProperty
+from bpy.props import IntProperty, BoolProperty
 import bpy
 
 
@@ -194,6 +196,7 @@ class UVPM3_OT_RenderBoxesGeneric(bpy.types.Operator):
         if box_to_select is None:
             return
 
+        self.force_block_event = True
         self.sel_history[box_to_select.glob_idx] = self.next_sel_history_val
         self.next_sel_history_val += 1
         self.box_access.impl_select_box(box_to_select)
@@ -266,7 +269,9 @@ class UVPM3_OT_RenderBoxesGeneric(bpy.types.Operator):
     def modal(self, context, event):
 
         try:
+            self.force_block_event = False
             finish = False
+
             if not self.prefs.box_rendering or (context.area is None):
                 finish = True
 
@@ -295,7 +300,7 @@ class UVPM3_OT_RenderBoxesGeneric(bpy.types.Operator):
                 self.context.area.tag_redraw()
                 self.redraw_needed = False
                 
-            exit_code = 'RUNNING_MODAL' if self.draw_mode_enable else 'PASS_THROUGH'
+            exit_code = 'RUNNING_MODAL' if self.force_block_event or self.draw_mode_enable else 'PASS_THROUGH'
             return {exit_code} 
 
         except RuntimeError as ex:
@@ -356,6 +361,7 @@ class UVPM3_OT_RenderBoxesGeneric(bpy.types.Operator):
         self.prefs = get_prefs()
         self.prefs.box_rendering = True
         self.redraw_needed = False
+        self.force_block_event = False
 
         self.reset_draw_variables()
 
@@ -384,60 +390,6 @@ class UVPM3_OT_FinishBoxRendering(bpy.types.Operator):
 
         disable_box_rendering(None, context)
         return {'FINISHED'}
-
-
-# class GroupBoxesRenderAccess(GroupingSchemeAccess, BoxRenderAccess):
-
-#     # ACTIVE_COLOR = (1, 1, 1, 1)
-#     ACTIVE_Z_COORD = 10.0
-#     NON_ACTIVE_COLOR_MULTIPLIER = 0.5
-
-#     def init_access(self, context):
-#         super().init_access(context)
-
-#         return self.active_group is not None
-
-#     # def impl_box_count(self):
-
-#     #     return len(self.active_group.target_boxes)
-
-#     # def impl_box(self, box_idx):
-
-#     #     return self.active_group.target_boxes[box_idx]
-
-#     # def impl_box_color(self, box_idx):
-
-#     #     return rgb_to_rgba(self.active_group.color)
-
-#     # def impl_active_box_idx(self):
-
-#     #     return int(self.active_group.active_target_box_idx)
-
-#     def impl_box_info_array(self):
-
-#         box_info_array = []
-#         active_box_info = None
-
-#         for box_idx, box in enumerate(self.active_group.target_boxes):
-
-#             box_info = BoxRenderInfo(len(box_info_array), box, rgb_to_rgba(self.active_group.color), "{} [Box:{}]".format(self.active_group.name, box_idx))
-            
-#             box_info.box_idx = box_idx
-
-#             if box_idx == self.active_group.active_target_box_idx:
-#                 active_box_info = box_info
-
-#             box_info_array.append(box_info)
-
-#         return box_info_array, active_box_info
-
-#     def impl_select_box(self, box_info):
-
-#         box_idx = box_info.box_idx
-
-#         if box_idx < 0 or box_idx >= len(self.active_group.target_boxes):
-#             return
-#         self.active_group.active_target_box_idx = box_idx
 
 
 class GroupingSchemeRenderAccess(BoxRenderAccess):
@@ -517,25 +469,6 @@ class ActiveGroupingSchemeRenderAccess(GroupingSchemeRenderAccess, GroupingSchem
 
         return not self.active_g_scheme.is_complementary_group(group)
 
-
-
-# class UVPM3_OT_RenderGroupBoxes(UVPM3_OT_RenderBoxesGeneric):
-
-#     bl_idname = 'uvpackmaster3.render_group_boxes'
-#     bl_label = 'Edit Group Boxes'
-#     bl_description = ''
-
-#     def pre_render(self):
-        
-#         self.prefs.group_scheme_boxes_editing = True
-
-#     def post_render(self):
-        
-#         self.prefs.group_scheme_boxes_editing = False
-
-#     def get_box_access(self):
-
-#         return GroupBoxesRenderAccess()
         
 
 class UVPM3_OT_RenderGroupingSchemeBoxes(UVPM3_OT_RenderBoxesGeneric):
@@ -605,6 +538,7 @@ class UVPM3_OT_SetTargetBoxToTile(UVPM3_OT_ModifyTargetBox):
         col.prop(self, 'tile_x')
         col.prop(self, 'tile_y')
 
+
 class MoveTargetBoxProperties:
 
     dir_x : IntProperty(
@@ -618,9 +552,19 @@ class MoveTargetBoxProperties:
         default=0)
 
 
+
+class UVPM3_OT_SetGroupingSchemeBoxToTile(UVPM3_OT_SetTargetBoxToTile, GroupingSchemeAccess):
+
+    bl_idname = 'uvpackmaster3.set_grouping_scheme_box_to_tile'
+
+
+class UVPM3_OT_SetCustomTargetBoxToTile(UVPM3_OT_SetTargetBoxToTile, CustomTargetBoxAccess):
+
+    bl_idname = 'uvpackmaster3.set_main_target_box_to_tile'
+
+
 class UVPM3_OT_MoveTargetBox(UVPM3_OT_ModifyTargetBox):
 
-    bl_idname = 'uvpackmaster3.move_target_box'
     bl_label = 'Move Target Box'
     bl_description = "Move a target box to an adjacent tile"
 
@@ -635,27 +579,15 @@ class UVPM3_OT_MoveTargetBox(UVPM3_OT_ModifyTargetBox):
         active_box.offset((delta_x, delta_y))
 
 
-
-class UVPM3_OT_SetGroupingSchemeBoxToTile(UVPM3_OT_SetTargetBoxToTile, GroupingSchemeAccess):
-
-    bl_idname = 'uvpackmaster3.set_grouping_scheme_box_to_tile'
-
-
 class UVPM3_OT_MoveGroupingSchemeBox(UVPM3_OT_MoveTargetBox, MoveTargetBoxProperties, GroupingSchemeAccess):
 
     bl_idname = 'uvpackmaster3.move_grouping_scheme_box'
 
 
-
-class UVPM3_OT_SetCustomTargetBoxToTile(UVPM3_OT_SetTargetBoxToTile, CustomTargetBoxAccess):
-
-    bl_idname = 'uvpackmaster3.set_main_target_box_to_tile'
-
-
 class UVPM3_OT_MoveCustomTargetBox(UVPM3_OT_MoveTargetBox, MoveTargetBoxProperties, CustomTargetBoxAccess):
 
     bl_idname = 'uvpackmaster3.move_main_target_box'
-
+    
 
 
 class UVPM3_OT_RenderCustomTargetBox(UVPM3_OT_RenderBoxesGeneric):
@@ -675,3 +607,124 @@ class UVPM3_OT_RenderCustomTargetBox(UVPM3_OT_RenderBoxesGeneric):
     def get_box_access(self):
 
         return CustomTargetBoxAccess()
+
+
+class UVPM3_OT_ModifyTargetBoxEngine(UVPM3_OT_Engine):
+
+    SCENARIO_ID = 'hidden.modify_box_with_islands'
+
+    # def skip_topology_parsing(self):
+    #     return True
+
+    def isolated_execution(self):
+        return True
+
+    def pre_main(self):
+        self.init_access(self.context)
+
+        self.active_box = self.impl_active_box()
+        self.modified_box = self.active_box.copy()
+        self.modify_impl(self.modified_box)
+
+    def post_main(self):
+        self.active_box.copy_from(self.modified_box)
+
+    def get_scenario_id(self):
+        if self.scene_props.move_islands:
+            return self.SCENARIO_ID
+
+        return None
+
+    def setup_script_params(self):
+        
+        script_params = ScriptParams()
+        script_params.add_param('fully_inside', self.scene_props.fully_inside)
+        script_params.add_param('orig_box', self.active_box.coords_tuple())
+        script_params.add_param('modified_box', self.modified_box.coords_tuple())
+
+        return script_params
+
+    def check_engine_retcode(self, retcode):
+        if retcode in {UvpmRetCode.SUCCESS}:
+            return
+
+        if retcode == UvpmRetCode.INVALID_ISLANDS:
+            error_suffix = 'invalid island topology'
+        else:
+            error_suffix = 'engine process returned an error'
+
+        raise RuntimeError('Box could not be modified: {}'.format(error_suffix))
+    
+
+class UVPM3_OT_MoveTargetBoxEngine(UVPM3_OT_ModifyTargetBoxEngine):
+
+    bl_label = 'Move Target Box'
+    bl_description = "Move a target box to an adjacent tile"
+
+    def modify_impl(self, active_box):
+
+        width = active_box.width
+        height = active_box.height
+
+        delta_x = self.dir_x * width
+        delta_y = self.dir_y * height
+
+        active_box.offset((delta_x, delta_y))
+
+
+
+class UVPM3_OT_SelectIslandsInBox(UVPM3_OT_Engine):
+
+    bl_label = 'Select Islands In Box'
+    bl_description = 'Select/deselect islands in the active box'
+    SCENARIO_ID = 'hidden.select_islands_in_box'
+
+
+    def isolated_execution(self):
+        return True
+
+    def require_selection(self):
+        return not self.select
+
+    def send_unselected_islands(self):
+        return self.select
+
+    def pre_main(self):
+        self.init_access(self.context)
+        self.active_box = self.impl_active_box()
+
+    def setup_script_params(self):
+        
+        script_params = ScriptParams()
+        script_params.add_param('fully_inside', self.scene_props.fully_inside)
+        script_params.add_param('active_box', self.active_box.coords_tuple())
+        script_params.add_param('select', self.select)
+
+        return script_params
+
+    def check_engine_retcode(self, retcode):
+        if retcode in {UvpmRetCode.SUCCESS}:
+            return
+
+        if retcode == UvpmRetCode.INVALID_ISLANDS:
+            error_suffix = 'invalid island topology'
+        else:
+            error_suffix = 'engine process returned an error'
+
+        raise RuntimeError('Could not select islands: {}'.format(error_suffix))
+
+
+class SelectIslandsInBoxProperties:
+
+    select : BoolProperty(name='Select', default=False)
+
+
+class UVPM3_OT_SelectIslandsInGroupingSchemeBox(UVPM3_OT_SelectIslandsInBox, SelectIslandsInBoxProperties, GroupingSchemeAccess):
+
+    bl_idname = 'uvpackmaster3.select_islands_in_grouping_scheme_box'
+
+
+class UVPM3_OT_SelectIslandsInCustomTargetBox(UVPM3_OT_SelectIslandsInBox, SelectIslandsInBoxProperties, CustomTargetBoxAccess):
+
+    bl_idname = 'uvpackmaster3.select_islands_in_custom_target_box'
+    

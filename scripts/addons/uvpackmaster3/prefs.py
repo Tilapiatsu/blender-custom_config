@@ -24,7 +24,7 @@ from pathlib import Path
 from .enums import *
 from .utils import get_active_image_size, force_read_int
 from .prefs_scripted_utils import scripted_pipeline_property_group
-from .labels import Labels
+from .labels import Labels, PropConstants
 from .mode import ModeType
 from .grouping_scheme import UVPM3_GroupingScheme
 from .box import UVPM3_Box
@@ -32,6 +32,7 @@ from .box_utils import disable_box_rendering
 from .island_params import ScaleLimitIParamInfo, AlignPriorityIParamInfo
 from .register_utils import UVPM3_OT_SetEnginePath
 from .grouping import UVPM3_AutoGroupingOptions
+from . import module_loader
 
 import bpy
 from bpy.props import IntProperty, FloatProperty, BoolProperty, StringProperty, EnumProperty, CollectionProperty, PointerProperty
@@ -39,6 +40,11 @@ from bpy.types import AddonPreferences
 from mathutils import Vector
 
 
+from .scripted_pipeline import properties
+scripted_properties_modules = module_loader.import_submodules(properties)
+scripted_properties_classes = module_loader.get_registrable_classes(scripted_properties_modules,
+                                                                    sub_class=bpy.types.PropertyGroup,
+                                                                    required_vars=("SCRIPTED_PROP_GROUP_ID",))
 
 class UVPM3_DeviceSettings(bpy.types.PropertyGroup):
 
@@ -77,6 +83,7 @@ def _update_engine_status_msg(self, context):
     bpy.utils.register_class(UVPM3_PT_EngineStatus)
 
 
+
 class UVPM3_SceneProps(bpy.types.PropertyGroup):
 
     grouping_schemes : CollectionProperty(name="Grouping Schemes", type=UVPM3_GroupingScheme)
@@ -106,33 +113,40 @@ class UVPM3_SceneProps(bpy.types.PropertyGroup):
     pixel_margin : IntProperty(
         name=Labels.PIXEL_MARGIN_NAME,
         description=Labels.PIXEL_MARGIN_DESC,
-        min=1,
-        max=100,
-        default=5)
+        min=PropConstants.PIXEL_MARGIN_MIN,
+        max=PropConstants.PIXEL_MARGIN_MAX,
+        default=PropConstants.PIXEL_MARGIN_DEFAULT)
 
     pixel_padding : IntProperty(
         name=Labels.PIXEL_PADDING_NAME,
         description=Labels.PIXEL_PADDING_DESC,
-        min=0,
-        max=100,
-        default=0)
+        min=PropConstants.PIXEL_PADDING_MIN,
+        max=PropConstants.PIXEL_PADDING_MAX,
+        default=PropConstants.PIXEL_PADDING_DEFAULT)
+
+    extra_pixel_margin_to_others : IntProperty(
+        name=Labels.EXTRA_PIXEL_MARGIN_TO_OTHERS_NAME,
+        description=Labels.EXTRA_PIXEL_MARGIN_TO_OTHERS_DESC,
+        min=PropConstants.EXTRA_PIXEL_MARGIN_TO_OTHERS_MIN,
+        max=PropConstants.EXTRA_PIXEL_MARGIN_TO_OTHERS_MAX,
+        default=PropConstants.EXTRA_PIXEL_MARGIN_TO_OTHERS_DEFAULT)
 
     pixel_margin_tex_size : IntProperty(
         name=Labels.PIXEL_MARGIN_TEX_SIZE_NAME,
         description=Labels.PIXEL_MARGIN_TEX_SIZE_DESC,
-        min=16,
-        max=8096,
-        default=1024)
+        min=PropConstants.PIXEL_MARGIN_TEX_SIZE_MIN,
+        max=PropConstants.PIXEL_MARGIN_TEX_SIZE_MAX,
+        default=PropConstants.PIXEL_MARGIN_TEX_SIZE_DEFAULT)
 
     rotation_enable : BoolProperty(
         name=Labels.ROTATION_ENABLE_NAME,
         description=Labels.ROTATION_ENABLE_DESC,
-        default=True)
+        default=PropConstants.ROTATION_ENABLE_DEFAULT)
 
     pre_rotation_disable : BoolProperty(
         name=Labels.PRE_ROTATION_DISABLE_NAME,
         description=Labels.PRE_ROTATION_DISABLE_DESC,
-        default=False)
+        default=PropConstants.PRE_ROTATION_DISABLE_DEFAULT)
 
     normalize_islands : BoolProperty(
         name=Labels.NORMALIZE_ISLANDS_NAME,
@@ -152,9 +166,9 @@ class UVPM3_SceneProps(bpy.types.PropertyGroup):
     rotation_step : IntProperty(
         name=Labels.ROTATION_STEP_NAME,
         description=Labels.ROTATION_STEP_DESC,
-        default=90,
-        min=1,
-        max=180)
+        default=PropConstants.ROTATION_STEP_DEFAULT,
+        min=PropConstants.ROTATION_STEP_MIN,
+        max=PropConstants.ROTATION_STEP_MAX)
 
     island_rot_step_enable : BoolProperty(
         name=Labels.ISLAND_ROT_STEP_ENABLE_NAME,
@@ -361,6 +375,9 @@ class UVPM3_Preferences(AddonPreferences):
     def pixel_margin_enabled(self, scene_props):
         return scene_props.pixel_margin_enable
 
+    def add_pixel_margin_to_others_enabled(self, scene_props):
+        return scene_props.extra_pixel_margin_to_others > 0
+
     def pixel_padding_enabled(self, scene_props):
         return scene_props.pixel_padding > 0
            
@@ -470,6 +487,19 @@ class UVPM3_Preferences(AddonPreferences):
             from .operator import UVPM3_OT_SetupHelp
             layout.operator(UVPM3_OT_SetupHelp.bl_idname, icon='QUESTION', text='')
 
+    def draw_general_options(self, layout):
+        col = layout.column(align=True)
+        col.label(text='General options:')
+
+        row = col.row(align=True)
+        row.prop(self, "thread_count")
+
+        row = col.row(align=True)
+        row.prop(self, "box_render_line_width")
+        
+        box = col.box()
+        row = box.row(align=True)
+        row.prop(self, 'append_mode_name_to_op_label')
 
     def draw(self, context):
         layout = self.layout
@@ -493,8 +523,8 @@ class UVPM3_Preferences(AddonPreferences):
         main_col.separator()
         main_col.separator()
 
-        main_col.label(text='General options:')
-        main_col.prop(self, "thread_count")
+        self.draw_general_options(main_col)
+
         main_col.separator()
         main_col.separator()
 
@@ -686,6 +716,19 @@ class UVPM3_Preferences(AddonPreferences):
         description='',
         default=False)
 
+    append_mode_name_to_op_label : BoolProperty(
+        name=Labels.APPEND_MODE_NAME_TO_OP_LABEL_NAME,
+        description=Labels.APPEND_MODE_NAME_TO_OP_LABEL_DESC,
+        default=False)
+
+    box_render_line_width : FloatProperty(
+        name=Labels.BOX_RENDER_LINE_WIDTH_NAME,
+        description=Labels.BOX_RENDER_LINE_WIDTH_DESC,
+        default=4.0,
+        min=1.0,
+        max=10.0,
+        step=5.0)
+
 
     dev_array = []
     saved_dev_settings : CollectionProperty(type=UVPM3_SavedDeviceSettings)
@@ -699,7 +742,7 @@ class UVPM3_Preferences(AddonPreferences):
     def get_userdata_path(self):
         from .os_iface import os_get_userdata_path
         os_userdata_path = os_get_userdata_path()
-        return os.path.join(os_userdata_path, 'Blender', 'Engine3')
+        return os.path.join(os_userdata_path, 'blender', 'engine3')
 
     def get_main_preset_path(self):
         preset_path = os.path.join(self.get_userdata_path(), 'presets')
@@ -713,8 +756,8 @@ class UVPM3_Preferences(AddonPreferences):
 
 
 
-@scripted_pipeline_property_group("scripted_pipeline_props",
-                                  UVPM3_SceneProps,
+@scripted_pipeline_property_group("scripted_props",
+                                  UVPM3_SceneProps, scripted_properties_classes,
                                   (UVPM3_SceneProps, UVPM3_Preferences))
 class UVPM3_ScriptedPipelineProperties(bpy.types.PropertyGroup):
     pass

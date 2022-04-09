@@ -55,6 +55,17 @@ class BoxEditUI:
             row.operator(self.impl_set_to_tile_operator().bl_idname)
 
             edit_col.separator()
+            edit_col.label(text='Islands inside the box:')
+
+            select_op = self.impl_select_islands_in_box_operator()
+            row = edit_col.row(align=True)
+            row.operator(select_op.bl_idname, text="Select").select = True
+            row.operator(select_op.bl_idname, text="Deselect").select = False
+
+            box = edit_col.box()
+            box.prop(self.scene_props, "fully_inside")
+
+            edit_col.separator()
             edit_col.label(text='Move the box to an adjacent tile:')
 
             row = edit_col.row(align=True)
@@ -92,6 +103,9 @@ class BoxEditUI:
             op.dir_x = 1
             op.dir_y = -1
 
+            # box = edit_col.box()
+            # box.prop(self.scene_props, "move_islands")
+
             edit_col.separator()
 
         op_type = UVPM3_OT_FinishBoxRendering if edit_enable else self.impl_render_boxes_operator()
@@ -116,6 +130,10 @@ class GroupingSchemeBoxesEditUI(BoxEditUI, GroupingSchemeAccess):
 
         return UVPM3_OT_MoveGroupingSchemeBox
 
+    def impl_select_islands_in_box_operator(self):
+
+        return UVPM3_OT_SelectIslandsInGroupingSchemeBox
+
 
 
 class CustomTargetBoxEditUI(BoxEditUI, CustomTargetBoxAccess):
@@ -139,3 +157,7 @@ class CustomTargetBoxEditUI(BoxEditUI, CustomTargetBoxAccess):
     def impl_move_box_operator(self):
 
         return UVPM3_OT_MoveCustomTargetBox
+
+    def impl_select_islands_in_box_operator(self):
+
+        return UVPM3_OT_SelectIslandsInCustomTargetBox

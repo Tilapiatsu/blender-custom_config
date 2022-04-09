@@ -251,7 +251,7 @@ class UVPM3_OT_SavePreset(UVPM3_OT_SavePresetBase, ExportHelper, PresetFilenameM
     props_to_filter = {
         'grouping_schemes': True,
         'active_grouping_scheme_idx': True,
-        'scripted_pipeline_props' : True
+        'scripted_props' : True
     }
 
     def set_preset_version(self, json_struct):
@@ -297,13 +297,21 @@ class UVPM3_OT_LoadPresetBase(bpy.types.Operator):
         props_dict['island_scale_limit_enable'] = False
         props_dict['island_scale_limit'] = 0
 
+    def translate_props_12to13(self, props_dict):
+        pass
+
+    def translate_props_13to14(self, props_dict):
+        pass
+
     def translate_props(self, preset_version, props_dict):
 
         translate_array = [
-            self.translate_props_11to12
+            self.translate_props_11to12,
+            self.translate_props_12to13,
+            self.translate_props_13to14
         ]
 
-        for i in range(preset_version-UvpmVersionInfo.PRESET_VERSION_FIRST_SUPPORTED, len(translate_array)):
+        for i in range(preset_version - UvpmVersionInfo.PRESET_VERSION_FIRST_SUPPORTED, len(translate_array)):
             translate_array[i](props_dict)
 
     def get_preset_version(self, json_struct):
@@ -333,7 +341,7 @@ class UVPM3_OT_LoadPresetBase(bpy.types.Operator):
             self.raise_invalid_format()
 
         if not self.validate_preset_version(preset_version):
-            self.raise_invalid_format()
+            raise RuntimeError('Unsupported preset version - upgrade to the latest UVPackmaster addon release')
 
         self.translate_props(preset_version, props_dict)
 
@@ -447,7 +455,7 @@ class UVPM3_OT_LoadPreset(LoadPresetInvokeHelper, UVPM3_OT_LoadPresetBase, Impor
     props_to_load = {
         'grouping_schemes': False,
         'active_grouping_scheme_idx': False,
-        'scripted_pipeline_props' : False
+        'scripted_props' : False
     }
 
     def draw(self, context):

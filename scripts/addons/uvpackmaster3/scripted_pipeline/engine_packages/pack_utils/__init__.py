@@ -134,7 +134,10 @@ class PackScenario(GenericScenario):
 
         lock_overlapping_mode = TO_ENUM(LockOverlappingMode, self.cx.params['lock_overlapping_mode'], LockOverlappingMode.DISABLED)
         lock_group_iparam_desc = self.iparams_manager.iparam_desc(self.LOCK_GROUP_IPARAM_NAME) if self.cx.params['lock_groups_enable'] else None
-        self.islands_to_pack = merge_overlapping_islands(self.islands_to_pack, lock_overlapping_mode, lock_group_iparam_desc)
+        locking_enabled = (lock_overlapping_mode != LockOverlappingMode.DISABLED) or (lock_group_iparam_desc is not None)
+
+        if locking_enabled:
+            self.islands_to_pack = merge_overlapping_islands(self.islands_to_pack, lock_overlapping_mode, lock_group_iparam_desc)
 
         if self.cx.params['normalize_islands']:
             self.islands_to_pack = self.islands_to_pack.normalize()
@@ -142,8 +145,14 @@ class PackScenario(GenericScenario):
         if self.g_scheme is not None:
             self.g_scheme.assign_islands_to_groups(self.islands_to_pack)
 
-
+            if locking_enabled:
+                self.g_scheme.validate_locking()
+                            
         self.pack_params = PackParams(self.cx.params)
+
+        rotation_step_iparam_name = self.cx.params['rotation_step_iparam_name']
+        if rotation_step_iparam_name is not None:
+            self.pack_params.rotation_step_iparam_desc = self.iparams_manager.iparam_desc(rotation_step_iparam_name)
 
         scale_limit_iparam_name = self.cx.params['scale_limit_iparam_name']
         if scale_limit_iparam_name is not None:
@@ -153,12 +162,12 @@ class PackScenario(GenericScenario):
 
     def post_run_island_sets(self):
 
-        return self.pack_manager.packed_islands, self.pack_manager.invalid_islands
+        return [self.pack_manager.packed_islands], self.pack_manager.invalid_islands
 
 
     def post_run(self, ret_code):
 
-        packed_islands, invalid_islands = self.post_run_island_sets()
+        packed_islands_array, invalid_islands = self.post_run_island_sets()
 
         if ret_code == RetCode.NO_SIUTABLE_DEVICE:
             packer.send_log(LogType.STATUS, NO_SIUTABLE_DEVICE_STATUS_MSG)
@@ -174,9 +183,13 @@ class PackScenario(GenericScenario):
         if not solution_available(ret_code):
             return
 
+        packed_islands_area = 0.0
+        for packed_islands in packed_islands_array:
+            packed_islands_area += packed_islands.area()
+
         if ret_code == RetCode.SUCCESS:
             packer.send_log(LogType.STATUS, 'Packing done')
-            packer.send_log(LogType.INFO, 'Packed islands area: {}'.format(area_to_string(packed_islands.area())))
+            packer.send_log(LogType.INFO, 'Packed islands area: {}'.format(area_to_string(packed_islands_area)))
 
         elif ret_code == RetCode.NO_SPACE:
             packer.send_log(LogType.STATUS, 'Packing stopped - no space to pack all islands')
@@ -187,14 +200,16 @@ class PackScenario(GenericScenario):
             assert(False)
 
         overlapping = IslandSet()
-        packed_overlapping = overlapping_islands(packed_islands, packed_islands)[0]
-        packed_overlapping.set_flags(IslandFlag.OVERLAPS)
-        overlapping += packed_overlapping
 
-        if self.static_islands is not None:
-            packed_static_overlapping = overlapping_islands(packed_islands, self.static_islands)[0]
-            packed_static_overlapping.set_flags(IslandFlag.OVERLAPS)
-            overlapping += packed_static_overlapping
+        for packed_islands in packed_islands_array:
+            packed_overlapping = overlapping_islands(packed_islands, packed_islands)[0]
+            packed_overlapping.set_flags(IslandFlag.OVERLAPS)
+            overlapping += packed_overlapping
+
+            if self.static_islands is not None:
+                packed_static_overlapping = overlapping_islands(packed_islands, self.static_islands)[0]
+                packed_static_overlapping.set_flags(IslandFlag.OVERLAPS)
+                overlapping += packed_static_overlapping
 
         flagged_islands = overlapping
         flag_islands(self.cx.selected_islands, flagged_islands)

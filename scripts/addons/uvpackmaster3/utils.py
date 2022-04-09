@@ -80,12 +80,20 @@ def print_backtrace(ex):
     print(str(ex))
 
 
+def print_debug(debug_str):
+    print('[UVPACKMASTER_DEBUG]: ' + debug_str)
+
 def print_log(log_str):
     print('[UVPACKMASTER_LOG]: ' + log_str)
+
+def print_error(error_str):
+    print('[UVPACKMASTER_ERROR]: ' + error_str)
 
 def print_warning(warning_str):
     print('[UVPACKMASTER_WARNING]: ' + warning_str)
 
+def log_separator():
+    return '-'*80
 
 def rgb_to_rgba(rgb_color):
 
@@ -225,3 +233,37 @@ class ShadowedPropertyGroup:
         if hasattr(cls, "_shadow_cls"):
             return cls._shadow_cls(*args, **kwargs)
         return super().__new__(cls)
+
+
+class ShadowedCollectionProperty:
+
+    def __init__(self, elem_type):
+
+        self.elem_type = elem_type
+        self.collection = []
+
+    def add(self):
+
+        self.collection.append(self.elem_type())
+        return self.collection[-1]
+
+    def clear(self):
+
+        self.collection.clear()
+
+    def remove(self, idx):
+
+        del self.collection[idx]
+
+    def __len__(self):
+
+        return len(self.collection)
+
+    def __getitem__(self, idx):
+
+            return self.collection[idx]
+
+    def __iter__(self):
+
+        return iter(self.collection)
+        
