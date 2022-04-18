@@ -286,31 +286,31 @@ def register():
 	for cls in classes:
 		register_class(cls)
 
-	wm = bpy.context.window_manager
-	kc = wm.keyconfigs.addon
+	# wm = bpy.context.window_manager
+	# kc = wm.keyconfigs.addon
 
-	km = kc.keymaps.new(name="Mesh", space_type="EMPTY")
-	if kc:
+	# km = kc.keymaps.new(name="Mesh", space_type="EMPTY")
+	# if kc:
 		
 
-		kmi = km.keymap_items.new(
-			"ls.select",
-			type='D',
-			value="PRESS",
-		)
-		addon_keymaps.append((km, kmi))
-		kmi = km.keymap_items.new(
-			"ls.select",
-			type='LEFTMOUSE',
-			value="DOUBLE_CLICK",
-		)
-		addon_keymaps.append((km, kmi))
-		kmi = km.keymap_items.new(
-			"ls.select",
-			type='LEFTMOUSE',
-			value="DOUBLE_CLICK",shift=True
-		)
-		addon_keymaps.append((km, kmi))
+	# 	kmi = km.keymap_items.new(
+	# 		"ls.select",
+	# 		type='D',
+	# 		value="PRESS",
+	# 	)
+	# 	addon_keymaps.append((km, kmi))
+	# 	kmi = km.keymap_items.new(
+	# 		"ls.select",
+	# 		type='LEFTMOUSE',
+	# 		value="DOUBLE_CLICK",
+	# 	)
+	# 	addon_keymaps.append((km, kmi))
+	# 	kmi = km.keymap_items.new(
+	# 		"ls.select",
+	# 		type='LEFTMOUSE',
+	# 		value="DOUBLE_CLICK",shift=True
+	# 	)
+	# 	addon_keymaps.append((km, kmi))
 
 
 
@@ -320,9 +320,9 @@ def unregister():
 
 	for cls in reversed(classes):
 		unregister_class(cls)
-	for (km, kmi) in addon_keymaps:
-		km.keymap_items.remove(kmi)
-	addon_keymaps.clear()
+	# for (km, kmi) in addon_keymaps:
+	# 	km.keymap_items.remove(kmi)
+	# addon_keymaps.clear()
 
 
 if __name__ == "__main__":
