@@ -325,3 +325,6 @@
 [submodule "scripts/addons/eyek"]
 	path = scripts/addons/eyek
 	url = https://github.com/p4ymak/eyek.git
+[submodule "scripts/addons/b3dsdf"]
+	path = scripts/addons/b3dsdf
+	url = https://github.com/williamchange/b3dsdf.git
