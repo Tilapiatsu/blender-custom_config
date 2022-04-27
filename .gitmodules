@@ -328,3 +328,6 @@
 [submodule "scripts/addons/b3dsdf"]
 	path = scripts/addons/b3dsdf
 	url = https://github.com/williamchange/b3dsdf.git
+[submodule "scripts/addons/CAD_Sketcher"]
+	path = scripts/addons/CAD_Sketcher
+	url = https://github.com/hlorus/CAD_Sketcher.git
