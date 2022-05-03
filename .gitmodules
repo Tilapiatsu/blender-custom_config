@@ -331,3 +331,6 @@
 [submodule "scripts/addons/CAD_Sketcher"]
 	path = scripts/addons/CAD_Sketcher
 	url = https://github.com/hlorus/CAD_Sketcher.git
+[submodule "scripts/addons/RenderNode"]
+	path = scripts/addons/RenderNode
+	url = https://github.com/atticus-lv/RenderNode.git
