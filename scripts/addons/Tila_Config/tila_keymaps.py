@@ -17,7 +17,6 @@ bl_info = {
 
 # TODO  
 #  Need to read : https://wiki.blender.org/wiki/Source/Depsgraph
-# - Change the default Cliping distance
 # - Create an action center pie menu : https://blenderartists.org/t/modo-me-the-modo-action-centers-in-blender-and-more-2-80-2-79/1145899
 # 		- Automatic
 # 		- Selection
@@ -35,20 +34,11 @@ bl_info = {
 # 		- Custom
 # - Fix th area pie menu shortcut which dosn't workin in all context
 # - Remove double with modal control
-# - Vertex Normal Pie Menu : Mark Hard, Mark Soft, update normal, Thief
-# - UV Pie Menu : Split, sew, mak seam etc
+# - Vertex Normal Pie Menu :  Thief
 # - Need to fix the rotate/scaling pivot point in UV context
 # - Create a simple Bevel like Modo Does : Bevel + Inset + Segment count
 # - Script to visualize Texture checker in all objects in the viewport
-# - Fix the uv transform too which is always scaling uniformally
 # - Fix the smart edit mode in UV context
-
-
-
-
-# Addon to Enable
-
-# -	  Pro Renderer : https://www.amd.com/en/technologies/radeon-prorender-downloads
 
 
 
@@ -107,19 +97,19 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		self.kmi_set_replace('wm.call_menu_pie', 'TAB', 'PRESS', ctrl=True, shift=True, properties=[('name', 'TILA_MT_pie_areas')])
 		self.kmi_set_replace('wm.call_menu_pie', 'X', 'PRESS', alt=True, shift=True, properties=[('name', 'HP_MT_pie_symmetry')], disable_double=True)
 		
-
 	def navigation_keys(self, pan=None, orbit=None, dolly=None, roll=None):
+		if self.km.name in ['3D View', 'Image']:
+			Value = "PRESS"
+		else:
+			Value = "CLICK_DRAG"
 		if orbit:
 			self.kmi_set_replace(orbit, self.k_manip, "PRESS", alt=True, disable_double=True)
 		if pan:
-			if self.km.name in ['3D View', 'Image']:
-				self.kmi_set_replace(pan, self.k_manip, "PRESS", alt=True, shift=True, disable_double=True)
-			else:
-				self.kmi_set_replace(pan, self.k_manip, "CLICK_DRAG", alt=True, shift=True, disable_double=True)
+			self.kmi_set_replace(pan, self.k_manip, Value, alt=True, shift=True, disable_double=True)
 		if dolly:
 			self.kmi_set_replace(dolly, self.k_manip, "CLICK_DRAG", alt=True, ctrl=True, disable_double=True)
 		if roll:
-			self.kmi_set_replace(roll, self.k_context, "CLICK_DRAG", alt=True, disable_double=True)
+			self.kmi_set_replace(roll, self.k_context, Value, alt=True, disable_double=True)
 
 	def mode_selection(self):
 		self.kmi_set_replace('view3d.tila_smart_editmode', self.k_vert_mode, 'PRESS', properties=[('mode', 0), ('use_extend', False), ('use_expand', False), ('alt_mode', False), ('get_border', False)], disable_double=True)
@@ -299,8 +289,6 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 			if alt:
 				self.kmi_set_replace('wm.tool_set_by_id', self.k_menu, "PRESS", ctrl=True, properties=[('name', alt), ('cycle', False)])
 
-
-
 	def right_mouse(self):
 		kmi = self.kmi_find(idname='wm.call_menu', type='RIGHTMOUSE', value='PRESS')
 
@@ -398,7 +386,6 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 			self.kmi_set_replace('sculpt.tila_multires_subdiv_level', 'D', 'PRESS', ctrl=True,  properties=[('subd', 1), ('mode', 'RELATIVE'), ('force_subd', True), ('algorithm', 'CATMULL_CLARK')])
 			self.kmi_set_replace('sculpt.tila_multires_subdiv_level', 'D', 'PRESS', shift=True,  properties=[('subd', -1), ('mode', 'RELATIVE'), ('force_subd', False), ('algorithm', 'CATMULL_CLARK')])
 		
-
 	def tool_center(self, pivot=None, orientation=None, action_center_context=None):
 		print(pivot, orientation)
 		# if pivot:
@@ -1300,7 +1287,6 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		print("Assignment complete")
 		print("----------------------------------------------------------------")
 		print("")
-
 
 keymap_List = {}
 

@@ -93,8 +93,6 @@ def register(enable_addon=True):
 			print('Enabling Addon : {}'.format(m))
 			bpy.context.window_manager.keyconfigs.update()
 
-
-		
 	
 	# Set Theme to Tila
 	root_path = bpy.utils.resource_path('USER')
@@ -176,6 +174,9 @@ def register(enable_addon=True):
 	bpy.ops.preferences.asset_library_add('EXEC_DEFAULT', directory=asset_library_path)
 	bpy.context.preferences.filepaths.asset_libraries[''].name = 'Tilapiatsu'
 
+	# Register Keymaps
+	bpy.ops.wm.tila_register_keymaps()
+ 
 	bpy.ops.wm.save_userpref()
 
 
