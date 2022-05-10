@@ -100,6 +100,8 @@ def get_hdri(context):
 
 
 def get_mapping_node(context):
+    if context.scene.world is None:
+        return None
     node_tree = context.scene.world.node_tree
     gaffer_mapping_node = node_tree.nodes.get("HDRIHandler_ShaderNodeMapping")
     if gaffer_mapping_node:
