@@ -56,7 +56,7 @@ modules =   (
 			'MeshDataTransfer',
 			'keentools_facebuilder',
 			'kekit',
-			'Poly_Source',
+			# 'Poly_Source',
 			'maxivz_tools',
 			'rotate_an_hdri',
 			'blenderbezierutils',
