@@ -74,7 +74,6 @@ modules =   (
 			'uv_toolkit',
 			'noodler',
 			'NGon Loop Select',
-            'draw_xray',
 			# 'lineup_maker',
 			'Tila_Config'
 			)

@@ -134,11 +134,11 @@ def draw_callback_xray(self, context):
 		# bgl.glPolygonMode(bgl.GL_FRONT_AND_BACK, bgl.GL_LINE)
 		# bgl.glDepthRange(0, 1 -  offset_depth)
 		# bgl.glEnable(bgl.GL_POLYGON_OFFSET_FILL)
-		# bgl.glPolygonOffset(xray_props.drawOffset, 0.01)
+		# bgl.glPolygonOffset(xray_props.draw_offset, 0.01)
 
 		if is_perspective:
 			camera_pos = bpy.context.region_data.view_matrix.inverted().translation
-			offset = xray_props.drawOffset/50
+			offset = xray_props.draw_offset/50
 		else:
 			# cam_dir_z = Vector((view_mat[2][0], view_mat[2][1], view_mat[2][2]))
 			qat = context.region_data.view_rotation
@@ -231,7 +231,7 @@ class ScnDrawXrayProps(bpy.types.PropertyGroup):
 												  ('PER_OBJ', 'Per Object Settings', 'Enable/Disable snapping, with individual settings, per each object')
 											  ], default='ENABLED', update=DrawXrayUpdate)
 
-	drawOffset: bpy.props.FloatProperty(name="Depth Bias", description="Moves rendering of mesh closer to camera (does not affect mesh geometry)",
+	draw_offset: bpy.props.FloatProperty(name="Depth Bias", description="Moves rendering of mesh closer to camera (does not affect mesh geometry)",
 										min=0.0001, soft_max=1.0, default=0.2, subtype='FACTOR', update=refresh_buff)
 	polygon_opacity: bpy.props.FloatProperty(name="Face opacity", description="Face opacity", min=0.0, max=1.0, default=0.5, subtype='PERCENTAGE', update=refresh_buff)
 	edge_opacity: bpy.props.FloatProperty(name="Edge opacity", description="Edge opacity", min=0.0, max=1.0, default=0.5, subtype='PERCENTAGE', update=refresh_buff)
@@ -322,7 +322,7 @@ def ShadingXrayPanel(self, context):
 				if xray_props.draw_xray_mode == 'ENABLED':
 					sub_col.label(text='Overlay settings')
 				row = sub_col.row(align=True)
-				row.prop(xray_props, "drawOffset")
+				row.prop(xray_props, "draw_offset")
 				row = sub_col.row(align=True)
 				row.prop(xray_props, "polygon_opacity")
 				row.prop(xray_props, "edge_opacity")

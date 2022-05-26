@@ -488,6 +488,7 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		self.kmi_set_replace('view3d.toggle_wireframe', 'F5', 'PRESS', shift=True, properties=[('mode', 'OVERLAY'), ('selected', True)], disable_double=True)
 		self.kmi_set_replace('view3d.toggle_wireframe', 'F5', 'PRESS', ctrl=True, properties=[('mode', 'SET'), ('selected', False)], disable_double=True)
 		self.kmi_set_replace('view3d.toggle_wireframe', 'F5', 'PRESS', ctrl=True, shift=True, properties=[('mode', 'SET'), ('selected', True)], disable_double=True)
+		self.kmi_set_replace('view3d.toggle_wireframe', 'F5', 'PRESS', ctrl=True, alt=True, shift=True, properties=[('mode', 'RETOPO'), ('selected', False)], disable_double=True)
 
 		self.kmi_set_replace('wm.call_menu_pie', 'F', 'PRESS', alt=True, shift=True, properties=[('name', 'UVTOOLKIT_MT_pie_3dview')])
 

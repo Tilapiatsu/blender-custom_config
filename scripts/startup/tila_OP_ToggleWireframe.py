@@ -14,7 +14,7 @@ class TILA_ToggleWireframe(bpy.types.Operator):
     bl_label = "TILA: Toggle Wireframe"
     bl_options = {'REGISTER', 'UNDO'}
 
-    mode: bpy.props.EnumProperty(items=[("SET", "Set", ""), ("OVERLAY", "Overlay", ""), ("RETOPO", "Retopoology", "")])
+    mode: bpy.props.EnumProperty(items=[("SET", "Set", ""), ("OVERLAY", "Overlay", ""), ("RETOPO", "Retopology", "")])
     selected : bpy.props.BoolProperty(name='selected', default=False)
 
     def execute(self, context):
@@ -49,10 +49,11 @@ class TILA_ToggleWireframe(bpy.types.Operator):
                 else:
                     xray_props.draw_xray_mode = 'ENABLED'
                     context.space_data.overlay.show_occlude_wire = True
+                xray_props.draw_offset = 0.02
                 xray_props.polygon_opacity = 1.0
                 xray_props.edge_opacity = 1.0
                 xray_props.face_color = (0.008, 0.111, 0.566, 0.5)
-                xray_props.highlight_color = (0.381, 1.0, 0.915, 0.75)
+                xray_props.highlight_color = (0.381, 1.0, 0.915, 0.25)
 
 
         return {'FINISHED'}
