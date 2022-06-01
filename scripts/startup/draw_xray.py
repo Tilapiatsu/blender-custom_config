@@ -101,7 +101,7 @@ fragment_shader = '''
 '''
 
 shader = gpu.types.GPUShader(vertex_shader, fragment_shader)
-shader3D = gpu.shader.from_builtin('3D_UNIFORM_COLOR')
+shader_highlight = gpu.shader.from_builtin('3D_UNIFORM_COLOR')
 
 def draw_callback_xray(self, context):
 	active_obj = bpy.context.active_object
@@ -183,11 +183,11 @@ def draw_callback_xray(self, context):
 		# bgl.glDepthMask(bgl.GL_FALSE)
 		bgl.glEnable(bgl.GL_CULL_FACE)
 
-		shader3D.bind()
-		shader3D.uniform_float("color", highlight_color)
+		shader_highlight.bind()
+		shader_highlight.uniform_float("color", highlight_color)
 
 		for b in BATCH_FACE_HIGHLIGHT:
-			b.draw(shader3D)
+			b.draw(shader_highlight)
 
 		# bgl.glDisable(bgl.GL_DEPTH_TEST)
 		bgl.glDisable(bgl.GL_BLEND)
@@ -732,7 +732,7 @@ def drawElementsHilight3D(obj, elements, isFill=True):
 			polys = geometry.tessellate_polygon((vs,))
 
 			# batch_draw(shader3D, 'TRIS', {"pos": vs}, indices=polys)
-			BATCH_FACE_HIGHLIGHT.append(batch_for_shader(shader3D, 'TRIS', {"pos": vs}, indices=polys))
+			BATCH_FACE_HIGHLIGHT.append(batch_for_shader(shader_highlight, 'TRIS', {"pos": vs}, indices=polys))
 	else:
 		verts = []
 		edges = []
@@ -741,7 +741,7 @@ def drawElementsHilight3D(obj, elements, isFill=True):
 				verts.append(obj.matrix_world @ e.verts[0].co)
 				verts.append(obj.matrix_world @ e.verts[1].co)
 
-		BATCH_FACE_HIGHLIGHT.append(batch_for_shader(shader3D, 'LINES', {"pos": verts}))
+		BATCH_FACE_HIGHLIGHT.append(batch_for_shader(shader_highlight, 'LINES', {"pos": verts}))
 
 
 def register():
