@@ -206,7 +206,6 @@ class KeymapManager():
                                 oskey=oskey, key_modifier=key_modifier, properties=properties)
         if key_modifier is None:
             key_modifier = 'NONE'
-        print(dir(self.km.keymap_items.new))
         kmi = self.km.keymap_items.new(idname=idname, type=type, value=value, direction=direction, alt=alt, any=any, ctrl=ctrl, shift=shift, oskey=oskey, key_modifier=key_modifier)
         kmi.active = True
         if properties:
