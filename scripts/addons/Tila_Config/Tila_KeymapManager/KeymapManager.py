@@ -64,10 +64,10 @@ class KeymapManager():
     # Decorators
 
     def replace_km_dec(func):
-        def func_wrapper(self, idname, type, value, alt=False, any=False, ctrl=False, shift=False, oskey=False, key_modifier=None, disable_double=None, properties=()):
+        def func_wrapper(self, idname, type, value, direction='ANY', alt=False, any=False, ctrl=False, shift=False, oskey=False, key_modifier=None, disable_double=None, properties=()):
 
             duplicates = [k for k in self.kmis if k.idname == idname]
-            new_kmi = func(self, idname, type, value, alt=alt, any=any, ctrl=ctrl, shift=shift, oskey=oskey, key_modifier=key_modifier, disable_double=disable_double, properties=properties)
+            new_kmi = func(self, idname, type, value, direction='ANY', alt=alt, any=any, ctrl=ctrl, shift=shift, oskey=oskey, key_modifier=key_modifier, disable_double=disable_double, properties=properties)
 
             keymlap_List = {'km': self.km, 'kmis': self.kmis, 'new_kmi': new_kmi}
 
@@ -191,22 +191,23 @@ class KeymapManager():
                     return True
 
     @replace_km_dec
-    def kmi_set_replace(self, idname, type, value, alt=False, any=False, ctrl=False, shift=False, oskey=False, key_modifier=None, disable_double=None, properties=()):
-        kmi = self.kmi_set(idname, type, value, alt=alt, any=any, ctrl=ctrl, shift=shift, oskey=oskey, key_modifier=key_modifier, disable_double=disable_double, properties=properties)
+    def kmi_set_replace(self, idname, type, value, direction='ANY', alt=False, any=False, ctrl=False, shift=False, oskey=False, key_modifier=None, disable_double=None, properties=()):
+        kmi = self.kmi_set(idname, type, value, direction=direction, alt=alt, any=any, ctrl=ctrl, shift=shift, oskey=oskey, key_modifier=key_modifier, disable_double=disable_double, properties=properties)
         return kmi
 
     @replace_km_dec
-    def modal_set_replace(self, propvalue, type, value, alt=False, any=False, ctrl=False, shift=False, oskey=False, key_modifier=None, disable_double=None, properties=()):
-        kmi = self.modal_set(propvalue, type, value, alt=alt, any=any, ctrl=ctrl, shift=shift, oskey=oskey, key_modifier=key_modifier, disable_double=disable_double, properties=properties)
+    def modal_set_replace(self, propvalue, type, value, direction='ANY', alt=False, any=False, ctrl=False, shift=False, oskey=False, key_modifier=None, disable_double=None, properties=()):
+        kmi = self.modal_set(propvalue, type, value, direction=direction, alt=alt, any=any, ctrl=ctrl, shift=shift, oskey=oskey, key_modifier=key_modifier, disable_double=disable_double, properties=properties)
         return kmi
 
-    def kmi_set(self, idname, type, value, alt=False, any=False, ctrl=False, shift=False, oskey=False, key_modifier=None, disable_double=None, properties=()):
+    def kmi_set(self, idname, type, value, direction='ANY', alt=False, any=False, ctrl=False, shift=False, oskey=False, key_modifier=None, disable_double=None, properties=()):
         if disable_double:
-            self.kmi_set_active(False, type=type, value=value, alt=alt, any=any, ctrl=ctrl, shift=shift,
+            self.kmi_set_active(False, type=type, value=value, direction=direction, alt=alt, any=any, ctrl=ctrl, shift=shift,
                                 oskey=oskey, key_modifier=key_modifier, properties=properties)
         if key_modifier is None:
             key_modifier = 'NONE'
-        kmi = self.km.keymap_items.new(idname, type, value, alt=alt, any=any, ctrl=ctrl, shift=shift, oskey=oskey, key_modifier=key_modifier)
+        print(dir(self.km.keymap_items.new))
+        kmi = self.km.keymap_items.new(idname=idname, type=type, value=value, direction=direction, alt=alt, any=any, ctrl=ctrl, shift=shift, oskey=oskey, key_modifier=key_modifier)
         kmi.active = True
         if properties:
             for p in properties:
@@ -218,13 +219,13 @@ class KeymapManager():
 
         return kmi
 
-    def modal_set(self, propvalue, type, value, alt=False, any=False, ctrl=False, shift=False, oskey=False, key_modifier=None, disable_double=None, properties=()):
+    def modal_set(self, propvalue, type, value, direction=None, alt=False, any=False, ctrl=False, shift=False, oskey=False, key_modifier=None, disable_double=None, properties=()):
         if disable_double:
-            self.kmi_set_active(False, type=type, value=value, alt=alt, any=any, ctrl=ctrl, shift=shift,
+            self.kmi_set_active(False, type=type, value=value, direction=direction, alt=alt, any=any, ctrl=ctrl, shift=shift,
                                 oskey=oskey, key_modifier=key_modifier, properties=properties)
         if key_modifier is None:
             key_modifier = 'NONE'
-        kmi = self.km.keymap_items.new_modal(propvalue, type, value, alt=alt, any=any, ctrl=ctrl, shift=shift, oskey=oskey, key_modifier=key_modifier)
+        kmi = self.km.keymap_items.new_modal(propvalue, type, value, direction=direction, alt=alt, any=any, ctrl=ctrl, shift=shift, oskey=oskey, key_modifier=key_modifier)
         kmi.active = True
         if properties:
             for p in properties:
@@ -236,7 +237,7 @@ class KeymapManager():
 
         return kmi
 
-    def kmi_find(self, idname=None, type=None, value=None, alt=None, any=None, ctrl=None, shift=None, oskey=None, key_modifier=None, propvalue=None, properties=None):
+    def kmi_find(self, idname=None, type=None, value=None, direction='ANY', alt=None, any=None, ctrl=None, shift=None, oskey=None, key_modifier=None, propvalue=None, properties=None):
         def attr_compare(src_attr, comp_attr):
             if comp_attr is not None:
                 if comp_attr != src_attr:
@@ -257,6 +258,9 @@ class KeymapManager():
                 continue
 
             if attr_compare(k.value, value) is False:
+                continue
+
+            if attr_compare(k.direction, direction) is False:
                 continue
 
             if attr_compare(k.alt, alt) is False:
@@ -331,8 +335,8 @@ class KeymapManager():
                 prop.remove(s)
         return prop
 
-    def kmi_set_active(self, enable, idname=None, type=None, value=None, alt=None, any=None, ctrl=None, shift=None, oskey=None, key_modifier=None, propvalue=None, properties=None):
-        kmi = self.kmi_find(idname=idname, type=type, value=value, alt=alt, any=any, ctrl=ctrl, shift=shift, oskey=oskey, key_modifier=key_modifier, propvalue=propvalue, properties=properties)
+    def kmi_set_active(self, enable, idname=None, type=None, value=None, direction='ANY', alt=None, any=None, ctrl=None, shift=None, oskey=None, key_modifier=None, propvalue=None, properties=None):
+        kmi = self.kmi_find(idname=idname, type=type, value=value, direction=direction, alt=alt, any=any, ctrl=ctrl, shift=shift, oskey=oskey, key_modifier=key_modifier, propvalue=propvalue, properties=properties)
         if kmi:
             kmi.active = enable
             return enable

@@ -74,6 +74,7 @@ modules =   (
 			'uv_toolkit',
 			'noodler',
 			'NGon Loop Select',
+            'quad_remesher',
 			# 'lineup_maker',
 			'Tila_Config'
 			)
@@ -172,7 +173,7 @@ def register(enable_addon=True):
 	user_pref_path = bpy.utils.resource_path(type='USER')
 	asset_library_path = os.path.join(user_pref_path, 'datafiles', 'scene', '00_Asset_Library')
 	bpy.ops.preferences.asset_library_add('EXEC_DEFAULT', directory=asset_library_path)
-	bpy.context.preferences.filepaths.asset_libraries[''].name = 'Tilapiatsu'
+	bpy.context.preferences.filepaths.asset_libraries['00_Asset_Library'].name = 'Tilapiatsu'
 
 	# Register Keymaps
 	bpy.ops.wm.tila_register_keymaps()

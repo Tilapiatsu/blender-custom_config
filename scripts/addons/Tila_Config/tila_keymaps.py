@@ -56,11 +56,11 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		self.k_nav = 'MIDDLEMOUSE'
 		self.k_menu = 'SPACE'
 		self.k_select = 'LEFTMOUSE'
-		self.k_lasso = 'EVT_TWEAK_R'
-		self.k_lasso_through = 'EVT_TWEAK_M'
-		self.k_box = 'EVT_TWEAK_L'
-		self.k_box_through = 'EVT_TWEAK_M'
-		self.k_select_attatched = 'EVT_TWEAK_M'
+		self.k_lasso = 'RIGHTMOUSE'
+		self.k_lasso_through = 'MIDDLEMOUSE'
+		self.k_box = 'LEFTMOUSE'
+		self.k_box_through = 'MIDDLEMOUSE'
+		self.k_select_attatched = 'MIDDLEMOUSE'
 		self.k_context = 'RIGHTMOUSE'
 		self.k_more = 'UP_ARROW'
 		self.k_less = 'DOWN_ARROW'
@@ -511,6 +511,10 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		self.kmi_set_replace('view3d.toggle_overlay', 'F6', 'PRESS', properties=[('mode', 'SOFT')])
 		self.kmi_set_replace('view3d.toggle_overlay', 'F6', 'PRESS', ctrl=True, properties=[('mode', 'TOGGLE')])
 
+		self.kmi_set_active(enable=False, idname='view3d.view_axis', type=self.k_cursor, value='CLICK_DRAG',  alt=True, direction='NORTH')
+		self.kmi_set_active(enable=False, idname='view3d.view_axis', type=self.k_cursor, value='CLICK_DRAG',  alt=True, direction='EAST')
+		self.kmi_set_active(enable=False, idname='view3d.view_axis', type=self.k_cursor, value='CLICK_DRAG',  alt=True, direction='SOUTH')
+		self.kmi_set_active(enable=False, idname='view3d.view_axis', type=self.k_cursor, value='CLICK_DRAG',  alt=True, direction='WEST')
 		# KE_Kit
 		self.kmi_set_replace('view3d.ke_get_set_material', 'M', 'PRESS', shift=True)
 
@@ -532,7 +536,7 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 
 		###### 3d Cursor
 		self.kmi_set_replace('view3d.cursor3d', self.k_cursor, 'CLICK', ctrl=True, alt=True, shift=True, properties=[('use_depth', True), ('orientation','GEOM')], disable_double=True)
-		self.kmi_set_replace('transform.translate', 'EVT_TWEAK_M', 'ANY', ctrl=True, alt=True, shift=True, properties=[('cursor_transform', True), ('release_confirm', True), ('orient_type', 'NORMAL'), ('snap', True), ('snap_align', True)])
+		self.kmi_set_replace('transform.translate', self.k_cursor, 'CLICK_DRAG', ctrl=True, alt=True, shift=True, properties=[('cursor_transform', True), ('release_confirm', True), ('orient_type', 'NORMAL'), ('snap', True), ('snap_align', True)])
 
 		###### View2D
 		self.kmi_init(name='View2D', space_type='EMPTY', region_type='WINDOW')
@@ -832,7 +836,6 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		self.kmi_set_replace('sculpt.face_set_edit', 'W', 'PRESS', ctrl=True, properties=[('mode','SHRINK')], disable_double=True)
 		self.kmi_set_replace('sculpt.face_set_edit', 'W', 'PRESS', ctrl=True, shift=True, properties=[('mode','GROW')], disable_double=True)
 
-		# self.kmi_set_replace('sculpt.set_pivot_position', 'EVT_TWEAK_L', 'EAST', ctrl=True, alt=True, shift=True, properties=[('mode','BORDER')], disable_double=True)
 		self.kmi_set_replace('sculpt.set_pivot_position', self.k_manip, 'PRESS', ctrl=True, alt=True, shift=True, properties=[('mode','SURFACE')], disable_double=True)
 
 		self.kmi_set_replace('wm.context_toggle', 'F', 'PRESS', shift=True, properties=[('data_path', 'scene.tool_settings.sculpt.show_face_sets')], disable_double=True)
@@ -1060,8 +1063,8 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		self.kmi_set_replace('node.add_search', self.k_menu, 'PRESS')
 		
 		self.kmi_set_replace('node.backimage_move', self.k_cursor, 'PRESS', disable_double=True)
-		self.kmi_set_replace('node.backimage_zoom', self.k_lasso_through, 'EAST', alt=True, properties=[('factor', 1.2)], disable_double=True)
-		self.kmi_set_replace('node.backimage_zoom', self.k_lasso_through, 'WEST', alt=True, properties=[('factor', 0.8)], disable_double=True)
+		self.kmi_set_replace('node.backimage_zoom', self.k_lasso_through, 'CLICK_DRAG', direction='EAST', alt=True, properties=[('factor', 1.2)], disable_double=True)
+		self.kmi_set_replace('node.backimage_zoom', self.k_lasso_through, 'CLICK_DRAG', direction='WEST', alt=True, properties=[('factor', 0.8)], disable_double=True)
 
 		self.kmi_set_replace('node.node_copy_color', 'C', 'PRESS', ctrl=True, shift=True, disable_double=True)
 		

@@ -51,7 +51,7 @@ CALL :MakeSymbolicLink "h" "%currdir%\startup\HEAVYPOLY_pie_areas.py" "%currdir%
 CALL :MakeSymbolicLink "h" "%currdir%\startup\HEAVYPOLY_pie_symmetry.py" "%currdir%\GIT\HEAVYPOLY\scripts\startup\HEAVYPOLY_pie_symmetry.py"
 CALL :MakeSymbolicLink "h" "%currdir%\startup\HEAVYPOLY_pie_add.py" "%currdir%\GIT\HEAVYPOLY\scripts\startup\HEAVYPOLY_pie_add.py"
 CALL :MakeSymbolicLink "h" "%currdir%\startup\HEAVYPOLY_pie_boolean.py" "%currdir%\GIT\HEAVYPOLY\scripts\startup\HEAVYPOLY_pie_boolean.py"
-CALL :MakeSymbolicLink "h" "%currdir%\startup\HEAVYPOLY_select_through_border.py" "%currdir%\GIT\HEAVYPOLY\scripts\startup\HEAVYPOLY_select_through_border.py"
+@REM CALL :MakeSymbolicLink "h" "%currdir%\startup\HEAVYPOLY_select_through_border.py" "%currdir%\GIT\HEAVYPOLY\scripts\startup\HEAVYPOLY_select_through_border.py"
 CALL :MakeSymbolicLink "h" "%currdir%\startup\jmQuickPipe.py" "%currdir%\GIT\HEAVYPOLY\scripts\startup\jmQuickPipe.py"
 
 pause

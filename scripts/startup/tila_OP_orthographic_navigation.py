@@ -66,12 +66,12 @@ class TILA_OrthographicNavigation(bpy.types.Operator):
         if self.region.is_perspective:
             self.region.view_perspective = 'ORTHO'
             bpy.ops.view3d.view_axis(type='FRONT', relative=True)
-        if event.type == 'MOUSEMOVE' and event.value == 'PRESS':
+        if event.type == 'MOUSEMOVE' and event.value == 'NOTHING':
             self.switch_view(event)
             return {'RUNNING_MODAL'}
         if event.type in {'ESC'}:  # Cancel
             return {'CANCELLED'}
-        elif event.type == 'MOUSEMOVE' and event.value == 'RELEASE':
+        elif event.value == 'RELEASE':
             return {'CANCELLED'}
         return {'RUNNING_MODAL'}
 
