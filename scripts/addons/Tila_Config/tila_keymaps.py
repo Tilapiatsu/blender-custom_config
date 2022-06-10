@@ -172,9 +172,9 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		
 		# Lasso Select / Deselect / Add
 		if lasso_tool:
-			self.kmi_set_replace(lasso_tool, self.k_lasso, 'ANY', disable_double=True)
-			self.kmi_set_replace(lasso_tool, self.k_lasso, 'ANY', shift=True, properties=[('mode', 'ADD')], disable_double=True)
-			self.kmi_set_replace(lasso_tool, self.k_lasso, 'ANY', ctrl=True, properties=[('mode', 'SUB')], disable_double=True)
+			self.kmi_set_replace(lasso_tool, self.k_lasso, 'CLICK_DRAG', disable_double=True)
+			self.kmi_set_replace(lasso_tool, self.k_lasso, 'CLICK_DRAG', shift=True, properties=[('mode', 'ADD')], disable_double=True)
+			self.kmi_set_replace(lasso_tool, self.k_lasso, 'CLICK_DRAG', ctrl=True, properties=[('mode', 'SUB')], disable_double=True)
 
 		# Lasso through Select / Deselect / Add
 		if select_through_tool:
@@ -184,20 +184,20 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		
 		# Box Select / Deselect / Add
 		if box_tool:
-			self.kmi_set_replace(box_tool, self.k_box, 'ANY', properties=[('mode', 'SET'), ('wait_for_input', False), ('tweak', False)], disable_double=True)
-			self.kmi_set_replace(box_tool, self.k_box, 'ANY', shift=True, properties=[('mode', 'ADD'), ('wait_for_input', False), ('tweak', False)], disable_double=True)
-			self.kmi_set_replace(box_tool, self.k_box, 'ANY', ctrl=True, properties=[('mode', 'SUB'), ('wait_for_input', False), ('tweak', False)], disable_double=True)
+			self.kmi_set_replace(box_tool, self.k_box, 'CLICK_DRAG', properties=[('mode', 'SET'), ('wait_for_input', False), ('tweak', False)], disable_double=True)
+			self.kmi_set_replace(box_tool, self.k_box, 'CLICK_DRAG', shift=True, properties=[('mode', 'ADD'), ('wait_for_input', False), ('tweak', False)], disable_double=True)
+			self.kmi_set_replace(box_tool, self.k_box, 'CLICK_DRAG', ctrl=True, properties=[('mode', 'SUB'), ('wait_for_input', False), ('tweak', False)], disable_double=True)
 		
 		if node_box_tool:
 			self.kmi_set_replace(node_box_tool, self.k_select, 'CLICK_DRAG', properties=[('mode', 'SET'), ('wait_for_input', False), ('tweak', True)], disable_double=True)
-			self.kmi_set_replace(node_box_tool, self.k_box, 'ANY', shift=True, properties=[('mode', 'ADD'), ('wait_for_input', False), ('tweak', False)], disable_double=True)
-			self.kmi_set_replace(node_box_tool, self.k_box, 'ANY', ctrl=True, properties=[('mode', 'SUB'), ('wait_for_input', False), ('tweak', False)], disable_double=True)
+			self.kmi_set_replace(node_box_tool, self.k_box, 'CLICK_DRAG', shift=True, properties=[('mode', 'ADD'), ('wait_for_input', False), ('tweak', False)], disable_double=True)
+			self.kmi_set_replace(node_box_tool, self.k_box, 'CLICK_DRAG', ctrl=True, properties=[('mode', 'SUB'), ('wait_for_input', False), ('tweak', False)], disable_double=True)
 
 		# Box Through Select / Deselect / Add
 		if box_through_tool:
-			self.kmi_set_replace(box_through_tool, self.k_box_through, 'ANY', properties=[('type', 'BOX'), ('mode', 'SET')], disable_double=True)
-			self.kmi_set_replace(box_through_tool, self.k_box_through, 'ANY', shift=True, properties=[('type', 'BOX'), ('mode', 'ADD')], disable_double=True)
-			self.kmi_set_replace(box_through_tool, self.k_box_through, 'ANY', ctrl=True, properties=[('type', 'BOX'), ('mode', 'SUB')], disable_double=True)
+			self.kmi_set_replace(box_through_tool, self.k_box_through, 'CLICK_DRAG', properties=[('type', 'BOX'), ('mode', 'SET')], disable_double=True)
+			self.kmi_set_replace(box_through_tool, self.k_box_through, 'CLICK_DRAG', shift=True, properties=[('type', 'BOX'), ('mode', 'ADD')], disable_double=True)
+			self.kmi_set_replace(box_through_tool, self.k_box_through, 'CLICK_DRAG', ctrl=True, properties=[('type', 'BOX'), ('mode', 'SUB')], disable_double=True)
 		
 		# Circle
 		if circle_tool:
