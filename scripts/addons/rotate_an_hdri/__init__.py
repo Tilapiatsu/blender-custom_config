@@ -66,6 +66,7 @@ def draw_callback_px(self, context):
 def get_hdri_rotation_angle(context):
     shading = context.space_data.shading
     hdri = get_hdri(context)
+    hdri_angle = 0
     if hdri == 'MAT_PREVIEW':
         hdri_angle = shading.studiolight_rotate_z
     if hdri == 'NODE':
@@ -103,6 +104,8 @@ def get_mapping_node(context):
     if context.scene.world is None:
         return None
     node_tree = context.scene.world.node_tree
+    if node_tree is None:
+        return None
     gaffer_mapping_node = node_tree.nodes.get("HDRIHandler_ShaderNodeMapping")
     if gaffer_mapping_node:
         return gaffer_mapping_node
