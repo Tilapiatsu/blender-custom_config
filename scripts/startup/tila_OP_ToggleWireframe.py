@@ -39,22 +39,22 @@ class TILA_ToggleWireframe(bpy.types.Operator):
                 bpy.ops.view3d.toggle_shading(type='WIREFRAME')
         
         elif self.mode == "RETOPO":
-            xray_props = bpy.context.scene.xray_props
+            retopo_mode = bpy.context.scene.ps_set_
+            prefs = context.preferences.addons['Poly_Source'].preferences
             if self.selected:
                 pass
             else:
-                if xray_props.draw_xray_mode == 'ENABLED':
-                    xray_props.draw_xray_mode = 'DISABLED'
+                if retopo_mode.PS_retopology:
+                    retopo_mode.PS_retopology = False
                     context.space_data.overlay.show_occlude_wire = False
                 else:
-                    xray_props.draw_xray_mode = 'ENABLED'
+                    retopo_mode.PS_retopology = True
                     context.space_data.overlay.show_occlude_wire = True
-                xray_props.draw_offset = 0.02
-                xray_props.polygon_opacity = 1.0
-                xray_props.edge_opacity = 1.0
-                xray_props.face_color = (0.008, 0.111, 0.566, 0.5)
-                xray_props.highlight_color = (0.381, 1.0, 0.915, 0.25)
 
+                prefs.z_bias = 0.02
+                prefs.opacity = 0.15
+                prefs.verts_size = 1
+                prefs.edge_width = 1
 
         return {'FINISHED'}
 
