@@ -1046,17 +1046,6 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		self.global_keys()
 		self.right_mouse()
 
-		self.selection_keys(node_box_tool='node.select_box')
-		self.kmi_set_active(False, idname='node.select_box', type=self.k_box)
-		# self.kmi_set_active(False, idname='transform.translate', type=self.k_box)
-		# self.kmi_set_active(False, idname='transform.translate', type=self.k_box, properties=[('release_confirm', True)])
-		self.kmi_remove(idname='transform.translate', type=self.k_box)
-		self.kmi_remove(idname='node.translate_attach', type=self.k_box)
-		self.kmi_remove(idname='node.translate_attach', type=self.k_box)
-
-		self.kmi_set_replace('transform.translate', self.k_box, 'ANY', properties=[('release_confirm', True)])
-		# self.kmi_set_replace('node.translate_attach', self.k_select_attatched, 'ANY')
-
 		self.duplicate(duplicate='node.duplicate_move', duplicate_link='node.duplicate_move_keep_inputs')
 		self.snap(snapping='wm.context_menu_enum', snapping_prop=[('data_path', 'tool_settings.snap_node_element')])
 		self.kmi_set_replace('node.view_selected', 'A', 'PRESS', ctrl=True, shift=True)
@@ -1072,8 +1061,8 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		self.kmi_set_replace('noodler.draw_route', 'E', 'PRESS', disable_double=True)
 		self.kmi_set_replace('noodler.chamfer', 'B', 'PRESS', disable_double=True)
 		self.kmi_set_replace('noodler.draw_frame', 'J', 'PRESS', ctrl=True, disable_double=True)
-		self.kmi_set_replace('noodler.dependency_select', self.k_manip, 'DOUBLE_CLICK', shift=True, properties=[('mode', "DOWNSTREAM"), ('repsel', True)], disable_double=True)
-		self.kmi_set_replace('noodler.dependency_select', self.k_manip, 'DOUBLE_CLICK', ctrl=True, properties=[('mode', "UPSTREAM"), ('repsel', True)], disable_double=True)
+		self.kmi_set_replace('noodler.dependency_select', self.k_manip, 'DOUBLE_CLICK', shift=True, properties=[('mode', "downstream"), ('repsel', True)], disable_double=True)
+		self.kmi_set_replace('noodler.dependency_select', self.k_manip, 'DOUBLE_CLICK', ctrl=True, properties=[('mode', "upstream"), ('repsel', True)], disable_double=True)
 
 		###### Animation
 		self.kmi_init(name='Animation', space_type='EMPTY', region_type='WINDOW')
