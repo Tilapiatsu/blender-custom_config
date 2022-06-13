@@ -163,12 +163,16 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 
 		# Select / Deselect / Add
 		if select_tool:
+			if self.km.name in ['Node Editor']:
+				value = 'PRESS'
+			else:
+				value = 'CLICK'
 			self.kmi_set_active(False ,select_tool, self.k_select, ctrl=False, shift=False)
-			self.kmi_set_replace(select_tool, self.k_select, 'PRESS', properties=[('deselect_all', True), ('deselect', False), ('extend', False), ('center',False), ('toggle', False), ('object', False)], disable_double=True)
+			self.kmi_set_replace(select_tool, self.k_select, value, properties=[('deselect_all', True), ('deselect', False), ('extend', False), ('center',False), ('toggle', False), ('object', False)], disable_double=True)
 			self.kmi_set_active(False ,select_tool, self.k_select, ctrl=False, shift=True)
-			self.kmi_set_replace(select_tool, self.k_select, 'PRESS', shift=True, properties=[('deselect_all', False), ('deselect', False), ('extend', True), ('center',False), ('toggle', False), ('object', False)], disable_double=True)
+			self.kmi_set_replace(select_tool, self.k_select, value, shift=True, properties=[('deselect_all', False), ('deselect', False), ('extend', True), ('center',False), ('toggle', False), ('object', False)], disable_double=True)
 			self.kmi_set_active(False ,select_tool, self.k_select, ctrl=True, shift=False)
-			self.kmi_set_replace(select_tool, self.k_select, 'PRESS', ctrl=True, properties=[('deselect_all', False), ('deselect', True), ('extend', False), ('center',False), ('toggle', False), ('object', False)], disable_double=True)
+			self.kmi_set_replace(select_tool, self.k_select, value, ctrl=True, properties=[('deselect_all', False), ('deselect', True), ('extend', False), ('center',False), ('toggle', False), ('object', False)], disable_double=True)
 		
 		# Lasso Select / Deselect / Add
 		if lasso_tool:
