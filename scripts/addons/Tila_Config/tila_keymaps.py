@@ -163,12 +163,12 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 
 		# Select / Deselect / Add
 		if select_tool:
-			self.kmi_set_active(False ,select_tool, self.k_select, 'CLICK', ctrl=False, shift=False)
-			self.kmi_set_replace(select_tool, self.k_select, 'CLICK', properties=[('deselect_all', True), ('center',False), ('toggle', False), ('object', False)], disable_double=True)
-			self.kmi_set_active(False ,select_tool, self.k_select, 'CLICK', ctrl=False, shift=True)
-			self.kmi_set_replace(select_tool, self.k_select, 'CLICK', shift=True, properties=[('extend', True), ('center',False), ('toggle', False), ('object', False)], disable_double=True)
-			self.kmi_set_active(False ,select_tool, self.k_select, 'CLICK', ctrl=True, shift=False)
-			self.kmi_set_replace(select_tool, self.k_select, 'CLICK', ctrl=True, properties=[('deselect', True), ('center',False), ('toggle', False), ('object', False)], disable_double=True)
+			self.kmi_set_active(False ,select_tool, self.k_select, ctrl=False, shift=False)
+			self.kmi_set_replace(select_tool, self.k_select, 'CLICK', properties=[('deselect_all', True), ('deselect', False), ('extend', False), ('center',False), ('toggle', False), ('object', False)], disable_double=True)
+			self.kmi_set_active(False ,select_tool, self.k_select, ctrl=False, shift=True)
+			self.kmi_set_replace(select_tool, self.k_select, 'CLICK', shift=True, properties=[('deselect_all', False), ('deselect', False), ('extend', True), ('center',False), ('toggle', False), ('object', False)], disable_double=True)
+			self.kmi_set_active(False ,select_tool, self.k_select, ctrl=True, shift=False)
+			self.kmi_set_replace(select_tool, self.k_select, 'CLICK', ctrl=True, properties=[('deselect_all', False), ('deselect', True), ('extend', False), ('center',False), ('toggle', False), ('object', False)], disable_double=True)
 		
 		# Lasso Select / Deselect / Add
 		if lasso_tool:
@@ -306,7 +306,7 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 
 	def duplicate(self, duplicate=None, duplicate_prop=None, duplicate_link=None, duplicate_link_prop=None):
 		if duplicate:
-			self.kmi_set_replace(duplicate, 'D', 'PRESS', ctrl=True, properties=duplicate_prop, disable_double=True)
+			self.kmi_set_replace(duplicate, 'D', 'PRESS', ctrl=True, shift=False, properties=duplicate_prop, disable_double=True)
 		if duplicate_link:
 			self.kmi_set_replace(duplicate_link, 'D', 'PRESS', ctrl=True, shift=True, properties=duplicate_link_prop, disable_double=True)
 
@@ -900,7 +900,7 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		self.kmi_init(name='Dopesheet', space_type='DOPESHEET_EDITOR', region_type='WINDOW')
 		self.global_keys()
 		self.right_mouse()
-		self.duplicate(duplicate='node.duplicate_move', duplicate_link='node.duplicate_move_keep_inputs')
+		self.duplicate(duplicate='node.duplicate_move_keep_inputs')
 
 		###### Mask Editing
 		self.kmi_init(name='Mask Editing', space_type='EMPTY', region_type='WINDOW')
@@ -1041,12 +1041,21 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 
 		self.tool_sample_color('paint.sample_color')
 
+		###### Node Tool: Tweak
+		self.kmi_init(name='Node Tool: Tweak', space_type='NODE_EDITOR', region_type='WINDOW')
+		self.selection_keys(select_tool='node.select')
+
+		###### Node Tool: Select Box
+		self.kmi_init(name='Node Tool: Select Box', space_type='NODE_EDITOR', region_type='WINDOW')
+		self.selection_keys(select_tool='node.select')
+
 		###### Node Editor
 		self.kmi_init(name='Node Editor', space_type='NODE_EDITOR', region_type='WINDOW')
 		self.global_keys()
 		self.right_mouse()
 
-		self.duplicate(duplicate='node.duplicate_move', duplicate_link='node.duplicate_move_keep_inputs')
+		self.selection_keys(select_tool='node.select')
+		self.duplicate(duplicate='node.duplicate_move_keep_inputs')
 		self.snap(snapping='wm.context_menu_enum', snapping_prop=[('data_path', 'tool_settings.snap_node_element')])
 		self.kmi_set_replace('node.view_selected', 'A', 'PRESS', ctrl=True, shift=True)
 		self.kmi_set_replace('node.add_search', self.k_menu, 'PRESS')

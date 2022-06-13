@@ -67,7 +67,7 @@ class KeymapManager():
         def func_wrapper(self, idname, type, value, direction='ANY', alt=False, any=False, ctrl=False, shift=False, oskey=False, key_modifier=None, disable_double=None, properties=()):
 
             duplicates = [k for k in self.kmis if k.idname == idname]
-            new_kmi = func(self, idname, type, value, direction='ANY', alt=alt, any=any, ctrl=ctrl, shift=shift, oskey=oskey, key_modifier=key_modifier, disable_double=disable_double, properties=properties)
+            new_kmi = func(self, idname, type, value, direction=direction, alt=alt, any=any, ctrl=ctrl, shift=shift, oskey=oskey, key_modifier=key_modifier, disable_double=disable_double, properties=properties)
 
             keymlap_List = {'km': self.km, 'kmis': self.kmis, 'new_kmi': new_kmi}
 
@@ -76,7 +76,7 @@ class KeymapManager():
                     if self.tool_compare(new_kmi, k):
                         # TODO if multiple keymap is assigned to the same command, how to replace the proper one ?
                         print("{} : '{}' tool found, replace keymap '{}' to '{}'".format(self.km.name, k.idname, k.to_string(), new_kmi.to_string()))
-
+                        
                         k_old = bKeymap(k)
 
                         keymlap_List['old_kmi'] = k_old
@@ -103,6 +103,7 @@ class KeymapManager():
         km_dest.map_type = km_src.map_type
         km_dest.type = km_src.type
         km_dest.value = km_src.value
+        km_dest.direction = km_src.direction
 
         if km_src.any != km_dest.any:
             km_dest.any = km_src.any
