@@ -47,9 +47,14 @@ class TILA_ToggleWireframe(bpy.types.Operator):
                 if retopo_mode.PS_retopology:
                     retopo_mode.PS_retopology = False
                     context.space_data.overlay.show_occlude_wire = False
+                    bpy.context.space_data.overlay.show_fade_inactive = False
+
+
                 else:
                     retopo_mode.PS_retopology = True
                     context.space_data.overlay.show_occlude_wire = True
+                    bpy.context.space_data.overlay.show_fade_inactive = True
+                    bpy.context.space_data.overlay.fade_inactive_alpha = 0.5
 
                 prefs.z_bias = 0.02
                 prefs.opacity = 0.15
