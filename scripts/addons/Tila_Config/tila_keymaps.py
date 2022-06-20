@@ -182,9 +182,9 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 
 		# Lasso through Select / Deselect / Add
 		if select_through_tool:
-			self.kmi_set_replace(select_through_tool, self.k_lasso_through, 'ANY', properties=[('type', 'LASSO'), ('mode', 'SET')], disable_double=True)
-			self.kmi_set_replace(select_through_tool, self.k_lasso_through, 'ANY', shift=True, properties=[('type', 'LASSO'), ('mode', 'ADD')], disable_double=True)
-			self.kmi_set_replace(select_through_tool, self.k_lasso_through, 'ANY', ctrl=True, properties=[('type', 'LASSO'), ('mode', 'SUB')], disable_double=True)
+			self.kmi_set_replace(select_through_tool, self.k_lasso_through, 'CLICK_DRAG', properties=[('type', 'LASSO'), ('mode', 'SET')], disable_double=True)
+			self.kmi_set_replace(select_through_tool, self.k_lasso_through, 'CLICK_DRAG', shift=True, properties=[('type', 'LASSO'), ('mode', 'ADD')], disable_double=True)
+			self.kmi_set_replace(select_through_tool, self.k_lasso_through, 'CLICK_DRAG', ctrl=True, properties=[('type', 'LASSO'), ('mode', 'SUB')], disable_double=True)
 		
 		# Box Select / Deselect / Add
 		if box_tool:
