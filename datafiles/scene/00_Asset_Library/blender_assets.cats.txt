@@ -6,6 +6,9 @@
 
 VERSION 1
 
+2c09127b-3fd6-4899-9dc9-dccf85a5a051:LightingSetup:LightingSetup
+a5bd9b7e-6a32-454a-8971-c214795891c8:LightingSetup/Setup:LightingSetup-Setup
+0cc5eb32-0672-401c-b8d6-ce0c8389623c:LightingSetup/World:LightingSetup-World
 15647d00-ed6d-4826-afb2-3c2ef609df46:Materials:Materials
 394ad23a-a51a-4601-8077-2160963ba6e8:Materials/Baking:Materials-Baking
 306e1831-f976-4496-818b-af6793936ffb:Materials/Generics:Materials-Generics
