@@ -13,5 +13,11 @@ a5bd9b7e-6a32-454a-8971-c214795891c8:LightingSetup/Setup:LightingSetup-Setup
 394ad23a-a51a-4601-8077-2160963ba6e8:Materials/Baking:Materials-Baking
 306e1831-f976-4496-818b-af6793936ffb:Materials/Generics:Materials-Generics
 8a7d9f5c-6d13-47e9-a9d9-ea58ad767877:Materials/Utilities:Materials-Utilities
+c731b31f-8793-40af-aef1-829f12dff009:Models:Models
+34ae5c80-ae16-4525-90d7-ee1246194bdb:Models/KitBash:Models-KitBash
+46489446-5e62-4ebd-9774-0b366677bdb2:Models/KitBash/Tools:Models-KitBash-Tools
+a6b92220-668a-4e52-b9ff-2b4d250c1b00:Models/KitBash/Tools/Screws_Bolts:Models-KitBash-Tools-Screws_Bolts
+3d2d8c4c-9cd4-4116-856a-2ac873800287:Models/Reference:Models-Reference
+1e365483-4bb6-46dd-9065-321445e28cfe:Models/Reference/Anatomy:Models-Reference-Anatomy
 fcb15c93-6922-4fdb-b57b-5b627c533d76:NodeGroups:NodeGroups
 b6a1885a-772e-4919-8a4c-f2faea1b4b3b:NodeGroups/Color:NodeGroups-Color
