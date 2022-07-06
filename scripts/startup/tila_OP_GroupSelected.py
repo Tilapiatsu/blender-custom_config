@@ -8,6 +8,7 @@ bl_info = {
 	"category": "Mesh",
 }
 
+ROOT_COLLECTION_NAME = 'Scene Collection'
 
 class TILA_GroupSelected(bpy.types.Operator):
 	bl_idname = "outliner.tila_group_selected"
@@ -43,7 +44,10 @@ class TILA_GroupSelected(bpy.types.Operator):
 
 	def execute(self, context):
 		parent_collection_name = self.get_parent_collection(context)
-		parent_collection = bpy.data.collections[parent_collection_name]
+		if parent_collection_name == ROOT_COLLECTION_NAME:
+			parent_collection = bpy.context.scene.collection
+		else:
+			parent_collection = bpy.data.collections[parent_collection_name]
 
 		if self.mode in ['MOVE_TO_ACTIVE', 'ADD_TO_ACTIVE']:
 			new_collection = parent_collection
@@ -68,4 +72,4 @@ register, unregister = bpy.utils.register_classes_factory(classes)
 
 
 if __name__ == "__main__":
-    register()
+	register()
