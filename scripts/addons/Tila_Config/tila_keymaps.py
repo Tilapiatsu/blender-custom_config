@@ -159,7 +159,8 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 						more_tool=None, less_tool=None,
 						next_tool=None, previous_tool=None, 
 						linked_tool=None, linked_pick_tool=None,
-						invert_tool=None, inner_tool=None):
+						invert_tool=None, inner_tool=None,
+						collection_tool=None):
 
 		# Select / Deselect / Add
 		if select_tool:
@@ -278,6 +279,10 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 
 		if inner_tool:
 			self.kmi_set_replace(inner_tool, self.k_select, 'CLICK', ctrl=True, alt=True, shift=True, disable_double=True)
+
+		if collection_tool:
+			self.kmi_set_replace(collection_tool, self.k_select, 'DOUBLE_CLICK', shift=False, properties=[('type', 'COLLECTION'), ('extend', False)], disable_double=True)
+			self.kmi_set_replace(collection_tool, self.k_select, 'DOUBLE_CLICK', shift=True, properties=[('type', 'COLLECTION'), ('extend', True)], disable_double=True)
 
 	def selection_tool(self, tool='builtin.select', alt='builtin.select_box'):
 		# select_tool = self.kmi_find(idname='wm.tool_set_by_id', properties=KeymapManager.bProp([('name', 'builtin.select_box')]))
@@ -466,7 +471,8 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		self.selection_keys(select_tool='view3d.select', 
 							lasso_tool='view3d.select_lasso',
 							select_through_tool='view3d.tila_select_through',
-					  		circle_tool='view3d.select_circle')
+					  		circle_tool='view3d.select_circle',
+							collection_tool='object.select_grouped')
 
 		# self.kmi_set_active(False, idname='view3d.select', shift=True)
 
@@ -519,6 +525,7 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		self.kmi_set_active(enable=False, idname='view3d.view_axis', type=self.k_cursor, value='CLICK_DRAG',  alt=True, direction='EAST')
 		self.kmi_set_active(enable=False, idname='view3d.view_axis', type=self.k_cursor, value='CLICK_DRAG',  alt=True, direction='SOUTH')
 		self.kmi_set_active(enable=False, idname='view3d.view_axis', type=self.k_cursor, value='CLICK_DRAG',  alt=True, direction='WEST')
+
 		# KE_Kit
 		self.kmi_set_replace('view3d.ke_get_set_material', 'M', 'PRESS', shift=True)
 
