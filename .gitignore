@@ -53,6 +53,7 @@ scripts/addons/uv_tube_unwrap.py
 scripts/addons/space_view3d_point_cloud_visualizer.py
 scripts/addons/advanced_transform.py
 scripts/addons/Asset_Creation_Toolset.py
+scripts/addons/mesh_restoresymmetry.py
 scripts/presets/bkit.json
 scripts/startup/HEAVYPOLY*
 scripts/addons/math_formula/*
