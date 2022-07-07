@@ -75,6 +75,7 @@ modules =   (
 			'noodler',
 			'NGon Loop Select',
             'quad_remesher',
+            'mesh_restoresymmetry',
 			# 'lineup_maker',
 			'Tila_Config'
 			)

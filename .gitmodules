@@ -334,3 +334,6 @@
 [submodule "scripts/addons/RenderNode"]
 	path = scripts/addons/RenderNode
 	url = https://github.com/atticus-lv/RenderNode.git
+[submodule "scripts/GIT/RestoreSymmetry"]
+	path = scripts/GIT/RestoreSymmetry
+	url = https://github.com/n-taka/BlenderAddons.git
