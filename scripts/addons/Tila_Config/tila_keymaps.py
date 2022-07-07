@@ -1106,7 +1106,12 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		self.kmi_init(name='Metaball', space_type='EMPTY', region_type='WINDOW')
 		self.global_keys()
 		self.right_mouse()
-		self.duplicate(duplicate='mball.duplicate_move')
+		self.tool_transform()
+		self.duplicate(duplicate='mball.duplicate_metaelems')
+		self.selection_tool()
+		self.tool_smart_delete()
+		self.kmi_set_replace('mball.tila_metaball_adjust_parameter', 'S', 'PRESS', alt=True, shift=True, properties=[('param', 'STIFFNESS')], disable_double=True)
+		self.kmi_set_replace('mball.tila_metaball_adjust_parameter', 'R', 'PRESS', alt=True, shift=True, properties=[('param', 'RESOLUTION')], disable_double=True)
 
 		###### NLA Editor
 		self.kmi_init(name='NLA Editor', space_type='EMPTY', region_type='WINDOW')
