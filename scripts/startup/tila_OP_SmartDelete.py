@@ -45,7 +45,8 @@ class TILA_SmartDeleteOperator(bpy.types.Operator):
                         bpy.ops.gpencil.delete(type='POINTS')
                     except Exception as e:
                         print("Warning: %r" % e)
-            
+                elif context.mode == 'EDIT_METABALL':
+                    bpy.ops.mball.delete_metaelems('EXEC_DEFAULT')
                 elif context.mode == 'OBJECT':
                     bpy.ops.object.delete(use_global=False, confirm=False)
 
