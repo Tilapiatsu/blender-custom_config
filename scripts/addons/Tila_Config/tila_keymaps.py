@@ -1112,6 +1112,9 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		self.tool_smart_delete()
 		self.kmi_set_replace('mball.tila_metaball_adjust_parameter', 'S', 'PRESS', alt=True, shift=True, properties=[('param', 'STIFFNESS')], disable_double=True)
 		self.kmi_set_replace('mball.tila_metaball_adjust_parameter', 'R', 'PRESS', alt=True, shift=True, properties=[('param', 'RESOLUTION')], disable_double=True)
+		self.kmi_set_replace('mball.tila_metaball_type_cycle', 'W', 'PRESS', ctrl=True, properties=[('direction', 'NEXT')], disable_double=True)
+		self.kmi_set_replace('mball.tila_metaball_type_cycle', 'W', 'PRESS', ctrl=True, shift=True, properties=[('direction', 'PREVIOUS')], disable_double=True)
+		self.kmi_set_replace('mball.tila_metaball_substract_toggle', 'X', 'PRESS', disable_double=True)
 
 		###### NLA Editor
 		self.kmi_init(name='NLA Editor', space_type='EMPTY', region_type='WINDOW')

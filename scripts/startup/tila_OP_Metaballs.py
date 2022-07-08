@@ -1,7 +1,7 @@
 import bpy, bpy_extras, gpu, bgl, blf
 from gpu_extras.batch import batch_for_shader
 from mathutils import Vector
-import math
+import math, time
 
 bl_info = {
 	"name": "Metaballs",
@@ -16,6 +16,8 @@ bl_info = {
 }
 
 shader2D = gpu.shader.from_builtin('2D_UNIFORM_COLOR')
+
+font_size = 12
 
 def draw_circle2D( pos , radius , color = (1,1,1,1), fill = False , subdivide = 64, width : float = 1.0  ):
 	r = radius
@@ -39,13 +41,13 @@ class TILA_metaball_adjust_parameter(bpy.types.Operator):
 	bl_label = "TILA : Adjust Metaballs Parameter"
 	bl_options = {'REGISTER', 'UNDO'}
 	
-	param: bpy.props.EnumProperty(name="parameter", items=[("STIFFNESS", "Stiffness", ""), ("RADIUS", "Radius", ""),('RESOLUTION', 'Resolution', '')])
+	param: bpy.props.EnumProperty(name="Parameter", items=[("STIFFNESS", "Stiffness", ""), ("RADIUS", "Radius", ""),('RESOLUTION', 'Resolution', '')])
 
 	active_object = None
 	compatible_type = ['META']
 	processing = None
 	cancelling = False
-	resolution_clamp = 0.1, 2
+	resolution_clamp = 0.01, 2
 
 	@property
 	def selected_elements(self):
@@ -57,7 +59,6 @@ class TILA_metaball_adjust_parameter(bpy.types.Operator):
 				selected_elements.append(e)
 		return selected_elements
 
-	
 	def modal(self, context, event):
 		if event.type == 'ESC':
 			self.cancelling = True
@@ -67,11 +68,11 @@ class TILA_metaball_adjust_parameter(bpy.types.Operator):
 		if self.cancelling:
 			self.revert_initial_values()
 			bpy.types.SpaceView3D.draw_handler_remove(self._value_handler, 'WINDOW')
-			self.report({'INFO'}, 'TILA Metaballs : Cancelled')
+			self.report({'INFO'}, f'{self.param.lower()} adjust cancelled')
 			return {"CANCELLED"}
 
 		if event.value == 'CLICK' or (event.value == 'PRESS' and event.type == 'ENTER'):
-			self.report({'INFO'}, 'TILA Metaballs : Complete')
+			self.report({'INFO'}, f'Ajust {self.param.lower()} complete')
 			# bpy.context.window_manager.event_timer_remove(self._timer)
 			bpy.types.SpaceView3D.draw_handler_remove(self._value_handler, 'WINDOW')
 			return {"FINISHED"}
@@ -143,7 +144,6 @@ class TILA_metaball_adjust_parameter(bpy.types.Operator):
 				self.value = getattr(e, self.param.lower()) + offset
 				setattr(e, self.param.lower(), self.value)
 
-
 	def get_initial_value(self):
 		if self.param == 'RESOLUTION':
 			self.initial_value = [self.active_object.data.resolution]
@@ -161,14 +161,120 @@ class TILA_metaball_adjust_parameter(bpy.types.Operator):
 
 	def draw_value(self):
 		font_id = 0
-		blf.size(font_id, 17, 72)
+		blf.size(font_id, font_size, 72)
 
 		blf.color(font_id, 1, 1, 1, 0.5)
 		blf.position(font_id, bpy.context.region.width/2, 20, 0)
 		blf.draw(font_id, f'{self.param.lower()} : {str(self.value)[:4]}')
 
+		blf.position(font_id, self.initial_mouseposition[0]-7, self.initial_mouseposition[1]-7, 0)
+		blf.draw(font_id, '+')
+
+
+class TILA_metaball_type_cycle(bpy.types.Operator):
+	bl_idname = "mball.tila_metaball_type_cycle"
+	bl_label = "TILA : Cycle Metaballs Type"
+	bl_options = {'REGISTER', 'UNDO'}
+
+	direction : bpy.props.EnumProperty(name="Direction", items=[("NEXT", "Next", ""), ("PREVIOUS", "Previous", "")])
+	type_list = ['BALL', 'CAPSULE', 'PLANE', 'ELLIPSOID', 'CUBE']
+
+	@property
+	def selected_elements(self):
+		if self.active_object is None:
+			return 0
+		selected_elements = []
+		for e in self.active_object.data.elements:
+			if e.select:
+				selected_elements.append(e)
+		return selected_elements
+
+	def invoke(self, context, event):
+		self.active_object = bpy.context.object
+		if self.active_object is None:
+			return {"CANCELLED"}
+		
+		if not len(self.selected_elements):
+			return {"CANCELLED"}
+
+		# self._drawer = bpy.types.SpaceView3D.draw_handler_add(self.draw_value, (), 'WINDOW', 'POST_PIXEL')
+		
+		self.execute(context)
+
+		# time.sleep(.5)
+		# bpy.types.SpaceView3D.draw_handler_remove(self._drawer, 'WINDOW')
+		
+		return {"FINISHED"}
+
+	def execute(self, context):
+		for e in self.active_object.data.elements:
+			if not e.select:
+				continue
+			
+			
+			self.curr_index = self.type_list.index(e.type)
+			e.type = self.type_list[self.get_valid_index(self.curr_index)]
+			self.current_pos = bpy_extras.view3d_utils.location_3d_to_region_2d(bpy.context.region, bpy.context.region_data, e.co)
+		
+		return {"FINISHED"}
+
+	def get_valid_index(self, curr_index):
+		if self.direction == 'NEXT':
+			return curr_index + 1 if curr_index < len(self.type_list)-1 else 0
+		elif self.direction == 'PREVIOUS':
+			return curr_index - 1 if curr_index > 0 else len(self.type_list)-1
+
+	def draw_value(self):
+		font_id = 0
+		blf.size(font_id, font_size, 72)
+
+		blf.color(font_id, 1, 1, 1, 0.5)
+		blf.position(font_id, self.current_pos[0], self.current_pos[1], 0)
+		blf.draw(font_id, f'{self.type_list[self.curr_index]}')
+
+
+class TILA_metaball_substract_toggle(bpy.types.Operator):
+	bl_idname = "mball.tila_metaball_substract_toggle"
+	bl_label = "TILA : Metaballs Substract Toggle"
+	bl_options = {'REGISTER', 'UNDO'}
+
+	@property
+	def selected_elements(self):
+		if self.active_object is None:
+			return 0
+		selected_elements = []
+		for e in self.active_object.data.elements:
+			if e.select:
+				selected_elements.append(e)
+		return selected_elements
+
+	def invoke(self, context, event):
+		self.active_object = bpy.context.object
+		if self.active_object is None:
+			return {"CANCELLED"}
+		
+		if not len(self.selected_elements):
+			return {"CANCELLED"}
+		
+		self.execute(context)
+		return {"FINISHED"}
+
+
+	def execute(self, context):
+		for e in self.active_object.data.elements:
+			if not e.select:
+				continue
+
+			e.use_negative = not e.use_negative
+		
+		return {"FINISHED"}
+
+
+
 classes = (
 	TILA_metaball_adjust_parameter,
+	TILA_metaball_type_cycle,
+	TILA_metaball_substract_toggle
 )
 
 
