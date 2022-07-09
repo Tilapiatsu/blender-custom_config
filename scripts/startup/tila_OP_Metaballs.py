@@ -47,7 +47,7 @@ class TILA_metaball_adjust_parameter(bpy.types.Operator):
 	compatible_type = ['META']
 	processing = None
 	cancelling = False
-	resolution_clamp = 0.01, 2
+	resolution_clamp = 0.03, 2
 
 	@property
 	def selected_elements(self):
@@ -72,7 +72,7 @@ class TILA_metaball_adjust_parameter(bpy.types.Operator):
 			return {"CANCELLED"}
 
 		if event.value == 'CLICK' or (event.value == 'PRESS' and event.type == 'ENTER'):
-			self.report({'INFO'}, f'Ajust {self.param.lower()} complete')
+			self.report({'INFO'}, f'Adjust {self.param.lower()} complete')
 			# bpy.context.window_manager.event_timer_remove(self._timer)
 			bpy.types.SpaceView3D.draw_handler_remove(self._value_handler, 'WINDOW')
 			return {"FINISHED"}
@@ -163,12 +163,21 @@ class TILA_metaball_adjust_parameter(bpy.types.Operator):
 		font_id = 0
 		blf.size(font_id, font_size, 72)
 
-		blf.color(font_id, 1, 1, 1, 0.5)
-		blf.position(font_id, bpy.context.region.width/2, 20, 0)
-		blf.draw(font_id, f'{self.param.lower()} : {str(self.value)[:4]}')
+		blf.color(font_id, 0, 1, 0, 0.5)
 
-		blf.position(font_id, self.initial_mouseposition[0]-7, self.initial_mouseposition[1]-7, 0)
+		blf.position(font_id, self.initial_mouseposition[0]-4, self.initial_mouseposition[1]-4, 0)
 		blf.draw(font_id, '+')
+
+		blf.color(font_id, 1, 1, 1, 0.5)
+		
+		if self.param == 'RESOLUTION':
+			blf.position(font_id, bpy.context.region.width/2, 20, 0)
+			blf.draw(font_id, f'{self.param.lower()} : {str(self.value)[:4]}')
+		else:
+			for e in self.selected_elements:
+				current_pos = bpy_extras.view3d_utils.location_3d_to_region_2d(bpy.context.region, bpy.context.region_data, e.co)
+				blf.position(font_id, current_pos[0] + 5, current_pos[1] + 5, 0)
+				blf.draw(font_id, f'{self.param.lower()} : {str(getattr(e, self.param.lower()))[:4]}')
 
 
 class TILA_metaball_type_cycle(bpy.types.Operator):
@@ -197,26 +206,33 @@ class TILA_metaball_type_cycle(bpy.types.Operator):
 		if not len(self.selected_elements):
 			return {"CANCELLED"}
 
-		# self._drawer = bpy.types.SpaceView3D.draw_handler_add(self.draw_value, (), 'WINDOW', 'POST_PIXEL')
+		self._drawer = bpy.types.SpaceView3D.draw_handler_add(self.draw_value, (), 'WINDOW', 'POST_PIXEL')
+
+		wm = context.window_manager
+		self._timer = wm.event_timer_add(0.1, window=context.window)
+		wm.modal_handler_add(self)
 		
 		self.execute(context)
 
-		# time.sleep(.5)
-		# bpy.types.SpaceView3D.draw_handler_remove(self._drawer, 'WINDOW')
-		
-		return {"FINISHED"}
+		return {"RUNNING_MODAL"}
+
+	def modal(self, context, event):
+		if event.type not in ['TIMER', 'MOUSEMOVE', 'INBETWEEN_MOUSEMOVE']:
+			bpy.types.SpaceView3D.draw_handler_remove(self._drawer, 'WINDOW')
+			return {"FINISHED"}
+
+		return {"RUNNING_MODAL"}
+
 
 	def execute(self, context):
 		for e in self.active_object.data.elements:
 			if not e.select:
 				continue
 			
-			
-			self.curr_index = self.type_list.index(e.type)
-			e.type = self.type_list[self.get_valid_index(self.curr_index)]
-			self.current_pos = bpy_extras.view3d_utils.location_3d_to_region_2d(bpy.context.region, bpy.context.region_data, e.co)
+			curr_index = self.type_list.index(e.type)
+			e.type = self.type_list[self.get_valid_index(curr_index)]
 		
-		return {"FINISHED"}
+		return {"RUNNING_MODAL"}
 
 	def get_valid_index(self, curr_index):
 		if self.direction == 'NEXT':
@@ -229,8 +245,11 @@ class TILA_metaball_type_cycle(bpy.types.Operator):
 		blf.size(font_id, font_size, 72)
 
 		blf.color(font_id, 1, 1, 1, 0.5)
-		blf.position(font_id, self.current_pos[0], self.current_pos[1], 0)
-		blf.draw(font_id, f'{self.type_list[self.curr_index]}')
+
+		for e in self.selected_elements:
+			current_pos = bpy_extras.view3d_utils.location_3d_to_region_2d(bpy.context.region, bpy.context.region_data, e.co)
+			blf.position(font_id, current_pos[0], current_pos[1], 0)
+			blf.draw(font_id, f'{e.type}')
 
 
 class TILA_metaball_substract_toggle(bpy.types.Operator):
@@ -256,9 +275,22 @@ class TILA_metaball_substract_toggle(bpy.types.Operator):
 		if not len(self.selected_elements):
 			return {"CANCELLED"}
 		
-		self.execute(context)
-		return {"FINISHED"}
+		self._drawer = bpy.types.SpaceView3D.draw_handler_add(self.draw_value, (), 'WINDOW', 'POST_PIXEL')
 
+		wm = context.window_manager
+		self._timer = wm.event_timer_add(0.1, window=context.window)
+		wm.modal_handler_add(self)
+
+		self.execute(context)
+
+		return {"RUNNING_MODAL"}
+
+	def modal(self, context, event):
+		if event.type not in ['TIMER', 'MOUSEMOVE', 'INBETWEEN_MOUSEMOVE']:
+			bpy.types.SpaceView3D.draw_handler_remove(self._drawer, 'WINDOW')
+			return {"FINISHED"}
+
+		return {"RUNNING_MODAL"}
 
 	def execute(self, context):
 		for e in self.active_object.data.elements:
@@ -267,7 +299,18 @@ class TILA_metaball_substract_toggle(bpy.types.Operator):
 
 			e.use_negative = not e.use_negative
 		
-		return {"FINISHED"}
+		return {"RUNNING_MODAL"}
+
+	def draw_value(self):
+		font_id = 0
+		blf.size(font_id, font_size, 72)
+
+		blf.color(font_id, 1, 1, 1, 0.5)
+
+		for e in self.selected_elements:
+			current_pos = bpy_extras.view3d_utils.location_3d_to_region_2d(bpy.context.region, bpy.context.region_data, e.co)
+			blf.position(font_id, current_pos[0], current_pos[1], 0)
+			blf.draw(font_id, 'SUBSTRACT' if e.use_negative else 'ADD')
 
 
 
