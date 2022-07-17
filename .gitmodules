@@ -1,6 +1,6 @@
-[submodule "scripts/addons/MACHIN3tools"]
-	path = scripts/addons/MACHIN3tools
-	url = https://github.com/machin3io/MACHIN3tools.git
+# [submodule "scripts/addons/MACHIN3tools"]
+# 	path = scripts/addons/MACHIN3tools
+# 	url = https://github.com/machin3io/MACHIN3tools.git
 [submodule "scripts/addons/Principled-Baker"]
 	path = scripts/addons/Principled-Baker
 	url = https://github.com/danielenger/Principled-Baker.git
