@@ -19,7 +19,7 @@
 bl_info = {
     "name": "Mouselook Navigation",
     "author": "dairin0d, moth3r",
-    "version": (1, 7, 7),
+    "version": (1, 7, 10),
     "blender": (2, 80, 0),
     "location": "View3D > orbit/pan/dolly/zoom/fly/walk",
     "description": "Provides extra 3D view navigation options (ZBrush mode) and customizability",
@@ -169,6 +169,7 @@ class MouselookNavigation_InputSettings:
         ('PREFS', "Origin: Auto", "Determine orbit origin from Blender's preferences"),
         ('VIEW', "Origin: View", "Use 3D View's focus point"),
         ('MOUSE', "Origin: Mouse", "Orbit around the point under the mouse"),
+        ('LAST_MOUSE', "Origin: Last Mouse", "Orbit around the point under the last mouse click (works only in ZBrush mode)"),
         ('SELECTION', "Origin: Selection", "Orbit around the selection pivot"),
     ])
     
@@ -327,7 +328,7 @@ class MouselookNavigation_InputSettings:
 @addon.Operator(idname="mouselook_navigation.navigate", label="Mouselook navigation", description="Mouselook navigation", options={'GRAB_CURSOR', 'BLOCKING'})
 class MouselookNavigation:
     input_settings_id: 0 | prop("Input Settings ID", "Input Settings ID", min=0)
-    
+    last_location = None    
     def copy_input_settings(self, input_settings, default_input_settings):
         def get_value(name):
             use_default = (input_settings is None) or (name not in input_settings.overrides)
@@ -395,8 +396,7 @@ class MouselookNavigation:
         region_pos, region_size = self.sv.region_rect().get("min", "size", convert=Vector)
         
         userprefs = context.preferences
-        drag_threshold = userprefs.inputs.drag_threshold
-        move_threshold = userprefs.inputs.move_threshold
+        drag_threshold_mouse = userprefs.inputs.drag_threshold_mouse
         mouse_double_click_time = userprefs.inputs.mouse_double_click_time / 1000.0
         invert_mouse_zoom = userprefs.inputs.invert_mouse_zoom
         invert_wheel_zoom = userprefs.inputs.invert_zoom_wheel
@@ -429,6 +429,8 @@ class MouselookNavigation:
         mouse_offset = mouse - self.mouse0
         mouse_delta = mouse - mouse_prev
         mouse_region = mouse - region_pos
+        
+        self.use_deselect_on_click &= (mouse_offset.magnitude < drag_threshold_mouse)
         
         self.input_axis_stack.update()
         if self.input_axis_stack.mode == 'Y':
@@ -692,11 +694,16 @@ class MouselookNavigation:
         
         self.update_cursor_icon(context)
         
-        if settings.override_header:
+        if settings.override_header and not self.use_deselect_on_click:
             txt = "{} (zoom={:.3f})".format(mode, self.sv.distance)
             context.area.header_text_set(txt)
         
         if confirm:
+            if self.use_deselect_on_click:
+                self.revert_changes()
+                bpy.ops.view3d.select(deselect_all=True)
+                bpy.ops.ed.undo_push(message="Select")
+            
             self.cleanup(context)
             return {'FINISHED'}
         elif cancel:
@@ -975,6 +982,19 @@ class MouselookNavigation:
         else:
             context.window.cursor_modal_set('SCROLL_XY')
     
+    def is_deselect_on_click(self, event):
+        if self.zbrush_mode == 'NONE': return False
+        
+        click = event.value
+        if click not in ('PRESS', 'RELEASE'): click = 'CLICK'
+        
+        for kc, km, kmi in KeyMapUtils.search("view3d.select"):
+            if not kmi.active: continue
+            if not kmi.properties.deselect_all: continue
+            if KeyMapUtils.equal(kmi, event, click=click): return True
+        
+        return False
+    
     def invoke(self, context, event):
         wm = context.window_manager
         userprefs = context.preferences
@@ -998,6 +1018,8 @@ class MouselookNavigation:
             input_settings = settings.autoreg_keymaps[input_settings_id].input_settings
         
         self.copy_input_settings(input_settings, default_input_settings)
+        
+        self.use_deselect_on_click = self.is_deselect_on_click(event)
         
         self.sv = SmartView3D(context, use_matrix=True)
         
@@ -1023,27 +1045,37 @@ class MouselookNavigation:
             self.force_origin_selection = True
             self.use_origin_mouse = False
             self.use_origin_selection = True
+            self.use_origin_mouse_last = False
         elif self.origin_mode == 'MOUSE':
             self.force_origin_mouse = True
             self.force_origin_selection = False
             self.use_origin_mouse = True
             self.use_origin_selection = False
+            self.use_origin_mouse_last = False
+        elif self.origin_mode == 'LAST_MOUSE':
+            self.force_origin_mouse = False
+            self.force_origin_selection = False
+            self.use_origin_mouse = False
+            self.use_origin_selection = False
+            self.use_origin_mouse_last = True
         elif self.origin_mode == 'VIEW':
             self.force_origin_mouse = False
             self.force_origin_selection = False
             self.use_origin_mouse = False
             self.use_origin_selection = False
+            self.use_origin_mouse_last = False
         else:
             self.force_origin_mouse = False
             self.force_origin_selection = False
             self.use_origin_mouse = userprefs.inputs.use_mouse_depth_navigate
             self.use_origin_selection = userprefs.inputs.use_rotate_around_active
+            self.use_origin_mouse_last = False
         
         is_sculpt = (context.mode == 'SCULPT')
         is_dyntopo = False
         
-        ignore_raycast = context.mode not in settings.raycast_modes
-        use_raycast = (not ignore_raycast) and (self.use_origin_mouse or (self.zbrush_mode != 'NONE'))
+        ignore_raycast = (context.mode not in settings.raycast_modes) or (settings.zbrush_method == 'NONE')
+        use_raycast = (not ignore_raycast) and (self.use_origin_mouse or self.use_origin_mouse_last or (self.zbrush_mode != 'NONE'))
         
         # If a mesh has face data, Blender will automatically disable dyntopo on re-entering sculpt mode
         if is_sculpt and use_raycast and (settings.zbrush_method != 'ZBUFFER'):
@@ -1066,7 +1098,7 @@ class MouselookNavigation:
         self.explicit_orbit_origin = None
         if self.use_origin_selection:
             self.explicit_orbit_origin = get_selection_center(context, True)
-        elif self.use_origin_mouse:
+        elif self.use_origin_mouse or self.use_origin_mouse_last:
             if cast_result.success:
                 self.explicit_orbit_origin = cast_result.location
                 if self.sv.is_perspective:
@@ -1076,6 +1108,10 @@ class MouselookNavigation:
                     self.sv.viewpoint = viewpoint
             else:
                 self.explicit_orbit_origin = self.sv.unproject(mouse_region)
+        
+        if self.use_origin_mouse_last:
+            if self.last_location is not None:
+                self.explicit_orbit_origin = self.last_location
         
         mode_keys = {'ORBIT':self.keys_orbit, 'PAN':self.keys_pan, 'DOLLY':self.keys_dolly, 'ZOOM':self.keys_zoom, 'FLY':self.keys_fly, 'FPS':self.keys_fps}
         self.mode_stack = ModeStack(mode_keys, self.allowed_transitions, self.default_mode, 'NONE')
@@ -1095,6 +1131,7 @@ class MouselookNavigation:
                     
                     if cast_result.success or ignore_raycast:
                         if is_dyntopo: bpy.ops.sculpt.dynamic_topology_toggle()
+                        MouselookNavigation.last_location = cast_result.location
                         return {'PASS_THROUGH'}
             
             if self.mode_stack.mode == 'NONE':
@@ -1195,46 +1232,40 @@ class MouselookNavigation:
         
         context = bpy.context
         view3d = context.space_data
+        scene = context.scene
         prefs_system = context.preferences.system
         
         # Important: if viewport_aa is not OFF, 1-frame artifacts may appear after bpy.ops.wm.redraw_timer()
+        # Also, some users report that there is much less lag when using the Workbench engine
         
-        viewport_aa = prefs_system.viewport_aa
-        show_relationship_lines = view3d.overlay.show_relationship_lines
-        show_motion_paths = view3d.overlay.show_motion_paths
-        show_reconstruction = view3d.show_reconstruction
-        show_gizmo = view3d.show_gizmo
-        shading_type = view3d.shading.type
-        show_xray = view3d.shading.show_xray
-        show_shadows = view3d.shading.show_shadows
-        show_cavity = view3d.shading.show_cavity
-        use_dof = view3d.shading.use_dof
+        # NOTE: engine affects shading type (and possibly other settings),
+        # so it has to be changed ~last and reverted ~first.
+        override_settings = [
+            (view3d.overlay, "show_relationship_lines", False),
+            (view3d.overlay, "show_motion_paths", False),
+            (view3d, "show_reconstruction", False),
+            (view3d, "show_gizmo", False),
+            (view3d.shading, "type", 'SOLID'),
+            (view3d.shading, "show_xray", False),
+            (view3d.shading, "show_shadows", False),
+            (view3d.shading, "show_cavity", False),
+            (view3d.shading, "use_dof", False),
+            (scene.render, "engine", 'BLENDER_WORKBENCH'),
+            (scene.display, "viewport_aa", 'OFF'),
+            (prefs_system, "viewport_aa", 'OFF'),
+        ]
         
-        prefs_system.viewport_aa = 'OFF'
-        view3d.overlay.show_relationship_lines = False
-        view3d.overlay.show_motion_paths = False
-        view3d.show_reconstruction = False
-        view3d.show_gizmo = False
-        view3d.shading.type = 'SOLID'
-        view3d.shading.show_xray = False
-        view3d.shading.show_shadows = False
-        view3d.shading.show_cavity = False
-        view3d.shading.use_dof = False
+        original_settings = []
+        for (target, propname, value) in override_settings:
+            original_settings.append((target, propname, getattr(target, propname)))
+            setattr(target, propname, value)
         
         handler = addon.draw_handler_add(bpy.types.SpaceView3D, draw_callback, (), 'WINDOW', 'POST_PIXEL')
         bpy.ops.wm.redraw_timer(type='DRAW', iterations=1)
         addon.remove(handler)
         
-        prefs_system.viewport_aa = viewport_aa
-        view3d.overlay.show_relationship_lines = show_relationship_lines
-        view3d.overlay.show_motion_paths = show_motion_paths
-        view3d.show_reconstruction = show_reconstruction
-        view3d.show_gizmo = show_gizmo
-        view3d.shading.type = shading_type
-        view3d.shading.show_xray = show_xray
-        view3d.shading.show_shadows = show_shadows
-        view3d.shading.show_cavity = show_cavity
-        view3d.shading.use_dof = use_dof
+        for (target, propname, value) in reversed(original_settings):
+            setattr(target, propname, value)
         
         return result["cast_result"]
     
@@ -2203,6 +2234,7 @@ class ThisAddonPreferences:
     
     zbrush_radius: 0 | prop("Geometry detection radius", "Minimal required distance (in pixels) to the nearest geometry", min=0, max=64, subtype='PIXEL')
     zbrush_method: 'ZBUFFER' | prop("Geometry detection method", "Which method to use to determine if mouse is over empty space", items=[
+        ('NONE', "Disabled", "Don't use geometry detection (in ZBrush mode, ignores navigation attempts in the central area of viewport)"),
         ('RAYCAST', "Raycast", "WARNING: causes problems in Sculpt mode"),
         ('SELECTION', "Selection", "WARNING: causes problems in Sculpt mode"),
         ('ZBUFFER', "Z-buffer", "WARNING: may potentially crash Blender, if other addons attempt to use wm.redraw_timer() in the same frame"),
