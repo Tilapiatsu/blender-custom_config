@@ -539,6 +539,9 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		# GreasePencil tools
 		self.kmi_set_replace('view3d.rotate_canvas', self.k_context, 'PRESS', alt=True, disable_double=True)
 
+		# Polysource
+		self.kmi_set_active(enable=False, idname='wm.call_menu_pie', type=self.k_menu, value='PRESS', properties={'name':'PS_MT_tk_menu'})
+
 		##### 3D View Generic
 		self.kmi_init(name='3D View Generic', space_type='VIEW_3D', region_type='WINDOW')
 
@@ -647,7 +650,7 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		self.kmi_set_replace('wm.call_menu_pie', 'X', 'PRESS', alt=True, disable_double=True, properties=[('name', 'IMAGE_MT_pivot_pie')])
 
 		# Machin3Tools
-		self.kmi_set_replace('wm.call_menu_pie', 'D', "PRESS", alt=True, shift=True,  properties=[('name', 'MACHIN3_MT_uv_align_pie')], disable_double=True)
+		self.kmi_set_replace('wm.call_menu_pie', 'D', "PRESS", alt=True, shift=True, properties=[('name', 'MACHIN3_MT_uv_align_pie')], disable_double=True)
 
 		###### Mesh
 		self.kmi_init(name='Mesh', space_type='EMPTY', region_type='WINDOW')
@@ -739,10 +742,8 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		self.kmi_set_replace('mesh.ke_direct_loop_cut', 'C', "PRESS", alt=True, shift=True, properties=[('mode', 'SLIDE')], disable_double=True)
 
 		# MACHINE3tools
-		kmi = self.kmi_set_replace('machin3.clean_up', 'NUMPAD_MINUS', "PRESS", ctrl=True, alt=True, shift=True)
-		if kmi is not None:
-			kmi.active = True
-		self.kmi_set_replace('wm.call_menu_pie', 'D', "PRESS", alt=True, shift=True,  properties=[('name', 'MACHIN3_MT_align_pie')], disable_double=True)
+		kmi = self.kmi_set_replace('machin3.clean_up', 'ZERO', "PRESS", ctrl=True, alt=True, shift=True)
+		self.kmi_set_replace('wm.call_menu_pie', 'D', "PRESS", alt=True, shift=True, properties=[('name', 'MACHIN3_MT_align_pie')], disable_double=True)
 
 		# F2
 		# self.kmi_set_replace('mesh.f2', 'P', 'PRESS', disable_double=True)
@@ -786,6 +787,9 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 
 		self.kmi_set_replace('outliner.tila_group_selected', 'G', 'PRESS', ctrl=True, properties=[('mode', 'GROUP_TO_BIGGER_NUMBER')], disable_double=True)
 		self.kmi_set_replace('outliner.tila_group_selected', 'G', 'PRESS', ctrl=True, shift=True, properties=[('mode', 'MOVE_TO_ACTIVE')], disable_double=True)
+
+		# MACHIN3tools
+		self.kmi_set_replace('machin3.align', 'A', "PRESS", alt=True, disable_double=True)
 
 		###### 3D View Tool: Select
 		self.kmi_init(name='3D View Tool: Tweak', space_type='EMPTY', region_type='WINDOW')
@@ -1101,6 +1105,8 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		self.global_keys()
 		self.right_mouse()
 		self.tool_transform()
+		# MACHIN3tools
+		self.kmi_set_replace('machin3.align', 'A', "PRESS", alt=True, disable_double=True)
 
 		###### Metaball
 		self.kmi_init(name='Metaball', space_type='EMPTY', region_type='WINDOW')

@@ -74,8 +74,8 @@ modules =   (
 			'uv_toolkit',
 			'noodler',
 			'NGon Loop Select',
-            'quad_remesher',
-            'mesh_restoresymmetry',
+			'quad_remesher',
+			'mesh_restoresymmetry',
 			# 'lineup_maker',
 			'Tila_Config'
 			)
@@ -121,6 +121,13 @@ def register(enable_addon=True):
 	addon.preferences.activate_collections_pie = False
 	addon.preferences.activate_align = True
 	addon.preferences.activate_filebrowser_tools = True
+	addon.preferences.activate_extrude = True
+	addon.preferences.activate_clean_up = True
+	addon.preferences.activate_edge_constraint = True
+	addon.preferences.activate_surface_slide = True
+	addon.preferences.activate_group = False
+	addon.preferences.activate_mesh_cut = True
+	addon.preferences.activate_thread = True
 	addon.preferences.activate_material_picker = True
 	addon.preferences.activate_save_pie = True
 	addon.preferences.activate_align_pie = True
@@ -192,4 +199,4 @@ def unregister():
 if __name__ == "__main__":
 	register()
 	# unregister()
-	
+
