@@ -16,6 +16,7 @@
 #
 # ##### END GPL LICENSE BLOCK #####
 
+from ...enums import UvpmSimilarityMode
 from ...prefs_scripted_utils import ScriptParams
 from ...mode import UVPM3_Mode_Main, UVPM3_ModeCategory_Miscellaneous, OperatorMetadata
 from ...island_params import AlignPriorityIParamInfo, VColorIParamSerializer
@@ -33,17 +34,28 @@ class UVPM3_Mode_Align(UVPM3_Mode_Main):
 
     MODE_CATEGORY = UVPM3_ModeCategory_Miscellaneous
 
+    VERTEX_BASED_MODE_PRECISION = 500
+    VERTEX_BASED_MODE_THRESHOLD = 1.0
+
+
     def subpanels(self):
 
         return [UVPM3_PT_SimilarityOptions.bl_idname, UVPM3_PT_AlignPriority.bl_idname]
 
     def setup_script_params(self):
 
+        if UvpmSimilarityMode.is_vertex_based(self.scene_props.simi_mode):
+            precision = self.VERTEX_BASED_MODE_PRECISION
+            threshold = self.VERTEX_BASED_MODE_THRESHOLD
+        else:
+            precision = self.scene_props.precision
+            threshold = self.scene_props.simi_threshold
+
         script_params = ScriptParams()
-        script_params.add_param('precision', self.scene_props.precision)
-        script_params.add_param('threshold', self.scene_props.simi_threshold)
+        script_params.add_param('mode', self.scene_props.simi_mode)
+        script_params.add_param('precision', precision)
+        script_params.add_param('threshold', threshold)
         script_params.add_param('adjust_scale', self.scene_props.simi_adjust_scale)
-        script_params.add_param('check_vertices', self.scene_props.simi_check_vertices)
         script_params.add_param('correct_vertices', self.scene_props.simi_correct_vertices)
         script_params.add_param('vertex_threshold', self.scene_props.simi_vertex_threshold)
 

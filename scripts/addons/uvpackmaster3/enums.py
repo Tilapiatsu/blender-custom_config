@@ -63,6 +63,12 @@ class EnumValue:
 
         return (self.code, name, self.desc, icon, int(self.code))
 
+    def __str__(self):
+        return str(self.code)
+
+    def __eq__(self, other):
+        return str(self) == str(other)
+
 
 class UvpmOpcode:
     REPORT_VERSION = 0
@@ -115,6 +121,7 @@ class UvpmLogType:
     HINT = 4
 
 class UvpmRetCode:
+    ABORTED = -2
     NOT_SET = -1
     SUCCESS = 0
     FATAL_ERROR = 1
@@ -151,6 +158,21 @@ class UvpmLockOverlappingMode:
     @classmethod
     def to_blend_items(cls):
         return (cls.ANY_PART.to_blend_item(), cls.EXACT.to_blend_item())
+
+
+class UvpmSimilarityMode:
+    BORDER_SHAPE = EnumValue('0', Labels.SIMI_MODE_BORDER_SHAPE_NAME, Labels.SIMI_MODE_BORDER_SHAPE_DESC)
+    VERTEX_POSITION = EnumValue('1', Labels.SIMI_MODE_VERTEX_POSITION_NAME, Labels.SIMI_MODE_VERTEX_POSITION_DESC)
+    TOPOLOGY = EnumValue('2', Labels.SIMI_MODE_TOPOLOGY_NAME, Labels.SIMI_MODE_TOPOLOGY_DESC)
+
+    @classmethod
+    def to_blend_items(cls):
+        return (cls.BORDER_SHAPE.to_blend_item(), cls.VERTEX_POSITION.to_blend_item(), cls.TOPOLOGY.to_blend_item())
+
+    @classmethod
+    def is_vertex_based(cls, mode):
+        return (cls.VERTEX_POSITION == mode) or (cls.TOPOLOGY == mode)
+
 
 class UvpmMapSerializationFlags:
     CONTAINS_FLAGS = 1

@@ -44,6 +44,10 @@ def get_engine_execpath():
     return os.path.join(get_engine_path(), os_exec_dirname(), engine_basename + os_exec_extension())
 
 
+def process_file_path(file_path):
+    return os.path.realpath(file_path)
+
+
 def in_debug_mode(debug_lvl = 1):
     return bpy.app.debug_value >= debug_lvl or bpy.app.debug
 

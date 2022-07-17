@@ -122,11 +122,11 @@ class UVPM3_PT_Generic(bpy.types.Panel):
         row.prop(obj, prop_id)
         self._draw_help_operator(row, self.HELP_URL_SUFFIX)
 
-    def operator_with_help(self, op_idname, layout):
+    def operator_with_help(self, op_idname, layout, help_url_suffix):
 
         row = layout.row(align=True)
         row.operator(op_idname)
-        self._draw_help_operator(row, self.HELP_URL_SUFFIX)
+        self._draw_help_operator(row, help_url_suffix)
 
     def handle_prop_enum(self, obj, prop_name, prop_label, supported, not_supported_msg, layout):
 

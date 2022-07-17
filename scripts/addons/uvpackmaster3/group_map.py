@@ -7,7 +7,9 @@ class GroupMap:
 
         self.g_scheme = g_scheme
         self.p_context = p_context
-        self.map = [-1] * self.p_context.total_face_count
+
+        from .grouping_scheme import UVPM3_GroupingScheme
+        self.map = [UVPM3_GroupingScheme.DEFAULT_GROUP_NUM] * self.p_context.total_face_count
 
         self.init()
 
@@ -35,7 +37,7 @@ class GroupMapMaterial(GroupMap):
             if len(p_obj.obj.material_slots) == 0:
                 raise RuntimeError('Grouping by material error: object does not have a material assigned')
 
-            faces_to_process = p_obj.get_selected_faces()
+            faces_to_process = p_obj.selected_faces_stored
 
             for face in faces_to_process:
                 mat_idx = face.material_index
@@ -62,7 +64,7 @@ class GroupMapMeshPart(GroupMap):
 
         for p_obj in self.p_context.p_objects:
 
-            faces_to_process = p_obj.get_selected_faces()
+            faces_to_process = p_obj.selected_faces_stored
             faces_left = set([face.index for face in faces_to_process])
 
             while len(faces_left) > 0:
@@ -103,7 +105,7 @@ class GroupMapObject(GroupMap):
         for p_obj in self.p_context.p_objects:
             group = self.g_scheme.get_group_by_name(p_obj.obj.name)
 
-            faces_to_process = p_obj.get_selected_faces()
+            faces_to_process = p_obj.selected_faces_stored
 
             for face in faces_to_process:
                 self.set_map(p_obj, face.index, group)
@@ -119,7 +121,7 @@ class GroupMapTile(GroupMap):
 
         for p_obj in self.p_context.p_objects:
 
-            faces_to_process = p_obj.get_selected_faces()
+            faces_to_process = p_obj.selected_faces_stored
 
             for face in faces_to_process:
                 uvs = face.loops[0][p_obj.uv_layer].uv

@@ -51,6 +51,17 @@ import mathutils
 class NoUvFaceError(Exception):
     pass
 
+class NoUvFaceSelectedError(NoUvFaceError):
+    
+    def __init__(self):
+        super().__init__('No UV face selected')
+
+class NoUvFaceVisibleError(NoUvFaceError):
+    
+    def __init__(self):
+        super().__init__('No UV face visible')
+
+
 class ModeIdAttributeMixin:
 
     mode_id : StringProperty(name='mode_id', default='')
@@ -80,6 +91,18 @@ class UVPM3_OT_Engine(UVPM3_OT_Generic, DefaultFinishConditionMixin):
         
         self.cancel_sig_sent = False
         self._timer = None
+
+        self.mode = None
+        self.operation_done = False
+        self.engine_proc = None
+        self.curr_phase = None
+        self.script_params = None
+        self.p_context = None
+        self.g_scheme = None
+        self.ov_manager = None
+        self.box_renderer = None
+        self.show_region_hud_saved = None
+
 
     def check_engine_retcode(self, retcode):
         if retcode in {UvpmRetCode.SUCCESS,
@@ -209,7 +232,8 @@ class UVPM3_OT_Engine(UVPM3_OT_Generic, DefaultFinishConditionMixin):
         send_finish_confirmation(self.engine_proc)
 
         try:
-            self.engine_proc.wait(5)
+            wait_timeout = 3600
+            self.engine_proc.wait(wait_timeout)
         except:
             raise RuntimeError('The engine process wait timeout reached')
 
@@ -246,12 +270,12 @@ class UVPM3_OT_Engine(UVPM3_OT_Generic, DefaultFinishConditionMixin):
             self.ov_manager.print_dev_progress = False
             self.redraw_context_area()
 
-    def finish(self, context):
+    def finish_op(self, context):
         self.post_main()
         self.exit_common()
         return {'FINISHED', 'PASS_THROUGH'}
 
-    def cancel(self, context):
+    def cancel_op(self, context):
         if self.engine_proc is not None:
             self.engine_proc.terminate()
 
@@ -426,7 +450,7 @@ class UVPM3_OT_Engine(UVPM3_OT_Generic, DefaultFinishConditionMixin):
 
         return {'RUNNING_MODAL'}
 
-    def modal(self, context, event):
+    def modal_internal(self, context, event):
         cancel = False
         finish = False
 
@@ -445,14 +469,13 @@ class UVPM3_OT_Engine(UVPM3_OT_Generic, DefaultFinishConditionMixin):
                 self.handle_communication()
 
                 if not self.operation_done:
-                    # Special value indicating a crash
-                    self.prefs.engine_retcode = -1
                     raise RuntimeError('Engine process died unexpectedly')
 
         except OpFinishedException:
             finish = True
 
         except OpAbortedException:
+            self.prefs.engine_retcode = UvpmRetCode.ABORTED
             self.set_report('INFO', 'Engine process killed')
             cancel = True
 
@@ -460,6 +483,7 @@ class UVPM3_OT_Engine(UVPM3_OT_Generic, DefaultFinishConditionMixin):
             if in_debug_mode():
                 print_backtrace(ex)
 
+            self.prefs.engine_retcode = UvpmRetCode.FATAL_ERROR
             self.set_report('ERROR', str(ex))
             cancel = True
 
@@ -467,17 +491,31 @@ class UVPM3_OT_Engine(UVPM3_OT_Generic, DefaultFinishConditionMixin):
             if in_debug_mode():
                 print_backtrace(ex)
 
+            self.prefs.engine_retcode = UvpmRetCode.FATAL_ERROR
             self.set_report('ERROR', 'Unexpected error')
-
             cancel = True
 
         if cancel:
-            return self.cancel(context)
+            return self.cancel_op(context)
 
         if finish:
-            return self.finish(context)
+            return self.finish_op(context)
 
         return self.modal_ret_value(event)
+
+    def modal(self, context, event):
+
+        try:
+            return self.modal_internal(context, event)
+
+        except Exception as ex:
+            if in_debug_mode():
+                print_backtrace(ex)
+
+            self.prefs.engine_retcode = UvpmRetCode.FATAL_ERROR
+            self.set_report('ERROR', 'Unexpected error')
+
+        return {'FINISHED'}
 
     def pre_main(self):
         pass
@@ -504,6 +542,14 @@ class UVPM3_OT_Engine(UVPM3_OT_Generic, DefaultFinishConditionMixin):
         self.prefs.reset_stats()
         self.p_context = PackContext(self.context)
 
+        if self.require_selection():
+            if self.p_context.total_selected_faces_stored_count == 0:
+                raise NoUvFaceSelectedError()
+        
+        else:
+            if self.p_context.total_visible_faces_stored_count == 0:
+                raise NoUvFaceVisibleError()
+
         self.pre_operation()
 
         send_unselected = self.send_unselected_islands()
@@ -513,19 +559,11 @@ class UVPM3_OT_Engine(UVPM3_OT_Generic, DefaultFinishConditionMixin):
         iparam_serializers = self.get_iparam_serializers()
 
         if send_groups:
-            self.g_scheme = self.init_grouping_scheme()
+            self.g_scheme = self.init_grouping_scheme(self.get_group_method())
             iparam_serializers.append(GroupingSchemeSerializer(self.g_scheme))
 
         serialized_maps, selected_cnt, unselected_cnt =\
             self.p_context.serialize_uv_maps(send_unselected, send_verts_3d, iparam_serializers)
-
-        if self.require_selection():
-            if selected_cnt == 0:
-                raise NoUvFaceError('No UV face selected')
-        
-        else:
-            if selected_cnt + unselected_cnt == 0:
-                raise NoUvFaceError('No UV face visible')
 
         engine_args_final = [get_engine_execpath(), '-E']
         engine_args_final += ['-o', str(UvpmOpcode.EXECUTE_SCENARIO)]
@@ -554,8 +592,10 @@ class UVPM3_OT_Engine(UVPM3_OT_Generic, DefaultFinishConditionMixin):
 
         if self.skip_topology_parsing():
             self.script_params.add_param('__skip_topology_parsing', True)
+        if self.prefs.disable_immediate_uv_update:
+            self.script_params.add_param('__disable_immediate_uv_update', True)
         
-        packages_dirpath = os.path.join(os.path.abspath(os.path.dirname(__file__)), SCRIPTED_PIPELINE_DIRNAME, ENGINE_PACKAGES_DIRNAME)
+        packages_dirpath = os.path.join(os.path.abspath(os.path.dirname(process_file_path(__file__))), SCRIPTED_PIPELINE_DIRNAME, ENGINE_PACKAGES_DIRNAME)
         scenario_dirpath = os.path.abspath(os.path.dirname(scenario['script_path']))
         self.script_params.add_sys_path(packages_dirpath)
         self.script_params.add_sys_path(scenario_dirpath)
@@ -613,29 +653,11 @@ class UVPM3_OT_Engine(UVPM3_OT_Generic, DefaultFinishConditionMixin):
             self.box_renderer = self.get_box_renderer()
 
 
-    def execute(self, context):
+    def execute_internal(self, context):
 
-        # MUSTOD: move it to __init__
         cancel = False
-
-        self.mode = None
-        self.operation_done = False
-        self.engine_proc = None
-        self.curr_phase = None
-
         self.context = context
-        self.script_params = None
-
-        self.prefs = get_prefs()
         self.scene_props = context.scene.uvpm3_props
-
-        self.p_context = None
-        self.g_scheme = None
-
-        self.ov_manager = None
-        self.box_renderer = None
-
-        self.show_region_hud_saved = None
 
         self.operation_num = self.prefs.operation_counter + 1
         self.prefs.operation_counter += 1
@@ -671,13 +693,14 @@ class UVPM3_OT_Engine(UVPM3_OT_Generic, DefaultFinishConditionMixin):
                 self.execute_scenario(scenario)
 
         except NoUvFaceError as ex:
+            self.prefs.engine_retcode = UvpmRetCode.WARNING
             self.set_report('WARNING', str(ex))
-            # cancel = True
 
         except RuntimeError as ex:
             if in_debug_mode():
                 print_backtrace(ex)
 
+            self.prefs.engine_retcode = UvpmRetCode.FATAL_ERROR
             self.set_report('ERROR', str(ex))
             cancel = True
             
@@ -685,38 +708,68 @@ class UVPM3_OT_Engine(UVPM3_OT_Generic, DefaultFinishConditionMixin):
             if in_debug_mode():
                 print_backtrace(ex)
 
+            self.prefs.engine_retcode = UvpmRetCode.FATAL_ERROR
             self.set_report('ERROR', 'Unexpected error')
             cancel = True
 
-        # MUSTDO: is it needed?
-        # self.update_context_meshes()
-
         if cancel:
-            return self.cancel(context)
+            return self.cancel_op(context)
 
-        if self.scenario_in_progress():
-            if self.interactive:
-                wm = context.window_manager
-                self._timer = wm.event_timer_add(self.MODAL_INTERVAL_S, window=context.window)
-                wm.modal_handler_add(self)
-                return {'RUNNING_MODAL'}
+        try:
+            if self.scenario_in_progress():
+                if self.interactive:
+                    wm = context.window_manager
+                    self._timer = wm.event_timer_add(self.MODAL_INTERVAL_S, window=context.window)
+                    wm.modal_handler_add(self)
+                    return {'RUNNING_MODAL'}
 
-            class FakeTimerEvent:
-                def __init__(self):
-                    self.type = 'TIMER'
-                    self.value = 'NOTHING'
-                    self.ctrl = False
+                class FakeTimerEvent:
+                    def __init__(self):
+                        self.type = 'TIMER'
+                        self.value = 'NOTHING'
+                        self.ctrl = False
 
-            while True:
-                event = FakeTimerEvent()
+                while True:
+                    event = FakeTimerEvent()
 
-                ret = self.modal(context, event)
-                if ret.intersection({'FINISHED', 'CANCELLED'}):
-                    return ret
+                    ret = self.modal(context, event)
+                    if ret.intersection({'FINISHED', 'CANCELLED'}):
+                        return ret
 
-                time.sleep(self.MODAL_INTERVAL_S)
-        else:
-            self.post_main()
+                    time.sleep(self.MODAL_INTERVAL_S)
+            else:
+                self.post_main()
+
+        except RuntimeError as ex:
+            if in_debug_mode():
+                print_backtrace(ex)
+
+            self.prefs.engine_retcode = UvpmRetCode.FATAL_ERROR
+            self.set_report('ERROR', str(ex))
+            
+        except Exception as ex:
+            if in_debug_mode():
+                print_backtrace(ex)
+
+            self.prefs.engine_retcode = UvpmRetCode.FATAL_ERROR
+            self.set_report('ERROR', 'Unexpected error')
+
+        return {'FINISHED'}
+
+    def execute(self, context):
+
+        self.prefs = get_prefs()
+        self.prefs.engine_retcode = UvpmRetCode.NOT_SET
+
+        try:
+            return self.execute_internal(context)
+
+        except Exception as ex:
+            if in_debug_mode():
+                print_backtrace(ex)
+
+            self.prefs.engine_retcode = UvpmRetCode.FATAL_ERROR
+            self.set_report('ERROR', 'Unexpected error')
 
         return {'FINISHED'}
 
@@ -726,6 +779,9 @@ class UVPM3_OT_Engine(UVPM3_OT_Generic, DefaultFinishConditionMixin):
         if not self.isolated_execution():
             self.interactive = True
 
+        if hasattr(self, 'draw'):
+            return context.window_manager.invoke_props_dialog(self)
+            
         return self.execute(context)
 
     def send_unselected_islands(self):
@@ -759,9 +815,8 @@ class UVPM3_OT_Engine(UVPM3_OT_Generic, DefaultFinishConditionMixin):
 
         return self.mode_method_std_call(lambda: False, 'send_verts_3d')
 
-    def init_grouping_scheme(self):
+    def init_grouping_scheme(self, g_method):
 
-        g_method = self.get_group_method()
         g_scheme = UVPM3_GroupingScheme()
 
         if GroupingMethod.auto_grouping_enabled(g_method):
@@ -772,11 +827,15 @@ class UVPM3_OT_Engine(UVPM3_OT_Generic, DefaultFinishConditionMixin):
             g_scheme_access.init_access(self.context)
 
             if g_scheme_access.active_g_scheme is None:
-                raise RuntimeError('Manaul grouping requested but no grouping scheme was found - add a grouping scheme in the Grouping panel')
+                raise RuntimeError('Manual grouping requested but no grouping scheme was found - add a grouping scheme in the Island Grouping panel')
 
             g_scheme.copy_from(g_scheme_access.active_g_scheme)
 
         g_scheme.init_group_map(self.p_context, g_method)
+
+        if len(g_scheme.groups) == 0:
+            raise RuntimeError('Invalid grouping scheme')
+
         g_scheme.apply_tdensity_policy()
         g_scheme.apply_group_layout()
 

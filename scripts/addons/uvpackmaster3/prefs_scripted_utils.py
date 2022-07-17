@@ -1,6 +1,6 @@
 import bpy
 from bpy.props import IntProperty, FloatProperty, BoolProperty, StringProperty, EnumProperty, PointerProperty
-from .utils import parse_json_file, in_debug_mode, encode_string, print_debug, print_log, print_error, print_warning, log_separator
+from .utils import parse_json_file, in_debug_mode, encode_string, print_debug, print_log, print_error, print_warning, log_separator, process_file_path
 from .enums import RunScenario
 
 import os
@@ -17,7 +17,7 @@ SCENARIO_SCRIPT_FILENAME = "scenario.py"
 
 def load_scripted_pipeline(root=None):
     if root is None:
-        root = os.path.dirname(__file__)
+        root = os.path.dirname(process_file_path(__file__))
 
     run_scenarios_dir = os.path.join(root, SCRIPTED_PIPELINE_DIRNAME, SCENARIOS_DIRNAME)
     if not os.path.exists(run_scenarios_dir):
@@ -115,7 +115,7 @@ def scripted_pipeline_property_group(collection_name, parent, properties_classes
             if property_class_errors:
                 validate_errors.append(log_separator())
                 validate_errors.append("Property '{}' not created ({})".format(property_class.__name__,
-                                                                                      property_class_module.__file__))
+                                                                               process_file_path(property_class_module.__file__)))
                 validate_errors.extend(property_class_errors)
                 validate_errors.append(log_separator())
             else:

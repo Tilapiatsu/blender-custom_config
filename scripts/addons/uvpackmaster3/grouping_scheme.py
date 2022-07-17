@@ -24,7 +24,6 @@ def _update_grouping_scheme_name(self, context):
     self['name'] = unique_name(name, grouping_schemes, self)
 
 
-
 class UVPM3_GroupingScheme(UVPM3_GroupBase, metaclass=ShadowedPropertyGroupMeta):
 
     MIN_GROUP_NUM = 0
@@ -91,6 +90,7 @@ class UVPM3_GroupingScheme(UVPM3_GroupBase, metaclass=ShadowedPropertyGroupMeta)
 
         self.active_group_idx = int(other.active_group_idx)
         self.options.copy_from(other.options)
+        self.init_defaults()
 
     def copy(self):
 
@@ -197,7 +197,7 @@ class UVPM3_GroupingScheme(UVPM3_GroupBase, metaclass=ShadowedPropertyGroupMeta)
         group = self.group_by_name.get(g_name)
 
         if group is None:
-            group = self.add_group(g_name)
+            group = self.add_group_with_target_box(g_name)
 
         return group
 
@@ -211,7 +211,7 @@ class UVPM3_GroupingScheme(UVPM3_GroupBase, metaclass=ShadowedPropertyGroupMeta)
         default_group = self.get_group_by_num(self.DEFAULT_GROUP_NUM)
 
         if default_group is None:
-            default_group = self.add_group(g_num=self.DEFAULT_GROUP_NUM)
+            default_group = self.add_group_with_target_box(g_num=self.DEFAULT_GROUP_NUM)
 
         return default_group
 
@@ -410,16 +410,45 @@ class GroupingSchemeAccess:
 
     def init_access(self, context, ui_drawing=False):
         self.context = context
+        self.ui_drawing = ui_drawing
+        self.init_active_members()
+
+    def init_active_members(self):
         self.active_g_scheme = self.get_active_grouping_scheme()
 
-        if not ui_drawing and self.active_g_scheme is not None:
+        if not self.ui_drawing and self.active_g_scheme is not None:
             self.active_g_scheme.init_defaults()
 
         self.active_group = self.get_active_group()
-        self.active_target_box = self.get_active_target_box()        
+        self.active_target_box = self.get_active_target_box()
 
     def get_grouping_schemes(self):
         return self.context.scene.uvpm3_props.grouping_schemes
+
+    def get_grouping_schemes_enum_items(self):
+        items = []
+        grouping_schemes = self.get_grouping_schemes()
+        enumerated_grouping_schemes = list(enumerate(grouping_schemes))
+        enumerated_grouping_schemes.sort(key=lambda i: i[1].name)
+
+        for idx, grouping_scheme in enumerated_grouping_schemes:
+            items.append((str(idx), grouping_scheme.name, "", idx))
+        return items
+
+    @staticmethod
+    def get_grouping_schemes_enum_items_callback(property_self, context):
+        g_scheme_access = GroupingSchemeAccess()
+        g_scheme_access.init_access(context, ui_drawing=True)
+        return g_scheme_access.get_grouping_schemes_enum_items()
+
+    def create_grouping_scheme(self, set_active=True):
+        grouping_schemes = self.get_grouping_schemes()
+
+        new_grouping_scheme = grouping_schemes.add()
+        new_grouping_scheme.init_defaults()
+        new_grouping_scheme.add_group_with_target_box()
+        if set_active:
+            self.set_active_grouping_scheme_idx(len(grouping_schemes)-1)
 
     def get_active_grouping_scheme_idx(self):
         return self.context.scene.uvpm3_props.active_grouping_scheme_idx
@@ -453,6 +482,7 @@ class GroupingSchemeAccess:
 
     def set_active_grouping_scheme_idx(self, idx):
         self.context.scene.uvpm3_props.active_grouping_scheme_idx = idx
+        self.init_active_members()
 
     def impl_active_box(self):
         
@@ -481,15 +511,7 @@ class UVPM3_OT_NewGroupingScheme(UVPM3_OT_GroupingSchemeOperatorGeneric):
     bl_label = "New Grouping Scheme"
 
     def execute_impl(self, context):
-
-        grouping_schemes = self.get_grouping_schemes()
-
-        new_grouping_scheme = grouping_schemes.add()
-        new_grouping_scheme.init_defaults()
-        new_grouping_scheme.add_group_with_target_box()
-
-        self.set_active_grouping_scheme_idx(len(grouping_schemes)-1)
-
+        self.create_grouping_scheme()
         return {'FINISHED'}
 
 

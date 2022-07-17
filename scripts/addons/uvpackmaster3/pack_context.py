@@ -190,17 +190,22 @@ class PackIsland:
         self.p_obj.save_iparam(iparam_info, self.iparam_value(iparam_info), self.faces)
 
     def select_faces(self, island_faces, select):
-
+        
         if self.p_obj.p_context.context.tool_settings.use_uv_select_sync:
             for face_idx in island_faces:
                 face = self.p_obj.bm.faces[face_idx]
                 PackContext.select_face(face, select)
         else:
+            selecting_edges = bpy.app.version >= (3, 2, 0)
+            
             for face_idx in island_faces:
                 face = self.p_obj.bm.faces[face_idx]
 
                 for loop in face.loops:
-                    loop[self.p_obj.uv_layer].select = select
+                    uv_loop = loop[self.p_obj.uv_layer]
+                    uv_loop.select = select
+                    if selecting_edges:
+                        uv_loop.select_edge = select
 
     def select(self, select):
 
@@ -319,6 +324,17 @@ class PackObject:
         self.next_face_idx_offset += len(self.bm.faces)
         self.next_vert_idx_offset += len(self.bm.verts)
 
+        self.selected_faces_stored = []
+        self.visible_faces_stored = []
+
+        for face in self.bm.faces:
+            if self.face_is_visible(face):
+                self.visible_faces_stored.append(face)
+
+                if self.face_is_selected(face):
+                    self.selected_faces_stored.append(face)
+            
+
     def to_loc_face_idx(self, glob_face_idx):
         return glob_face_idx - self.face_idx_offset
 
@@ -371,6 +387,12 @@ class PackObject:
 
             return face_selected
 
+    def face_is_visible(self, f):
+        if self.p_context.context.tool_settings.use_uv_select_sync:
+            return not f.hide
+        else:
+            return f.select
+
     def get_or_create_vcolor_layer(self, iparam_info):
         
         # MUSTDO: implement layer caching
@@ -388,16 +410,6 @@ class PackObject:
             vcolor_layer = layer_container[vcolor_chname]
 
         return vcolor_layer
-
-    # def set_vcolor(self, iparam_info, value, faces=None):
-
-    #     vcolor_layer = self.get_or_create_vcolor_layer(iparam_info)
-
-    #     if faces is None:
-    #         faces = self.get_selected_faces()
-    #     for face in faces:
-    #         for loop in face.loops:
-    #             loop[vcolor_layer] = value
 
     def save_iparam(self, iparam_info, iparam_value, faces=None):
 
@@ -424,6 +436,8 @@ class PackObject:
 
 
 class PackContext:
+
+    UV_COORD_PRECISION = 5
 
     @classmethod
     def get_vcolor_layer_container(cls, bm):
@@ -489,12 +503,19 @@ class PackContext:
 
         next_face_idx_offset = 0
         next_vert_idx_offset = 0
+
+        self.total_selected_faces_stored_count = 0
+        self.total_visible_faces_stored_count = 0
         self.p_objects = []
 
         for obj in objs:
             p_obj = PackObject(self, obj, next_face_idx_offset, next_vert_idx_offset)
             next_face_idx_offset = p_obj.next_face_idx_offset
             next_vert_idx_offset = p_obj.next_vert_idx_offset
+
+            self.total_selected_faces_stored_count += len(p_obj.selected_faces_stored)
+            self.total_visible_faces_stored_count += len(p_obj.visible_faces_stored)
+
             self.p_objects.append(p_obj)
 
         self.total_face_count = next_face_idx_offset
@@ -562,7 +583,7 @@ class PackContext:
             assert(ip_serializer.iparam_info.index() == idx)
 
         for p_obj_idx, p_obj in enumerate(self.p_objects):
-            faces = p_obj.get_visible_faces() if send_unselected else p_obj.get_selected_faces()
+            faces = p_obj.visible_faces_stored if send_unselected else p_obj.selected_faces_stored
             
             for face in faces:
                 face_id_len_array.append(face.index + p_obj.face_idx_offset)
@@ -590,7 +611,7 @@ class PackContext:
 
 
                 for loop in face.loops:
-                    uv = loop[p_obj.uv_layer].uv.to_tuple(5)
+                    uv = loop[p_obj.uv_layer].uv.to_tuple(self.UV_COORD_PRECISION)
                     uv_coord_array.append(uv[0])
                     uv_coord_array.append(uv[1])
                     vert_idx_array.append(loop.vert.index + p_obj.vert_idx_offset)

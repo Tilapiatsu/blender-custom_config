@@ -140,7 +140,9 @@ class UVPM3_MT_SetPixelMarginTexSizeBase(UVPM3_MT_SetPropBase):
         (2048, '2K'),
         (4096, '4K'),
         (8192, '8K'),
-        (16384,'16K')]
+        (16384,'16K'),
+        (32768,'32K')
+    ]
 
 
 class UVPM3_MT_SetPixelMarginTexSizeScene(UVPM3_MT_SetPixelMarginTexSizeBase):

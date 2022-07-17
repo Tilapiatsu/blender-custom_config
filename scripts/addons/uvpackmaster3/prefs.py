@@ -306,6 +306,11 @@ class UVPM3_SceneProps(bpy.types.PropertyGroup):
 
     # ------ Aligning properties ------ #
 
+    simi_mode : EnumProperty(
+        items=UvpmSimilarityMode.to_blend_items(),
+        name=Labels.SIMI_MODE_NAME,
+        description=Labels.SIMI_MODE_DESC)
+
     simi_threshold : FloatProperty(
         name=Labels.SIMI_THRESHOLD_NAME,
         description=Labels.SIMI_THRESHOLD_DESC,
@@ -319,11 +324,6 @@ class UVPM3_SceneProps(bpy.types.PropertyGroup):
         description=Labels.SIMI_ADJUST_SCALE_DESC,
         default=False)
 
-    simi_check_vertices : BoolProperty(
-        name=Labels.SIMI_CHECK_VERTICES_NAME,
-        description=Labels.SIMI_CHECK_VERTICES_DESC,
-        default=False)
-
     simi_correct_vertices : BoolProperty(
         name=Labels.SIMI_CORRECT_VERTICES_NAME,
         description=Labels.SIMI_CORRECT_VERTICES_DESC,
@@ -334,9 +334,9 @@ class UVPM3_SceneProps(bpy.types.PropertyGroup):
         description=Labels.SIMI_VERTEX_THRESHOLD_DESC,
         default=0.01,
         min=0.0,
-        max=0.1,
-        precision=3,
-        step=1.0)
+        max=0.05,
+        precision=4,
+        step=1.0e-1)
 
     align_priority_enable : BoolProperty(
         name=Labels.ALIGN_PRIORITY_ENABLE_NAME,
@@ -414,7 +414,6 @@ class UVPM3_Preferences(AddonPreferences):
         return tex_size
 
     def fixed_scale_supported(self, scene_props):
-
         return True, ''
 
     def fixed_scale_enabled(self, scene_props):
@@ -500,6 +499,20 @@ class UVPM3_Preferences(AddonPreferences):
         box = col.box()
         row = box.row(align=True)
         row.prop(self, 'append_mode_name_to_op_label')
+
+        # adv_op_box = col.box()
+        adv_op_layout = col # adv_op_box.column(align=True)
+        adv_op_layout.separator()
+        adv_op_layout.label(text='Expert options:')
+
+        UVPM3_OT_ShowHideAdvancedOptions.draw_operator(adv_op_layout)
+        if self.show_expert_options:
+            box = adv_op_layout.box()
+            box.label(text='Change expert options only if you really know what you are doing.', icon='ERROR')
+
+            box = adv_op_layout.box()
+            row = box.row(align=True)
+            row.prop(self, 'disable_immediate_uv_update')
 
     def draw(self, context):
         layout = self.layout
@@ -729,6 +742,20 @@ class UVPM3_Preferences(AddonPreferences):
         max=10.0,
         step=5.0)
 
+    
+    #Expert options
+    show_expert_options : BoolProperty(
+        name=Labels.SHOW_EXPERT_OPTIONS_NAME,
+        description=Labels.SHOW_EXPERT_OPTIONS_DESC,
+        default = False
+    )
+
+    disable_immediate_uv_update : BoolProperty(
+        name=Labels.DISABLE_IMMEDIATE_UV_UPDATE_NAME,
+        description=Labels.DISABLE_IMMEDIATE_UV_UPDATE_DESC,
+        default = False
+    )
+
 
     dev_array = []
     saved_dev_settings : CollectionProperty(type=UVPM3_SavedDeviceSettings)
@@ -761,3 +788,48 @@ class UVPM3_Preferences(AddonPreferences):
                                   (UVPM3_SceneProps, UVPM3_Preferences))
 class UVPM3_ScriptedPipelineProperties(bpy.types.PropertyGroup):
     pass
+
+
+class UVPM3_OT_ShowHideAdvancedOptions(bpy.types.Operator):
+
+    bl_label = 'Show Expert Options'
+    bl_idname = 'uvpackmaster3.show_hide_expert_options'
+
+    @staticmethod
+    def get_label():
+        prefs = get_prefs()
+        return 'Hide Expert Options' if prefs.show_expert_options else 'Show Expert Options'
+
+    @classmethod
+    def draw_operator(cls, layout):
+        layout.operator(cls.bl_idname, text=cls.get_label())
+
+    def draw(self, context):
+        layout = self.layout
+        col = layout.column()
+
+        for label in self.confirmation_labels:
+            col.label(text=label)
+
+    def execute(self, context):
+        prefs = get_prefs()
+        prefs.show_expert_options = not prefs.show_expert_options
+
+        from .utils import redraw_ui
+        redraw_ui(context)
+
+        return {'FINISHED'}
+
+    def invoke(self, context, event):
+        prefs = get_prefs()
+
+        if not prefs.show_expert_options:
+            self.confirmation_labels =\
+                [ 'WARNING: expert options should NEVER be changed under the standard packer usage.',
+                  'You should only change them if you really know what you are doing.',
+                  'Are you sure you want to show the expert options?' ]
+
+            wm = context.window_manager
+            return wm.invoke_props_dialog(self, width=700)
+
+        return self.execute(context)

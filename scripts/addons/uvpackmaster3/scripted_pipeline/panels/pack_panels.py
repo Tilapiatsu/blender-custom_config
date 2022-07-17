@@ -244,7 +244,7 @@ class UVPM3_PT_NonSquarePacking(UVPM3_PT_SubPanel):
         layout = self.layout
         col = layout.column(align=True)
 
-        self.operator_with_help(UVPM3_OT_AdjustIslandsToTexture.bl_idname, col)
+        self.operator_with_help(UVPM3_OT_AdjustIslandsToTexture.bl_idname, col, self.HELP_URL_SUFFIX)
 
         row = col.row(align=True)
         row.operator(UVPM3_OT_UndoIslandsAdjustemntToTexture.bl_idname)
@@ -386,7 +386,7 @@ class UVPM3_PT_Help(UVPM3_PT_SubPanel):
         if not self.scene_props.rotation_enable:
             hints.append('Packing will not be optimal with island rotations disabled. Disabling rotations might be reasonable only if you really need to improve the packing speed.')
         else:
-            if self.scene_props.rotation_step not in UVPM3_MT_SetRotStepScene.STEPS:
+            if self.scene_props.rotation_step not in UVPM3_MT_SetRotStepScene.VALUES:
                 hints.append("It is usually recommended that the Rotation Step value is a divisor of 90 (or 180 at rare cases). You can use the 'Set' menu, next to the 'Rotation Step' parameter, to choose a step from the set of all recommended values.")
 
         if self.prefs.FEATURE_island_rotation and self.scene_props.pre_rotation_disable:

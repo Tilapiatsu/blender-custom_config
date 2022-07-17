@@ -179,19 +179,8 @@ class GroupIParamInfoGeneric(StaticIParamInfo):
         (0.5,   1.0,    0.0),
     ]
 
-    
     def param_to_color(self, value):
         return rgb_to_rgba(self.GROUP_COLORS[int(value) % len(self.GROUP_COLORS)])
-
-
-class GroupIParamInfo(GroupIParamInfoGeneric):
-
-    LABEL = 'Group'
-    SCRIPT_NAME = 'group'
-
-    MIN_VALUE = 0
-    MAX_VALUE = 100
-    
 
 
 class RotStepIParamInfo(StaticIParamInfo):

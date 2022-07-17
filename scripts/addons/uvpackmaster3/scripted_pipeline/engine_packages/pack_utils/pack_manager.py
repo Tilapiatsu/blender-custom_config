@@ -26,16 +26,19 @@ def pack_manager_result_handler(self, task, result):
         return
 
     assert(self.result_count == len(self.tasks))
-    if new_result:
-        self.scenario.send_out_islands([result.islands for result in self.result_array] + [result.non_packed_islands for result in self.result_array], send_transform=True)
-    else:
-        self.scenario.send_out_islands([result.islands, result.non_packed_islands], send_transform=True)
+    if not self.scenario.config.disable_immediate_uv_update:
+        if new_result:
+            self.scenario.send_out_islands([result.islands for result in self.result_array] + [result.non_packed_islands for result in self.result_array], send_transform=True)
+        else:
+            self.scenario.send_out_islands([result.islands, result.non_packed_islands], send_transform=True)
 
     if self.log_result_area:
         area_sum = 0.0
         for result in self.result_array:
             area_sum += result.islands.area()
-        packer.send_log(LogType.INFO, "New result area: {}".format(area_to_string(area_sum)))
+
+        if area_sum > 0.0:
+            packer.send_log(LogType.INFO, "New result area: {}".format(area_to_string(area_sum)))
 
 
 class PackManager:
@@ -107,6 +110,7 @@ class PackManager:
 
         ret_code = RetCode.NOT_SET
         self.packed_islands = IslandSet()
+        self.non_packed_islands = IslandSet()
         self.invalid_islands = IslandSet()
 
         for task in self.tasks:
@@ -120,5 +124,10 @@ class PackManager:
 
             if solution_available(result.ret_code):
                 self.packed_islands += result.islands
+                if result.non_packed_islands is not None:
+                    self.non_packed_islands += result.non_packed_islands
+
+        if self.scenario.config.disable_immediate_uv_update and solution_available(ret_code):
+            self.scenario.send_out_islands([self.packed_islands, self.non_packed_islands], send_transform=True)
 
         return ret_code

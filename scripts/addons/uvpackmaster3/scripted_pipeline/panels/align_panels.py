@@ -34,29 +34,28 @@ class UVPM3_PT_SimilarityOptions(UVPM3_PT_SubPanel):
         layout = self.layout
         col = layout.column(align=True)
 
-        col.prop(self.scene_props, "precision")
+        mode_col = self.draw_enum_in_box(self.scene_props, "simi_mode", Labels.SIMI_MODE_NAME, col)
 
-        row = col.row(align=True)
-        row.prop(self.scene_props, 'simi_threshold')
+        if UvpmSimilarityMode.is_vertex_based(self.scene_props.simi_mode):
+            box = mode_col.box()
+            row = box.row()
+            row.prop(self.scene_props, 'simi_correct_vertices')
+
+            row = mode_col.row(align=True)
+            row.prop(self.scene_props, 'simi_vertex_threshold')
+
+        else:
+            mode_col.prop(self.scene_props, "precision")
+
+            row = mode_col.row(align=True)
+            row.prop(self.scene_props, 'simi_threshold')
+
 
         box = col.box()
         row = box.row(align=True)
         row.prop(self.scene_props, 'simi_adjust_scale')
 
-        box = col.box()
-        row = box.row()
-        row.prop(self.scene_props, 'simi_check_vertices')
-
-        box = col.box()
-        row = box.row()
-        row.prop(self.scene_props, 'simi_correct_vertices')
-        row.enabled = self.scene_props.simi_check_vertices
-
-        row = col.row(align=True)
-        row.prop(self.scene_props, 'simi_vertex_threshold')
-        row.enabled = self.scene_props.simi_check_vertices
-
-        col.separator()
+        # col.separator()
 
 
 

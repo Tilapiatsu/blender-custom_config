@@ -29,7 +29,7 @@ class Scenario(GenericScenario):
 
         if valid_count == 0:
             packer.send_log(LogType.STATUS, 'No valid unselected island found - adjustment could not be made')
-            return RetCode.SUCCESS
+            return RetCode.WARNING
 
         avg_scale_ratio /= valid_count
         out_islands = IslandSet()

@@ -92,9 +92,13 @@ class UVPM3_OT_LoadGroupingSchemePreset(LoadPresetInvokeHelper, GroupingSchemePr
     def translate_props_1to2(self, props_dict):
         pass
 
+    def translate_props_2to3(self, props_dict):
+        pass
+
     def translate_props(self, grouping_scheme_version, props_dict):
         translate_array = [
-            self.translate_props_1to2
+            self.translate_props_1to2,
+            self.translate_props_2to3
         ]
 
         for i in range(grouping_scheme_version - UvpmVersionInfo.GROUPING_SCHEME_VERSION_FIRST_SUPPORTED, len(translate_array)):

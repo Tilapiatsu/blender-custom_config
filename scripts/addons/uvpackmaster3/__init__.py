@@ -21,8 +21,8 @@ module_loader.unload_uvpm3_modules(locals())
 bl_info = {
     "name": "UVPackmaster3",
     "author": "glukoz",
-    "version": (3, 0, 6),
-    "blender": (3, 1, 0),
+    "version": (3, 1, 0),
+    "blender": (3, 2, 0),
     "location": "",
     "description": "",
     "warning": "",
@@ -99,6 +99,7 @@ if inside_blender:
         UVPM3_MT_BrowseModes,
         UVPM3_OT_SelectMode,
 
+        UVPM3_OT_ShowHideAdvancedOptions,
         UVPM3_OT_SetEnginePath,
         UVPM3_OT_AdjustIslandsToTexture,
         UVPM3_OT_UndoIslandsAdjustemntToTexture,
@@ -119,6 +120,7 @@ if inside_blender:
         UVPM3_OT_SetManualGroupIParam,
         UVPM3_OT_ResetManualGroupIParam,
         UVPM3_OT_SelectManualGroupIParam,
+        UVPM3_OT_ApplyGroupingToScheme,
 
         UVPM3_OT_ShowLockGroupIParam,
         UVPM3_OT_SetLockGroupIParam,

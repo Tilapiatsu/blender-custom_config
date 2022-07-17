@@ -17,7 +17,7 @@
 # ##### END GPL LICENSE BLOCK #####
 
 
-from .grouping_scheme import GroupingSchemeAccess
+from .grouping_scheme import GroupingSchemeAccess, UVPM3_GroupingScheme
 from .utils import *
 from .pack_context import *
 # from .prefs import *
@@ -265,10 +265,12 @@ class UVPM3_OT_ScaleLimitResetIParam(UVPM3_OT_ScaleLimitIParamGeneric, UVPM3_OT_
 
 class UVPM3_OT_ManualGroupIParamGeneric(GroupingSchemeAccess):
 
+    def execute_internal(self, context):
+        self.init_access(context)
+        return super().execute_internal(context)
+
     def get_iparam_info(self):
         
-        self.init_access(self.context)
-
         if self.active_g_scheme is None or self.active_group is None:
             raise RuntimeError('No active grouping scheme or group')
 
@@ -293,6 +295,7 @@ class UVPM3_OT_ManualGroupIParamGeneric(GroupingSchemeAccess):
         return []
 
 
+
 class UVPM3_OT_ShowManualGroupIParam(UVPM3_OT_ManualGroupIParamGeneric, UVPM3_OT_ShowIParam):
 
     bl_idname = 'uvpackmaster3.uv_show_manual_group_iparam'
@@ -305,7 +308,6 @@ class UVPM3_OT_SetManualGroupIParam(UVPM3_OT_ManualGroupIParamGeneric, UVPM3_OT_
     bl_idname = 'uvpackmaster3.set_island_manual_group'
     bl_label = 'Assign Islands To The Group'
     bl_description = "Assign the selected islands to the active group"
-
 
 class UVPM3_OT_ResetManualGroupIParam(UVPM3_OT_ManualGroupIParamGeneric, UVPM3_OT_ResetIParam):
 
@@ -323,6 +325,96 @@ class UVPM3_OT_SelectManualGroupIParam(UVPM3_OT_ManualGroupIParamGeneric, UVPM3_
     bl_description = "Select / deselect all islands which are assigned to the active group"
 
 
+class UVPM3_OT_ApplyGroupingToScheme(UVPM3_OT_ManualGroupIParamGeneric, UVPM3_OT_ShowIParam):
+
+    bl_idname = 'uvpackmaster3.apply_grouping_to_scheme'
+    bl_label = 'Apply Grouping To Scheme'
+    bl_description = "Create or extend a manual grouping scheme using the currently selected automatic grouping method"
+
+    apply_action : EnumProperty(name="Action", items=[("NEW", "Create A New Scheme", "Create A New Scheme", 0),
+                                                      ("EXTEND", "Apply To An Existing Scheme", "Apply To An Existing Scheme", 1)])
+    name : StringProperty(name="Name", default=UVPM3_GroupingScheme.DEFAULT_GROUPING_SCHEME_NAME)
+    scheme : EnumProperty(name="Grouping Schemes", items=GroupingSchemeAccess.get_grouping_schemes_enum_items_callback)
+
+    def pre_operation(self):
+        create_new_grouping_scheme = self.apply_action == "NEW"
+
+        if not create_new_grouping_scheme and len(self.get_grouping_schemes()) == 0:
+            raise RuntimeError('No grouping scheme in the blend file found')
+
+        generated_grouping_scheme = self.init_grouping_scheme(self.scene_props.group_method)
+
+        if create_new_grouping_scheme:
+            self.create_grouping_scheme()
+        else:
+            self.set_active_grouping_scheme_idx(int(self.scheme))
+
+        target_grouping_scheme = self.active_g_scheme
+
+        if create_new_grouping_scheme:
+            target_grouping_scheme.copy_from(generated_grouping_scheme)
+            target_grouping_scheme.name = self.name
+            target_group_map = generated_grouping_scheme.group_map
+        else:
+            target_group_map = self.extend_grouping_scheme(target_grouping_scheme, generated_grouping_scheme)
+
+        target_iparam_info = target_grouping_scheme.get_iparam_info()
+
+        for target_group in target_grouping_scheme.groups:
+            for p_obj in self.p_context.p_objects:
+                p_obj_faces = [f for f in p_obj.selected_faces_stored if target_group_map.get_map(p_obj, f.index) == target_group.num]
+                p_obj.save_iparam(target_iparam_info, target_group.num, p_obj_faces)
+
+        self.scene_props.group_method = GroupingMethod.MANUAL.code
+        super().pre_operation()
+
+    def extend_grouping_scheme(self, target_grouping_scheme, generated_grouping_scheme):
+        groups_num_map = {}
+        target_grouping_scheme.init_defaults()
+        target_grouping_scheme.init_group_map(self.p_context, GroupingMethod.MANUAL.code)
+
+        for generated_group in generated_grouping_scheme.groups:
+            target_group = target_grouping_scheme.get_group_by_name(generated_group.name)
+            groups_num_map[generated_group.num] = target_group.num
+
+        generated_group_map = generated_grouping_scheme.group_map
+        target_group_map = target_grouping_scheme.group_map
+        for face_idx, generated_group_num in enumerate(generated_group_map.map):
+            if generated_group_num in groups_num_map:
+                target_group_map.map[face_idx] = groups_num_map[generated_group_num]
+                
+        return target_group_map
+
+    def invoke(self, context, event):
+        scene_props = context.scene.uvpm3_props
+        group_method_label = scene_props.bl_rna.properties['group_method'].enum_items[scene_props.group_method].name
+        self.name = "Scheme '{}'".format(group_method_label)
+
+        return super().invoke(context, event)
+
+    def draw(self, context):
+        self.init_access(context, ui_drawing=True)
+        create_new_grouping_scheme = self.apply_action == "NEW"
+
+        layout = self.layout
+        layout.prop(self, "apply_action", text="")
+
+        row = layout.row(align=True)
+
+        if create_new_grouping_scheme:
+            split = row.split(factor=0.4, align=True)
+            split.label(text="New Scheme Name:")
+            row = split.row(align=True)
+            row.prop(self, "name", text="")
+        else:
+            if len(self.get_grouping_schemes()) == 0:
+                row.label(text='WARNING: no grouping scheme in the blend file found.')
+            else:
+                split = row.split(factor=0.4, align=True)
+                split.label(text="Apply To Scheme:")
+                row = split.row(align=True)
+                row.prop(self, "scheme", text="")
+                
 
 # LOCK GROUP
 

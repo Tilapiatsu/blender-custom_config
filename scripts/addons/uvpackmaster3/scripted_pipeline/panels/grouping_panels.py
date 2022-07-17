@@ -20,7 +20,7 @@ from ...utils import get_prefs, in_debug_mode
 from ...panel import UVPM3_PT_Registerable, GroupingSchemeAccess
 from ...labels import Labels
 from ...enums import GroupLayoutMode, TexelDensityGroupPolicy
-from ...operator_islands import UVPM3_OT_SetManualGroupIParam, UVPM3_OT_SelectManualGroupIParam, UVPM3_OT_ShowManualGroupIParam
+from ...operator_islands import UVPM3_OT_SetManualGroupIParam, UVPM3_OT_SelectManualGroupIParam, UVPM3_OT_ShowManualGroupIParam, UVPM3_OT_ApplyGroupingToScheme
 from ...presets_grouping_scheme import UVPM3_PT_PresetsGroupingScheme
 
 from ...grouping_scheme import\
@@ -65,6 +65,7 @@ class UVPM3_PT_Grouping(UVPM3_PT_GroupingBase):
     # bl_options = {'DEFAULT_CLOSED'}
 
     PANEL_PRIORITY = 800
+    APPLY_GROUPING_TO_SCHEME_HELP_URL_SUFFIX = '30-packing-modes/30-groups-to-tiles/#apply-automatic-grouping-to-a-grouping-scheme'
 
     def draw_grouping_schemes_presets(self, context, layout):
         layout.emboss = 'NONE'
@@ -112,7 +113,6 @@ class UVPM3_PT_Grouping(UVPM3_PT_GroupingBase):
         row.prop(self.scene_props, "group_method", text='')
 
         if self.scene_props.auto_grouping_enabled():
-
             if self.should_draw_grouping_options():
                 options_box = col.box()
                 options_col = options_box.column(align=True)
@@ -120,6 +120,9 @@ class UVPM3_PT_Grouping(UVPM3_PT_GroupingBase):
                 # options_box = options_col.box()
 
                 self.draw_grouping_options(self.scene_props.auto_group_options, options_col)
+            
+            box = col.box()
+            self.operator_with_help(UVPM3_OT_ApplyGroupingToScheme.bl_idname, box, self.APPLY_GROUPING_TO_SCHEME_HELP_URL_SUFFIX)
 
         else:
             # col.separator()

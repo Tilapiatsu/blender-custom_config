@@ -101,6 +101,12 @@ class GroupingScheme:
                         return
 
 
+class ScenarioConfig:
+
+    def __init__(self, params):
+        self.skip_topology_parsing = params['__skip_topology_parsing']
+        self.disable_immediate_uv_update = params['__disable_immediate_uv_update']
+
 class GenericScenario:
 
     GROUPING_SCHEME_PARAM_NAME = '__grouping_scheme'
@@ -109,6 +115,8 @@ class GenericScenario:
         self.cx = cx
         self.iparams_manager = packer.std_iparams_manager()
         self.g_scheme = None
+        self.config = ScenarioConfig(self.cx.params)
+
 
     def handle_invalid_topology(self, invalid_islands):
 
@@ -130,7 +138,7 @@ class GenericScenario:
 
     def init(self):
 
-        if not self.cx.params['__skip_topology_parsing']:
+        if not self.config.skip_topology_parsing:
             self.parse_topology()
 
         in_g_scheme = self.cx.params[self.GROUPING_SCHEME_PARAM_NAME]
@@ -165,7 +173,7 @@ class GenericScenario:
             self.init()
             self.pre_run()
             ret_code = self.run()
-            self.post_run(ret_code)
+            ret_code = self.post_run(ret_code)
 
         except InputError as err:
             packer.send_log(LogType.ERROR, str(err))
@@ -184,4 +192,4 @@ class GenericScenario:
         pass
     
     def post_run(self, ret_code):
-        pass
+        return ret_code

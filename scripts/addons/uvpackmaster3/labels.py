@@ -188,20 +188,29 @@ class Labels:
     ADVANCED_HEURISTIC_NAME='Advanced Heuristic'
     ADVANCED_HEURISTIC_DESC="Use an advanced method during a heuristic search. With this option enabled add-on will examine a broader set of solutions when searching for the optimal one. This method is most useful when packing a limited number of islands - in such case it allows to find a better solution than if using the simple method. Enabling this option is not recommended when packing a UV map containing a greater number of islands"
 
+    SIMI_VERTEX_THRESHOLD_NAME='Vertex Threshold'
+    SIMI_VERTEX_THRESHOLD_DESC='Maximum distance below which two vertices are considered as matching'
+
+    SIMI_MODE_NAME='Similarity Mode'
+    SIMI_MODE_DESC='Defines the way in which the packer determines whether two UV islands are similar'
+
+    SIMI_MODE_BORDER_SHAPE_NAME='Border Shape'
+    SIMI_MODE_BORDER_SHAPE_DESC='Two islands are considered similar, if shapes of their borders are similar. In this mode only the position of vertices which determine the island border are taken into consideration - the internal vertices and redundant border vertices are ignored'
+
+    SIMI_MODE_VERTEX_POSITION_NAME='Vertex Position'
+    SIMI_MODE_VERTEX_POSITION_DESC='Two islands are considered similar, if the number of vertices and their relative position match. In this mode the position of all island vertices are taken into account, but the island topology (how the vertices are connected to each other) is ignored'
+
+    SIMI_MODE_TOPOLOGY_NAME='Topology'
+    SIMI_MODE_TOPOLOGY_DESC="Two islands are considered similar, if the number of vertices and their relative position match and also island topologies are the same. In this mode not only the position of all island vertices are taken into account, but also the island topology (how vertices are connected to each other). WARNING: the {0} mode is the most expensive mode from the computing and memory perspective, that is why it is not recommend to use it with UV islands with a huge number of vertices (10000 vertices or more). If you require aligning with vertex correction for such islands, use the {1} mode first and switch to the {0} mode only if you didn't receive desired results. If you have to use the {0} mode for heavy UV islands, make sure the {2} parameter is set to the lowest value which gives you the expected outcome".format(SIMI_MODE_TOPOLOGY_NAME, SIMI_MODE_VERTEX_POSITION_NAME, SIMI_VERTEX_THRESHOLD_NAME)
+
     SIMI_THRESHOLD_NAME='Similarity Threshold'
-    SIMI_THRESHOLD_DESC="A greater value of this parameter means islands will be more likely recognized as a similar in shape. A lower value means more accurate distinction. For more info regarding similarity detection click the help button"
+    SIMI_THRESHOLD_DESC="A greater value of this parameter means island borders will be more likely recognized as a similar in shape. A lower value means more accurate distinction. For more info regarding similarity detection click the help button"
 
     SIMI_ADJUST_SCALE_NAME='Adjust Scale'
     SIMI_ADJUST_SCALE_DESC='Scale islands to the same size before determining whether they are similar'
 
-    SIMI_CHECK_VERTICES_NAME='Check Vertices'
-    SIMI_CHECK_VERTICES_DESC='Consider islands as similar only if they have matching vertices (not only outer shape)'
-
     SIMI_CORRECT_VERTICES_NAME='Correct Vertices'
-    SIMI_CORRECT_VERTICES_DESC="Correct position of matching UV vertices of similar islands so they are placed on the top of each other after aligning. This option is only available when the '{}' option is enabled".format(SIMI_CHECK_VERTICES_NAME)
-
-    SIMI_VERTEX_THRESHOLD_NAME='Vertex Threshold'
-    SIMI_VERTEX_THRESHOLD_DESC='Maximum distance below which two vertices are considered as matching'
+    SIMI_CORRECT_VERTICES_DESC="Correct position of matching UV vertices of similar islands so they are placed on the top of each other after aligning"
 
     ALIGN_PRIORITY_ENABLE_NAME='Enable Align Priority'
     ALIGN_PRIORITY_ENABLE_DESC='Control which island is aligned (moved) onto another when two islands are considered similar by the packer (check the mode documentation for more details)'
@@ -246,6 +255,13 @@ class Labels:
     BOX_RENDER_LINE_WIDTH_NAME="Box Border Width"
     BOX_RENDER_LINE_WIDTH_DESC="Determines the width of box borders rendered in the UV editor during the operation. WARNING: setting width to a low value is not recommended"
 
+    # Expert options
+    SHOW_EXPERT_OPTIONS_NAME = 'Show Expert Options'
+    SHOW_EXPERT_OPTIONS_DESC = ''
+
+    DISABLE_IMMEDIATE_UV_UPDATE_NAME = 'Disable Immediate UV Update'
+    DISABLE_IMMEDIATE_UV_UPDATE_DESC = 'By default, when performing a heuristic search, the packer updates the UV map in Blender immediately as soon as it finds a better result. When this option is enabled, the packer will not do such immediate updates - it will only report the area, when a better result is found, but the UV map will stay intact in Blender during the entire search. The UV map will be updated with the best result only once, after the search is done. The purpose of this option is to optimize the packer operation, when packing a UV map containing a huge number of UV faces (a few millions and more) - it should NOT be used during the standard packer usage'
+
 
 class PropConstants:
 
@@ -257,19 +273,19 @@ class PropConstants:
     ROTATION_STEP_DEFAULT = 90
 
     PIXEL_MARGIN_MIN = 1
-    PIXEL_MARGIN_MAX = 100
+    PIXEL_MARGIN_MAX = 256
     PIXEL_MARGIN_DEFAULT = 5
 
     PIXEL_PADDING_MIN = 0
-    PIXEL_PADDING_MAX = 100
+    PIXEL_PADDING_MAX = 256
     PIXEL_PADDING_DEFAULT = 0
 
     EXTRA_PIXEL_MARGIN_TO_OTHERS_MIN = 0
-    EXTRA_PIXEL_MARGIN_TO_OTHERS_MAX = 100
+    EXTRA_PIXEL_MARGIN_TO_OTHERS_MAX = 128
     EXTRA_PIXEL_MARGIN_TO_OTHERS_DEFAULT = 0
 
     PIXEL_MARGIN_TEX_SIZE_MIN = 16
-    PIXEL_MARGIN_TEX_SIZE_MAX = 16384	
+    PIXEL_MARGIN_TEX_SIZE_MAX = 32768	
     PIXEL_MARGIN_TEX_SIZE_DEFAULT = 1024
 
     TILES_IN_ROW_DEFAULT = 10

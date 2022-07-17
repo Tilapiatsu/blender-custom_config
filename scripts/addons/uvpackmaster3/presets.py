@@ -30,6 +30,7 @@ from .version import UvpmVersionInfo
 from .utils import get_prefs, in_debug_mode, print_backtrace, redraw_ui, print_warning, __ShadowPropertyGroup__
 from .box_utils import disable_box_rendering
 from .os_iface import os_simulate_esc_event
+from .enums import UvpmSimilarityMode
 
 
 PRESET_FILENAME_EXT = "uvpmp"
@@ -303,12 +304,22 @@ class UVPM3_OT_LoadPresetBase(bpy.types.Operator):
     def translate_props_13to14(self, props_dict):
         pass
 
+    def translate_props_14to15(self, props_dict):
+        
+        props_dict['simi_mode'] = UvpmSimilarityMode.VERTEX_POSITION.code if props_dict['simi_check_vertices'] else UvpmSimilarityMode.BORDER_SHAPE.code
+        del props_dict['simi_check_vertices']
+
+    def translate_props_15to16(self, props_dict):
+        pass
+
     def translate_props(self, preset_version, props_dict):
 
         translate_array = [
             self.translate_props_11to12,
             self.translate_props_12to13,
-            self.translate_props_13to14
+            self.translate_props_13to14,
+            self.translate_props_14to15,
+            self.translate_props_15to16
         ]
 
         for i in range(preset_version - UvpmVersionInfo.PRESET_VERSION_FIRST_SUPPORTED, len(translate_array)):
