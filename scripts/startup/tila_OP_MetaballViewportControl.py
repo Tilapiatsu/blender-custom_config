@@ -1,11 +1,11 @@
 import bpy, bpy_extras, gpu, bgl, blf
 from gpu_extras.batch import batch_for_shader
-from mathutils import Vector
-import math, time
+from bl_ui.space_statusbar import STATUSBAR_HT_header as statusbar
+import math
 
 bl_info = {
-	"name": "Metaballs",
-	"description": "Facilitate the edit of Metaballs in viewport",
+	"name": "Metaball Viewport Control",
+	"description": "Facilitate the edition of Metaballs in viewport",
 	"author": ("Tilapiatsu"),
 	"version": (1, 0, 0),
 	"blender": (3, 20, 0),
@@ -60,10 +60,9 @@ class TILA_metaball_adjust_parameter(bpy.types.Operator):
 		return selected_elements
 
 	def modal(self, context, event):
-		if event.type == 'ESC':
-			self.cancelling = True
-
 		# print(event.value, event.type)
+		if event.type in ['ESC', 'RIGHTMOUSE']:
+			self.cancelling = True
 
 		if self.cancelling:
 			self.revert_initial_values()
@@ -71,9 +70,8 @@ class TILA_metaball_adjust_parameter(bpy.types.Operator):
 			self.report({'INFO'}, f'{self.param.lower()} adjust cancelled')
 			return {"CANCELLED"}
 
-		if event.value == 'CLICK' or (event.value == 'PRESS' and event.type == 'ENTER'):
+		if event.type in ['RET', 'NUMPAD_ENTER', 'LEFTMOUSE']:
 			self.report({'INFO'}, f'Adjust {self.param.lower()} complete')
-			# bpy.context.window_manager.event_timer_remove(self._timer)
 			bpy.types.SpaceView3D.draw_handler_remove(self._value_handler, 'WINDOW')
 			return {"FINISHED"}
 
@@ -87,6 +85,10 @@ class TILA_metaball_adjust_parameter(bpy.types.Operator):
 		if self.active_object is None:
 			return {"CANCELLED"}
 
+		if self.active_object.type not in self.compatible_type:
+			self.report({'ERROR'}, 'Selected object not compatible')
+			return {"CANCELLED"}
+
 		if self.param != 'RESOLUTION' and not len(self.selected_elements):
 			return {"CANCELLED"}
 
@@ -96,7 +98,7 @@ class TILA_metaball_adjust_parameter(bpy.types.Operator):
 
 		self.get_initial_value()
 
-		self._value_handler = bpy.types.SpaceView3D.draw_handler_add(self.draw_value, (), 'WINDOW', 'POST_PIXEL')
+		self._value_handler = bpy.types.SpaceView3D.draw_handler_add(self.draw_HUD, (), 'WINDOW', 'POST_PIXEL')
 
 		bpy.context.window_manager.modal_handler_add(self)
 
@@ -159,7 +161,7 @@ class TILA_metaball_adjust_parameter(bpy.types.Operator):
 			for i, e in enumerate(self.active_object.data.elements):
 				setattr(e, self.param.lower(), self.initial_value[i])
 
-	def draw_value(self):
+	def draw_HUD(self):
 		font_id = 0
 		blf.size(font_id, font_size, 72)
 
@@ -188,6 +190,8 @@ class TILA_metaball_type_cycle(bpy.types.Operator):
 	direction : bpy.props.EnumProperty(name="Direction", items=[("NEXT", "Next", ""), ("PREVIOUS", "Previous", "")])
 	type_list = ['BALL', 'CAPSULE', 'PLANE', 'ELLIPSOID', 'CUBE']
 
+	compatible_type = ['META']
+	
 	@property
 	def selected_elements(self):
 		if self.active_object is None:
@@ -202,11 +206,15 @@ class TILA_metaball_type_cycle(bpy.types.Operator):
 		self.active_object = bpy.context.object
 		if self.active_object is None:
 			return {"CANCELLED"}
-		
+
+		if self.active_object.type not in self.compatible_type:
+			self.report({'ERROR'}, 'Selected object not compatible')
+			return {"CANCELLED"}
+
 		if not len(self.selected_elements):
 			return {"CANCELLED"}
 
-		self._drawer = bpy.types.SpaceView3D.draw_handler_add(self.draw_value, (), 'WINDOW', 'POST_PIXEL')
+		self._drawer = bpy.types.SpaceView3D.draw_handler_add(self.draw_HUD, (), 'WINDOW', 'POST_PIXEL')
 
 		wm = context.window_manager
 		self._timer = wm.event_timer_add(0.1, window=context.window)
@@ -240,7 +248,7 @@ class TILA_metaball_type_cycle(bpy.types.Operator):
 		elif self.direction == 'PREVIOUS':
 			return curr_index - 1 if curr_index > 0 else len(self.type_list)-1
 
-	def draw_value(self):
+	def draw_HUD(self):
 		font_id = 0
 		blf.size(font_id, font_size, 72)
 
@@ -257,6 +265,8 @@ class TILA_metaball_substract_toggle(bpy.types.Operator):
 	bl_label = "TILA : Metaballs Substract Toggle"
 	bl_options = {'REGISTER', 'UNDO'}
 
+	compatible_type = ['META']
+
 	@property
 	def selected_elements(self):
 		if self.active_object is None:
@@ -271,11 +281,15 @@ class TILA_metaball_substract_toggle(bpy.types.Operator):
 		self.active_object = bpy.context.object
 		if self.active_object is None:
 			return {"CANCELLED"}
+
+		if self.active_object.type not in self.compatible_type:
+			self.report({'ERROR'}, 'Selected object not compatible')
+			return {"CANCELLED"}
 		
 		if not len(self.selected_elements):
 			return {"CANCELLED"}
 		
-		self._drawer = bpy.types.SpaceView3D.draw_handler_add(self.draw_value, (), 'WINDOW', 'POST_PIXEL')
+		self._drawer = bpy.types.SpaceView3D.draw_handler_add(self.draw_HUD, (), 'WINDOW', 'POST_PIXEL')
 
 		wm = context.window_manager
 		self._timer = wm.event_timer_add(0.1, window=context.window)
@@ -301,7 +315,7 @@ class TILA_metaball_substract_toggle(bpy.types.Operator):
 		
 		return {"RUNNING_MODAL"}
 
-	def draw_value(self):
+	def draw_HUD(self):
 		font_id = 0
 		blf.size(font_id, font_size, 72)
 
