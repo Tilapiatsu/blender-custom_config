@@ -116,7 +116,7 @@ class TILA_metaball_adjust_parameter(bpy.types.Operator):
 	
 	def set_initial_position(self, event):
 		if self.active_object.data.elements.active is not None:
-			pos = self.active_object.data.elements.active.co
+			pos = self.active_object.data.elements.active.co + self.active_object.location
 		else:
 			pos = self.active_object.location
 
