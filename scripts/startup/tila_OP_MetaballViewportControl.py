@@ -36,6 +36,16 @@ def draw_circle2D( pos , radius , color = (1,1,1,1), fill = False , subdivide = 
 	bgl.glLineWidth(1)
 	bgl.glDisable(bgl.GL_LINE_SMOOTH)
 
+def inv_lerp(a: float, b: float, v: float) -> float:
+    """Inverse Linar Interpolation, get the fraction between a and b on which v resides.
+    Examples
+    --------
+        0.5 == inv_lerp(0, 100, 50)
+        0.8 == inv_lerp(1, 5, 4.2)
+    """
+    return (v - a) / (b - a)
+
+
 class TILA_metaball_adjust_parameter(bpy.types.Operator):
 	bl_idname = "mball.tila_metaball_adjust_parameter"
 	bl_label = "TILA : Adjust Metaballs Parameter"
@@ -167,7 +177,7 @@ class TILA_metaball_adjust_parameter(bpy.types.Operator):
 
 		blf.color(font_id, 0, 1, 0, 0.5)
 
-		blf.position(font_id, self.initial_mouseposition[0]-4, self.initial_mouseposition[1]-4, 0)
+		blf.position(font_id, self.initial_mouseposition[0]-5, self.initial_mouseposition[1]-4, 0)
 		blf.draw(font_id, '+')
 
 		blf.color(font_id, 1, 1, 1, 0.5)
@@ -175,11 +185,16 @@ class TILA_metaball_adjust_parameter(bpy.types.Operator):
 		if self.param == 'RESOLUTION':
 			blf.position(font_id, bpy.context.region.width/2, 20, 0)
 			blf.draw(font_id, f'{self.param.lower()} : {str(self.value)[:4]}')
+			draw_circle2D(self.initial_mouseposition, radius=math.log(
+				inv_lerp(self.resolution_clamp[0], self.resolution_clamp[1], self.value)) * 50, color=(1, 0.5, 0, 0.8))
 		else:
 			for e in self.selected_elements:
-				current_pos = bpy_extras.view3d_utils.location_3d_to_region_2d(bpy.context.region, bpy.context.region_data, e.co)
+				radius = getattr(e, self.param.lower())
+				current_pos = bpy_extras.view3d_utils.location_3d_to_region_2d(bpy.context.region, bpy.context.region_data, e.co + self.active_object.location)
 				blf.position(font_id, current_pos[0] + 5, current_pos[1] + 5, 0)
-				blf.draw(font_id, f'{self.param.lower()} : {str(getattr(e, self.param.lower()))[:4]}')
+				blf.draw(font_id, f'{self.param.lower()} : {str(radius)[:4]}')
+
+				draw_circle2D(current_pos, radius=math.log(radius+1) * 100, color=(0, 0.8, 1, 0.3))
 
 
 class TILA_metaball_type_cycle(bpy.types.Operator):
