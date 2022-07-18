@@ -742,6 +742,7 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		# MACHINE3tools
 		kmi = self.kmi_set_replace('machin3.clean_up', 'ZERO', "PRESS", ctrl=True, alt=True, shift=True)
 		self.kmi_set_replace('wm.call_menu_pie', 'D', "PRESS", alt=True, shift=True, properties={'name': 'MACHIN3_MT_align_pie'}, disable_double=True)
+		self.kmi_set_active(False, 'machin3.select')
 
 		# F2
 		# self.kmi_set_replace('mesh.f2', 'P', 'PRESS', disable_double=True)
