@@ -10,6 +10,7 @@ modules =   (
 			'object_print3d_utils',
 			'mesh_looptools',
 			'MACHIN3tools',
+            'MESHmachine',
 			'UvSquares',
 			'Auto_Reload',
 			# 'mesh_mesh_align_plus',
