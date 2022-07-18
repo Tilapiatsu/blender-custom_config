@@ -83,7 +83,7 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		self.kmi_set_active(False, idname='wm.call_panel', type='X', ctrl=True)
 
 		# Set global Keymap
-		self.kmi_set_replace("wm.call_menu_pie", "TAB", "PRESS", ctrl=True, properties=[('name', 'VIEW3D_MT_object_mode_pie')])
+		self.kmi_set_replace("wm.call_menu_pie", "TAB", "PRESS", ctrl=True, properties={'name': 'VIEW3D_MT_object_mode_pie'})
 		self.kmi_set_replace("wm.window_fullscreen_toggle", "F11", "PRESS")
 		self.kmi_set_replace('screen.animation_play', self.k_menu, 'PRESS', shift=True)
 		
@@ -91,11 +91,11 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 			# self.kmi_set_replace("popup.hp_properties", 'Q', 'PRESS', disable_double=True)
 			self.kmi_set_replace('popup.hp_materials', 'M', 'PRESS', disable_double=True)
 			self.kmi_set_replace('popup.hp_render', 'EQUAL', 'PRESS', disable_double=True)
-			# self.kmi_set_replace('wm.call_menu_pie', 'D', 'PRESS', alt=True, shift=True, properties=[('name', 'HP_MT_pie_rotate90')])
+			# self.kmi_set_replace('wm.call_menu_pie', 'D', 'PRESS', alt=True, shift=True, properties={'name': 'HP_MT_pie_rotate90'})
    
-		self.kmi_set_replace('wm.call_menu_pie', 'A', 'PRESS', ctrl=True, alt=True, shift=True, properties=[('name', 'HP_MT_pie_add')])
-		self.kmi_set_replace('wm.call_menu_pie', 'TAB', 'PRESS', ctrl=True, shift=True, properties=[('name', 'TILA_MT_pie_areas')])
-		self.kmi_set_replace('wm.call_menu_pie', 'X', 'PRESS', alt=True, shift=True, properties=[('name', 'HP_MT_pie_symmetry')], disable_double=True)
+		self.kmi_set_replace('wm.call_menu_pie', 'A', 'PRESS', ctrl=True, alt=True, shift=True, properties={'name': 'HP_MT_pie_add'})
+		self.kmi_set_replace('wm.call_menu_pie', 'TAB', 'PRESS', ctrl=True, shift=True, properties={'name': 'TILA_MT_pie_areas'})
+		self.kmi_set_replace('wm.call_menu_pie', 'X', 'PRESS', alt=True, shift=True, properties={'name': 'HP_MT_pie_symmetry'}, disable_double=True)
 		
 	def navigation_keys(self, pan=None, orbit=None, dolly=None, roll=None):
 		if self.km.name in ['3D View', 'Image']:
@@ -112,40 +112,37 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 			self.kmi_set_replace(roll, self.k_context, Value, alt=True, disable_double=True)
 
 	def mode_selection(self):
-		self.kmi_set_replace('view3d.tila_smart_editmode', self.k_vert_mode, 'PRESS', properties=[('mode', 0), ('use_extend', False), ('use_expand', False), ('alt_mode', False), ('get_border', False)], disable_double=True)
-		self.kmi_set_replace('view3d.tila_smart_editmode', self.k_edge_mode, 'PRESS', properties=[('mode', 1), ('use_extend', False), ('use_expand', False), ('alt_mode', False), ('get_border', False)], disable_double=True)
-		self.kmi_set_replace('view3d.tila_smart_editmode', self.k_face_mode, 'PRESS', properties=[('mode', 2), ('use_extend', False), ('use_expand', False), ('alt_mode', False), ('get_border', False)], disable_double=True)
+		self.kmi_set_replace('view3d.tila_smart_editmode', self.k_vert_mode, 'PRESS', properties={'mode': 0, 'use_extend': False, 'use_expand': False, 'alt_mode': False, 'get_border': False}, disable_double=True)
+		self.kmi_set_replace('view3d.tila_smart_editmode', self.k_edge_mode, 'PRESS', properties={'mode': 1, 'use_extend': False, 'use_expand': False, 'alt_mode': False, 'get_border': False}, disable_double=True)
+		self.kmi_set_replace('view3d.tila_smart_editmode', self.k_face_mode, 'PRESS', properties={'mode': 2, 'use_extend': False, 'use_expand': False, 'alt_mode': False, 'get_border': False}, disable_double=True)
 
-		self.kmi_set_replace('view3d.tila_smart_editmode', self.k_vert_mode, 'PRESS', shift=True, properties=[('mode', 0), ('use_extend', True), ('use_expand', False), ('alt_mode', False), ('get_border', False)], disable_double=True)
-		self.kmi_set_replace('view3d.tila_smart_editmode', self.k_edge_mode, 'PRESS', shift=True, properties=[('mode', 1), ('use_extend', True), ('use_expand', False), ('alt_mode', False, ('get_border', False))], disable_double=True)
-		self.kmi_set_replace('view3d.tila_smart_editmode', self.k_face_mode, 'PRESS', shift=True, properties=[
-							 ('mode', 2), ('use_extend', True), ('use_expand', False), ('alt_mode', False), ('get_border', False)], disable_double=True)
+		self.kmi_set_replace('view3d.tila_smart_editmode', self.k_vert_mode, 'PRESS', shift=True, properties={'mode': 0, 'use_extend': True, 'use_expand': False, 'alt_mode': False, 'get_border': False}, disable_double=True)
+		self.kmi_set_replace('view3d.tila_smart_editmode', self.k_edge_mode, 'PRESS', shift=True, properties={'mode': 1, 'use_extend': True, 'use_expand': False, 'alt_mode': False, 'get_border': False}, disable_double=True)
+		self.kmi_set_replace('view3d.tila_smart_editmode', self.k_face_mode, 'PRESS', shift=True, properties={'mode': 2, 'use_extend': True, 'use_expand': False, 'alt_mode': False, 'get_border': False}, disable_double=True)
 
-		self.kmi_set_replace('view3d.tila_smart_editmode', self.k_vert_mode, 'PRESS', ctrl=True, properties=[('mode', 0), ('use_extend', False), ('use_expand', True), ('alt_mode', False), ('get_border', False)], disable_double=True)
-		self.kmi_set_replace('view3d.tila_smart_editmode', self.k_edge_mode, 'PRESS', ctrl=True, properties=[
-							 ('mode', 1), ('use_extend', False), ('use_expand', True), ('alt_mode', False), ('get_border', False)], disable_double=True)
-		self.kmi_set_replace('view3d.tila_smart_editmode', self.k_face_mode, 'PRESS', ctrl=True, properties=[
-							 ('mode', 2), ('use_extend', False), ('use_expand', True), ('alt_mode', False), ('get_border', False)], disable_double=True)
+		self.kmi_set_replace('view3d.tila_smart_editmode', self.k_vert_mode, 'PRESS', ctrl=True, properties={'mode': 0, 'use_extend': False, 'use_expand': True, 'alt_mode': False, 'get_border': False}, disable_double=True)
+		self.kmi_set_replace('view3d.tila_smart_editmode', self.k_edge_mode, 'PRESS', ctrl=True, properties={'mode': 1, 'use_extend': False, 'use_expand': True, 'alt_mode': False, 'get_border': False}, disable_double=True)
+		self.kmi_set_replace('view3d.tila_smart_editmode', self.k_face_mode, 'PRESS', ctrl=True, properties={'mode': 2, 'use_extend': False, 'use_expand': True, 'alt_mode': False, 'get_border': False}, disable_double=True)
 
-		self.kmi_set_replace('view3d.tila_smart_editmode', self.k_vert_mode, 'PRESS', ctrl=True, shift=True, properties=[('mode', 0), ('use_extend', True), ('use_expand', True), ('alt_mode', False), ('get_border', False)], disable_double=True)
-		self.kmi_set_replace('view3d.tila_smart_editmode', self.k_edge_mode, 'PRESS', ctrl=True, shift=True, properties=[('mode', 1), ('use_extend', True), ('use_expand', True), ('alt_mode', False), ('get_border', False)], disable_double=True)
-		self.kmi_set_replace('view3d.tila_smart_editmode', self.k_face_mode, 'PRESS', ctrl=True, shift=True, properties=[('mode', 2), ('use_extend', True), ('use_expand', True), ('alt_mode', False), ('get_border', False)], disable_double=True)
+		self.kmi_set_replace('view3d.tila_smart_editmode', self.k_vert_mode, 'PRESS', ctrl=True, shift=True, properties={'mode': 0, 'use_extend': True, 'use_expand': True, 'alt_mode': False, 'get_border': False}, disable_double=True)
+		self.kmi_set_replace('view3d.tila_smart_editmode', self.k_edge_mode, 'PRESS', ctrl=True, shift=True, properties={'mode': 1, 'use_extend': True, 'use_expand': True, 'alt_mode': False, 'get_border': False}, disable_double=True)
+		self.kmi_set_replace('view3d.tila_smart_editmode', self.k_face_mode, 'PRESS', ctrl=True, shift=True, properties={'mode': 2, 'use_extend': True, 'use_expand': True, 'alt_mode': False, 'get_border': False}, disable_double=True)
 		
-		self.kmi_set_replace('view3d.tila_smart_editmode', self.k_vert_mode, 'PRESS', alt=True, properties=[('mode', 0), ('use_extend', False), ('use_expand', False), ('get_border', True)], disable_double=True)
-		self.kmi_set_replace('view3d.tila_smart_editmode', self.k_edge_mode, 'PRESS', alt=True, properties=[('mode', 1), ('use_extend', False), ('use_expand', False), ('get_border', True)], disable_double=True)
-		self.kmi_set_replace('view3d.tila_smart_editmode', self.k_face_mode, 'PRESS', alt=True, properties=[('mode', 2), ('use_extend', False), ('use_expand', False), ('get_border', True)], disable_double=True)
-		self.kmi_set_replace('view3d.tila_smart_editmode', 'TAB', 'PRESS', properties=[('alt_mode', True)], disable_double=True)
+		self.kmi_set_replace('view3d.tila_smart_editmode', self.k_vert_mode, 'PRESS', alt=True, properties={'mode': 0, 'use_extend': False, 'use_expand': False, 'get_border': True}, disable_double=True)
+		self.kmi_set_replace('view3d.tila_smart_editmode', self.k_edge_mode, 'PRESS', alt=True, properties={'mode': 1, 'use_extend': False, 'use_expand': False, 'get_border': True}, disable_double=True)
+		self.kmi_set_replace('view3d.tila_smart_editmode', self.k_face_mode, 'PRESS', alt=True, properties={'mode': 2, 'use_extend': False, 'use_expand': False, 'get_border': True}, disable_double=True)
+		self.kmi_set_replace('view3d.tila_smart_editmode', 'TAB', 'PRESS', properties={'alt_mode': True}, disable_double=True)
 
 	def collection_visibility(self, collection_visibility_tool):
-		self.kmi_set_replace(collection_visibility_tool, 'NUMPAD_1', 'PRESS', any=True, properties=[('collection_index', 1)])
-		self.kmi_set_replace(collection_visibility_tool, 'NUMPAD_2', 'PRESS', any=True, properties=[('collection_index', 2)])
-		self.kmi_set_replace(collection_visibility_tool, 'NUMPAD_3', 'PRESS', any=True, properties=[('collection_index', 3)])
-		self.kmi_set_replace(collection_visibility_tool, 'NUMPAD_4', 'PRESS', any=True, properties=[('collection_index', 4)])
-		self.kmi_set_replace(collection_visibility_tool, 'NUMPAD_5', 'PRESS', any=True, properties=[('collection_index', 5)])
-		self.kmi_set_replace(collection_visibility_tool, 'NUMPAD_6', 'PRESS', any=True, properties=[('collection_index', 6)])
-		self.kmi_set_replace(collection_visibility_tool, 'NUMPAD_7', 'PRESS', any=True, properties=[('collection_index', 7)])
-		self.kmi_set_replace(collection_visibility_tool, 'NUMPAD_8', 'PRESS', any=True, properties=[('collection_index', 8)])
-		self.kmi_set_replace(collection_visibility_tool, 'NUMPAD_9', 'PRESS', any=True, properties=[('collection_index', 9)])
+		self.kmi_set_replace(collection_visibility_tool, 'NUMPAD_1', 'PRESS', any=True, properties={'collection_index': 1})
+		self.kmi_set_replace(collection_visibility_tool, 'NUMPAD_2', 'PRESS', any=True, properties={'collection_index': 2})
+		self.kmi_set_replace(collection_visibility_tool, 'NUMPAD_3', 'PRESS', any=True, properties={'collection_index': 3})
+		self.kmi_set_replace(collection_visibility_tool, 'NUMPAD_4', 'PRESS', any=True, properties={'collection_index': 4})
+		self.kmi_set_replace(collection_visibility_tool, 'NUMPAD_5', 'PRESS', any=True, properties={'collection_index': 5})
+		self.kmi_set_replace(collection_visibility_tool, 'NUMPAD_6', 'PRESS', any=True, properties={'collection_index': 6})
+		self.kmi_set_replace(collection_visibility_tool, 'NUMPAD_7', 'PRESS', any=True, properties={'collection_index': 7})
+		self.kmi_set_replace(collection_visibility_tool, 'NUMPAD_8', 'PRESS', any=True, properties={'collection_index': 8})
+		self.kmi_set_replace(collection_visibility_tool, 'NUMPAD_9', 'PRESS', any=True, properties={'collection_index': 9})
 		self.kmi_set_active(False, idname=collection_visibility_tool, type='ZERO')
 
 	def selection_keys(self,
@@ -169,78 +166,78 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 			else:
 				value = 'CLICK'
 			self.kmi_set_active(False ,select_tool, self.k_select, ctrl=False, shift=False)
-			self.kmi_set_replace(select_tool, self.k_select, value, properties=[('deselect_all', True), ('deselect', False), ('extend', False), ('center',False), ('toggle', False), ('object', False)], disable_double=True)
+			self.kmi_set_replace(select_tool, self.k_select, value, properties={'deselect_all': True, 'deselect': False, 'extend': False, 'center':False, 'toggle': False, 'object': False}, disable_double=True)
 			self.kmi_set_active(False ,select_tool, self.k_select, ctrl=False, shift=True)
-			self.kmi_set_replace(select_tool, self.k_select, value, shift=True, properties=[('deselect_all', False), ('deselect', False), ('extend', True), ('center',False), ('toggle', False), ('object', False)], disable_double=True)
+			self.kmi_set_replace(select_tool, self.k_select, value, shift=True, properties={'deselect_all': False, 'deselect': False, 'extend': True, 'center':False, 'toggle': False, 'object': False}, disable_double=True)
 			self.kmi_set_active(False ,select_tool, self.k_select, ctrl=True, shift=False)
-			self.kmi_set_replace(select_tool, self.k_select, value, ctrl=True, properties=[('deselect_all', False), ('deselect', True), ('extend', False), ('center',False), ('toggle', False), ('object', False)], disable_double=True)
+			self.kmi_set_replace(select_tool, self.k_select, value, ctrl=True, properties={'deselect_all': False, 'deselect': True, 'extend': False, 'center':False, 'toggle': False, 'object': False}, disable_double=True)
 		
 		# Lasso Select / Deselect / Add
 		if lasso_tool:
 			self.kmi_set_replace(lasso_tool, self.k_lasso, 'CLICK_DRAG', disable_double=True)
-			self.kmi_set_replace(lasso_tool, self.k_lasso, 'CLICK_DRAG', shift=True, properties=[('mode', 'ADD')], disable_double=True)
-			self.kmi_set_replace(lasso_tool, self.k_lasso, 'CLICK_DRAG', ctrl=True, properties=[('mode', 'SUB')], disable_double=True)
+			self.kmi_set_replace(lasso_tool, self.k_lasso, 'CLICK_DRAG', shift=True, properties={'mode': 'ADD'}, disable_double=True)
+			self.kmi_set_replace(lasso_tool, self.k_lasso, 'CLICK_DRAG', ctrl=True, properties={'mode': 'SUB'}, disable_double=True)
 
 		# Lasso through Select / Deselect / Add
 		if select_through_tool:
-			self.kmi_set_replace(select_through_tool, self.k_lasso_through, 'CLICK_DRAG', properties=[('type', 'LASSO'), ('mode', 'SET')], disable_double=True)
-			self.kmi_set_replace(select_through_tool, self.k_lasso_through, 'CLICK_DRAG', shift=True, properties=[('type', 'LASSO'), ('mode', 'ADD')], disable_double=True)
-			self.kmi_set_replace(select_through_tool, self.k_lasso_through, 'CLICK_DRAG', ctrl=True, properties=[('type', 'LASSO'), ('mode', 'SUB')], disable_double=True)
+			self.kmi_set_replace(select_through_tool, self.k_lasso_through, 'CLICK_DRAG', properties={'type': 'LASSO', 'mode': 'SET'}, disable_double=True)
+			self.kmi_set_replace(select_through_tool, self.k_lasso_through, 'CLICK_DRAG', shift=True, properties={'type': 'LASSO', 'mode': 'ADD'}, disable_double=True)
+			self.kmi_set_replace(select_through_tool, self.k_lasso_through, 'CLICK_DRAG', ctrl=True, properties={'type': 'LASSO', 'mode': 'SUB'}, disable_double=True)
 		
 		# Box Select / Deselect / Add
 		if box_tool:
-			self.kmi_set_replace(box_tool, self.k_box, 'CLICK_DRAG', properties=[('mode', 'SET'), ('wait_for_input', False), ('tweak', False)], disable_double=True)
-			self.kmi_set_replace(box_tool, self.k_box, 'CLICK_DRAG', shift=True, properties=[('mode', 'ADD'), ('wait_for_input', False), ('tweak', False)], disable_double=True)
-			self.kmi_set_replace(box_tool, self.k_box, 'CLICK_DRAG', ctrl=True, properties=[('mode', 'SUB'), ('wait_for_input', False), ('tweak', False)], disable_double=True)
+			self.kmi_set_replace(box_tool, self.k_box, 'CLICK_DRAG', properties={'mode': 'SET', 'wait_for_input': False, 'tweak': False}, disable_double=True)
+			self.kmi_set_replace(box_tool, self.k_box, 'CLICK_DRAG', shift=True, properties={'mode': 'ADD', 'wait_for_input': False, 'tweak': False}, disable_double=True)
+			self.kmi_set_replace(box_tool, self.k_box, 'CLICK_DRAG', ctrl=True, properties={'mode': 'SUB', 'wait_for_input': False, 'tweak': False}, disable_double=True)
 		
 		if node_box_tool:
-			self.kmi_set_replace(node_box_tool, self.k_select, 'CLICK_DRAG', properties=[('mode', 'SET'), ('wait_for_input', False), ('tweak', True)], disable_double=True)
-			self.kmi_set_replace(node_box_tool, self.k_box, 'CLICK_DRAG', shift=True, properties=[('mode', 'ADD'), ('wait_for_input', False), ('tweak', False)], disable_double=True)
-			self.kmi_set_replace(node_box_tool, self.k_box, 'CLICK_DRAG', ctrl=True, properties=[('mode', 'SUB'), ('wait_for_input', False), ('tweak', False)], disable_double=True)
+			self.kmi_set_replace(node_box_tool, self.k_select, 'CLICK_DRAG', properties={'mode': 'SET', 'wait_for_input': False, 'tweak': True}, disable_double=True)
+			self.kmi_set_replace(node_box_tool, self.k_box, 'CLICK_DRAG', shift=True, properties={'mode': 'ADD', 'wait_for_input': False, 'tweak': False}, disable_double=True)
+			self.kmi_set_replace(node_box_tool, self.k_box, 'CLICK_DRAG', ctrl=True, properties={'mode': 'SUB', 'wait_for_input': False, 'tweak': False}, disable_double=True)
 
 		# Box Through Select / Deselect / Add
 		if box_through_tool:
-			self.kmi_set_replace(box_through_tool, self.k_box_through, 'CLICK_DRAG', properties=[('type', 'BOX'), ('mode', 'SET')], disable_double=True)
-			self.kmi_set_replace(box_through_tool, self.k_box_through, 'CLICK_DRAG', shift=True, properties=[('type', 'BOX'), ('mode', 'ADD')], disable_double=True)
-			self.kmi_set_replace(box_through_tool, self.k_box_through, 'CLICK_DRAG', ctrl=True, properties=[('type', 'BOX'), ('mode', 'SUB')], disable_double=True)
+			self.kmi_set_replace(box_through_tool, self.k_box_through, 'CLICK_DRAG', properties={'type': 'BOX', 'mode': 'SET'}, disable_double=True)
+			self.kmi_set_replace(box_through_tool, self.k_box_through, 'CLICK_DRAG', shift=True, properties={'type': 'BOX', 'mode': 'ADD'}, disable_double=True)
+			self.kmi_set_replace(box_through_tool, self.k_box_through, 'CLICK_DRAG', ctrl=True, properties={'type': 'BOX', 'mode': 'SUB'}, disable_double=True)
 		
 		# Circle
 		if circle_tool:
-			self.kmi_set_replace(circle_tool, self.k_select, 'CLICK_DRAG', shift=True, properties=[('wait_for_input', False), ('mode', 'ADD'), ('radius', 5)], disable_double=True)
-			self.kmi_set_replace(circle_tool, self.k_select, 'CLICK_DRAG', ctrl=True, properties=[('wait_for_input', False), ('mode', 'SUB'), ('radius', 5)], disable_double=True)
+			self.kmi_set_replace(circle_tool, self.k_select, 'CLICK_DRAG', shift=True, properties={'wait_for_input': False, 'mode': 'ADD', 'radius': 5}, disable_double=True)
+			self.kmi_set_replace(circle_tool, self.k_select, 'CLICK_DRAG', ctrl=True, properties={'wait_for_input': False, 'mode': 'SUB', 'radius': 5}, disable_double=True)
 
 		if gp_circle_tool:
-			self.kmi_set_replace(gp_circle_tool, self.k_select, 'CLICK_DRAG', shift=True, properties=[('wait_for_input', False), ('mode', 'ADD'), ('radius', 5)], disable_double=True)
-			self.kmi_set_replace(gp_circle_tool, self.k_select, 'CLICK_DRAG', ctrl=True, properties=[('wait_for_input', False), ('mode', 'SUB'), ('radius', 5)], disable_double=True)
+			self.kmi_set_replace(gp_circle_tool, self.k_select, 'CLICK_DRAG', shift=True, properties={'wait_for_input': False, 'mode': 'ADD', 'radius': 5}, disable_double=True)
+			self.kmi_set_replace(gp_circle_tool, self.k_select, 'CLICK_DRAG', ctrl=True, properties={'wait_for_input': False, 'mode': 'SUB', 'radius': 5}, disable_double=True)
 
 		#  shortest Path Select / Deselect / Add
 		if shortestpath_tool:
 			self.kmi_remove(idname=shortestpath_tool)
-			self.kmi_set_replace(shortestpath_tool, self.k_context, 'CLICK', shift=True, disable_double=True, properties=[('use_fill', False), ('use_face_step', False), ('use_topology_distance', False)])
-			self.kmi_set_replace(shortestpath_tool, self.k_context, 'CLICK', ctrl=True, shift=True, disable_double=True, properties=[('use_fill', True), ('use_face_step', False), ('use_topology_distance', False)])
+			self.kmi_set_replace(shortestpath_tool, self.k_context, 'CLICK', shift=True, disable_double=True, properties={'use_fill': False, 'use_face_step': False, 'use_topology_distance': False})
+			self.kmi_set_replace(shortestpath_tool, self.k_context, 'CLICK', ctrl=True, shift=True, disable_double=True, properties={'use_fill': True, 'use_face_step': False, 'use_topology_distance': False})
 
 		#  shortest ring
 		if shortestring_tool:
-			self.kmi_set_replace(shortestring_tool, self.k_cursor, 'CLICK', shift=True, disable_double=True, properties=[('use_fill', False), ('use_face_step', True), ('use_topology_distance', False)])
+			self.kmi_set_replace(shortestring_tool, self.k_cursor, 'CLICK', shift=True, disable_double=True, properties={'use_fill': False, 'use_face_step': True, 'use_topology_distance': False})
 
 		# Loop Select / Deselect / Add
 		if loop_tool:
-			self.kmi_set_replace(loop_tool, self.k_select, 'DOUBLE_CLICK', disable_double=True, properties=[('extend', False), ('deselect', False)])
-			self.kmi_set_replace(loop_tool, self.k_select, 'DOUBLE_CLICK', shift=True, properties=[('extend', True), ('ring', False), ('deselect', False)], disable_double=True)
-			self.kmi_set_replace(loop_tool, self.k_select, 'DOUBLE_CLICK', ctrl=True, properties=[('extend', False), ('deselect', True)], disable_double=True)
+			self.kmi_set_replace(loop_tool, self.k_select, 'DOUBLE_CLICK', disable_double=True, properties={'extend': False, 'deselect': False})
+			self.kmi_set_replace(loop_tool, self.k_select, 'DOUBLE_CLICK', shift=True, properties={'extend': True, 'ring': False, 'deselect': False}, disable_double=True)
+			self.kmi_set_replace(loop_tool, self.k_select, 'DOUBLE_CLICK', ctrl=True, properties={'extend': False, 'deselect': True}, disable_double=True)
 
 		# Ring Select / Deselect / Add
 		if ring_tool:
-			self.kmi_set_replace(ring_tool, self.k_cursor, 'CLICK', ctrl=True, properties=[('ring', True), ('deselect', True), ('extend', False), ('toggle', False)], disable_double=True)
-			self.kmi_set_replace(ring_tool, self.k_cursor, 'CLICK', ctrl=True, shift=True, properties=[('ring', True), ('deselect', False), ('extend', True), ('toggle', False)], disable_double=True)
+			self.kmi_set_replace(ring_tool, self.k_cursor, 'CLICK', ctrl=True, properties={'ring': True, 'deselect': True, 'extend': False, 'toggle': False}, disable_double=True)
+			self.kmi_set_replace(ring_tool, self.k_cursor, 'CLICK', ctrl=True, shift=True, properties={'ring': True, 'deselect': False, 'extend': True, 'toggle': False}, disable_double=True)
 
 		# Loop multiselect
 		if loop_multiselect_tool:
-			self.kmi_set_replace(loop_multiselect_tool, 'L', 'PRESS', properties=[('ring', False)], disable_double=True)
+			self.kmi_set_replace(loop_multiselect_tool, 'L', 'PRESS', properties={'ring': False}, disable_double=True)
 		
 		# Ring multiselect
 		if ring_multiselect_tool:
-			self.kmi_set_replace(ring_multiselect_tool, 'L', 'PRESS', alt=True, properties=[('ring', True)], disable_double=True)
+			self.kmi_set_replace(ring_multiselect_tool, 'L', 'PRESS', alt=True, properties={'ring': True}, disable_double=True)
 
 		# Select More / Less
 		if more_tool:
@@ -258,45 +255,45 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 
 		# Linked
 		if linked_tool:
-			self.kmi_set_replace(linked_tool, self.k_linked, 'DOUBLE_CLICK', ctrl=False, properties=[('deselect', False), ('delimit', {'SEAM'})])
+			self.kmi_set_replace(linked_tool, self.k_linked, 'DOUBLE_CLICK', ctrl=False, properties={'deselect': False, 'delimit': {'SEAM'}})
 			
 		
 		if linked_pick_tool:
 			if self.km.name in ['Curve', 'Lattice', 'Grease Pencil', 'Particle', 'UV Editor']:
-				self.kmi_set_replace(linked_pick_tool, self.k_linked, 'PRESS', ctrl=False, properties=[('deselect', False), ('extend', True)], disable_double=True)
-				self.kmi_set_replace(linked_pick_tool, self.k_linked, 'PRESS', ctrl=True, properties=[('deselect', True), ('extend', True)], disable_double=True)
+				self.kmi_set_replace(linked_pick_tool, self.k_linked, 'PRESS', ctrl=False, properties={'deselect': False, 'extend': True}, disable_double=True)
+				self.kmi_set_replace(linked_pick_tool, self.k_linked, 'PRESS', ctrl=True, properties={'deselect': True, 'extend': True}, disable_double=True)
 
 			else:
-				self.kmi_set_replace(linked_pick_tool, self.k_linked, 'PRESS', ctrl=False, alt=False, shift=False, properties=[('deselect', False), ('delimit', {'SEAM'})], disable_double=True)
-				self.kmi_set_replace(linked_pick_tool, self.k_linked, 'PRESS', ctrl=True, properties=[('deselect', True), ('delimit', {'SEAM'})], disable_double=True)
-				self.kmi_set_replace(linked_pick_tool, self.k_linked, 'PRESS', shift=True, properties=[('deselect', False), ('delimit', {'MATERIAL'})], disable_double=True)
-				self.kmi_set_replace(linked_pick_tool, self.k_linked, 'PRESS', ctrl=True, shift=True, properties=[('deselect', True), ('delimit', {'MATERIAL'})], disable_double=True)
-				self.kmi_set_replace(linked_pick_tool, self.k_linked, 'PRESS', alt=True, properties=[('deselect', False), ('delimit', {'UV'})], disable_double=True)
-				self.kmi_set_replace(linked_pick_tool, self.k_linked, 'PRESS', ctrl=True, alt=True, properties=[('deselect', True), ('delimit', {'UV'})], disable_double=True)
+				self.kmi_set_replace(linked_pick_tool, self.k_linked, 'PRESS', ctrl=False, alt=False, shift=False, properties={'deselect': False, 'delimit': {'SEAM'}}, disable_double=True)
+				self.kmi_set_replace(linked_pick_tool, self.k_linked, 'PRESS', ctrl=True, properties={'deselect': True, 'delimit': {'SEAM'}}, disable_double=True)
+				self.kmi_set_replace(linked_pick_tool, self.k_linked, 'PRESS', shift=True, properties={'deselect': False, 'delimit': {'MATERIAL'}}, disable_double=True)
+				self.kmi_set_replace(linked_pick_tool, self.k_linked, 'PRESS', ctrl=True, shift=True, properties={'deselect': True, 'delimit': {'MATERIAL'}}, disable_double=True)
+				self.kmi_set_replace(linked_pick_tool, self.k_linked, 'PRESS', alt=True, properties={'deselect': False, 'delimit': {'UV'}}, disable_double=True)
+				self.kmi_set_replace(linked_pick_tool, self.k_linked, 'PRESS', ctrl=True, alt=True, properties={'deselect': True, 'delimit': {'UV'}}, disable_double=True)
 
 		if invert_tool:
-			self.kmi_set_replace(invert_tool, self.k_context, 'CLICK', ctrl=True, alt=True, shift=True, properties=[('action', 'INVERT')])
+			self.kmi_set_replace(invert_tool, self.k_context, 'CLICK', ctrl=True, alt=True, shift=True, properties={'action': 'INVERT'})
 
 		if inner_tool:
 			self.kmi_set_replace(inner_tool, self.k_select, 'CLICK', ctrl=True, alt=True, shift=True, disable_double=True)
 
 		if collection_tool:
-			self.kmi_set_replace(collection_tool, self.k_select, 'DOUBLE_CLICK', shift=False, properties=[('type', 'COLLECTION'), ('extend', False)], disable_double=True)
-			self.kmi_set_replace(collection_tool, self.k_select, 'DOUBLE_CLICK', shift=True, properties=[('type', 'COLLECTION'), ('extend', True)], disable_double=True)
+			self.kmi_set_replace(collection_tool, self.k_select, 'DOUBLE_CLICK', shift=False, properties={'type': 'COLLECTION', 'extend': False}, disable_double=True)
+			self.kmi_set_replace(collection_tool, self.k_select, 'DOUBLE_CLICK', shift=True, properties={'type': 'COLLECTION', 'extend': True}, disable_double=True)
 
 	def selection_tool(self, tool='builtin.select', alt='builtin.select_box'):
-		# select_tool = self.kmi_find(idname='wm.tool_set_by_id', properties=KeymapManager.bProp([('name', 'builtin.select_box')]))
+		# select_tool = self.kmi_find(idname='wm.tool_set_by_id', properties=KeymapManager.bProp([('name', 'builtin.select_box'}))
 		# if select_tool:
 		# 	self.kmi_prop_setattr(select_tool.properties, "name", 'Select')
 		# 	self.kmi_prop_setattr(select_tool.properties, "cycle", False)
 		if self.km.name in ['Sculpt']:
-			self.kmi_set_replace('wm.tool_set_by_id', self.k_menu, "PRESS", properties=[('name', tool)])
+			self.kmi_set_replace('wm.tool_set_by_id', self.k_menu, "PRESS", properties={'name': tool})
 			if alt:
-				self.kmi_set_replace('wm.tool_set_by_id', self.k_menu, "PRESS", ctrl=True, properties=[('name', alt)])
+				self.kmi_set_replace('wm.tool_set_by_id', self.k_menu, "PRESS", ctrl=True, properties={'name': alt})
 		else:
-			self.kmi_set_replace('wm.tool_set_by_id', self.k_menu, "PRESS", properties=[('name', tool), ('cycle', False)])
+			self.kmi_set_replace('wm.tool_set_by_id', self.k_menu, "PRESS", properties={'name': tool, 'cycle': False})
 			if alt:
-				self.kmi_set_replace('wm.tool_set_by_id', self.k_menu, "PRESS", ctrl=True, properties=[('name', alt), ('cycle', False)])
+				self.kmi_set_replace('wm.tool_set_by_id', self.k_menu, "PRESS", ctrl=True, properties={'name': alt, 'cycle': False})
 
 	def right_mouse(self):
 		kmi = self.kmi_find(idname='wm.call_menu', type='RIGHTMOUSE', value='PRESS')
@@ -321,16 +318,16 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 
 	def hide_reveal(self, hide=None, unhide=None, inverse=None):
 		if hide:
-			self.kmi_set_replace(hide, 'H', 'PRESS', properties=[('unselected', False)])
-			self.kmi_set_replace(hide, 'H', 'PRESS', ctrl=True, properties=[('unselected', True)])
+			self.kmi_set_replace(hide, 'H', 'PRESS', properties={'unselected': False})
+			self.kmi_set_replace(hide, 'H', 'PRESS', ctrl=True, properties={'unselected': True})
 		if unhide:
-			self.kmi_set_replace(unhide, 'H', 'PRESS', alt=True, shift=True, properties=[('select', False)])
+			self.kmi_set_replace(unhide, 'H', 'PRESS', alt=True, shift=True, properties={'select': False})
 		if inverse:
 			self.kmi_set_replace(inverse, 'H', 'PRESS', ctrl=True, alt=True, shift=True)
 
 	def snap(self, snapping=None, snapping_prop=None):
 		type = 'X'
-		self.kmi_set_replace('wm.context_toggle', type, 'PRESS', properties=[('data_path', 'tool_settings.use_snap')])
+		self.kmi_set_replace('wm.context_toggle', type, 'PRESS', properties={'data_path': 'tool_settings.use_snap'})
 		if snapping is not None and snapping_prop is not None:
 			self.kmi_set_replace(snapping, type, 'PRESS', ctrl=True, shift=True, properties=snapping_prop)
 		self.kmi_set_replace('view3d.toggle_snapping', type, 'PRESS', shift=True)
@@ -340,15 +337,15 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 			self.kmi_set_replace(sculpt, 'W', 'PRESS', ctrl=True, alt=True, shift=True)
 
 	def tool_smooth(self):
-		self.kmi_set_replace('mesh.vertices_smooth', 'S', 'PRESS', ctrl=True, alt=True, shift=False, properties=[('repeat', 50)])
+		self.kmi_set_replace('mesh.vertices_smooth', 'S', 'PRESS', ctrl=True, alt=True, shift=False, properties={'repeat': 50})
 	
 	def tool_proportional(self):
 		self.modal_set_replace('PROPORTIONAL_SIZE', 'MOUSEMOVE', 'ANY', alt=True)
 	
 	def tool_smart_delete(self):
 		self.kmi_set_active(False, type='DEL')
-		self.kmi_set_replace('object.tila_smartdelete', 'DEL', 'PRESS', properties=[('menu',False)])
-		self.kmi_set_replace('object.tila_smartdelete', 'DEL', 'PRESS', alt=True, properties=[('menu',True)])
+		self.kmi_set_replace('object.tila_smartdelete', 'DEL', 'PRESS', properties={'menu': False})
+		self.kmi_set_replace('object.tila_smartdelete', 'DEL', 'PRESS', alt=True, properties={'menu': True})
 
 	def tool_radial_control(self, radius=None, opacity=None, eraser_radius=None, fill_color=None):
 		type = 'Q'
@@ -372,55 +369,55 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		self.kmi_set_active(False, 'object.subdivision_set', type='FOUR')
 		self.kmi_set_active(False, 'object.subdivision_set', type='FIVE')
 
-		self.kmi_set_replace('sculpt.tila_multires_subdiv_level', 'NUMPAD_PLUS', 'PRESS', properties=[('subd', 1), ('mode', 'RELATIVE'), ('force_subd', False), ('algorithm', 'CATMULL_CLARK')], disable_double=True)
-		self.kmi_set_replace('sculpt.tila_multires_subdiv_level', 'NUMPAD_PLUS', 'PRESS', shift=True, properties=[('subd', 1), ('mode', 'RELATIVE'), ('force_subd', True), ('algorithm', 'CATMULL_CLARK')], disable_double=True)
-		self.kmi_set_replace('sculpt.tila_multires_subdiv_level', 'NUMPAD_PLUS', 'PRESS', ctrl=True, properties=[('subd', 1), ('mode', 'RELATIVE'), ('force_subd', False), ('algorithm', 'LINEAR')], disable_double=True)
-		self.kmi_set_replace('sculpt.tila_multires_subdiv_level', 'NUMPAD_PLUS', 'PRESS', ctrl=True, shift=True, properties=[('subd', 1), ('mode', 'RELATIVE'), ('force_subd', True), ('algorithm', 'LINEAR')], disable_double=True)
-		self.kmi_set_replace('sculpt.tila_multires_delete_subdiv', 'NUMPAD_PLUS', 'PRESS', ctrl=True, alt=True, shift=True, properties=[('delete_target', 'HIGHER')], disable_double=True)
+		self.kmi_set_replace('sculpt.tila_multires_subdiv_level', 'NUMPAD_PLUS', 'PRESS', properties={'subd': 1, 'mode': 'RELATIVE', 'force_subd': False, 'algorithm': 'CATMULL_CLARK'}, disable_double=True)
+		self.kmi_set_replace('sculpt.tila_multires_subdiv_level', 'NUMPAD_PLUS', 'PRESS', shift=True, properties={'subd': 1, 'mode': 'RELATIVE', 'force_subd': True, 'algorithm': 'CATMULL_CLARK'}, disable_double=True)
+		self.kmi_set_replace('sculpt.tila_multires_subdiv_level', 'NUMPAD_PLUS', 'PRESS', ctrl=True, properties={'subd': 1, 'mode': 'RELATIVE', 'force_subd': False, 'algorithm': 'LINEAR'}, disable_double=True)
+		self.kmi_set_replace('sculpt.tila_multires_subdiv_level', 'NUMPAD_PLUS', 'PRESS', ctrl=True, shift=True, properties={'subd': 1, 'mode': 'RELATIVE', 'force_subd': True, 'algorithm': 'LINEAR'}, disable_double=True)
+		self.kmi_set_replace('sculpt.tila_multires_delete_subdiv', 'NUMPAD_PLUS', 'PRESS', ctrl=True, alt=True, shift=True, properties={'delete_target': 'HIGHER'}, disable_double=True)
 
-		self.kmi_set_replace('sculpt.tila_multires_subdiv_level', 'NUMPAD_MINUS', 'PRESS', properties=[('subd', -1), ('mode', 'RELATIVE'), ('force_subd', False), ('algorithm', 'CATMULL_CLARK')], disable_double=True)
-		self.kmi_set_replace('sculpt.tila_multires_subdiv_level', 'NUMPAD_MINUS', 'PRESS', shift=True, properties=[('subd', -1), ('mode', 'RELATIVE'), ('force_subd', True), ('algorithm', 'CATMULL_CLARK')], disable_double=True)
-		self.kmi_set_replace('sculpt.tila_multires_subdiv_level', 'NUMPAD_MINUS', 'PRESS', ctrl=True, properties=[('subd', -1), ('mode', 'RELATIVE'), ('force_subd', False), ('algorithm', 'LINEAR')], disable_double=True)
-		self.kmi_set_replace('sculpt.tila_multires_subdiv_level', 'NUMPAD_MINUS', 'PRESS', ctrl=True, shift=True, properties=[('subd', -1), ('mode', 'RELATIVE'), ('force_subd', True), ('algorithm', 'LINEAR')], disable_double=True)
-		self.kmi_set_replace('sculpt.tila_multires_delete_subdiv', 'NUMPAD_MINUS', 'PRESS', ctrl=True, alt=True, shift=True, properties=[('delete_target', 'LOWER')], disable_double=True)
+		self.kmi_set_replace('sculpt.tila_multires_subdiv_level', 'NUMPAD_MINUS', 'PRESS', properties={'subd': -1, 'mode': 'RELATIVE', 'force_subd': False, 'algorithm': 'CATMULL_CLARK'}, disable_double=True)
+		self.kmi_set_replace('sculpt.tila_multires_subdiv_level', 'NUMPAD_MINUS', 'PRESS', shift=True, properties={'subd': -1, 'mode': 'RELATIVE', 'force_subd': True, 'algorithm': 'CATMULL_CLARK'}, disable_double=True)
+		self.kmi_set_replace('sculpt.tila_multires_subdiv_level', 'NUMPAD_MINUS', 'PRESS', ctrl=True, properties={'subd': -1, 'mode': 'RELATIVE', 'force_subd': False, 'algorithm': 'LINEAR'}, disable_double=True)
+		self.kmi_set_replace('sculpt.tila_multires_subdiv_level', 'NUMPAD_MINUS', 'PRESS', ctrl=True, shift=True, properties={'subd': -1, 'mode': 'RELATIVE', 'force_subd': True, 'algorithm': 'LINEAR'}, disable_double=True)
+		self.kmi_set_replace('sculpt.tila_multires_delete_subdiv', 'NUMPAD_MINUS', 'PRESS', ctrl=True, alt=True, shift=True, properties={'delete_target': 'LOWER'}, disable_double=True)
 
 		self.kmi_set_replace('sculpt.tila_multires_rebuild_subdiv', 'NUMPAD_ASTERIX', 'PRESS', ctrl=True, alt=True, shift=True)
 		self.kmi_set_replace('sculpt.tila_multires_apply_base', 'NUMPAD_ENTER', 'PRESS', ctrl=True, alt=True, shift=True)
 
-		self.kmi_set_replace('object.subdivision_set', 'NUMPAD_PLUS', 'PRESS', alt=True, properties=[('level', 1), ('relative', True)], disable_double=True)
-		self.kmi_set_replace('object.subdivision_set', 'NUMPAD_MINUS', 'PRESS', alt=True, properties=[('level', -1), ('relative', True)], disable_double=True)
+		self.kmi_set_replace('object.subdivision_set', 'NUMPAD_PLUS', 'PRESS', alt=True, properties={'level': 1, 'relative': True}, disable_double=True)
+		self.kmi_set_replace('object.subdivision_set', 'NUMPAD_MINUS', 'PRESS', alt=True, properties={'level': -1, 'relative': True}, disable_double=True)
 
 		if self.km.name in ['Sculpt']:
-			self.kmi_set_replace('sculpt.tila_multires_subdiv_level', 'D', 'PRESS', properties=[('subd', 1), ('mode', 'RELATIVE'), ('force_subd', False), ('algorithm', 'CATMULL_CLARK')])
-			self.kmi_set_replace('sculpt.tila_multires_subdiv_level', 'D', 'PRESS', ctrl=True,  properties=[('subd', 1), ('mode', 'RELATIVE'), ('force_subd', True), ('algorithm', 'CATMULL_CLARK')])
-			self.kmi_set_replace('sculpt.tila_multires_subdiv_level', 'D', 'PRESS', shift=True,  properties=[('subd', -1), ('mode', 'RELATIVE'), ('force_subd', False), ('algorithm', 'CATMULL_CLARK')])
+			self.kmi_set_replace('sculpt.tila_multires_subdiv_level', 'D', 'PRESS', properties={'subd': 1, 'mode': 'RELATIVE', 'force_subd': False, 'algorithm': 'CATMULL_CLARK'})
+			self.kmi_set_replace('sculpt.tila_multires_subdiv_level', 'D', 'PRESS', ctrl=True,  properties={'subd': 1, 'mode': 'RELATIVE', 'force_subd': True, 'algorithm': 'CATMULL_CLARK'})
+			self.kmi_set_replace('sculpt.tila_multires_subdiv_level', 'D', 'PRESS', shift=True,  properties={'subd': -1, 'mode': 'RELATIVE', 'force_subd': False, 'algorithm': 'CATMULL_CLARK'})
 		
 	def tool_center(self, pivot=None, orientation=None, action_center_context=None):
 		print(pivot, orientation)
 		# if pivot:
 		# 	if self.km.name in ['Uv Editor']:
-		# 		self.kmi_set_replace('wm.context_menu_enum', 'X', 'PRESS', ctrl=True, properties=[('name', pivot), ('keep_open', False)], disable_double=True)
+		# 		self.kmi_set_replace('wm.context_menu_enum', 'X', 'PRESS', ctrl=True, properties={'name', pivot), ('keep_open', False}, disable_double=True)
 		# 	else:
-		# 		self.kmi_set_replace('wm.call_panel', 'X', 'PRESS', ctrl=True, properties=[('name', pivot), ('keep_open', False)], disable_double=True)
+		# 		self.kmi_set_replace('wm.call_panel', 'X', 'PRESS', ctrl=True, properties={'name', pivot), ('keep_open', False}, disable_double=True)
 		if orientation:
-			self.kmi_set_replace('wm.call_panel', 'X', 'PRESS', ctrl=True, shift=True, properties=[('name', orientation), ('keep_open', False)], disable_double=True)
+			self.kmi_set_replace('wm.call_panel', 'X', 'PRESS', ctrl=True, shift=True, properties={'name': orientation, 'keep_open': False}, disable_double=True)
 		if action_center_context:
-			self.kmi_set_replace('wm.call_menu', 'X', 'PRESS', alt=True, properties=[('name', 'TILA_MT_action_center')], disable_double=True)
+			self.kmi_set_replace('wm.call_menu', 'X', 'PRESS', alt=True, properties={'name': 'TILA_MT_action_center'}, disable_double=True)
 	
 	def tool_transform(self):
-		self.kmi_set_replace('wm.tool_set_by_id', self.k_move, 'PRESS', properties=[('name', 'builtin.move')], disable_double=True)
-		self.kmi_set_replace('wm.tool_set_by_id', self.k_rotate, 'PRESS', properties=[('name', 'builtin.rotate')], disable_double=True)
-		self.kmi_set_replace('wm.tool_set_by_id', self.k_scale, 'PRESS', properties=[('name', 'builtin.scale')], disable_double=True)
-		self.kmi_set_replace('wm.tool_set_by_id', 'T', 'PRESS', ctrl=True, properties=[('name', 'builtin.transform')], disable_double=True)
+		self.kmi_set_replace('wm.tool_set_by_id', self.k_move, 'PRESS', properties={'name': 'builtin.move'}, disable_double=True)
+		self.kmi_set_replace('wm.tool_set_by_id', self.k_rotate, 'PRESS', properties={'name': 'builtin.rotate'}, disable_double=True)
+		self.kmi_set_replace('wm.tool_set_by_id', self.k_scale, 'PRESS', properties={'name': 'builtin.scale'}, disable_double=True)
+		self.kmi_set_replace('wm.tool_set_by_id', 'T', 'PRESS', ctrl=True, properties={'name': 'builtin.transform'}, disable_double=True)
 
 	def isolate(self):
-		self.kmi_set_replace('view3d.tila_isolate', 'X', 'PRESS', ctrl=True, alt=True, properties=[('force_object_isolate', False)])
-		self.kmi_set_replace('view3d.tila_isolate', 'X', 'PRESS', ctrl=True, alt=True, shift=True, properties=[('force_object_isolate', True)])
+		self.kmi_set_replace('view3d.tila_isolate', 'X', 'PRESS', ctrl=True, alt=True, properties={'force_object_isolate': False})
+		self.kmi_set_replace('view3d.tila_isolate', 'X', 'PRESS', ctrl=True, alt=True, shift=True, properties={'force_object_isolate': True})
 	
 	def join(self):
-		self.kmi_set_replace('object.tila_smart_join', 'J', 'PRESS', ctrl=True, shift=False, alt=False, properties=[('apply_modifiers', False), ('duplicate', False)], disable_double=True)
-		self.kmi_set_replace('object.tila_smart_join', 'J', 'PRESS', ctrl=True, shift=True, alt=False, properties=[('apply_modifiers', True), ('duplicate', False)], disable_double=True)
-		self.kmi_set_replace('object.tila_smart_join', 'J', 'PRESS', ctrl=True, shift=True, alt=True, properties=[('apply_modifiers', True), ('duplicate', True)], disable_double=True)
+		self.kmi_set_replace('object.tila_smart_join', 'J', 'PRESS', ctrl=True, shift=False, alt=False, properties={'apply_modifiers': False, 'duplicate': False}, disable_double=True)
+		self.kmi_set_replace('object.tila_smart_join', 'J', 'PRESS', ctrl=True, shift=True, alt=False, properties={'apply_modifiers': True, 'duplicate': False}, disable_double=True)
+		self.kmi_set_replace('object.tila_smart_join', 'J', 'PRESS', ctrl=True, shift=True, alt=True, properties={'apply_modifiers': True, 'duplicate': True}, disable_double=True)
 
 	# Keymap define
 	def set_tila_keymap(self):
@@ -442,9 +439,9 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		
 		# MACHINE3tools
 		self.kmi_init(name='Window', space_type='EMPTY', region_type='WINDOW', addon=True)
-		self.kmi_set_active(False, 'wm.call_menu_pie', type='S', value='PRESS', alt=False, ctrl=True, shift=False, properties=[('name', 'MACHIN3_MT_save_pie')])
+		self.kmi_set_active(False, 'wm.call_menu_pie', type='S', value='PRESS', alt=False, ctrl=True, shift=False, properties={'name': 'MACHIN3_MT_save_pie'})
 		self.kmi_init(name='Window', space_type='EMPTY', region_type='WINDOW', addon=False)
-		self.kmi_set_replace('wm.call_menu_pie', 'S', "PRESS", ctrl=True, shift=True, properties=[('name', 'MACHIN3_MT_save_pie')], disable_double=True)
+		self.kmi_set_replace('wm.call_menu_pie', 'S', "PRESS", ctrl=True, shift=True, properties={'name': 'MACHIN3_MT_save_pie'}, disable_double=True)
 		
 		# Atomic Data Manager
 		self.kmi_set_replace('atomic.invoke_pie_menu_ui', 'DEL', "PRESS", ctrl=True, shift=True, disable_double=True)
@@ -477,12 +474,12 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		# self.kmi_set_active(False, idname='view3d.select', shift=True)
 
 		self.kmi_set_replace('object.tila_emptymesh', 'N', 'PRESS', ctrl=True, alt=True, shift=True)
-		self.snap(snapping='wm.call_panel', snapping_prop=[('name', 'VIEW3D_PT_snapping')])
+		self.snap(snapping='wm.call_panel', snapping_prop={'name': 'VIEW3D_PT_snapping'})
 
 		self.mode_selection()
 		
 		self.kmi_set_replace('view3d.toggle_x_symetry', 'X', 'PRESS', disable_double=True)
-		# self.kmi_set_replace('wm.context_toggle', 'X', 'PRESS', alt=True, shift=True, properties=[('data_path', 'tool_settings.use_snap')], disable_double=True)
+		# self.kmi_set_replace('wm.context_toggle', 'X', 'PRESS', alt=True, shift=True, properties={'data_path': 'tool_settings.use_snap'}, disable_double=True)
 
 		self.kmi_set_replace('view3d.view_persportho', 'NUMPAD_ASTERIX', 'PRESS')
 		self.kmi_set_replace('view3d.collection_manager', 'M', 'PRESS',  ctrl=True, alt=True, shift=True, disable_double=True)
@@ -493,33 +490,33 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 
 		self.tool_center(pivot='VIEW3D_PT_pivot_point', orientation='VIEW3D_PT_transform_orientations', action_center_context='VIEW3D')
 
-		self.kmi_set_replace('wm.call_menu_pie', 'Q', 'PRESS', ctrl=True, alt=True, shift=True, properties=[('name', 'HP_MT_pie_boolean')])
-		self.kmi_set_replace('view3d.toggle_wireframe', 'F5', 'PRESS', properties=[('mode', 'OVERLAY'), ('selected', False)], disable_double=True)
-		self.kmi_set_replace('view3d.toggle_wireframe', 'F5', 'PRESS', shift=True, properties=[('mode', 'OVERLAY'), ('selected', True)], disable_double=True)
-		self.kmi_set_replace('view3d.toggle_wireframe', 'F5', 'PRESS', ctrl=True, properties=[('mode', 'SET'), ('selected', False)], disable_double=True)
-		self.kmi_set_replace('view3d.toggle_wireframe', 'F5', 'PRESS', ctrl=True, shift=True, properties=[('mode', 'SET'), ('selected', True)], disable_double=True)
-		self.kmi_set_replace('view3d.toggle_wireframe', 'F5', 'PRESS', ctrl=True, alt=True, shift=True, properties=[('mode', 'RETOPO'), ('selected', False)], disable_double=True)
+		self.kmi_set_replace('wm.call_menu_pie', 'Q', 'PRESS', ctrl=True, alt=True, shift=True, properties={'name': 'HP_MT_pie_boolean'})
+		self.kmi_set_replace('view3d.toggle_wireframe', 'F5', 'PRESS', properties={'mode': 'OVERLAY', 'selected': False}, disable_double=True)
+		self.kmi_set_replace('view3d.toggle_wireframe', 'F5', 'PRESS', shift=True, properties={'mode': 'OVERLAY', 'selected': True}, disable_double=True)
+		self.kmi_set_replace('view3d.toggle_wireframe', 'F5', 'PRESS', ctrl=True, properties={'mode': 'SET', 'selected': False}, disable_double=True)
+		self.kmi_set_replace('view3d.toggle_wireframe', 'F5', 'PRESS', ctrl=True, shift=True, properties={'mode': 'SET', 'selected': True}, disable_double=True)
+		self.kmi_set_replace('view3d.toggle_wireframe', 'F5', 'PRESS', ctrl=True, alt=True, shift=True, properties={'mode': 'RETOPO', 'selected': False}, disable_double=True)
 
-		self.kmi_set_replace('wm.call_menu_pie', 'F', 'PRESS', alt=True, shift=True, properties=[('name', 'UVTOOLKIT_MT_pie_3dview')])
+		self.kmi_set_replace('wm.call_menu_pie', 'F', 'PRESS', alt=True, shift=True, properties={'name': 'UVTOOLKIT_MT_pie_3dview'})
 
 		kmi = self.kmi_find(idname='view3d.toggle_shading', type='Z', shift=True)
 		if kmi is not None:
 			kmi.active = False
 		
-		self.kmi_set_replace('view3d.toggle_shading', 'Z', 'PRESS', shift=True, properties=[('type', 'MATERIAL')], disable_double=True)
-		self.kmi_set_replace('view3d.toggle_shading', 'Z', 'PRESS', alt=True, shift=True, properties=[('type', 'RENDERED')], disable_double=True)
-		# kmi = self.kmi_set_replace('wm.context_toggle', 'F6', 'PRESS', properties=[('data_path', 'space_data.overlay.show_overlays')], disable_double=True)
+		self.kmi_set_replace('view3d.toggle_shading', 'Z', 'PRESS', shift=True, properties={'type': 'MATERIAL'}, disable_double=True)
+		self.kmi_set_replace('view3d.toggle_shading', 'Z', 'PRESS', alt=True, shift=True, properties={'type': 'RENDERED'}, disable_double=True)
+		# kmi = self.kmi_set_replace('wm.context_toggle', 'F6', 'PRESS', properties={'data_path', 'space_data.overlay.show_overlays'}, disable_double=True)
 		# if kmi:
 		# 	kmi.active = True
 
 		self.kmi_set_replace('object.transfer_mode', self.k_cursor, 'CLICK', alt=True, disable_double=True)
 
-		self.kmi_set_replace('view3d.tila_orthographic_navigation', self.k_cursor, 'CLICK_DRAG', ctrl=False, alt=True, shift=False, disable_double=True, properties=[('relative_to_selected_element', False)])
-		self.kmi_set_replace('view3d.tila_orthographic_navigation', self.k_cursor, 'CLICK_DRAG', ctrl=False, alt=True, shift=True, disable_double=True, properties=[('relative_to_selected_element', True)])
+		self.kmi_set_replace('view3d.tila_orthographic_navigation', self.k_cursor, 'CLICK_DRAG', ctrl=False, alt=True, shift=False, disable_double=True, properties={'relative_to_selected_element': False})
+		self.kmi_set_replace('view3d.tila_orthographic_navigation', self.k_cursor, 'CLICK_DRAG', ctrl=False, alt=True, shift=True, disable_double=True, properties={'relative_to_selected_element': True})
 
-		self.kmi_set_replace('view3d.tila_action_center', 'S', 'PRESS', ctrl=True, alt=True, shift=True, disable_double=True, properties=[('action_center', 'CURSOR')])
-		self.kmi_set_replace('view3d.toggle_overlay', 'F6', 'PRESS', properties=[('mode', 'SOFT')])
-		self.kmi_set_replace('view3d.toggle_overlay', 'F6', 'PRESS', ctrl=True, properties=[('mode', 'TOGGLE')])
+		self.kmi_set_replace('view3d.tila_action_center', 'S', 'PRESS', ctrl=True, alt=True, shift=True, disable_double=True, properties={'action_center': 'CURSOR'})
+		self.kmi_set_replace('view3d.toggle_overlay', 'F6', 'PRESS', properties={'mode': 'SOFT'})
+		self.kmi_set_replace('view3d.toggle_overlay', 'F6', 'PRESS', ctrl=True, properties={'mode': 'TOGGLE'})
 
 		self.kmi_set_active(enable=False, idname='view3d.view_axis', type=self.k_cursor, value='CLICK_DRAG',  alt=True, direction='NORTH')
 		self.kmi_set_active(enable=False, idname='view3d.view_axis', type=self.k_cursor, value='CLICK_DRAG',  alt=True, direction='EAST')
@@ -540,17 +537,17 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		self.kmi_set_replace('view3d.rotate_canvas', self.k_context, 'PRESS', alt=True, disable_double=True)
 
 		# Polysource
-		self.kmi_set_active(enable=False, idname='wm.call_menu_pie', type=self.k_menu, value='PRESS', properties={'name':'PS_MT_tk_menu'})
+		self.kmi_set_active(enable=False, idname='wm.call_menu_pie', type=self.k_menu, value='PRESS', properties={'name': 'PS_MT_tk_menu'})
 
 		##### 3D View Generic
 		self.kmi_init(name='3D View Generic', space_type='VIEW_3D', region_type='WINDOW')
 
 		# MACHINE3tools
-		# self.kmi_set_replace('wm.call_menu_pie', 'Z', "PRESS", properties=[('name', 'MACHIN3_MT_shading_pie')], disable_double=True)
+		# self.kmi_set_replace('wm.call_menu_pie', 'Z', "PRESS", properties={'name', 'MACHIN3_MT_shading_pie'}, disable_double=True)
 
 		###### 3d Cursor
-		self.kmi_set_replace('view3d.cursor3d', self.k_cursor, 'CLICK', ctrl=True, alt=True, shift=True, properties=[('use_depth', True), ('orientation','GEOM')], disable_double=True)
-		self.kmi_set_replace('transform.translate', self.k_cursor, 'CLICK_DRAG', ctrl=True, alt=True, shift=True, properties=[('cursor_transform', True), ('release_confirm', True), ('orient_type', 'NORMAL'), ('snap', True), ('snap_align', True)])
+		self.kmi_set_replace('view3d.cursor3d', self.k_cursor, 'CLICK', ctrl=True, alt=True, shift=True, properties={'use_depth': True, 'orientation': 'GEOM'}, disable_double=True)
+		self.kmi_set_replace('transform.translate', self.k_cursor, 'CLICK_DRAG', ctrl=True, alt=True, shift=True, properties={'cursor_transform': True, 'release_confirm': True, 'orient_type': 'NORMAL', 'snap': True, 'snap_align': True})
 
 		###### View2D
 		self.kmi_init(name='View2D', space_type='EMPTY', region_type='WINDOW')
@@ -594,63 +591,63 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		self.kmi_set_replace('uv.cursor_set', self.k_cursor, 'PRESS', ctrl=True, alt=True, shift=True)
 		self.tool_smooth()
 		self.hide_reveal(hide='uv.hide', unhide='uv.reveal')
-		self.snap(snapping='wm.context_menu_enum', snapping_prop=[('data_path', 'tool_settings.snap_uv_element')])
+		self.snap(snapping='wm.context_menu_enum', snapping_prop={'data_path': 'tool_settings.snap_uv_element'})
 		self.tool_center(pivot='space_data.pivot_point', orientation='IMAGE_PT_snapping')
 
-		self.kmi_set_replace('wm.tool_set_by_id', 'W', 'PRESS', ctrl=True, alt=True, shift=True, properties=[('name', 'builtin_brush.Grab')])
-		self.tool_radial_control(radius=[('data_path_primary', 'tool_settings.uv_sculpt.brush.size'), 
-								('data_path_secondary', 'tool_settings.unified_paint_settings.size'), 
-								('use_secondary', 'tool_settings.unified_paint_settings.use_unified_size'), 
-								('rotation_path', 'tool_settings.uv_sculpt.brush.texture_slot.angle'), 
-								('color_path', 'tool_settings.uv_sculpt.brush.cursor_color_add'), 
-								('image_id', 'tool_settings.uv_sculpt.brush'),
-								('release_confirm', True)],
-						   		opacity=[('data_path_primary', 'tool_settings.uv_sculpt.brush.strength'), 
-								   ('data_path_secondary', 'tool_settings.unified_paint_settings.strength'), 
-								   ('use_secondary', 'tool_settings.unified_paint_settings.use_unified_strength'), 
-								   ('rotation_path', 'tool_settings.uv_sculpt.brush.texture_slot.angle'), 
-								   ('color_path', 'tool_settings.uv_sculpt.brush.cursor_color_add'), 
-								   ('image_id', 'tool_settings.uv_sculpt.brush'),
-									('release_confirm', True)],
-						   		eraser_radius=[('data_path_primary', 'tool_settings.uv_sculpt.brush.texture_slot.angle'), 
-								   ('rotation_path', 'tool_settings.uv_sculpt.brush.texture_slot.angle'), 
-								   ('color_path', 'tool_settings.uv_sculpt.brush.cursor_color_add'), 
-								   ('image_id', 'tool_settings.uv_sculpt.brush'),
-									('release_confirm', True)])
+		self.kmi_set_replace('wm.tool_set_by_id', 'W', 'PRESS', ctrl=True, alt=True, shift=True, properties={'name': 'builtin_brush.Grab'})
+		self.tool_radial_control(radius={'data_path_primary': 'tool_settings.uv_sculpt.brush.size', 
+								'data_path_secondary': 'tool_settings.unified_paint_settings.size', 
+								'use_secondary': 'tool_settings.unified_paint_settings.use_unified_size', 
+								'rotation_path': 'tool_settings.uv_sculpt.brush.texture_slot.angle', 
+								'color_path': 'tool_settings.uv_sculpt.brush.cursor_color_add', 
+								'image_id': 'tool_settings.uv_sculpt.brush',
+								'release_confirm': True},
+						   		opacity={'data_path_primary': 'tool_settings.uv_sculpt.brush.strength', 
+								   'data_path_secondary': 'tool_settings.unified_paint_settings.strength', 
+								   'use_secondary': 'tool_settings.unified_paint_settings.use_unified_strength', 
+								   'rotation_path': 'tool_settings.uv_sculpt.brush.texture_slot.angle', 
+								   'color_path': 'tool_settings.uv_sculpt.brush.cursor_color_add', 
+								   'image_id': 'tool_settings.uv_sculpt.brush',
+									'release_confirm': True},
+						   		eraser_radius={'data_path_primary': 'tool_settings.uv_sculpt.brush.texture_slot.angle', 
+								   'rotation_path': 'tool_settings.uv_sculpt.brush.texture_slot.angle', 
+								   'color_path': 'tool_settings.uv_sculpt.brush.cursor_color_add', 
+								   'image_id': 'tool_settings.uv_sculpt.brush',
+									'release_confirm': True})
 
 
-		self.kmi_set_replace('uv.minimize_stretch', 'R', 'PRESS', ctrl=True, disable_double=True, properties=[('iterations', 10)])
-		self.kmi_set_replace('wm.call_menu_pie', 'F', 'PRESS', alt=True, shift=True, properties=[('name', 'UVTOOLKIT_MT_pie_uv_editor')])
+		self.kmi_set_replace('uv.minimize_stretch', 'R', 'PRESS', ctrl=True, disable_double=True, properties={'iterations': 10})
+		self.kmi_set_replace('wm.call_menu_pie', 'F', 'PRESS', alt=True, shift=True, properties={'name': 'UVTOOLKIT_MT_pie_uv_editor'})
 
 		self.kmi_set_replace('uv.stitch', 'V', 'PRESS',  disable_double=True)
 		self.kmi_set_replace('uv.select_split', 'V', 'PRESS', shift=True, disable_double=True)
 		self.kmi_set_replace('uv.uv_face_rip', 'V', 'PRESS', ctrl=True, disable_double=True)
 
 
-		self.kmi_set_replace('uv.toolkit_straighten', 'G', 'PRESS', ctrl=True, disable_double=True, properties=[('gridify', False)])
-		self.kmi_set_replace('uv.toolkit_unwrap_selected', 'E', 'PRESS', ctrl=True, disable_double=True, properties=[('gridify', False), ('method', 'ANGLE_BASED')])
+		self.kmi_set_replace('uv.toolkit_straighten', 'G', 'PRESS', ctrl=True, disable_double=True, properties={'gridify': False})
+		self.kmi_set_replace('uv.toolkit_unwrap_selected', 'E', 'PRESS', ctrl=True, disable_double=True, properties={'gridify': False, 'method': 'ANGLE_BASED'})
 		kmi = self.kmi_find('uv.toolkit_distribute')
 		if kmi is not None:
 			kmi.active = False
-		self.kmi_set_replace('uv.toolkit_distribute', 'D', 'PRESS', disable_double=True, properties=[('preserve_edge_length', True)])
+		self.kmi_set_replace('uv.toolkit_distribute', 'D', 'PRESS', disable_double=True, properties={'preserve_edge_length': True})
 		self.kmi_set_replace('uvpackmaster3.pack', 'P', 'PRESS', ctrl=True, disable_double=True)
 
 		# bpy.ops.transform.translate(value=(-1, 0, 0), orient_type='GLOBAL', orient_matrix=((1, 0, 0), (0, 1, 0), (0, 0, 1)), orient_matrix_type='GLOBAL', constraint_axis=(True, True, True), mirror=False, use_proportional_edit=False, proportional_edit_falloff='SMOOTH', proportional_size=1, use_proportional_connected=False, use_proportional_projected=False)
 
 
-		self.kmi_set_replace('transform.translate', 'UP_ARROW', 'PRESS', ctrl=True, alt=True, shift=True, disable_double=True, properties=[('value', (0.0,1.0,0.0)), ('release_confirm', True), ('orient_matrix', ((1, 0, 0), (0, 1, 0), (0, 0, 1))), ('orient_matrix_type','GLOBAL')])
-		self.kmi_set_replace('transform.translate', 'DOWN_ARROW', 'PRESS', ctrl=True, alt=True, shift=True, disable_double=True, properties=[('value', (0.0,-1.0,0.0)), ('release_confirm', True), ('orient_matrix', ((1, 0, 0), (0, 1, 0), (0, 0, 1))), ('orient_matrix_type','GLOBAL')])
-		self.kmi_set_replace('transform.translate', 'LEFT_ARROW', 'PRESS', ctrl=True, alt=True, shift=True, disable_double=True, properties=[('value', (-1.0,0.0,0.0)), ('release_confirm', True), ('orient_matrix', ((1, 0, 0), (0, 1, 0), (0, 0, 1))), ('orient_matrix_type','GLOBAL')])
-		self.kmi_set_replace('transform.translate', 'RIGHT_ARROW', 'PRESS', ctrl=True, alt=True, shift=True, disable_double=True, properties=[('value', (1.0,0.0,0.0)), ('release_confirm', True), ('orient_matrix', ((1, 0, 0), (0, 1, 0), (0, 0, 1))), ('orient_matrix_type','GLOBAL')])
+		self.kmi_set_replace('transform.translate', 'UP_ARROW', 'PRESS', ctrl=True, alt=True, shift=True, disable_double=True, properties={'value': (0.0,1.0,0.0), 'release_confirm': True, 'orient_matrix': ((1, 0, 0), (0, 1, 0), (0, 0, 1)), 'orient_matrix_type': 'GLOBAL'})
+		self.kmi_set_replace('transform.translate', 'DOWN_ARROW', 'PRESS', ctrl=True, alt=True, shift=True, disable_double=True, properties={'value': (0.0,-1.0,0.0), 'release_confirm': True, 'orient_matrix': ((1, 0, 0), (0, 1, 0), (0, 0, 1)), 'orient_matrix_type': 'GLOBAL'})
+		self.kmi_set_replace('transform.translate', 'LEFT_ARROW', 'PRESS', ctrl=True, alt=True, shift=True, disable_double=True, properties={'value': (-1.0,0.0,0.0), 'release_confirm': True, 'orient_matrix': ((1, 0, 0), (0, 1, 0), (0, 0, 1)), 'orient_matrix_type': 'GLOBAL'})
+		self.kmi_set_replace('transform.translate', 'RIGHT_ARROW', 'PRESS', ctrl=True, alt=True, shift=True, disable_double=True, properties={'value': (1.0,0.0,0.0), 'release_confirm': True, 'orient_matrix': ((1, 0, 0), (0, 1, 0), (0, 0, 1)), 'orient_matrix_type': 'GLOBAL'})
 
-		self.kmi_set_replace('uv.toolkit_align_uv', 'UP_ARROW', 'PRESS', ctrl=True, alt=False, shift=False, disable_double=True, properties=[('align_uv', 'MAX_V')])
-		self.kmi_set_replace('uv.toolkit_align_uv', 'DOWN_ARROW', 'PRESS', ctrl=True, alt=False, shift=False, disable_double=True, properties=[('align_uv', 'MIN_V')])
-		self.kmi_set_replace('uv.toolkit_align_uv', 'LEFT_ARROW', 'PRESS', ctrl=True, alt=False, shift=False, disable_double=True, properties=[('align_uv', 'MIN_U')])
-		self.kmi_set_replace('uv.toolkit_align_uv', 'RIGHT_ARROW', 'PRESS', ctrl=True, alt=False, shift=False, disable_double=True, properties=[('align_uv', 'MAX_U')])
-		self.kmi_set_replace('wm.call_menu_pie', 'X', 'PRESS', alt=True, disable_double=True, properties=[('name', 'IMAGE_MT_pivot_pie')])
+		self.kmi_set_replace('uv.toolkit_align_uv', 'UP_ARROW', 'PRESS', ctrl=True, alt=False, shift=False, disable_double=True, properties={'align_uv': 'MAX_V'})
+		self.kmi_set_replace('uv.toolkit_align_uv', 'DOWN_ARROW', 'PRESS', ctrl=True, alt=False, shift=False, disable_double=True, properties={'align_uv': 'MIN_V'})
+		self.kmi_set_replace('uv.toolkit_align_uv', 'LEFT_ARROW', 'PRESS', ctrl=True, alt=False, shift=False, disable_double=True, properties={'align_uv': 'MIN_U'})
+		self.kmi_set_replace('uv.toolkit_align_uv', 'RIGHT_ARROW', 'PRESS', ctrl=True, alt=False, shift=False, disable_double=True, properties={'align_uv': 'MAX_U'})
+		self.kmi_set_replace('wm.call_menu_pie', 'X', 'PRESS', alt=True, disable_double=True, properties={'name': 'IMAGE_MT_pivot_pie'})
 
 		# Machin3Tools
-		self.kmi_set_replace('wm.call_menu_pie', 'D', "PRESS", alt=True, shift=True, properties=[('name', 'MACHIN3_MT_uv_align_pie')], disable_double=True)
+		self.kmi_set_replace('wm.call_menu_pie', 'D', "PRESS", alt=True, shift=True, properties={'name': 'MACHIN3_MT_uv_align_pie'}, disable_double=True)
 
 		###### Mesh
 		self.kmi_init(name='Mesh', space_type='EMPTY', region_type='WINDOW')
@@ -686,20 +683,20 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		self.kmi_set_replace('view3d.smart_bevel', 'B', 'PRESS', disable_double=True)
 		self.kmi_set_replace('mesh.hp_extrude', 'E', 'PRESS', disable_double=True)
 		self.kmi_set_replace('mesh.knife_tool', 'C', 'PRESS', disable_double=True)
-		# self.kmi_set_replace('wm.tool_set_by_id', 'C', 'PRESS', alt=True, shift=True, properties=[('name', 'builtin.loop_cut')])
+		# self.kmi_set_replace('wm.tool_set_by_id', 'C', 'PRESS', alt=True, shift=True, properties={'name': 'builtin.loop_cut'})
 		self.kmi_set_replace('mesh.bridge_edge_loops', 'B', 'PRESS', shift=True)
 		self.kmi_set_replace('mesh.edge_collapse', 'DEL', 'PRESS', shift=True)
-		self.kmi_set_replace('mesh.fill', 'P', 'PRESS', shift=True, properties=[('use_beauty', True)])
-		self.kmi_set_replace('mesh.fill_grid', 'P', 'PRESS', alt=True, properties=[('use_interp_simple', False)])
+		self.kmi_set_replace('mesh.fill', 'P', 'PRESS', shift=True, properties={'use_beauty': True})
+		self.kmi_set_replace('mesh.fill_grid', 'P', 'PRESS', alt=True, properties={'use_interp_simple': False})
 		self.kmi_set_replace('mesh.edge_face_add', 'P', 'PRESS', disable_double=True)
 		self.kmi_set_replace('mesh.flip_normals', 'F', 'PRESS', disable_double=True)
 		self.kmi_set_replace('mesh.subdivide', 'D', 'PRESS', disable_double=True)
 		self.kmi_set_replace('transform.shrink_fatten', 'E', 'PRESS', alt=True, shift=True, disable_double=True)
 		self.kmi_set_replace('transform.edge_bevelweight', 'E', 'PRESS', ctrl=True, shift=True, disable_double=True)
 		
-		# self.kmi_set_replace('transform.vert_slide', 'S', 'PRESS', ctrl=True, alt=True, properties=[('correct_uv', True)])
+		# self.kmi_set_replace('transform.vert_slide', 'S', 'PRESS', ctrl=True, alt=True, properties={'correct_uv': True})
 
-		self.kmi_set_replace('wm.tool_set_by_id', 'F', 'PRESS', shift=True, properties=[('name', 'mesh_tool.poly_quilt')], disable_double=True)
+		self.kmi_set_replace('wm.tool_set_by_id', 'F', 'PRESS', shift=True, properties={'name': 'mesh_tool.poly_quilt'}, disable_double=True)
 
 
 		self.kmi_set_replace('mesh.remove_doubles', 'M', 'PRESS', ctrl=True, shift=True, disable_double=True)
@@ -716,14 +713,14 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 
 		self.kmi_set_replace('mesh.toggle_use_automerge', 'BACK_SLASH', 'PRESS')
 		# self.kmi_set_replace('object.merge_tool', 'M', 'PRESS')
-		self.kmi_set_replace('wm.call_menu_pie', 'S', 'PRESS', ctrl=False, alt=False, shift=True, properties=[('name', 'VIEW3D_MT_snap_pie')], disable_double=True)
-		self.kmi_set_replace('wm.call_menu_pie', 'S', 'PRESS', alt=True, shift=True, properties=[('name', 'TILA_MT_pie_normal')], disable_double=True)
-		# self.kmi_set_replace('wm.call_menu_pie', 'S', 'PRESS', ctrl=True, alt=True, shift=True, properties=[('name', 'TILA_MT_pie_uv')], disable_double=True)
+		self.kmi_set_replace('wm.call_menu_pie', 'S', 'PRESS', ctrl=False, alt=False, shift=True, properties={'name': 'VIEW3D_MT_snap_pie'}, disable_double=True)
+		self.kmi_set_replace('wm.call_menu_pie', 'S', 'PRESS', alt=True, shift=True, properties={'name': 'TILA_MT_pie_normal'}, disable_double=True)
+		# self.kmi_set_replace('wm.call_menu_pie', 'S', 'PRESS', ctrl=True, alt=True, shift=True, properties={'name', 'TILA_MT_pie_uv'}, disable_double=True)
 
-		self.kmi_set_replace("mesh.edge_rotate", 'V', "PRESS", properties=[('use_ccw', False)], disable_double=True)
-		self.kmi_set_replace("mesh.edge_rotate", 'V', "PRESS", shift=True, properties=[('use_ccw', True)], disable_double=True)
+		self.kmi_set_replace("mesh.edge_rotate", 'V', "PRESS", properties={'use_ccw': False}, disable_double=True)
+		self.kmi_set_replace("mesh.edge_rotate", 'V', "PRESS", shift=True, properties={'use_ccw': True}, disable_double=True)
 
-		self.kmi_set_replace('mesh.quads_convert_to_tris', 'T', "PRESS", shift=True, properties=[('quad_method','BEAUTY'), ('ngon_method','BEAUTY')], disable_double=True)
+		self.kmi_set_replace('mesh.quads_convert_to_tris', 'T', "PRESS", shift=True, properties={'quad_method': 'BEAUTY', 'ngon_method': 'BEAUTY'}, disable_double=True)
 		self.kmi_set_replace('mesh.tris_convert_to_quads', 'T', "PRESS", alt=True, shift=True)
 
 		# KE_Kit
@@ -735,15 +732,15 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		if kmi is not None:
 			kmi.shift = True
 
-		self.kmi_set_replace('view3d.ke_copyplus', 'C', "PRESS", ctrl=True, properties=[('mode', 'COPY')], disable_double=True)
-		self.kmi_set_replace('view3d.ke_copyplus', 'X', "PRESS", ctrl=True, properties=[('mode', 'CUT')], disable_double=True)
-		self.kmi_set_replace('view3d.ke_copyplus', 'V', "PRESS", ctrl=True, properties=[('mode', 'PASTE')], disable_double=True)
+		self.kmi_set_replace('view3d.ke_copyplus', 'C', "PRESS", ctrl=True, properties={'mode': 'COPY'}, disable_double=True)
+		self.kmi_set_replace('view3d.ke_copyplus', 'X', "PRESS", ctrl=True, properties={'mode': 'CUT'}, disable_double=True)
+		self.kmi_set_replace('view3d.ke_copyplus', 'V', "PRESS", ctrl=True, properties={'mode': 'PASTE'}, disable_double=True)
 
-		self.kmi_set_replace('mesh.ke_direct_loop_cut', 'C', "PRESS", alt=True, shift=True, properties=[('mode', 'SLIDE')], disable_double=True)
+		self.kmi_set_replace('mesh.ke_direct_loop_cut', 'C', "PRESS", alt=True, shift=True, properties={'mode': 'SLIDE'}, disable_double=True)
 
 		# MACHINE3tools
 		kmi = self.kmi_set_replace('machin3.clean_up', 'ZERO', "PRESS", ctrl=True, alt=True, shift=True)
-		self.kmi_set_replace('wm.call_menu_pie', 'D', "PRESS", alt=True, shift=True, properties=[('name', 'MACHIN3_MT_align_pie')], disable_double=True)
+		self.kmi_set_replace('wm.call_menu_pie', 'D', "PRESS", alt=True, shift=True, properties={'name': 'MACHIN3_MT_align_pie'}, disable_double=True)
 
 		# F2
 		# self.kmi_set_replace('mesh.f2', 'P', 'PRESS', disable_double=True)
@@ -752,7 +749,7 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		self.kmi_set_replace('mesh.quick_pivot', 'S', 'PRESS', alt=True, disable_double=True)
 
 		# EdgeFlow
-		self.kmi_set_replace('mesh.set_edge_flow', 'F', 'PRESS', alt=True, properties=[('tension', 180), ('iterations', 1), ('min_angle', 120)], disable_double=True)
+		self.kmi_set_replace('mesh.set_edge_flow', 'F', 'PRESS', alt=True, properties={'tension': 180, 'iterations': 1, 'min_angle': 120}, disable_double=True)
 
 
 		###### Object Mode
@@ -763,12 +760,12 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		self.tool_transform()
 
 
-		self.duplicate(duplicate='object.duplicate', duplicate_link='object.duplicate', duplicate_link_prop=[('linked', True)])
+		self.duplicate(duplicate='object.duplicate', duplicate_link='object.duplicate', duplicate_link_prop={'linked': True})
 
 		self.selection_keys(invert_tool='object.select_all')
 
 		self.tool_subdivision()
-		self.kmi_set_replace('object.delete', 'DEL', 'PRESS', ctrl=True, alt=True, shift=True, properties=[('use_global', True), ('confirm', True)])
+		self.kmi_set_replace('object.delete', 'DEL', 'PRESS', ctrl=True, alt=True, shift=True, properties={'use_global': True, 'confirm': True})
 
 		self.isolate()
 
@@ -783,17 +780,17 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		
 		self.tool_sculpt('sculpt.sculptmode_toggle')
 		self.kmi_set_replace('transform.tosphere', 'S', 'PRESS', ctrl=True, alt=True, shift=True, disable_double=True)
-		self.kmi_set_replace('wm.call_menu_pie', 'S', 'PRESS', alt=True, shift=True, properties=[('name', 'TILA_MT_pie_normal')], disable_double=True)
+		self.kmi_set_replace('wm.call_menu_pie', 'S', 'PRESS', alt=True, shift=True, properties={'name': 'TILA_MT_pie_normal'}, disable_double=True)
 
-		self.kmi_set_replace('outliner.tila_group_selected', 'G', 'PRESS', ctrl=True, properties=[('mode', 'GROUP_TO_BIGGER_NUMBER')], disable_double=True)
-		self.kmi_set_replace('outliner.tila_group_selected', 'G', 'PRESS', ctrl=True, shift=True, properties=[('mode', 'MOVE_TO_ACTIVE')], disable_double=True)
+		self.kmi_set_replace('outliner.tila_group_selected', 'G', 'PRESS', ctrl=True, properties={'mode': 'GROUP_TO_BIGGER_NUMBER'}, disable_double=True)
+		self.kmi_set_replace('outliner.tila_group_selected', 'G', 'PRESS', ctrl=True, shift=True, properties={'mode': 'MOVE_TO_ACTIVE'}, disable_double=True)
 
 		# MACHIN3tools
 		self.kmi_set_replace('machin3.align', 'A', "PRESS", alt=True, disable_double=True)
 
 		###### 3D View Tool: Select
 		self.kmi_init(name='3D View Tool: Tweak', space_type='EMPTY', region_type='WINDOW')
-		self.kmi_set_replace('view3d.select', self.k_select, 'PRESS', properties=[('deselect_all', True)], disable_double=True)
+		self.kmi_set_replace('view3d.select', self.k_select, 'PRESS', properties={'deselect_all': True}, disable_double=True)
 		
 		###### Sculpt
 		self.kmi_init(name='Sculpt', space_type='EMPTY', region_type='WINDOW')
@@ -807,56 +804,56 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 
 		self.kmi_set_active(False, idname='object.switch_object')
 
-		self.kmi_set_replace('object.tila_duplicate', self.k_manip, 'CLICK_DRAG', ctrl=True, alt=True, shift=True, properties=[('linked', False), ('move', True)])
+		self.kmi_set_replace('object.tila_duplicate', self.k_manip, 'CLICK_DRAG', ctrl=True, alt=True, shift=True, properties={'linked': False, 'move': True})
 
-		self.tool_radial_control(radius=[('data_path_primary', 'tool_settings.sculpt.brush.size'), 
-								('data_path_secondary', 'tool_settings.unified_paint_settings.size'), 
-								('use_secondary', 'tool_settings.unified_paint_settings.use_unified_size'), 
-								('rotation_path', 'tool_settings.sculpt.brush.texture_slot.angle'), 
-								('color_path', 'tool_settings.sculpt.brush.cursor_color_add'), 
-								('image_id', 'tool_settings.sculpt.brush'), 
-								('release_confirm', True)],
-						   		opacity=[('data_path_primary', 'tool_settings.sculpt.brush.strength'), 
-								   ('data_path_secondary', 'tool_settings.unified_paint_settings.strength'), 
-								   ('use_secondary', 'tool_settings.unified_paint_settings.use_unified_strength'), 
-								   ('rotation_path', 'tool_settings.sculpt.brush.texture_slot.angle'), 
-								   ('color_path', 'tool_settings.sculpt.brush.cursor_color_add'), 
-								   ('image_id', 'tool_settings.sculpt.brush'), 
-								   ('release_confirm', True)],
-						   		eraser_radius=[('data_path_primary', 'tool_settings.sculpt.brush.texture_slot.angle'), 
-								   ('rotation_path', 'tool_settings.sculpt.brush.texture_slot.angle'), 
-								   ('color_path', 'tool_settings.sculpt.brush.cursor_color_add'), 
-								   ('image_id', 'tool_settings.sculpt.brush'), 
-								   ('release_confirm', True)])
+		self.tool_radial_control(radius={'data_path_primary': 'tool_settings.sculpt.brush.size', 
+								'data_path_secondary': 'tool_settings.unified_paint_settings.size', 
+								'use_secondary': 'tool_settings.unified_paint_settings.use_unified_size', 
+								'rotation_path': 'tool_settings.sculpt.brush.texture_slot.angle', 
+								'color_path': 'tool_settings.sculpt.brush.cursor_color_add', 
+								'image_id': 'tool_settings.sculpt.brush', 
+								'release_confirm': True},
+						   		opacity={'data_path_primary': 'tool_settings.sculpt.brush.strength', 
+								   'data_path_secondary': 'tool_settings.unified_paint_settings.strength', 
+								   'use_secondary': 'tool_settings.unified_paint_settings.use_unified_strength', 
+								   'rotation_path': 'tool_settings.sculpt.brush.texture_slot.angle', 
+								   'color_path': 'tool_settings.sculpt.brush.cursor_color_add', 
+								   'image_id': 'tool_settings.sculpt.brush', 
+								   'release_confirm': True},
+						   		eraser_radius={'data_path_primary': 'tool_settings.sculpt.brush.texture_slot.angle', 
+								   'rotation_path': 'tool_settings.sculpt.brush.texture_slot.angle', 
+								   'color_path': 'tool_settings.sculpt.brush.cursor_color_add', 
+								   'image_id': 'tool_settings.sculpt.brush', 
+								   'release_confirm': True})
 
 		self.kmi_set_replace('sculpt.dynamic_topology_toggle', 'D', 'PRESS', ctrl=True, alt=True, shift=True)
 		
-		self.kmi_set_replace('paint.brush_select', self.k_manip, 'PRESS', ctrl=True, shift=True, properties=[('sculpt_tool', 'MASK'),('toggle', True)])
-		self.kmi_set_replace('paint.mask_lasso_gesture', self.k_context, 'CLICK_DRAG', ctrl=True, properties=[('value', 1.0), ('mode', 'VALUE')])
-		self.kmi_set_replace('paint.mask_lasso_gesture', self.k_context, 'CLICK_DRAG', shift=True, properties=[('value', 0.0), ('mode', 'VALUE')])
-		self.kmi_set_replace('paint.mask_flood_fill', self.k_context, 'PRESS', ctrl=True, alt=True, shift=True, properties=[('mode', 'INVERT')])
-		self.kmi_set_replace('paint.mask_flood_fill', self.k_context, 'PRESS', ctrl=True, shift=True, properties=[('mode', 'VALUE'), ('value', 0)])
-		self.kmi_set_replace('sculpt.tila_mask_faceset', self.k_context, 'CLICK', ctrl=True, properties=[('mode','MASK')])
-		self.kmi_set_replace('sculpt.tila_mask_faceset', self.k_context, 'CLICK', shift=True, properties=[('mode','TOGGLE')])
+		self.kmi_set_replace('paint.brush_select', self.k_manip, 'PRESS', ctrl=True, shift=True, properties={'sculpt_tool': 'MASK', 'toggle': True})
+		self.kmi_set_replace('paint.mask_lasso_gesture', self.k_context, 'CLICK_DRAG', ctrl=True, properties={'value': 1.0, 'mode': 'VALUE'})
+		self.kmi_set_replace('paint.mask_lasso_gesture', self.k_context, 'CLICK_DRAG', shift=True, properties={'value': 0.0, 'mode': 'VALUE'})
+		self.kmi_set_replace('paint.mask_flood_fill', self.k_context, 'PRESS', ctrl=True, alt=True, shift=True, properties={'mode': 'INVERT'})
+		self.kmi_set_replace('paint.mask_flood_fill', self.k_context, 'PRESS', ctrl=True, shift=True, properties={'mode': 'VALUE', 'value': 0})
+		self.kmi_set_replace('sculpt.tila_mask_faceset', self.k_context, 'CLICK', ctrl=True, properties={'mode': 'MASK'})
+		self.kmi_set_replace('sculpt.tila_mask_faceset', self.k_context, 'CLICK', shift=True, properties={'mode': 'TOGGLE'})
 
-		self.kmi_set_replace('paint.hide_show', self.k_nav, 'CLICK_DRAG', ctrl=True,  properties=[('action', 'HIDE'), ('wait_for_input', False), ('area', 'INSIDE')], disable_double=True)
-		self.kmi_set_replace('paint.hide_show', self.k_nav, 'CLICK_DRAG', shift=True, properties=[('action', 'HIDE'), ('wait_for_input', False), ('area', 'OUTSIDE')], disable_double=True)
-		self.kmi_set_replace('paint.hide_show', self.k_nav, 'PRESS', ctrl=True, alt=True, shift=True, properties=[('action', 'SHOW'), ('wait_for_input', False), ('area', 'ALL')], disable_double=True)
-		self.kmi_set_replace('sculpt.face_set_change_visibility', self.k_nav, 'PRESS', properties=[('mode','TOGGLE')], disable_double=True)
-		self.kmi_set_replace('sculpt.face_set_change_visibility', self.k_nav, 'RELEASE', ctrl=True, properties=[('mode','HIDE_ACTIVE')], disable_double=True)
+		self.kmi_set_replace('paint.hide_show', self.k_nav, 'CLICK_DRAG', ctrl=True,  properties={'action': 'HIDE', 'wait_for_input': False, 'area': 'INSIDE'}, disable_double=True)
+		self.kmi_set_replace('paint.hide_show', self.k_nav, 'CLICK_DRAG', shift=True, properties={'action': 'HIDE', 'wait_for_input': False, 'area': 'OUTSIDE'}, disable_double=True)
+		self.kmi_set_replace('paint.hide_show', self.k_nav, 'PRESS', ctrl=True, alt=True, shift=True, properties={'action': 'SHOW', 'wait_for_input': False, 'area': 'ALL'}, disable_double=True)
+		self.kmi_set_replace('sculpt.face_set_change_visibility', self.k_nav, 'PRESS', properties={'mode': 'TOGGLE'}, disable_double=True)
+		self.kmi_set_replace('sculpt.face_set_change_visibility', self.k_nav, 'RELEASE', ctrl=True, properties={'mode': 'HIDE_ACTIVE'}, disable_double=True)
 		
 
-		self.kmi_set_replace('sculpt.face_sets_create', 'W', 'PRESS', properties=[('mode','MASKED')], disable_double=True)
-		self.kmi_set_replace('sculpt.face_sets_create', 'W', 'PRESS', alt=True, properties=[('mode','VISIBLE')], disable_double=True)
-		self.kmi_set_replace('sculpt.face_set_edit', 'W', 'PRESS', ctrl=True, properties=[('mode','SHRINK')], disable_double=True)
-		self.kmi_set_replace('sculpt.face_set_edit', 'W', 'PRESS', ctrl=True, shift=True, properties=[('mode','GROW')], disable_double=True)
+		self.kmi_set_replace('sculpt.face_sets_create', 'W', 'PRESS', properties={'mode': 'MASKED'}, disable_double=True)
+		self.kmi_set_replace('sculpt.face_sets_create', 'W', 'PRESS', alt=True, properties={'mode': 'VISIBLE'}, disable_double=True)
+		self.kmi_set_replace('sculpt.face_set_edit', 'W', 'PRESS', ctrl=True, properties={'mode': 'SHRINK'}, disable_double=True)
+		self.kmi_set_replace('sculpt.face_set_edit', 'W', 'PRESS', ctrl=True, shift=True, properties={'mode': 'GROW'}, disable_double=True)
 
-		self.kmi_set_replace('sculpt.set_pivot_position', self.k_manip, 'PRESS', ctrl=True, alt=True, shift=True, properties=[('mode','SURFACE')], disable_double=True)
+		self.kmi_set_replace('sculpt.set_pivot_position', self.k_manip, 'PRESS', ctrl=True, alt=True, shift=True, properties={'mode': 'SURFACE'}, disable_double=True)
 
-		self.kmi_set_replace('wm.context_toggle', 'F', 'PRESS', shift=True, properties=[('data_path', 'scene.tool_settings.sculpt.show_face_sets')], disable_double=True)
+		self.kmi_set_replace('wm.context_toggle', 'F', 'PRESS', shift=True, properties={'data_path': 'scene.tool_settings.sculpt.show_face_sets'}, disable_double=True)
 
 		# self.kmi_set_replace('view3d.tila_inverse_visibility', self.k_nav, 'PRESS', ctrl=True, shift=True)
-		self.kmi_set_replace('sculpt.face_set_change_visibility', self.k_nav, 'PRESS', ctrl=True, alt=True, shift=True, properties=[('mode', 'INVERT')], disable_double=True)
+		self.kmi_set_replace('sculpt.face_set_change_visibility', self.k_nav, 'PRESS', ctrl=True, alt=True, shift=True, properties={'mode': 'INVERT'}, disable_double=True)
 		self.kmi_set_replace('sculpt.sculpt.sample_color', 'S', 'PRESS', disable_double=True)
 
 		###### Curve
@@ -869,7 +866,7 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		self.tool_smart_delete()
 		self.kmi_set_replace('curve.reveal', 'H', 'PRESS', ctrl=True, shift=True)
 		self.kmi_set_replace('curve.shortest_path_pick', self.k_select, 'PRESS', ctrl=True, shift=True)
-		self.kmi_set_replace('curve.draw', 'LEFTMOUSE', 'PRESS', alt=True, ctrl=True, shift=True, properties=[('wait_for_input', False)])
+		self.kmi_set_replace('curve.draw', 'LEFTMOUSE', 'PRESS', alt=True, ctrl=True, shift=True, properties={'wait_for_input': False})
 		self.kmi_set_replace('curve.separate', 'D', 'PRESS', ctrl=True, shift=True)
 		self.kmi_set_replace('curve.subdivide', 'D', 'PRESS')
 		kmi = self.kmi_set_replace('transform.tilt', 'T', 'PRESS', shift=True)
@@ -891,7 +888,7 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		self.right_mouse()
 		self.kmi_set_replace('outliner.item_rename', 'F2', 'PRESS')
 
-		self.duplicate(duplicate='object.tila_duplicate', duplicate_prop=[('linked', False), ('move', False)], duplicate_link='object.tila_duplicate', duplicate_link_prop=[('linked', True), ('move', False)])
+		self.duplicate(duplicate='object.tila_duplicate', duplicate_prop={'linked': False, 'move': False}, duplicate_link='object.tila_duplicate', duplicate_link_prop={'linked': True, 'move': False})
 
 		self.tool_smart_delete()
 		self.kmi_set_replace('object.tila_emptymesh', 'N', 'PRESS', ctrl=True, alt=True, shift=True)
@@ -901,8 +898,8 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		self.isolate()
 		self.join()
 
-		self.kmi_set_replace('outliner.tila_group_selected', 'G', 'PRESS', ctrl=True, properties=[('mode', 'GROUP_TO_BIGGER_NUMBER')], disable_double=True)
-		self.kmi_set_replace('outliner.tila_group_selected', 'G', 'PRESS', ctrl=True, shift=True, properties=[('mode', 'MOVE_TO_ACTIVE')], disable_double=True)
+		self.kmi_set_replace('outliner.tila_group_selected', 'G', 'PRESS', ctrl=True, properties={'mode': 'GROUP_TO_BIGGER_NUMBER'}, disable_double=True)
+		self.kmi_set_replace('outliner.tila_group_selected', 'G', 'PRESS', ctrl=True, shift=True, properties={'mode': 'MOVE_TO_ACTIVE'}, disable_double=True)
 
 		###### File Browser
 		self.kmi_init(name='File Browser', space_type='FILE_BROWSER', region_type='WINDOW')
@@ -941,35 +938,35 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		self.right_mouse()
 
 		self.tool_radial_control(
-		radius=[('data_path_primary', 'tool_settings.vertex_paint.brush.size'), 
-		('data_path_secondary', 'tool_settings.unified_paint_settings.size'), 
-		('use_secondary', 'tool_settings.unified_paint_settings.use_unified_size'), 
-		('rotation_path', 'tool_settings.vertex_paint.brush.texture_slot.angle'), 
-		('color_path', 'tool_settings.vertex_paint.brush.cursor_color_add'), 
-		('image_id', 'tool_settings.vertex_paint.brush'),
-		('release_confirm', True)],
-		opacity=[('data_path_primary', 'tool_settings.vertex_paint.brush.strength'), 
-		('data_path_secondary', 'tool_settings.unified_paint_settings.strength'), 
-		('use_secondary', 'tool_settings.unified_paint_settings.use_unified_strength'), 
-		('rotation_path', 'tool_settings.vertex_paint.brush.texture_slot.angle'), 
-		('color_path', 'tool_settings.vertex_paint.brush.cursor_color_add'), 
-		('image_id', 'tool_settings.vertex_paint.brush'),
-		('release_confirm', True)],
-		eraser_radius=[('data_path_primary', 'tool_settings.vertex_paint.brush.texture_slot.angle'), 
-		('rotation_path', 'tool_settings.vertex_paint.brush.texture_slot.angle'), 
-		('color_path', 'tool_settings.vertex_paint.brush.cursor_color_add'), 
-		('image_id', 'tool_settings.vertex_paint.brush'),
-		('release_confirm', True)])
+		radius={'data_path_primary': 'tool_settings.vertex_paint.brush.size', 
+		'data_path_secondary': 'tool_settings.unified_paint_settings.size', 
+		'use_secondary': 'tool_settings.unified_paint_settings.use_unified_size', 
+		'rotation_path': 'tool_settings.vertex_paint.brush.texture_slot.angle', 
+		'color_path': 'tool_settings.vertex_paint.brush.cursor_color_add', 
+		'image_id': 'tool_settings.vertex_paint.brush',
+		'release_confirm': True},
+		opacity={'data_path_primary': 'tool_settings.vertex_paint.brush.strength', 
+		'data_path_secondary': 'tool_settings.unified_paint_settings.strength', 
+		'use_secondary': 'tool_settings.unified_paint_settings.use_unified_strength', 
+		'rotation_path': 'tool_settings.vertex_paint.brush.texture_slot.angle', 
+		'color_path': 'tool_settings.vertex_paint.brush.cursor_color_add', 
+		'image_id': 'tool_settings.vertex_paint.brush',
+		'release_confirm': True},
+		eraser_radius={'data_path_primary': 'tool_settings.vertex_paint.brush.texture_slot.angle', 
+		'rotation_path': 'tool_settings.vertex_paint.brush.texture_slot.angle', 
+		'color_path': 'tool_settings.vertex_paint.brush.cursor_color_add', 
+		'image_id': 'tool_settings.vertex_paint.brush',
+		'release_confirm': True})
 
 		self.tool_sample_color('paint.sample_color')
 		self.kmi_set_replace('view3D.toggle_x_symetry', 'X', 'PRESS', shift=True)
 
-		# self.kmi_set_replace('paint.weight_gradient', self.k_manip, 'PRESS', ctrl=True, shift=True, properties=[('type', 'LINEAR')])
-		# self.kmi_set_replace('paint.weight_gradient', self.k_manip, 'PRESS', ctrl=True, shift=True, alt=True, properties=[('type', 'RADIAL')])
+		# self.kmi_set_replace('paint.weight_gradient', self.k_manip, 'PRESS', ctrl=True, shift=True, properties={'type': 'LINEAR'})
+		# self.kmi_set_replace('paint.weight_gradient', self.k_manip, 'PRESS', ctrl=True, shift=True, alt=True, properties={'type': 'RADIAL'})
 
-		self.kmi_set_replace('wm.tool_set_by_id', self.k_manip, 'PRESS', ctrl=True, shift=True, alt=True, properties=[('name', 'builtin_brush.Draw')])
-		self.kmi_set_replace('paint.tila_brush_select_and_paint', self.k_manip, 'PRESS', shift=True, properties=[('tool', 'VERTEX'), ('mode', 'BLUR'), ('brush', 'Blur')])
-		self.kmi_set_replace('paint.tila_brush_select_and_paint', self.k_manip, 'PRESS', ctrl=True, properties=[('tool', 'VERTEX'), ('mode', 'DRAW'), ('brush', 'Multiply')])
+		self.kmi_set_replace('wm.tool_set_by_id', self.k_manip, 'PRESS', ctrl=True, shift=True, alt=True, properties={'name': 'builtin_brush.Draw'})
+		self.kmi_set_replace('paint.tila_brush_select_and_paint', self.k_manip, 'PRESS', shift=True, properties={'tool': 'VERTEX', 'mode': 'BLUR', 'brush': 'Blur'})
+		self.kmi_set_replace('paint.tila_brush_select_and_paint', self.k_manip, 'PRESS', ctrl=True, properties={'tool': 'VERTEX', 'mode': 'DRAW', 'brush': 'Multiply'})
 
 		###### Weight Paint
 		self.kmi_init(name='Weight Paint', space_type='EMPTY', region_type='WINDOW')
@@ -977,34 +974,34 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		self.right_mouse()
 		
 		self.tool_radial_control(
-		radius=[('data_path_primary', 'tool_settings.weight_paint.brush.size'), 
-		('data_path_secondary', 'tool_settings.unified_paint_settings.size'), 
-		('use_secondary', 'tool_settings.unified_paint_settings.use_unified_size'), 
-		('rotation_path', 'tool_settings.weight_paint.brush.texture_slot.angle'), 
-		('color_path', 'tool_settings.weight_paint.brush.cursor_color_add'), 
-		('image_id', 'tool_settings.weight_paint.brush'),
-		('release_confirm', True)],
-		opacity=[('data_path_primary', 'tool_settings.weight_paint.brush.strength'), 
-		('data_path_secondary', 'tool_settings.unified_paint_settings.strength'), 
-		('use_secondary', 'tool_settings.unified_paint_settings.use_unified_strength'), 
-		('rotation_path', 'tool_settings.weight_paint.brush.texture_slot.angle'), 
-		('color_path', 'tool_settings.weight_paint.brush.cursor_color_add'), 
-		('image_id', 'tool_settings.weight_paint.brush'),
-		('release_confirm', True)],
-		eraser_radius=[('data_path_primary', 'tool_settings.weight_paint.brush.texture_slot.angle'), 
-		('rotation_path', 'tool_settings.weight_paint.brush.texture_slot.angle'), 
-		('color_path', 'tool_settings.weight_paint.brush.cursor_color_add'), 
-		('image_id', 'tool_settings.weight_paint.brush'),
-		('release_confirm', True)])
+		radius={'data_path_primary': 'tool_settings.weight_paint.brush.size', 
+		'data_path_secondary': 'tool_settings.unified_paint_settings.size', 
+		'use_secondary': 'tool_settings.unified_paint_settings.use_unified_size', 
+		'rotation_path': 'tool_settings.weight_paint.brush.texture_slot.angle', 
+		'color_path': 'tool_settings.weight_paint.brush.cursor_color_add', 
+		'image_id': 'tool_settings.weight_paint.brush',
+		'release_confirm': True},
+		opacity={'data_path_primary': 'tool_settings.weight_paint.brush.strength', 
+		'data_path_secondary': 'tool_settings.unified_paint_settings.strength', 
+		'use_secondary': 'tool_settings.unified_paint_settings.use_unified_strength', 
+		'rotation_path': 'tool_settings.weight_paint.brush.texture_slot.angle', 
+		'color_path': 'tool_settings.weight_paint.brush.cursor_color_add', 
+		'image_id': 'tool_settings.weight_paint.brush',
+		'release_confirm': True},
+		eraser_radius={'data_path_primary': 'tool_settings.weight_paint.brush.texture_slot.angle', 
+		'rotation_path': 'tool_settings.weight_paint.brush.texture_slot.angle', 
+		'color_path': 'tool_settings.weight_paint.brush.cursor_color_add', 
+		'image_id': 'tool_settings.weight_paint.brush',
+		'release_confirm': True})
 
 		self.tool_sample_color('paint.weight_sample')
 
-		self.kmi_set_replace('paint.weight_gradient', self.k_manip, 'PRESS', ctrl=True, shift=True, properties=[('type', 'LINEAR')])
-		self.kmi_set_replace('paint.weight_gradient', self.k_manip, 'PRESS', ctrl=True, shift=True, alt=True, properties=[('type', 'RADIAL')])
+		self.kmi_set_replace('paint.weight_gradient', self.k_manip, 'PRESS', ctrl=True, shift=True, properties={'type': 'LINEAR'})
+		self.kmi_set_replace('paint.weight_gradient', self.k_manip, 'PRESS', ctrl=True, shift=True, alt=True, properties={'type': 'RADIAL'})
 
-		self.kmi_set_replace('wm.tool_set_by_id', self.k_manip, 'PRESS', ctrl=True, shift=True, alt=True, properties=[('name', 'builtin_brush.Draw')])
-		self.kmi_set_replace('paint.tila_brush_select_and_paint', self.k_manip, 'PRESS', shift=True, properties=[('tool', 'WEIGHT'), ('mode', 'AVERAGE'), ('brush', 'Average')])
-		self.kmi_set_replace('paint.tila_brush_select_and_paint', self.k_manip, 'PRESS', ctrl=True, properties=[('tool', 'WEIGHT'), ('mode', 'DRAW'), ('brush', 'Subtract')])
+		self.kmi_set_replace('wm.tool_set_by_id', self.k_manip, 'PRESS', ctrl=True, shift=True, alt=True, properties={'name': 'builtin_brush.Draw'})
+		self.kmi_set_replace('paint.tila_brush_select_and_paint', self.k_manip, 'PRESS', shift=True, properties={'tool': 'WEIGHT', 'mode': 'AVERAGE', 'brush': 'Average'})
+		self.kmi_set_replace('paint.tila_brush_select_and_paint', self.k_manip, 'PRESS', ctrl=True, properties={'tool': 'WEIGHT', 'mode': 'DRAW', 'brush': 'Subtract'})
 
 		self.kmi_set_replace('paint.weight_set', self.k_linked, 'PRESS')
 
@@ -1019,40 +1016,40 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		self.selection_tool(tool='builtin.select_box')
 		self.right_mouse()
 
-		self.tool_radial_control(radius=[('data_path_primary', 'tool_settings.image_paint.brush.size'), 
-		('data_path_secondary', 'tool_settings.unified_paint_settings.size'), 
-		('use_secondary', 'tool_settings.unified_paint_settings.use_unified_size'), 
-		('rotation_path', 'tool_settings.image_paint.brush.texture_slot.angle'), 
-		('color_path', 'tool_settings.image_paint.brush.cursor_color_add'), 
-		('image_id', 'tool_settings.image_paint.brush'),
-		('fill_color_path', 'tool_settings.image_paint.brush.color'), 
-		('fill_color_override_path', 'tool_settings.unified_paint_settings.color'), 
-		('fill_color_override_test_path', 'tool_settings.unified_paint_settings.use_unified_color'),
-		('zoom_path', 'space_data.zoom'), ('secondary_tex', True),
-		('release_confirm', True)],
-		opacity=[('data_path_primary', 'tool_settings.image_paint.brush.strength'), 
-		('data_path_secondary', 'tool_settings.unified_paint_settings.strength'), 
-		('use_secondary', 'tool_settings.unified_paint_settings.use_unified_strength'), 
-		('rotation_path', 'tool_settings.image_paint.brush.texture_slot.angle'), 
-		('color_path', 'tool_settings.image_paint.brush.cursor_color_add'), 
-		('image_id', 'tool_settings.image_paint.brush'),
-		('fill_color_path', 'tool_settings.image_paint.brush.color'), 
-		('fill_color_override_path', 'tool_settings.unified_paint_settings.color'), 
-		('fill_color_override_test_path', 'tool_settings.unified_paint_settings.use_unified_color'),
-		('secondary_tex', True),
-		('release_confirm', True)],
-		eraser_radius=[('data_path_primary', 'tool_settings.image_paint.brush.texture_slot.angle'), 
-		('rotation_path', 'tool_settings.image_paint.brush.texture_slot.angle'), 
-		('color_path', 'tool_settings.image_paint.brush.cursor_color_add'), 
-		('image_id', 'tool_settings.image_paint.brush'),
-		('fill_color_path', 'tool_settings.image_paint.brush.color'), 
-		('fill_color_override_path', 'tool_settings.unified_paint_settings.color'), 
-		('fill_color_override_test_path', 'tool_settings.unified_paint_settings.use_unified_color')],
-		fill_color=[('fill_color_path', 'tool_settings.image_paint.brush.color'), 
-		('fill_color_override_path', 'tool_settings.unified_paint_settings.color'), 
-		('fill_color_override_test_path', 'tool_settings.unified_paint_settings.use_unified_color'),
-		('zoom_path', 'space_data.zoom'), ('secondary_tex', True),
-		('release_confirm', True)])
+		self.tool_radial_control(radius={'data_path_primary': 'tool_settings.image_paint.brush.size', 
+		'data_path_secondary': 'tool_settings.unified_paint_settings.size', 
+		'use_secondary': 'tool_settings.unified_paint_settings.use_unified_size', 
+		'rotation_path': 'tool_settings.image_paint.brush.texture_slot.angle', 
+		'color_path': 'tool_settings.image_paint.brush.cursor_color_add', 
+		'image_id': 'tool_settings.image_paint.brush',
+		'fill_color_path': 'tool_settings.image_paint.brush.color', 
+		'fill_color_override_path': 'tool_settings.unified_paint_settings.color', 
+		'fill_color_override_test_path': 'tool_settings.unified_paint_settings.use_unified_color',
+		'zoom_path': 'space_data.zoom', 'secondary_tex': True,
+		'release_confirm': True},
+		opacity={'data_path_primary': 'tool_settings.image_paint.brush.strength', 
+		'data_path_secondary': 'tool_settings.unified_paint_settings.strength', 
+		'use_secondary': 'tool_settings.unified_paint_settings.use_unified_strength', 
+		'rotation_path': 'tool_settings.image_paint.brush.texture_slot.angle', 
+		'color_path': 'tool_settings.image_paint.brush.cursor_color_add', 
+		'image_id': 'tool_settings.image_paint.brush',
+		'fill_color_path': 'tool_settings.image_paint.brush.color', 
+		'fill_color_override_path': 'tool_settings.unified_paint_settings.color', 
+		'fill_color_override_test_path': 'tool_settings.unified_paint_settings.use_unified_color',
+		'secondary_tex': True,
+		'release_confirm': True},
+		eraser_radius={'data_path_primary': 'tool_settings.image_paint.brush.texture_slot.angle', 
+		'rotation_path': 'tool_settings.image_paint.brush.texture_slot.angle', 
+		'color_path': 'tool_settings.image_paint.brush.cursor_color_add', 
+		'image_id': 'tool_settings.image_paint.brush',
+		'fill_color_path': 'tool_settings.image_paint.brush.color', 
+		'fill_color_override_path': 'tool_settings.unified_paint_settings.color', 
+		'fill_color_override_test_path': 'tool_settings.unified_paint_settings.use_unified_color'},
+		fill_color={'fill_color_path': 'tool_settings.image_paint.brush.color', 
+		'fill_color_override_path': 'tool_settings.unified_paint_settings.color', 
+		'fill_color_override_test_path': 'tool_settings.unified_paint_settings.use_unified_color',
+		'zoom_path': 'space_data.zoom', 'secondary_tex': True,
+		'release_confirm': True})
 
 		self.tool_sample_color('paint.sample_color')
 
@@ -1071,13 +1068,13 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 
 		self.selection_keys(select_tool='node.select')
 		self.duplicate(duplicate='node.duplicate_move_keep_inputs')
-		self.snap(snapping='wm.context_menu_enum', snapping_prop=[('data_path', 'tool_settings.snap_node_element')])
+		self.snap(snapping='wm.context_menu_enum', snapping_prop={'data_path': 'tool_settings.snap_node_element'})
 		self.kmi_set_replace('node.view_selected', 'A', 'PRESS', ctrl=True, shift=True)
 		self.kmi_set_replace('node.add_search', self.k_menu, 'PRESS')
 		
 		self.kmi_set_replace('node.backimage_move', self.k_cursor, 'PRESS', disable_double=True)
-		self.kmi_set_replace('node.backimage_zoom', self.k_lasso_through, 'CLICK_DRAG', direction='EAST', alt=True, properties=[('factor', 1.2)], disable_double=True)
-		self.kmi_set_replace('node.backimage_zoom', self.k_lasso_through, 'CLICK_DRAG', direction='WEST', alt=True, properties=[('factor', 0.8)], disable_double=True)
+		self.kmi_set_replace('node.backimage_zoom', self.k_lasso_through, 'CLICK_DRAG', direction='EAST', alt=True, properties={'factor': 1.2}, disable_double=True)
+		self.kmi_set_replace('node.backimage_zoom', self.k_lasso_through, 'CLICK_DRAG', direction='WEST', alt=True, properties={'factor': 0.8}, disable_double=True)
 
 		self.kmi_set_replace('node.node_copy_color', 'C', 'PRESS', ctrl=True, shift=True, disable_double=True)
 		
@@ -1085,8 +1082,8 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		self.kmi_set_replace('noodler.draw_route', 'E', 'PRESS', disable_double=True)
 		self.kmi_set_replace('noodler.chamfer', 'B', 'PRESS', disable_double=True)
 		self.kmi_set_replace('noodler.draw_frame', 'J', 'PRESS', ctrl=True, disable_double=True)
-		self.kmi_set_replace('noodler.dependency_select', self.k_manip, 'DOUBLE_CLICK', shift=True, properties=[('mode', "downstream"), ('repsel', True)], disable_double=True)
-		self.kmi_set_replace('noodler.dependency_select', self.k_manip, 'DOUBLE_CLICK', ctrl=True, properties=[('mode', "upstream"), ('repsel', True)], disable_double=True)
+		self.kmi_set_replace('noodler.dependency_select', self.k_manip, 'DOUBLE_CLICK', shift=True, properties={'mode': "downstream", 'repsel': True}, disable_double=True)
+		self.kmi_set_replace('noodler.dependency_select', self.k_manip, 'DOUBLE_CLICK', ctrl=True, properties={'mode': "upstream", 'repsel': True}, disable_double=True)
 
 		###### Animation
 		self.kmi_init(name='Animation', space_type='EMPTY', region_type='WINDOW')
@@ -1116,17 +1113,17 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		self.duplicate(duplicate='mball.duplicate_metaelems')
 		self.selection_tool()
 		self.tool_smart_delete()
-		self.kmi_set_replace('mball.tila_metaball_adjust_parameter', 'S', 'PRESS', alt=True, shift=True, properties=[('param', 'STIFFNESS')], disable_double=True)
-		self.kmi_set_replace('mball.tila_metaball_adjust_parameter', 'R', 'PRESS', alt=True, shift=True, properties=[('param', 'RESOLUTION')], disable_double=True)
-		self.kmi_set_replace('mball.tila_metaball_type_cycle', 'W', 'PRESS', ctrl=True, properties=[('direction', 'NEXT')], disable_double=True)
-		self.kmi_set_replace('mball.tila_metaball_type_cycle', 'W', 'PRESS', ctrl=True, shift=True, properties=[('direction', 'PREVIOUS')], disable_double=True)
+		self.kmi_set_replace('mball.tila_metaball_adjust_parameter', 'S', 'PRESS', alt=True, shift=True, properties={'param': 'STIFFNESS'}, disable_double=True)
+		self.kmi_set_replace('mball.tila_metaball_adjust_parameter', 'R', 'PRESS', alt=True, shift=True, properties={'param': 'RESOLUTION'}, disable_double=True)
+		self.kmi_set_replace('mball.tila_metaball_type_cycle', 'W', 'PRESS', ctrl=True, properties={'direction': 'NEXT'}, disable_double=True)
+		self.kmi_set_replace('mball.tila_metaball_type_cycle', 'W', 'PRESS', ctrl=True, shift=True, properties={'direction': 'PREVIOUS'}, disable_double=True)
 		self.kmi_set_replace('mball.tila_metaball_substract_toggle', 'X', 'PRESS', disable_double=True)
 
 		###### NLA Editor
 		self.kmi_init(name='NLA Editor', space_type='EMPTY', region_type='WINDOW')
 		self.global_keys()
 		self.right_mouse()
-		self.duplicate(duplicate='nla.duplicate', duplicate_link='nla.duplicate', duplicate_link_prop=[('linked', True)])
+		self.duplicate(duplicate='nla.duplicate', duplicate_link='nla.duplicate', duplicate_link_prop={'linked': True})
 		
 		###### Lattice
 		self.kmi_init(name='Lattice', space_type='EMPTY', region_type='WINDOW')
@@ -1174,7 +1171,7 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		self.tool_smart_delete()
 		self.kmi_set_active(False, idname='gpencil.dissolve')
 		self.kmi_set_active(False, idname='gpencil.active_frames_delete_all')
-		self.kmi_set_replace('gpencil.dissolve', 'DEL', 'PRESS', shift=True, properties=[('type', 'POINTS')], disable_double=True)
+		self.kmi_set_replace('gpencil.dissolve', 'DEL', 'PRESS', shift=True, properties={'type': 'POINTS'}, disable_double=True)
 		self.kmi_set_replace('gpencil.active_frames_delete_all', 'DEL', 'PRESS', ctrl=True, alt=True, shift=True)
 		self.selection_keys(gp_circle_tool='gpencil.select_circle',
 							more_tool='gpencil.select_more',
@@ -1189,15 +1186,15 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		self.global_keys()
 		self.right_mouse()
 		self.duplicate(duplicate='gpencil.duplicate_move')
-		self.kmi_set_replace('wm.tool_set_by_id', 'SPACE', 'PRESS', properties=[(('name', 'builtin_brush.Draw'))])
+		self.kmi_set_replace('wm.tool_set_by_id', 'SPACE', 'PRESS', properties={'name': 'builtin_brush.Draw'})
 		self.collection_visibility('object.hide_collection')
 		self.mode_selection()
-		self.tool_radial_control(radius=[('data_path_primary', 'tool_settings.gpencil_paint.brush.size'),
-										('release_confirm', True)],
-								opacity=[('data_path_primary', 'tool_settings.gpencil_paint.brush.gpencil_settings.pen_strength',
-										('release_confirm', True))],
-								 eraser_radius=[('data_path_primary', 'preferences.edit.grease_pencil_eraser_radius',
-										('release_confirm', True))])
+		self.tool_radial_control(radius={'data_path_primary': 'tool_settings.gpencil_paint.brush.size',
+										'release_confirm': True},
+								opacity={'data_path_primary': 'tool_settings.gpencil_paint.brush.gpencil_settings.pen_strength',
+										'release_confirm': True},
+								 eraser_radius={'data_path_primary': 'preferences.edit.grease_pencil_eraser_radius',
+										'release_confirm': True})
 		
 		###### Grease Pencil Stroke Paint (Draw brush)
 		self.kmi_init(name='Grease Pencil Stroke Paint (Draw brush)', space_type='EMPTY', region_type='WINDOW')
@@ -1218,46 +1215,46 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		self.kmi_init(name='Grease Pencil Stroke Sculpt Mode', space_type='EMPTY', region_type='WINDOW')
 		self.global_keys()
 		self.right_mouse()
-		self.kmi_set_replace('wm.tool_set_by_id', 'G', 'PRESS', properties=[('name', 'builtin_brush.Grab')])
+		self.kmi_set_replace('wm.tool_set_by_id', 'G', 'PRESS', properties={'name': 'builtin_brush.Grab'})
 
-		self.tool_radial_control(radius=[('data_path_primary', 'tool_settings.gpencil_sculpt_paint.brush.size'),
-		('release_confirm', True)],
-		opacity=[('data_path_primary', 'tool_settings.gpencil_sculpt_paint.brush.strength'),
-		('release_confirm', True)],
-		eraser_radius=[('data_path_primary', 'tool_settings.gpencil_sculpt_paint.brush.texture_slot.angle'), 
-		('rotation_path', 'tool_settings.gpencil_sculpt_paint.brush.texture_slot.angle'), 
-		('color_path', 'tool_settings.gpencil_sculpt_paint.brush.cursor_color_add'), 
-		('image_id', 'tool_settings.gpencil_sculpt_paint.brush'),
-		('fill_color_path', 'tool_settings.gpencil_sculpt_paint.brush.color'), 
-		('fill_color_override_path', 'tool_settings.unified_paint_settings.color'), 
-		('fill_color_override_test_path', 'tool_settings.unified_paint_settings.use_unified_color'),
-		('release_confirm', True)],
-		fill_color=[('fill_color_path', 'tool_settings.gpencil_sculpt_paint.brush.color'), 
-		('fill_color_override_path', 'tool_settings.unified_paint_settings.color'), 
-		('fill_color_override_test_path', 'tool_settings.unified_paint_settings.use_unified_color'),
-		('zoom_path', 'space_data.zoom'), ('secondary_tex', True),
-		('release_confirm', True)])
+		self.tool_radial_control(radius={'data_path_primary': 'tool_settings.gpencil_sculpt_paint.brush.size',
+		'release_confirm': True},
+		opacity={'data_path_primary': 'tool_settings.gpencil_sculpt_paint.brush.strength',
+		'release_confirm': True},
+		eraser_radius={'data_path_primary': 'tool_settings.gpencil_sculpt_paint.brush.texture_slot.angle', 
+		'rotation_path': 'tool_settings.gpencil_sculpt_paint.brush.texture_slot.angle', 
+		'color_path': 'tool_settings.gpencil_sculpt_paint.brush.cursor_color_add', 
+		'image_id': 'tool_settings.gpencil_sculpt_paint.brush',
+		'fill_color_path': 'tool_settings.gpencil_sculpt_paint.brush.color', 
+		'fill_color_override_path': 'tool_settings.unified_paint_settings.color', 
+		'fill_color_override_test_path': 'tool_settings.unified_paint_settings.use_unified_color',
+		'release_confirm': True},
+		fill_color={'fill_color_path': 'tool_settings.gpencil_sculpt_paint.brush.color', 
+		'fill_color_override_path': 'tool_settings.unified_paint_settings.color', 
+		'fill_color_override_test_path': 'tool_settings.unified_paint_settings.use_unified_color',
+		'zoom_path': 'space_data.zoom', 'secondary_tex': True,
+		'release_confirm': True})
 		
 		###### Frames
 		self.kmi_init(name='Frames', space_type='EMPTY', region_type='WINDOW')
 		self.global_keys()
 		self.right_mouse()
-		self.kmi_set_replace('screen.animation_play', 'SPACE', 'PRESS', ctrl=True, shift=True,  properties=[('reverse', False)])
+		self.kmi_set_replace('screen.animation_play', 'SPACE', 'PRESS', ctrl=True, shift=True,  properties={'reverse': False})
 
 		###### Screen
 		self.kmi_init(name='Screen', space_type='EMPTY', region_type='WINDOW')
 		self.global_keys()
 		self.right_mouse()
 		self.kmi_set_replace('screen.screen_full_area', 'SPACE', 'PRESS', ctrl=True, alt=True)
-		self.kmi_set_replace('screen.screen_full_area', 'SPACE', 'PRESS', ctrl=True, alt=True, shift=True, properties=[('use_hide_panels', True)])
+		self.kmi_set_replace('screen.screen_full_area', 'SPACE', 'PRESS', ctrl=True, alt=True, shift=True, properties={'use_hide_panels': True})
 
 		###### Particle
 		self.kmi_init(name='Particle', space_type='EMPTY', region_type='WINDOW')
 		self.global_keys()
 		self.mode_selection()
-		self.tool_radial_control(radius=[('data_path_primary', 'tool_settings.particle_edit.brush.size',
-		('release_confirm', True))],
-		opacity=[('data_path_primary', 'tool_settings.particle_edit.brush.strength')])
+		self.tool_radial_control(radius={'data_path_primary': 'tool_settings.particle_edit.brush.size',
+		'release_confirm': True},
+		opacity={'data_path_primary': 'tool_settings.particle_edit.brush.strength'})
 
 		kmi = self.kmi_find(idname='wm.call_menu', type=self.k_context)
 		kmi.value = 'RELEASE'
@@ -1301,14 +1298,14 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		self.kmi_set_active(False, idname='mesh.poly_quilt', type='LEFTMOUSE', value='PRESS', ctrl=False, shift=False, alt=False, oskey=False)
 		self.kmi_set_active(False, idname='mesh.poly_quilt', type='LEFTMOUSE', value='PRESS', ctrl=True, shift=True, alt=False, oskey=False)
 		self.kmi_set_active(False, idname='mesh.poly_quilt', type='LEFTMOUSE', value='PRESS', ctrl=True, shift=False, alt=False, oskey=False)
-		self.kmi_set_replace('mesh.poly_quilt', self.k_manip, 'PRESS', properties=[('tool_mode', 'LOWPOLY')], disable_double=True)
-		self.kmi_set_replace('mesh.poly_quilt', self.k_manip, 'PRESS', shift=True, properties=[('tool_mode', 'BRUSH'), ('brush_type', 'SMOOTH')], disable_double=True)
-		self.kmi_set_replace('mesh.poly_quilt', self.k_cursor, 'PRESS', shift=True, properties=[('tool_mode', 'BRUSH'), ('brush_type', 'MOVE')], disable_double=True)
-		self.kmi_set_replace('mesh.poly_quilt', self.k_manip, 'PRESS', ctrl=True, properties=[('tool_mode', 'EXTRUDE')], disable_double=True)
-		self.kmi_set_replace('mesh.poly_quilt', self.k_manip, 'PRESS', ctrl=True, shift=True, properties=[('tool_mode', 'EDGELOOP')], disable_double=True)
-		self.kmi_set_replace('mesh.poly_quilt', self.k_cursor, 'PRESS', ctrl=True, properties=[('tool_mode', 'KNIFE')], disable_double=True)
-		self.kmi_set_replace('mesh.poly_quilt', self.k_context, 'PRESS', ctrl=True, shift=True, properties=[('tool_mode', 'LOOPCUT')], disable_double=True)
-		self.kmi_set_replace('mesh.poly_quilt', self.k_manip, 'PRESS', ctrl=True, alt=True, shift=True, properties=[('tool_mode', 'DELETE')], disable_double=True)
+		self.kmi_set_replace('mesh.poly_quilt', self.k_manip, 'PRESS', properties={'tool_mode': 'LOWPOLY'}, disable_double=True)
+		self.kmi_set_replace('mesh.poly_quilt', self.k_manip, 'PRESS', shift=True, properties={'tool_mode': 'BRUSH', 'brush_type': 'SMOOTH'}, disable_double=True)
+		self.kmi_set_replace('mesh.poly_quilt', self.k_cursor, 'PRESS', shift=True, properties={'tool_mode': 'BRUSH', 'brush_type': 'MOVE'}, disable_double=True)
+		self.kmi_set_replace('mesh.poly_quilt', self.k_manip, 'PRESS', ctrl=True, properties={'tool_mode': 'EXTRUDE'}, disable_double=True)
+		self.kmi_set_replace('mesh.poly_quilt', self.k_manip, 'PRESS', ctrl=True, shift=True, properties={'tool_mode': 'EDGELOOP'}, disable_double=True)
+		self.kmi_set_replace('mesh.poly_quilt', self.k_cursor, 'PRESS', ctrl=True, properties={'tool_mode': 'KNIFE'}, disable_double=True)
+		self.kmi_set_replace('mesh.poly_quilt', self.k_context, 'PRESS', ctrl=True, shift=True, properties={'tool_mode': 'LOOPCUT'}, disable_double=True)
+		self.kmi_set_replace('mesh.poly_quilt', self.k_manip, 'PRESS', ctrl=True, alt=True, shift=True, properties={'tool_mode': 'DELETE'}, disable_double=True)
 		
 		print("----------------------------------------------------------------")
 		print("Assignment complete")
