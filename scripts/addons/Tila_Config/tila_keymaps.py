@@ -98,18 +98,18 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		self.kmi_set_replace('wm.call_menu_pie', 'X', 'PRESS', alt=True, shift=True, properties={'name': 'HP_MT_pie_symmetry'}, disable_double=True)
 		
 	def navigation_keys(self, pan=None, orbit=None, dolly=None, roll=None):
-		if self.km.name in ['3D View', 'Image']:
-			Value = "PRESS"
-		else:
-			Value = "CLICK_DRAG"
+		# if self.km.name in ['3D View', 'Image']:
+		# 	Value = "PRESS"
+		# else:
+		# 	Value = "CLICK_DRAG"
 		if orbit:
 			self.kmi_set_replace(orbit, self.k_manip, "PRESS", alt=True, disable_double=True)
 		if pan:
-			self.kmi_set_replace(pan, self.k_manip, Value, alt=True, shift=True, disable_double=True)
+			self.kmi_set_replace(pan, self.k_manip, "PRESS", alt=True, shift=True, disable_double=True)
 		if dolly:
 			self.kmi_set_replace(dolly, self.k_manip, "CLICK_DRAG", alt=True, ctrl=True, disable_double=True)
 		if roll:
-			self.kmi_set_replace(roll, self.k_context, Value, alt=True, disable_double=True)
+			self.kmi_set_replace(roll, self.k_context, "PRESS", alt=True, disable_double=True)
 
 	def mode_selection(self):
 		self.kmi_set_replace('view3d.tila_smart_editmode', self.k_vert_mode, 'PRESS', properties={'mode': 0, 'use_extend': False, 'use_expand': False, 'alt_mode': False, 'get_border': False}, disable_double=True)
