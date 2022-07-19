@@ -36,6 +36,7 @@ def draw_circle2D( pos , radius , color = (1,1,1,1), fill = False , subdivide = 
 	bgl.glLineWidth(1)
 	bgl.glDisable(bgl.GL_LINE_SMOOTH)
 
+# Author Laundmo : https://gist.github.com/laundmo/b224b1f4c8ef6ca5fe47e132c8deab56
 def inv_lerp(a: float, b: float, v: float) -> float:
     """Inverse Linar Interpolation, get the fraction between a and b on which v resides.
     Examples
