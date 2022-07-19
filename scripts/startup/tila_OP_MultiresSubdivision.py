@@ -1,4 +1,4 @@
-import bpy
+import bpy, bpy_extras, gpu, bgl, blf
 
 bl_info = {
 	"name": "Multires Subdivision",
@@ -12,6 +12,7 @@ bl_info = {
 	"category": "3D View"
 }
 
+font_size = 12
 
 class TILA_multires_subdiv_level(bpy.types.Operator):
 	bl_idname = "sculpt.tila_multires_subdiv_level"
@@ -108,7 +109,6 @@ class TILA_multires_subdiv_level(bpy.types.Operator):
 			 self.set_subdivision()
 
 	def invoke(self, context, event):
-
 		self.object_to_process = [o for o in bpy.context.selected_objects if o.type in self.compatible_type]
 
 		self._timer = bpy.context.window_manager.event_timer_add(0.1, window=bpy.context.window)
@@ -250,15 +250,79 @@ class TILA_multires_apply_base(bpy.types.Operator):
 		return {'FINISHED'}
 
 
+class TILA_multires_project_subdivide(bpy.types.Operator):
+	bl_idname = "sculpt.tila_multires_project_subdivide"
+	bl_label = "TILA : Multires Apply Base"
+	bl_options = {'REGISTER', 'UNDO'}
+
+	pre_subdiv_level : bpy.props.IntProperty(name='Pre Subdivision Level', default=0)
+	iter_subdiv_level : bpy.props.IntProperty(name='Iterative Subdivision Level', default=0)
+	post_subdiv_level : bpy.props.IntProperty(name='Post Subdivision Level', default=0)
+
+	def invoke(self, context, event):
+		self.selection = context.selected_objects()
+		self._value_handler = bpy.types.SpaceView3D.draw_handler_add(self.draw_HUD, (), 'WINDOW', 'POST_PIXEL')
+		bpy.context.window_manager.modal_handler_add(self)
+
+		return {"RUNNING_MODAL"}
+	
+	def revert_initial_values(self):
+		pass
+	
+	def modal(self, context, event):
+		# print(event.value, event.type)
+		if event.type in ['ESC', 'RIGHTMOUSE']:
+			self.cancelling = True
+
+		if self.cancelling:
+			self.revert_initial_values()
+			bpy.types.SpaceView3D.draw_handler_remove(self._value_handler, 'WINDOW')
+			self.report({'INFO'}, f'{self.param.lower()} adjust cancelled')
+			return {"CANCELLED"}
+
+		if event.type in ['RET', 'NUMPAD_ENTER', 'LEFTMOUSE']:
+			self.report({'INFO'}, f'Adjust {self.param.lower()} complete')
+			bpy.types.SpaceView3D.draw_handler_remove(self._value_handler, 'WINDOW')
+			return {"FINISHED"}
+
+		if event.type == 'MOUSEMOVE' and event.value == 'NOTHING':
+			self.update_all_values(event)
+
+		return {"PASS_THROUGH"}
+	
+	def draw_HUD(self):
+		font_id = 0
+		blf.size(font_id, font_size, 72)
+
+		blf.color(font_id, 0, 1, 0, 0.5)
+
+		blf.position(font_id, self.initial_mouseposition[0]-5, self.initial_mouseposition[1]-4, 0)
+		blf.draw(font_id, '+')
+
+		# blf.color(font_id, 1, 1, 1, 0.5)
+		
+		# if self.param == 'RESOLUTION':
+		# 	blf.position(font_id, bpy.context.region.width/2, 20, 0)
+		# 	blf.draw(font_id, f'{self.param.lower()} : {str(self.value)[:4]}')
+
+		# else:
+		# 	for e in self.selected_elements:
+		# 		radius = getattr(e, self.param.lower())
+		# 		current_pos = bpy_extras.view3d_utils.location_3d_to_region_2d(bpy.context.region, bpy.context.region_data, e.co + self.active_object.location)
+		# 		blf.position(font_id, current_pos[0] + 5, current_pos[1] + 5, 0)
+		# 		blf.draw(font_id, f'{self.param.lower()} : {str(radius)[:4]}')
+
+
 classes = (
 	TILA_multires_subdiv_level,
 	TILA_multires_rebuild_subdiv,
 	TILA_multires_delete_subdiv,
-	TILA_multires_apply_base
+	TILA_multires_apply_base,
+	TILA_multires_project_subdivide
 )
 
 
 register, unregister = bpy.utils.register_classes_factory(classes)
 
 if __name__ == "__main__":
-    register()
+	register()
