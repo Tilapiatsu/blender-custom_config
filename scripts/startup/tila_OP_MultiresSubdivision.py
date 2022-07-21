@@ -1,4 +1,4 @@
-import bpy, bpy_extras, gpu, bgl, blf
+import bpy, bpy_extras, gpu, bgl, blf, math
 
 bl_info = {
 	"name": "Multires Subdivision",
@@ -16,13 +16,13 @@ font_size = 12
 
 # Author Laundmo https://gist.github.com/laundmo/b224b1f4c8ef6ca5fe47e132c8deab56
 def lerp(a: float, b: float, t: float) -> float:
-    """Linear interpolate on the scale given by a to b, using t as the point on that scale.
-    Examples
-    --------
-        50 == lerp(0, 100, 0.5)
-        4.2 == lerp(1, 5, 0.8)
-    """
-    return (1 - t) * a + t * b
+	"""Linear interpolate on the scale given by a to b, using t as the point on that scale.
+	Examples
+	--------
+		50 == lerp(0, 100, 0.5)
+		4.2 == lerp(1, 5, 0.8)
+	"""
+	return (1 - t) * a + t * b
 
 def draw_hud_prop(self, name, value, offset=0, decimal=2, active=True, prop_offset=170, hint="", hint_offset=220, shadow=True):
 	HUDcolor = (1, 1, 1)
@@ -110,8 +110,7 @@ def draw_hud_prop(self, name, value, offset=0, decimal=2, active=True, prop_offs
 	if hint:
 		if shadow:
 			blf.color(self.font_id, *shadow, 0.6 * 0.7)
-			blf.position(self.font_id, self.HUD_x + int(hint_offset *
-						 scale) + 1, self.HUD_y - int(20 * scale) + offset + 1, 0)
+			blf.position(self.font_id, self.HUD_x + int(hint_offset * scale) + 1, self.HUD_y + int(20 * scale) + offset + 1, 0)
 			blf.size(self.font_id, int(11 * scale), 72)
 			blf.draw(self.font_id, "%s" % (hint))
 
@@ -363,11 +362,12 @@ class TILA_multires_project_subdivide(bpy.types.Operator):
 
 	pre_subdiv_level: bpy.props.IntProperty(name='Pre Subdivision Level', default=0)
 	iter_subdiv_level: bpy.props.IntProperty(name='Iterative Subdivision Level', default=1)
-	post_subdiv_level: bpy.props.IntProperty(name='Post Subdivision Level', default=0)
+	post_smooth_iteration: bpy.props.IntProperty(name='Post Smooth Level', default=0)
+	projection_limit: bpy.props.FloatProperty(name='Projection Limit', default=0.001)
 
-	smooth_strength: bpy.props.FloatProperty(name='Smooth Strength', default=0.5)
+	iter_smooth_iteration: bpy.props.IntProperty(name='Initial Smooth Iteration', default=20)
 	apply_modifier: bpy.props.BoolProperty(name='Apply Modifiers', default=False)
-	smooth_iteration: bpy.props.IntProperty(name='Initial Smooth Iteration', default=20)
+	isolate_projected: bpy.props.BoolProperty(name='Isolate Projected', default=True)
 
 	compatible_projected_type = ['MESH']
 	compatible_target_type = ['MESH', 'CURVE', 'META']
@@ -375,14 +375,18 @@ class TILA_multires_project_subdivide(bpy.types.Operator):
 	cancelling = False
 	tweak_smooth = False
 	tweak_iteration = False
+	tweak_isolate = False
+	tweak_limit = False
 
-	events = ['MOUSEMOVE', 'WHEELUPMOUSE', 'WHEELDOWNMOUSE', 'A', 'S', 'I']
+	@property
+	def is_tweaking(self):
+		return self.tweak_smooth or self.tweak_iteration or self.tweak_limit
 
 	def invoke(self, context, event):
 		self.selection = bpy.context.selected_objects
 		self.pre_subdiv_modifier = None
 		self.iter_subdiv_modifiers = []
-		self.post_subdiv_modifier = None
+		self.post_smooth_modifier = None
 
 		if len(self.selection) != 2:
 			self.report({'ERROR'}, 'TILA Project Subdivide : Select Projected first, and Target Second')
@@ -400,6 +404,15 @@ class TILA_multires_project_subdivide(bpy.types.Operator):
 			return {'CANCELLED'}
 
 		self.last_mouse_x = event.mouse_x
+		self.target.select_set(state=False)
+		context.view_layer.objects.active = self.projected
+
+		if context.space_data.local_view:
+			self.toggle_isolate()
+		
+		if self.isolate_projected:
+			self.toggle_isolate()
+
 		self._value_handler = bpy.types.SpaceView3D.draw_handler_add(self.draw_HUD, (), 'WINDOW', 'POST_PIXEL')
 		bpy.context.window_manager.modal_handler_add(self)
 
@@ -409,7 +422,7 @@ class TILA_multires_project_subdivide(bpy.types.Operator):
 		pass
 	
 	def modal(self, context, event):
-		# print(event.value, event.type)
+		# print(event.value, event.type)l
 		context.area.tag_redraw()
 		if event.type in ['ESC', 'RIGHTMOUSE']:
 			self.cancelling = True
@@ -417,37 +430,67 @@ class TILA_multires_project_subdivide(bpy.types.Operator):
 		if self.cancelling:
 			self.revert_initial_values()
 			bpy.types.SpaceView3D.draw_handler_remove(self._value_handler, 'WINDOW')
-			self.report({'INFO'}, f'Prtojection Cancelled')
+			if self.pre_subdiv_modifier is not None:
+				self.remove_pre_subdiv_modifier()
+			if len(self.iter_subdiv_modifiers):
+				self.remove_iter_modifiers()
+			if self.post_smooth_modifier is not None:
+				self.remove_post_smooth_modifier()
+			if self.isolate_projected:
+				self.toggle_isolate()
+			
+			self.target.select_set(state=True)
+			context.view_layer.objects.active = self.target
+
+			self.report({'INFO'}, f'Projection Cancelled')
 			return {"CANCELLED"}
 
-		if event.type in ['RET', 'NUMPAD_ENTER', 'LEFTMOUSE']:
+		if event.type in ['RET', 'NUMPAD_ENTER']:
 			self.report({'INFO'}, f'Projection complete')
+			if self.isolate_projected:
+				self.toggle_isolate()
+
+			if self.apply_modifier:
+				for m in self.projected.modifiers:
+					bpy.ops.object.modifier_apply(modifier=m.name)
+
 			bpy.types.SpaceView3D.draw_handler_remove(self._value_handler, 'WINDOW')
 			return {"FINISHED"}
 
-		if event.type in self.events:
+		events = ['WHEELUPMOUSE', 'WHEELDOWNMOUSE', 'A', 'S', 'I', 'L']
 
-			if event.type == 'MOUSEMOVE' and event.value == 'NOTHING' and self.tweak_smooth:
-				self.smooth_strength = self.adjust_modal_value(event, self.smooth_strength, low_clamp=0, high_clamp=1)
-				
-			if event.type == 'MOUSEMOVE' and event.value == 'NOTHING' and self.tweak_iteration:
-				self.smooth_iteration = self.adjust_modal_value(event, self.smooth_iteration, low_clamp=0)
+		if self.is_tweaking:
+			events.append('MOUSEMOVE')
+
+		if event.type in events:
+			print('in event')
+			if event.type == 'MOUSEMOVE' and event.value == 'NOTHING':
+				if self.tweak_smooth:
+					self.post_smooth_iteration = int(self.adjust_modal_value(event, self.post_smooth_iteration, low_clamp=0, high_clamp=1))
+				if self.tweak_iteration:
+					self.iter_smooth_iteration = int(self.adjust_modal_value(event, self.iter_smooth_iteration, low_clamp=0))
+				if self.tweak_limit:
+					self.projection_limit = self.adjust_modal_value(event, self.projection_limit, low_clamp=0, multiplier=0.1)
 
 			elif event.type == 'A' and event.value == "PRESS":
 				self.apply_modifier = not self.apply_modifier
-			
-			elif event.type == 'S' and event.value == "PRESS":
-				self.tweak_smooth = not self.tweak_smooth
 
-			elif event.type == 'I' and event.value == "PRESS":
+			elif event.type == 'S' and event.value == "PRESS":
 				self.tweak_iteration = not self.tweak_iteration
+			
+			elif event.type == 'L' and event.value == "PRESS":
+				self.tweak_limit = not self.tweak_limit
+			
+			elif event.type == 'I' and event.value == "PRESS":
+				self.isolate_projected = not self.isolate_projected
+				self.tweak_isolate = True
 
 			elif event.type == 'WHEELUPMOUSE' and event.value == "PRESS":
 				if event.ctrl:
 					self.pre_subdiv_level += 1
 				elif event.shift:
-					self.post_subdiv_level += 1
-				else:
+					self.post_smooth_iteration += 1
+				elif event.alt:
 					self.iter_subdiv_level += 1
 			
 			elif event.type == 'WHEELDOWNMOUSE' and event.value == "PRESS":
@@ -455,13 +498,20 @@ class TILA_multires_project_subdivide(bpy.types.Operator):
 					if self.pre_subdiv_level > 0 :
 						self.pre_subdiv_level -= 1
 				elif event.shift:
-					if self.post_subdiv_level > 0:
-						self.post_subdiv_level -= 1
-				else:
+					if self.post_smooth_iteration > 0:
+						self.post_smooth_iteration -= 1
+				elif event.alt:
 					if self.iter_subdiv_level > 0:
 						self.iter_subdiv_level -= 1
+			
+			self.last_mouse_x = event.mouse_x
+			return {"RUNNING_MODAL"}
 
 		try:
+			if self.tweak_isolate:
+				self.toggle_isolate()
+				self.tweak_isolate = False
+
 			success = self.update_modifiers()
 
 			if not success:
@@ -469,17 +519,18 @@ class TILA_multires_project_subdivide(bpy.types.Operator):
 
 			
 		except Exception as e:
+			print(e)
 			pass
 
 		self.last_mouse_x = event.mouse_x
-		
-		return {"RUNNING_MODAL"}
 
-	def adjust_modal_value(self, event, value, low_clamp=None, high_clamp=None):
+		return {"PASS_THROUGH"}
+
+	def adjust_modal_value(self, event, value, low_clamp=None, high_clamp=None, multiplier=1):
 		divisor = 100 if event.shift else 1 if event.ctrl else 10
 
 		delta_x = event.mouse_x - self.last_mouse_x
-		delta = delta_x / divisor
+		delta = (delta_x * multiplier) / divisor
 
 		if low_clamp is not None and value + delta < low_clamp:
 			value = 0
@@ -492,6 +543,7 @@ class TILA_multires_project_subdivide(bpy.types.Operator):
 			return value
 
 	def update_modifiers(self):
+		# create Pre Subdiv Modifier
 		if self.pre_subdiv_level > 0:
 			if self.pre_subdiv_modifier is None:
 				# remove Iter Subdiv
@@ -499,8 +551,8 @@ class TILA_multires_project_subdivide(bpy.types.Operator):
 					self.remove_iter_modifiers()
 
 				# remove Post Subdiv
-				if self.post_subdiv_modifier is not None:
-					self.remove_post_subdiv_modifier()
+				if self.post_smooth_modifier is not None:
+					self.remove_post_smooth_modifier()
 
 				# Create Pre Subdiv
 				self.pre_subdiv_modifier = self.projected.modifiers.new(type='SUBSURF', name='Pre Subdiv')
@@ -508,12 +560,14 @@ class TILA_multires_project_subdivide(bpy.types.Operator):
 
 			# Set Subdiv Levels
 			self.pre_subdiv_modifier.levels = self.pre_subdiv_levels = self.pre_subdiv_level
-
+		
+		# Remove Pre Subdiv Modifier
 		elif self.pre_subdiv_level == 0 and self.pre_subdiv_modifier is not None:
 			self.projected.modifiers.remove(self.pre_subdiv_modifier)
 			self.pre_subdiv_modifier = None
 
 
+		# Create Iter modifier Loop
 		if self.iter_subdiv_level > 0:
 			if not len(self.iter_subdiv_modifiers) or len(self.iter_subdiv_modifiers) != self.iter_subdiv_level * 3:
 				# remove Iter Subdiv
@@ -521,9 +575,10 @@ class TILA_multires_project_subdivide(bpy.types.Operator):
 					self.remove_iter_modifiers()
 
 				# remove Post Subdiv
-				if self.post_subdiv_modifier is not None:
-					self.remove_post_subdiv_modifier()
+				if self.post_smooth_modifier is not None:
+					self.remove_post_smooth_modifier()
 
+				# Create Modifiers Loop
 				for i in range(self.iter_subdiv_level):
 					# Create Subdiv Modifier
 					subdiv = self.projected.modifiers.new(type='SUBSURF', name=f'Iter Subdiv {i+1}')
@@ -538,7 +593,7 @@ class TILA_multires_project_subdivide(bpy.types.Operator):
 						smooth = self.projected.modifiers.new(type='CORRECTIVE_SMOOTH', name=f'Iter Smooth {i+1}')
 						self.iter_subdiv_modifiers.append(smooth)
 
-
+			# Set Iter Modifier Settings
 			for i,m in enumerate(self.iter_subdiv_modifiers):
 				if i%3 == 0:
 					m.levels = m.render_levels = 1
@@ -547,39 +602,53 @@ class TILA_multires_project_subdivide(bpy.types.Operator):
 					if i == len(self.iter_subdiv_modifiers) - 1:
 						m.wrap_method = 'PROJECT'
 						m.use_negative_direction = True
-						m.project_limit = 0.001
+						m.project_limit = self.projection_limit
 					else:
 						m.wrap_method = 'NEAREST_SURFACEPOINT'
 					m.target = self.target
 				if i < len(self.iter_subdiv_modifiers) - 1:
 					if i%3 == 2:
-						m.factor = self.smooth_strength
-						m.iterations = int(lerp(0, self.smooth_iteration, ((i+1)/3)/(self.iter_subdiv_level-1)))
+						m.iterations = int(lerp(0, self.iter_smooth_iteration, ((i+1)/3)/(self.iter_subdiv_level-1)))
 						m.smooth_type = 'LENGTH_WEIGHTED'
 						m.use_only_smooth = True
 						m.use_pin_boundary = True
 
-		if self.post_subdiv_level > 0:
-			if self.post_subdiv_modifier is None:
-				self.post_subdiv_modifier = self.projected.modifiers.new(type='SUBSURF', name='Post Subdiv')
-				self.post_subdiv_modifier.show_only_control_edges = False
+		# Remove Iter Modifier
+		elif self.iter_subdiv_level == 0:
+			self.remove_iter_modifiers()
 
-			self.post_subdiv_modifier.levels = self.post_subdiv_level.render_levels = self.post_subdiv_level
 
-		elif self.post_subdiv_level == 0 and self.post_subdiv_modifier is not None:
-			self.projected.modifiers.remove(self.post_subdiv_modifier)
-			self.post_subdiv_modifier = None
+		# Cretae Post Smooth Modifiers
+		if self.post_smooth_iteration > 0:
+			if self.post_smooth_modifier is None:
+				self.post_smooth_modifier = self.projected.modifiers.new(type='CORRECTIVE_SMOOTH', name='Post Smooth')
+				self.post_smooth_modifier.smooth_type = 'LENGTH_WEIGHTED'
+				self.post_smooth_modifier.use_only_smooth = True
+				self.post_smooth_modifier.use_pin_boundary = True
+
+			self.post_smooth_modifier.iterations = self.post_smooth_iteration
+		# Remove Post Smooth Modifier
+		elif self.post_smooth_iteration == 0 and self.post_smooth_modifier is not None:
+			self.projected.modifiers.remove(self.post_smooth_modifier)
+			self.post_smooth_modifier = None
 
 		return True
 	
+	def remove_pre_subdiv_modifier(self):
+		self.projected.modifiers.remove(self.pre_subdiv_modifier)
+		self.pre_subdiv_modifier = None
+
 	def remove_iter_modifiers(self):
 		for m in self.iter_subdiv_modifiers:
 			self.projected.modifiers.remove(m)
 		self.iter_subdiv_modifiers = []
 
-	def remove_post_subdiv_modifier(self):
-		self.projected.modifiers.remove(self.post_subdiv_modifier)
-		self.post_subdiv_modifier = None
+	def remove_post_smooth_modifier(self):
+		self.projected.modifiers.remove(self.post_smooth_modifier)
+		self.post_smooth_modifier = None
+
+	def toggle_isolate(self):
+		bpy.ops.view3d.localview('INVOKE_DEFAULT', frame_selected=False)
 
 	def draw_HUD(self):
 		self.font_id = 0
@@ -590,19 +659,22 @@ class TILA_multires_project_subdivide(bpy.types.Operator):
 		draw_hud_prop(self, "Apply Modifiers", self.apply_modifier, active=self.apply_modifier, hint="toggle A")
 		self.offset += offset
 
-		draw_hud_prop(self, "Smooth Iteration", self.smooth_iteration, active=self.smooth_iteration, hint="move LEFT/RIGHT, toggle I")
+		draw_hud_prop(self, "Post Smooth Iteration", self.post_smooth_iteration, active=self.post_smooth_iteration, hint="SHIFT scroll UP/DOWN")
 		self.offset += offset
 
-		draw_hud_prop(self, "Smooth Strength", self.smooth_strength, active=self.smooth_strength, hint="move LEFT/RIGHT, toggle S")
+		draw_hud_prop(self, "Projection Limit", self.projection_limit, active=self.projection_limit, hint="move LEFT/RIGHT, toggle L", decimal=3)
 		self.offset += offset
 
-		draw_hud_prop(self, "Post Subdivision Level", self.post_subdiv_level, active=self.post_subdiv_level, hint="SHIFT scroll UP/DOWN")
+		draw_hud_prop(self, "Iter Smooth Iteration", self.iter_smooth_iteration, active=self.iter_smooth_iteration, hint="move LEFT/RIGHT, toggle S")
 		self.offset += offset
 
-		draw_hud_prop(self, "Iterative Subdivision Level", self.iter_subdiv_level, active=self.iter_subdiv_level, hint="scroll UP/DOWN")
+		draw_hud_prop(self, "Iterative Subdivision Level", self.iter_subdiv_level, active=self.iter_subdiv_level, hint="ALT scroll UP/DOWN")
 		self.offset += offset
 
 		draw_hud_prop(self, "Pre Subdivision Level", self.pre_subdiv_level, active=self.pre_subdiv_level, hint="CTRL scroll UP/DOWN")
+		self.offset += offset
+
+		draw_hud_prop(self, "Isolate Projected", self.isolate_projected, active=self.isolate_projected, hint="toggle I")
 		self.offset += offset
 
 
