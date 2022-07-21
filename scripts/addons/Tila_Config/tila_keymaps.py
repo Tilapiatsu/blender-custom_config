@@ -442,6 +442,7 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		self.kmi_set_active(False, 'wm.call_menu_pie', type='S', value='PRESS', alt=False, ctrl=True, shift=False, properties={'name': 'MACHIN3_MT_save_pie'})
 		self.kmi_init(name='Window', space_type='EMPTY', region_type='WINDOW', addon=False)
 		self.kmi_set_replace('wm.call_menu_pie', 'S', "PRESS", ctrl=True, shift=True, properties={'name': 'MACHIN3_MT_save_pie'}, disable_double=True)
+		self.kmi_set_active(False, 'wm.call_menu_pie', type='S', value='PRESS', ctrl=True, properties={'name': 'MACHIN3_MT_save_pie'})
 		self.kmi_set_active(False, 'wm.save_as_mainfile', type='S', value='PRESS', ctrl=True, shift=True)
 		
 		# Atomic Data Manager
