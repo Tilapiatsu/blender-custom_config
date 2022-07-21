@@ -14,6 +14,103 @@ bl_info = {
 
 font_size = 12
 
+
+def draw_hud_prop(self, name, value, offset=0, decimal=2, active=True, prop_offset=170, hint="", hint_offset=220, shadow=True):
+	HUDcolor = (1, 1, 1)
+	shadow = (0, 0, 0)
+
+	if active:
+		alpha = 1
+	else:
+		alpha = 0.4
+
+	self.HUD_x = bpy.context.region.width/2 - 50
+	self.HUD_y = 20
+
+	scale = bpy.context.preferences.view.ui_scale
+
+	offset = self.offset + int(offset * scale)
+	self.offset = offset
+
+	if shadow:
+		blf.color(self.font_id, *shadow, alpha * 0.7)
+		blf.position(self.font_id, self.HUD_x + int(20 * scale) + 1, self.HUD_y + int(20 * scale) + offset + 1, 0)
+		blf.size(self.font_id, int(11 * scale), 72)
+		blf.draw(self.font_id, name)
+
+	blf.color(self.font_id, *HUDcolor, alpha)
+	blf.position(self.font_id, self.HUD_x + int(20 * scale), self.HUD_y + int(20 * scale) + offset, 0)
+	blf.size(self.font_id, int(11 * scale), 72)
+	blf.draw(self.font_id, name)
+
+
+
+
+	if type(value) is str:
+		if shadow:
+			blf.color(self.font_id, *shadow, alpha * 0.7)
+			blf.position(self.font_id, self.HUD_x + int(prop_offset * scale) + 1, self.HUD_y + int(20 * scale) + offset + 1, 0)
+			blf.size(self.font_id, int(14 * scale), 72)
+			blf.draw(self.font_id, value)
+
+		blf.color(self.font_id, *HUDcolor, alpha)
+		blf.position(self.font_id, self.HUD_x + int(prop_offset * scale), self.HUD_y + int(20 * scale) + offset, 0)
+		blf.size(self.font_id, int(14 * scale), 72)
+		blf.draw(self.font_id, value)
+
+	elif type(value) is bool:
+		if shadow:
+			blf.color(self.font_id, *shadow, alpha * 0.7)
+			blf.position(self.font_id, self.HUD_x + int(prop_offset * scale) + 1, self.HUD_y + int(20 * scale) + offset + 1, 0)
+			blf.size(self.font_id, int(14 * scale), 72)
+			blf.draw(self.font_id, str(value))
+
+		if value:
+			blf.color(self.font_id, 0.5, 1, 0.5, alpha)
+		else:
+			blf.color(self.font_id, 1, 0.3, 0.3, alpha)
+
+		blf.position(self.font_id, self.HUD_x + int(prop_offset * scale), self.HUD_y + int(20 * scale) + offset, 0)
+		blf.size(self.font_id, int(14 * scale), 72)
+		blf.draw(self.font_id, str(value))
+
+	elif type(value) is int:
+		if shadow:
+			blf.color(self.font_id, *shadow, alpha * 0.7)
+			blf.position(self.font_id, self.HUD_x + int(prop_offset * scale) + 1, self.HUD_y + int(20 * scale) + offset + 1, 0)
+			blf.size(self.font_id, int(20 * scale), 72)
+			blf.draw(self.font_id, "%d" % (value))
+
+		blf.color(self.font_id, *HUDcolor, alpha)
+		blf.position(self.font_id, self.HUD_x + int(prop_offset * scale), self.HUD_y + int(20 * scale) + offset, 0)
+		blf.size(self.font_id, int(20 * scale), 72)
+		blf.draw(self.font_id, "%d" % (value))
+
+	elif type(value) is float:
+		if shadow:
+			blf.color(self.font_id, *shadow, alpha * 0.7)
+			blf.position(self.font_id, self.HUD_x + int(prop_offset * scale) + 1, self.HUD_y + int(20 * scale) + offset + 1, 0)
+			blf.size(self.font_id, int(16 * scale), 72)
+			blf.draw(self.font_id, "%.*f" % (decimal, value))
+
+		blf.color(self.font_id, *HUDcolor, alpha)
+		blf.position(self.font_id, self.HUD_x + int(prop_offset * scale), self.HUD_y + int(20 * scale) + offset, 0)
+		blf.size(self.font_id, int(16 * scale), 72)
+		blf.draw(self.font_id, "%.*f" % (decimal, value))
+
+	if hint:
+		if shadow:
+			blf.color(self.font_id, *shadow, 0.6 * 0.7)
+			blf.position(self.font_id, self.HUD_x + int(hint_offset *
+						 scale) + 1, self.HUD_y - int(20 * scale) + offset + 1, 0)
+			blf.size(self.font_id, int(11 * scale), 72)
+			blf.draw(self.font_id, "%s" % (hint))
+
+		blf.color(self.font_id, *HUDcolor, 0.6)
+		blf.position(self.font_id, self.HUD_x + int(hint_offset * scale), self.HUD_y + int(20 * scale) + offset, 0)
+		blf.size(self.font_id, int(11 * scale), 72)
+		blf.draw(self.font_id, "%s" % (hint))
+
 class TILA_multires_subdiv_level(bpy.types.Operator):
 	bl_idname = "sculpt.tila_multires_subdiv_level"
 	bl_label = "TILA : Multires Set Subdivision Level"
@@ -105,8 +202,8 @@ class TILA_multires_subdiv_level(bpy.types.Operator):
 			self.subd = 0
 			self.set_subdivision()
 		elif self.mode == 'MAX':
-			 self.subd = self.multires_modifier.render_levels
-			 self.set_subdivision()
+			self.subd = self.multires_modifier.render_levels
+			self.set_subdivision()
 
 	def invoke(self, context, event):
 		self.object_to_process = [o for o in bpy.context.selected_objects if o.type in self.compatible_type]
@@ -255,12 +352,45 @@ class TILA_multires_project_subdivide(bpy.types.Operator):
 	bl_label = "TILA : Multires Apply Base"
 	bl_options = {'REGISTER', 'UNDO'}
 
-	pre_subdiv_level : bpy.props.IntProperty(name='Pre Subdivision Level', default=0)
-	iter_subdiv_level : bpy.props.IntProperty(name='Iterative Subdivision Level', default=0)
-	post_subdiv_level : bpy.props.IntProperty(name='Post Subdivision Level', default=0)
+	pre_subdiv_level: bpy.props.IntProperty(name='Pre Subdivision Level', default=1)
+	iter_subdiv_level: bpy.props.IntProperty(name='Iterative Subdivision Level', default=1)
+	post_subdiv_level: bpy.props.IntProperty(name='Post Subdivision Level', default=0)
+
+	smooth_strength: bpy.props.FloatProperty(name='Smooth Strength', default=0.5)
+	apply_modifier: bpy.props.BoolProperty(name='Apply Modifiers', default=False)
+	smooth_iteration: bpy.props.IntProperty(name='Initial Smooth Iteration', default=20)
+
+	compatible_projected_type = ['MESH']
+	compatible_target_type = ['MESH', 'CURVE', 'META']
+
+	cancelling = False
+	tweak_smooth = False
+	tweak_iteration = False
+
+	events = ['MOUSEMOVE', 'WHEELUPMOUSE', 'WHEELDOWNMOUSE', 'A', 'S', 'I']
 
 	def invoke(self, context, event):
-		self.selection = context.selected_objects()
+		self.selection = bpy.context.selected_objects
+		self.pre_subdiv_modifier = None
+		self.iter_subdiv_modifiers = []
+		self.post_subdiv_modifier = None
+
+		if len(self.selection) != 2:
+			self.report({'ERROR'}, 'TILA Project Subdivide : Select Projected first, and Target Second')
+			return {'CANCELLED'}
+
+		self.projected = self.selection[1]
+		self.target = self.selection[0]
+
+		if self.projected.type not in self. compatible_projected_type:
+			self.report({'ERROR'}, f'TILA Project Subdivide : Projected object {self.projected.name} not compatible')
+			return {'CANCELLED'}
+		
+		if self.target.type not in self. compatible_target_type:
+			self.report({'ERROR'}, f'TILA Project Subdivide : Target object {self.target.name} not compatible')
+			return {'CANCELLED'}
+
+		self.last_mouse_x = event.mouse_x
 		self._value_handler = bpy.types.SpaceView3D.draw_handler_add(self.draw_HUD, (), 'WINDOW', 'POST_PIXEL')
 		bpy.context.window_manager.modal_handler_add(self)
 
@@ -271,46 +401,191 @@ class TILA_multires_project_subdivide(bpy.types.Operator):
 	
 	def modal(self, context, event):
 		# print(event.value, event.type)
+		context.area.tag_redraw()
 		if event.type in ['ESC', 'RIGHTMOUSE']:
 			self.cancelling = True
 
 		if self.cancelling:
 			self.revert_initial_values()
 			bpy.types.SpaceView3D.draw_handler_remove(self._value_handler, 'WINDOW')
-			self.report({'INFO'}, f'{self.param.lower()} adjust cancelled')
+			self.report({'INFO'}, f'Prtojection Cancelled')
 			return {"CANCELLED"}
 
 		if event.type in ['RET', 'NUMPAD_ENTER', 'LEFTMOUSE']:
-			self.report({'INFO'}, f'Adjust {self.param.lower()} complete')
+			self.report({'INFO'}, f'Projection complete')
 			bpy.types.SpaceView3D.draw_handler_remove(self._value_handler, 'WINDOW')
 			return {"FINISHED"}
 
-		if event.type == 'MOUSEMOVE' and event.value == 'NOTHING':
-			self.update_all_values(event)
+		if event.type in self.events:
 
-		return {"PASS_THROUGH"}
-	
-	def draw_HUD(self):
-		font_id = 0
-		blf.size(font_id, font_size, 72)
+			if event.type == 'MOUSEMOVE' and event.value == 'NOTHING' and self.tweak_smooth:
+				self.smooth_strength = self.adjust_modal_value(event, self.smooth_strength, low_clamp=0, high_clamp=1)
+				
+			if event.type == 'MOUSEMOVE' and event.value == 'NOTHING' and self.tweak_iteration:
+				self.smooth_iteration = self.adjust_modal_value(event, self.smooth_iteration, low_clamp=0)
 
-		blf.color(font_id, 0, 1, 0, 0.5)
+			elif event.type == 'A' and event.value == "PRESS":
+				self.apply_modifier = not self.apply_modifier
+			
+			elif event.type == 'S' and event.value == "PRESS":
+				self.tweak_smooth = not self.tweak_smooth
 
-		blf.position(font_id, self.initial_mouseposition[0]-5, self.initial_mouseposition[1]-4, 0)
-		blf.draw(font_id, '+')
+			elif event.type == 'I' and event.value == "PRESS":
+				self.tweak_iteration = not self.tweak_iteration
 
-		# blf.color(font_id, 1, 1, 1, 0.5)
+			elif event.type == 'WHEELUPMOUSE' and event.value == "PRESS":
+				if event.ctrl:
+					self.pre_subdiv_level += 1
+				elif event.shift:
+					self.post_subdiv_level += 1
+				else:
+					self.iter_subdiv_level += 1
+			
+			elif event.type == 'WHEELDOWNMOUSE' and event.value == "PRESS":
+				if event.ctrl:
+					if self.pre_subdiv_level > 0 :
+						self.pre_subdiv_level -= 1
+				elif event.shift:
+					if self.post_subdiv_level > 0:
+						self.post_subdiv_level -= 1
+				else:
+					if self.iter_subdiv_level > 0:
+						self.iter_subdiv_level -= 1
+
+		try:
+			success = self.update_modifiers()
+
+			if not success:
+				return {"FINISHED"}
+
+			
+		except Exception as e:
+			pass
+
+		self.last_mouse_x = event.mouse_x
 		
-		# if self.param == 'RESOLUTION':
-		# 	blf.position(font_id, bpy.context.region.width/2, 20, 0)
-		# 	blf.draw(font_id, f'{self.param.lower()} : {str(self.value)[:4]}')
+		return {"RUNNING_MODAL"}
 
-		# else:
-		# 	for e in self.selected_elements:
-		# 		radius = getattr(e, self.param.lower())
-		# 		current_pos = bpy_extras.view3d_utils.location_3d_to_region_2d(bpy.context.region, bpy.context.region_data, e.co + self.active_object.location)
-		# 		blf.position(font_id, current_pos[0] + 5, current_pos[1] + 5, 0)
-		# 		blf.draw(font_id, f'{self.param.lower()} : {str(radius)[:4]}')
+	def adjust_modal_value(self, event, value, low_clamp=None, high_clamp=None):
+		divisor = 100 if event.shift else 1 if event.ctrl else 10
+
+		delta_x = event.mouse_x - self.last_mouse_x
+		delta = delta_x / divisor
+
+		if low_clamp is not None and value + delta < low_clamp:
+			value = 0
+			return value
+		elif high_clamp is not None and value + delta > high_clamp:
+			value = 1
+			return value
+		else:
+			value += delta
+			return value
+
+	def update_modifiers(self):
+		if self.pre_subdiv_level > 0:
+			if self.pre_subdiv_modifier is None:
+				# remove Iter Subdiv
+				if len(self.iter_subdiv_modifiers):
+					self.remove_iter_modifiers()
+
+				# remove Post Subdiv
+				if self.post_subdiv_modifier is not None:
+					self.remove_post_subdiv_modifier()
+
+				# Create Pre Subdiv
+				self.pre_subdiv_modifier = self.projected.modifiers.new(type='SUBSURF', name='Pre Subdiv')
+				self.pre_subdiv_modifier.show_only_control_edges = False
+
+			# Set Subdiv Levels
+			self.pre_subdiv_modifier.levels = self.pre_subdiv_levels = self.pre_subdiv_level
+
+		elif self.pre_subdiv_level == 0 and self.pre_subdiv_modifier is not None:
+			self.projected.modifiers.remove(self.pre_subdiv_modifier)
+			self.pre_subdiv_modifier = None
+
+
+		if self.iter_subdiv_level > 0:
+			if not len(self.iter_subdiv_modifiers) or len(self.iter_subdiv_modifiers) != self.iter_subdiv_level * 3:
+				# remove Iter Subdiv
+				if len(self.iter_subdiv_modifiers) != self.iter_subdiv_level * 3:
+					self.remove_iter_modifiers()
+
+				# remove Post Subdiv
+				if self.post_subdiv_modifier is not None:
+					self.remove_post_subdiv_modifier()
+
+				for i in range(self.iter_subdiv_level):
+					# Create Subdiv Modifier
+					subdiv = self.projected.modifiers.new(type='SUBSURF', name=f'Iter Subdiv {i}')
+					self.iter_subdiv_modifiers.append(subdiv)
+
+					# Create SkinWrap Modifier
+					skinwrap = self.projected.modifiers.new(type='SHRINKWRAP', name=f'Iter SkinWrap {i}')
+					self.iter_subdiv_modifiers.append(skinwrap)
+
+					# Create Smooth Modifier
+					smooth = self.projected.modifiers.new(type='CORRECTIVE_SMOOTH', name=f'Iter Smooth {i}')
+					self.iter_subdiv_modifiers.append(smooth)
+
+			for i,m in enumerate(self.iter_subdiv_modifiers):
+				if i%3 == 0:
+					m.levels = m.render_levels = 1
+					m.show_only_control_edges = False
+				if i%3 == 1:
+					m.wrap_method = 'TARGET_PROJECT'
+					m.target = self.target
+				if i%3 == 2:
+					m.factor = self.smooth_strength
+					m.iterations = self.smooth_iteration if i == 0 else int(self.smooth_iteration / ((i)/3+1))
+					m.use_only_smooth = True
+
+		if self.post_subdiv_level > 0:
+			if self.post_subdiv_modifier is None:
+				self.post_subdiv_modifier = self.projected.modifiers.new(type='SUBSURF', name='Post Subdiv')
+				self.post_subdiv_modifier.show_only_control_edges = False
+
+			self.post_subdiv_modifier.levels = self.post_subdiv_level.render_levels = self.post_subdiv_level
+
+		elif self.post_subdiv_level == 0 and self.post_subdiv_modifier is not None:
+			self.projected.modifiers.remove(self.post_subdiv_modifier)
+			self.post_subdiv_modifier = None
+
+		return True
+	
+	def remove_iter_modifiers(self):
+		for m in self.iter_subdiv_modifiers:
+			self.projected.modifiers.remove(m)
+		self.iter_subdiv_modifiers = []
+
+	def remove_post_subdiv_modifier(self):
+		self.projected.modifiers.remove(self.post_subdiv_modifier)
+		self.post_subdiv_modifier = None
+
+	def draw_HUD(self):
+		self.font_id = 0
+		self.offset = 0
+
+		offset = 20
+
+		draw_hud_prop(self, "Apply Modifiers", self.apply_modifier, active=self.apply_modifier, hint="toggle A")
+		self.offset += offset
+
+		draw_hud_prop(self, "Smooth Iteration", self.smooth_iteration, active=self.smooth_iteration, hint="move LEFT/RIGHT, toggle I")
+		self.offset += offset
+
+		draw_hud_prop(self, "Smooth Strength", self.smooth_strength, active=self.smooth_strength, hint="move LEFT/RIGHT, toggle S")
+		self.offset += offset
+
+		draw_hud_prop(self, "Post Subdivision Level", self.post_subdiv_level, active=self.post_subdiv_level, hint="SHIFT scroll UP/DOWN")
+		self.offset += offset
+
+		draw_hud_prop(self, "Iterative Subdivision Level", self.iter_subdiv_level, active=self.iter_subdiv_level, hint="scroll UP/DOWN")
+		self.offset += offset
+
+		draw_hud_prop(self, "Pre Subdivision Level", self.pre_subdiv_level, active=self.pre_subdiv_level, hint="CTRL scroll UP/DOWN")
+		self.offset += offset
+
 
 
 classes = (
