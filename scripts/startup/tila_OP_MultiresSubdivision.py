@@ -162,7 +162,7 @@ class TILA_multires_subdiv_level(bpy.types.Operator):
 				self.processing = None
 
 			else:
-				self.report({'INFO'}, 'TILA Multires Set Subdivision Level : Complete')
+				self.report({'INFO'}, f'TILA Multires Set Subdivision Level to {self.multires_modifier.levels}')
 				bpy.context.window_manager.event_timer_remove(self._timer)
 				self.init_default()
 				return {"FINISHED"}
@@ -526,16 +526,16 @@ class TILA_multires_project_subdivide(bpy.types.Operator):
 
 				for i in range(self.iter_subdiv_level):
 					# Create Subdiv Modifier
-					subdiv = self.projected.modifiers.new(type='SUBSURF', name=f'Iter Subdiv {i}')
+					subdiv = self.projected.modifiers.new(type='SUBSURF', name=f'Iter Subdiv {i+1}')
 					self.iter_subdiv_modifiers.append(subdiv)
 
 					# Create SkinWrap Modifier
-					skinwrap = self.projected.modifiers.new(type='SHRINKWRAP', name=f'Iter SkinWrap {i}')
+					skinwrap = self.projected.modifiers.new(type='SHRINKWRAP', name=f'Iter SkinWrap {i+1}')
 					self.iter_subdiv_modifiers.append(skinwrap)
 
 					if i < self.iter_subdiv_level - 1:
 						# Create Smooth Modifier
-						smooth = self.projected.modifiers.new(type='CORRECTIVE_SMOOTH', name=f'Iter Smooth {i}')
+						smooth = self.projected.modifiers.new(type='CORRECTIVE_SMOOTH', name=f'Iter Smooth {i+1}')
 						self.iter_subdiv_modifiers.append(smooth)
 
 
@@ -547,6 +547,7 @@ class TILA_multires_project_subdivide(bpy.types.Operator):
 					if i == len(self.iter_subdiv_modifiers) - 1:
 						m.wrap_method = 'PROJECT'
 						m.use_negative_direction = True
+						m.project_limit = 0.001
 					else:
 						m.wrap_method = 'NEAREST_SURFACEPOINT'
 					m.target = self.target
