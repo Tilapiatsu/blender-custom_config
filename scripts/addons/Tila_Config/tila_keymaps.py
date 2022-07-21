@@ -786,6 +786,8 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		self.kmi_set_replace('outliner.tila_group_selected', 'G', 'PRESS', ctrl=True, properties={'mode': 'GROUP_TO_BIGGER_NUMBER'}, disable_double=True)
 		self.kmi_set_replace('outliner.tila_group_selected', 'G', 'PRESS', ctrl=True, shift=True, properties={'mode': 'MOVE_TO_ACTIVE'}, disable_double=True)
 
+		self.kmi_set_replace('object.tila_multires_project_subdivide', 'P', 'PRESS', ctrl=True, alt=True, shift=True, disable_double=True)
+
 		# MACHIN3tools
 		self.kmi_set_replace('machin3.align', 'A', "PRESS", alt=True, disable_double=True)
 

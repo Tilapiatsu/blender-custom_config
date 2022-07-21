@@ -14,6 +14,15 @@ bl_info = {
 
 font_size = 12
 
+# Author Laundmo https://gist.github.com/laundmo/b224b1f4c8ef6ca5fe47e132c8deab56
+def lerp(a: float, b: float, t: float) -> float:
+    """Linear interpolate on the scale given by a to b, using t as the point on that scale.
+    Examples
+    --------
+        50 == lerp(0, 100, 0.5)
+        4.2 == lerp(1, 5, 0.8)
+    """
+    return (1 - t) * a + t * b
 
 def draw_hud_prop(self, name, value, offset=0, decimal=2, active=True, prop_offset=170, hint="", hint_offset=220, shadow=True):
 	HUDcolor = (1, 1, 1)
@@ -348,11 +357,11 @@ class TILA_multires_apply_base(bpy.types.Operator):
 
 
 class TILA_multires_project_subdivide(bpy.types.Operator):
-	bl_idname = "sculpt.tila_multires_project_subdivide"
+	bl_idname = "object.tila_multires_project_subdivide"
 	bl_label = "TILA : Multires Apply Base"
 	bl_options = {'REGISTER', 'UNDO'}
 
-	pre_subdiv_level: bpy.props.IntProperty(name='Pre Subdivision Level', default=1)
+	pre_subdiv_level: bpy.props.IntProperty(name='Pre Subdivision Level', default=0)
 	iter_subdiv_level: bpy.props.IntProperty(name='Iterative Subdivision Level', default=1)
 	post_subdiv_level: bpy.props.IntProperty(name='Post Subdivision Level', default=0)
 
@@ -524,21 +533,30 @@ class TILA_multires_project_subdivide(bpy.types.Operator):
 					skinwrap = self.projected.modifiers.new(type='SHRINKWRAP', name=f'Iter SkinWrap {i}')
 					self.iter_subdiv_modifiers.append(skinwrap)
 
-					# Create Smooth Modifier
-					smooth = self.projected.modifiers.new(type='CORRECTIVE_SMOOTH', name=f'Iter Smooth {i}')
-					self.iter_subdiv_modifiers.append(smooth)
+					if i < self.iter_subdiv_level - 1:
+						# Create Smooth Modifier
+						smooth = self.projected.modifiers.new(type='CORRECTIVE_SMOOTH', name=f'Iter Smooth {i}')
+						self.iter_subdiv_modifiers.append(smooth)
+
 
 			for i,m in enumerate(self.iter_subdiv_modifiers):
 				if i%3 == 0:
 					m.levels = m.render_levels = 1
 					m.show_only_control_edges = False
 				if i%3 == 1:
-					m.wrap_method = 'TARGET_PROJECT'
+					if i == len(self.iter_subdiv_modifiers) - 1:
+						m.wrap_method = 'PROJECT'
+						m.use_negative_direction = True
+					else:
+						m.wrap_method = 'NEAREST_SURFACEPOINT'
 					m.target = self.target
-				if i%3 == 2:
-					m.factor = self.smooth_strength
-					m.iterations = self.smooth_iteration if i == 0 else int(self.smooth_iteration / ((i)/3+1))
-					m.use_only_smooth = True
+				if i < len(self.iter_subdiv_modifiers) - 1:
+					if i%3 == 2:
+						m.factor = self.smooth_strength
+						m.iterations = int(lerp(0, self.smooth_iteration, ((i+1)/3)/(self.iter_subdiv_level-1)))
+						m.smooth_type = 'LENGTH_WEIGHTED'
+						m.use_only_smooth = True
+						m.use_pin_boundary = True
 
 		if self.post_subdiv_level > 0:
 			if self.post_subdiv_modifier is None:
