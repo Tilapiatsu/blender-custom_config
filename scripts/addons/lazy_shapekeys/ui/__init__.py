@@ -21,7 +21,13 @@ classes = (
 # LAZYSHAPEKEYS_PT_main,
 LAZYSHAPEKEYS_UL_sync_list,
 # LAZYSHAPEKEYS_PT_shape_keys,
+LAZYSHAPEKEYS_UL_folder_colle,
 LAZYSHAPEKEYS_UL_replace_menu,
+LAZYSHAPEKEYS_UL_replace_menu_misc_menu,
+LAZYSHAPEKEYS_PT_misc_menu,
+LAZYSHAPEKEYS_UL_folder_inner_sk,
+LAZYSHAPEKEYS_UL_folder_inner_sk_misc_menu,
+LAZYSHAPEKEYS_OT_main,
 )
 
 
