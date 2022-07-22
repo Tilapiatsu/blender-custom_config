@@ -438,12 +438,12 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		self.selection_tool(tool='builtin.select_box')
 		
 		# MACHINE3tools
-		self.kmi_init(name='Window', space_type='EMPTY', region_type='WINDOW', addon=True)
-		self.kmi_set_active(False, 'wm.call_menu_pie', type='S', value='PRESS', alt=False, ctrl=True, shift=False, properties={'name': 'MACHIN3_MT_save_pie'})
+		# self.kmi_init(name='Window', space_type='EMPTY', region_type='WINDOW', addon=True)
+		# self.kmi_set_active(False, 'wm.call_menu_pie', type='S', value='PRESS', alt=False, ctrl=True, shift=False, properties={'name': 'MACHIN3_MT_save_pie'})
 		self.kmi_init(name='Window', space_type='EMPTY', region_type='WINDOW', addon=False)
-		self.kmi_set_replace('wm.call_menu_pie', 'S', "PRESS", ctrl=True, shift=True, properties={'name': 'MACHIN3_MT_save_pie'}, disable_double=True)
-		self.kmi_set_active(False, 'wm.call_menu_pie', type='S', value='PRESS', ctrl=True, properties={'name': 'MACHIN3_MT_save_pie'})
 		self.kmi_set_active(False, 'wm.save_as_mainfile', type='S', value='PRESS', ctrl=True, shift=True)
+		self.kmi_set_replace('wm.call_menu_pie', 'S', "PRESS", ctrl=True, shift=True, properties={'name': 'MACHIN3_MT_save_pie'}, disable_double=True)
+		# self.kmi_set_active(False, 'wm.call_menu_pie', type='S', value='PRESS', ctrl=True, properties={'name': 'MACHIN3_MT_save_pie'})
 		
 		# Atomic Data Manager
 		self.kmi_set_replace('atomic.invoke_pie_menu_ui', 'DEL', "PRESS", ctrl=True, shift=True, disable_double=True)
@@ -792,9 +792,9 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		# MACHIN3tools
 		self.kmi_set_replace('machin3.align', 'A', "PRESS", alt=True, disable_double=True)
 
-		###### 3D View Tool: Select
+		###### 3D View Tool: Tweak
 		self.kmi_init(name='3D View Tool: Tweak', space_type='EMPTY', region_type='WINDOW')
-		self.kmi_set_replace('view3d.select', self.k_select, 'PRESS', properties={'deselect_all': True}, disable_double=True)
+		# self.kmi_set_replace('view3d.select', self.k_select, 'PRESS', properties={'deselect_all': True}, disable_double=True)
 		
 		###### Sculpt
 		self.kmi_init(name='Sculpt', space_type='EMPTY', region_type='WINDOW')
