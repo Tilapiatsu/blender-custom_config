@@ -287,9 +287,9 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		# 	self.kmi_prop_setattr(select_tool.properties, "name", 'Select')
 		# 	self.kmi_prop_setattr(select_tool.properties, "cycle", False)
 		if self.km.name in ['Sculpt']:
-			self.kmi_set_replace('wm.tool_set_by_id', self.k_menu, "PRESS", properties={'name': tool})
+			self.kmi_set_replace('paint.brush_select', self.k_menu, 'PRESS', properties={'sculpt_tool': tool, 'toggle': True}, disable_double=True)
 			if alt:
-				self.kmi_set_replace('wm.tool_set_by_id', self.k_menu, "PRESS", ctrl=True, properties={'name': alt})
+				self.kmi_set_replace('paint.brush_select', self.k_manip, 'PRESS', ctrl=True, shift=True, properties={'sculpt_tool': alt, 'toggle': True})
 		else:
 			self.kmi_set_replace('wm.tool_set_by_id', self.k_menu, "PRESS", properties={'name': tool, 'cycle': False})
 			if alt:
@@ -801,7 +801,7 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		self.global_keys()
 		self.right_mouse()
 		self.tool_sculpt('sculpt.sculptmode_toggle')
-		self.selection_tool(tool='builtin_brush.Grab', alt='builtin_brush.Mask')
+		self.selection_tool(tool='GRAB', alt='MASK')
 		self.tool_transform()
 
 		self.tool_subdivision()
@@ -832,7 +832,8 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 
 		self.kmi_set_replace('sculpt.dynamic_topology_toggle', 'D', 'PRESS', ctrl=True, alt=True, shift=True)
 		
-		self.kmi_set_replace('paint.brush_select', self.k_manip, 'PRESS', ctrl=True, shift=True, properties={'sculpt_tool': 'MASK', 'toggle': True})
+		self.kmi_set_replace('paint.brush_select', self.k_menu, 'PRESS', ctrl=True, properties={'sculpt_tool': 'CLAY_STRIPS', 'toggle': True})
+		self.kmi_set_replace('paint.brush_select', self.k_menu, 'PRESS', alt=True, properties={'sculpt_tool': 'SNAKE_HOOK', 'toggle': True})
 		self.kmi_set_replace('paint.mask_lasso_gesture', self.k_context, 'CLICK_DRAG', ctrl=True, properties={'value': 1.0, 'mode': 'VALUE'})
 		self.kmi_set_replace('paint.mask_lasso_gesture', self.k_context, 'CLICK_DRAG', shift=True, properties={'value': 0.0, 'mode': 'VALUE'})
 		self.kmi_set_replace('paint.mask_flood_fill', self.k_context, 'PRESS', ctrl=True, alt=True, shift=True, properties={'mode': 'INVERT'})
