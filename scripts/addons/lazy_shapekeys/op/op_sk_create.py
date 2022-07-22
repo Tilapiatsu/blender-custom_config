@@ -21,7 +21,8 @@ class LAZYSHAPEKEYS_OT_shape_keys_create_obj_from_all(Operator):
 	def poll(cls, context):
 		if bpy.context.active_object:
 			obj = bpy.context.active_object
-			return obj.data.shape_keys
+			if obj.type == "MESH":
+				return obj.data.shape_keys
 
 	def invoke(self, context,event):
 		dpi_value = bpy.context.preferences.system.dpi

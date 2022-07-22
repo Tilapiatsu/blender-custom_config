@@ -37,6 +37,8 @@ class LAZYSHAPEKEYS_OT_shape_keys_transfer_forced(Operator):
 		for src_obj in bpy.context.selected_objects:
 			if src_obj == tgt_obj:
 				continue
+			if not src_obj.type in {"MESH","CURVE"}:
+				continue
 
 			# 頂点等のデータを定義
 			if src_obj.type == "MESH":

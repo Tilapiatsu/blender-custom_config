@@ -9,6 +9,8 @@ if "bpy" in locals():
 	"op_sk_mod",
 	"sk_utils",
 	"op_sync",
+	"op_other",
+	"op_item",
 	]
 	for module in reloadable_modules:
 		if module in locals():
@@ -20,11 +22,28 @@ from .op_sk_create import *
 from .op_sk_mod import *
 from .sk_utils import *
 from .op_sync import *
+from .op_other import *
+from .op_item import *
 
 classes = (
+LAZYSHAPEKEYS_OT_fcurve_drag_move,
+LAZYSHAPEKEYS_OT_folder_item_add,
+LAZYSHAPEKEYS_OT_folder_item_duplicate,
+LAZYSHAPEKEYS_OT_folder_item_move,
+LAZYSHAPEKEYS_OT_folder_move_sk,
+LAZYSHAPEKEYS_OT_folder_toggle_expand,
+LAZYSHAPEKEYS_OT_shape_keys_create_obj_from_all,
+LAZYSHAPEKEYS_OT_shape_keys_separeate,
+LAZYSHAPEKEYS_OT_shape_keys_sort,
 LAZYSHAPEKEYS_OT_shape_keys_sync_update,
 LAZYSHAPEKEYS_OT_shape_keys_transfer_forced,
-LAZYSHAPEKEYS_OT_shape_keys_create_obj_from_all,
+LAZYSHAPEKEYS_OT_shapekeys_batch_keyframe_insert,
+LAZYSHAPEKEYS_OT_shapekeys_batch_mute,
+LAZYSHAPEKEYS_OT_shapekeys_batch_value_reset,
+LAZYSHAPEKEYS_OT_shapekeys_one_keyframe_insert,
+LAZYSHAPEKEYS_OT_shapekeys_open_window,
+LAZYSHAPEKEYS_OT_sk_item_add,
+LAZYSHAPEKEYS_OT_sk_item_remove,
 OBJECT_OT_shape_keys_apply_modifier,
 )
 
