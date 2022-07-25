@@ -1304,7 +1304,7 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		self.kmi_set_active(False, idname='mesh.poly_quilt', type='LEFTMOUSE', value='PRESS', ctrl=True, shift=True, alt=False, oskey=False)
 		self.kmi_set_active(False, idname='mesh.poly_quilt', type='LEFTMOUSE', value='PRESS', ctrl=True, shift=False, alt=False, oskey=False)
 		self.kmi_set_replace('mesh.poly_quilt', self.k_manip, 'PRESS', properties={'tool_mode': 'LOWPOLY'}, disable_double=True)
-		self.kmi_set_replace('mesh.poly_quilt', self.k_manip, 'PRESS', shift=True, properties={'tool_mode': 'BRUSH', 'brush_type': 'SMOOTH'}, disable_double=True)
+		self.kmi_set_replace('mesh.poly_quilt', self.k_manip, 'PRESS', shift=True, properties={'tool_mode': 'BRUSH', 'brush_type': 'SMOOTH'})
 		self.kmi_set_replace('mesh.poly_quilt', self.k_cursor, 'PRESS', shift=True, properties={'tool_mode': 'BRUSH', 'brush_type': 'MOVE'}, disable_double=True)
 		self.kmi_set_replace('mesh.poly_quilt', self.k_manip, 'PRESS', ctrl=True, properties={'tool_mode': 'EXTRUDE'}, disable_double=True)
 		self.kmi_set_replace('mesh.poly_quilt', self.k_manip, 'PRESS', ctrl=True, shift=True, properties={'tool_mode': 'EDGELOOP'}, disable_double=True)
