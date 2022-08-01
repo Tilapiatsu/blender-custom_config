@@ -23,3 +23,5 @@ a6b92220-668a-4e52-b9ff-2b4d250c1b00:Models/KitBash/Tools/Screws_Bolts:Models-Ki
 1e365483-4bb6-46dd-9065-321445e28cfe:Models/Reference/Anatomy:Models-Reference-Anatomy
 fcb15c93-6922-4fdb-b57b-5b627c533d76:NodeGroups:NodeGroups
 b6a1885a-772e-4919-8a4c-f2faea1b4b3b:NodeGroups/Color:NodeGroups-Color
+0cff3acd-40ca-44cb-afce-4b1718f12648:NodeGroups/Mapping:NodeGroups-Mapping
+a5bb3f60-aa49-4993-83b8-dc2193f1ad81:NodeGroups/Utils:NodeGroups-Utils
