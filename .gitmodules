@@ -337,3 +337,6 @@
 [submodule "scripts/GIT/RestoreSymmetry"]
 	path = scripts/GIT/RestoreSymmetry
 	url = https://github.com/n-taka/BlenderAddons.git
+[submodule "scripts/addons/asset_snapshot"]
+	path = scripts/addons/asset_snapshot
+	url = https://github.com/johnnygizmo/asset_snapshot.git
