@@ -189,6 +189,10 @@ def register(enable_addon=True):
 	addon = context.preferences.addons.get('atomic_data_manager')
 	addon.preferences.enable_missing_file_warning = False
 
+	# # Auto Reload
+	addon = context.preferences.addons.get('Auto_Reload')
+	addon.preferences.update_check_launch = False
+
 	# Register Keymaps
 	bpy.ops.wm.tila_register_keymaps()
  
