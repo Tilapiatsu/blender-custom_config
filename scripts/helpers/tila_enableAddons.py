@@ -10,7 +10,7 @@ modules =   (
 			'object_print3d_utils',
 			'mesh_looptools',
 			'MACHIN3tools',
-            'MESHmachine',
+			'MESHmachine',
 			'UvSquares',
 			'Auto_Reload',
 			# 'mesh_mesh_align_plus',
@@ -179,10 +179,15 @@ def register(enable_addon=True):
 	addon.preferences.ts.use_shift = True
 	addon.preferences.ts.keycode = 'SPACE'
 
-	user_pref_path = bpy.utils.resource_path(type='USER')
-	asset_library_path = os.path.join(user_pref_path, 'datafiles', 'scene', '00_Asset_Library')
+	# user_pref_path = bpy.utils.resource_path(type='USER')
+	# asset_library_path = os.path.join(user_pref_path, 'datafiles', 'scene', '00_Asset_Library')
+	asset_library_path = os.path.join('R:\\', 'Mon Drive', '00_Blender_Asset_Library')
 	bpy.ops.preferences.asset_library_add('EXEC_DEFAULT', directory=asset_library_path)
-	bpy.context.preferences.filepaths.asset_libraries['00_Asset_Library'].name = 'Tilapiatsu'
+	bpy.context.preferences.filepaths.asset_libraries['00_Blender_Asset_Library'].name = 'Tilapiatsu'
+
+	# # Atomic Data Manager
+	addon = context.preferences.addons.get('atomic_data_manager')
+	addon.preferences.enable_missing_file_warning = False
 
 	# Register Keymaps
 	bpy.ops.wm.tila_register_keymaps()
