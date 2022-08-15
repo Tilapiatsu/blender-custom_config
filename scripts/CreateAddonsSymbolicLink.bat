@@ -12,7 +12,7 @@ CALL :MakeSymbolicLink "d" "%currdir%\addons\vertex_color_master" "%currdir%\GIT
 CALL :MakeSymbolicLink "d" "%currdir%\addons\MathsExpressionLiteBlender" "%currdir%\GIT\Blender-Addons\MathsExpressionLiteBlender28"
 CALL :MakeSymbolicLink "d" "%currdir%\addons\MapsModelsImporter" "%currdir%\GIT\MapsModelsImporter\blender\MapsModelsImporter"
 CALL :MakeSymbolicLink "d" "%currdir%\addons\Polycount" "%currdir%\GIT\Polycount\polycount"
-CALL :MakeSymbolicLink "d" "%currdir%\addons\Texel_Density" "%currdir%\GIT\Texel-Density-Checker\Texel_Density_3_1_281"
+CALL :MakeSymbolicLink "d" "%currdir%\addons\Texel_Density" "%currdir%\GIT\Texel-Density-Checker\Texel_Density_3_3_291"
 CALL :MakeSymbolicLink "d" "%currdir%\addons\uv-packer" "%currdir%\GIT\uvpacker\uv-packer"
 CALL :MakeSymbolicLink "d" "%currdir%\addons\uvpacker_exe" "%currdir%\GIT\uvpacker_exe"
 CALL :MakeSymbolicLink "d" "%currdir%\addons\Asset_Creation_Toolset" "%currdir%\GIT\Asset-Creation-Toolset\Asset_Creation_Toolset_3_1_281"
