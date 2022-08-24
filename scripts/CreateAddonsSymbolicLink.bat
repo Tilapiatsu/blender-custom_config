@@ -14,7 +14,6 @@ CALL :MakeSymbolicLink "d" "%currdir%\addons\MapsModelsImporter" "%currdir%\GIT\
 CALL :MakeSymbolicLink "d" "%currdir%\addons\Polycount" "%currdir%\GIT\Polycount\polycount"
 CALL :MakeSymbolicLink "d" "%currdir%\addons\Texel_Density" "%currdir%\GIT\Texel-Density-Checker\Texel_Density_3_3_291"
 CALL :MakeSymbolicLink "d" "%currdir%\addons\uv-packer" "%currdir%\GIT\uvpacker\uv-packer"
-CALL :MakeSymbolicLink "d" "%currdir%\addons\uvpacker_exe" "%currdir%\GIT\uvpacker_exe"
 CALL :MakeSymbolicLink "d" "%currdir%\addons\Asset_Creation_Toolset" "%currdir%\GIT\Asset-Creation-Toolset\Asset_Creation_Toolset_3_1_281"
 @REM mklink /d "%currdir%\addons\io_mesh_fast_obj" "%currdir%\GIT\bpy_photogrametry\io_mesh_fast_obj"
 CALL :MakeSymbolicLink "d" "%currdir%\addons\math_formula" "%currdir%\GIT\WM_Blender-addons\math_formula"
