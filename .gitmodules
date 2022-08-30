@@ -340,3 +340,9 @@
 [submodule "scripts/addons/asset_snapshot"]
 	path = scripts/addons/asset_snapshot
 	url = https://github.com/johnnygizmo/asset_snapshot.git
+[submodule "scripts/GIT/shotmanager"]
+	path = scripts/GIT/shotmanager
+	url = https://github.com/ubisoft/shotmanager.git
+[submodule "scripts/GIT/asset_bridge"]
+	path = scripts/GIT/asset_bridge
+	url = https://github.com/strike-digital/asset_bridge.git
