@@ -22,9 +22,6 @@
 [submodule "scripts/addons/BRM_BakeUI"]
 	path = scripts/addons/BRM_BakeUI
 	url = https://github.com/leukbaars/BRM-BakeUI.git
-[submodule "scripts/addons/real_camera"]
-	path = scripts/addons/real_camera
-	url = https://github.com/macio97/Real-Camera.git
 [submodule "scripts/addons/Magic-UV"]
 	path = scripts/addons/Magic-UV
 	url = https://github.com/nutti/Magic-UV.git
