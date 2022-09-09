@@ -343,3 +343,6 @@
 [submodule "scripts/GIT/asset_bridge"]
 	path = scripts/GIT/asset_bridge
 	url = https://github.com/strike-digital/asset_bridge.git
+[submodule "scripts/GIT/AgX"]
+	path = scripts/GIT/AgX
+	url = https://github.com/sobotka/AgX.git
