@@ -343,3 +343,6 @@
 [submodule "scripts/GIT/AgX"]
 	path = scripts/GIT/AgX
 	url = https://github.com/sobotka/AgX.git
+[submodule "scripts/GIT/OpenColorIO-Config-ACES"]
+	path = scripts/GIT/OpenColorIO-Config-ACES
+	url = https://github.com/AcademySoftwareFoundation/OpenColorIO-Config-ACES.git
