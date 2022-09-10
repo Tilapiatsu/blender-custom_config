@@ -25,6 +25,9 @@ bpy.context.preferences.view.show_tooltips_python = True
 bpy.context.preferences.view.render_display_type = "WINDOW"
 bpy.context.preferences.view.use_weight_color_range = True
 bpy.context.preferences.view.show_developer_ui = True
+bpy.context.preferences.view.show_statusbar_memory = True
+bpy.context.preferences.view.show_statusbar_vram = True
+
 
 # try:
 #     bpy.context.preferences.experimental.use_sculpt_vertex_colors = True
@@ -83,6 +86,7 @@ bpy.context.preferences.inputs.use_mouse_depth_navigate = True
 bpy.context.preferences.inputs.use_numeric_input_advanced = True
 # bpy.context.preferences.inputs.use_mouse_emulate_3_button = True
 bpy.context.preferences.inputs.use_zoom_to_mouse = True
+
 
 # Keymap
 # bpy.context.preferences.keymap.use_key_activate_tools = True
