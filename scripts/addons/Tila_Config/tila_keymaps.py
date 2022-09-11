@@ -286,10 +286,15 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		# if select_tool:
 		# 	self.kmi_prop_setattr(select_tool.properties, "name", 'Select')
 		# 	self.kmi_prop_setattr(select_tool.properties, "cycle", False)
-		if self.km.name in ['Sculpt']:
-			self.kmi_set_replace('paint.brush_select', self.k_menu, 'PRESS', properties={'sculpt_tool': tool, 'toggle': True}, disable_double=True)
+		if self.km.name in ['Sculpt', 'Sculpt Curves']:
+			if self.km.name == 'Sculpt':
+				toolname = 'sculpt_tool'
+			elif self.km.name == 'Sculpt Curves':
+				toolname = 'curves_sculpt_tool'
+
+			self.kmi_set_replace('paint.brush_select', self.k_menu, 'PRESS', properties={toolname: tool, 'toggle': True}, disable_double=True)
 			if alt:
-				self.kmi_set_replace('paint.brush_select', self.k_manip, 'PRESS', ctrl=True, shift=True, properties={'sculpt_tool': alt, 'toggle': True})
+				self.kmi_set_replace('paint.brush_select', self.k_manip, 'PRESS', ctrl=True, shift=True, properties={toolname: alt, 'toggle': True})
 		else:
 			self.kmi_set_replace('wm.tool_set_by_id', self.k_menu, "PRESS", properties={'name': tool, 'cycle': False})
 			if alt:
@@ -860,6 +865,36 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		# self.kmi_set_replace('view3d.tila_inverse_visibility', self.k_nav, 'PRESS', ctrl=True, shift=True)
 		self.kmi_set_replace('sculpt.face_set_change_visibility', self.k_nav, 'PRESS', ctrl=True, alt=True, shift=True, properties={'mode': 'INVERT'}, disable_double=True)
 		self.kmi_set_replace('sculpt.sculpt.sample_color', 'S', 'PRESS', disable_double=True)
+
+
+		###### Sculpt Curves
+		self.kmi_init(name='Sculpt Curves', space_type='EMPTY', region_type='WINDOW')
+		self.global_keys()
+		self.right_mouse()
+		self.tool_sculpt('curves.sculptmode_toggle')
+		self.selection_tool(tool='COMB', alt='SELECTION_PAINT')
+
+		self.tool_radial_control(radius={'data_path_primary': 'tool_settings.curves_sculpt.brush.size', 
+								'data_path_secondary': 'tool_settings.unified_paint_settings.size', 
+								'use_secondary': 'tool_settings.unified_paint_settings.use_unified_size', 
+								'rotation_path': 'tool_settings.curves_sculpt.brush.texture_slot.angle', 
+								'color_path': 'tool_settings.curves_sculpt.brush.cursor_color_add', 
+								'image_id': 'tool_settings.curves_sculpt.brush', 
+								'release_confirm': True},
+						   		opacity={'data_path_primary': 'tool_settings.curves_sculpt.brush.strength', 
+								   'data_path_secondary': 'tool_settings.unified_paint_settings.strength', 
+								   'use_secondary': 'tool_settings.unified_paint_settings.use_unified_strength', 
+								   'rotation_path': 'tool_settings.curves_sculpt.brush.texture_slot.angle', 
+								   'color_path': 'tool_settings.curves_sculpt.brush.cursor_color_add', 
+								   'image_id': 'tool_settings.curves_sculpt.brush', 
+								   'release_confirm': True},
+						   		eraser_radius={'data_path_primary': 'tool_settings.curves_sculpt.brush.texture_slot.angle', 
+								   'rotation_path': 'tool_settings.curves_sculpt.brush.texture_slot.angle', 
+								   'color_path': 'tool_settings.curves_sculpt.brush.cursor_color_add', 
+								   'image_id': 'tool_settings.curves_sculpt.brush', 
+								   'release_confirm': True})
+
+		self.kmi_set_replace('sculpt_curves.select_all', self.k_context, 'PRESS', ctrl=True, alt=True, shift=True, properties={'action': 'INVERT'})
 
 		###### Curve
 		self.kmi_init(name='Curve', space_type='EMPTY', region_type='WINDOW')
