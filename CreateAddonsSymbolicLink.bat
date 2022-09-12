@@ -2,6 +2,7 @@ PUSHD %~dp0
 echo OFF
 set "currdir=%cd%"
 
+@REM Folder Symbolic Link
 CALL :MakeSymbolicLink "d" "%currdir%\scripts\addons\SimpleAssetManager" "%currdir%\scripts\GIT\simple-asset-manager\SimpleAssetManager" 
 CALL :MakeSymbolicLink "d" "%currdir%\scripts\addons\fspy" "%currdir%\scripts\GIT\fSpy-Blender\fspy_blender"
 CALL :MakeSymbolicLink "d" "%currdir%\scripts\addons\mesh_mesh_align_plus" "%currdir%\scripts\GIT\mesh_align_plus\mesh_mesh_align_plus"
@@ -21,10 +22,6 @@ CALL :MakeSymbolicLink "d" "%currdir%\scripts\addons\Asset_Creation_Toolset" "%c
 CALL :MakeSymbolicLink "d" "%currdir%\scripts\addons\math_formula" "%currdir%\scripts\GIT\WM_Blender-addons\math_formula"
 CALL :MakeSymbolicLink "d" "%currdir%\scripts\addons\photogrammetry_importer" "%currdir%\scripts\GIT\Blender-Addon-Photogrammetry-Importer\photogrammetry_importer"
 CALL :MakeSymbolicLink "d" "%currdir%\scripts\addons\shotmanager" "%currdir%\scripts\GIT\shotmanager\shotmanager"
-mkdir "%currdir%\scripts\startup\bl_app_templates_user\"
-CALL :MakeSymbolicLink "d" "%currdir%\datafiles\colormanagement" "%currdir%\scripts\GIT\AgX"
-
-CALL :MakeSymbolicLink "d" "%currdir%\scripts\startup\bl_app_templates_user\blender_media_viewer" "%currdir%\scripts\GIT\Blender_Studio_Tools\blender-media-viewer\blender_media_viewer"
 
 "%PYTHONPATH%\python.exe" ".\GIT\BEER\scripts\package_blender_addon.py"
 CALL :MakeSymbolicLink "d" "%currdir%\scripts\addons\BlenderMalt" "%currdir%\scripts\GIT\BEER\BlenderMalt"
@@ -33,6 +30,19 @@ CALL :MakeSymbolicLink "d" "%currdir%\scripts\addons\BlenderMalt\MaltPath\Malt" 
 CALL :MakeSymbolicLink "d" "%currdir%\scripts\addons\hairNet" "%currdir%\scripts\GIT\HairNet\hairNet"
 powershell -Command "(gc addons\hairNet\hairNet.py) -replace 'DEBUG = 1', 'DEBUG = 0' | Out-File -encoding ASCII addons\hairNet\hairNet.py"
 
+@REM Blender Media Viewer
+mkdir "%currdir%\scripts\startup\bl_app_templates_user\"
+CALL :MakeSymbolicLink "d" "%currdir%\scripts\startup\bl_app_templates_user\blender_media_viewer" "%currdir%\scripts\GIT\Blender_Studio_Tools\blender-media-viewer\blender_media_viewer"
+
+@REM Color Management
+CALL :MakeSymbolicLink "d" "%currdir%\datafiles\colormanagement" "%currdir%\scripts\GIT\AgX"
+
+@REM HDRI Symbolic Link
+if exist "R:\Mon Drive\00_Blender_Asset_Library\Hdri\" (
+    CALL :MakeSymbolicLink "d" "%currdir%\datafiles\studiolights\world" "R:\Mon Drive\00_Blender_Asset_Library\Hdri"
+)
+
+@REM File Symbolic Link
 CALL :MakeSymbolicLink "h" "%currdir%\scripts\presets\interface_theme\blender_pro.xml" "%currdir%\scripts\GIT\ProTheme\blender_pro.xml"
 CALL :MakeSymbolicLink "h" "%currdir%\scripts\addons\RenderBurst.py" "%currdir%\scripts\GIT\RenderBurst\RenderBurst.py"
 CALL :MakeSymbolicLink "h" "%currdir%\scripts\addons\Object_Shake.py" "%currdir%\scripts\GIT\object-shake\Object_Shake.py"
