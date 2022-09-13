@@ -23,9 +23,7 @@ class TILA_MT_pie_areas(Menu):
 		layout = self.layout
 		pie = layout.menu_pie()
 
-		prop = pie.operator("wm.context_set_enum", text="Shader Editor")
-		prop.data_path = "area.type"
-		prop.value = 'NODE_EDITOR'  
+		prop = pie.operator("wm.shader_view", text="Shader Editor").ui_type = 'ShaderNodeTree'
 		
 		pie.operator("wm.3dview", text="3D View")
 
@@ -57,9 +55,19 @@ class TILA_OT_areas_uv_view(bpy.types.Operator):
 		bpy.context.area.ui_type = 'UV'
 		return {'FINISHED'}
 
+class TILA_OT_areas_shader_view(bpy.types.Operator):
+	bl_idname = 'wm.shader_view'
+	bl_label = 'UV View'
+	ui_type : bpy.props.EnumProperty(items=[("ShaderNodeTree", "Shader", ""), ("TextureNodeTree", "Texture", ""), ("GeometryNodeTree", "Geometry", ""), ("BakeWrangler_Tree", "Bake", ""), ("CompositorNodeTree", "Compositor", "")])
+	def execute(self, context):
+		bpy.ops.wm.context_set_enum(data_path='area.type', value='NODE_EDITOR')
+		bpy.context.area.ui_type = self.ui_type
+		return {'FINISHED'}
+
 classes = (
 	TILA_MT_pie_areas,
- 	TILA_OT_areas_uv_view
+ 	TILA_OT_areas_uv_view,
+	TILA_OT_areas_shader_view
 )
 register, unregister = bpy.utils.register_classes_factory(classes)
 
