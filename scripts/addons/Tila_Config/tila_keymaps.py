@@ -93,9 +93,8 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 			self.kmi_set_replace('popup.hp_render', 'EQUAL', 'PRESS', disable_double=True)
 			# self.kmi_set_replace('wm.call_menu_pie', 'D', 'PRESS', alt=True, shift=True, properties={'name': 'HP_MT_pie_rotate90'})
    
-		self.kmi_set_replace('wm.call_menu_pie', 'A', 'PRESS', ctrl=True, alt=True, shift=True, properties={'name': 'HP_MT_pie_add'})
+		# self.kmi_set_replace('wm.call_menu_pie', 'A', 'PRESS', ctrl=True, alt=True, shift=True, properties={'name': 'HP_MT_pie_add'})
 		self.kmi_set_replace('wm.call_menu_pie', 'TAB', 'PRESS', ctrl=True, shift=True, properties={'name': 'TILA_MT_pie_areas'})
-		self.kmi_set_replace('wm.call_menu_pie', 'X', 'PRESS', alt=True, shift=True, properties={'name': 'HP_MT_pie_symmetry'}, disable_double=True)
 		
 	def navigation_keys(self, pan=None, orbit=None, dolly=None, roll=None):
 		# if self.km.name in ['3D View', 'Image']:
@@ -664,6 +663,8 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		self.mode_selection()
 		self.tool_transform()
 
+		self.kmi_set_replace('wm.call_menu_pie', 'X', 'PRESS', alt=True, shift=True, properties={'name': 'HP_MT_pie_symmetry'}, disable_double=True)
+
 		self.selection_keys(shortestpath_tool='mesh.shortest_path_pick',
 							shortestring_tool='mesh.shortest_path_pick',
 							loop_tool='view3d.tila_smart_loopselect',
@@ -796,6 +797,7 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 
 		# MACHIN3tools
 		self.kmi_set_replace('machin3.align', 'A', "PRESS", alt=True, disable_double=True)
+		self.kmi_set_replace('machin3.mirror', 'X', "PRESS", alt=True, shift=True, properties={'flick':True, 'remove':False}, disable_double=True)
 
 		###### 3D View Tool: Tweak
 		self.kmi_init(name='3D View Tool: Tweak', space_type='EMPTY', region_type='WINDOW')
