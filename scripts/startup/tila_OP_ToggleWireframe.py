@@ -56,7 +56,7 @@ class TILA_ToggleWireframe(bpy.types.Operator):
                     bpy.context.space_data.overlay.show_fade_inactive = True
                     bpy.context.space_data.overlay.fade_inactive_alpha = 0.5
 
-                prefs.z_bias = 0.02
+                prefs.z_bias = 0.002
                 prefs.opacity = 0.15
                 prefs.verts_size = 1
                 prefs.edge_width = 1
