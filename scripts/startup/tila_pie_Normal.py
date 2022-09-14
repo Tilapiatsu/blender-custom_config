@@ -402,7 +402,7 @@ class TILA_OT_normalsmartmerge(bpy.types.Operator):
     func = {'VERT': ((bpy.ops.view3d.tila_autosmooth, None), (bpy.ops.mesh.smooth_normals, {'factor': 1}), (bpy.ops.view3d.tila_smoothnormal, None)),
             'EDGE': ((bpy.ops.view3d.tila_smoothnormal, None),),
             'FACE': ((bpy.ops.mesh.tila_selectborderedges, {'mode': 'ACTIVE'}), (bpy.ops.view3d.tila_smoothnormal, None), (bpy.ops.mesh.select_mode, {'type':"FACE"})),
-            'OBJECT': ((bpy.ops.object.shade_smooth, None),)}
+            'OBJECT': ((bpy.ops.object.shade_smooth, {'use_auto_smooth':True}),)}
 
     def execute(self, context):
 
