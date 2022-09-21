@@ -343,3 +343,6 @@
 [submodule "scripts/GIT/OpenColorIO-Config-ACES"]
 	path = scripts/GIT/OpenColorIO-Config-ACES
 	url = https://github.com/AcademySoftwareFoundation/OpenColorIO-Config-ACES.git
+[submodule "scripts/addons/io_export_blend"]
+	path = scripts/addons/io_export_blend
+	url = https://github.com/CGCookie/io_export_blend.git
