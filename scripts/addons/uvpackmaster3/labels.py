@@ -50,16 +50,19 @@ class Labels:
     EXTRA_PIXEL_MARGIN_TO_OTHERS_DESC="Specifies an additional pixel margin between islands being packed and the other islands (unselected islands when using the 'Pack To Others' mode). In result the final margin between these islands will be calculated using the formula: 'Pixel Margin' + 'Extra Margin To Others'. When using the 'Groups To Tiles' mode and packing two groups into the same UV space, the islands from the other group are also treated as 'Others'. It means that the 'Extra Margin To Others' parameter will also be taken into account when calculating the margin between islands belonging to different groups."
 
     PIXEL_MARGIN_ADJUST_TIME_NAME='Adjustment Time (s)'
-    PIXEL_MARGIN_ADJUST_TIME_DESC="Time in seconds the packer will spend on determing proper pixel margin. Time set to 1 second is enough in most cases, increase this parameter only if you don't get an exact result for a specific UV map. This parameter is only used if the pixel margin method is set to 'Adjustment Time'. For more info click the Help button"
+    PIXEL_MARGIN_ADJUST_TIME_DESC="Time in seconds the packer will spend on determining proper pixel margin. Time set to 1 second is enough in most cases, increase this parameter only if you don't get an exact result for a specific UV map. This parameter is only used if the pixel margin method is set to 'Adjustment Time'. For more info click the Help button"
 
     PIXEL_MARGIN_TEX_SIZE_NAME='Texture Size'
     PIXEL_MARGIN_TEX_SIZE_DESC="Texture size in pixels used for pixel margin calculation. If the 'Use Texture Ratio' option is enabled, then this property is ignored and the dimensions of the active texture are used to calculate pixel margin"
 
     ROTATION_ENABLE_NAME='Rotation Enable'
-    ROTATION_ENABLE_DESC='Allow the packer to rotate islands in order to achieve better result'
+    ROTATION_ENABLE_DESC='Allow the packer to rotate islands in order to achieve a better result'
 
     PRE_ROTATION_DISABLE_NAME='Pre-Rotation Disable'
-    PRE_ROTATION_DISABLE_DESC='Disable the initial rotatation of islands before generating other orientations. The pre-rotation operation usually optimizes packing, use this option only if you have a good reason'
+    PRE_ROTATION_DISABLE_DESC='Disable the initial rotation of islands before generating other orientations. The pre-rotation operation usually optimizes packing, use this option only if you have a good reason'
+
+    FLIPPING_ENABLE_NAME='Flipping Enable'
+    FLIPPING_ENABLE_DESC='Allow the packer to flip islands when performing the operation'
 
     NORMALIZE_ISLANDS_NAME='Normalize Islands'
     NORMALIZE_ISLANDS_DESC='Automatically scale selected islands before packing so that the average texel density is the same for every island. WARNING: if lock overlapping is enabled, then normalization takes place AFTER overlapping islands are locked'
@@ -201,13 +204,23 @@ class Labels:
     SIMI_MODE_VERTEX_POSITION_DESC='Two islands are considered similar, if the number of vertices and their relative position match. In this mode the position of all island vertices are taken into account, but the island topology (how the vertices are connected to each other) is ignored'
 
     SIMI_MODE_TOPOLOGY_NAME='Topology'
-    SIMI_MODE_TOPOLOGY_DESC="Two islands are considered similar, if the number of vertices and their relative position match and also island topologies are the same. In this mode not only the position of all island vertices are taken into account, but also the island topology (how vertices are connected to each other). WARNING: the {0} mode is the most expensive mode from the computing and memory perspective, that is why it is not recommend to use it with UV islands with a huge number of vertices (10000 vertices or more). If you require aligning with vertex correction for such islands, use the {1} mode first and switch to the {0} mode only if you didn't receive desired results. If you have to use the {0} mode for heavy UV islands, make sure the {2} parameter is set to the lowest value which gives you the expected outcome".format(SIMI_MODE_TOPOLOGY_NAME, SIMI_MODE_VERTEX_POSITION_NAME, SIMI_VERTEX_THRESHOLD_NAME)
+    SIMI_MODE_TOPOLOGY_DESC="Two islands are considered similar, if the number of vertices and their relative position match and also island topologies are the same. In this mode not only the position of all island vertices are taken into account, but also the island topology (how vertices are connected to each other). WARNING: the '{0}' mode is the most expensive mode from the computing and memory perspective, that is why it is not recommend to use it with UV islands with a huge number of vertices (10000 vertices or more). If you require aligning with vertex correction for such islands, use the '{1}' mode first and switch to the '{0}' mode only if you didn't receive desired results. If you have to use the '{0}' mode for heavy UV islands, make sure the '{2}' parameter is set to the lowest value which gives you the expected outcome".format(SIMI_MODE_TOPOLOGY_NAME, SIMI_MODE_VERTEX_POSITION_NAME, SIMI_VERTEX_THRESHOLD_NAME)
 
     SIMI_THRESHOLD_NAME='Similarity Threshold'
     SIMI_THRESHOLD_DESC="A greater value of this parameter means island borders will be more likely recognized as a similar in shape. A lower value means more accurate distinction. For more info regarding similarity detection click the help button"
 
     SIMI_ADJUST_SCALE_NAME='Adjust Scale'
     SIMI_ADJUST_SCALE_DESC='Scale islands to the same size before determining whether they are similar'
+
+    SIMI_MATCH_3D_ORIENTATION_NAME = 'Match 3D Orientation'
+    SIMI_MATCH_3D_ORIENTATION_DESC = 'Consider islands as similar, only if they orient geometry in the 3D space in the same way'
+
+    SIMI_MATCH_3D_AXIS_NAME = 'Match 3D Axis'
+    SIMI_MATCH_3D_AXIS_DESC = "When performing the similarity check, accept only those UV island orientations which result in the same mapping (texture) direction along the given axis in the 3D space. If set to 'NONE' then the  functionality is disabled. WARNING: make sure you don't choose an axis which is perpendicular to the 3D geometry being considered - in such a case the UV island corresponding to the given geometry will be excluded from the operation."
+
+    SIMI_MATCH_3D_AXIS_SPACE_NAME = '3D Axis Space'
+    SIMI_MATCH_3D_AXIS_SPACE_DESC = "The 3D space to consider when the '{}' functionality is enabled".format(SIMI_MATCH_3D_AXIS_NAME)
+    
 
     SIMI_CORRECT_VERTICES_NAME='Correct Vertices'
     SIMI_CORRECT_VERTICES_DESC="Correct position of matching UV vertices of similar islands so they are placed on the top of each other after aligning"
@@ -252,6 +265,13 @@ class Labels:
     APPEND_MODE_NAME_TO_OP_LABEL_NAME="Append Mode To Operator Name"
     APPEND_MODE_NAME_TO_OP_LABEL_DESC="This option should only be enabled temporarily, only for the time when you want to add an UVPackmaster operator to Quick Favorites. If you add an operator with this option enabled, the selected mode name will be permanently appended to the operator name in the Quick Favorites list. After the operator was added, you can disable this option immediately"
 
+    #UI options
+    FONT_SIZE_TEXT_OUTPUT_NAME='Font Size (Text Output)'
+    FONT_SIZE_TEXT_OUTPUT_DESC='Sets the font size for the operation text output'
+
+    FONT_SIZE_UV_OVERLAY_NAME='Font Size (UV Overlay)'
+    FONT_SIZE_UV_OVERLAY_DESC='Sets the font size for text rendered over UV islands (e.g. per-island parameter values)'
+
     BOX_RENDER_LINE_WIDTH_NAME="Box Border Width"
     BOX_RENDER_LINE_WIDTH_DESC="Determines the width of box borders rendered in the UV editor during the operation. WARNING: setting width to a low value is not recommended"
 
@@ -271,6 +291,8 @@ class PropConstants:
     ROTATION_STEP_MIN = 1
     ROTATION_STEP_MAX = 180
     ROTATION_STEP_DEFAULT = 90
+
+    FLIPPING_ENABLE_DEFAULT = False
 
     PIXEL_MARGIN_MIN = 1
     PIXEL_MARGIN_MAX = 256

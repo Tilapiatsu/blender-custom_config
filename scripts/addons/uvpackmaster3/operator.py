@@ -555,6 +555,7 @@ class UVPM3_OT_Engine(UVPM3_OT_Generic, DefaultFinishConditionMixin):
         send_unselected = self.send_unselected_islands()
         send_groups = self.grouping_enabled()
         send_verts_3d = self.send_verts_3d()
+        verts_3d_space = self.verts_3d_space()
 
         iparam_serializers = self.get_iparam_serializers()
 
@@ -563,7 +564,7 @@ class UVPM3_OT_Engine(UVPM3_OT_Generic, DefaultFinishConditionMixin):
             iparam_serializers.append(GroupingSchemeSerializer(self.g_scheme))
 
         serialized_maps, selected_cnt, unselected_cnt =\
-            self.p_context.serialize_uv_maps(send_unselected, send_verts_3d, iparam_serializers)
+            self.p_context.serialize_uv_maps(send_unselected, send_verts_3d, verts_3d_space, iparam_serializers)
 
         engine_args_final = [get_engine_execpath(), '-E']
         engine_args_final += ['-o', str(UvpmOpcode.EXECUTE_SCENARIO)]
@@ -814,6 +815,10 @@ class UVPM3_OT_Engine(UVPM3_OT_Generic, DefaultFinishConditionMixin):
     def send_verts_3d(self):
 
         return self.mode_method_std_call(lambda: False, 'send_verts_3d')
+
+    def verts_3d_space(self):
+
+        return self.mode_method_std_call(lambda: UvpmCoordSpace.LOCAL.code, 'verts_3d_space')
 
     def init_grouping_scheme(self, g_method):
 

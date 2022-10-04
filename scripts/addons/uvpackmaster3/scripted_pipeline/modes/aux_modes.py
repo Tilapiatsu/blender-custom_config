@@ -21,8 +21,6 @@ from ...mode import ModeType, UVPM3_Mode_Generic
 from ..operators.aux_operator import (
         UVPM3_OT_OverlapCheck,
         UVPM3_OT_MeasureArea,
-        UVPM3_OT_SplitOverlapping,
-        UVPM3_OT_UndoIslandSplit,
         UVPM3_OT_AdjustTdToUnselected
     )
 
@@ -40,6 +38,7 @@ class UVPM3_Mode_OverlapCheck(UVPM3_Mode_Aux):
 
     OPERATOR_IDNAME = UVPM3_OT_OverlapCheck.bl_idname
 
+
 class UVPM3_Mode_MeasureArea(UVPM3_Mode_Aux):
 
     MODE_ID = 'aux.measure_area'
@@ -47,24 +46,6 @@ class UVPM3_Mode_MeasureArea(UVPM3_Mode_Aux):
     MODE_PRIORITY = 2000
 
     OPERATOR_IDNAME = UVPM3_OT_MeasureArea.bl_idname
-
-
-
-class UVPM3_Mode_SplitOverlapping(UVPM3_Mode_Aux):
-
-    MODE_ID = 'aux.split_overlapping'
-    MODE_NAME = UVPM3_OT_SplitOverlapping.bl_label
-    MODE_PRIORITY = 3000
-
-    OPERATOR_IDNAME = UVPM3_OT_SplitOverlapping.bl_idname
-
-class UVPM3_Mode_UndoIslandSplit(UVPM3_Mode_Aux):
-
-    MODE_ID = 'aux.undo_island_split'
-    MODE_NAME = UVPM3_OT_UndoIslandSplit.bl_label
-    MODE_PRIORITY = 4000
-
-    OPERATOR_IDNAME = UVPM3_OT_UndoIslandSplit.bl_idname
 
 
 class UVPM3_Mode_AdjustTdToUnselected(UVPM3_Mode_Aux):

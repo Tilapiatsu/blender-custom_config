@@ -49,6 +49,9 @@ class OperatorMetadata:
             setattr(op, prop, prop_value)
 
 
+class OperatorMetadataSeparator:
+    pass
+
 
 class UVPM3_Mode_Generic:
 
@@ -124,7 +127,10 @@ class UVPM3_Mode_Generic:
         # box.label(text='Mode operations:')
 
         for op_metadata in operators:
-            self.draw_operator(layout, op_metadata)
+            if isinstance(op_metadata, OperatorMetadataSeparator):
+                layout.separator()
+            else:
+                self.draw_operator(layout, op_metadata)
 
         # layout.separator()
         # box = layout.box()

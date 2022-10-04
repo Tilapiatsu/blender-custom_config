@@ -21,7 +21,7 @@ module_loader.unload_uvpm3_modules(locals())
 bl_info = {
     "name": "UVPackmaster3",
     "author": "glukoz",
-    "version": (3, 1, 0),
+    "version": (3, 1, 1),
     "blender": (3, 2, 0),
     "location": "",
     "description": "",

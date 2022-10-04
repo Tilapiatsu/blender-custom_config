@@ -15,7 +15,21 @@ class Scenario(GenericScenario):
         
         split_offset_iparam_name = self.cx.params['split_offset_iparam_name']
         split_offset_iparam_desc = self.iparams_manager.iparam_desc(split_offset_iparam_name)
+
+        align_priority_iparam_name = self.cx.params['align_priority_iparam_name']
+        align_priority_iparam_desc = None
+
+        sort_by_overlapping_count = lambda island: len(island.overlapping)
+        sort_by_align_priority = lambda island: -island.get_iparam(align_priority_iparam_desc)
+        
+        if align_priority_iparam_name is not None:
+            align_priority_iparam_desc = self.iparams_manager.iparam_desc(align_priority_iparam_name)
+            sort_key = lambda island: (sort_by_align_priority(island), sort_by_overlapping_count(island))
+        else:
+            sort_key = sort_by_overlapping_count
+
         offset_step = 1
+
 
         for island in self.cx.selected_islands:
             island.metadata = SplitMetadata()
@@ -46,7 +60,7 @@ class Scenario(GenericScenario):
                 island.metadata.local_offset = None
                 overlapping_islands.append(island)
 
-            overlapping_islands.sort(key=lambda island: len(island.overlapping))
+            overlapping_islands.sort(key=sort_key)
             to_process.clear()
 
             for island in overlapping_islands:
@@ -68,7 +82,6 @@ class Scenario(GenericScenario):
 
                     offset_to_check += offset_step
 
-                # max_offset = max(max_offset, free_offset)
                 island.metadata.local_offset = free_offset
                 island.metadata.split_offset += free_offset
 

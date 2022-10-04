@@ -18,8 +18,6 @@
 
 
 from ...operator import UVPM3_OT_Engine
-from ...island_params import SplitOffsetIParamInfo, VColorIParamSerializer
-from ...prefs_scripted_utils import ScriptParams
 
 
 class AuxFinishConditionMixin:
@@ -50,42 +48,6 @@ class UVPM3_OT_MeasureArea(AuxFinishConditionMixin, UVPM3_OT_Engine):
     bl_description = 'Measure area of selected UV islands'
 
     SCENARIO_ID = 'aux.measure_area'
-
-
-
-class UVPM3_OT_SplitOverlappingGeneric(UVPM3_OT_Engine):
-
-    def get_iparam_serializers(self):
-
-        return [VColorIParamSerializer(SplitOffsetIParamInfo())]
-
-    def setup_script_params(self):
-
-        script_params = ScriptParams()
-        script_params.add_param('split_offset_iparam_name', SplitOffsetIParamInfo.SCRIPT_NAME)
-        return script_params
-
-
-class UVPM3_OT_SplitOverlapping(AuxFinishConditionMixin, UVPM3_OT_SplitOverlappingGeneric):
-
-    bl_idname = 'uvpackmaster3.split_overlapping'
-    bl_label = 'Split Overlapping Islands'
-    bl_description = 'Move all overlapping islands to adjacent tiles'
-
-    SCENARIO_ID = 'aux.split_overlapping'
-
-
-class UVPM3_OT_UndoIslandSplit(AuxFinishConditionMixin, UVPM3_OT_SplitOverlappingGeneric):
-
-    bl_idname = 'uvpackmaster3.undo_island_split'
-    bl_label = 'Undo Island Split'
-    bl_description = 'Undo an island split operation'
-
-    SCENARIO_ID = 'aux.undo_island_split'
-
-    def skip_topology_parsing(self):
-        return True
-
 
 
 class UVPM3_OT_AdjustTdToUnselected(AuxFinishConditionMixin, UVPM3_OT_Engine):

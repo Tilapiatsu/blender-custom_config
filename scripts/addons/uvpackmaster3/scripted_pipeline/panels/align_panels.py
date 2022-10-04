@@ -50,10 +50,17 @@ class UVPM3_PT_SimilarityOptions(UVPM3_PT_SubPanel):
             row = mode_col.row(align=True)
             row.prop(self.scene_props, 'simi_threshold')
 
+        box = col.box()
+        row = box.row(align=True)
+        row.prop(self.scene_props, 'flipping_enable')
 
         box = col.box()
         row = box.row(align=True)
         row.prop(self.scene_props, 'simi_adjust_scale')
+
+        match_col = self.draw_enum_in_box(self.scene_props, "simi_match_3d_axis", Labels.SIMI_MATCH_3D_AXIS_NAME, col, expand=True)
+        match_space_col = self.draw_enum_in_box(self.scene_props, "simi_match_3d_axis_space", '', match_col, expand=True)
+        match_space_col.enabled = self.scene_props.simi_match_3d_axis != UvpmAxis.NONE.code
 
         # col.separator()
 

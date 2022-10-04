@@ -235,7 +235,7 @@ class LockGroupIParamInfo(GroupIParamInfoGeneric):
 
     
 
-class AlignPriorityIParamInfo(StaticIParamInfo):
+class AlignPriorityIParamInfo(GroupIParamInfoGeneric):
 
     TEXT_TYPE = int
     LABEL = 'Align Priority'
