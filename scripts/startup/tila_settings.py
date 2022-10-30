@@ -86,7 +86,7 @@ bpy.context.preferences.inputs.use_mouse_depth_navigate = True
 bpy.context.preferences.inputs.use_numeric_input_advanced = True
 # bpy.context.preferences.inputs.use_mouse_emulate_3_button = True
 bpy.context.preferences.inputs.use_zoom_to_mouse = True
-bpy.context.preferences.inputs.pressure_softness = -0.75
+bpy.context.preferences.inputs.pressure_softness = -0.5
 
 
 # Keymap

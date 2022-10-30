@@ -469,7 +469,7 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		self.navigation_keys(pan='view3d.move',
 							orbit='view3d.rotate',
 							dolly='view3d.zoom',
-					   		roll='view3d.view_roll')
+					   		roll='view3d.rotate_canvas')
 
 		self.selection_keys(select_tool='view3d.select', 
 							lasso_tool='view3d.select_lasso',
@@ -484,7 +484,7 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 
 		self.mode_selection()
 		
-		self.kmi_set_replace('view3d.toggle_x_symetry', 'X', 'PRESS', disable_double=True)
+		self.kmi_set_replace('view3d.toggle_symetry', 'X', 'PRESS', disable_double=True)
 		# self.kmi_set_replace('wm.context_toggle', 'X', 'PRESS', alt=True, shift=True, properties={'data_path': 'tool_settings.use_snap'}, disable_double=True)
 
 		self.kmi_set_replace('view3d.view_persportho', 'NUMPAD_ASTERIX', 'PRESS')
@@ -540,7 +540,7 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		self.kmi_set_active(enable=True, idname='rotate.hdri')
 		
 		# GreasePencil tools
-		self.kmi_set_replace('view3d.rotate_canvas', self.k_context, 'PRESS', alt=True, disable_double=True)
+		# self.kmi_set_replace('view3d.rotate_canvas', self.k_context, 'PRESS', alt=True, disable_double=True)
 
 		# Polysource
 		self.kmi_set_active(enable=False, idname='wm.call_menu_pie', type=self.k_menu, value='PRESS', properties={'name': 'PS_MT_tk_menu'})
@@ -1001,7 +1001,7 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		'release_confirm': True})
 
 		self.tool_sample_color('paint.sample_color')
-		self.kmi_set_replace('view3D.toggle_x_symetry', 'X', 'PRESS', shift=True)
+		self.kmi_set_replace('view3D.toggle_symetry', 'X', 'PRESS', shift=True)
 
 		# self.kmi_set_replace('paint.weight_gradient', self.k_manip, 'PRESS', ctrl=True, shift=True, properties={'type': 'LINEAR'})
 		# self.kmi_set_replace('paint.weight_gradient', self.k_manip, 'PRESS', ctrl=True, shift=True, alt=True, properties={'type': 'RADIAL'})
@@ -1049,7 +1049,7 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 
 		self.kmi_set_replace('paint.toggle_brushweight', 'X', 'PRESS')
 
-		self.kmi_set_replace('view3D.toggle_x_symetry', 'X', 'PRESS', shift=True)
+		self.kmi_set_replace('view3D.toggle_symetry', 'X', 'PRESS', shift=True)
 		
 		
 		###### Image Paint

@@ -168,11 +168,11 @@ def register(enable_addon=True):
 	# # greasepencil_tools
 	addon = context.preferences.addons.get('greasepencil_tools')
 	addon.preferences.canvas_use_hud = False
-	addon.preferences.mouse_click = 'RIGHTMOUSE'
+	# addon.preferences.mouse_click = 'RIGHTMOUSE'
 	addon.preferences.rc_angle_step = 45 * 0.0174533 #45 deg to rad
-	addon.preferences.use_ctrl = False
-	addon.preferences.use_alt = True
-	addon.preferences.use_shift = False
+	# addon.preferences.use_ctrl = False
+	# addon.preferences.use_alt = True
+	# addon.preferences.use_shift = False
 
 	addon.preferences.ts.use_ctrl = False
 	addon.preferences.ts.use_alt = False

@@ -15,7 +15,10 @@ class TILA_ToggleUseAutoMergeOperator(bpy.types.Operator):
     bl_options = {'REGISTER', 'UNDO'}
 
     def execute(self, context):
-        bpy.context.scene.tool_settings.use_snap = not bpy.context.scene.tool_settings.use_snap
+        if context.space_data.type in ['VIEW_3D']:
+            bpy.context.scene.tool_settings.use_snap = not bpy.context.scene.tool_settings.use_snap
+        elif context.space_data.type in ['IMAGE_EDITOR']:
+            bpy.context.scene.tool_settings.use_snap_uv = not bpy.context.scene.tool_settings.use_snap_uv
         return {'FINISHED'}
 
 classes = (TILA_ToggleUseAutoMergeOperator,)
