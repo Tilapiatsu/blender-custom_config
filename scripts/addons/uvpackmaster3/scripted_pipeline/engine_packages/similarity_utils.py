@@ -1,5 +1,5 @@
 from scripted_pipeline import GenericScenario, TO_ENUM
-from uvpm_core import packer, SimilarityParams, SimilarityMode, LogType
+from uvpm_core import packer, SimilarityParams, SimilarityMode, LogType, Axis
 
 
 class SimilarityScenario(GenericScenario):
@@ -20,8 +20,9 @@ class SimilarityScenario(GenericScenario):
         self.simi_params.mode = mode
         self.simi_params.precision = self.cx.params['precision']
         self.simi_params.threshold = self.cx.params['threshold']
+        self.simi_params.flipping_enable = self.cx.params['flipping_enable']
         self.simi_params.adjust_scale = self.cx.params['adjust_scale']
-        self.simi_params.check_vertices = self.cx.params['check_vertices']
+        self.simi_params.match_3d_axis = TO_ENUM(Axis, self.cx.params['match_3d_axis'])
         self.simi_params.correct_vertices = self.cx.params['correct_vertices']
         self.simi_params.vertex_threshold = self.cx.params['vertex_threshold']
 

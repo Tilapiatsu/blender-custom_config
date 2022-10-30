@@ -78,6 +78,11 @@ class UVPM3_PT_PackOptions(UVPM3_PT_SubPanel):
         row.enabled = self.scene_props.rotation_enable
         self.draw_prop_with_set_menu(self.scene_props, "rotation_step", row, UVPM3_MT_SetRotStepScene)
 
+        # Flipping enable
+        box = col.box()
+        row = box.row()
+        row.prop(self.scene_props, "flipping_enable")
+
         # Fixed Scale
         box = col.box()
         fs_supported, fs_not_supported_msg = self.prefs.fixed_scale_supported(self.scene_props)

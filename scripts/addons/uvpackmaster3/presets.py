@@ -30,7 +30,7 @@ from .version import UvpmVersionInfo
 from .utils import get_prefs, in_debug_mode, print_backtrace, redraw_ui, print_warning, __ShadowPropertyGroup__
 from .box_utils import disable_box_rendering
 from .os_iface import os_simulate_esc_event
-from .enums import UvpmSimilarityMode
+from .enums import UvpmAxis, UvpmCoordSpace, UvpmSimilarityMode
 
 
 PRESET_FILENAME_EXT = "uvpmp"
@@ -312,6 +312,12 @@ class UVPM3_OT_LoadPresetBase(bpy.types.Operator):
     def translate_props_15to16(self, props_dict):
         pass
 
+    def translate_props_16to17(self, props_dict):
+
+        props_dict['flipping_enable'] = False
+        props_dict['simi_match_3d_axis'] = UvpmAxis.NONE.code
+        props_dict['simi_match_3d_axis_space'] = UvpmCoordSpace.LOCAL.code
+
     def translate_props(self, preset_version, props_dict):
 
         translate_array = [
@@ -319,7 +325,8 @@ class UVPM3_OT_LoadPresetBase(bpy.types.Operator):
             self.translate_props_12to13,
             self.translate_props_13to14,
             self.translate_props_14to15,
-            self.translate_props_15to16
+            self.translate_props_15to16,
+            self.translate_props_16to17
         ]
 
         for i in range(preset_version - UvpmVersionInfo.PRESET_VERSION_FIRST_SUPPORTED, len(translate_array)):

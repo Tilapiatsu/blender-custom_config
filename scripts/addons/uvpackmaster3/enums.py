@@ -174,6 +174,26 @@ class UvpmSimilarityMode:
         return (cls.VERTEX_POSITION == mode) or (cls.TOPOLOGY == mode)
 
 
+class UvpmAxis:
+    NONE = EnumValue(str(0), 'None', '')
+    X = EnumValue(str(1 << 0), 'X', '')
+    Y = EnumValue(str(1 << 1), 'Y', '')
+    Z = EnumValue(str(1 << 2), 'Z', '')
+
+    @classmethod
+    def to_blend_items(cls):
+        return (cls.NONE.to_blend_item(), cls.X.to_blend_item(), cls.Y.to_blend_item(), cls.Z.to_blend_item())
+
+
+class UvpmCoordSpace:
+    LOCAL = EnumValue('0', 'Local', '')
+    GLOBAL = EnumValue('1', 'Global', '')
+
+    @classmethod
+    def to_blend_items(cls):
+        return (cls.LOCAL.to_blend_item(), cls.GLOBAL.to_blend_item())
+
+
 class UvpmMapSerializationFlags:
     CONTAINS_FLAGS = 1
     CONTAINS_VERTS_3D = 2

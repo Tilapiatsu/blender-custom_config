@@ -16,11 +16,11 @@
 #
 # ##### END GPL LICENSE BLOCK #####
 
-from ...enums import UvpmSimilarityMode
+from ...enums import UvpmSimilarityMode, UvpmAxis
 from ...prefs_scripted_utils import ScriptParams
-from ...mode import UVPM3_Mode_Main, UVPM3_ModeCategory_Miscellaneous, OperatorMetadata
-from ...island_params import AlignPriorityIParamInfo, VColorIParamSerializer
-from ..operators.align_operator import UVPM3_OT_SelectSimilar, UVPM3_OT_AlignSimilar
+from ...mode import UVPM3_Mode_Main, UVPM3_ModeCategory_Miscellaneous, OperatorMetadata, OperatorMetadataSeparator
+from ...island_params import AlignPriorityIParamInfo, SplitOffsetIParamInfo, VColorIParamSerializer
+from ..operators.align_operator import UVPM3_OT_SelectSimilar, UVPM3_OT_AlignSimilar, UVPM3_OT_SplitOverlapping, UVPM3_OT_UndoIslandSplit
 from ..panels.align_panels import UVPM3_PT_SimilarityOptions, UVPM3_PT_AlignPriority
 
 
@@ -55,12 +55,18 @@ class UVPM3_Mode_Align(UVPM3_Mode_Main):
         script_params.add_param('mode', self.scene_props.simi_mode)
         script_params.add_param('precision', precision)
         script_params.add_param('threshold', threshold)
+        script_params.add_param('flipping_enable', self.scene_props.flipping_enable)
         script_params.add_param('adjust_scale', self.scene_props.simi_adjust_scale)
+        # script_params.add_param('match_3d_orientation', self.scene_props.simi_match_3d_orientation)
+        script_params.add_param('match_3d_axis', self.scene_props.simi_match_3d_axis)
         script_params.add_param('correct_vertices', self.scene_props.simi_correct_vertices)
         script_params.add_param('vertex_threshold', self.scene_props.simi_vertex_threshold)
 
         if self.align_priority_enabled():
             script_params.add_param('align_priority_iparam_name', AlignPriorityIParamInfo.SCRIPT_NAME)
+
+        if self.split_offset_enabled():
+            script_params.add_param('split_offset_iparam_name', SplitOffsetIParamInfo.SCRIPT_NAME)
 
         # if self.prefs.pack_ratio_enabled(self.scene_props):
         #     self.pack_ratio = get_active_image_ratio(self.p_context.context)
@@ -71,6 +77,15 @@ class UVPM3_Mode_Align(UVPM3_Mode_Main):
     def align_priority_enabled(self):
         return self.scene_props.align_priority_enable
 
+    def split_offset_enabled(self):
+        return self.op.split_offset_enabled()
+
+    def send_verts_3d(self):
+        return self.scene_props.simi_match_3d_axis != UvpmAxis.NONE.code
+
+    def verts_3d_space(self):
+        return self.scene_props.simi_match_3d_axis_space
+
     def get_iparam_serializers(self):
 
         output = []
@@ -78,18 +93,16 @@ class UVPM3_Mode_Align(UVPM3_Mode_Main):
         if self.align_priority_enabled():
             output.append(VColorIParamSerializer(AlignPriorityIParamInfo()))
 
+        if self.split_offset_enabled():
+            output.append(VColorIParamSerializer(SplitOffsetIParamInfo()))
+
         return output
 
     def operators(self):
-
         return [
             OperatorMetadata(UVPM3_OT_SelectSimilar.bl_idname),
-            OperatorMetadata(UVPM3_OT_AlignSimilar.bl_idname)
+            OperatorMetadata(UVPM3_OT_AlignSimilar.bl_idname),
+            OperatorMetadataSeparator(),
+            OperatorMetadata(UVPM3_OT_SplitOverlapping.bl_idname),
+            OperatorMetadata(UVPM3_OT_UndoIslandSplit.bl_idname)
         ]
-
-    # def draw(self, layout):
-
-    #     # main_box = layout.box()
-
-    #     self.draw_operator(layout, UVPM3_OT_SelectSimilar.bl_idname)
-    #     self.draw_operator(layout, UVPM3_OT_AlignSimilar.bl_idname)

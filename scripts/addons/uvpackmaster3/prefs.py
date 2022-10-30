@@ -148,6 +148,11 @@ class UVPM3_SceneProps(bpy.types.PropertyGroup):
         description=Labels.PRE_ROTATION_DISABLE_DESC,
         default=PropConstants.PRE_ROTATION_DISABLE_DEFAULT)
 
+    flipping_enable : BoolProperty(
+        name=Labels.FLIPPING_ENABLE_NAME,
+        description=Labels.FLIPPING_ENABLE_DESC,
+        default=PropConstants.FLIPPING_ENABLE_DEFAULT)
+
     normalize_islands : BoolProperty(
         name=Labels.NORMALIZE_ISLANDS_NAME,
         description=Labels.NORMALIZE_ISLANDS_DESC,
@@ -324,6 +329,16 @@ class UVPM3_SceneProps(bpy.types.PropertyGroup):
         description=Labels.SIMI_ADJUST_SCALE_DESC,
         default=False)
 
+    simi_match_3d_axis : EnumProperty(
+        items=UvpmAxis.to_blend_items(),
+        name=Labels.SIMI_MATCH_3D_AXIS_NAME,
+        description=Labels.SIMI_MATCH_3D_AXIS_DESC)
+
+    simi_match_3d_axis_space : EnumProperty(
+        items=UvpmCoordSpace.to_blend_items(),
+        name=Labels.SIMI_MATCH_3D_AXIS_SPACE_NAME,
+        description=Labels.SIMI_MATCH_3D_AXIS_SPACE_DESC)
+
     simi_correct_vertices : BoolProperty(
         name=Labels.SIMI_CORRECT_VERTICES_NAME,
         description=Labels.SIMI_CORRECT_VERTICES_DESC,
@@ -492,13 +507,22 @@ class UVPM3_Preferences(AddonPreferences):
 
         row = col.row(align=True)
         row.prop(self, "thread_count")
-
-        row = col.row(align=True)
-        row.prop(self, "box_render_line_width")
-        
+    
         box = col.box()
         row = box.row(align=True)
         row.prop(self, 'append_mode_name_to_op_label')
+
+        col.separator()
+        col.label(text='UI options:')
+
+        row = col.row(align=True)
+        row.prop(self, "font_size_text_output")
+
+        row = col.row(align=True)
+        row.prop(self, "font_size_uv_overlay")
+
+        row = col.row(align=True)
+        row.prop(self, "box_render_line_width")
 
         # adv_op_box = col.box()
         adv_op_layout = col # adv_op_box.column(align=True)
@@ -734,6 +758,21 @@ class UVPM3_Preferences(AddonPreferences):
         description=Labels.APPEND_MODE_NAME_TO_OP_LABEL_DESC,
         default=False)
 
+    # UI options
+    font_size_text_output : IntProperty(
+        name=Labels.FONT_SIZE_TEXT_OUTPUT_NAME,
+        description=Labels.FONT_SIZE_TEXT_OUTPUT_DESC,
+        default=15,
+        min=5,
+        max=100)
+
+    font_size_uv_overlay : IntProperty(
+        name=Labels.FONT_SIZE_UV_OVERLAY_NAME,
+        description=Labels.FONT_SIZE_UV_OVERLAY_DESC,
+        default=20,
+        min=5,
+        max=100)
+
     box_render_line_width : FloatProperty(
         name=Labels.BOX_RENDER_LINE_WIDTH_NAME,
         description=Labels.BOX_RENDER_LINE_WIDTH_DESC,
@@ -741,9 +780,8 @@ class UVPM3_Preferences(AddonPreferences):
         min=1.0,
         max=10.0,
         step=5.0)
-
     
-    #Expert options
+    # Expert options
     show_expert_options : BoolProperty(
         name=Labels.SHOW_EXPERT_OPTIONS_NAME,
         description=Labels.SHOW_EXPERT_OPTIONS_DESC,

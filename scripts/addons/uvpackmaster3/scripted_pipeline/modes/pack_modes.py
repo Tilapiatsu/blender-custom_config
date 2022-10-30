@@ -184,6 +184,8 @@ class UVPM3_Mode_Pack(UVPM3_Mode_Main):
             script_params.add_param('pre_rotation_disable', self.scene_props.pre_rotation_disable)
             script_params.add_param('rotation_step', self.scene_props.rotation_step)
 
+        script_params.add_param('flipping_enable', self.scene_props.flipping_enable)
+
         if self.prefs.heuristic_enabled(self.scene_props):
             script_params.add_param('heuristic_search_time', self.scene_props.heuristic_search_time)
             script_params.add_param('heuristic_max_wait_time', self.scene_props.heuristic_max_wait_time)

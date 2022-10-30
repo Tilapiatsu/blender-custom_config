@@ -49,13 +49,20 @@ class UVPM3_PT_Generic(bpy.types.Panel):
         help_op.url_suffix = help_url_suffix
 
     @classmethod
-    def draw_enum_in_box(self, obj, prop_id, prop_name, layout, help_url_suffix=None):
+    def draw_enum_in_box(self, obj, prop_id, prop_name, layout, help_url_suffix=None, expand=False):
+
+        prop_kwargs = { 'expand' : expand }
+        if not expand:
+            prop_kwargs['text'] = ''
 
         box = layout.box()
         col = box.column(align=True)
-        col.label(text=prop_name + ':')
+
+        if prop_name:
+            col.label(text=prop_name + ':')
+            
         row = col.row(align=True)
-        row.prop(obj, prop_id, text='')
+        row.prop(obj, prop_id, **prop_kwargs)
 
         if help_url_suffix:
             self._draw_help_operator(row, help_url_suffix)

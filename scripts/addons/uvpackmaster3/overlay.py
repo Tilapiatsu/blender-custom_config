@@ -22,7 +22,7 @@ import blf
 
 
 from .enums import OperationStatus, UvpmLogType
-from .utils import in_debug_mode, print_backtrace
+from .utils import in_debug_mode, print_backtrace, get_prefs
 
 
 class TextOverlay:
@@ -50,13 +50,14 @@ class OverlayManager:
 
     LINE_X_COORD = 10
     LINE_Y_COORD = 35
-    LINE_DISTANCE = 25
     LINE_TEXT_COLOR = (1, 1, 1, 1)
 
-    TEXT_SIZE = 15
-    TEXT_OVERLAY_SIZE = 20
-
     def __init__(self, context, callback):
+
+        prefs = get_prefs()
+        self.font_size = prefs.font_size_text_output
+        self.font_size_uv_overlay = prefs.font_size_uv_overlay
+        self.line_distance = int(float(25) / 15 * self.font_size)
 
         self.font_id = 0
         self.context = context
@@ -71,7 +72,7 @@ class OverlayManager:
 
     def print_text(self, coords, text, color, z_coord=0.0):
 
-        blf.size(self.font_id, self.TEXT_SIZE, 72)
+        blf.size(self.font_id, self.font_size, 72)
         blf.color(self.font_id, *color)
 
         blf.position(self.font_id, coords[0], coords[1], z_coord)
@@ -82,7 +83,7 @@ class OverlayManager:
     def __print_text_inline(self, line_num, text, color):
 
         x_coord = self.LINE_X_COORD
-        y_coord = self.LINE_Y_COORD + line_num * self.LINE_DISTANCE
+        y_coord = self.LINE_Y_COORD + line_num * self.line_distance
         self.print_text((x_coord, y_coord), text, color)
 
     def print_text_inline(self, text, color=LINE_TEXT_COLOR):
@@ -183,7 +184,7 @@ def engine_overlay_manager_draw_callback(self, context):
                 self.print_list(header, log_list, color)
 
 
-        blf.size(self.font_id, self.TEXT_OVERLAY_SIZE, 72)
+        blf.size(self.font_id, self.font_size_uv_overlay, 72)
 
         if self.p_context.p_islands is not None:
             for p_island in self.p_context.p_islands:
