@@ -122,6 +122,7 @@ def draw_hud_prop(self, name, value, offset=0, decimal=2, active=True, prop_offs
 class TILA_multires_subdiv_level(bpy.types.Operator):
 	bl_idname = "sculpt.tila_multires_subdiv_level"
 	bl_label = "TILA : Multires Set Subdivision Level"
+	bl_description = 'This Operator helps to contorl subdivision level from the Multires Modifier.'
 	bl_options = {'REGISTER', 'UNDO'}
 
 	subd : bpy.props.IntProperty(name='subd', default=0)
@@ -224,6 +225,7 @@ class TILA_multires_subdiv_level(bpy.types.Operator):
 class TILA_multires_rebuild_subdiv(bpy.types.Operator):
 	bl_idname = "sculpt.tila_multires_rebuild_subdiv"
 	bl_label = "TILA : Multires Rebuild Subdivision"
+	bl_description = 'This Operator will recursively reconstruct multires subdivision levels from a mesh.'
 	bl_options = {'REGISTER', 'UNDO'}
 
 	modifier_name = 'Multires'
@@ -293,6 +295,7 @@ class TILA_multires_rebuild_subdiv(bpy.types.Operator):
 class TILA_multires_delete_subdiv(bpy.types.Operator):
 	bl_idname = "sculpt.tila_multires_delete_subdiv"
 	bl_label = "TILA : Multires Delete Subdivision"
+	bl_description = 'This operator will allow to delete higher or lower subdivision level from Multires modifier.'
 	bl_options = {'REGISTER', 'UNDO'}
 
 	delete_target : bpy.props.StringProperty(name='subd', default='HIGHER')
@@ -328,6 +331,8 @@ class TILA_multires_delete_subdiv(bpy.types.Operator):
 class TILA_multires_apply_base(bpy.types.Operator):
 	bl_idname = "sculpt.tila_multires_apply_base"
 	bl_label = "TILA : Multires Apply Base"
+	bl_description = 'This Operator will modify the base mesh to conform to the displaced mesh.'
+
 	bl_options = {'REGISTER', 'UNDO'}
 
 	multires_modifier = None
@@ -357,7 +362,8 @@ class TILA_multires_apply_base(bpy.types.Operator):
 
 class TILA_multires_project_subdivide(bpy.types.Operator):
 	bl_idname = "object.tila_multires_project_subdivide"
-	bl_label = "TILA : Multires Apply Base"
+	bl_label = "TILA : Multires Project annd Subdivide"
+	bl_description = 'Select First the object you want to project, secondly, select the target mesh, then run this operator to subivide and project the details from the second mesh to the first one.'
 	bl_options = {'REGISTER', 'UNDO'}
 
 	pre_subdiv_level: bpy.props.IntProperty(name='Pre Subdivision Level', default=0)
@@ -691,29 +697,46 @@ classes = (
 # register, unregister = bpy.utils.register_classes_factory(classes)
 
 def sculpt_menu_func(self, context):
-    self.layout.separator()
-    op = self.layout.operator(TILA_multires_subdiv_level.bl_idname, text="Multires Create Subdivision")
-    op.mode = "RELATIVE"
-    op.subd = 1
-    op.force_subd = True
+	self.layout.separator()
+	op = self.layout.operator(TILA_multires_subdiv_level.bl_idname, text="Multires Create Subdivision")
+	op.mode = "RELATIVE"
+	op.subd = 1
+	op.force_subd = True
 
-    op = self.layout.operator(TILA_multires_subdiv_level.bl_idname, text="Multires Increase Subdivision")
-    op.mode = "RELATIVE"
-    op.subd = 1
-    op.force_subd = False
+	op = self.layout.operator(TILA_multires_subdiv_level.bl_idname, text="Multires Increase Subdivision")
+	op.mode = "RELATIVE"
+	op.subd = 1
+	op.force_subd = False
 
-    op = self.layout.operator(TILA_multires_subdiv_level.bl_idname, text="Multires Decrease Subdivision")
-    op.mode = "RELATIVE"
-    op.subd = -1
-    op.force_subd = False
+	op = self.layout.operator(TILA_multires_subdiv_level.bl_idname, text="Multires Decrease Subdivision")
+	op.mode = "RELATIVE"
+	op.subd = -1
+	op.force_subd = False
+
+	op = self.layout.operator(TILA_multires_rebuild_subdiv.bl_idname, text="Multires Rebuild Subdivision")
+	
+	op = self.layout.operator(TILA_multires_delete_subdiv.bl_idname, text="Multires Delete Higher Subdivision")
+	op.delete_target='HIGHER'
+	op = self.layout.operator(TILA_multires_delete_subdiv.bl_idname, text="Multires Delete Lower Subdivision")
+	op.delete_target='LOWER'
+
+	op = self.layout.operator(TILA_multires_apply_base.bl_idname, text="Multires Apply Base Shape")
+	
+def obj_menu_func(self, context):
+	self.layout.separator()
+	op = self.layout.operator(TILA_multires_project_subdivide.bl_idname, text="Project and Subdivide")
 
 def register():
-    bpy.utils.register_class(TILA_multires_subdiv_level)
-    bpy.types.VIEW3D_MT_sculpt.append(sculpt_menu_func)  # Adds the new operator to an existing menu.
+	for cl in classes:
+		bpy.utils.register_class(cl)
+	bpy.types.VIEW3D_MT_sculpt.append(sculpt_menu_func)  # Adds the new operator to an existing menu.
+	bpy.types.VIEW3D_MT_object.append(obj_menu_func)
 
 def unregister():
-    bpy.utils.unregister_class(TILA_multires_subdiv_level)
-    bpy.types.VIEW3D_MT_sculpt.remove(sculpt_menu_func)  # Adds the new operator to an existing menu.
+	for cl in classes:
+		bpy.utils.unregister_class(cl)
+	bpy.types.VIEW3D_MT_sculpt.remove(sculpt_menu_func)  # Adds the new operator to an existing menu.
+	bpy.types.VIEW3D_MT_object.remove(obj_menu_func)
 
 if __name__ == "__main__":
 	register()
