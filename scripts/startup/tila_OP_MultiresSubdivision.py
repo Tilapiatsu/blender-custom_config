@@ -688,7 +688,32 @@ classes = (
 )
 
 
-register, unregister = bpy.utils.register_classes_factory(classes)
+# register, unregister = bpy.utils.register_classes_factory(classes)
+
+def sculpt_menu_func(self, context):
+    self.layout.separator()
+    op = self.layout.operator(TILA_multires_subdiv_level.bl_idname, text="Multires Create Subdivision")
+    op.mode = "RELATIVE"
+    op.subd = 1
+    op.force_subd = True
+
+    op = self.layout.operator(TILA_multires_subdiv_level.bl_idname, text="Multires Increase Subdivision")
+    op.mode = "RELATIVE"
+    op.subd = 1
+    op.force_subd = False
+
+    op = self.layout.operator(TILA_multires_subdiv_level.bl_idname, text="Multires Decrease Subdivision")
+    op.mode = "RELATIVE"
+    op.subd = -1
+    op.force_subd = False
+
+def register():
+    bpy.utils.register_class(TILA_multires_subdiv_level)
+    bpy.types.VIEW3D_MT_sculpt.append(sculpt_menu_func)  # Adds the new operator to an existing menu.
+
+def unregister():
+    bpy.utils.unregister_class(TILA_multires_subdiv_level)
+    bpy.types.VIEW3D_MT_sculpt.remove(sculpt_menu_func)  # Adds the new operator to an existing menu.
 
 if __name__ == "__main__":
 	register()
