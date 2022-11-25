@@ -520,7 +520,7 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		self.kmi_set_replace('view3d.tila_orthographic_navigation', self.k_cursor, 'CLICK_DRAG', ctrl=False, alt=True, shift=False, disable_double=True, properties={'relative_to_selected_element': False})
 		self.kmi_set_replace('view3d.tila_orthographic_navigation', self.k_cursor, 'CLICK_DRAG', ctrl=False, alt=True, shift=True, disable_double=True, properties={'relative_to_selected_element': True})
 
-		self.kmi_set_replace('view3d.tila_action_center', 'S', 'PRESS', ctrl=True, alt=True, shift=True, disable_double=True, properties={'action_center': 'CURSOR'})
+		self.kmi_set_replace('view3d.tila_action_center_cursor_toggle', 'S', 'PRESS', ctrl=True, alt=True, shift=True, disable_double=True)
 		self.kmi_set_replace('view3d.toggle_overlay', 'F6', 'PRESS', properties={'mode': 'SOFT'})
 		self.kmi_set_replace('view3d.toggle_overlay', 'F6', 'PRESS', ctrl=True, properties={'mode': 'TOGGLE'})
 
