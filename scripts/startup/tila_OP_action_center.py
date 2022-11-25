@@ -166,10 +166,12 @@ class TILA_action_center(bpy.types.Operator):
 				context.scene.cursor.location[2] = context.object.location[2]
 			if self.action_center == 'CURSOR':
 				self.report({'INFO'}, 'Cursor Action Center')
+				bpy.ops.view3d.cursor_fit_selected_and_orient()
 				self.set_transform_orientation(context, 'CURSOR')
 				context.scene.tool_settings.transform_pivot_point = 'CURSOR'
 			if self.action_center == 'CURSOR_ORIENT':
 				self.report({'INFO'}, 'Cursor Orient Action Center')
+				bpy.ops.view3d.cursor_fit_selected_and_orient()
 				self.set_transform_orientation(context, 'CURSOR')
 				context.scene.tool_settings.transform_pivot_point = 'ACTIVE_ELEMENT'
 			if self.action_center == 'CUSTOM':
