@@ -346,3 +346,6 @@
 [submodule "scripts/addons/io_export_blend"]
 	path = scripts/addons/io_export_blend
 	url = https://github.com/CGCookie/io_export_blend.git
+[submodule "scripts/addons/gp-triangulation"]
+	path = scripts/addons/gp-triangulation
+	url = https://gitlab.com/lfs.coop/blender/gp-triangulation.git
