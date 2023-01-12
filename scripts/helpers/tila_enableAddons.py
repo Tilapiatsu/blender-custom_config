@@ -1,5 +1,11 @@
-import bpy, os, addon_utils 
+import bpy, os, addon_utils , re
 # from addon_utils import check,paths,enable
+
+
+bversion_string = bpy.app.version_string
+bversion_reg = re.match("^(\d\.\d?\d)", bversion_string)
+bversion = float(bversion_reg.group(0))
+
 
 modules =   (
 			'mesh_f2',
@@ -181,9 +187,12 @@ def register(enable_addon=True):
 
 	# user_pref_path = bpy.utils.resource_path(type='USER')
 	# asset_library_path = os.path.join(user_pref_path, 'datafiles', 'scene', '00_Asset_Library')
-	asset_library_path = os.path.join('R:\\', 'Mon Drive', '00_Blender_Asset_Library')
+	library_name = '00_Blender_Asset_Library'
+	asset_library_path = os.path.join('R:\\', 'Mon Drive', library_name)
 	bpy.ops.preferences.asset_library_add('EXEC_DEFAULT', directory=asset_library_path)
-	bpy.context.preferences.filepaths.asset_libraries['00_Blender_Asset_Library'].name = 'Tilapiatsu'
+	if bversion < 3.2:
+		library_name = ''
+	bpy.context.preferences.filepaths.asset_libraries[library_name].name = 'Tilapiatsu'
 
 	# # Atomic Data Manager
 	addon = context.preferences.addons.get('atomic_data_manager')
