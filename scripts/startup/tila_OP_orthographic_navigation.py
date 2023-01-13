@@ -1,7 +1,7 @@
 
 from bpy.props import IntProperty, BoolProperty, EnumProperty
 from mathutils import Vector
-import math
+import math, re
 import bpy
 bl_info = {
     "name": "Othographic navigation",
@@ -16,6 +16,10 @@ bl_info = {
 }
 # Need to add a mode to align Orthographic view based on the current face selection
 
+bversion_string = bpy.app.version_string
+bversion_reg = re.match("^(\d\.\d?\d)", bversion_string)
+bversion = float(bversion_reg.group(0))
+
 class TILA_OrthographicNavigation(bpy.types.Operator):
     bl_idname = "view3d.tila_orthographic_navigation"
     bl_label = "Othographic Navigation"
@@ -26,6 +30,18 @@ class TILA_OrthographicNavigation(bpy.types.Operator):
     relative_to_selected_element : bpy.props.BoolProperty(name="relative", default=False)
 
     dir = {'UP': 'ORBITUP', 'DOWN': 'ORBITDOWN', 'LEFT': 'ORBITLEFT', 'RIGHT': 'ORBITRIGHT'}
+
+    def get_release_condition(self, event):
+        if bversion < 3.2:
+            return event.value == 'RELEASE'
+        else:
+            return event.type in ['MOUSEMOVE', 'LEFTMOUSE', 'RIGHTMOUSE', 'WINDOW_DEACTIVATE'] and event.value in ['RELEASE', 'NOTHING'] and self.run
+    
+    def get_run_condition(self, event) :
+        if bversion < 3.2:
+            return event.type == 'MOUSEMOVE' and event.value == 'PRESS'
+        else:
+            return event.type == event.type == 'MOUSEMOVE' and event.value == 'NOTHING'
 
     def set_initial_position(self, event):
         self.initial_mouseposition = event.mouse_x, event.mouse_y
@@ -66,12 +82,12 @@ class TILA_OrthographicNavigation(bpy.types.Operator):
         if self.region.is_perspective:
             self.region.view_perspective = 'ORTHO'
             bpy.ops.view3d.view_axis(type='FRONT', relative=True)
-        if event.type == 'MOUSEMOVE' and event.value == 'NOTHING':
+        if self.get_run_condition(event):
             self.switch_view(event)
             return {'RUNNING_MODAL'}
         if event.type in {'ESC'}:  # Cancel
             return {'CANCELLED'}
-        elif event.value == 'RELEASE':
+        elif self.get_release_condition(event):
             return {'CANCELLED'}
         return {'RUNNING_MODAL'}
 
