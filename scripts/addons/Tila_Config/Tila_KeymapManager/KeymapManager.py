@@ -1,5 +1,8 @@
-import bpy
+import bpy, re
 
+bversion_string = bpy.app.version_string
+bversion_reg = re.match("^(\d\.\d?\d)", bversion_string)
+bversion = float(bversion_reg.group(0))
 
 class bKeymap():
     def __init__(self, kmi):
@@ -103,7 +106,8 @@ class KeymapManager():
         km_dest.map_type = km_src.map_type
         km_dest.type = km_src.type
         km_dest.value = km_src.value
-        km_dest.direction = km_src.direction
+        if bversion > 3.2:
+            km_dest.direction = km_src.direction
 
         if km_src.any != km_dest.any:
             km_dest.any = km_src.any
@@ -207,7 +211,10 @@ class KeymapManager():
                                 oskey=oskey, key_modifier=key_modifier, properties=properties)
         if key_modifier is None:
             key_modifier = 'NONE'
-        kmi = self.km.keymap_items.new(idname=idname, type=type, value=value, direction=direction, alt=alt, any=any, ctrl=ctrl, shift=shift, oskey=oskey, key_modifier=key_modifier)
+        if bversion > 3.2:
+            kmi = self.km.keymap_items.new(idname=idname, type=type, value=value, direction=direction, alt=alt, any=any, ctrl=ctrl, shift=shift, oskey=oskey, key_modifier=key_modifier)
+        else:
+            kmi = self.km.keymap_items.new(idname=idname, type=type, value=value, alt=alt, any=any, ctrl=ctrl, shift=shift, oskey=oskey, key_modifier=key_modifier)
         kmi.active = True
         if properties:
             for k,v in properties.items():
@@ -225,7 +232,10 @@ class KeymapManager():
                                 oskey=oskey, key_modifier=key_modifier, properties=properties)
         if key_modifier is None:
             key_modifier = 'NONE'
-        kmi = self.km.keymap_items.new_modal(propvalue, type, value, direction=direction, alt=alt, any=any, ctrl=ctrl, shift=shift, oskey=oskey, key_modifier=key_modifier)
+        if bversion > 3.2:
+            kmi = self.km.keymap_items.new_modal(propvalue, type, value, direction=direction, alt=alt, any=any, ctrl=ctrl, shift=shift, oskey=oskey, key_modifier=key_modifier)
+        else:
+            kmi = self.km.keymap_items.new_modal(propvalue, type, value, alt=alt, any=any, ctrl=ctrl, shift=shift, oskey=oskey, key_modifier=key_modifier)
         kmi.active = True
         if properties:
             for k, v in properties.items():
@@ -259,9 +269,9 @@ class KeymapManager():
 
             if attr_compare(k.value, value) is False:
                 continue
-
-            if attr_compare(k.direction, direction) is False:
-                continue
+            if bversion > 3.2:
+                if attr_compare(k.direction, direction) is False:
+                    continue
 
             if attr_compare(k.alt, alt) is False:
                 continue

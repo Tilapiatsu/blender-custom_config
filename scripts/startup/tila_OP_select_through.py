@@ -2,7 +2,7 @@
 from bpy.props import IntProperty, BoolProperty, EnumProperty
 from mathutils import Vector
 import bgl
-import bpy
+import bpy, re
 bl_info = {
     "name": "Select Through",
     "description": "Select through a mesh",
@@ -15,6 +15,9 @@ bl_info = {
     "category": "3D View"
 }
 
+bversion_string = bpy.app.version_string
+bversion_reg = re.match("^(\d\.\d?\d)", bversion_string)
+bversion = float(bversion_reg.group(0))
 
 class TILA_select_through(bpy.types.Operator):
     bl_idname = "view3d.tila_select_through"
@@ -25,6 +28,18 @@ class TILA_select_through(bpy.types.Operator):
 
     compatible_modes = ['EDIT_MESH', 'EDIT_CURVE', 'EDIT_SURFACE', 'EDIT_METABALL', 'EDIT_LATTICE', 'OBJECT', 'PAINT_WEIGHT', 'PAINT_VERTEX', 'PARTICLE']
     bypass_modes = ['EDIT_GPENCIL', 'PAINT_GPENCIL', 'SCULPT_GPENCIL']
+
+    def get_release_condition(self, event):
+        if bversion < 3.2:
+            return event.type == 'MOUSEMOVE' and event.value == 'RELEASE'
+        else:
+            return event.type in ['MOUSEMOVE', 'LEFTMOUSE', 'RIGHTMOUSE', 'WINDOW_DEACTIVATE'] and event.value in ['RELEASE', 'NOTHING'] and self.run
+    
+    def get_run_condition(self, event) :
+        if bversion < 3.2:
+            return event.type == 'MOUSEMOVE' and event.value == 'PRESS'
+        else:
+            return event.type == 'MOUSEMOVE' and event.value == 'NOTHING' and not self.run
 
     def run_tool(self):
         try:
@@ -40,11 +55,11 @@ class TILA_select_through(bpy.types.Operator):
     def modal(self, context, event):
         bpy.context.space_data.shading.show_xray = True
         # print(event.type, event.value)
-        if event.type in ['MOUSEMOVE', 'LEFTMOUSE', 'RIGHTMOUSE', 'WINDOW_DEACTIVATE'] and event.value in ['RELEASE', 'NOTHING'] and self.run:
+        if self.get_release_condition(event):
             self.run = False
             bpy.context.space_data.shading.show_xray = False
             return {'CANCELLED'}
-        elif event.type == 'MOUSEMOVE' and event.value == 'NOTHING' and not self.run:
+        elif self.get_run_condition(event):
             self.run_tool()
             return {'RUNNING_MODAL'}
         elif event.type in {'ESC'}:  # Cancel

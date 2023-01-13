@@ -1,6 +1,6 @@
 from .Tila_KeymapManager import KeymapManager
 import bpy
-import os
+import os, re
 
 bl_info = {
 	"name": "Tilapiatsu Hotkeys",
@@ -42,7 +42,9 @@ bl_info = {
 
 
 
-
+bversion_string = bpy.app.version_string
+bversion_reg = re.match("^(\d\.\d?\d)", bversion_string)
+bversion = float(bversion_reg.group(0))
 
 class TilaKeymaps(KeymapManager.KeymapManager):
 
@@ -868,35 +870,35 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		self.kmi_set_replace('sculpt.face_set_change_visibility', self.k_nav, 'PRESS', ctrl=True, alt=True, shift=True, properties={'mode': 'INVERT'}, disable_double=True)
 		self.kmi_set_replace('sculpt.sculpt.sample_color', 'S', 'PRESS', disable_double=True)
 
+		if bversion >= 3.2: 
+			###### Sculpt Curves
+			self.kmi_init(name='Sculpt Curves', space_type='EMPTY', region_type='WINDOW')
+			self.global_keys()
+			self.right_mouse()
+			self.tool_sculpt('curves.sculptmode_toggle')
+			self.selection_tool(tool='COMB', alt='SELECTION_PAINT')
 
-		###### Sculpt Curves
-		self.kmi_init(name='Sculpt Curves', space_type='EMPTY', region_type='WINDOW')
-		self.global_keys()
-		self.right_mouse()
-		self.tool_sculpt('curves.sculptmode_toggle')
-		self.selection_tool(tool='COMB', alt='SELECTION_PAINT')
+			self.tool_radial_control(radius={'data_path_primary': 'tool_settings.curves_sculpt.brush.size', 
+									'data_path_secondary': 'tool_settings.unified_paint_settings.size', 
+									'use_secondary': 'tool_settings.unified_paint_settings.use_unified_size', 
+									'rotation_path': 'tool_settings.curves_sculpt.brush.texture_slot.angle', 
+									'color_path': 'tool_settings.curves_sculpt.brush.cursor_color_add', 
+									'image_id': 'tool_settings.curves_sculpt.brush', 
+									'release_confirm': True},
+									opacity={'data_path_primary': 'tool_settings.curves_sculpt.brush.strength', 
+									'data_path_secondary': 'tool_settings.unified_paint_settings.strength', 
+									'use_secondary': 'tool_settings.unified_paint_settings.use_unified_strength', 
+									'rotation_path': 'tool_settings.curves_sculpt.brush.texture_slot.angle', 
+									'color_path': 'tool_settings.curves_sculpt.brush.cursor_color_add', 
+									'image_id': 'tool_settings.curves_sculpt.brush', 
+									'release_confirm': True},
+									eraser_radius={'data_path_primary': 'tool_settings.curves_sculpt.brush.texture_slot.angle', 
+									'rotation_path': 'tool_settings.curves_sculpt.brush.texture_slot.angle', 
+									'color_path': 'tool_settings.curves_sculpt.brush.cursor_color_add', 
+									'image_id': 'tool_settings.curves_sculpt.brush', 
+									'release_confirm': True})
 
-		self.tool_radial_control(radius={'data_path_primary': 'tool_settings.curves_sculpt.brush.size', 
-								'data_path_secondary': 'tool_settings.unified_paint_settings.size', 
-								'use_secondary': 'tool_settings.unified_paint_settings.use_unified_size', 
-								'rotation_path': 'tool_settings.curves_sculpt.brush.texture_slot.angle', 
-								'color_path': 'tool_settings.curves_sculpt.brush.cursor_color_add', 
-								'image_id': 'tool_settings.curves_sculpt.brush', 
-								'release_confirm': True},
-						   		opacity={'data_path_primary': 'tool_settings.curves_sculpt.brush.strength', 
-								   'data_path_secondary': 'tool_settings.unified_paint_settings.strength', 
-								   'use_secondary': 'tool_settings.unified_paint_settings.use_unified_strength', 
-								   'rotation_path': 'tool_settings.curves_sculpt.brush.texture_slot.angle', 
-								   'color_path': 'tool_settings.curves_sculpt.brush.cursor_color_add', 
-								   'image_id': 'tool_settings.curves_sculpt.brush', 
-								   'release_confirm': True},
-						   		eraser_radius={'data_path_primary': 'tool_settings.curves_sculpt.brush.texture_slot.angle', 
-								   'rotation_path': 'tool_settings.curves_sculpt.brush.texture_slot.angle', 
-								   'color_path': 'tool_settings.curves_sculpt.brush.cursor_color_add', 
-								   'image_id': 'tool_settings.curves_sculpt.brush', 
-								   'release_confirm': True})
-
-		self.kmi_set_replace('sculpt_curves.select_all', self.k_context, 'PRESS', ctrl=True, alt=True, shift=True, properties={'action': 'INVERT'})
+			self.kmi_set_replace('sculpt_curves.select_all', self.k_context, 'PRESS', ctrl=True, alt=True, shift=True, properties={'action': 'INVERT'})
 
 		###### Curve
 		self.kmi_init(name='Curve', space_type='EMPTY', region_type='WINDOW')
