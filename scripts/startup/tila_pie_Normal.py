@@ -4,6 +4,7 @@ from bpy.types import Operator
 from bpy.types import Menu
 import bpy
 import bmesh
+import re
 
 bl_info = {
     "name": "Pie Normal",
@@ -16,6 +17,10 @@ bl_info = {
     "doc_url": "",
     "category": "Pie Menu"
 }
+
+bversion_string = bpy.app.version_string
+bversion_reg = re.match("^(\d\.\d?\d)", bversion_string)
+bversion = float(bversion_reg.group(0))
 
 
 class TILA_MT_pie_normal(Menu):
@@ -399,14 +404,22 @@ class TILA_OT_normalsmartmerge(bpy.types.Operator):
 
     bl_options = {'REGISTER', 'UNDO'}
 
-    func = {'VERT': ((bpy.ops.view3d.tila_autosmooth, None), (bpy.ops.mesh.smooth_normals, {'factor': 1}), (bpy.ops.view3d.tila_smoothnormal, None)),
-            'EDGE': ((bpy.ops.view3d.tila_smoothnormal, None),),
-            'FACE': ((bpy.ops.mesh.tila_selectborderedges, {'mode': 'ACTIVE'}), (bpy.ops.view3d.tila_smoothnormal, None), (bpy.ops.mesh.select_mode, {'type':"FACE"})),
-            'OBJECT': ((bpy.ops.object.shade_smooth, {'use_auto_smooth':True}),)}
+    def get_shade_smooth(self):
+        if bversion < 3.2:
+                print('< 3.2')
+                return {'VERT': ((bpy.ops.view3d.tila_autosmooth, None), (bpy.ops.mesh.smooth_normals, {'factor': 1}), (bpy.ops.view3d.tila_smoothnormal, None)),
+                    'EDGE': ((bpy.ops.view3d.tila_smoothnormal, None),),
+                    'FACE': ((bpy.ops.mesh.tila_selectborderedges, {'mode': 'ACTIVE'}), (bpy.ops.view3d.tila_smoothnormal, None), (bpy.ops.mesh.select_mode, {'type':"FACE"})),
+                    'OBJECT': ((bpy.ops.object.shade_smooth, None),)}
+        else:
+                return {'VERT': ((bpy.ops.view3d.tila_autosmooth, None), (bpy.ops.mesh.smooth_normals, {'factor': 1}), (bpy.ops.view3d.tila_smoothnormal, None)),
+                    'EDGE': ((bpy.ops.view3d.tila_smoothnormal, None),),
+                    'FACE': ((bpy.ops.mesh.tila_selectborderedges, {'mode': 'ACTIVE'}), (bpy.ops.view3d.tila_smoothnormal, None), (bpy.ops.mesh.select_mode, {'type':"FACE"})),
+                    'OBJECT': ((bpy.ops.object.shade_smooth, {'use_auto_smooth':True}),)}
 
     def execute(self, context):
 
-        run_on_selection(context, self.func)
+        run_on_selection(context, self.get_shade_smooth())
 
         return {'FINISHED'}
 
