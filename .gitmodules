@@ -340,3 +340,6 @@
 [submodule "scripts/addons/gp-triangulation"]
 	path = scripts/addons/gp-triangulation
 	url = https://gitlab.com/lfs.coop/blender/gp-triangulation.git
+[submodule "scripts/GIT/optiloops"]
+	path = scripts/GIT/optiloops
+	url = https://github.com/1C0D/optiloops.git
