@@ -100,9 +100,6 @@
 [submodule "scripts/GIT/ProTheme"]
 	path = scripts/GIT/ProTheme
 	url = https://github.com/paulcoops/blender_pro-theme.git
-[submodule "scripts/GIT/optiloops"]
-	path = scripts/GIT/optiloops
-	url = https://github.com/vilemduha/optiloops.git
 [submodule "scripts/addons/SimpleLattice"]
 	path = scripts/addons/SimpleLattice
 	url = https://github.com/BenjaminSauder/SimpleLattice.git
