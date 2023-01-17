@@ -24,7 +24,8 @@ from pathlib import Path
 from .enums import *
 from .utils import get_active_image_size, force_read_int
 from .prefs_scripted_utils import scripted_pipeline_property_group
-from .labels import Labels, PropConstants
+from .labels import Labels
+from .contansts import PropConstants
 from .mode import ModeType
 from .grouping_scheme import UVPM3_GroupingScheme
 from .box import UVPM3_Box
@@ -82,6 +83,12 @@ def _update_engine_status_msg(self, context):
         pass
     bpy.utils.register_class(UVPM3_PT_EngineStatus)
 
+
+def _update_orient_3d_axes(self, context):
+    if self.orient_prim_3d_axis == self.orient_sec_3d_axis:
+        enum_values = self.bl_rna.properties["orient_sec_3d_axis"].enum_items_static.keys()
+        value_index = enum_values.index(self.orient_sec_3d_axis)
+        self.orient_sec_3d_axis = enum_values[(value_index+1) % len(enum_values)]
 
 
 class UVPM3_SceneProps(bpy.types.PropertyGroup):
@@ -330,7 +337,7 @@ class UVPM3_SceneProps(bpy.types.PropertyGroup):
         default=False)
 
     simi_match_3d_axis : EnumProperty(
-        items=UvpmAxis.to_blend_items(),
+        items=UvpmAxis.to_blend_items(include_none=True, only_positive=True),
         name=Labels.SIMI_MATCH_3D_AXIS_NAME,
         description=Labels.SIMI_MATCH_3D_AXIS_DESC)
 
@@ -364,6 +371,45 @@ class UVPM3_SceneProps(bpy.types.PropertyGroup):
         default=int(AlignPriorityIParamInfo.DEFAULT_VALUE),
         min=int(AlignPriorityIParamInfo.MIN_VALUE),
         max=int(AlignPriorityIParamInfo.MAX_VALUE))
+
+    orient_prim_3d_axis : EnumProperty(
+        items=UvpmAxis.to_blend_items(include_none=False, only_positive=True),
+        default=PropConstants.ORIENT_PRIM_3D_AXIS_DEFAULT,
+        update=_update_orient_3d_axes,
+        name=Labels.ORIENT_PRIM_3D_AXIS_NAME,
+        description=Labels.ORIENT_PRIM_3D_AXIS_DESC)
+
+    orient_prim_uv_axis : EnumProperty(
+        items=UvpmAxis.to_blend_items(include_none=False, only_2d=True),
+        default=PropConstants.ORIENT_PRIM_UV_AXIS_DEFAULT,
+        name=Labels.ORIENT_PRIM_UV_AXIS_NAME,
+        description=Labels.ORIENT_PRIM_UV_AXIS_DESC)
+
+    orient_sec_3d_axis : EnumProperty(
+        items=UvpmAxis.to_blend_items(include_none=False, only_positive=True),
+        default=PropConstants.ORIENT_SEC_3D_AXIS_DEFAULT,
+        update=_update_orient_3d_axes,
+        name=Labels.ORIENT_SEC_3D_AXIS_NAME,
+        description=Labels.ORIENT_SEC_3D_AXIS_DESC)
+
+    orient_sec_uv_axis : EnumProperty(
+        items=UvpmAxis.to_blend_items(include_none=False, only_2d=True),
+        default=PropConstants.ORIENT_SEC_UV_AXIS_DEFAULT,
+        name=Labels.ORIENT_SEC_UV_AXIS_NAME,
+        description=Labels.ORIENT_SEC_UV_AXIS_DESC)
+
+    orient_to_3d_axes_space : EnumProperty(
+        items=UvpmCoordSpace.to_blend_items(),
+        name=Labels.ORIENT_TO_3D_AXES_SPACE_NAME,
+        description=Labels.ORIENT_TO_3D_AXES_SPACE_DESC)
+
+    orient_prim_sec_bias : IntProperty(
+        name=Labels.ORIENT_PRIM_SEC_BIAS_NAME,
+        description=Labels.ORIENT_PRIM_SEC_BIAS_DESC,
+        default=PropConstants.ORIENT_PRIM_SEC_BIAS_DEFAULT,
+        min=0,
+        max=90)
+
 
     def auto_grouping_enabled(self):
 
@@ -481,6 +527,8 @@ class UVPM3_Preferences(AddonPreferences):
         self.operation_counter = -1
         self.write_to_file = False
         self.seed = 0
+
+        self.hide_engine_status_panel = self.hide_engine_status_panel_view
         
         self.reset_stats()
         self.reset_device_array()
@@ -501,19 +549,33 @@ class UVPM3_Preferences(AddonPreferences):
             from .operator import UVPM3_OT_SetupHelp
             layout.operator(UVPM3_OT_SetupHelp.bl_idname, icon='QUESTION', text='')
 
-    def draw_general_options(self, layout):
+    def draw_addon_options(self, layout):
         col = layout.column(align=True)
         col.label(text='General options:')
 
         row = col.row(align=True)
         row.prop(self, "thread_count")
-    
+
         box = col.box()
         row = box.row(align=True)
-        row.prop(self, 'append_mode_name_to_op_label')
+        row.prop(self, 'orient_aware_uv_islands')
 
         col.separator()
         col.label(text='UI options:')
+
+        box = col.box()
+        row = box.row(align=True)
+        row.prop(self, "hide_engine_status_panel_view")
+
+        if self.hide_engine_status_panel_view != self.hide_engine_status_panel:
+            box.label(text='Blender restart is required for the change to take effect.', icon='ERROR')
+            if self.hide_engine_status_panel_view:
+                box.label(text='After the panel is hidden, all its functionalities will be still',)
+                box.label(text='available in the addon preferences.')
+
+        box = col.box()
+        row = box.row(align=True)
+        row.prop(self, 'append_mode_name_to_op_label')
 
         row = col.row(align=True)
         row.prop(self, "font_size_text_output")
@@ -560,7 +622,7 @@ class UVPM3_Preferences(AddonPreferences):
         main_col.separator()
         main_col.separator()
 
-        self.draw_general_options(main_col)
+        self.draw_addon_options(main_col)
 
         main_col.separator()
         main_col.separator()
@@ -758,7 +820,22 @@ class UVPM3_Preferences(AddonPreferences):
         description=Labels.APPEND_MODE_NAME_TO_OP_LABEL_DESC,
         default=False)
 
+    orient_aware_uv_islands : BoolProperty(
+        name=Labels.ORIENT_AWARE_UV_ISLANDS_NAME,
+        description=Labels.ORIENT_AWARE_UV_ISLANDS_DESC,
+        default=False)
+
     # UI options
+    hide_engine_status_panel : BoolProperty(
+        name='',
+        description='',
+        default=False)
+
+    hide_engine_status_panel_view : BoolProperty(
+        name=Labels.HIDE_ENGINE_STATUS_PANEL_NAME,
+        description=Labels.HIDE_ENGINE_STATUS_PANEL_DESC,
+        default=False)
+
     font_size_text_output : IntProperty(
         name=Labels.FONT_SIZE_TEXT_OUTPUT_NAME,
         description=Labels.FONT_SIZE_TEXT_OUTPUT_DESC,

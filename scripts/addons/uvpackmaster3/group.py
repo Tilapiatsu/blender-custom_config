@@ -1,7 +1,8 @@
 from .box import UVPM3_Box, mark_boxes_dirty
 from .utils import ShadowedPropertyGroupMeta, ShadowedCollectionProperty
 from .island_params import GroupIParamInfoGeneric
-from .labels import Labels, PropConstants
+from .labels import Labels
+from .contansts import PropConstants
 from .grouping import UVPM3_GroupBase
 
 

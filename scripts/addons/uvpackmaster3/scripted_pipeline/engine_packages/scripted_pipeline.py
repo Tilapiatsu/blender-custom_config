@@ -6,6 +6,8 @@ from uvpm_core import (
     InputError,
     IslandSet,
     InvalidIslandsError,
+    InvalidIslandsExtendedError,
+    InvalidTopologyExtendedError,
     OpCancelledException
 )
 from utils import box_from_coords, eprint, flag_islands
@@ -118,11 +120,14 @@ class GenericScenario:
         self.config = ScenarioConfig(self.cx.params)
 
 
-    def handle_invalid_topology(self, invalid_islands):
-
+    def handle_invalid_islands(self, status_msg, error_msg, invalid_islands):
         flag_islands(self.cx.input_islands, invalid_islands)
-        packer.send_log(LogType.STATUS, "Topology error")
-        packer.send_log(LogType.ERROR, "Islands with invalid topology encountered (check the selected islands)")
+        packer.send_log(LogType.STATUS, status_msg)
+
+        if error_msg:
+            packer.send_log(LogType.ERROR, "{} (check the selected islands)".format(error_msg))
+
+        return RetCode.INVALID_ISLANDS
 
     def islands_for_topology_parsing(self):
         return self.cx.input_islands
@@ -130,11 +135,7 @@ class GenericScenario:
     def parse_topology(self):
 
         islands_for_parsing = self.islands_for_topology_parsing()
-        invalid_islands = IslandSet()
-        packer.parse_island_topology(islands_for_parsing, invalid_islands)
-        if len(invalid_islands) > 0:
-            self.handle_invalid_topology(invalid_islands)
-            raise InvalidIslandsError()
+        packer.parse_island_topology(islands_for_parsing)
 
     def init(self):
 
@@ -152,7 +153,6 @@ class GenericScenario:
 
             for in_group in in_g_scheme['groups']:
                 
-
                 # group = GroupInfo(
                 #     in_group['name'],
                 #     in_group['num'],
@@ -180,8 +180,23 @@ class GenericScenario:
             packer.send_log(LogType.STATUS, 'Invalid operation input')
             return RetCode.INVALID_INPUT
 
+        except InvalidTopologyExtendedError as err:
+            return self.handle_invalid_islands(
+                "Topology error",
+                "Islands with invalid topology encountered",
+                err.cause.invalid_islands)
+
+        except InvalidIslandsExtendedError as err:
+            return self.handle_invalid_islands(
+                "Invalid islands",
+                "Invalid islands encountered",
+                err.cause.invalid_islands)
+
         except InvalidIslandsError as err:
-            return RetCode.INVALID_ISLANDS
+            return self.handle_invalid_islands(
+                "Invalid islands",
+                None,
+                err.cause.invalid_islands)
 
         except OpCancelledException:
             return RetCode.CANCELLED

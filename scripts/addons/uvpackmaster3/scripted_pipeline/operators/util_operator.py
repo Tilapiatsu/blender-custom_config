@@ -20,8 +20,8 @@
 from ...operator import UVPM3_OT_Engine
 
 
-class AuxFinishConditionMixin:
-
+class UtilFinishConditionMixin:
+    
     # def operation_done_finish_condition(self, event):
 
     #     return not mouse_move_or_wheel_event(event)
@@ -32,31 +32,34 @@ class AuxFinishConditionMixin:
 
 
 
-class UVPM3_OT_OverlapCheck(AuxFinishConditionMixin, UVPM3_OT_Engine):
+class UVPM3_OT_OverlapCheck(UtilFinishConditionMixin, UVPM3_OT_Engine):
 
     bl_idname = 'uvpackmaster3.overlap_check'
     bl_label = 'Overlap Check'
-    bl_description = 'Check wheter selected UV islands overlap each other'
+    bl_description = "Check for overlapping UV islands among all selected islands. WARNING: this operation works on a per-island basis (reports whether two distinct UV islands overlap each other) - it will NOT report two overlapping UV faces belonging to the same island"
 
-    SCENARIO_ID = 'aux.overlap_check'
+    SCENARIO_ID = 'util.overlap_check'
 
 
-class UVPM3_OT_MeasureArea(AuxFinishConditionMixin, UVPM3_OT_Engine):
+class UVPM3_OT_MeasureArea(UtilFinishConditionMixin, UVPM3_OT_Engine):
 
     bl_idname = 'uvpackmaster3.measure_area'
     bl_label = 'Measure Area'
     bl_description = 'Measure area of selected UV islands'
 
-    SCENARIO_ID = 'aux.measure_area'
+    SCENARIO_ID = 'util.measure_area'
 
 
-class UVPM3_OT_AdjustTdToUnselected(AuxFinishConditionMixin, UVPM3_OT_Engine):
+class UVPM3_OT_AdjustTdToUnselected(UtilFinishConditionMixin, UVPM3_OT_Engine):
 
     bl_idname = 'uvpackmaster3.adjust_td_to_unselected'
     bl_label = 'Adjust TD To Unselected'
     bl_description = 'Adjust texel density of selected islands so it is uniform with texel density of unselected islands'
 
-    SCENARIO_ID = 'aux.adjust_td_to_unselected'
+    SCENARIO_ID = 'util.adjust_td_to_unselected'
+
+    def skip_topology_parsing(self):
+        return True
 
     def send_verts_3d(self):
         return True

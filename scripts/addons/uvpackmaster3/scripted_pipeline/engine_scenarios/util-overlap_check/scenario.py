@@ -1,5 +1,5 @@
 from scripted_pipeline import GenericScenario
-from uvpm_core import packer, RetCode, LogType, overlapping_islands, IslandFlag
+from uvpm_core import packer, RetCode, LogType, IslandFlag
 from utils import flag_islands
 
 
@@ -7,8 +7,10 @@ class Scenario(GenericScenario):
 
     def run(self):
 
+        packer.send_log(LogType.STATUS, "Looking for overlapping islands...")
+
         islands_to_check = self.cx.selected_islands
-        overlapping = overlapping_islands(islands_to_check, islands_to_check)[0]
+        overlapping = islands_to_check.overlapping_islands(islands_to_check)[0]
         overlapping.set_flags(IslandFlag.OVERLAPS)
 
         flag_islands(islands_to_check, overlapping)

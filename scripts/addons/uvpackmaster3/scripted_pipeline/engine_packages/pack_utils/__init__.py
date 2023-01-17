@@ -9,8 +9,8 @@ from uvpm_core import (packer,
                      LogType,
                      IslandFlag,
                      solution_available,
-                     overlapping_islands,
-                     append_ret_codes)
+                     append_ret_codes,
+                     raise_InvalidTopologyExtendedError)
 from scripted_pipeline import TO_ENUM, GenericScenario
 from utils import flag_islands, box_from_coords, eprint, area_to_string
 
@@ -176,10 +176,9 @@ class PackScenario(GenericScenario):
                 packer.send_log(LogType.ERROR, msg)
             return ret_code
 
-        # MUSTDO: remove invalid topology assumption
         if ret_code == RetCode.INVALID_ISLANDS:
-            self.handle_invalid_topology(invalid_islands)
-            return ret_code
+            assert len(invalid_islands) > 0
+            raise_InvalidTopologyExtendedError(invalid_islands)
 
         if not solution_available(ret_code):
             return ret_code
@@ -203,12 +202,12 @@ class PackScenario(GenericScenario):
         overlapping = IslandSet()
 
         for packed_islands in packed_islands_array:
-            packed_overlapping = overlapping_islands(packed_islands, packed_islands)[0]
+            packed_overlapping = packed_islands.overlapping_islands(packed_islands)[0]
             packed_overlapping.set_flags(IslandFlag.OVERLAPS)
             overlapping += packed_overlapping
 
             if self.static_islands is not None:
-                packed_static_overlapping = overlapping_islands(packed_islands, self.static_islands)[0]
+                packed_static_overlapping = packed_islands.overlapping_islands(self.static_islands)[0]
                 packed_static_overlapping.set_flags(IslandFlag.OVERLAPS)
                 overlapping += packed_static_overlapping
 

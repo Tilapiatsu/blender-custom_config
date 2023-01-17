@@ -210,7 +210,7 @@ def register_specific(bl_info):
     bpy.app.handlers.load_post.append(load_post_handler)
 
     addon_engine_path = os.path.join(os.path.dirname(os.path.abspath(process_file_path(__file__))), 'uvpm')
-    paths_to_check = [get_prefs().engine_path, os_engine_path(), addon_engine_path]
+    paths_to_check = [get_prefs().engine_path, addon_engine_path, os_engine_path()]
 
     for path in paths_to_check:
 

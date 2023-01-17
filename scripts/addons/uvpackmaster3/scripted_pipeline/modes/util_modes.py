@@ -18,39 +18,39 @@
 
 
 from ...mode import ModeType, UVPM3_Mode_Generic
-from ..operators.aux_operator import (
+from ..operators.util_operator import (
         UVPM3_OT_OverlapCheck,
         UVPM3_OT_MeasureArea,
         UVPM3_OT_AdjustTdToUnselected
     )
 
 
-class UVPM3_Mode_Aux(UVPM3_Mode_Generic):
+class UVPM3_Mode_Util(UVPM3_Mode_Generic):
     
-    MODE_TYPE = ModeType.AUX
+    MODE_TYPE = ModeType.UTIL
 
 
-class UVPM3_Mode_OverlapCheck(UVPM3_Mode_Aux):
+class UVPM3_Mode_OverlapCheck(UVPM3_Mode_Util):
 
-    MODE_ID = 'aux.overlap_check'
+    MODE_ID = 'util.overlap_check'
     MODE_NAME = 'Overlap Check'
     MODE_PRIORITY = 1000
 
     OPERATOR_IDNAME = UVPM3_OT_OverlapCheck.bl_idname
 
 
-class UVPM3_Mode_MeasureArea(UVPM3_Mode_Aux):
+class UVPM3_Mode_MeasureArea(UVPM3_Mode_Util):
 
-    MODE_ID = 'aux.measure_area'
+    MODE_ID = 'util.measure_area'
     MODE_NAME = 'Measure Area'
     MODE_PRIORITY = 2000
 
     OPERATOR_IDNAME = UVPM3_OT_MeasureArea.bl_idname
 
 
-class UVPM3_Mode_AdjustTdToUnselected(UVPM3_Mode_Aux):
+class UVPM3_Mode_AdjustTdToUnselected(UVPM3_Mode_Util):
 
-    MODE_ID = 'aux.andjust_td_to_unselected'
+    MODE_ID = 'util.andjust_td_to_unselected'
     MODE_NAME = UVPM3_OT_AdjustTdToUnselected.bl_label
     MODE_PRIORITY = 5000
 

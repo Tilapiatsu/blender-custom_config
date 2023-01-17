@@ -30,7 +30,7 @@ from bpy.props import (IntProperty, FloatProperty, BoolProperty, StringProperty,
 class ModeType:
     HIDDEN = 0
     MAIN = 1
-    AUX = 2
+    UTIL = 2
 
 
 class OperatorMetadata:

@@ -59,7 +59,11 @@ class UVPM3_PT_PackOptions(UVPM3_PT_SubPanel):
         col = layout.column(align=True)
 
         self.prop_with_help(self.scene_props, "precision", col)
-        col.prop(self.scene_props, "margin")
+
+        row = col.row(align=True)
+        margin_supported = not self.prefs.pixel_margin_enabled(self.scene_props)
+        margin_not_supported_msg = 'The Margin option is ignored when Pixel Margin is enabled'
+        self.handle_prop(self.scene_props, "margin", margin_supported, margin_not_supported_msg, row)
 
         # Rotation Resolution
         box = col.box()

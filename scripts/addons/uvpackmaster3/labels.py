@@ -79,7 +79,7 @@ class Labels:
     ISLAND_ROT_STEP_ENABLE_NAME='Enable Island Rotation Step'
     ISLAND_ROT_STEP_ENABLE_DESC="Enable per-island rotation step"
 
-    ISLAND_ROT_STEP_NAME='Rotation Step Value (d)'
+    ISLAND_ROT_STEP_NAME='Rotation Step Value (deg)'
     ISLAND_ROT_STEP_DESC="Rotation step value (in degrees) to be set for the selected islands"
 
     ISLAND_SCALE_LIMIT_ENABLE_NAME='Enable Island Scale Limit'
@@ -141,6 +141,7 @@ class Labels:
     TEXEL_DENSITY_GROUP_POLICY_INDEPENDENT_NAME = 'Independent'
     TEXEL_DENSITY_GROUP_POLICY_UNIFORM_NAME = 'Uniform'
     TEXEL_DENSITY_GROUP_POLICY_CUSTOM_NAME = 'Custom'
+    TEXEL_DENSITY_GROUP_POLICY_AUTOMATIC_NAME = 'Automatic'
 
     TEXEL_DENSITY_CLUSTER_NAME='Texel Density Cluster'
     TEXEL_DENSITY_CLUSTER_DESC="If given groups have the same value of this parameter set, then uniform scaling will be applied to them during packing (their relative texel density will be maintained). This per-group parameter is only used if '{}' is set to '{}'".format(TEXEL_DENSITY_GROUP_POLICY_NAME, TEXEL_DENSITY_GROUP_POLICY_CUSTOM_NAME)
@@ -148,6 +149,7 @@ class Labels:
     TEXEL_DENSITY_GROUP_POLICY_INDEPENDENT_DESC = 'Relative texel density of the groups will NOT be maintained (all groups are scaled independently during packing)'
     TEXEL_DENSITY_GROUP_POLICY_UNIFORM_DESC = 'Relative texel density of the groups will be maintained (uniform scale will be applied to all groups during packing)'
     TEXEL_DENSITY_GROUP_POLICY_CUSTOM_DESC = "Determine manually which groups will have relative texel density maintained. Given groups will have relative texel density maintained during packing (the same scale will be applied to them) if they share the same value of the '{}' per-group parameter".format(TEXEL_DENSITY_CLUSTER_NAME)
+    TEXEL_DENSITY_GROUP_POLICY_AUTOMATIC_DESC = "Handle relative texel density automatically: two groups will have relative texel density maintained if and only if their target boxes intersect"
 
     GROUP_COMPACTNESS_NAME="Grouping Compactness"
     GROUP_COMPACTNESS_DESC="A value from 0 to 1 specifying how much the packer should prefer solutions providing more compact grouping, when packing groups together. A lower value means the packer will strive less to achieve compact grouping, at the same time it will prioritize achieving better coverage of the overall packing. With a greater value of the parameter, groups will be packed more compactly, but the coverage of the entire solution might be worse. WARNING: use this parameter with care - a small increase of its value might considerably change the result you will get"
@@ -231,6 +233,28 @@ class Labels:
     ALIGN_PRIORITY_NAME='Align Priority'
     ALIGN_PRIORITY_DESC='Align priority value to assign'
 
+    _ORIENT_PRIM_DESC_HEADER = 'When orienting UVs to the 3D space, the packer first tries to match the primary 3D axis to the primary UV axis'
+
+    ORIENT_PRIM_3D_AXIS_NAME = 'Primary 3D Axis'
+    ORIENT_PRIM_3D_AXIS_DESC = '{}. This parameter defines the primary 3D axis'.format(_ORIENT_PRIM_DESC_HEADER)
+
+    ORIENT_PRIM_UV_AXIS_NAME = 'Primary UV Axis'
+    ORIENT_PRIM_UV_AXIS_DESC = '{}. This parameter defines the primary UV axis'.format(_ORIENT_PRIM_DESC_HEADER)
+
+    _ORIENT_SEC_DESC_HEADER = 'When orienting UVs to the 3D space, if primary axes matching fails for a given UV island, the packer will try to match the secondary 3D axis to the secondary UV axis for that island'
+
+    ORIENT_SEC_3D_AXIS_NAME = 'Secondary 3D Axis'
+    ORIENT_SEC_3D_AXIS_DESC = "{}. This parameter defines the secondary 3D axis. Note that the addon prevents setting '{}' and '{}' to the same value".format(_ORIENT_SEC_DESC_HEADER, ORIENT_PRIM_3D_AXIS_NAME, ORIENT_SEC_3D_AXIS_NAME)
+
+    ORIENT_SEC_UV_AXIS_NAME = 'Secondary UV Axis'
+    ORIENT_SEC_UV_AXIS_DESC = '{}. This parameter defines the secondary UV axis'.format(_ORIENT_SEC_DESC_HEADER)
+
+    ORIENT_TO_3D_AXES_SPACE_NAME = '3D Axes Space'
+    ORIENT_TO_3D_AXES_SPACE_DESC = "The 3D space to consider when orienting UV islands to the 3D space"
+
+    ORIENT_PRIM_SEC_BIAS_NAME = 'Primary/Secondary Bias (deg)'
+    ORIENT_PRIM_SEC_BIAS_DESC = "Angle (from 0 to 90 degrees) defining to what extent the packer favors orienting using the primary axes over the secondary axes. The greater value of this parameter, the more likely the packer will use the primary axes for orienting. The default value (80 degrees) should be optimal for most scenarios. Do not change the value of this parameter unless really needed. Technical explanation: the packer will orient UVs using secondary axes, only if the primary 3D axis is more perpendicular to the 3D geometry than the secondary 3D axis by the value of this parameter"
+
     FULLY_INSIDE_NAME='Only Islands Fully Inside'
     FULLY_INSIDE_DESC="Process only islands which are fully inside the UV target box"
 
@@ -262,10 +286,16 @@ class Labels:
     SIMPLIFY_DISABLE_NAME='Simplify Disable'
     WAIT_FOR_DEBUGGER_NAME='Wait For Debugger'
 
+    ORIENT_AWARE_UV_ISLANDS_NAME = 'Orientation-Aware UV Islands'
+    ORIENT_AWARE_UV_ISLANDS_DESC = 'This option defines the approach the packer uses to determine whether two UV faces belong to a single UV island. When the option is unchecked (the default state) - two UV faces will be considered as forming the same UV island, if they share at least one common UV vertex. When the option is checked, two faces will be considered as belonging to the same island, if they share a single edge and the edge orientation is opposite in both faces. The default approach (the option unchecked) is equivalent to the way how Blender divides faces to islands but it can be problematic in some cases - for example when two islands of similar shape are stacked on top of each other, the default approach may merge both islands together (start considering both islands as a single island). In such a situation enabling this option will solve the problem (prevent the islands from being merged)'
+
     APPEND_MODE_NAME_TO_OP_LABEL_NAME="Append Mode To Operator Name"
     APPEND_MODE_NAME_TO_OP_LABEL_DESC="This option should only be enabled temporarily, only for the time when you want to add an UVPackmaster operator to Quick Favorites. If you add an operator with this option enabled, the selected mode name will be permanently appended to the operator name in the Quick Favorites list. After the operator was added, you can disable this option immediately"
 
     #UI options
+    HIDE_ENGINE_STATUS_PANEL_NAME='Hide Engine Status Panel'
+    HIDE_ENGINE_STATUS_PANEL_DESC='Hide the Engine Status Panel in the addon tab (the panel showing the engine version in the header). Blender restart is be required for a change of this option to take effect. After the Engine Status panel is hidden, all its functionalities will still be available in the addon preferences.'
+
     FONT_SIZE_TEXT_OUTPUT_NAME='Font Size (Text Output)'
     FONT_SIZE_TEXT_OUTPUT_DESC='Sets the font size for the operation text output'
 
@@ -281,37 +311,3 @@ class Labels:
 
     DISABLE_IMMEDIATE_UV_UPDATE_NAME = 'Disable Immediate UV Update'
     DISABLE_IMMEDIATE_UV_UPDATE_DESC = 'By default, when performing a heuristic search, the packer updates the UV map in Blender immediately as soon as it finds a better result. When this option is enabled, the packer will not do such immediate updates - it will only report the area, when a better result is found, but the UV map will stay intact in Blender during the entire search. The UV map will be updated with the best result only once, after the search is done. The purpose of this option is to optimize the packer operation, when packing a UV map containing a huge number of UV faces (a few millions and more) - it should NOT be used during the standard packer usage'
-
-
-class PropConstants:
-
-    ROTATION_ENABLE_DEFAULT = True
-    PRE_ROTATION_DISABLE_DEFAULT = False
-
-    ROTATION_STEP_MIN = 1
-    ROTATION_STEP_MAX = 180
-    ROTATION_STEP_DEFAULT = 90
-
-    FLIPPING_ENABLE_DEFAULT = False
-
-    PIXEL_MARGIN_MIN = 1
-    PIXEL_MARGIN_MAX = 256
-    PIXEL_MARGIN_DEFAULT = 5
-
-    PIXEL_PADDING_MIN = 0
-    PIXEL_PADDING_MAX = 256
-    PIXEL_PADDING_DEFAULT = 0
-
-    EXTRA_PIXEL_MARGIN_TO_OTHERS_MIN = 0
-    EXTRA_PIXEL_MARGIN_TO_OTHERS_MAX = 128
-    EXTRA_PIXEL_MARGIN_TO_OTHERS_DEFAULT = 0
-
-    PIXEL_MARGIN_TEX_SIZE_MIN = 16
-    PIXEL_MARGIN_TEX_SIZE_MAX = 32768	
-    PIXEL_MARGIN_TEX_SIZE_DEFAULT = 1024
-
-    TILES_IN_ROW_DEFAULT = 10
-    TILE_COUNT_PER_GROUP_DEFAULT = 1
-    LAST_GROUP_COMPLEMENTARY_DEFAULT = False
-    GROUP_COMPACTNESS_DEFAULT = 0.0
-    

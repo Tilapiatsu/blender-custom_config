@@ -38,7 +38,7 @@ from bpy.props import IntProperty, FloatProperty, BoolProperty, StringProperty, 
 
 class UVPM3_OT_IParamGeneric(UVPM3_OT_Engine):
 
-    SCENARIO_ID = 'aux.get_iparam_values'
+    SCENARIO_ID = 'util.get_iparam_values'
 
     def __init__(self):
         super().__init__()

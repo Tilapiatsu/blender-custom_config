@@ -140,6 +140,20 @@ class UVPM3_GroupingScheme(UVPM3_GroupBase, metaclass=ShadowedPropertyGroupMeta)
         if self.options.tdensity_policy == TexelDensityGroupPolicy.CUSTOM.code:
             return
 
+        def _group_and_intersect_groups(lookup_group, lookup_groups_to_process):
+            if lookup_group in lookup_groups_to_process:
+                yield lookup_group
+                lookup_groups_to_process.remove(lookup_group)
+                intersect_groups = []
+                for group_to_process in lookup_groups_to_process:
+                    if any(b.intersects(p_b) for b in group_to_process.target_boxes for p_b in lookup_group.target_boxes):
+                        intersect_groups.extend(_group_and_intersect_groups(group_to_process, lookup_groups_to_process[:]))
+                for intersect_group in intersect_groups:
+                    yield intersect_group
+                    if intersect_group in lookup_groups_to_process:
+                        lookup_groups_to_process.remove(intersect_group)
+
+        groups_to_process = self.groups[:]
         for g_num, group in self.group_by_num.items():
             if self.options.tdensity_policy == TexelDensityGroupPolicy.INDEPENDENT.code:
                 group.tdensity_cluster = g_num
@@ -147,6 +161,9 @@ class UVPM3_GroupingScheme(UVPM3_GroupBase, metaclass=ShadowedPropertyGroupMeta)
             elif self.options.tdensity_policy == TexelDensityGroupPolicy.UNIFORM.code:
                 group.tdensity_cluster = 0
 
+            elif self.options.tdensity_policy == TexelDensityGroupPolicy.AUTOMATIC.code:
+                for g in _group_and_intersect_groups(group, groups_to_process):
+                    g.tdensity_cluster = g_num
             else:
                 assert(False)
 

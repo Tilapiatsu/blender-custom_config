@@ -30,27 +30,74 @@ from bpy.props import IntProperty, BoolProperty
 import bpy
 
 
+class RenderBoxMode:
+    IDLE = 0
+    DRAW = 1
+    RESIZE = 2
+
 
 class RenderBoxesOverlayManager(OverlayManager):
 
+    FINISH_PROMPT_MSG = 'Press ESC to finish'
+    CANCEL_PROMPT_MSG = 'Press ESC to cancel'
+    SNAP_PROMPT_MSG = 'Hold CTRL to snap to tile of other box boundaries'
+
+    IDLE_HEADER_MSG = '[BOX EDITING]'
+    IDLE_SELECT_ACTIVE_PROMPT_MSG = 'Press LMB inside a box to make it active'
+    IDLE_DRAW_PROMPT_MSG = 'Press D to start drawing the active box'
+
+    DRAW_HEADER_MSG = '[BOX DRAWING]'
+    DRAW_START_PROMPT_MSG = 'Press and hold RMB in the UV area to start drawing'
+
+    RESIZE_HEADER_MSG = '[BOX RESIZING]'
+
+
     def __init__(self, op, context):
-        super().__init__(context, render_boxes_overlay_manager_draw_callback)
         self.op = op
+        self.mode_to_msg_array = {
+            RenderBoxMode.IDLE : self.idle_overlay_msg_array,
+            RenderBoxMode.DRAW : self.draw_overlay_msg_array,
+            RenderBoxMode.RESIZE : self.resize_overlapy_msg_array
+        }
+
+        super().__init__(context, render_boxes_overlay_manager_draw_callback)
+
+    def idle_overlay_msg_array(self):
+        msg_array = []
+        msg_array.append(self.IDLE_HEADER_MSG)
+
+        if len(self.op.box_info_array) > 1:
+            msg_array.append(self.IDLE_SELECT_ACTIVE_PROMPT_MSG)
+
+        msg_array.append(self.IDLE_DRAW_PROMPT_MSG)
+        msg_array.append(self.FINISH_PROMPT_MSG)
+        return msg_array
+
+    def draw_overlay_msg_array(self):
+        msg_array = []
+        msg_array.append(self.DRAW_HEADER_MSG)
+        msg_array.append(self.DRAW_START_PROMPT_MSG)
+        msg_array.append(self.SNAP_PROMPT_MSG)
+        msg_array.append(self.CANCEL_PROMPT_MSG)
+        return msg_array
+
+    def resize_overlapy_msg_array(self):
+        msg_array = []
+        msg_array.append(self.RESIZE_HEADER_MSG)
+        msg_array.append(self.SNAP_PROMPT_MSG)
+        msg_array.append(self.CANCEL_PROMPT_MSG)
+        return msg_array
+
+    def overlay_msg_array(self):
+        return self.mode_to_msg_array[self.op.render_mode]()
 
 def render_boxes_overlay_manager_draw_callback(self, context):
 
     try:
         self.callback_begin()
+        msg_array = self.overlay_msg_array()
 
-        msg_array = []
-
-        if not self.op.draw_mode_enable:
-            msg_array.append('[BOX EDITING] Press D to draw the box. Press ESC to finish editing')
-        else:
-            msg_array.append('Hold CTRL to snap to tile boundaries. Press ESC to cancel drawing')
-            msg_array.append('[BOX DRAWING] Click and hold RMB in the UV area to start drawing the box.')
-
-        for msg in msg_array:
+        for msg in reversed(msg_array):
             self.print_text_inline(msg)
 
     except Exception as ex:
@@ -61,6 +108,8 @@ def render_boxes_overlay_manager_draw_callback(self, context):
 class UVPM3_OT_RenderBoxesGeneric(bpy.types.Operator):
 
     SNAP_DISTANCE = 0.1
+    RESIZE_THICKNESS = 0.1
+    DEFAULT_CURSOR_ID = 'DEFAULT'
 
     @classmethod
     def poll(cls, context):
@@ -70,22 +119,53 @@ class UVPM3_OT_RenderBoxesGeneric(bpy.types.Operator):
     def is_alive(self):
         return True
 
-    def handle_drawing(self, event):
+    def appy_box_transformation(self, drawn_box):
+        try:
+            drawn_box.validate()
+        except:
+            self.report({'ERROR'}, 'The box was too small - operation undone')
+
+        else:
+            self.active_box_stored.copy_from(drawn_box)
+        self.active_box_info.box = self.active_box_stored
+        self.reset_render_variables()
+
+    def apply_snapping(self, points, mask=(True, True, True, True)):
+        snap_points_list = [tuple(round(p) for p in points)]
+        if self.box_info_array is not None:
+            for box_info in self.box_info_array:
+                if box_info != self.active_box_info:
+                    snap_points_list.append(box_info.box.coords_tuple())
+
+        for snap_points in snap_points_list:
+            for idx, snap_point in enumerate(snap_points):
+                if not mask[idx]:
+                    continue
+
+                check_points = (snap_point, snap_points[(idx+2) % len(snap_points)])
+                for check_point in check_points:
+                    if abs(check_point - points[idx]) < self.SNAP_DISTANCE:
+                        points[idx] = check_point
+                        break
+        return points
+
+    def handle_draw(self, event):
 
         if self.active_box_info is None:
             return
 
-        if event.type == 'D' and event.value == 'PRESS':
-            self.redraw_needed = True
-            self.draw_mode_enable = True
-
-        if not self.draw_mode_enable:
+        if self.render_mode not in (RenderBoxMode.IDLE, RenderBoxMode.DRAW):
             return
 
-        # force_redraw = False
+        if event.type == 'D' and event.value == 'PRESS':
+            self.redraw_needed = True
+            self.render_mode = RenderBoxMode.DRAW
+
+        if self.render_mode != RenderBoxMode.DRAW:
+            return
+
         exit_draw_mode = False
-        self.snap_enable = event.ctrl
-        
+
         if self.draw_begin is None:
 
             if event.type == 'RIGHTMOUSE' and event.value == 'PRESS':
@@ -102,77 +182,45 @@ class UVPM3_OT_RenderBoxesGeneric(bpy.types.Operator):
             if event.type == 'MOUSEMOVE' or exit_draw_mode:
                 view_coords = self.context.region.view2d.region_to_view(event.mouse_region_x, event.mouse_region_y)
 
-                self.draw_end = view_coords 
+                self.draw_end = view_coords
                 self.prefs.boxes_dirty = True
-                # force_redraw = True
-
 
         if self.draw_begin is not None and self.draw_end is not None:
-
-            def apply_snapping(val):
-                rounded = round(val)
-                if abs(rounded - val) < self.SNAP_DISTANCE:
-                    return rounded
-                return val
-
-            self.draw_begin2 = self.draw_begin
-            self.draw_end2 = self.draw_end
+            draw_coords = list(self.draw_begin + self.draw_end)
 
             if self.snap_enable:
-                self.draw_begin2 = (apply_snapping(self.draw_begin2[0]), apply_snapping(self.draw_begin2[1]))
-                self.draw_end2 = (apply_snapping(self.draw_end2[0]), apply_snapping(self.draw_end2[1]))
+                draw_coords = self.apply_snapping(draw_coords)
 
-            self.active_box_info.box = UVPM3_Box(
-                                            self.draw_begin2[0],
-                                            self.draw_begin2[1],
-                                            self.draw_end2[0],
-                                            self.draw_end2[1]
-                                        )
+            self.active_box_info.box = UVPM3_Box(*draw_coords)
 
         if exit_draw_mode:
 
             drawn_box = self.active_box_info.box
-
-            try:
-                drawn_box.validate()
-
-            except:
-                self.report({'ERROR'}, 'Drawn box was too small')
-
-            else:
-                self.active_box_stored.copy_from(drawn_box)
-
-            self.active_box_info.box = self.active_box_stored
-            self.reset_draw_variables()
+            self.appy_box_transformation(drawn_box)
             self.redraw_needed = True
-
-        # if force_redraw:
-        #     self.context.area.tag_redraw()
 
     def impl_box_info_array(self):
 
         return self.box_info_array, self.active_box_info
 
-    def reset_draw_variables(self):
+    def reset_render_variables(self):
 
-        self.draw_mode_enable = False
+        self.render_mode = RenderBoxMode.IDLE
+        self.resize_edges = None
+        # self.cursor_id = self.DEFAULT_CURSOR_ID
         self.draw_begin = None
         self.draw_end = None
-        self.draw_begin2 = None
-        self.draw_end2 = None   
         self.snap_enable = False
-        self.stored_drawn_box = None
+        self.active_box_stored = None
 
     def handle_box_selection(self, event):
 
-        if self.draw_mode_enable:
+        if self.render_mode != RenderBoxMode.IDLE:
             return
 
         if self.box_info_array is None:
             return
 
-        # if self.draw_mode_enable:
-        #     return
         if not (event.type == 'LEFTMOUSE' and event.value == 'PRESS'):
             return
 
@@ -200,6 +248,67 @@ class UVPM3_OT_RenderBoxesGeneric(bpy.types.Operator):
         self.sel_history[box_to_select.glob_idx] = self.next_sel_history_val
         self.next_sel_history_val += 1
         self.box_access.impl_select_box(box_to_select)
+
+    def handle_resize(self, event):
+
+        if self.render_mode not in (RenderBoxMode.IDLE, RenderBoxMode.RESIZE):
+            return
+
+        if self.active_box_info is None:
+            return
+
+        view_coords = self.context.region.view2d.region_to_view(event.mouse_region_x, event.mouse_region_y)
+
+        if self.render_mode == RenderBoxMode.RESIZE:
+            drawn_box = self.active_box_info.box
+
+            if event.type == 'LEFTMOUSE' and event.value == 'RELEASE':
+                self.appy_box_transformation(drawn_box)
+                self.force_block_event = False
+                self.prefs.boxes_dirty = True
+
+            elif event.type == 'MOUSEMOVE':
+                new_coords = [drawn_box.p1_x, drawn_box.p1_y, drawn_box.p2_x, drawn_box.p2_y]
+
+                if self.resize_edges[0]:
+                    new_coords[0] = view_coords[0]
+                elif self.resize_edges[2]:
+                    new_coords[2] = view_coords[0]
+
+                if self.resize_edges[1]:
+                    new_coords[3] = view_coords[1]
+                elif self.resize_edges[3]:
+                    new_coords[1] = view_coords[1]
+
+                if self.snap_enable:
+                    snap_mask = (
+                        self.resize_edges[0],
+                        self.resize_edges[3],
+                        self.resize_edges[2],
+                        self.resize_edges[1],
+                    )
+                    new_coords = self.apply_snapping(new_coords, snap_mask)
+
+                self.active_box_info.box = UVPM3_Box(*new_coords)
+                self.prefs.boxes_dirty = True
+            return
+
+        on_edges = self.active_box_info.box.point_on_edges(view_coords, self.RESIZE_THICKNESS)
+        on_edges_count = sum(on_edges)
+        on_left, on_top, on_right, on_bottom = on_edges
+
+        if on_edges_count > 1:
+            self.cursor_id = "CROSSHAIR"
+        elif on_top or on_bottom:
+            self.cursor_id = "MOVE_Y"
+        elif on_left or on_right:
+            self.cursor_id = "MOVE_X"
+
+        if on_edges_count > 0 and event.type == 'LEFTMOUSE' and event.value == 'PRESS':
+            self.render_mode = RenderBoxMode.RESIZE
+            self.resize_edges = on_edges
+            self.force_block_event = True
+            self.active_box_stored = self.active_box_info.box
 
     def update_text(self, box_info):
 
@@ -250,7 +359,7 @@ class UVPM3_OT_RenderBoxesGeneric(bpy.types.Operator):
 
     def update_box_info_array(self):
 
-        if self.draw_mode_enable:
+        if self.render_mode != RenderBoxMode.IDLE:
             return
 
         self.box_info_array = None
@@ -264,44 +373,52 @@ class UVPM3_OT_RenderBoxesGeneric(bpy.types.Operator):
         self.box_info_array = box_info_array
 
     def coords_update_needed(self, event):
-        return self.prefs.boxes_dirty or self.box_renderer.coords_update_needed(event) # or (self.draw_begin is not None)
+        return self.prefs.boxes_dirty or self.box_renderer.coords_update_needed(event) or event.type == 'ESC'
+
+    def cursor_set(self, context, cursor_id):
+        context.window.cursor_set(cursor_id)
 
     def modal(self, context, event):
 
         try:
             self.force_block_event = False
-            finish = False
+            self.snap_enable = event.ctrl
 
             if not self.prefs.box_rendering or (context.area is None):
-                finish = True
+                raise OpFinishedException()
 
             elif event.type == 'ESC' and event.value == 'PRESS':
-                if self.draw_mode_enable:
-                    self.draw_mode_enable = False
+                if self.render_mode != RenderBoxMode.IDLE:
+                    self.reset_render_variables()
                     self.redraw_needed = True
                 else:
-                    finish = True
-
-            if finish:
-                self.finish(context)
-                return {'FINISHED'}
+                    raise OpFinishedException()
 
             if event.type != 'TIMER':
+                if self.render_mode == RenderBoxMode.IDLE:
+                    self.cursor_id = self.DEFAULT_CURSOR_ID
+
+                self.handle_resize(event)
+                self.handle_draw(event)
+
                 self.handle_box_selection(event)
-                self.handle_drawing(event)
+                self.cursor_set(self.context, self.cursor_id)
 
             if self.coords_update_needed(event):
                 self.update_box_info_array()
                 self.box_renderer.update_coords()
                 self.redraw_needed = True
 
-
             if self.redraw_needed:
                 self.context.area.tag_redraw()
                 self.redraw_needed = False
-                
-            exit_code = 'RUNNING_MODAL' if self.force_block_event or self.draw_mode_enable else 'PASS_THROUGH'
-            return {exit_code} 
+
+            exit_code = 'RUNNING_MODAL' if self.force_block_event or self.render_mode != RenderBoxMode.IDLE else 'PASS_THROUGH'
+            return {exit_code}
+
+
+        except OpFinishedException:
+            pass
 
         except RuntimeError as ex:
             if in_debug_mode():
@@ -314,7 +431,7 @@ class UVPM3_OT_RenderBoxesGeneric(bpy.types.Operator):
                 print_backtrace(ex)
 
             self.report({'ERROR'}, 'Unexpected error')
- 
+
         self.finish(context)
         return {'FINISHED'}
 
@@ -326,6 +443,8 @@ class UVPM3_OT_RenderBoxesGeneric(bpy.types.Operator):
 
         self.ov_manager.finish()
         self.box_renderer.finish()
+
+        self.cursor_set(context, self.DEFAULT_CURSOR_ID)
 
         if context.area is not None:
             context.area.tag_redraw()
@@ -346,11 +465,6 @@ class UVPM3_OT_RenderBoxesGeneric(bpy.types.Operator):
         if not self.box_access.init_access(context):
             return {'CANCELLED'}
 
-        # self.ACTIVE_COLOR = self.box_access.ACTIVE_COLOR
-        # self.ACTIVE_Z_COORD = self.box_access.ACTIVE_Z_COORD
-        # self.ACTIVE_COLOR_MULTIPLIER = self.box_access.ACTIVE_COLOR_MULTIPLIER
-        # self.NON_ACTIVE_COLOR_MULTIPLIER = self.box_access.NON_ACTIVE_COLOR_MULTIPLIER
-
         self._timer = None
         self.sel_history = dict()
         self.next_sel_history_val = 0
@@ -363,7 +477,7 @@ class UVPM3_OT_RenderBoxesGeneric(bpy.types.Operator):
         self.redraw_needed = False
         self.force_block_event = False
 
-        self.reset_draw_variables()
+        self.reset_render_variables()
 
         self.ov_manager = RenderBoxesOverlayManager(self, context)
         self.box_renderer = BoxRenderer(context, self)

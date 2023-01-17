@@ -79,17 +79,28 @@ class UVPM3_PT_Generic(bpy.types.Panel):
         col_s.menu(menu_class.bl_idname, text='Set')
         
     @classmethod
-    def handle_prop(self, obj, prop_name, supported, not_supported_msg, layout):
+    def draw_expanded_enum(self, obj, prop_id, layout, item_enabled_checker=None):
+        enum_values = obj.bl_rna.properties[prop_id].enum_items_static.keys()
+        for enum_value in enum_values:
+            row = layout.row(align=True)
+            row.prop_enum(obj, prop_id, enum_value)
+            if item_enabled_checker is not None:
+                row.enabled = item_enabled_checker(enum_value)
+
+    @classmethod
+    def exclude_enum_item_checker(self, exclude_obj, prop_id):
+        prop_value = getattr(exclude_obj, prop_id)
+        return lambda enum_value: False if enum_value == prop_value else True
+
+    @classmethod
+    def handle_prop(self, obj, prop_id, supported, not_supported_msg, layout):
 
         if supported:
-            layout.prop(obj, prop_name)
+            layout.prop(obj, prop_id)
         else:
             layout.enabled = False
-            split = layout.split(factor=0.4)
-            col_s = split.column()
-            col_s.prop(obj, prop_name)
-            col_s = split.column()
-            col_s.label(text=not_supported_msg)
+            layout.prop(obj, prop_id)
+            layout.label(text=' ' + not_supported_msg)
 
 
     def get_main_property(self):
@@ -180,6 +191,10 @@ class UVPM3_PT_EngineStatus(UVPM3_PT_Generic, metaclass=EngineStatusMeta):
     bl_options = {'DEFAULT_CLOSED'}
     # MUSTDO: add 'HEADER_LAYOUT_EXPAND' to bl_options
 
+    @classmethod
+    def poll(cls, context):
+        return not get_prefs().hide_engine_status_panel
+
     def draw_header(self, context):
 
         self.prefs = get_prefs()
@@ -194,7 +209,7 @@ class UVPM3_PT_EngineStatus(UVPM3_PT_Generic, metaclass=EngineStatusMeta):
         layout = self.layout
         col = layout.column(align=True)
         
-        self.prefs.draw_general_options(col)
+        self.prefs.draw_addon_options(col)
 
         if in_debug_mode():
             col.separator()
@@ -216,10 +231,10 @@ class UVPM3_PT_EngineStatus(UVPM3_PT_Generic, metaclass=EngineStatusMeta):
             row.prop(self.prefs, "test_param")
             
 
-class UVPM3_PT_AuxOperations(UVPM3_PT_Generic):
+class UVPM3_PT_Utilities(UVPM3_PT_Generic):
 
-    bl_idname = 'UVPM3_PT_AuxOperations'
-    bl_label = 'Auxiliary Operations'
+    bl_idname = 'UVPM3_PT_Utilities'
+    bl_label = 'Utilities'
     bl_context = ''
 
     def draw_impl(self, context):
@@ -227,11 +242,10 @@ class UVPM3_PT_AuxOperations(UVPM3_PT_Generic):
         layout = self.layout
         col = layout.column(align=True)
 
-        aux_modes = self.prefs.get_modes(ModeType.AUX)
+        util_modes = self.prefs.get_modes(ModeType.UTIL)
 
-        if len(aux_modes) > 0:
-            # col.label(text="Auxiliary operations:")
-            for mode_id, mode_cls in aux_modes:
+        if len(util_modes) > 0:
+            for mode_id, mode_cls in util_modes:
                 row = col.row(align=True)
                 row.operator(mode_cls.OPERATOR_IDNAME)
 

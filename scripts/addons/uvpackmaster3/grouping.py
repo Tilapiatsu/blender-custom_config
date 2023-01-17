@@ -1,7 +1,8 @@
 
 from .utils import ShadowedPropertyGroupMeta, ShadowedPropertyGroup
 from .enums import GroupLayoutMode, TexelDensityGroupPolicy
-from .labels import Labels, PropConstants
+from .labels import Labels
+from .contansts import PropConstants
 from .box import mark_boxes_dirty
 from .box_utils import disable_box_rendering
 

@@ -187,6 +187,38 @@ class UVPM3_Box(ShadowedPropertyGroup, metaclass=ShadowedPropertyGroupMeta):
             max_corner[0] > coords[0] and\
             max_corner[1] > coords[1]
 
+    def point_on_edges(self, coords, thickness):
+        thickness = thickness / 2
+
+        left = self.p1_x - thickness
+        left_prim = self.p1_x + thickness
+
+        top = self.p2_y + thickness
+        top_prim = self.p2_y - thickness
+
+        right = self.p2_x + thickness
+        right_prim = self.p2_x - thickness
+
+        bottom = self.p1_y - thickness
+        bottom_prim = self.p1_y + thickness
+
+        if self.p1_x > self.p2_x:
+            left, left_prim, right, right_prim = right_prim, right, left_prim, left
+        if self.p1_y > self.p2_y:
+            bottom, bottom_prim, top, top_prim = top_prim, top, bottom_prim, bottom
+
+        on_left = min(left, left_prim) < coords[0] < max(left, left_prim) and min(top, bottom) < coords[1] < max(top, bottom)
+        on_top = min(top, top_prim) < coords[1] < max(top, top_prim) and min(left, right) < coords[0] < max(left, right)
+        on_right = min(right, right_prim) < coords[0] < max(right, right_prim) and min(top, bottom) < coords[1] < max(top, bottom) if not on_left else False
+        on_bottom = min(bottom, bottom_prim) < coords[1] < max(bottom, bottom_prim) and min(left, right) < coords[0] < max(left, right) if not on_top else False
+
+        if self.p1_x > self.p2_x:
+            on_left, on_right = on_right, on_left
+        if self.p1_y > self.p2_y:
+            on_top, on_bottom = on_bottom, on_top
+
+        return [on_left, on_top, on_right, on_bottom]
+
     @staticmethod
     def _interval_intersects(interval1, interval2):
         return not (interval1[0] >= interval2[1] or interval1[1] <= interval2[0])

@@ -31,6 +31,7 @@ from .utils import get_prefs, in_debug_mode, print_backtrace, redraw_ui, print_w
 from .box_utils import disable_box_rendering
 from .os_iface import os_simulate_esc_event
 from .enums import UvpmAxis, UvpmCoordSpace, UvpmSimilarityMode
+from .contansts import PropConstants
 
 
 PRESET_FILENAME_EXT = "uvpmp"
@@ -318,6 +319,15 @@ class UVPM3_OT_LoadPresetBase(bpy.types.Operator):
         props_dict['simi_match_3d_axis'] = UvpmAxis.NONE.code
         props_dict['simi_match_3d_axis_space'] = UvpmCoordSpace.LOCAL.code
 
+    def translate_props_17to18(self, props_dict):
+
+        props_dict['orient_prim_3d_axis'] = PropConstants.ORIENT_PRIM_3D_AXIS_DEFAULT
+        props_dict['orient_prim_uv_axis'] = PropConstants.ORIENT_PRIM_UV_AXIS_DEFAULT
+        props_dict['orient_sec_3d_axis'] = PropConstants.ORIENT_SEC_3D_AXIS_DEFAULT
+        props_dict['orient_sec_uv_axis'] = PropConstants.ORIENT_SEC_UV_AXIS_DEFAULT
+        props_dict['orient_prim_sec_bias'] = PropConstants.ORIENT_PRIM_SEC_BIAS_DEFAULT
+        props_dict['orient_to_3d_axes_space'] = UvpmCoordSpace.LOCAL.code
+
     def translate_props(self, preset_version, props_dict):
 
         translate_array = [
@@ -326,7 +336,8 @@ class UVPM3_OT_LoadPresetBase(bpy.types.Operator):
             self.translate_props_13to14,
             self.translate_props_14to15,
             self.translate_props_15to16,
-            self.translate_props_16to17
+            self.translate_props_16to17,
+            self.translate_props_17to18
         ]
 
         for i in range(preset_version - UvpmVersionInfo.PRESET_VERSION_FIRST_SUPPORTED, len(translate_array)):

@@ -20,6 +20,7 @@ from ...panel import *
 from ...labels import Labels
 
 
+
 class UVPM3_PT_SimilarityOptions(UVPM3_PT_SubPanel):
 
     bl_idname = 'UVPM3_PT_SimilarityOptions'

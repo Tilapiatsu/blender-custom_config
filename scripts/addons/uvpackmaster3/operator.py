@@ -570,6 +570,9 @@ class UVPM3_OT_Engine(UVPM3_OT_Generic, DefaultFinishConditionMixin):
         engine_args_final += ['-o', str(UvpmOpcode.EXECUTE_SCENARIO)]
         engine_args_final += ['-t', str(self.prefs.thread_count)]
 
+        if self.prefs.orient_aware_uv_islands:
+            engine_args_final.append('-e')
+
         if send_unselected:
             engine_args_final.append('-s')
 

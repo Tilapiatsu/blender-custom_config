@@ -52,13 +52,16 @@ class EnumValue:
         self.desc = desc
         self.req_feature = req_feature
 
-    def to_blend_item(self, supported=True):
+    def to_blend_item(self, supported=True, name_mod=None):
+        name = self.name
+
+        if name_mod:
+            name = name_mod(name)
 
         if supported:
-            name =  self.name
             icon = 'NONE'
         else:
-            name = self.name + ' ' + Labels.FEATURE_NOT_SUPPORTED_MSG
+            name = name + ' ' + Labels.FEATURE_NOT_SUPPORTED_MSG
             icon = Labels.FEATURE_NOT_SUPPORTED_ICON
 
         return (self.code, name, self.desc, icon, int(self.code))
@@ -176,13 +179,49 @@ class UvpmSimilarityMode:
 
 class UvpmAxis:
     NONE = EnumValue(str(0), 'None', '')
-    X = EnumValue(str(1 << 0), 'X', '')
-    Y = EnumValue(str(1 << 1), 'Y', '')
-    Z = EnumValue(str(1 << 2), 'Z', '')
+    X = EnumValue(str(1 << 0), '+X', '')
+    Y = EnumValue(str(1 << 1), '+Y', '')
+    Z = EnumValue(str(1 << 2), '+Z', '')
+    X_NEG = EnumValue(str(1 << 3), '-X', '')
+    Y_NEG = EnumValue(str(1 << 4), '-Y', '')
+    Z_NEG = EnumValue(str(1 << 5), '-Z', '')
+
+    AXES_3D = [X, Y, Z, X_NEG, Y_NEG, Z_NEG]
+    AXES_2D = [X, Y, X_NEG, Y_NEG]
 
     @classmethod
-    def to_blend_items(cls):
-        return (cls.NONE.to_blend_item(), cls.X.to_blend_item(), cls.Y.to_blend_item(), cls.Z.to_blend_item())
+    def __axis_log2(cls, axis):
+        return int(axis.code).bit_length() - 1
+
+    @classmethod
+    def is_positive(cls, axis):
+        if axis == cls.NONE:
+            return False
+
+        return cls.__axis_log2(axis) <= cls.__axis_log2(cls.Z)
+    
+    @classmethod
+    def to_blend_items(cls, include_none=False, only_2d=False, only_positive=False):
+        axes = cls.AXES_2D if only_2d else cls.AXES_3D
+        items = []
+
+        name_mod = None
+        if only_positive:
+            name_mod = lambda name: name[1]
+
+        if include_none:
+            items.append(cls.NONE.to_blend_item())
+
+        for a in axes:
+
+            if only_positive:
+                if not cls.is_positive(a):
+                    continue
+
+            item = a.to_blend_item(name_mod=name_mod)
+            items.append(item)
+
+        return items
 
 
 class UvpmCoordSpace:
@@ -293,9 +332,14 @@ class TexelDensityGroupPolicy:
         Labels.TEXEL_DENSITY_GROUP_POLICY_CUSTOM_NAME,
         Labels.TEXEL_DENSITY_GROUP_POLICY_CUSTOM_DESC)
 
+    AUTOMATIC = EnumValue(
+        '3',
+        Labels.TEXEL_DENSITY_GROUP_POLICY_AUTOMATIC_NAME,
+        Labels.TEXEL_DENSITY_GROUP_POLICY_AUTOMATIC_DESC)
+
     @classmethod
     def to_blend_items(cls):
-        return (cls.INDEPENDENT.to_blend_item(), cls.UNIFORM.to_blend_item(), cls.CUSTOM.to_blend_item())
+        return (cls.INDEPENDENT.to_blend_item(), cls.UNIFORM.to_blend_item(), cls.AUTOMATIC.to_blend_item(), cls.CUSTOM.to_blend_item())
 
     @classmethod
     def to_blend_items_auto(cls):

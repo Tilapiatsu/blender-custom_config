@@ -21,8 +21,8 @@ module_loader.unload_uvpm3_modules(locals())
 bl_info = {
     "name": "UVPackmaster3",
     "author": "glukoz",
-    "version": (3, 1, 1),
-    "blender": (3, 2, 0),
+    "version": (3, 1, 2),
+    "blender": (3, 3, 0),
     "location": "",
     "description": "",
     "warning": "",
@@ -57,7 +57,6 @@ if inside_blender:
     from .grouping_scheme_ui import *
 
     import bpy
-    import mathutils
 
     from .scripted_pipeline import panels
     scripted_panels_modules = module_loader.import_submodules(panels)
@@ -177,7 +176,7 @@ if inside_blender:
         UVPM3_OT_SetPixelMarginTexSizeGroup,
         UVPM3_MT_SetPixelMarginTexSizeGroup,
 
-        UVPM3_PT_AuxOperations,
+        UVPM3_PT_Utilities,
         UVPM3_PT_Main,
 
         UVPM3_ScriptedPipelineProperties,
