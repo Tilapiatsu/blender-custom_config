@@ -57,7 +57,7 @@ CALL :MakeSymbolicLink "h" "%currdir%\scripts\addons\advanced_transform.py" "%cu
 CALL :MakeSymbolicLink "h" "%currdir%\scripts\addons\oscurart_edit_split_normals.py" "%currdir%\scripts\GIT\oscuart\oscurart_edit_split_normals.py"
 CALL :MakeSymbolicLink "h" "%currdir%\scripts\addons\oscurart_bake_pbr.py" "%currdir%\scripts\GIT\oscuart\oscurart_bake_pbr.py"
 CALL :MakeSymbolicLink "h" "%currdir%\scripts\addons\object_convert_to_armature.py" "%currdir%\scripts\GIT\Export-Paper-Model\object_convert_to_armature.py"
-CALL :MakeSymbolicLink "h" "%currdir%\scripts\addons\optiloops.py" "%currdir%\scripts\GIT\optiloops\optiloops_v1_2_0.py"
+CALL :MakeSymbolicLink "h" "%currdir%\scripts\addons\optiloops.py" "%currdir%\scripts\GIT\optiloops\optiloops_v1_3_2.py"
 CALL :MakeSymbolicLink "h" "%currdir%\scripts\addons\mesh_restoresymmetry.py" "%currdir%\scripts\GIT\RestoreSymmetry\RestoreSymmetry\mesh_restoresymmetry.py"
 
 CALL :MakeSymbolicLink "h" "%currdir%\scripts\startup\HEAVYPOLY_OPERATORS.py" "%currdir%\scripts\GIT\HEAVYPOLY\scripts\startup\HEAVYPOLY_OPERATORS.py"
