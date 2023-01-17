@@ -79,6 +79,7 @@ modules =   (
 			# 'W_Mesh',
 			'uvpackmaster3',
 			'uv_toolkit',
+            'texel_density',
 			'noodler',
 			'NGon Loop Select',
 			'quad_remesher',
