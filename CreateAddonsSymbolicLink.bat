@@ -69,6 +69,16 @@ CALL :MakeSymbolicLink "h" "%currdir%\scripts\startup\HEAVYPOLY_pie_boolean.py" 
 @REM CALL :MakeSymbolicLink "h" "%currdir%\scripts\startup\HEAVYPOLY_select_through_border.py" "%currdir%\scripts\GIT\HEAVYPOLY\scripts\startup\HEAVYPOLY_select_through_border.py"
 CALL :MakeSymbolicLink "h" "%currdir%\scripts\startup\jmQuickPipe.py" "%currdir%\scripts\GIT\HEAVYPOLY\scripts\startup\jmQuickPipe.py"
 
+set "softwaredata_folder=S:\Mon Drive\15_Blender\00_INSTALLED_ADDONS"
+
+for /d %%d in ("%softwaredata_folder%\*") do (
+  echo "%%d"
+  for %%a in ("%%d") do CALL :MakeSymbolicLink "d" "%currdir%\scripts\addons\%%~nxa" "%%d"
+
+@REM   CALL :MakeSymbolicLink "d" "%currdir%\scripts\addons\%leaf%" "%%d"
+)
+
+
 pause
 
 :MakeSymbolicLink
