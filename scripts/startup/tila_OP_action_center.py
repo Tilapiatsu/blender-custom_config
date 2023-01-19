@@ -1,5 +1,14 @@
 import bpy
 
+bl_info = {
+	"name": "Tila : Action Center",
+	"author": "Tilapiatsu",
+	"version": (1, 0, 0, 0),
+	"blender": (2, 80, 0),
+	"location": "View3D",
+	"category": "Mesh",
+}
+
 class TILA_action_center_cursor_toggle(bpy.types.Operator):
 	bl_idname = "view3d.tila_action_center_cursor_toggle"
 	bl_label = "Toggle Action Center Cursor"

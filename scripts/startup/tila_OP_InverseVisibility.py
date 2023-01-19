@@ -1,6 +1,7 @@
 import bpy
+
 bl_info = {
-    "name": "inverse_visibility",
+    "name": "Tila : Inverse Visibility",
     "author": "Tilapiatsu",
     "version": (1, 0, 0, 0),
     "blender": (2, 80, 0),
