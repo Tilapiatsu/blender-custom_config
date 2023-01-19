@@ -100,11 +100,33 @@ class TILA_CreateBoundingBox(bpy.types.Operator):
 			return []
 
 	def create_bounding_box(self, obj: bpy.types.Object):
+		
+		if self.orientation == 'BEST':
+			self.create_oriented_bounding_box(obj)
+		elif self.orientation == "WORLD":
+			self.create_world_bounding_box(obj)
+
+	def create_world_bounding_box(self, obj: bpy.types.Object):
 		verts = self.get_vertex_selection(obj)
 
 		if not len(verts):
 			return
 
+		# Get the bounding box of the selected face
+		min_coords = np.min(verts, axis=0)
+		max_coords = np.max(verts, axis=0)
+
+		# Create a cube
+		bpy.ops.mesh.primitive_cube_add(size=1, location=(min_coords + max_coords) / 2)
+
+		# Scale the cube to fit the bounding box
+		bpy.context.active_object.scale = (max_coords - min_coords)
+
+	def create_oriented_bounding_box(self, obj: bpy.types.Object):
+		verts = self.get_vertex_selection(obj)
+
+		if not len(verts):
+			return
 		corners, faces = self.minimum_bounding_box_pca(verts)
 
 		bbox_mesh = bpy.data.meshes.new("bbox")
