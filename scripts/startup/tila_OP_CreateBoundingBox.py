@@ -87,13 +87,15 @@ class TILA_CreateBoundingBox(bpy.types.Operator):
 	def get_vertex_selection(self, obj):
 		all_verts = obj.data.vertices
 		if self.mode == 'MESH':
-			n = len([v for v in obj.data.vertices if v.select])
-			verts = np.empty(n * 3)
-			
-			# return all_verts.foreach_get("select", verts)
-			return all_verts
+			selected_verts = [v for v in obj.data.vertices if v.select]
+			vertices_np = np.array([v.co for v in selected_verts])
+			return vertices_np
 		elif self.mode == 'OBJECT':
-			return all_verts
+			n = len(all_verts)
+			vert_co_arr = np.empty(n * 3)
+			all_verts.foreach_get("co", vert_co_arr)
+			vert_co_arr.shape = n, 3
+			return vert_co_arr
 		else:
 			return []
 
@@ -103,12 +105,7 @@ class TILA_CreateBoundingBox(bpy.types.Operator):
 		if not len(verts):
 			return
 
-		n = len(verts)
-		vert_co_arr = np.empty(n * 3)
-		verts.foreach_get("co", vert_co_arr)
-		vert_co_arr.shape = n, 3
-
-		corners, faces = self.minimum_bounding_box_pca(vert_co_arr)
+		corners, faces = self.minimum_bounding_box_pca(verts)
 
 		bbox_mesh = bpy.data.meshes.new("bbox")
 		bbox_mesh.from_pydata(corners, [], faces)
