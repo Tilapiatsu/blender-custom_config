@@ -1,7 +1,7 @@
 import bpy
 
 bl_info = {
-	"name": "Batch Deform Mesh",
+	"name": "Tila : Batch Deform Mesh",
 	"description": "Facilitate the use of Mesh deform and Surface Deform",
 	"author": ("Tilapiatsu"),
 	"version": (1, 0, 0),
@@ -254,4 +254,4 @@ classes = (
 register, unregister = bpy.utils.register_classes_factory(classes)
 
 if __name__ == "__main__":
-    register()
+	register()

@@ -1,6 +1,14 @@
 import bpy
 import re
 
+bl_info = {
+	"name": "Tila : Copy Mirror Vertex Group",
+	"author": "Tilapiatsu",
+	"version": (1, 0, 0, 0),
+	"blender": (2, 80, 0),
+	"location": "View3D",
+	"category": "Mesh",
+}
 
 class TILA_CopyMirrorVertexGroup(bpy.types.Operator):
     bl_idname = "object.tila_copy_mirror_vertex_group"

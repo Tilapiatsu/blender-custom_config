@@ -4,7 +4,7 @@ from mathutils import Vector
 import math, re
 import bpy
 bl_info = {
-    "name": "Othographic navigation",
+    "name": "Tila : Othographic navigation",
     "description": "This tool help you to navigate in the 3d view in a more easy way",
     "author": ("Tilapiatsu"),
     "version": (1, 0, 0),

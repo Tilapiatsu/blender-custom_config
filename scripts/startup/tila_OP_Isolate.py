@@ -5,7 +5,7 @@ import bgl
 import bpy
 import bmesh
 bl_info = {
-    "name": "Isolate",
+    "name": "Tila : Isolate",
     "description": "contextual Isolate function that work in object and edit mode",
     "author": ("Tilapiatsu"),
     "version": (1, 0, 0),

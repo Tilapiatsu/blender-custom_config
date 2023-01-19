@@ -1,5 +1,5 @@
 bl_info = {
-	"name": "Pie Areas",
+	"name": "Tila : Pie Areas",
 	"description": "Area Types",
 	"author": "Tilapiatsu",
 	"version": (0, 1, 0),

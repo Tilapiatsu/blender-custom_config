@@ -1,6 +1,7 @@
 import bpy
+
 bl_info = {
-    "name": "toggle_use_automerge",
+    "name": "Tila : Toggle Use Automerge",
     "author": "Tilapiatsu",
     "version": (1, 0, 0, 0),
     "blender": (2, 80, 0),

@@ -1,5 +1,13 @@
 import bpy
 
+bl_info = {
+	"name": "Tila : Sculpt Mask FaceSet",
+	"author": "Tilapiatsu",
+	"version": (1, 0, 0, 0),
+	"blender": (2, 80, 0),
+	"location": "View3D",
+	"category": "Sculpt",
+}
 
 class TILA_SculptMaskFaceSet(bpy.types.Operator):
     bl_idname = "sculpt.tila_mask_faceset"

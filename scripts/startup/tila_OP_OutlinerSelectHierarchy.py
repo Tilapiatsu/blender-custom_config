@@ -1,6 +1,6 @@
 import bpy
 bl_info = {
-    "name": "tila_select_hierarchy",
+    "name": "Tila : Select Hierarchy",
     "author": "Tilapiatsu",
     "version": (1, 0, 0, 0),
     "blender": (2, 80, 0),

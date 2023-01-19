@@ -1,5 +1,14 @@
 import bpy
 
+bl_info = {
+	"name": "Tila : Separate and Select",
+	"author": "Tilapiatsu",
+	"version": (1, 0, 0, 0),
+	"blender": (2, 80, 0),
+	"location": "View3D",
+	"category": "Mesh",
+}
+
 class TILA_SeparateAndSelect(bpy.types.Operator):
     bl_idname = "mesh.separate_and_select"        # unique identifier for buttons and menu items to reference.
     bl_label = "Separate and Select"         # display name in the interface.

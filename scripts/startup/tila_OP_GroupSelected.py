@@ -1,6 +1,6 @@
 import bpy
 bl_info = {
-	"name": "grou_selected",
+	"name": "Tila : Group Selected",
 	"author": "Tilapiatsu",
 	"version": (1, 0, 0, 0),
 	"blender": (2, 80, 0),

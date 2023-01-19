@@ -1,5 +1,13 @@
 import bpy
 
+bl_info = {
+	"name": "Tila : Brush Select and Paint",
+	"author": "Tilapiatsu",
+	"version": (1, 0, 0, 0),
+	"blender": (2, 80, 0),
+	"location": "View3D",
+	"category": "Mesh",
+}
 
 class TILA_brush_select_and_paint(bpy.types.Operator):
     bl_idname = "paint.tila_brush_select_and_paint"

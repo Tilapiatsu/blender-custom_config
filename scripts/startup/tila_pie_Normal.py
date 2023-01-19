@@ -7,7 +7,7 @@ import bmesh
 import re
 
 bl_info = {
-    "name": "Pie Normal",
+    "name": "Tila : Pie Normal",
     "description": "",
     "author": "Tilapiatsu",
     "version": (1, 0, 0),

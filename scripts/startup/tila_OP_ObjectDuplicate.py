@@ -1,6 +1,14 @@
 import bpy
 from mathutils import *
 
+bl_info = {
+	"name": "Tila : Object Duplicate",
+	"author": "Tilapiatsu",
+	"version": (1, 0, 0, 0),
+	"blender": (2, 80, 0),
+	"location": "View3D",
+	"category": "Mesh",
+}
 
 class TILA_ObjectDuplicateOperator(bpy.types.Operator):
     bl_idname = "object.tila_duplicate"

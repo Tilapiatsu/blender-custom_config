@@ -1,6 +1,14 @@
 import bpy
 from mathutils import *
 
+bl_info = {
+	"name": "Tila : Empty Mesh",
+	"author": "Tilapiatsu",
+	"version": (1, 0, 0, 0),
+	"blender": (2, 80, 0),
+	"location": "View3D",
+	"category": "Mesh",
+}
 
 class TILA_EmptyMeshOperator(bpy.types.Operator):
     bl_idname = "object.tila_emptymesh"

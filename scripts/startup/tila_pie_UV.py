@@ -5,7 +5,7 @@ from bpy.types import Menu
 import bpy
 
 bl_info = {
-    "name": "Pie UV",
+    "name": "Tila : Pie UV",
     "description": "",
     "author": "Tilapiatsu",
     "version": (1, 0, 0),

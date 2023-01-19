@@ -1,7 +1,7 @@
 import bpy
 
 bl_info = {
-	"name": "Batch Separate Shapekey",
+	"name": "Tila : Batch Separate Shapekey",
 	"description": "Separate one single Skapekey or explode all shapekeys",
 	"author": ("Tilapiatsu"),
 	"version": (1, 0, 0),

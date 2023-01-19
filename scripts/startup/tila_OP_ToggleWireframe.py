@@ -1,6 +1,7 @@
 import bpy
+
 bl_info = {
-    "name": "toggle_wireframe",
+    "name": "Tila : Toggle Wireframe",
     "author": "Tilapiatsu",
     "version": (1, 0, 0, 0),
     "blender": (2, 80, 0),

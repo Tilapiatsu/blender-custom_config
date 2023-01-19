@@ -4,7 +4,7 @@ from mathutils import Vector
 import bgl
 import bpy, re
 bl_info = {
-    "name": "Select Through",
+    "name": "Tila : Select Through",
     "description": "Select through a mesh",
     "author": ("Tilapiatsu"),
     "version": (0, 1, 0),

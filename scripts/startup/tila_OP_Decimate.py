@@ -1,7 +1,7 @@
 import bpy
 
 bl_info = {
-	"name": "Decimate",
+	"name": "Tila : Decimate",
 	"description": "Facilitate the use of the decimation modifier",
 	"author": ("Tilapiatsu"),
 	"version": (1, 0, 0),

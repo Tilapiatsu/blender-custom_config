@@ -6,7 +6,7 @@ import bpy, bmesh, math
 from bpy_extras.view3d_utils import location_3d_to_region_2d
 
 bl_info = {
-	"name": "Smart LoopSelect",
+	"name": "Tila : Smart LoopSelect",
 	"description": "Automatically triggers the proper operator depending on the contect",
 	"author": ("Tilapiatsu"),
 	"version": (1, 0, 0),

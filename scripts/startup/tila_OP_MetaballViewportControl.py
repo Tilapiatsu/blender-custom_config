@@ -4,7 +4,7 @@ from bl_ui.space_statusbar import STATUSBAR_HT_header as statusbar
 import math
 
 bl_info = {
-	"name": "Metaball Viewport Control",
+	"name": "Tila : Metaball Viewport Control",
 	"description": "Facilitate the edition of Metaballs in viewport",
 	"author": ("Tilapiatsu"),
 	"version": (1, 0, 0),

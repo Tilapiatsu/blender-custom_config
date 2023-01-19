@@ -1,7 +1,7 @@
 import bpy
 
 bl_info = {
-	"name": "Smart Join",
+	"name": "Tila : Smart Join",
 	"description": "Allow to apply modifiers and or duplicate meshes before Joining two objects",
 	"author": ("Tilapiatsu"),
 	"version": (1, 0, 0),

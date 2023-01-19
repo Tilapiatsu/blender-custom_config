@@ -1,8 +1,9 @@
 import bpy
 import bmesh
 from pprint import pprint
+
 bl_info = {
-    "name": "Smart Assign Material",
+    "name": "Tila : Smart Assign Material",
     "author": "Tilapiatsu",
     "version": (1, 0, 0, 0),
     "blender": (2, 80, 0),

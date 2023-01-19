@@ -1,7 +1,7 @@
 import bpy, bpy_extras, gpu, bgl, blf, math
 
 bl_info = {
-	"name": "Multires Subdivision",
+	"name": "Tila : Multires Subdivision",
 	"description": "Facilitate the use of multires subdivision",
 	"author": ("Tilapiatsu"),
 	"version": (1, 0, 0),

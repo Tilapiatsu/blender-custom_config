@@ -3,8 +3,9 @@ from bpy.props import IntProperty, BoolProperty, EnumProperty
 from mathutils import Vector
 import bgl
 import bpy
+
 bl_info = {
-    "name": "Smart Edit Mode",
+    "name": "Tila : Smart Edit Mode",
     "description": "Automatically switch to edit mode when selecting vertex, edge or polygon mode",
     "author": ("Tilapiatsu"),
     "version": (1, 0, 0),
