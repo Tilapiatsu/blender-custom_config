@@ -32,10 +32,10 @@ class TILA_OrthographicNavigation(bpy.types.Operator):
     dir = {'UP': 'ORBITUP', 'DOWN': 'ORBITDOWN', 'LEFT': 'ORBITLEFT', 'RIGHT': 'ORBITRIGHT'}
 
     def get_release_condition(self, event):
-        if bversion < 3.2:
+        if bversion > 3.2:
             return event.value == 'RELEASE'
         else:
-            return event.type in ['MOUSEMOVE', 'LEFTMOUSE', 'RIGHTMOUSE', 'WINDOW_DEACTIVATE'] and event.value in ['RELEASE', 'NOTHING'] and self.run
+            return event.type in ['MOUSEMOVE', 'LEFTMOUSE', 'RIGHTMOUSE', 'WINDOW_DEACTIVATE'] and event.value in ['RELEASE', 'NOTHING']
     
     def get_run_condition(self, event) :
         if bversion < 3.2:
