@@ -657,6 +657,10 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		# Machin3Tools
 		self.kmi_set_replace('wm.call_menu_pie', 'D', "PRESS", alt=True, shift=True, properties={'name': 'MACHIN3_MT_uv_align_pie'}, disable_double=True)
 
+		# UV Toolkit
+		self.kmi_set_replace('uv.toolkit_orient_to_edge', 'D', "PRESS", ctrl=True, alt=True, shift=True, disable_double=True)
+		
+
 		###### Mesh
 		self.kmi_init(name='Mesh', space_type='EMPTY', region_type='WINDOW')
 		self.global_keys()
