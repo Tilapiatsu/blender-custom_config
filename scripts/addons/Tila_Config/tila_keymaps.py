@@ -414,7 +414,7 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		self.kmi_set_replace('wm.tool_set_by_id', self.k_move, 'PRESS', properties={'name': 'builtin.move'}, disable_double=True)
 		self.kmi_set_replace('wm.tool_set_by_id', self.k_rotate, 'PRESS', properties={'name': 'builtin.rotate'}, disable_double=True)
 		self.kmi_set_replace('wm.tool_set_by_id', self.k_scale, 'PRESS', properties={'name': 'builtin.scale'}, disable_double=True)
-		self.kmi_set_replace('wm.tool_set_by_id', 'T', 'PRESS', ctrl=True, properties={'name': 'builtin.transform'}, disable_double=True)
+		self.kmi_set_replace('wm.tool_set_by_id', 'T', 'PRESS', ctrl=True, properties={'name': 'builtin.scale_cage'}, disable_double=True)
 
 	def isolate(self):
 		self.kmi_set_replace('view3d.tila_isolate', 'X', 'PRESS', ctrl=True, alt=True, properties={'force_object_isolate': False})
