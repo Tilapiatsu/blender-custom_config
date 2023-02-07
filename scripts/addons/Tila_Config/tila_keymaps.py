@@ -670,6 +670,7 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		self.tool_transform()
 
 		self.kmi_set_replace('wm.call_menu_pie', 'X', 'PRESS', alt=True, shift=True, properties={'name': 'HP_MT_pie_symmetry'}, disable_double=True)
+		self.kmi_set_replace('wm.call_menu_pie', 'Q', 'PRESS', ctrl=True, alt=True, shift=True, properties={'name': 'TILA_MT_pie_distribute'}, disable_double=True)
 
 		self.selection_keys(shortestpath_tool='mesh.shortest_path_pick',
 							shortestring_tool='mesh.shortest_path_pick',
