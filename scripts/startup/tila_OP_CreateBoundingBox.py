@@ -45,6 +45,7 @@ class TILA_CreateBoundingBox(bpy.types.Operator):
 		elif bpy.context.mode == 'EDIT_MESH':
 			self.mode = 'MESH'
 			self.create_bounding_box(bpy.context.selected_objects[0])
+			bpy.context.selected_objects[0].update_from_editmode()
 		elif bpy.context.mode == 'EDIT_CURVE':
 			pass
 	
@@ -127,6 +128,7 @@ class TILA_CreateBoundingBox(bpy.types.Operator):
 
 		if not len(verts):
 			return
+			
 		corners, faces = self.minimum_bounding_box_pca(verts)
 
 		bbox_mesh = bpy.data.meshes.new("bbox")
@@ -146,7 +148,6 @@ class TILA_CreateBoundingBox(bpy.types.Operator):
 		self.match_transform(obj, bbox_object)
 	
 	def match_transform(self, to_match_object, destination_object):
-		target = bpy.context.object
 		loc = destination_object.matrix_world.to_translation()
 		rot = destination_object.matrix_world.to_euler('XYZ')
 		scl = destination_object.matrix_world.to_scale()
@@ -155,7 +156,6 @@ class TILA_CreateBoundingBox(bpy.types.Operator):
 		to_match_object.rotation_euler = rot
 		to_match_object.scale = scl
 
-		return {'FINISHED'}
 
 
 
