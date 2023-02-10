@@ -63,6 +63,25 @@ class TILA_UVMap_Remove(bpy.types.Operator):
 
         return {'FINISHED'}
 
+class TILA_UVMap_SetActive(bpy.types.Operator):
+    bl_idname = "object.tila_uvmap_set_active"
+    bl_label = "TILA: Set UV Map Active on All Selected Mesh Object"
+    bl_options = {'REGISTER', 'UNDO'}
+
+    compatible_type = ['MESH']
+
+    def execute(self, context):
+        name = context.active_object.data.uv_layers.active.name
+        self.object_to_process = [o for o in bpy.context.selected_objects if o.type in self.compatible_type]
+
+        for o in self.object_to_process:
+            if name not in o.data.uv_layers:
+                continue
+
+            o.data.uv_layers.active = o.data.uv_layers[name]
+
+        return {'FINISHED'}
+
 #  move from APEC : https://blender.stackexchange.com/questions/67266/changing-order-of-uv-maps
 class TILA_UVMap_Move(bpy.types.Operator):
     bl_idname = "object.tila_uvmap_move"
@@ -145,6 +164,7 @@ class TILA_UVMap_Move(bpy.types.Operator):
 
 def menu_draw(self, context):
     layout = self.layout
+    layout.operator("object.tila_uvmap_set_active", text='Set Active', icon='CHECKMARK')
     row = layout.row()
     column = row.column()
     column.operator("object.tila_uvmap_add", text='Add', icon='ADD')
@@ -153,7 +173,7 @@ def menu_draw(self, context):
     column.operator("object.tila_uvmap_move", icon='TRIA_UP', text='Move Up').direction='UP'
     column.operator("object.tila_uvmap_move", icon='TRIA_DOWN', text='Move Down').direction='DOWN'
 
-classes = (TILA_UVMap_Add, TILA_UVMap_Remove, TILA_UVMap_Move)
+classes = (TILA_UVMap_Add, TILA_UVMap_Remove, TILA_UVMap_SetActive, TILA_UVMap_Move)
 
 def register():
     for c in classes:
