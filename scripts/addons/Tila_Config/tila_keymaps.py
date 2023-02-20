@@ -510,12 +510,9 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		kmi = self.kmi_find(idname='view3d.toggle_shading', type='Z', shift=True)
 		if kmi is not None:
 			kmi.active = False
-		
-		self.kmi_set_replace('view3d.toggle_shading', 'Z', 'PRESS', shift=True, properties={'type': 'MATERIAL'}, disable_double=True)
-		self.kmi_set_replace('view3d.toggle_shading', 'Z', 'PRESS', alt=True, shift=True, properties={'type': 'RENDERED'}, disable_double=True)
-		# kmi = self.kmi_set_replace('wm.context_toggle', 'F6', 'PRESS', properties={'data_path', 'space_data.overlay.show_overlays'}, disable_double=True)
-		# if kmi:
-		# 	kmi.active = True
+            
+		self.kmi_set_replace('wm.call_menu_pie', 'Z', 'PRESS', properties={'name':'TILA_MT_pie_render_mode'})
+
 
 		self.kmi_set_replace('object.transfer_mode', self.k_cursor, 'CLICK', alt=True, disable_double=True)
 
