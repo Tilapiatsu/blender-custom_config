@@ -84,6 +84,7 @@ modules =   (
 			'NGon Loop Select',
 			'quad_remesher',
 			'mesh_restoresymmetry',
+            'surface_inflate',
 			# 'lineup_maker',
 			'Tila_Config'
 			)
