@@ -22,6 +22,7 @@ CALL :MakeSymbolicLink "d" "%currdir%\scripts\addons\Asset_Creation_Toolset" "%c
 CALL :MakeSymbolicLink "d" "%currdir%\scripts\addons\math_formula" "%currdir%\scripts\GIT\WM_Blender-addons\math_formula"
 CALL :MakeSymbolicLink "d" "%currdir%\scripts\addons\photogrammetry_importer" "%currdir%\scripts\GIT\Blender-Addon-Photogrammetry-Importer\photogrammetry_importer"
 CALL :MakeSymbolicLink "d" "%currdir%\scripts\addons\shotmanager" "%currdir%\scripts\GIT\shotmanager\shotmanager"
+CALL :MakeSymbolicLink "d" "%currdir%\scripts\addons\miter_box" "%currdir%\scripts\GIT\JD-Miter-Box\JD_Miter_Box"
 
 "%PYTHONPATH%\python.exe" ".\GIT\BEER\scripts\package_blender_addon.py"
 CALL :MakeSymbolicLink "d" "%currdir%\scripts\addons\BlenderMalt" "%currdir%\scripts\GIT\BEER\BlenderMalt"

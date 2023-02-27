@@ -343,3 +343,6 @@
 [submodule "scripts/GIT/optiloops"]
 	path = scripts/GIT/optiloops
 	url = https://github.com/1C0D/optiloops.git
+[submodule "scripts/GIT/JD-Miter-Box"]
+	path = scripts/GIT/JD-Miter-Box
+	url = https://github.com/JohnKazucki/JD-Miter-Box.git
