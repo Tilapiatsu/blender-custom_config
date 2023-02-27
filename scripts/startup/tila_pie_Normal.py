@@ -354,9 +354,9 @@ class TILA_OT_normaluseface(bpy.types.Operator):
     bl_label = "Tilapiatsu Use Face Normals"
     bl_options = {'REGISTER', 'UNDO'}
 
-    func = {'VERT': ((bpy.ops.view3d.tila_autosmooth, None), (bpy.ops.mesh.set_normals_from_faces, None)),
-            'EDGE': ((bpy.ops.view3d.tila_autosmooth, None), (bpy.ops.mesh.set_normals_from_faces, None)),
-            'FACE': ((bpy.ops.view3d.tila_autosmooth, None), (bpy.ops.mesh.set_normals_from_faces, None))}
+    func = {'VERT': ((bpy.ops.view3d.tila_autosmooth, None), (bpy.ops.mesh.set_normals_from_faces, {'keep_sharp':True})),
+            'EDGE': ((bpy.ops.view3d.tila_autosmooth, None), (bpy.ops.mesh.set_normals_from_faces, {'keep_sharp':True})),
+            'FACE': ((bpy.ops.view3d.tila_autosmooth, None), (bpy.ops.mesh.set_normals_from_faces, {'keep_sharp':True}))}
 
     def execute(self, context):
 
