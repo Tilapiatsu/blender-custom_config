@@ -36,7 +36,7 @@ class TILA_MT_pie_distribute(Menu):
         pie.operator("mesh.set_edge_flow", icon='IPO_EASE_IN_OUT', text="Set Flow")
 
         # Top
-        pie.operator("mesh.looptools_gstretch", icon='IPO_LINEAR', text="Linear")
+        pie.operator("mesh.looptools_gstretch", icon='IPO_LINEAR', text="Linear").method='irregular'
 
         # Top Left
         pie.operator("mesh.looptools_relax", icon='SEQ_LUMA_WAVEFORM', text="Relax")

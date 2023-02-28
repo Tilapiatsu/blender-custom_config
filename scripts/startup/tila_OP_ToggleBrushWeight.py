@@ -2,7 +2,7 @@ import bpy
 
 
 bl_info = {
-    "name": "Tila : Toggle Snapping",
+    "name": "Tila : Toggle BrushWeight",
     "author": "Tilapiatsu",
     "version": (1, 0, 0, 0),
     "blender": (2, 80, 0),

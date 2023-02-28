@@ -2,7 +2,7 @@ import bpy
 import re
 
 bl_info = {
-	"name": "Tila : Copy Mirror Vertex Group",
+	"name": "Tila : Smart UV Map",
 	"author": "Tilapiatsu",
 	"version": (1, 0, 0, 0),
 	"blender": (2, 80, 0),
