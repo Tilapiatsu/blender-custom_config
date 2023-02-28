@@ -85,6 +85,7 @@ modules =   (
 			'quad_remesher',
 			'mesh_restoresymmetry',
             'surface_inflate',
+	    	'Pro_Aligner',
 			# 'lineup_maker',
 			'Tila_Config'
 			)
