@@ -350,8 +350,8 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 	
 	def tool_smart_delete(self):
 		self.kmi_set_active(False, type='DEL')
-		self.kmi_set_replace('object.tila_smartdelete', 'DEL', 'PRESS', properties={'menu': False})
-		self.kmi_set_replace('object.tila_smartdelete', 'DEL', 'PRESS', alt=True, properties={'menu': True})
+		self.kmi_set_replace('object.tila_smartdelete', 'DEL', 'PRESS', properties={'menu': False}, disable_double=True)
+		self.kmi_set_replace('object.tila_smartdelete', 'DEL', 'PRESS', alt=True, properties={'menu': True}, disable_double=True)
 
 	def tool_radial_control(self, radius=None, opacity=None, eraser_radius=None, fill_color=None):
 		type = 'Q'
@@ -511,7 +511,7 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		if kmi is not None:
 			kmi.active = False
             
-		self.kmi_set_replace('wm.call_menu_pie', 'Z', 'PRESS', properties={'name':'TILA_MT_pie_render_mode'})
+		self.kmi_set_replace('wm.call_menu_pie', 'Z', 'PRESS', properties={'name':'TILA_MT_pie_render_mode'}, disable_double=True)
 
 
 		self.kmi_set_replace('object.transfer_mode', self.k_cursor, 'CLICK', alt=True, disable_double=True)
@@ -698,6 +698,7 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		# self.kmi_set_replace('wm.tool_set_by_id', 'C', 'PRESS', alt=True, shift=True, properties={'name': 'builtin.loop_cut'})
 		self.kmi_set_replace('mesh.bridge_edge_loops', 'B', 'PRESS', shift=True)
 		self.kmi_set_replace('mesh.edge_collapse', 'DEL', 'PRESS', shift=True)
+		self.kmi_set_replace('mesh.merge', 'DEL', 'PRESS', alt=True, shift=True, properties={'type': 'LAST'},  disable_double=True)
 		self.kmi_set_replace('mesh.fill', 'P', 'PRESS', shift=True, properties={'use_beauty': True})
 		self.kmi_set_replace('mesh.fill_grid', 'P', 'PRESS', alt=True, properties={'use_interp_simple': False})
 		self.kmi_set_replace('mesh.edge_face_add', 'P', 'PRESS', disable_double=True)
