@@ -410,11 +410,12 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		if action_center_context:
 			self.kmi_set_replace('wm.call_menu', 'X', 'PRESS', alt=True, properties={'name': 'TILA_MT_action_center'}, disable_double=True)
 	
-	def tool_transform(self):
+	def tool_transform(self, cage_scale=None):
 		self.kmi_set_replace('wm.tool_set_by_id', self.k_move, 'PRESS', properties={'name': 'builtin.move'}, disable_double=True)
 		self.kmi_set_replace('wm.tool_set_by_id', self.k_rotate, 'PRESS', properties={'name': 'builtin.rotate'}, disable_double=True)
 		self.kmi_set_replace('wm.tool_set_by_id', self.k_scale, 'PRESS', properties={'name': 'builtin.scale'}, disable_double=True)
-		self.kmi_set_replace('wm.tool_set_by_id', 'T', 'PRESS', ctrl=True, properties={'name': 'builtin.scale_cage'}, disable_double=True)
+		if cage_scale:
+			self.kmi_set_replace('wm.tool_set_by_id', 'T', 'PRESS', ctrl=True, properties={'name': cage_scale}, disable_double=True)
 
 	def isolate(self):
 		self.kmi_set_replace('view3d.tila_isolate', 'X', 'PRESS', ctrl=True, alt=True, properties={'force_object_isolate': False})
@@ -519,7 +520,7 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		self.kmi_set_replace('view3d.tila_orthographic_navigation', self.k_cursor, 'CLICK_DRAG', ctrl=False, alt=True, shift=False, disable_double=True, properties={'relative_to_selected_element': False})
 		self.kmi_set_replace('view3d.tila_orthographic_navigation', self.k_cursor, 'CLICK_DRAG', ctrl=False, alt=True, shift=True, disable_double=True, properties={'relative_to_selected_element': True})
 
-		self.kmi_set_replace('view3d.tila_action_center_cursor_toggle', 'S', 'PRESS', ctrl=True, alt=True, shift=True, disable_double=True)
+		self.kmi_set_replace('view3d.tila_action_center_3d_cursor_toggle', 'S', 'PRESS', ctrl=True, alt=True, shift=True, disable_double=True)
 		self.kmi_set_replace('view3d.toggle_overlay', 'F6', 'PRESS', properties={'mode': 'SOFT'})
 		self.kmi_set_replace('view3d.toggle_overlay', 'F6', 'PRESS', ctrl=True, properties={'mode': 'TOGGLE'})
 
@@ -579,7 +580,7 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		self.global_keys()
 		self.right_mouse()
 		self.selection_tool()
-		self.tool_transform()
+		self.tool_transform(cage_scale='builtin.transform')
 		self.selection_keys(select_tool='uv.select',
 					  		lasso_tool='uv.select_lasso',
 							box_through_tool='uv.select_box',
@@ -651,6 +652,8 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		self.kmi_set_replace('uv.toolkit_align_uv', 'RIGHT_ARROW', 'PRESS', ctrl=True, alt=False, shift=False, disable_double=True, properties={'align_uv': 'MAX_U'})
 		self.kmi_set_replace('wm.call_menu_pie', 'X', 'PRESS', alt=True, disable_double=True, properties={'name': 'IMAGE_MT_pivot_pie'})
 
+		self.kmi_set_replace('view2d.tila_action_center_2d_cursor_toggle', 'S', 'PRESS', ctrl=True, alt=True, shift=True, disable_double=True)
+
 		# Machin3Tools
 		self.kmi_set_replace('wm.call_menu_pie', 'D', "PRESS", alt=True, shift=True, properties={'name': 'MACHIN3_MT_uv_align_pie'}, disable_double=True)
 
@@ -664,7 +667,7 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		self.selection_tool()
 		self.right_mouse()
 		self.mode_selection()
-		self.tool_transform()
+		self.tool_transform(cage_scale='builtin.scale_cage')
 
 		self.kmi_set_replace('wm.call_menu_pie', 'X', 'PRESS', alt=True, shift=True, properties={'name': 'HP_MT_pie_symmetry'}, disable_double=True)
 		self.kmi_set_replace('wm.call_menu_pie', 'Q', 'PRESS', alt=True, shift=True, properties={'name': 'TILA_MT_pie_distribute'}, disable_double=True)
@@ -771,7 +774,7 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		self.global_keys()
 		self.selection_tool()
 		self.right_mouse()
-		self.tool_transform()
+		self.tool_transform(cage_scale='builtin.scale_cage')
 
 
 		self.duplicate(duplicate='object.duplicate', duplicate_link='object.duplicate', duplicate_link_prop={'linked': True})
@@ -907,7 +910,7 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		self.kmi_init(name='Curve', space_type='EMPTY', region_type='WINDOW')
 		self.global_keys()
 		self.selection_tool()
-		self.tool_transform()
+		self.tool_transform(cage_scale='builtin.scale_cage')
 		self.right_mouse()
 		self.duplicate(duplicate='curve.duplicate_move')
 		self.tool_smart_delete()
@@ -1142,7 +1145,7 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		self.global_keys()
 		self.right_mouse()
 		self.duplicate(duplicate='armature.duplicate_move')
-		self.tool_transform()
+		self.tool_transform(cage_scale='builtin.scale_cage')
 
 		###### Pose
 		self.kmi_init(name='Pose', space_type='EMPTY', region_type='WINDOW')
@@ -1156,7 +1159,7 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		self.kmi_init(name='Metaball', space_type='EMPTY', region_type='WINDOW')
 		self.global_keys()
 		self.right_mouse()
-		self.tool_transform()
+		self.tool_transform(cage_scale='builtin.scale_cage')
 		self.duplicate(duplicate='mball.duplicate_metaelems')
 		self.selection_tool()
 		self.tool_smart_delete()
@@ -1176,7 +1179,7 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		self.kmi_init(name='Lattice', space_type='EMPTY', region_type='WINDOW')
 		self.global_keys()
 		self.right_mouse()
-		self.tool_transform()
+		self.tool_transform(cage_scale='builtin.scale_cage')
 		self.selection_keys(select_tool='view3d.select', 
 							lasso_tool='view3d.select_lasso',
 							select_through_tool='view3d.tila_select_through',
@@ -1211,7 +1214,7 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		self.kmi_init(name='Grease Pencil Stroke Edit Mode', space_type='EMPTY', region_type='WINDOW')
 		self.global_keys()
 		self.right_mouse()
-		self.tool_transform()
+		self.tool_transform(cage_scale='builtin.scale_cage')
 		self.duplicate(duplicate='gpencil.duplicate_move')
 		self.collection_visibility('object.hide_collection')
 		self.mode_selection()

@@ -9,24 +9,72 @@ bl_info = {
 	"category": "Mesh",
 }
 
-class TILA_action_center_cursor_toggle(bpy.types.Operator):
-	bl_idname = "view3d.tila_action_center_cursor_toggle"
-	bl_label = "Toggle Action Center Cursor"
+class TILA_action_center_3d_cursor_toggle(bpy.types.Operator):
+	bl_idname = "view3d.tila_action_center_3d_cursor_toggle"
+	bl_label = "Toggle Action Center 3D Cursor"
 	bl_options = {'REGISTER', 'UNDO'}
 
 	def execute(self, context):
-		if context.window_manager.ac_use_cursor:
-			bpy.ops.view3d.tila_action_center('EXEC_DEFAULT', action_center='GLOBAL')
+		if context.window_manager.ac_use_3d_cursor:
+			bpy.ops.view3d.tila_action_center_3d('EXEC_DEFAULT', action_center='GLOBAL')
 		else:
-			bpy.ops.view3d.tila_action_center('EXEC_DEFAULT', action_center='CURSOR')
+			bpy.ops.view3d.tila_action_center_3d('EXEC_DEFAULT', action_center='CURSOR')
 		
-		context.window_manager.ac_use_cursor = not context.window_manager.ac_use_cursor
+		context.window_manager.ac_use_3d_cursor = not context.window_manager.ac_use_3d_cursor
 
 		return {'FINISHED'}
-					
-class TILA_action_center(bpy.types.Operator):
-	bl_idname = "view3d.tila_action_center"
-	bl_label = "Set action center"
+
+class TILA_action_center_2d_cursor_toggle(bpy.types.Operator):
+	bl_idname = "view2d.tila_action_center_2d_cursor_toggle"
+	bl_label = "Toggle Action Center 2D Cursor"
+	bl_options = {'REGISTER', 'UNDO'}
+
+	def execute(self, context):
+		if context.window_manager.ac_use_2d_cursor:
+			bpy.ops.view2d.tila_action_center_2d('EXEC_DEFAULT', action_center='UV_BOUNDING_BOX')
+		else:
+			bpy.ops.view2d.tila_action_center_2d('EXEC_DEFAULT', action_center='UV_CURSOR')
+		
+		context.window_manager.ac_use_2d_cursor = not context.window_manager.ac_use_2d_cursor
+
+		return {'FINISHED'}
+
+class TILA_action_center_2d(bpy.types.Operator):
+	bl_idname = "view2d.tila_action_center_2d"
+	bl_label = "Set action center 2D"
+	bl_options = {'REGISTER', 'UNDO'}
+
+	action_center : bpy.props.StringProperty(name="Action Center", default='UV_CURSOR')
+	context : bpy.props.StringProperty(name="context", default='VIEW2D')
+	compatible_action_center = ['UV_CURSOR',
+								'UV_BOUNDING_BOX']
+	
+	def execute(self, context):
+		if self.action_center in self.compatible_action_center:
+			self.report({'INFO'}, 'Action Center {} is compatible'.format(self.action_center))
+			self.run_tool(context)
+		else:
+			return{'CANCELLED'}
+		return{'FINISHED'}
+		
+	def run_tool(self, context, event=None, update=False):
+		try:
+			if self.action_center == 'UV_CURSOR':
+				self.report({'INFO'}, 'UV Cursor')
+				bpy.context.space_data.pivot_point = 'CURSOR'
+				bpy.ops.uv.snap_cursor(target='SELECTED')
+
+			if self.action_center == 'UV_BOUNDING_BOX':
+				self.report({'INFO'}, 'UV Bounding Box')
+				bpy.context.space_data.pivot_point = 'CENTER'
+
+		except RuntimeError as e:
+			print('Runtime Error :\n{}'.format(e))
+	
+
+class TILA_action_center_3d(bpy.types.Operator):
+	bl_idname = "view3d.tila_action_center_3d"
+	bl_label = "Set action center 3D"
 	bl_options = {'REGISTER', 'UNDO'}
 
 	action_center : bpy.props.StringProperty(name="Action Center", default='AUTO')
@@ -86,9 +134,7 @@ class TILA_action_center(bpy.types.Operator):
 					bpy.ops.view3d.snap_cursor_to_selected()
 					self.set_snapping_settings(context)
 					bpy.ops.transform.translate('INVOKE_DEFAULT', snap=True, snap_align=True, cursor_transform=True, release_confirm=True, orient_type='NORMAL')
-				
 
-				
 			if self.action_center == 'SELECTION':
 				self.report({'INFO'}, 'Selection Action Center')
 				self.set_transform_orientation(context, 'NORMAL')
@@ -103,6 +149,7 @@ class TILA_action_center(bpy.types.Operator):
 				self.report({'INFO'}, 'Selection Center Auto Axis Action Center')
 				self.set_transform_orientation(context, 'GLOBAL')
 				context.scene.tool_settings.transform_pivot_point = 'MEDIAN_POINT'
+
 			if self.action_center == 'ELEMENT':
 				self.report({'INFO'}, 'Element Action Center')
 				context.scene.tool_settings.use_snap = True
@@ -114,10 +161,12 @@ class TILA_action_center(bpy.types.Operator):
 					bpy.ops.transform.translate('INVOKE_DEFAULT', snap=True, snap_align=True, cursor_transform=True, release_confirm=True, orient_type='NORMAL')
 					self.set_transform_orientation(context, 'CURSOR')
 				context.scene.tool_settings.transform_pivot_point = 'CURSOR'
+
 			if self.action_center == 'VIEW':
 				self.report({'INFO'}, 'View Action Center')
 				self.set_transform_orientation(context, 'VIEW')
 				context.scene.tool_settings.transform_pivot_point = 'MEDIAN_POINT'
+
 			if self.action_center == 'ORIGIN':
 				self.report({'INFO'}, 'Origin Action Center')
 				self.set_transform_orientation(context, 'CURSOR')
@@ -128,6 +177,7 @@ class TILA_action_center(bpy.types.Operator):
 				context.scene.cursor.rotation_euler[0] = 0
 				context.scene.cursor.rotation_euler[1] = 0
 				context.scene.cursor.rotation_euler[2] = 0
+
 			if self.action_center == 'PARENT':
 				self.report({'INFO'}, 'Parent Action Center')
 				self.set_transform_orientation(context, 'CURSOR')
@@ -139,22 +189,27 @@ class TILA_action_center(bpy.types.Operator):
 				context.scene.cursor.rotation_euler[0] = parent.rotation_euler[0]
 				context.scene.cursor.rotation_euler[1] = parent.rotation_euler[1]
 				context.scene.cursor.rotation_euler[2] = parent.rotation_euler[2]
+
 			if self.action_center == 'GLOBAL':
 				self.report({'INFO'}, 'Global Action Center')
 				self.set_transform_orientation(context, 'GLOBAL')
 				context.scene.tool_settings.transform_pivot_point = 'MEDIAN_POINT'
+
 			if self.action_center == 'GLOBAL_INDIVIDUAL':
 				self.report({'INFO'}, 'Global Individual Action Center')
 				self.set_transform_orientation(context, 'GLOBAL')
 				context.scene.tool_settings.transform_pivot_point = 'INDIVIDUAL_ORIGINS'
+
 			if self.action_center == 'LOCAL':
 				self.report({'INFO'}, 'Local Action Center')
 				self.set_transform_orientation(context, 'NORMAL')
 				context.scene.tool_settings.transform_pivot_point = 'INDIVIDUAL_ORIGINS'
+
 			if self.action_center == 'PIVOT':
 				self.report({'INFO'}, 'Pivot Action Center')
 				self.set_transform_orientation(context, 'LOCAL')
 				context.scene.tool_settings.transform_pivot_point = 'MEDIAN_POINT'
+
 			if self.action_center == 'PIVOT_CENTER_PARENT_AXIS':
 				self.report({'INFO'}, 'Pivot Center Parent Axis Action Center')
 				self.set_transform_orientation(context, 'CURSOR')
@@ -166,6 +221,7 @@ class TILA_action_center(bpy.types.Operator):
 				context.scene.cursor.rotation_euler[0] = parent.rotation_euler[0]
 				context.scene.cursor.rotation_euler[1] = parent.rotation_euler[1]
 				context.scene.cursor.rotation_euler[2] = parent.rotation_euler[2]
+
 			if self.action_center == 'PIVOT_WORLD_AXIS':
 				self.report({'INFO'}, 'Pivot Wold Axis Action Center')
 				self.set_transform_orientation(context, 'GLOBAL')
@@ -173,18 +229,31 @@ class TILA_action_center(bpy.types.Operator):
 				context.scene.cursor.location[0] = context.object.location[0]
 				context.scene.cursor.location[1] = context.object.location[1]
 				context.scene.cursor.location[2] = context.object.location[2]
+
 			if self.action_center == 'CURSOR':
 				self.report({'INFO'}, 'Cursor Action Center')
 				bpy.ops.view3d.cursor_fit_selected_and_orient()
 				self.set_transform_orientation(context, 'CURSOR')
 				context.scene.tool_settings.transform_pivot_point = 'CURSOR'
+
 			if self.action_center == 'CURSOR_ORIENT':
 				self.report({'INFO'}, 'Cursor Orient Action Center')
 				bpy.ops.view3d.cursor_fit_selected_and_orient()
 				self.set_transform_orientation(context, 'CURSOR')
 				context.scene.tool_settings.transform_pivot_point = 'ACTIVE_ELEMENT'
+
 			if self.action_center == 'CUSTOM':
 				self.report({'INFO'}, 'Custom Action Center')
+
+			if self.action_center == 'UV_CURSOR':
+				self.report({'INFO'}, 'UV Cursor')
+				bpy.context.space_data.pivot_point = 'CURSOR'
+
+			if self.action_center == 'UV_BOUNDING_BOX':
+				self.report({'INFO'}, 'UV Bounding Box')
+				bpy.context.space_data.pivot_point = 'CENTER'
+
+
 		except RuntimeError as e:
 			print('Runtime Error :\n{}'.format(e))
 
@@ -224,33 +293,36 @@ class TILA_MT_action_center(bpy.types.Menu):
 		obj = context.active_object
 
 		# if context.mode == "EDIT_MESH":
-		layout.operator("view3d.tila_action_center", icon='DOT', text='Automatic').action_center = 'AUTO'
-		layout.operator("view3d.tila_action_center", icon='SELECT_SET', text='Selection').action_center = 'SELECTION'
-		layout.operator("view3d.tila_action_center", icon='SELECT_SET', text='Selection Border').action_center = 'SELECTION_BORDER'
-		layout.operator("view3d.tila_action_center", icon='SELECT_SET', text='Selection Center Auto Axis').action_center = 'SELECTION_CENTER_AUTO_AXIS'
-		layout.operator("view3d.tila_action_center", icon='VERTEXSEL', text='Element').action_center = 'ELEMENT'
-		layout.operator("view3d.tila_action_center", icon='LOCKVIEW_ON', text='View').action_center = 'VIEW'
-		layout.operator("view3d.tila_action_center", icon='OBJECT_ORIGIN', text='Global').action_center = 'GLOBAL'
-		layout.operator("view3d.tila_action_center", icon='OBJECT_ORIGIN', text='Global Individual').action_center = 'GLOBAL_INDIVIDUAL'
-		layout.operator("view3d.tila_action_center", icon='OUTLINER_DATA_EMPTY', text='Origin').action_center = 'ORIGIN'
-		layout.operator("view3d.tila_action_center", icon='OUTLINER_DATA_EMPTY', text='Parent').action_center = 'PARENT'
-		layout.operator("view3d.tila_action_center", icon='OUTLINER_DATA_EMPTY', text='Local').action_center = 'LOCAL'
-		layout.operator("view3d.tila_action_center", icon='LAYER_ACTIVE', text='Pivot').action_center = 'PIVOT'
-		layout.operator("view3d.tila_action_center", icon='LAYER_ACTIVE', text='Pivot Center Parent Axis').action_center = 'PIVOT_CENTER_PARENT_AXIS'
-		layout.operator("view3d.tila_action_center", icon='LAYER_ACTIVE', text='Pivot Wold Axis').action_center = 'PIVOT_WORLD_AXIS'
-		layout.operator("view3d.tila_action_center", icon='PIVOT_CURSOR', text='Cursor').action_center = 'CURSOR'
-		layout.operator("view3d.tila_action_center", icon='PIVOT_CURSOR', text='Cursor Orient').action_center = 'CURSOR_ORIENT'
-		layout.operator("view3d.tila_action_center", icon='ADD', text='Custom').action_center = 'CUSTOM'
+		layout.operator("view3d.tila_action_center_3d", icon='DOT', text='Automatic').action_center = 'AUTO'
+		layout.operator("view3d.tila_action_center_3d", icon='SELECT_SET', text='Selection').action_center = 'SELECTION'
+		layout.operator("view3d.tila_action_center_3d", icon='SELECT_SET', text='Selection Border').action_center = 'SELECTION_BORDER'
+		layout.operator("view3d.tila_action_center_3d", icon='SELECT_SET', text='Selection Center Auto Axis').action_center = 'SELECTION_CENTER_AUTO_AXIS'
+		layout.operator("view3d.tila_action_center_3d", icon='VERTEXSEL', text='Element').action_center = 'ELEMENT'
+		layout.operator("view3d.tila_action_center_3d", icon='LOCKVIEW_ON', text='View').action_center = 'VIEW'
+		layout.operator("view3d.tila_action_center_3d", icon='OBJECT_ORIGIN', text='Global').action_center = 'GLOBAL'
+		layout.operator("view3d.tila_action_center_3d", icon='OBJECT_ORIGIN', text='Global Individual').action_center = 'GLOBAL_INDIVIDUAL'
+		layout.operator("view3d.tila_action_center_3d", icon='OUTLINER_DATA_EMPTY', text='Origin').action_center = 'ORIGIN'
+		layout.operator("view3d.tila_action_center_3d", icon='OUTLINER_DATA_EMPTY', text='Parent').action_center = 'PARENT'
+		layout.operator("view3d.tila_action_center_3d", icon='OUTLINER_DATA_EMPTY', text='Local').action_center = 'LOCAL'
+		layout.operator("view3d.tila_action_center_3d", icon='LAYER_ACTIVE', text='Pivot').action_center = 'PIVOT'
+		layout.operator("view3d.tila_action_center_3d", icon='LAYER_ACTIVE', text='Pivot Center Parent Axis').action_center = 'PIVOT_CENTER_PARENT_AXIS'
+		layout.operator("view3d.tila_action_center_3d", icon='LAYER_ACTIVE', text='Pivot Wold Axis').action_center = 'PIVOT_WORLD_AXIS'
+		layout.operator("view3d.tila_action_center_3d", icon='PIVOT_CURSOR', text='Cursor').action_center = 'CURSOR'
+		layout.operator("view3d.tila_action_center_3d", icon='PIVOT_CURSOR', text='Cursor Orient').action_center = 'CURSOR_ORIENT'
+		layout.operator("view3d.tila_action_center_3d", icon='ADD', text='Custom').action_center = 'CUSTOM'
 
 
 classes = (
-	TILA_action_center_cursor_toggle,
-	TILA_action_center,
+	TILA_action_center_3d_cursor_toggle,
+	TILA_action_center_2d_cursor_toggle,
+	TILA_action_center_3d,
+	TILA_action_center_2d,
 	TILA_MT_action_center
 )
 
 def register():
-	bpy.types.WindowManager.ac_use_cursor = bpy.props.BoolProperty(name="Use Cursor", default=False)
+	bpy.types.WindowManager.ac_use_3d_cursor = bpy.props.BoolProperty(name="Use 3d Cursor", default=False)
+	bpy.types.WindowManager.ac_use_2d_cursor = bpy.props.BoolProperty(name="Use 2d Cursor", default=False)
 	for cl in classes:
 		bpy.utils.register_class(cl)
 	
@@ -260,7 +332,8 @@ def unregister():
 	for cl in classes:
 		bpy.utils.unregister_class(cl)
 
-	del bpy.types.WindowManager.ac_use_cursor
+	del bpy.types.WindowManager.ac_use_2d_cursor
+	del bpy.types.WindowManager.ac_use_3d_cursor
 
 
 if __name__ == "__main__":
