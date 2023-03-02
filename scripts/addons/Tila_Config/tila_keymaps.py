@@ -47,6 +47,13 @@ bversion_reg = re.match("^(\d\.\d?\d)", bversion_string)
 bversion = float(bversion_reg.group(0))
 
 class TilaKeymaps(KeymapManager.KeymapManager):
+	bl_idname = "settings.tila_set_keymap"
+	bl_label = "TILA: Set all Keymaps"
+
+	def execute(self, context):
+		bpy.ops.script.reload()
+		self.set_tila_keymap()
+
 
 	def __init__(self):
 
@@ -511,7 +518,7 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		kmi = self.kmi_find(idname='view3d.toggle_shading', type='Z', shift=True)
 		if kmi is not None:
 			kmi.active = False
-            
+			
 		self.kmi_set_replace('wm.call_menu_pie', 'Z', 'PRESS', properties={'name':'TILA_MT_pie_render_mode'}, disable_double=True)
 
 
@@ -808,7 +815,7 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		self.kmi_set_replace('machin3.mirror', 'X', "PRESS", alt=True, shift=True, properties={'flick':True, 'remove':False}, disable_double=True)
 
 		###### 3D View Tool: Tweak
-		self.kmi_init(name='3D View Tool: Tweak', space_type='EMPTY', region_type='WINDOW')
+		# self.kmi_init(name='3D View Tool: Tweak', space_type='EMPTY', region_type='WINDOW')
 		# self.kmi_set_replace('view3d.select', self.k_select, 'PRESS', properties={'deselect_all': True}, disable_double=True)
 		
 		###### Sculpt
