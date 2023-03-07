@@ -424,51 +424,105 @@ class UVPM3_OT_LockGroupIParamGeneric:
         return LockGroupIParamInfo()
 
 
-class UVPM3_OT_ShowLockGroupIParam(UVPM3_OT_LockGroupIParamGeneric, UVPM3_OT_ShowIParam):
+class UVPM3_OT_LockGroupShowIParam(UVPM3_OT_LockGroupIParamGeneric, UVPM3_OT_ShowIParam):
 
-    bl_idname = 'uvpackmaster3.uv_show_lock_group_iparam'
+    bl_idname = 'uvpackmaster3.uv_lock_group_show_iparam'
     bl_label = 'Show Lock Group Assignment'
     bl_description = "Show lock group numbers the selected islands are assigned to"
 
 
-class UVPM3_OT_SetLockGroupIParam(UVPM3_OT_LockGroupIParamGeneric, UVPM3_OT_SetIParam):
+class UVPM3_OT_LockGroupSetIParam(UVPM3_OT_LockGroupIParamGeneric, UVPM3_OT_SetIParam):
 
-    bl_idname = 'uvpackmaster3.set_island_lock_group'
+    bl_idname = 'uvpackmaster3.lock_group_set_iparam'
     bl_label = 'Assign Islands To Lock Group'
     bl_description = "Assign the selected islands to a lock group determined by the 'Lock Group Number' parameter"
 
 
-class UVPM3_OT_SetFreeLockGroupIParam(UVPM3_OT_LockGroupIParamGeneric, UVPM3_OT_SetFreeIParam):
+class UVPM3_OT_LockGroupSetFreeIParam(UVPM3_OT_LockGroupIParamGeneric, UVPM3_OT_SetFreeIParam):
 
-    bl_idname = 'uvpackmaster3.set_free_island_lock_group'
+    bl_idname = 'uvpackmaster3.lock_group_set_free_iparam'
     bl_label = 'Assign Islands To Free Lock Group'
     bl_description = "Assign the selected islands to the first free lock group (the lowest lock group not currently used by faces in the UV map)"
 
 
-class UVPM3_OT_ResetLockGroupIParam(UVPM3_OT_LockGroupIParamGeneric, UVPM3_OT_ResetIParam):
+class UVPM3_OT_LockGroupResetIParam(UVPM3_OT_LockGroupIParamGeneric, UVPM3_OT_ResetIParam):
 
-    bl_idname = 'uvpackmaster3.reset_island_lock_group'
+    bl_idname = 'uvpackmaster3.lock_group_reset_iparam'
     bl_label = 'Unset Lock Groups'
     bl_description = "Unset the lock group assignment for the selected islands (the islands will not belong to any group)"
 
 
-class UVPM3_OT_SelectLockGroupIParam(UVPM3_OT_LockGroupIParamGeneric, UVPM3_OT_SelectIParam):
+class UVPM3_OT_LockGroupSelectIParam(UVPM3_OT_LockGroupIParamGeneric, UVPM3_OT_SelectIParam):
 
     select : BoolProperty(name='', default=True)
     
-    bl_idname = 'uvpackmaster3.select_island_lock_group'
+    bl_idname = 'uvpackmaster3.lock_group_select_iparam'
     bl_label = 'Select Islands Assigned To Lock Group'
     bl_description = "Select / deselect all islands which are assigned to the lock group determined by the '{}' parameter".format(Labels.LOCK_GROUP_NUM_NAME)
 
 
-class UVPM3_OT_SelectNonDefaultLockGroupIParam(UVPM3_OT_LockGroupIParamGeneric, UVPM3_OT_SelectNonDefaultIParam):
+class UVPM3_OT_LockGroupSelectNonDefaultIParam(UVPM3_OT_LockGroupIParamGeneric, UVPM3_OT_SelectNonDefaultIParam):
 
     select : BoolProperty(name='', default=True)
     
-    bl_idname = 'uvpackmaster3.select_non_default_island_lock_group'
+    bl_idname = 'uvpackmaster3.lock_group_select_non_default_iparam'
     bl_label = 'Select All Lock Groups'
     bl_description = "Select all islands which are assigned to any lock group"
- 
+
+
+# ALIGN GROUP
+
+class UVPM3_OT_StackGroupIParamGeneric:
+
+    def get_iparam_info(self):
+        return StackGroupIParamInfo()
+
+
+class UVPM3_OT_StackGroupShowIParam(UVPM3_OT_StackGroupIParamGeneric, UVPM3_OT_ShowIParam):
+
+    bl_idname = 'uvpackmaster3.uv_stack_group_show_iparam'
+    bl_label = 'Show Stack Group Assignment'
+    bl_description = "Show stack group numbers the selected islands are assigned to"
+
+
+class UVPM3_OT_StackGroupSetIParam(UVPM3_OT_StackGroupIParamGeneric, UVPM3_OT_SetIParam):
+
+    bl_idname = 'uvpackmaster3.stack_group_set_iparam'
+    bl_label = 'Assign Islands To Stack Group'
+    bl_description = "Assign the selected islands to a stack group determined by the 'Stack Group Number' parameter"
+
+
+class UVPM3_OT_StackGroupSetFreeIParam(UVPM3_OT_StackGroupIParamGeneric, UVPM3_OT_SetFreeIParam):
+
+    bl_idname = 'uvpackmaster3.stack_group_set_free_iparam'
+    bl_label = 'Assign Islands To Free Stack Group'
+    bl_description = "Assign the selected islands to the first free stack group (the lowest stack group not currently used by faces in the UV map)"
+
+
+class UVPM3_OT_StackGroupResetIParam(UVPM3_OT_StackGroupIParamGeneric, UVPM3_OT_ResetIParam):
+
+    bl_idname = 'uvpackmaster3.stack_group_reset_iparam'
+    bl_label = 'Unset Stack Groups'
+    bl_description = "Unset the stack group assignment for the selected islands (the islands will not belong to any group)"
+
+
+class UVPM3_OT_StackGroupSelectIParam(UVPM3_OT_StackGroupIParamGeneric, UVPM3_OT_SelectIParam):
+
+    select : BoolProperty(name='', default=True)
+    
+    bl_idname = 'uvpackmaster3.stack_group_select_iparam'
+    bl_label = 'Select Islands Assigned To Stack Group'
+    bl_description = "Select / deselect all islands which are assigned to the stack group determined by the '{}' parameter".format(Labels.LOCK_GROUP_NUM_NAME)
+
+
+class UVPM3_OT_StackGroupSelectNonDefaultIParam(UVPM3_OT_StackGroupIParamGeneric, UVPM3_OT_SelectNonDefaultIParam):
+
+    select : BoolProperty(name='', default=True)
+    
+    bl_idname = 'uvpackmaster3.stack_group_select_non_default_iparam'
+    bl_label = 'Select All Stack Groups'
+    bl_description = "Select all islands which are assigned to any stack group"
+
 
 # ALIGN PRIORITY
 
@@ -560,6 +614,50 @@ class IParamEditUI:
         row.operator(self.impl_set_iparam_operator().bl_idname)
 
         col.separator()
+        row = col.row(align=True)
+        row.operator(self.impl_reset_iparam_operator().bl_idname)
+
+        row = col.row(align=True)
+        row.operator(self.impl_show_iparam_operator().bl_idname)
+
+
+class GroupIParamEditUI(IParamEditUI):
+
+    def impl_select_iparam_operator(self):
+
+        return self.operator_class('SelectIParam')
+
+    def impl_set_free_iparam_operator(self):
+
+        return self.operator_class('SetFreeIParam')
+
+    def draw(self, layout):
+
+        col = layout.column(align=True)
+
+        row = col.row(align=True)
+        row.prop(self.scene_props, self.impl_iparam_value_prop_name())
+
+        if self.HELP_URL_SUFFIX is not None:
+            help_op = row.operator(UVPM3_OT_Help.bl_idname, icon='HELP', text='')
+            help_op.url_suffix = self.HELP_URL_SUFFIX
+
+        row = col.row(align=True)
+        row.operator(self.impl_set_iparam_operator().bl_idname)
+
+        row = col.row(align=True)
+        row.operator(self.impl_set_free_iparam_operator().bl_idname)
+        
+        col.separator()
+
+        col.label(text="Select islands assigned to the {}:".format(self.operator_class('IParamGeneric')().get_iparam_info().LABEL.lower()))
+        row = col.row(align=True)
+
+        op = row.operator(self.impl_select_iparam_operator().bl_idname, text="Select")
+        op.select = True
+        op = row.operator(self.impl_select_iparam_operator().bl_idname, text="Deselect")
+        op.select = False
+
         row = col.row(align=True)
         row.operator(self.impl_reset_iparam_operator().bl_idname)
 

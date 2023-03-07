@@ -328,6 +328,9 @@ class UVPM3_OT_LoadPresetBase(bpy.types.Operator):
         props_dict['orient_prim_sec_bias'] = PropConstants.ORIENT_PRIM_SEC_BIAS_DEFAULT
         props_dict['orient_to_3d_axes_space'] = UvpmCoordSpace.LOCAL.code
 
+    def translate_props_18to19(self, props_dict):
+        pass
+
     def translate_props(self, preset_version, props_dict):
 
         translate_array = [
@@ -337,7 +340,8 @@ class UVPM3_OT_LoadPresetBase(bpy.types.Operator):
             self.translate_props_14to15,
             self.translate_props_15to16,
             self.translate_props_16to17,
-            self.translate_props_17to18
+            self.translate_props_17to18,
+            self.translate_props_18to19
         ]
 
         for i in range(preset_version - UvpmVersionInfo.PRESET_VERSION_FIRST_SUPPORTED, len(translate_array)):

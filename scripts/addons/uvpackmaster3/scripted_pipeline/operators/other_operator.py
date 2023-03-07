@@ -17,6 +17,7 @@
 # ##### END GPL LICENSE BLOCK #####
 
 
+from ...enums import UvpmCoordSpace
 from ...operator import UVPM3_OT_Engine, ModeIdAttributeMixin
 from ...prefs_scripted_utils import ScriptParams
 
@@ -33,10 +34,10 @@ class UVPM3_OT_OrientTo3dSpace(UVPM3_OT_Engine):
         return True
     
     def send_verts_3d(self):
-        return True
+        return self.scene_props.orient_to_3d_axes_space == UvpmCoordSpace.LOCAL.code
 
-    def verts_3d_space(self):
-        return self.scene_props.orient_to_3d_axes_space
+    def send_verts_3d_global(self):
+        return self.scene_props.orient_to_3d_axes_space == UvpmCoordSpace.GLOBAL.code
 
     def setup_script_params(self):
 
@@ -46,7 +47,8 @@ class UVPM3_OT_OrientTo3dSpace(UVPM3_OT_Engine):
         script_params.add_param('prim_uv_axis', self.scene_props.orient_prim_uv_axis)
         script_params.add_param('sec_3d_axis', self.scene_props.orient_sec_3d_axis)
         script_params.add_param('sec_uv_axis', self.scene_props.orient_sec_uv_axis)
-
+        script_params.add_param('axes_space', self.scene_props.orient_to_3d_axes_space)
+        
         script_params.add_param('prim_sec_bias', self.scene_props.orient_prim_sec_bias)
 
         return script_params

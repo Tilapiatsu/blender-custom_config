@@ -244,6 +244,18 @@ class UVPM3_SceneProps(bpy.types.PropertyGroup):
         min=1,
         max=100)
 
+    stack_groups_enable : BoolProperty(
+        name=Labels.STACK_GROUPS_ENABLE_NAME,
+        description=Labels.STACK_GROUPS_ENABLE_DESC,
+        default=False)
+
+    stack_group_num : IntProperty(
+        name=Labels.STACK_GROUP_NUM_NAME,
+        description=Labels.STACK_GROUP_NUM_DESC,
+        default=1,
+        min=1,
+        max=100)
+
     use_blender_tile_grid : BoolProperty(
         name=Labels.USE_BLENDER_TILE_GRID_NAME,
         description=Labels.USE_BLENDER_TILE_GRID_DESC,

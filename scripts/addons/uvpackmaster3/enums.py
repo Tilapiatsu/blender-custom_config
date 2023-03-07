@@ -236,6 +236,7 @@ class UvpmCoordSpace:
 class UvpmMapSerializationFlags:
     CONTAINS_FLAGS = 1
     CONTAINS_VERTS_3D = 2
+    CONTAINS_VERTS_3D_GLOBAL = 4
 
 class UvpmFaceInputFlags:
     SELECTED = 1

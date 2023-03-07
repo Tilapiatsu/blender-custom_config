@@ -94,13 +94,12 @@ class UVPM3_PT_PackOptions(UVPM3_PT_SubPanel):
         row = box.row()
         self.handle_prop(self.scene_props, "fixed_scale", fs_supported, fs_not_supported_msg, row)
 
-        # box = col.box()
-        col2 = box.column()
-        col2.enabled = self.prefs.fixed_scale_enabled(self.scene_props)
-        col2.label(text=Labels.FIXED_SCALE_STRATEGY_NAME + ':')
-
-        row = col2.row(align=True)
-        row.prop(self.scene_props, "fixed_scale_strategy", text='')
+        # Fixed Scale Strategy
+        if self.prefs.fixed_scale_enabled(self.scene_props):
+            col2 = box.column()
+            col2.label(text=Labels.FIXED_SCALE_STRATEGY_NAME + ':')
+            row = col2.row(align=True)
+            row.prop(self.scene_props, "fixed_scale_strategy", text='')
 
         # Normalize islands
         box = col.box()
@@ -195,46 +194,38 @@ class UVPM3_PT_LockOverlapping(UVPM3_PT_SubPanel):
         self.draw_enum_in_box(self.scene_props, "lock_overlapping_mode", Labels.LOCK_OVERLAPPING_MODE_NAME, col, self.HELP_URL_SUFFIX)
         
 
-class UVPM3_PT_LockGroups(UVPM3_PT_SubPanel):
+class LockGroupIParamEditUI(GroupIParamEditUI):
+
+    HELP_URL_SUFFIX = '20-packing-functionalities/50-lock-overlapping#lock-groups'
+    OPERATOR_PREFIX = 'LockGroup'
+    ENABLED_PROP_NAME = 'lock_groups_enable'
+
+
+class UVPM3_PT_LockGroups(UVPM3_PT_IParamEdit):
 
     bl_idname = 'UVPM3_PT_LockGroups'
     bl_label = 'Lock Groups'
     bl_options = {'DEFAULT_CLOSED'}
 
     PANEL_PRIORITY = 4500
-    HELP_URL_SUFFIX = '20-packing-functionalities/50-lock-overlapping#lock-groups'
+    IPARAM_EDIT_UI = LockGroupIParamEditUI
 
-    def get_main_property(self):
-        return 'lock_groups_enable'
 
-    def draw_impl(self, context):
-        layout = self.layout
+class StackGroupIParamEditUI(GroupIParamEditUI):
 
-        col = layout.column(align=True)
+    HELP_URL_SUFFIX = '20-packing-functionalities/55-stack-groups'
+    OPERATOR_PREFIX = 'StackGroup'
+    ENABLED_PROP_NAME = 'stack_groups_enable'
 
-        self.prop_with_help(self.scene_props, "lock_group_num", col)
 
-        row = col.row(align=True)
-        row.operator(UVPM3_OT_SetLockGroupIParam.bl_idname)
+class UVPM3_PT_StackGroups(UVPM3_PT_IParamEdit):
 
-        row = col.row(align=True)
-        row.operator(UVPM3_OT_SetFreeLockGroupIParam.bl_idname)
-        
-        col.separator()
+    bl_idname = 'UVPM3_PT_StackGroups'
+    bl_label = 'Stack Groups'
+    bl_options = {'DEFAULT_CLOSED'}
 
-        col.label(text="Select islands assigned to the lock group:")
-        row = col.row(align=True)
-
-        op = row.operator(UVPM3_OT_SelectLockGroupIParam.bl_idname, text="Select")
-        op.select = True
-        op = row.operator(UVPM3_OT_SelectLockGroupIParam.bl_idname, text="Deselect")
-        op.select = False
-
-        row = col.row(align=True)
-        row.operator(UVPM3_OT_ResetLockGroupIParam.bl_idname)
-
-        row = col.row(align=True)
-        row.operator(UVPM3_OT_ShowLockGroupIParam.bl_idname)
+    PANEL_PRIORITY = 4700
+    IPARAM_EDIT_UI = StackGroupIParamEditUI
 
 
 class UVPM3_PT_NonSquarePacking(UVPM3_PT_SubPanel):

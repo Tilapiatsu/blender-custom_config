@@ -233,7 +233,20 @@ class LockGroupIParamInfo(GroupIParamInfoGeneric):
 
     VALUE_PROP_NAME = 'lock_group_num'
 
-    
+
+class StackGroupIParamInfo(GroupIParamInfoGeneric):
+
+    TEXT_TYPE = int
+    LABEL = 'Stack Group'
+    SCRIPT_NAME = 'stack_group'
+
+    MIN_VALUE = 0
+    MAX_VALUE = 100
+    DEFAULT_VALUE = MIN_VALUE
+    DEFAULT_VALUE_TEXT = 'N'
+
+    VALUE_PROP_NAME = 'stack_group_num'
+
 
 class AlignPriorityIParamInfo(GroupIParamInfoGeneric):
 

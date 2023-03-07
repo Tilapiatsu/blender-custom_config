@@ -555,13 +555,7 @@ class PackContext:
         assert(iparam_info.index() == param_index)
         return iparam_info
 
-    def get_vert_3d_lambda(self, verts_3d_space):
-        if verts_3d_space == UvpmCoordSpace.LOCAL.code:
-            return lambda p_obj, loop: loop.vert.co
-        elif verts_3d_space == UvpmCoordSpace.GLOBAL.code:
-            return lambda p_obj, loop: p_obj.obj.matrix_world @ loop.vert.co
-
-    def serialize_uv_maps(self, send_unselected, send_verts_3d, verts_3d_space, iparam_serializers):
+    def serialize_uv_maps(self, send_unselected, send_verts_3d, send_verts_3d_global, iparam_serializers):
 
         serialize_start = time.time()
         serialized_maps = bytes()
@@ -579,10 +573,12 @@ class PackContext:
             face_flags_array = []
 
         if send_verts_3d:
-
             serialization_flags |= UvpmMapSerializationFlags.CONTAINS_VERTS_3D
             verts_3d_array = []
-            get_vert_3d = self.get_vert_3d_lambda(verts_3d_space)
+
+        if send_verts_3d_global:
+            serialization_flags |= UvpmMapSerializationFlags.CONTAINS_VERTS_3D_GLOBAL
+            verts_3d_global_array = []
 
         for idx, ip_serializer in enumerate(iparam_serializers):
 
@@ -624,10 +620,16 @@ class PackContext:
                     vert_idx_array.append(loop.vert.index + p_obj.vert_idx_offset)
 
                     if send_verts_3d:
-                        vert_3d = get_vert_3d(p_obj, loop)
+                        vert_3d = loop.vert.co
                         verts_3d_array.append(vert_3d.x)
                         verts_3d_array.append(vert_3d.y)
                         verts_3d_array.append(vert_3d.z)
+
+                    if send_verts_3d_global:
+                        vert_3d = p_obj.obj.matrix_world @ loop.vert.co
+                        verts_3d_global_array.append(vert_3d.x)
+                        verts_3d_global_array.append(vert_3d.y)
+                        verts_3d_global_array.append(vert_3d.z)
 
         serialized_maps += struct.pack('i', serialization_flags)
         serialized_maps += struct.pack('i', int(len(face_id_len_array) / 2))
@@ -638,6 +640,9 @@ class PackContext:
 
         if (serialization_flags & UvpmMapSerializationFlags.CONTAINS_VERTS_3D) > 0:
             serialized_maps += struct.pack('f' * len(verts_3d_array), *verts_3d_array)
+
+        if (serialization_flags & UvpmMapSerializationFlags.CONTAINS_VERTS_3D_GLOBAL) > 0:
+            serialized_maps += struct.pack('f' * len(verts_3d_global_array), *verts_3d_global_array)
 
         if (serialization_flags & UvpmMapSerializationFlags.CONTAINS_FLAGS) > 0:
             serialized_maps += struct.pack('i' * len(face_flags_array), *face_flags_array)

@@ -73,7 +73,7 @@ class Labels:
     FIXED_SCALE_STRATEGY_NAME='Fixed Scale Strategy'
     FIXED_SCALE_STRATEGY_DESC="Determines how islands are packed when 'Fixed Scale' is on (no scaling is applied to islands)"
 
-    ROTATION_STEP_NAME='Rotation Step'
+    ROTATION_STEP_NAME='Rotation Step (deg)'
     ROTATION_STEP_DESC="Rotation step (in degrees) to use when generating island orientations which will be considered during packing"
 
     ISLAND_ROT_STEP_ENABLE_NAME='Enable Island Rotation Step'
@@ -162,6 +162,12 @@ class Labels:
 
     LOCK_GROUP_NUM_NAME="Lock Group Number"
     LOCK_GROUP_NUM_DESC="Lock group number to be assigned to the selected islands"
+
+    STACK_GROUPS_ENABLE_NAME='Enable Stack Groups'
+    STACK_GROUPS_ENABLE_DESC=""
+
+    STACK_GROUP_NUM_NAME="Stack Group Number"
+    STACK_GROUP_NUM_DESC="Stack group number to be assigned to the selected islands"
 
     USE_BLENDER_TILE_GRID_NAME="Use Blender UDIM Grid"
     USE_BLENDER_TILE_GRID_DESC="If enabled, the tile grid shape is determined by the Blender UV editor settings (N-panel / View tab). Otherwise, the shape is configured using the properties below"

@@ -211,3 +211,7 @@ class ScriptParams:
             print_debug('Script params: {}'.format(self.param_dict))
 
         return encode_string(json.dumps(self.param_dict))
+
+    def __iadd__(self, other):
+        self.param_dict.update(other.param_dict)
+        return self

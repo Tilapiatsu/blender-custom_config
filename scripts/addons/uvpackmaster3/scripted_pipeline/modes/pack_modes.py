@@ -22,12 +22,13 @@ from ...mode import UVPM3_Mode_Main, UVPM3_ModeCategory_Packing, OperatorMetadat
 from ..operators.pack_operator import UVPM3_OT_Pack
 from ...box import DEFAULT_TARGET_BOX
 from ...box_utils import BoxRenderer, BoxArrayRenderAccess, CustomTargetBoxAccess
-from ...island_params import ScaleLimitIParamInfo, VColorIParamSerializer, RotStepIParamInfo, LockGroupIParamInfo
+from ...island_params import ScaleLimitIParamInfo, VColorIParamSerializer, RotStepIParamInfo, LockGroupIParamInfo, StackGroupIParamInfo
 from ...utils import get_active_image_ratio, in_debug_mode
 from ...enums import TexelDensityGroupPolicy, GroupLayoutMode
 from ...labels import Labels
 from ...panel import UVPM3_PT_Generic
 from ...operator_misc import UVPM3_MT_SetRotStepGroup, UVPM3_MT_SetPixelMarginTexSizeGroup
+from .align_mode import SimilarityDriver
 
 
 from ..panels.pack_panels import (
@@ -41,6 +42,7 @@ from ..panels.pack_panels import (
         UVPM3_PT_IslandScaleLimit,
         UVPM3_PT_LockOverlapping,
         UVPM3_PT_LockGroups,
+        UVPM3_PT_StackGroups,
         UVPM3_PT_Statistics,
         UVPM3_PT_Help
     )
@@ -52,6 +54,9 @@ class UVPM3_Mode_Pack(UVPM3_Mode_Main):
     MODE_CATEGORY = UVPM3_ModeCategory_Packing
     OPERATOR_IDNAME = UVPM3_OT_Pack.bl_idname
 
+    def __init__(self, context):
+        super().__init__(context)
+        self.simi_driver = SimilarityDriver(self.scene_props)
 
     def operators(self):
 
@@ -68,6 +73,7 @@ class UVPM3_Mode_Pack(UVPM3_Mode_Main):
         output.append(UVPM3_PT_Heuristic.bl_idname)
         output.append(UVPM3_PT_LockOverlapping.bl_idname)
         output.append(UVPM3_PT_LockGroups.bl_idname)
+        output.append(UVPM3_PT_StackGroups.bl_idname)
         output.append(UVPM3_PT_NonSquarePacking.bl_idname)
 
         if self.use_main_target_box():
@@ -138,29 +144,35 @@ class UVPM3_Mode_Pack(UVPM3_Mode_Main):
         return BoxRenderer(self.context, box_access)
 
     def validate_params(self):
- 
         pass
-        # if self.grouping_enabled():
 
-        #     if self.get_group_method() == GroupingMethod.SIMILARITY.code:
-        #         if self.prefs.pack_to_others_enabled(self.scene_props):
-        #             raise RuntimeError("'Pack To Others' is not supported with grouping by similarity")
-
-        #         if not self.scene_props.rotation_enable:
-        #             raise RuntimeError("Island rotations must be enabled in order to group by similarity")
-
-        #         if self.scene_props.pre_rotation_disable:
-        #             raise RuntimeError("'Pre-Rotation Disable' option must be off in order to group by similarity")
+    def use_similarity_driver(self):
+        return self.simi_driver.stack_groups_enabled()
 
     def send_verts_3d(self):
+        ret = self.prefs.normalize_islands_enabled(self.scene_props)
 
-        return self.prefs.normalize_islands_enabled(self.scene_props)
+        if self.use_similarity_driver():
+            ret |= self.simi_driver.send_verts_3d()
+
+        return ret
+
+    def send_verts_3d_global(self):
+        ret = False
+
+        if self.use_similarity_driver():
+            ret |= self.simi_driver.send_verts_3d_global()
+
+        return ret
 
     def setup_script_params(self):
 
         self.validate_params()
 
         script_params = ScriptParams()
+
+        if self.use_similarity_driver():
+            script_params += self.simi_driver.setup_script_params()
 
         script_params.add_param('precision', self.scene_props.precision)
         script_params.add_param('margin', self.scene_props.margin)
@@ -208,7 +220,7 @@ class UVPM3_Mode_Pack(UVPM3_Mode_Main):
             script_params.add_param('scale_limit_iparam_name', ScaleLimitIParamInfo.SCRIPT_NAME)
 
         if self.lock_groups_enabled():
-            script_params.add_param('lock_groups_enable', True)
+            script_params.add_param('lock_group_iparam_name', LockGroupIParamInfo.SCRIPT_NAME)
         
         if self.prefs.pack_ratio_enabled(self.scene_props):
             pack_ratio = get_active_image_ratio(self.context)
@@ -233,6 +245,9 @@ class UVPM3_Mode_Pack(UVPM3_Mode_Main):
 
         output = []
 
+        if self.use_similarity_driver():
+            output += self.simi_driver.get_iparam_serializers()
+
         if self.island_rot_step_enabled():
             output.append(VColorIParamSerializer(RotStepIParamInfo()))
 
@@ -242,8 +257,8 @@ class UVPM3_Mode_Pack(UVPM3_Mode_Main):
         if self.lock_groups_enabled():
             output.append(VColorIParamSerializer(LockGroupIParamInfo()))
 
-        return output
 
+        return output
 
 
 class UVPM3_Mode_SingleTile(UVPM3_Mode_Pack):

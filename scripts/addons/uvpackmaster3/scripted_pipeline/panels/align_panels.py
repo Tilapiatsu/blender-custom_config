@@ -80,5 +80,5 @@ class UVPM3_PT_AlignPriority(UVPM3_PT_IParamEdit):
     bl_label = 'Align Priority'
     # bl_options = {'DEFAULT_CLOSED'}
 
-    PANEL_PRIORITY = 7000
+    PANEL_PRIORITY = 3000
     IPARAM_EDIT_UI = AlignPriorityIParamEditUI

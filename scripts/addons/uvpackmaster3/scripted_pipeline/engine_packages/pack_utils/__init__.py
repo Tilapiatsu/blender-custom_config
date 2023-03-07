@@ -12,6 +12,7 @@ from uvpm_core import (packer,
                      append_ret_codes,
                      raise_InvalidTopologyExtendedError)
 from scripted_pipeline import TO_ENUM, GenericScenario
+from similarity_utils import SimilarityScenario
 from utils import flag_islands, box_from_coords, eprint, area_to_string
 
 from .pack_manager import PackManager
@@ -29,6 +30,11 @@ NO_SIUTABLE_DEVICE_STATUS_MSG = "No suitable packing device."
 NO_SIUTABLE_DEVICE_ERROR_MSG_ARRAY = [
     "No suitable packing device to perform the operation.",
     "Make sure that you have at least one packing device enabled in Preferences."
+]
+
+CORRECT_VERTICES_WARNING_MSG_ARRAY = [
+    "Similarity option Correct Vertices is ignored when packing with stack groups.",
+    "Read stack groups documentation for more info."
 ]
 
 
@@ -49,7 +55,12 @@ def merge_overlapping_islands(input_islands, overlapping_mode, iparam_desc):
 
 class PackScenario(GenericScenario):
 
-    LOCK_GROUP_IPARAM_NAME = 'lock_group'
+    def __init__(self, cx):
+        super().__init__(cx)
+
+        self.simi_scenario = None
+        if 'simi_params' in self.cx.params:
+            self.simi_scenario = SimilarityScenario(self.cx)
 
     def apply_pack_ratio_to_islands(self, islands):
 
@@ -100,6 +111,9 @@ class PackScenario(GenericScenario):
 
     def pre_run(self):
 
+        if self.simi_scenario:
+            self.simi_scenario.pre_run()
+
         self.pack_ratio = self.cx.params.get('__pack_ratio', 1.0)
 
         selected_islands = self.apply_pack_ratio_to_islands(self.cx.selected_islands)
@@ -133,8 +147,50 @@ class PackScenario(GenericScenario):
                 
         self.islands_to_pack = selected_islands
 
+        lock_group_iparam_desc = None
+        lock_group_iparam_name = self.cx.params['lock_group_iparam_name']
+        if lock_group_iparam_name is not None:
+            lock_group_iparam_desc = self.iparams_manager.iparam_desc(lock_group_iparam_name)
+
+        if self.simi_scenario and self.simi_scenario.stack_group_iparam_desc:
+            packer.send_log(LogType.STATUS, "Stack groups aligning...")
+
+            if self.simi_scenario.is_vertex_based() and self.simi_scenario.simi_params.correct_vertices:
+                for msg in CORRECT_VERTICES_WARNING_MSG_ARRAY:
+                    packer.send_log(LogType.WARNING, msg)
+
+                self.simi_scenario.simi_params.correct_vertices = False
+
+            (aligned_groups, non_aligned_islands) = self.simi_scenario.align_similar_by_stack_group(self.islands_to_pack)
+
+            lock_groups = None
+            if lock_group_iparam_desc:
+                lock_groups = self.islands_to_pack.split_by_iparam(lock_group_iparam_desc)
+            else:
+                # Use stack group iparam for lock group
+                lock_group_iparam_desc = self.simi_scenario.stack_group_iparam_desc
+
+            curr_lock_val = lock_group_iparam_desc.max_value
+            for group in aligned_groups:
+                while lock_groups and (curr_lock_val in lock_groups):
+                    curr_lock_val -= 1
+                    
+                if curr_lock_val <= lock_group_iparam_desc.default_value:
+                        raise RuntimeError('Not enough lock groups')
+
+                for island in group:
+                    island.set_iparam(lock_group_iparam_desc, curr_lock_val)
+                curr_lock_val -= 1
+
+            if lock_groups is None:
+                for island in non_aligned_islands:
+                    island.set_iparam(lock_group_iparam_desc, lock_group_iparam_desc.default_value)
+
+            self.islands_to_pack = non_aligned_islands
+            for group in aligned_groups:
+                self.islands_to_pack += group
+                    
         lock_overlapping_mode = TO_ENUM(LockOverlappingMode, self.cx.params['lock_overlapping_mode'], LockOverlappingMode.DISABLED)
-        lock_group_iparam_desc = self.iparams_manager.iparam_desc(self.LOCK_GROUP_IPARAM_NAME) if self.cx.params['lock_groups_enable'] else None
         locking_enabled = (lock_overlapping_mode != LockOverlappingMode.DISABLED) or (lock_group_iparam_desc is not None)
 
         if locking_enabled:
