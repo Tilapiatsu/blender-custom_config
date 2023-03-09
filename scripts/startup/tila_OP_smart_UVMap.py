@@ -21,7 +21,10 @@ class TILA_UVMap_Add(bpy.types.Operator):
 
     def invoke(self, context, event):
 
-        self.name = context.active_object.data.uv_layers.active.name
+        if context.active_object.data.uv_layers.active is not None:
+            self.name = context.active_object.data.uv_layers.active.name
+        else:
+            self.name = 'UVMap'
 
         wm = context.window_manager
         return wm.invoke_props_dialog(self)
@@ -63,6 +66,45 @@ class TILA_UVMap_Remove(bpy.types.Operator):
 
         return {'FINISHED'}
 
+class TILA_UVMap_Rename(bpy.types.Operator):
+    bl_idname = "object.tila_uvmap_rename"
+    bl_label = "TILA: Rename UV Map on All Selected Mesh Object"
+    bl_options = {'REGISTER', 'UNDO'}
+
+    name : bpy.props.StringProperty(name='Name', default='UVMap')
+
+    compatible_type = ['MESH']
+
+    def invoke(self, context, event):
+
+        if context.active_object.data.uv_layers.active is None:
+            self.report({'INFO'}, 'TILA Rename UV Map : Select at least one UV Map')
+            return {'CANCELLED'}
+        
+        self.old_name = context.active_object.data.uv_layers.active.name
+        self.name = context.active_object.data.uv_layers.active.name
+
+        wm = context.window_manager
+        return wm.invoke_props_dialog(self)
+
+    def execute(self, context):
+        self.object_to_process = [o for o in bpy.context.selected_objects if o.type in self.compatible_type]
+
+        for o in self.object_to_process:
+            if self.old_name not in o.data.uv_layers:
+                continue
+
+            o.data.uv_layers[self.old_name].name = self.name
+
+        return {'FINISHED'}
+    
+    def draw(self, context):
+        layout = self.layout
+
+        column = layout.column()
+
+        column.prop(self, "name")
+    
 class TILA_UVMap_SetActive(bpy.types.Operator):
     bl_idname = "object.tila_uvmap_set_active"
     bl_label = "TILA: Set UV Map Active on All Selected Mesh Object"
@@ -97,7 +139,11 @@ class TILA_UVMap_Move(bpy.types.Operator):
         self.uv_layer_name = context.active_object.data.uv_layers.active.name
 
         self.object_to_process = [o for o in bpy.context.selected_objects if o.type in self.compatible_type]
+
         for o in self.object_to_process:
+            if self.uv_layer_name not in o.data.uv_layers:
+                continue
+
             self.move(o)
 
         return {'FINISHED'}
@@ -165,6 +211,7 @@ class TILA_UVMap_Move(bpy.types.Operator):
 def menu_draw(self, context):
     layout = self.layout
     layout.operator("object.tila_uvmap_set_active", text='Set Active', icon='CHECKMARK')
+    layout.operator("object.tila_uvmap_rename", text='Rename', icon='FONT_DATA')
     row = layout.row()
     column = row.column()
     column.operator("object.tila_uvmap_add", text='Add', icon='ADD')
@@ -173,7 +220,7 @@ def menu_draw(self, context):
     column.operator("object.tila_uvmap_move", icon='TRIA_UP', text='Move Up').direction='UP'
     column.operator("object.tila_uvmap_move", icon='TRIA_DOWN', text='Move Down').direction='DOWN'
 
-classes = (TILA_UVMap_Add, TILA_UVMap_Remove, TILA_UVMap_SetActive, TILA_UVMap_Move)
+classes = (TILA_UVMap_Add, TILA_UVMap_Rename, TILA_UVMap_Remove, TILA_UVMap_SetActive, TILA_UVMap_Move)
 
 def register():
     for c in classes:
