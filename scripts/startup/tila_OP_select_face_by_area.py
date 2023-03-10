@@ -1,6 +1,15 @@
 import bpy
 import bmesh
 
+bl_info = {
+    "name": "Tila : Select Face by Area",
+    "author": "Tilapiatsu",
+    "version": (1, 0, 0, 0),
+    "blender": (2, 80, 0),
+    "location": "View3D",
+    "category": "Mesh",
+}
+
 class TILA_SelectFaceByAreaOperator(bpy.types.Operator):
     """Select all faces with area between min and max thresholds"""
     bl_idname = "mesh.select_face_by_area"
