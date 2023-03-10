@@ -20,16 +20,16 @@ class TILA_SelectFaceByAreaOperator(bpy.types.Operator):
         min=0.0,
         description="Select Faces with area below this Threshold"
     )
-    def invoke(self, context, event):
-        self.obj = context.edit_object
-        if self.obj is None or self.obj.type != 'MESH':
+
+    selection_mode: bpy.props.EnumProperty(items=[("ADD", "Add", ""), ("REMOVE", "Remove", ""), ("REPLACE", "Replace", "")])
+        
+    def execute(self, context):
+        obj = context.edit_object
+        if obj is None or obj.type != 'MESH':
             self.report({'ERROR'}, "Active object is not a mesh")
             return {'CANCELLED'}
         
-        return self.execute(context)
-        
-    def execute(self, context):
-        mesh = self.obj.data
+        mesh = obj.data
         
         # Create a bmesh from the mesh
         bm = bmesh.from_edit_mesh(mesh)
@@ -37,8 +37,17 @@ class TILA_SelectFaceByAreaOperator(bpy.types.Operator):
         # Loop through the faces and select those with area between the thresholds
         for face in bm.faces:
             area = face.calc_area()
-            if self.min_threshold <= area <= self.max_threshold:
-                face.select = True
+            if self.selection_mode == 'ADD':
+                if self.min_threshold <= area <= self.max_threshold:
+                    face.select = True
+            elif self.selection_mode == 'REMOVE':
+                if self.min_threshold <= area <= self.max_threshold:
+                    face.select  = False
+            elif self.selection_mode == 'REPLACE':
+                if self.min_threshold <= area <= self.max_threshold:
+                    face.select = True
+                else:
+                    face.select = False
         
         # Update the mesh with the selected faces
         bmesh.update_edit_mesh(mesh)        
