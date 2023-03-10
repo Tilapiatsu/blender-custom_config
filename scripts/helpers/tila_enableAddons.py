@@ -86,6 +86,7 @@ modules =   (
 			'mesh_restoresymmetry',
             'surface_inflate',
 	    	'Pro_Aligner',
+		    'UnwrapMe',
 			# 'lineup_maker',
 			'Tila_Config'
 			)
