@@ -30,7 +30,7 @@ class TILA_SelectFaceByAreaOperator(bpy.types.Operator):
         description="Select Faces with area below this Threshold"
     )
 
-    selection_mode: bpy.props.EnumProperty(items=[("ADD", "Add", ""), ("REMOVE", "Remove", ""), ("REPLACE", "Replace", "")])
+    selection_mode: bpy.props.EnumProperty(items=[("ADD", "Add", ""), ("REMOVE", "Remove", ""), ("REPLACE", "Replace", ""), ("INTERSECT", "Intersect", "")])
         
     def execute(self, context):
         obj = context.edit_object
@@ -57,6 +57,12 @@ class TILA_SelectFaceByAreaOperator(bpy.types.Operator):
                     face.select = True
                 else:
                     face.select = False
+            elif self.selection_mode == 'INTERSECT':
+                if face.select == True:
+                    if self.min_threshold <= area <= self.max_threshold:
+                        pass
+                    else:
+                        face.select = False
         
         # Update the mesh with the selected faces
         bmesh.update_edit_mesh(mesh)        
@@ -66,8 +72,21 @@ classes = (
 	TILA_SelectFaceByAreaOperator,
 )
 
+def menu_func(self, context):
+    self.layout.separator()
+    self.layout.operator(TILA_SelectFaceByAreaOperator.bl_idname, text="Select Face by Area")
 
-register, unregister = bpy.utils.register_classes_factory(classes)
+# register, unregister = bpy.utils.register_classes_factory(classes)
+
+def register():
+	for cl in classes:
+		bpy.utils.register_class(cl)
+	bpy.types.VIEW3D_MT_select_edit_mesh.append(menu_func)  # Adds the new operator to an existing menu.
+        
+def unregister():
+	for cl in classes:
+		bpy.utils.unregister_class(cl)
+	bpy.types.VIEW3D_MT_select_edit_mesh.remove(menu_func)  # Adds the new operator to an existing menu.
 
 if __name__ == "__main__":
     register()
