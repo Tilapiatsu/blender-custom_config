@@ -346,3 +346,6 @@
 [submodule "scripts/GIT/JD-Miter-Box"]
 	path = scripts/GIT/JD-Miter-Box
 	url = https://github.com/JohnKazucki/JD-Miter-Box.git
+[submodule "scripts/addons/wiggle"]
+	path = scripts/addons/wiggle
+	url = https://github.com/shteeve3d/blender-wiggle-2.git
