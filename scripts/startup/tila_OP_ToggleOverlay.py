@@ -20,7 +20,7 @@ class TILA_ToggleOverlay(bpy.types.Operator):
     soft_parameters=['show_annotation',
                      'show_extras',
                      'show_bones',
-                     'show_relationship_lines',
+                    #  'show_relationship_lines',
                      'show_motion_paths',
                      'show_outline_selected',
                      'show_object_origins',
