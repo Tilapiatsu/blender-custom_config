@@ -27,6 +27,7 @@ class TILA_smart_editmode(bpy.types.Operator):
     use_expand : bpy.props.BoolProperty(name='use_expand', default=False)
     get_border : bpy.props.BoolProperty(name='get_border', default=False)
     alt_mode : bpy.props.BoolProperty(name='alt_mode', default=False)
+    toggle_mode : bpy.props.BoolProperty(name='toggle_mode', default=False)
 
     mesh_mode = ['VERT', 'EDGE', 'FACE']
     gpencil_mode = ['POINT', 'STROKE', 'SEGMENT']
@@ -42,13 +43,13 @@ class TILA_smart_editmode(bpy.types.Operator):
 
     def invoke(self, context, event):
         def switch_mesh_mode(self, current_mode):
-            if self.mesh_mode[self.mode] == current_mode:
+            if self.mesh_mode[self.mode] == current_mode and self.toggle_mode:
                 bpy.ops.object.editmode_toggle()
             else:
                 bpy.ops.mesh.select_mode(use_extend=self.use_extend, use_expand=self.use_expand, type=self.mesh_mode[self.mode])
 
         def switch_gpencil_mode(self, current_mode):
-            if self.gpencil_mode[self.mode] == current_mode:
+            if self.gpencil_mode[self.mode] == current_mode and self.toggle_mode:
                 bpy.ops.gpencil.editmode_toggle()
             else:
                 bpy.context.scene.tool_settings.gpencil_selectmode_edit = self.gpencil_mode[self.mode]
