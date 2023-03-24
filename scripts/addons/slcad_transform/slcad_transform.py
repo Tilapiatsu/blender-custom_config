@@ -64,6 +64,7 @@ from .slcad_snap import (
 
 ZERO = Vector()
 
+
 DEBUG_DRAW_GL = False  # bpy.app.version >= (2, 91, 0)
 
 
@@ -96,6 +97,7 @@ config.dictConfig({
 })
 
 slcadsnap = SlCadSnap()
+
 
 # draw flags
 DRAW_SNAP = 1
@@ -137,14 +139,6 @@ C_USER = 4
 C_EDGE = 8
 C_NORMAL = 16
 C_SCREEN = 32
-
-
-# wtf ???
-if bpy.app.version >= (2, 93, 0):
-    KEYCONFIG_NAME = "Blender"
-else:
-    KEYCONFIG_NAME = "blender"
-
 
 
 class IconsManager:
@@ -214,10 +208,6 @@ default_keymap = {
     "INVERT_CONSTRAINT": ("I", "Invert constraint direction"),
     "DUPLICATE": ("D", "Duplicate"),
     "WORLD_CONSTRAINT": ("C", "Constraint world", False, False, True)
-    # it is still not possible to define actions shortcuts
-    # "MOVE": ("G", "Move"),
-    # "ROTATE": ("R", "Rotate"),
-    # "SCALE": ("S", "Scale")
 }
 
 
@@ -1048,9 +1038,39 @@ def header_draw(self, context):
     layout.label(text="Round small", icon="EVENT_SHIFT")
 
 
+def draw_shortcut(layout, text, item, use_row=False):
+    row = layout
+    if use_row:
+        row = layout.row(align=True)
+    key = item.type
+    if item.ctrl:
+        row.label(text="", icon="EVENT_CTRL")
+    if item.alt:
+        row.label(text="", icon="EVENT_ALT")
+    if item.shift:
+        row.label(text="", icon="EVENT_SHIFT")
+    if key in SLCAD_keymap._keyboard_numbers:
+        icon = icon_man.icons["KEY_%s" % SLCAD_keymap._keyboard_numbers[key]].icon_id
+        row.label(text=text, icon_value=icon)
+    else:
+        icons = bpy.types.UILayout.bl_rna.functions["prop"].parameters["icon"].enum_items.keys()
+        icon = 'BLANK1'
+        if "EVENT_%s" % key in icons:
+            icon = "EVENT_%s" % key
+        else:
+            text = "%s (%s)" % (text, key)
+        row.label(text=text, icon=icon)
+
+
 def draw_settings(context, layout, tool):
     prefs = context.preferences.addons[__package__].preferences
-    km = context.window_manager.keyconfigs["%s addon" % KEYCONFIG_NAME].keymaps['3D View Tool: Cad Transform'].keymap_items
+
+    # '3D View Tool: Object, CAD Transform 0.93.0'
+    km = [
+        k.keymap_items for k in context.window_manager.keyconfigs.user.keymaps
+        if 'CAD Transform'in k.name
+    ][0]
+
     props = tool.operator_properties("slcad.translate")
     is_panel = context.region.type in {'UI', 'WINDOW'}
 
@@ -1071,13 +1091,10 @@ def draw_settings(context, layout, tool):
     if prefs.display_shortcuts or not is_panel:
         layout.separator()
         layout.label(text="Tools:")
-        # prefs.keymap.get("MOVE").draw(layout, use_row=True)
-        # prefs.keymap.get("ROTATE").draw(layout, use_row=True)
-        # prefs.keymap.get("SCALE").draw(layout, use_row=True)
-        # @TODO WARNING ! this fails with numerical keys
-        layout.label(text="Move", icon="EVENT_%s" % km['slcad.translate'].type)
-        layout.label(text="Rotate", icon="EVENT_%s" % km['slcad.rotate'].type)
-        layout.label(text="Scale", icon="EVENT_%s" % km['slcad.scale'].type)
+
+        draw_shortcut(layout, "Move", km['slcad.translate'], use_row=is_panel)
+        draw_shortcut(layout, "Rotate", km['slcad.rotate'], use_row=is_panel)
+        draw_shortcut(layout, "Scale", km['slcad.scale'], use_row=is_panel)
 
         if is_panel:
             layout.separator()
@@ -1096,6 +1113,7 @@ def draw_settings(context, layout, tool):
             row = layout.row(align=True)
             row.label(text="", icon="EVENT_ALT")
             row.label(text="Round small (hold)", icon="EVENT_SHIFT")
+
 
 
 class SLCAD_main:
@@ -1133,7 +1151,10 @@ class SLCAD_main:
         set=set_xray_ex
     )
     _copy = 0
-    _duplicates = []
+    _duplicates = {}
+
+    _is_running = False
+
     _last_run = 0
     _action = 0
     _snap_average = []
@@ -1195,6 +1216,7 @@ class SLCAD_main:
         "METERS": "m",
         "CENTIMETERS": "cm",
         "MILLIMETERS": "mm",
+        "MICROMETERS": "um",
         "KILOMETERS": "km",
         "ADAPTIVE": None,
         "MILES": "mi",
@@ -1242,6 +1264,7 @@ class SLCAD_main:
 
         self.change_header_draw(self._header_draw_backup)
         bpy.types.SpaceView3D.draw_handler_remove(self._handle, 'WINDOW')
+
         context.window.cursor_set("DEFAULT")
         overlay = context.space_data.overlay
         overlay.show_floor, overlay.show_axis_x, overlay.show_axis_y, overlay.show_ortho_grid = self._show_grid
@@ -1253,6 +1276,7 @@ class SLCAD_main:
         self._apply_edit_mode_changes(context)
         global _running
         _running = False
+        self._is_running = False
 
         # self.restore_modifiers(context.active_object)
         # self._modifiers.clear()
@@ -2311,6 +2335,12 @@ class SLCAD_main:
 
         logger.debug("Modal body start  %s %s" % (event.type, event.value))
 
+        # Allow viewport navigation in industry compatible keymap mode
+        # Prevent snap to values while dragging ..
+        if context.preferences.keymap.active_keyconfig == 'Industry_Compatible' and \
+            event.alt and event.type in {'LEFTMOUSE', 'RIGHTMOUSE', 'MIDDLEMOUSE'}:
+            return {'PASS_THROUGH'}
+
         if event.type in {'ESC', 'RIGHTMOUSE'} and event.value == "PRESS":
 
             if self._action & KEYBOARD:
@@ -2615,8 +2645,9 @@ class SLCAD_main:
 
         dist = delta.length
 
+        is_alt = context.preferences.keymap.active_keyconfig == 'Industry_Compatible' and event.ctrl or event.alt
         # Rounding
-        if event.alt and dist > 0:
+        if is_alt and dist > 0:
             slog = ceil(log10(dist))
             sfac = pow(10, slog)
             if event.shift:
@@ -2668,7 +2699,10 @@ class SLCAD_main:
     def _rotate(self, context, event, a, confirm):
         # Rounding
         angle = a
-        if event.alt:
+
+        is_alt = context.preferences.keymap.active_keyconfig == 'Industry_Compatible' and event.ctrl or event.alt
+
+        if is_alt:
             if event.shift:
                 step = 1.0
             else:
@@ -2712,7 +2746,9 @@ class SLCAD_main:
 
         direction = delta.normalized()
 
-        if event.alt:
+        is_alt = context.preferences.keymap.active_keyconfig == 'Industry_Compatible' and event.ctrl or event.alt
+
+        if is_alt:
             if prefs.absolute_scale:
                 if dist > 0:
                     slog = ceil(log10(dist))
@@ -2881,10 +2917,17 @@ class SLCAD_main:
             getattr(bpy.data, o.type.lower()).remove(d)
 
     def _duplicate_object(self, o):
-        dups = len(self._duplicates)
+
+        if o not in self._duplicates:
+            self._duplicates[o] = []
+
+        dups = len(self._duplicates[o])
+        if o not in self._duplicates:
+            self._duplicates[o] = []
+        dups = len(self._duplicates[o])
         for i in range(self._copy, dups):
-            if self._duplicates:
-                new_o = self._duplicates.pop()
+            if self._duplicates[o]:
+                new_o = self._duplicates[o].pop()
                 for coll in new_o.users_collection:
                     coll.objects.unlink(new_o)
                 self._clean_datablock(new_o, new_o.data)
@@ -2901,8 +2944,8 @@ class SLCAD_main:
                 for coll in o.users_collection:
                     if new_o.name not in coll:
                         coll.objects.link(new_o)
-                self._duplicates.append(new_o)
-        return self._duplicates
+                self._duplicates[o].append(new_o)
+        return self._duplicates[o]
 
     def _make_unique_obdata(self, o):
         """Make object unique as we can't apply object's transform on shared data
@@ -3209,36 +3252,19 @@ class SLCAD_OT_scale(SLCAD_main, Operator):
     _default_action = SCALE | PIVOT
 
 
-def update_shortcut(self, context):
-    if False and self.name in {'MOVE', 'ROTATE', 'SCALE'}:
-        keymap = context.preferences.addons[__package__].preferences.keymap
-        g = keymap.get("MOVE")
-        r = keymap.get("ROTATE")
-        s = keymap.get("SCALE")
-        if any([i is None for i in [g, r, s]]):
-            return
-        SLCAD_transform.bl_keymap = (
-            ("slcad.translate", {"type": g.key, "value": 'PRESS'}, None),  # , "ctrl": True},
-            ("slcad.rotate", {"type": r.key, "value": 'PRESS'}, None),
-            ("slcad.scale", {"type": s.key, "value": 'PRESS'}, None),
-        )
-        unregisterKeymaps()
-        registerKeymaps()
-
-
 class SLCAD_keymap(PropertyGroup):
     # event names for regular keyboard entry
     _keyboard_numbers = {
-        "ZERO",
-        "ONE",
-        "TWO",
-        "THREE",
-        "FOUR",
-        "FIVE",
-        "SIX",
-        "SEVEN",
-        "EIGHT",
-        "NINE"
+        "ZERO": 0,
+        "ONE": 1,
+        "TWO": 2,
+        "THREE": 3,
+        "FOUR": 4,
+        "FIVE": 5,
+        "SIX": 6,
+        "SEVEN": 7,
+        "EIGHT": 8,
+        "NINE": 9
     }
 
     name: StringProperty(name="name", default="event")
@@ -3297,8 +3323,7 @@ class SLCAD_keymap(PropertyGroup):
             ('NINE', '9', '9', icon_man.icons['KEY_9'].icon_id, 47),
             ('TAB', 'TAB', 'TAB', 'EVENT_TAB', 48),
             ('SPACE', 'SPACE', 'SPACE', 'EVENT_SPACEKEY', 49)
-        ),
-        update=update_shortcut
+        )
     )
     alt: BoolProperty(default=False, name="alt")
     shift: BoolProperty(default=False, name="shift")
@@ -3405,12 +3430,6 @@ def register_shorcut(prefs, name, shortcut):
 
 def register_shortcuts():
     keymap = bpy.context.preferences.addons[__package__].preferences.keymap
-    # keyconfigs = bpy.context.window_manager.keyconfigs
-    # km = keyconfigs['blender'].keymaps['3D View']
-    # default_keymap['MOVE'] = (find_key_by_idname_and_map_type(km, "transform.translate", "KEYBOARD", "G"), "Move")
-    # default_keymap['ROTATE'] = (find_key_by_idname_and_map_type(km, "transform.rotate", "KEYBOARD", "R"), "Rotate")
-    # default_keymap['SCALE'] = (find_key_by_idname_and_map_type(km, "transform.scale", "KEYBOARD", "S"), "Scale")
-
     for name, shortcut in default_keymap.items():
         register_shorcut(keymap, name, shortcut)
 
@@ -3639,131 +3658,27 @@ class SLCAD_transform(WorkSpaceTool):
     bl_context_mode = 'OBJECT'
     bl_idname = "slcad.transform"
     bl_label = "CAD Transform %s" % __version__
-    bl_description = "Precise transforms operations\nShortcuts: G / R / S"
+    bl_description = "Precise transforms operations"
     bl_icon = os.path.join(os.path.dirname(__file__), "icons", "ops.transform.cad")
     bl_widget = None
     bl_keymap = (
         ("slcad.translate", {"type": 'G', "value": 'PRESS'}, None),
         ("slcad.rotate", {"type": 'R', "value": 'PRESS'}, None),
         ("slcad.scale", {"type": 'S', "value": 'PRESS'}, None),
+        ("view3d.select_box", {"type": 'LEFTMOUSE', "value": 'CLICK_DRAG'},
+         {"properties":[("wait_for_input", False)]})
     )
-
     draw_settings = draw_settings
 
 
-# Temporary Workaround for Tool Not working on restart (T60766)
-from bpy.utils.toolsystem import ToolDef
-
-kmTool = "3D View Tool: Cad Transform"
-keymap = (
-    kmTool,
-    {"space_type": SLCAD_transform.bl_space_type, "region_type": 'WINDOW'},
-    {"items": list(SLCAD_transform.bl_keymap)},
-)
-emptyKeymap = (kmTool,
-               {"space_type": SLCAD_transform.bl_space_type, "region_type": 'WINDOW'},
-               {"items": []},)
+class SLCAD_transform_edit_mesh(SLCAD_transform):
+    bl_context_mode = 'EDIT_MESH'
+    bl_idname = "slcad.transform_edit_mesh"
 
 
-def find_key_by_idname_and_map_type(keymap, idname, map_type, default=""):
-    for k in keymap.keymap_items:
-        if k.idname == idname and k.map_type == map_type:
-            return k.type
-    return default
-
-
-@ToolDef.from_fn
-def toolCadTransform():
-    return dict(idname=SLCAD_transform.bl_idname,
-                label=SLCAD_transform.bl_label,
-                description=SLCAD_transform.bl_description,
-                icon=SLCAD_transform.bl_icon,
-                widget=None,
-                keymap=kmTool,
-                draw_settings=SLCAD_transform.draw_settings
-                )
-
-
-def registerKeymaps():
-    keyconfigs = bpy.context.window_manager.keyconfigs
-    kc_defaultconf = keyconfigs.default
-    kc_addonconf = keyconfigs.addon
-
-    from bl_keymap_utils.io import keyconfig_init_from_data
-    keyconfig_init_from_data(kc_defaultconf, [keymap])
-    keyconfig_init_from_data(kc_addonconf, [keymap])
-
-
-def unregisterKeymaps():
-    keyconfigs = bpy.context.window_manager.keyconfigs
-    defaultmap = keyconfigs.get(KEYCONFIG_NAME).keymaps
-    addonmap = keyconfigs.get("%s addon" % KEYCONFIG_NAME).keymaps
-
-    for km_name, km_args, km_content in [keymap]:
-        km = addonmap.find(km_name, **km_args)
-        if km is not None:
-            keymap_items = km.keymap_items
-            for item in km_content['items']:
-                item_id = keymap_items.find(item[0])
-                if item_id != -1:
-                    keymap_items.remove(keymap_items[item_id])
-            addonmap.remove(km)
-            defaultmap.remove(defaultmap.find(km_name, **km_args))
-
-
-def getToolList(spaceType, contextMode):
-    from bl_ui.space_toolsystem_common import ToolSelectPanelHelper
-    cls = ToolSelectPanelHelper._tool_class_from_space_type(spaceType)
-    return cls._tools[contextMode]
-
-
-def registerTools(mode, after=None):
-    tools = getToolList('VIEW_3D', mode)
-
-    tool_def_insert = (None, toolCadTransform)
-
-    def skip_to_end_of_group(seq, i):
-        i_prev = i
-        while i < len(seq) and seq[i] is not None:
-            i_prev = i
-            i += 1
-        return i_prev
-
-    changed = False
-    if after is not None:
-        for i, item in enumerate(tools):
-            if item is None:
-                pass
-            elif isinstance(item, ToolDef):
-                if item.idname in after:
-                    i = skip_to_end_of_group(item, i)
-                    tools[i + 1:i + 1] = tool_def_insert
-                    changed = True
-                    break
-            elif isinstance(item, tuple):
-                for j, sub_item in enumerate(item, 1):
-                    if isinstance(sub_item, ToolDef):
-                        if sub_item.idname in after:
-                            j = skip_to_end_of_group(item, j)
-                            item = item[:j + 1] + tool_def_insert + item[j + 1:]
-                            tools[i] = item
-                            changed = True
-                            break
-                if changed:
-                    break
-
-    if not changed:
-        tools.extend(tool_def_insert)
-
-    del tools
-
-
-def unregisterTools(mode):
-    tools = getToolList('VIEW_3D', mode)
-    index = tools.index(toolCadTransform) - 1  # None
-    tools.pop(index)
-    tools.remove(toolCadTransform)
-    del tools
+class SLCAD_transform_edit_curve(SLCAD_transform):
+    bl_context_mode = 'EDIT_CURVE'
+    bl_idname = "slcad.transform_edit_curve"
 
 
 def register():
@@ -3782,11 +3697,9 @@ def register():
         register_class(SLCAD_PT_tools_options_object)
         register_class(SLCAD_PT_tools_options_mesh)
         register_class(SLCAD_PT_tools_options_curve)
-        registerTools('OBJECT', after="builtin.transform")
-        registerTools('EDIT_MESH', after="builtin.transform")
-        registerTools('EDIT_CURVE', after="builtin.transform")
-        registerKeymaps()
-        # register_tool(SLCAD_transform, after={"builtin.transform"}, separator=True) #, group=True)
+        for tool in (SLCAD_transform, SLCAD_transform_edit_mesh, SLCAD_transform_edit_curve):
+            register_tool(tool, after = {"builtin.transform"}, separator = True)
+
     except Exception as ex:
         print("{} {} : error while loading\n{}".format(bl_info['name'], __version__, ex))
         raise
@@ -3795,12 +3708,8 @@ def register():
 
 
 def unregister():
-
-    unregisterKeymaps()
-    # unregister_tool(SLCAD_transform)
-    unregisterTools('OBJECT')
-    unregisterTools('EDIT_MESH')
-    unregisterTools('EDIT_CURVE')
+    for tool in (SLCAD_transform, SLCAD_transform_edit_mesh, SLCAD_transform_edit_curve):
+        unregister_tool(tool)
     unregister_class(SLCAD_PT_tools_options_object)
     unregister_class(SLCAD_PT_tools_options_mesh)
     unregister_class(SLCAD_PT_tools_options_curve)

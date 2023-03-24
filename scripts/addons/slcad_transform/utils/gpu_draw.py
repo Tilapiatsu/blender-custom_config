@@ -28,7 +28,7 @@
 from math import pi, cos, sin
 import bpy
 import gpu
-import bgl
+
 import blf
 from gpu_extras.batch import batch_for_shader
 from mathutils import Matrix, Vector
@@ -191,32 +191,28 @@ class Arc:
             self._batch = None
 
 
-class BGL_Line:
+class GPU_Line:
 
     def __init__(self, width):
         self._width = width
 
     def _gl_enable(self):
-        bgl.glEnable(bgl.GL_LINE_SMOOTH)
-        bgl.glEnable(bgl.GL_BLEND)
-        bgl.glLineWidth(self._width)
-
+        gpu.state.line_width_set(self._width)
+        gpu.state.blend_set('ALPHA')
+        
     def _gl_disable(self):
-        bgl.glLineWidth(1.0)
-        bgl.glDisable(bgl.GL_BLEND)
-        bgl.glDisable(bgl.GL_LINE_SMOOTH)
+        gpu.state.line_width_set(1.0)
+        gpu.state.blend_set('NONE')
+        
 
-
-class BGL_Polygon:
+class GPU_Polygon:
 
     def _gl_enable(self):
-        bgl.glEnable(bgl.GL_POLYGON_SMOOTH)
-        bgl.glEnable(bgl.GL_BLEND)
+        gpu.state.blend_set('ALPHA')
 
     def _gl_disable(self):
-        bgl.glDisable(bgl.GL_BLEND)
-        bgl.glDisable(bgl.GL_POLYGON_SMOOTH)
-
+        gpu.state.blend_set('NONE')
+        
 
 class BLF_Text:
     def __init__(self, font_size, color=(1, 1, 1, 1), align=TEXT_LEFT):
@@ -270,11 +266,11 @@ class GPU_Draw:
         raise NotImplementedError
 
     def _gl_enable(self):
-        bgl.glEnable(bgl.GL_BLEND)
-
+        gpu.state.blend_set('ALPHA')
+        
     def _gl_disable(self):
-        bgl.glDisable(bgl.GL_BLEND)
-
+        gpu.state.blend_set('NONE')
+        
     def draw(self, context):
         if not self._enabled():
             return
@@ -320,18 +316,6 @@ class GPU_3d_uniform(GPU_Draw):
         else:
             self._batch = gpu.types.GPUBatch(type=self._batch_type, buf=self._vbo)
 
-    # _shader = gpu.shader.from_builtin('3D_UNIFORM_COLOR')
-    #
-    # def __init__(self, color, batch_type):
-    #     GPU_Draw.__init__(self, color)
-    #     self._matrix = Matrix()
-    #     # batch_type in "LINE_STRIP", "TRI_STRIP" ..
-    #     self._batch_type = batch_type
-    #
-    # def _batch_for_shader(self):
-    #     coords = self._get_coords()
-    #     self._batch = batch_for_shader(self._shader, self._batch_type, {"pos": coords})
-
     def set_world_matrix(self, matrix):
         # by default axis is 2 (Z axis)
         self._matrix = matrix
@@ -344,7 +328,6 @@ class GPU_3d_uniform(GPU_Draw):
             self._batch_for_shader()
 
         self._shader.bind()
-        # self._shader.uniform_float("ModelMatrix", self._matrix)
         self._shader.uniform_float("MVP", context.region_data.perspective_matrix @ self._matrix)
         self._shader.uniform_float("color", self._color)
 
@@ -353,11 +336,11 @@ class GPU_3d_uniform(GPU_Draw):
         self._gl_disable()
 
 
-class GPU_3d_PolyLine(BGL_Line, GPU_3d_uniform):
+class GPU_3d_PolyLine(GPU_Line, GPU_3d_uniform):
 
     def __init__(self, color=(1, 1, 0, 1), width=2.0):
         GPU_3d_uniform.__init__(self, color, "LINE_STRIP")
-        BGL_Line.__init__(self, width)
+        GPU_Line.__init__(self, width)
 
     def set_coords(self, coords, indices=None):
         if indices is not None:
@@ -369,11 +352,11 @@ class GPU_3d_PolyLine(BGL_Line, GPU_3d_uniform):
         self._batch = None
 
 
-class GPU_3d_Circle(BGL_Line, GPU_3d_uniform):
+class GPU_3d_Circle(GPU_Line, GPU_3d_uniform):
 
     def __init__(self, radius, segments=32, color=(1, 1, 0, 1), width=2.0):
         GPU_3d_uniform.__init__(self, color, "LINE_STRIP")
-        BGL_Line.__init__(self, width)
+        GPU_Line.__init__(self, width)
         da = 2 * pi / (segments - 1)
         r = radius
         self._coords = [
@@ -389,11 +372,11 @@ class GPU_3d_Line(GPU_3d_PolyLine, Segment):
         Segment.__init__(self)
 
 
-class GPU_3d_ArcFill(BGL_Polygon, GPU_3d_uniform, Arc):
+class GPU_3d_ArcFill(GPU_Polygon, GPU_3d_uniform, Arc):
 
     def __init__(self, radius, thickness, segments=32, color=(1, 1, 0, 1)):
         GPU_3d_uniform.__init__(self, color, "TRI_STRIP")
-        BGL_Polygon.__init__(self)
+        GPU_Polygon.__init__(self)
         Arc.__init__(self)
         self._radius = radius
         self._segments = segments
@@ -427,11 +410,11 @@ class GPU_2d_uniform(GPU_Draw):
         self._batch = batch_for_shader(self._shader, self._batch_type, {"pos": coords}, indices=indices)
 
 
-class GPU_2d_Circle(BGL_Line, GPU_2d_uniform):
+class GPU_2d_Circle(GPU_Line, GPU_2d_uniform):
 
     def __init__(self, radius, segments=32, color=(1, 1, 0, 1), line_width=2):
         GPU_2d_uniform.__init__(self, color, "LINE_STRIP")
-        BGL_Line.__init__(self, line_width)
+        GPU_Line.__init__(self, line_width)
         self._radius = radius
         self._segments = segments
         self._center = Vector((0, 0))

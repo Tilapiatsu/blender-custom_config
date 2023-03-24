@@ -32,8 +32,8 @@ bl_info = {
     'author': '<s-leger> support@blender-archipack.org',
     'license': 'GPL',
     'deps': '',
-    'blender': (2, 81, 0),
-    'version': (0, 93, 0),
+    'blender': (3, 0, 0),
+    'version': (0, 95, 0),
     'location': 'View3D > Tools > Cad',
     'warning': '',
     'wiki_url': 'https://github.com/s-leger/blender_cad_transforms/wiki',
@@ -48,14 +48,17 @@ __version__ = ".".join(map(str, bl_info['version']))
 
 
 if "slcad_transform" in locals():
+    from .slcad_transform import register, unregister
     pass
 
 else:
     import bpy
     if bpy.app.background:
         print("{} {} : not loaded in background instance".format(bl_info['name'], __version__))
+
         def register():
             return
+
     else:
         from .slcad_transform import register, unregister
 

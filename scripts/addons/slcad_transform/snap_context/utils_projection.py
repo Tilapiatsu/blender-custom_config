@@ -88,6 +88,32 @@ def intersect_ray_segment_fac(v0, v1, ray_direction, ray_origin):
         return cray.dot(n) / nlen
 
 
+def  intersect_ray_tri(v0, v1, v2, ray_direction, ray_origin):
+
+    EPSILON = 0.0000001
+    edge1 = v1 - v0
+    edge2 = v2 - v0
+    h = ray_direction.cross(edge2)
+    a = edge1.dot(h)
+    if EPSILON > a > -EPSILON:
+        return False, v0    # This ray is parallel to this triangle.
+    f = 1.0/a
+    s = ray_origin - v0
+    u = f * s.dot(h)
+    if u < 0.0 or u > 1.0:
+        return False, v0
+    q = s.cross(edge1)
+    v = f * ray_direction.dot(q)
+    if v < 0.0 or u + v > 1.0:
+        return False, v0
+    # At this stage we can compute t to find out where the intersection point is on the line.
+    t = f * edge2.dot(q)
+    if (t > EPSILON): # ray intersection
+        return True, ray_origin + ray_direction * t
+    # This means that there is a line intersection but not a ray intersection.
+    return False, v0
+
+
 def intersect_boundbox_threshold(sctx, MVP, ray_origin_local, ray_direction_local, bbmin, bbmax):
     # fix issue with axis aligned curve
     threshold = Vector((0.1, 0.1, 0.1))

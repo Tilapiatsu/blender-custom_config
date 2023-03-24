@@ -25,7 +25,7 @@
 
 import time
 import logging
-from math import pi, cos, sin
+from math import pi, cos, sin, log2
 from mathutils import Matrix, Vector
 import bpy
 
@@ -61,9 +61,14 @@ FACE_CENTER = 128
 FACE_NORMAL = 256
 ORIGIN = 512
 BOUNDS = 1024
+INSTANCES = 2048
+
 
 SNAP_TO_ISOLATED_MESH = True
 SNAP_TO_BASE_MESH = True
+
+#in 3.x collection instances are visible to ray_cast !!
+SNAP_TO_COLLECTION_INSTANCES = False
 
 
 def debug_typ(typ):
@@ -78,6 +83,8 @@ def debug_typ(typ):
         s.append("ORIGIN")
     if typ & BOUNDS:
         s.append("BOUNDS")
+    if typ & INSTANCES:
+        s.append("INSTANCES")
     return " ".join(s)
 
 
@@ -213,9 +220,10 @@ class SlCadSnap:
         self._x_ray = mode
 
     def start(self, context, snap_to_loose):
-
+        # find region by hand ?
         self._region = context.region
         self._rv3d = context.space_data.region_3d
+
         if USE_GL:
             self.gl_stack = SnapContext()
             self.gl_stack.set_pixel_dist(self._snap_radius)
@@ -228,6 +236,11 @@ class SlCadSnap:
                     self.gl_stack.add_obj(o)
                 elif o.type == "MESH" and snap_to_loose:
                     self.gl_stack.add_obj(o)
+                elif SNAP_TO_COLLECTION_INSTANCES and o.type == "EMPTY" and o.instance_collection is not None:
+                    for i in o.instance_collection.objects:
+                        self.gl_stack.add_instance(o, i)
+            # if context.active_object is not None:
+            #    self.gl_stack.add_ghost(context.active_object)
             self.gl_stack.add_origins(context)
             self.gl_stack.add_bounds(context)
 
@@ -275,6 +288,8 @@ class SlCadSnap:
                             (persinv.col[1].xyz * dy) +
                             persinv.translation)
             if self._rv3d.view_perspective != 'CAMERA':
+                # S.L in ortho view, origin may be plain wrong so add arbitrary distance ..
+                origin_start -= view_vector * 1000
                 # this value is scaled to the far clip already
                 origin_offset = persinv.col[2].xyz
                 if clamp is not None:
@@ -322,7 +337,23 @@ class SlCadSnap:
             )
             if hit:
                 dist = (orig - pos).length
-                orig += direction * (dist + self._cast_threshold)
+
+                # adjust threshold in single precision range to prevent numerical issues on large objects
+                axis = max(o.dimensions)
+                if axis > 0:
+                    exponent = max(0, int(log2(axis)))
+                    # threshold = pow(2, exponent - 23)
+                    threshold = pow(2, exponent - 21)  # 4x precision limit.
+                else:
+                    # fallback to default
+                    threshold = self._cast_threshold
+
+                # if max(o.dimensions) > 1000:
+                #     threshold = 0.1
+                # else:
+                #     threshold = self._cast_threshold
+
+                orig += direction * (dist + threshold)
                 if o.name not in self._exclude and o.visible_get():
                     # normal -> vec are opposites, when facing length is 0 when opposite length is 2
                     # if self._back_faces or (matrix_world.to_quaternion() @ normal + direction).length < 1:
@@ -819,21 +850,16 @@ class SlCadSnap:
 
             if target is not None and ret is not None:
                 loc, pts, dist, fac, typ = ret
-                # print("snap gl_stack.snap(): data:%s loc:%s idx:%s  %.4f" %
-                #  (target.data[0].name, loc, idx, time.time() - t))
+
+                # print("snap gl_stack.snap(): typ:%s loc:%s dist:%s %.4f" %
+                #    (debug_typ(typ), loc, dist, time.time() - t))
+                # data:%s target.data[0],
                 if loc is not None:
-                    # if self.snap_mode & ORIGIN:
-                    #     pos = target.data[0].matrix_world.translation
-                    #     z = (pos - origin).length
-                    #     closest_curve.append(
-                    #         SlCadSnapTarget(ORIGIN, target.data[0], 0, [pos], Z_AXIS, z=z, t=None)
-                    #     )
-                    # else:
-                    #
-                    #     typ = EDGE
-                    #     if fac is None:
-                    #         typ = VERT
-                    # logger.debug("found %s  %s" % (typ, dist))
+
+                    typ = EDGE
+                    if fac is None:
+                        typ = VERT
+
                     z = (pts[0] - origin).length
                     closest_curve.append(
                         SlCadSnapTarget(typ, target.data[0], dist, pts, Z_AXIS, z=z, t=fac)
