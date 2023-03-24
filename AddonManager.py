@@ -305,14 +305,12 @@ class PathElementAM():
 			if overwrite:
 				self.destination_path.remove()
 			else:
+				print(f'Path Already Exists : Skipping {self.destination_path.path}')
 				return
 		
 		print(f'Linking {self.local_subpath.path} -> {self.destination_path.path}')
 		os.symlink(self.local_subpath.path, self.destination_path.path,
 		           target_is_directory=self.destination_path.is_dir)
-		
-	
-
 		
 
 class ElementAM():
@@ -376,6 +374,7 @@ class ElementAM():
 			if overwrite:
 				self.local_path.remove()
 			else:
+				print(f'Path Already Exists : Skipping {self.local_path.path}')
 				return
 		
 		print(f'Syncing {self.name} to {self.local_path.path}')
@@ -437,3 +436,9 @@ if __name__ == '__main__':
 	AM.clean()
 	AM.sync(overwrite=True)
 	AM.link(overwrite=True)
+
+	# element_name = 'PolyQuilt'
+
+	# AM.clean(element_name=element_name)
+	# AM.sync(element_name=element_name, overwrite=True)
+	# AM.link(element_name=element_name, overwrite=True)
