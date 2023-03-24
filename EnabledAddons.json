@@ -947,7 +947,7 @@
     "sync": true,
     "enable": true,
     "online_url": "https://gitlab.com/blender/easy_weight.git",
-    "local_path": "#\\datafiles\\brushes\\easy_weight",
+    "local_path": "#\\scripts\\GIT\\easy_weight",
     "paths": [
         {
             "enable": true,
@@ -960,7 +960,7 @@
     "sync": true,
     "enable": true,
     "online_url": "https://github.com/Weisl/simple_renaming_panel.git",
-    "local_path": "#\\datafiles\\brushes\\simple_renaming_panel",
+    "local_path": "#\\scripts\\GIT\\simple_renaming_panel",
     "paths": [
         {
             "enable": true,

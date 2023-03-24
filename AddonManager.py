@@ -4,10 +4,41 @@ import json
 import tempfile
 import logging
 import shutil
+import subprocess
+import stat
 from os import path
 
 current_folder = os.getcwd()
 
+dependencies = ['gitpython']
+
+def install_dependencies():
+	current_dir = path.dirname(path.realpath(__file__))
+	LineupMaker_dependencies_path = path.join(
+		current_dir, 'Dependencies')
+	if LineupMaker_dependencies_path not in sys.path:
+		sys.path.append(LineupMaker_dependencies_path)
+
+
+	subprocess.check_call([sys.executable, '-m', 'pip', 'install',
+						  *dependencies, '--target', LineupMaker_dependencies_path])
+
+
+def file_acces_handler(func, path, exc_info):
+	# print('Handling Error for file ', path)
+	# print(exc_info)
+	# Check if file access issue
+	if not os.access(path, os.W_OK):
+		# Try to change the permision of file
+		os.chmod(path, stat.S_IWUSR)
+		# call the calling function again
+		func(path)
+
+try:
+	import git
+except (ModuleNotFoundError, ImportError) as e:
+	install_dependencies()
+	import git
 
 def get_log_file():
 	try:
@@ -221,9 +252,9 @@ class PathAM():
 	
 	def remove(self):
 		if self.is_file:
-			target = 'Dir'
-		elif self.is_dir:
 			target = 'File'
+		elif self.is_dir:
+			target = 'Directory'
 
 		if path.islink(self.path):
 			print(f'Unlink {target} {self.path}')
@@ -233,7 +264,7 @@ class PathAM():
 			if self.is_file:
 				os.remove(self.path)
 			elif self.is_dir:
-				shutil.rmtree(self.path)
+				shutil.rmtree(self.path, onerror=file_acces_handler)
 
 
 class PathElementAM():
@@ -256,6 +287,33 @@ class PathElementAM():
 	def destination_path(self):
 		return PathAM(self._path_dict['destination_path'])
 	
+
+	def clean(self):
+		if self.destination_path.exists:
+			if not self.is_enable:
+				self.destination_path.remove()
+
+
+	def link(self, overwrite=False):
+		if not self.is_enable:
+			return
+		
+		if self.local_subpath is None or self.destination_path is None:
+			return
+		
+		if self.destination_path.exists:
+			if overwrite:
+				self.destination_path.remove()
+			else:
+				return
+		
+		print(f'Linking {self.local_subpath.path} -> {self.destination_path.path}')
+		os.symlink(self.local_subpath.path, self.destination_path.path,
+		           target_is_directory=self.destination_path.is_dir)
+		
+	
+
+		
 
 class ElementAM():
 	def __init__(self, element_dict, name):
@@ -285,6 +343,53 @@ class ElementAM():
 		else:
 			return [PathElementAM(x, self.local_path) for x in self._element_dict['paths']]
 		
+	def __str__(self):
+		s = ''
+		s += f'----------------------------------------{self.name}----------------------------------------\n'
+		s += f'is_enable = {self.is_enable}\n'
+		s += f'is_sync = {self.is_sync}\n'
+		s += f'local_path = {self.local_path.path}\n'
+		s += f'online_url = {self.online_url}\n'
+		for p in self.paths:
+			s += f'paths.is_enable = {p.is_enable}\n'
+			s += f'paths.local_subpath = {p.local_subpath.path}\n'
+			s += f'paths.destination_path = {p.destination_path.path}\n'
+
+		return s
+	
+	def clean(self):
+		for p in self.paths:
+			p.clean()
+
+		if self.local_path.exists:
+			if not self.is_sync or not self.is_enable:
+				self.local_path.remove()
+			
+
+	def sync(self, overwrite=False):
+		if not self.is_sync:
+			return
+		if self.online_url is None or self.local_path is None:
+			return
+		
+		if self.local_path.exists:
+			if overwrite:
+				self.local_path.remove()
+			else:
+				return
+		
+		print(f'Syncing {self.name} to {self.local_path.path}')
+		git.Repo.clone_from(self.online_url, self.local_path.path)
+
+	def link(self, overwrite=False):
+		if not self.is_sync:
+			return
+		if self.local_path is None:
+			return
+		
+		for p in self.paths:
+			p.link(overwrite=overwrite)
+		
 
 
 class AddonManager():
@@ -296,24 +401,22 @@ class AddonManager():
 	def elements(self):
 		return {k: ElementAM(v, k) for k,v in self.json.json_data.items() if k[0] != '_'}
 	
-	def sync(self):
-		pass
+	def clean(self):
+		for e in self.elements.values():
+			e.clean()
+
+	def sync(self, overwrite=False):
+		for e in self.elements.values():
+			e.sync(overwrite=overwrite)
 	
-	def link(self):
-		pass
+	def link(self, overwrite=False):
+		for e in self.elements.values():
+			e.link(overwrite=overwrite)
 
 	def __str__(self):
 		s = ''
-		for k,v in self.elements.items():
-			s += f'----------------------------------------{k}----------------------------------------\n'
-			s += f'is_enable = {v.is_enable}\n'
-			s += f'is_sync = {v.is_sync}\n'
-			s += f'local_path = {v.local_path.path}\n'
-			s += f'online_url = {v.online_url}\n'
-			for p in v.paths:
-				s += f'paths.is_enable = {p.is_enable}\n'
-				s += f'paths.local_subpath = {p.local_subpath.path}\n'
-				s += f'paths.destination_path = {p.destination_path.path}\n'
+		for _,v in self.elements.items():
+			s += f'{v}\n'
 		
 		return s
 
@@ -321,3 +424,7 @@ if __name__ == '__main__':
 	AM = AddonManager(path.join(current_folder, 'EnabledAddons.json'))
 
 	print(AM)
+	
+	AM.clean()
+	AM.sync(overwrite=True)
+	AM.link(overwrite=True)
