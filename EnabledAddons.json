@@ -1170,7 +1170,7 @@
     "paths": [
         {
             "enable": true,
-            "local_subpath": null,
+            "local_subpath": "addons\\PolyQuilt",
             "destination_path": "#\\scripts\\addons\\PolyQuilt"
         }
     ]

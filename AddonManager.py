@@ -401,17 +401,26 @@ class AddonManager():
 	def elements(self):
 		return {k: ElementAM(v, k) for k,v in self.json.json_data.items() if k[0] != '_'}
 	
-	def clean(self):
-		for e in self.elements.values():
-			e.clean()
+	def clean(self, element_name=None):
+		if element_name is None:
+			for e in self.elements.values():
+				e.clean()
+		elif element_name in self.elements.keys():
+			self.elements[element_name].clean()
 
-	def sync(self, overwrite=False):
-		for e in self.elements.values():
-			e.sync(overwrite=overwrite)
+	def sync(self, element_name=None, overwrite=False):
+		if element_name is None:
+			for e in self.elements.values():
+				e.sync(overwrite=overwrite)
+		elif element_name in self.elements.keys():
+			self.elements[element_name].sync(overwrite=overwrite)
 	
-	def link(self, overwrite=False):
-		for e in self.elements.values():
-			e.link(overwrite=overwrite)
+	def link(self, element_name=None, overwrite=False):
+		if element_name is None:
+			for e in self.elements.values():
+				e.link(overwrite=overwrite)
+		elif element_name in self.elements.keys():
+			self.elements[element_name].link(overwrite=overwrite)
 
 	def __str__(self):
 		s = ''
