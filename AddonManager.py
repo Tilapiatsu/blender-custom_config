@@ -326,7 +326,7 @@ class PathElementAM():
 		
 		print(f'Linking {self.local_subpath.path} -> {self.destination_path.path}')
 		os.symlink(self.local_subpath.path, self.destination_path.path,
-		           target_is_directory=self.destination_path.is_dir)
+				   target_is_directory=self.destination_path.is_dir)
 	
 	def enable(self):
 		if not self.is_enable:
@@ -341,6 +341,20 @@ class ElementAM():
 	def __init__(self, element_dict, name):
 		self._element_dict = element_dict
 		self.name = name
+	
+	def __str__(self):
+		s = ''
+		s += f'----------------------------------------{self.name}----------------------------------------\n'
+		s += f'is_enable = {self.is_enable}\n'
+		s += f'is_sync = {self.is_sync}\n'
+		s += f'local_path = {self.local_path.path}\n'
+		s += f'online_url = {self.online_url}\n'
+		for p in self.paths:
+			s += f'paths.is_enable = {p.is_enable}\n'
+			s += f'paths.local_subpath = {p.local_subpath.path}\n'
+			s += f'paths.destination_path = {p.destination_path.path}\n'
+
+		return s
 
 	@property
 	def is_sync(self):
@@ -372,20 +386,6 @@ class ElementAM():
 			return []
 		else:
 			return [PathElementAM(x, self.local_path) for x in self._element_dict['paths']]
-	
-	def __str__(self):
-		s = ''
-		s += f'----------------------------------------{self.name}----------------------------------------\n'
-		s += f'is_enable = {self.is_enable}\n'
-		s += f'is_sync = {self.is_sync}\n'
-		s += f'local_path = {self.local_path.path}\n'
-		s += f'online_url = {self.online_url}\n'
-		for p in self.paths:
-			s += f'paths.is_enable = {p.is_enable}\n'
-			s += f'paths.local_subpath = {p.local_subpath.path}\n'
-			s += f'paths.destination_path = {p.destination_path.path}\n'
-
-		return s
 	
 	def clean(self):
 		for p in self.paths:
