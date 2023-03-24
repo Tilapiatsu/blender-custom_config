@@ -1,15 +1,16 @@
-bl_info = {
-    "name": "Box Primitve",
-    "author": "Blender Template Tool",
-    "category": "Modeling",
-    "version": (1, 0, 0),
-    "blender": (2, 80, 0),
-}
+# Box Primitive tool from Blender Default Templates + uvs (included for use by kekit operators).
 import bpy
 import bmesh
+from bpy_types import Operator
 from bpy_extras.object_utils import AddObjectHelper
+from bpy.props import (
+    BoolVectorProperty,
+    EnumProperty,
+    FloatProperty,
+    FloatVectorProperty,
+    StringProperty
+)
 
-# Box Primitive tool from Blender Default Templates (included here for use in ke_prim).
 
 def add_box(width, height, depth):
     """
@@ -44,22 +45,12 @@ def add_box(width, height, depth):
     return verts, faces
 
 
-from bpy.props import (
-    BoolProperty,
-    BoolVectorProperty,
-    EnumProperty,
-    FloatProperty,
-    FloatVectorProperty,
-    StringProperty
-)
-
-
-class MESH_OT_primitve_box_add(bpy.types.Operator):
-    """note:  Spelling error left intentionally to avoid op clash - just using this for quadshpere now"""
+class PrimitiveBoxAdd(Operator):
     bl_idname = "mesh.primitive_box_add"
     bl_label = "Box"
     bl_description = "Creates a Box Primitive. Cube tool, but with more settings. (from Blender Default Template) \n" \
-                     "HOTKEY NOTE: When using WORLD as default new object align: Un-grey the rotation part in hotkey settings for cursor align to work."
+                     "HOTKEY NOTE: When using WORLD as default new object align:\n" \
+                     "Un-grey the rotation part in hotkey settings for cursor align to work."
     bl_options = {'REGISTER', 'UNDO'}
 
     width: FloatProperty(
@@ -113,9 +104,7 @@ class MESH_OT_primitve_box_add(bpy.types.Operator):
         subtype='EULER',
     )
 
-
     def execute(self, context):
-
         verts_loc, faces = add_box(
             self.width,
             self.height,
@@ -133,8 +122,17 @@ class MESH_OT_primitve_box_add(bpy.types.Operator):
         for f_idx in faces:
             bm.faces.new([bm.verts[i] for i in f_idx])
 
+        # Add Uv's (centered)
+        uv_layer = bm.loops.layers.uv.verify()
+        for face in bm.faces:
+            for loop in face.loops:
+                loop_uv = loop[uv_layer]
+                loop_uv.uv[0] = loop.vert.co.x + 0.5
+                loop_uv.uv[1] = loop.vert.co.y + 0.5
+
         for f in bm.faces:
             f.select = True
+
         bm.to_mesh(mesh)
         mesh.update()
 
@@ -146,16 +144,16 @@ class MESH_OT_primitve_box_add(bpy.types.Operator):
 
 
 def menu_func(self, context):
-    self.layout.operator(MESH_OT_primitve_box_add.bl_idname, icon='MESH_CUBE')
+    self.layout.operator(PrimitiveBoxAdd.bl_idname, icon='MESH_CUBE')
 
 
 def register():
-    bpy.utils.register_class(MESH_OT_primitve_box_add)
+    bpy.utils.register_class(PrimitiveBoxAdd)
     # bpy.types.VIEW3D_MT_mesh_add.append(menu_func)
 
 
 def unregister():
-    bpy.utils.unregister_class(MESH_OT_primitve_box_add)
+    bpy.utils.unregister_class(PrimitiveBoxAdd)
     # bpy.types.VIEW3D_MT_mesh_add.remove(menu_func)
 
 

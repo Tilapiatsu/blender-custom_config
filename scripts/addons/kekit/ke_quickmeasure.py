@@ -1,19 +1,10 @@
-bl_info = {
-    "name": "keQuickMeasure",
-    "author": "Kjell Emanuelsson",
-    "category": "Modeling",
-    "version": (1, 5, 3),
-    "blender": (2, 80, 0),
-}
 import bpy
-import bgl
 import blf
 import gpu
 from gpu_extras.batch import batch_for_shader
-# from mathutils import Vector
-from math import ceil
 from bpy_extras.view3d_utils import location_3d_to_region_2d
-from .ke_utils import get_distance, get_midpoint, get_scene_unit, chunk
+from mathutils import Vector
+from ._utils import get_distance, get_midpoint, get_scene_unit, chunk, set_status_text
 
 
 def bb(self, context):
@@ -26,7 +17,7 @@ def bb(self, context):
         z.append(i[2])
     x, y, z = sorted(x), sorted(y), sorted(z)
 
-    if len(x) > 1: # any coords
+    if len(x) > 1:  # any coords
         # XY, XZ, YZ
         if self.area_mode[1]:
             unit = get_scene_unit((x[-1] - x[0]) * (z[-1] - z[0]), nearest=True)
@@ -37,7 +28,7 @@ def bb(self, context):
         else:
             unit = get_scene_unit((x[-1] - x[0]) * (y[-1] - y[0]), nearest=True)
             am = "Area XY:"
-        self.area = am + str(round(unit[1],3)) + unit[0] + "\u00b2"
+        self.area = am + str(round(unit[1], 2)) + unit[0] + "\u00b2"
 
     self.lines = [
         ((x[0], y[0], z[0]), (x[0], y[0], z[-1])),
@@ -64,7 +55,7 @@ def bb(self, context):
 
 
 def sel_check(self, context, sel_save_check=False):
-    self.edit_mode = bpy.context.tool_settings.mesh_select_mode[:]
+    self.edit_mode = context.tool_settings.mesh_select_mode[:]
     self.vpos = []
     self.lines = []
     self.stat = []
@@ -88,15 +79,18 @@ def sel_check(self, context, sel_save_check=False):
 
     # store one list of vert indices per obj in sel_save -----------------------------------------------------------
     sel_verts = []
+    obj_precalc = False
 
     if not self.sel_save_mode or sel_save_check:
-
-        for obj in sel_obj:
-
-            if not self.obj_mode:
+        # just using the bounds for object mode calc, for speed.
+        if self.obj_mode:
+            for obj in sel_obj:
+                self.vpos.extend([obj.matrix_world @ Vector(co) for co in obj.bound_box])
+                obj_precalc = True
+        else:
+            for obj in sel_obj:
                 obj.update_from_editmode()
-
-                if self.edit_mode[1]: # to ensure correct vert pairs for edge mode
+                if self.edit_mode[1]:  # to ensure correct vert pairs for edge mode
                     verts = []
                     edges = [e for e in obj.data.edges if e.select]
                     if edges:
@@ -104,95 +98,97 @@ def sel_check(self, context, sel_save_check=False):
                             verts.extend([v for v in e.vertices])
                 else:
                     verts = [v.index for v in obj.data.vertices if v.select]
-
-            else:  # Object Mode
-                verts = [v.index for v in obj.data.vertices]
-
-            sel_verts.append(verts)
+                sel_verts.append(verts)
 
     if sel_save_check:
         self.sel_save = sel_verts
 
-    if self.sel_save_mode:
+    if self.sel_save_mode or obj_precalc:
         sel_verts = self.sel_save
+        if self.obj_mode:
+            for obj in sel_obj:
+                self.vpos.extend([obj.matrix_world @ Vector(co) for co in obj.bound_box])
+            if self.vpos:
+                obj_precalc = True
 
-    # Process indices per object for coordinates --------------------------------------------------------------------
-    if sel_verts:
-        convert_stats = False
-
+    # Process indices for coordinates --------------------------------------------------------------------
+    if sel_verts and not obj_precalc:
         for indices, obj in zip(sel_verts, sel_obj):
             obj.update_from_editmode()
             self.vpos.extend([obj.matrix_world @ obj.data.vertices[v].co for v in indices])
 
-        if context.mode == "EDIT_MESH":
-            if self.edit_mode[0]:
+    if context.mode == "EDIT_MESH" and self.vpos:
+        convert_stats = False
+        if self.edit_mode[0] and sel_verts:
 
-                if self.sel_save_mode and self.vertmode == "Distance" and len(self.vpos) > 1:
-                    self.stat = [round(get_distance(self.vpos[0], self.vpos[1]), 4)]
-                    self.lines = [(self.vpos[0], self.vpos[1])]
-                    convert_stats = True
-
-                elif not self.sel_save_mode and self.vertmode == "Distance":
-                    if len(self.vpos) > 0:
-                        if len(self.vpos) == 1:
-                            new = self.vpos
-                        else:
-                            new = [pos for pos in self.vpos if pos not in self.vert_history[1:]]
-                        self.vert_history.extend(new)
-                    else:
-                        self.vert_history = []
-
-                    if self.vertmode == "Distance" and len(self.vert_history) > 1:
-                        vl = self.vert_history
-
-                        if len(vl) % 2 != 0:
-                            exv = vl[-2]
-                            vl.insert(-2, exv)
-
-                        vps = chunk(vl, 2)
-                        self.lines = vps
-                        for vp in vps:
-                            d = round(get_distance(vp[0], vp[1]), 4)
-                            self.stat.append(d)
-
-                        convert_stats = True
-
-                elif self.vertmode == "BBox" and len(self.vpos) > 1:
-                    bb(self, context)
-                else:
-                    self.lines = None
-
-            elif self.edit_mode[1]:
+            if self.sel_save_mode and self.vertmode == "Distance" and len(self.vpos) > 1:
+                self.stat = [round(get_distance(self.vpos[0], self.vpos[1]), 4)]
+                self.lines = [(self.vpos[0], self.vpos[1])]
                 convert_stats = True
-                self.vert_history = []
-                vps = chunk(self.vpos, 2)
-                self.lines = vps
-                for vp in vps:
-                    d = round(get_distance(vp[0], vp[1]), 4)
-                    self.stat.append(d)
 
-            elif self.edit_mode[2]:
-                self.vert_history = []
-                if len(self.vpos) < 3:
-                    self.lines = None
+            elif not self.sel_save_mode and self.vertmode == "Distance":
+                if len(self.vpos) > 0:
+                    if len(self.vpos) == 1:
+                        new = self.vpos
+                    else:
+                        new = [pos for pos in self.vpos if pos not in self.vert_history[1:]]
+                    self.vert_history.extend(new)
                 else:
-                    bb(self,context)
+                    self.vert_history = []
 
-            if convert_stats:
-                # Total distance calc
-                unit, value = get_scene_unit(sum(self.stat), nearest=True)
-                self.dtot = str(value) + unit
+                if self.vertmode == "Distance" and len(self.vert_history) > 1:
+                    vl = self.vert_history
 
-                # unit conversion
-                conv = []
-                for s in self.stat:
-                    u,v = get_scene_unit(s, nearest=True)
-                    conv.append(str(v) + u)
-                self.stat = conv
+                    if len(vl) % 2 != 0:
+                        exv = vl[-2]
+                        vl.insert(-2, exv)
 
-        else:  # OBJECT MODE
-            if self.vpos:
+                    vps = chunk(vl, 2)
+                    self.lines = vps
+                    for vp in vps:
+                        d = round(get_distance(vp[0], vp[1]), 4)
+                        self.stat.append(d)
+
+                    convert_stats = True
+                else:
+                    self.lines = None
+
+            elif self.vertmode == "BBox" and len(self.vpos) > 1:
                 bb(self, context)
+            else:
+                self.lines = None
+
+        elif self.edit_mode[1]:
+            convert_stats = True
+            self.vert_history = []
+            vps = chunk(self.vpos, 2)
+            self.lines = vps
+            for vp in vps:
+                d = round(get_distance(vp[0], vp[1]), 4)
+                self.stat.append(d)
+
+        elif self.edit_mode[2]:
+            self.vert_history = []
+            if len(self.vpos) < 3:
+                self.lines = None
+            else:
+                bb(self, context)
+
+        if convert_stats:
+            # Total distance calc
+            unit, value = get_scene_unit(sum(self.stat), nearest=True)
+            self.dtot = str(value) + unit
+
+            # unit conversion
+            conv = []
+            for s in self.stat:
+                u, v = get_scene_unit(s, nearest=True)
+                conv.append(str(v) + u)
+            self.stat = conv
+
+    else:  # OBJECT MODE
+        if self.vpos:
+            bb(self, context)
 
 
 def txt_calc(self, context):
@@ -208,7 +204,6 @@ def draw_callback_view(self, context):
     if self.lines:
         glines = []
         bblines = []
-
         if self.edit_mode[2] or self.obj_mode or self.vertmode == "BBox":
             for i in self.bb_lines:
                 bblines.extend((i[0], i[1]))
@@ -220,38 +215,35 @@ def draw_callback_view(self, context):
                 glines.extend((i[0], i[1]))
 
         shader = gpu.shader.from_builtin('3D_UNIFORM_COLOR')
-        bgl.glEnable(bgl.GL_BLEND)
-        bgl.glLineWidth(3)
+        gpu.state.line_width_set(3)
+        gpu.state.blend_set("ALPHA")
 
         if bblines:
             z = batch_for_shader(shader, 'LINES', {"pos": glines[0]})
             shader.bind()
-            shader.uniform_float("color", (0.12, 0.43, 0.76, 0.85))
+            shader.uniform_float("color", (0.12, 0.43, 0.76, 1))
             z.draw(shader)
 
             x = batch_for_shader(shader, 'LINES', {"pos": glines[1]})
             shader.bind()
-            shader.uniform_float("color", (0.83, 0.05, 0.17, 0.85))
+            shader.uniform_float("color", (0.83, 0.05, 0.17, 1))
             x.draw(shader)
 
             y = batch_for_shader(shader, 'LINES', {"pos": glines[2]})
             shader.bind()
-            shader.uniform_float("color", (0.45, 0.61, 0.27, 0.85))
+            shader.uniform_float("color", (0.45, 0.61, 0.27, 1))
             y.draw(shader)
 
             batch = batch_for_shader(shader, 'LINES', {"pos": bblines})
             shader.bind()
-            shader.uniform_float("color", (0.65, 0.65, 0.65, 0.5))
+            shader.uniform_float("color", (0.65, 0.65, 0.65, .4))
             batch.draw(shader)
 
         else:
             batch = batch_for_shader(shader, 'LINES', {"pos": glines})
             shader.bind()
-            shader.uniform_float("color", (0.3, 0.79, 0.74, 0.85))
+            shader.uniform_float("color", (0.3, 0.79, 0.74, 1))
             batch.draw(shader)
-
-        bgl.glLineWidth(1)
-        bgl.glDisable(bgl.GL_BLEND)
 
 
 def draw_callback_px(self, context):
@@ -267,43 +259,50 @@ def draw_callback_px(self, context):
         # draw stats
         count = 0
         blf.enable(font_id, 4)
-        blf.size(font_id, 14, 72)
+        blf.size(font_id, self.ui[0], 72)
         blf.color(font_id, 0.9, 0.9, 0.9, 1)
         blf.shadow(font_id, 3, 0, 0, 0, 1)
         blf.shadow_offset(font_id, 1, -1)
 
         for t, s in zip(self.txt_pos, self.stat):
-            blf.position(font_id, t[0], t[1], 0)
+            if t is not None:
+                blf.position(font_id, t[0], t[1], 0)
 
-            if self.obj_mode:
-                if   count == 0: axis = "z:"
-                elif count == 1: axis = "x:"
-                elif count == 2: axis = "y:"
-                s = axis + str(s)
-                blf.draw(font_id, s)
-
-            elif not self.obj_mode:
-                if self.edit_mode[0] and self.vertmode == "BBox" or self.edit_mode[2]:
-                    if   count == 0: axis = "z:"
-                    elif count == 1: axis = "x:"
-                    elif count == 2: axis = "y:"
+                if self.obj_mode:
+                    if count == 0:
+                        axis = "z:"
+                    elif count == 1:
+                        axis = "x:"
+                    else:
+                        axis = "y:"
                     s = axis + str(s)
                     blf.draw(font_id, s)
 
-                elif self.edit_mode[0] and self.vertmode == "Distance" or self.edit_mode[1]:
-                    blf.draw(font_id, s)
-            else:
-                blf.draw(font_id, str(s))
+                elif not self.obj_mode:
+                    if self.edit_mode[0] and self.vertmode == "BBox" or self.edit_mode[2]:
+                        if count == 0:
+                            axis = "z:"
+                        elif count == 1:
+                            axis = "x:"
+                        else:
+                            axis = "y:"
+                        s = axis + str(s)
+                        blf.draw(font_id, s)
 
-            count += 1
+                    elif self.edit_mode[0] and self.vertmode == "Distance" or self.edit_mode[1]:
+                        blf.draw(font_id, s)
+                else:
+                    blf.draw(font_id, str(s))
+
+                count += 1
 
     # Selection Info
-    hpos, vpos = self.screen_x - 100, 64
+    hpos, vpos = self.screen_x - self.ui[18], self.ui[19]
     blf.shadow(font_id, 5, 0, 0, 0, 1)
     blf.shadow_offset(font_id, 1, -1)
 
     if not self.help_mode:
-        hoff = 72
+        hoff = self.ui[1]
     else:
         hoff = 0
 
@@ -314,59 +313,55 @@ def draw_callback_px(self, context):
 
     if not self.lines:
         blf.color(font_id, self.scol[0], self.scol[1], self.scol[2], self.scol[3])
-        blf.size(font_id, 15, 72)
-        blf.position(font_id, hpos, vpos + 106 - hoff, 0)
-        blf.draw(font_id, "[ Invalid Selection ] %s" %vmode)
+        blf.size(font_id, self.ui[2], 72)
+        blf.position(font_id, hpos, vpos + self.ui[3] - hoff, 0)
+        blf.draw(font_id, "[ Invalid Selection ] %s" % vmode)
     else:
         if self.sel_save_mode:
             blf.color(font_id, self.scol[0], self.scol[1], self.scol[2], self.scol[3])
-            blf.size(font_id, 15, 72)
-            blf.position(font_id, hpos, vpos + 134 - hoff, 0)
-            blf.draw(font_id, "[ --- Using Saved Selection (F)--- ] %s" %vmode)
+            blf.size(font_id, self.ui[4], 72)
+            blf.position(font_id, hpos, vpos + self.ui[5] - hoff, 0)
+            blf.draw(font_id, "[ --- Using Saved Selection (F)--- ] %s" % vmode)
 
         blf.color(font_id, self.hcol[0], self.hcol[1], self.hcol[2], self.hcol[3])
-        blf.size(font_id, 20, 72)
-        blf.position(font_id, hpos, vpos + 106 - hoff, 0)
+        blf.size(font_id, self.ui[6], 72)
+        blf.position(font_id, hpos, vpos + self.ui[7] - hoff, 0)
         if self.edit_mode[1] and not self.obj_mode:
-            blf.draw(font_id, "Quick Measure [Total: %s]" %self.dtot )
+            blf.draw(font_id, "Quick Measure [Total: %s]" % self.dtot)
         elif self.edit_mode[0] and not self.obj_mode:
             if self.vertmode == "Distance":
-                blf.draw(font_id, "Quick Measure (V): %s  (C or Space-click) Clear [Total: %s]"  % (self.vertmode, self.dtot))
+                blf.draw(font_id, "Quick Measure Mode (V): %s ['C' to Clear Selection] [Total: %s]"
+                         % (self.vertmode, self.dtot))
             else:
-                blf.draw(font_id, "Quick Measure (V): %s [%s]"  % (self.vertmode, self.area) )
+                blf.draw(font_id, "Quick Measure Mode (V): %s [%s]" % (self.vertmode, self.area))
         else:
             blf.draw(font_id, "Quick Measure [%s]" % self.area)
 
     # Instructions
     blf.color(font_id, self.tcol[0], self.tcol[1], self.tcol[2], self.tcol[3])
-    blf.size(font_id, 15, 72)
+    blf.size(font_id, self.ui[8], 72)
 
     if self.help_mode:
-        blf.position(font_id, hpos, vpos + 78, 0)
+        blf.position(font_id, hpos, vpos + self.ui[9], 0)
         blf.draw(font_id, "Change / Update Mode: (1)Verts, (2)Edges, (3)Faces, (4)Objects")
-        blf.position(font_id, hpos, vpos + 56, 0)
+        blf.position(font_id, hpos, vpos + self.ui[10], 0)
         if self.edit_mode[0]:
-            blf.draw(font_id, "Stop: (Esc), (Enter), (Spacebar). Toggle Vert Mode: (V)   Clear Sel: (C) or space-click")
+            blf.draw(font_id, "Stop: (Esc), (Enter), (Spacebar). Toggle Vert Mode: (V)  Clear Sel: (C) or space-click")
         else:
             blf.draw(font_id, "Stop: (Esc), (Enter), (Spacebar)")
 
-        blf.position(font_id, hpos, vpos + 36, 0)
-        blf.draw(font_id, "(G)rab, (R)otate, (S)cale. +X,Y/>,Z")
-        blf.position(font_id, hpos, vpos + 16, 0)
+        blf.position(font_id, hpos, vpos + self.ui[11], 0)
+        blf.draw(font_id, "(W/G)rab, (R)otate, (S)cale")
+        blf.position(font_id, hpos, vpos + self.ui[12], 0)
         blf.draw(font_id, "Freeze Selection: (F) Toggle    Area: (A) Cycle")
-        blf.position(font_id, hpos, vpos - 4, 0)
-        blf.draw(font_id, "Round-Snap: (T) By %s-Axis(M). Unit-scale:%s(N). Round-Snap All Axis (B)." %(ua, self.unit_size) )
+        blf.position(font_id, hpos, vpos - self.ui[13], 0)
+        blf.draw(font_id, "Round-Snap: (T) By %s-Axis(M). Unit-scale:%s(N). Round-Snap All Axis (B)."
+                 % (ua, self.unit_size))
 
         blf.color(font_id, self.scol[0], self.scol[1], self.scol[2], self.scol[3])
-        blf.size(font_id, 12, 72)
-        blf.position(font_id, hpos, vpos - 24, 0)
+        blf.size(font_id, self.ui[14], 72)
+        blf.position(font_id, hpos, vpos - self.ui[15], 0)
         blf.draw(font_id, "Navigation: Blender(MMB) or Ind.Std(Alt-) & (TAB) toggles mode. (H) Toggle Help")
-
-    else:
-        blf.color(font_id, self.scol[0], self.scol[1], self.scol[2], self.scol[3])
-        blf.size(font_id, 15, 72)
-        blf.position(font_id, hpos, vpos + 78 - hoff, 0)
-        blf.draw(font_id, "(H) Help")
 
 
 def snapscale(self, context, all_axis=False):
@@ -386,7 +381,7 @@ def snapscale(self, context, all_axis=False):
         else:
             user_value = (round(self.sizes[0], 2), round(self.sizes[1], 2), round(self.sizes[2], 2))
 
-        if context.mode == "OBJECT": # QnD indeed...
+        if context.mode == "OBJECT":  # QnD indeed...
             bpy.ops.object.mode_set(mode="EDIT")
             bpy.ops.mesh.select_all(action='SELECT')
             temp_emode = True
@@ -397,7 +392,7 @@ def snapscale(self, context, all_axis=False):
             nz = user_value[2] / self.sizes[2]
             new_dimensions = (nx, ny, nz)
         else:
-            edit_val =  user_value / self.sizes[self.user_axis]
+            edit_val = user_value / self.sizes[self.user_axis]
             new_dimensions = [edit_val, edit_val, edit_val]
 
             if not self.unit_size:
@@ -414,7 +409,7 @@ def snapscale(self, context, all_axis=False):
             bpy.ops.object.mode_set(mode="OBJECT")
 
 
-class VIEW3D_OT_ke_quickmeasure(bpy.types.Operator):
+class KeQuickMeasure(bpy.types.Operator):
     bl_idname = "view3d.ke_quickmeasure"
     bl_label = "Quick Measure"
     bl_description = "Contextual measurement types by mesh selection (Obj & Edit modes).\n" \
@@ -423,14 +418,13 @@ class VIEW3D_OT_ke_quickmeasure(bpy.types.Operator):
     qm_start: bpy.props.EnumProperty(
         items=[("DEFAULT", "Default Mode", "", "DEFAULT", 1),
                ("SEL_SAVE", "Selection Save Mode", "", "SEL_SAVE", 2),
-               ],
-    name="Start Mode",
-        default="DEFAULT")
+               ], name="Start Mode", default="DEFAULT")
 
     @classmethod
     def poll(cls, context):
-        return (context.scene.kekit.qm_running == False and context.object is not None and
-                context.object.type == 'MESH')
+        return (context.preferences.addons[__package__].preferences.qm_running is False
+                and context.object is not None
+                and context.object.type == 'MESH')
 
     _handle = None
     _handle_px = None
@@ -447,7 +441,7 @@ class VIEW3D_OT_ke_quickmeasure(bpy.types.Operator):
     screen_x = 64
     vertmode = "Distance"
     area = "N/A"
-    area_mode = [True, False, False] # XY, XZ, YZ
+    area_mode = [True, False, False]  # XY, XZ, YZ
     auto_update = True
     sel_upd = False
     sel_save_mode = False
@@ -461,19 +455,86 @@ class VIEW3D_OT_ke_quickmeasure(bpy.types.Operator):
     sizes = []
     snapobj = []
 
-    hcol = (1,1,1,1)
-    tcol = (1,1,1,1)
-    scol = (1,1,1,1)
+    hcol = (1, 1, 1, 1)
+    tcol = (1, 1, 1, 1)
+    scol = (1, 1, 1, 1)
+    ui = [14, 72, 15, 106, 15, 134, 20, 106, 15, 78, 56, 36, 16, 4, 12, 24, 15, 78, 100, 64]
+
+    def invoke(self, context, event):
+        k = context.preferences.addons[__package__].preferences
+        self.hcol = k.modal_color_header
+        self.tcol = k.modal_color_text
+        self.scol = k.modal_color_subtext
+        scale_factor = context.preferences.view.ui_scale * k.ui_scale
+        self.ui = [int(round(n * scale_factor)) for n in self.ui]
+        self.auto_update = k.quickmeasure
+
+        bpy.ops.wm.tool_set_by_id(name="builtin.select")
+        active_obj = context.active_object
+        sel_obj = [obj for obj in context.selected_objects if obj.type == "MESH"]
+
+        # Make sure active obj is selected
+        if len(sel_obj) == 0 and active_obj:
+            if active_obj.type == "MESH":
+                active_obj.select_set(state=True)
+                sel_obj = active_obj
+
+        if not sel_obj:
+            self.report({'WARNING'}, "No mesh object selected.")
+            print("Cancelled: No mesh object selected.")
+            return {'CANCELLED'}
+
+        bpy.app.handlers.frame_change_post.clear()
+        sel_check(self, context, sel_save_check=True)
+
+        if context.area.type == 'VIEW_3D':
+            if self.qm_start == "SEL_SAVE":
+                self.sel_save_mode = True
+
+            self.screen_x = int(context.region.width * .5)
+
+            args = (self, context)
+            self._handle = bpy.types.SpaceView3D.draw_handler_add(draw_callback_view, args, 'WINDOW', 'POST_VIEW')
+            self._handle_px = bpy.types.SpaceView3D.draw_handler_add(draw_callback_px, args, 'WINDOW', 'POST_PIXEL')
+
+            wm = context.window_manager
+            self._timer = wm.event_timer_add(time_step=0.02, window=context.window)
+            wm.modal_handler_add(self)
+
+            context.area.tag_redraw()
+            k.qm_running = True
+
+            # UPDATE STATUS BAR
+            status_help = [
+                "[1,2,3,4] Change/Update ElementMode",
+                "[W/G, R, S] Grab, Rotate, Scale",
+                "[F] Toggle Sel.Freeze",
+                "[A] Area Cycle",
+                "[V] Toggle VertMode",
+                "[C] Clear Selection",
+                "[MMB, ALT-MBs] Navigation",
+                "[ESC/ENTER/SPACEBAR] Finish",
+                "[H] Toggle Help"]
+            set_status_text(context, status_help)
+            return {'RUNNING_MODAL'}
+
+        else:
+            self.report({'WARNING'}, "View3D not found, cannot run operator")
+            print("Cancelled: No suitable viewport found")
+            k.qm_running = False
+            return {'CANCELLED'}
 
     def modal(self, context, event):
         if event.type in {'ONE', 'TWO', 'THREE'} and event.value == 'RELEASE':
+            if context.mode == "OBJECT":
+                bpy.ops.object.editmode_toggle()
             if event.type == "ONE":
-                bpy.ops.view3d.ke_selmode(edit_mode = "VERT")
+                bpy.ops.mesh.select_mode(use_extend=False, use_expand=False, type='VERT')
                 bpy.ops.view3d.select(deselect_all=True)
             elif event.type == "TWO":
-                bpy.ops.view3d.ke_selmode(edit_mode = "EDGE")
+                bpy.ops.mesh.select_mode(use_extend=False, use_expand=False, type='EDGE')
             elif event.type == "THREE":
-                bpy.ops.view3d.ke_selmode(edit_mode = "FACE")
+                bpy.ops.mesh.select_mode(use_extend=False, use_expand=False, type='FACE')
             self.vert_history = []
             sel_check(self, context)
             context.area.tag_redraw()
@@ -494,6 +555,7 @@ class VIEW3D_OT_ke_quickmeasure(bpy.types.Operator):
 
         elif event.type == 'C' and event.value == 'RELEASE':
             bpy.ops.view3d.select(deselect_all=True)
+            self.vert_history = []
             sel_check(self, context)
 
         if context.area and self.sel_upd:
@@ -501,9 +563,13 @@ class VIEW3D_OT_ke_quickmeasure(bpy.types.Operator):
                 sel_check(self, context)
             elif context.mode == "OBJECT":
                 sel_check(self, context)
+            if not self.sel_save_mode:
+                self.sel_upd = False
             context.area.tag_redraw()
 
         if self.lines and context.area and event.type == 'TIMER':
+            if self.sel_save_mode:
+                sel_check(self, context)
             txt_calc(self, context)
             context.area.tag_redraw()
 
@@ -512,6 +578,9 @@ class VIEW3D_OT_ke_quickmeasure(bpy.types.Operator):
                 event.shift and event.type == "MIDDLEMOUSE" or \
                 event.ctrl and event.type == "MIDDLEMOUSE":
             return {'PASS_THROUGH'}
+
+        elif event.ctrl and event.type == "Z":
+            return {'RUNNING_MODAL'}
 
         elif event.type == 'F' and event.value == 'RELEASE':
             self.sel_save_mode = not self.sel_save_mode
@@ -529,7 +598,8 @@ class VIEW3D_OT_ke_quickmeasure(bpy.types.Operator):
             bpy.types.SpaceView3D.draw_handler_remove(self._handle, 'WINDOW')
             bpy.types.SpaceView3D.draw_handler_remove(self._handle_px, 'WINDOW')
             context.area.tag_redraw()
-            context.scene.kekit.qm_running = False
+            context.preferences.addons['kekit'].preferences.qm_running = False
+            context.workspace.status_text_set(None)
             return {'FINISHED'}
 
         elif event.type == "LEFTMOUSE" or event.type == "RIGHTMOUSE":
@@ -542,7 +612,7 @@ class VIEW3D_OT_ke_quickmeasure(bpy.types.Operator):
         elif event.shift and not self.edit_mode[0] and not self.obj_mode and self.vertmode != "Distance":
             return {'PASS_THROUGH'}
 
-        elif event.type == 'G':
+        elif event.type == 'G' or event.type == 'W':
             bpy.ops.transform.translate('INVOKE_DEFAULT')
 
         elif event.type == 'R':
@@ -554,7 +624,7 @@ class VIEW3D_OT_ke_quickmeasure(bpy.types.Operator):
         elif event.type in {'X', 'Y', 'Z', 'GRLESS'}:
             return {'PASS_THROUGH'}
 
-        elif event.type == 'A'and event.value == 'RELEASE':
+        elif event.type == 'A' and event.value == 'RELEASE':
             if self.area_mode[0]:
                 self.area_mode[0], self.area_mode[1], self.area_mode[2] = False, True, False
             elif self.area_mode[1]:
@@ -590,72 +660,22 @@ class VIEW3D_OT_ke_quickmeasure(bpy.types.Operator):
         else:
             self.sel_upd = False
 
-        if self.sel_save_mode:
-            self.sel_upd = True
-
         return {'RUNNING_MODAL'}
 
 
-    def invoke(self, context, event):
+#
+# CLASS REGISTRATION
+#
+classes = (KeQuickMeasure,)
 
-        self.hcol = context.preferences.addons['kekit'].preferences.modal_color_header
-        self.tcol = context.preferences.addons['kekit'].preferences.modal_color_text
-        self.scol = context.preferences.addons['kekit'].preferences.modal_color_subtext
+modules = ()
 
-        self.auto_update = bpy.context.scene.kekit.quickmeasure
-        bpy.ops.wm.tool_set_by_id(name="builtin.select")
-
-        active_obj = bpy.context.active_object
-        sel_obj = [obj for obj in context.selected_objects if obj.type == "MESH"]
-
-        # Make sure active obj is selected
-        if len(sel_obj) == 0 and active_obj:
-            if active_obj.type == "MESH":
-                active_obj.select_set(state=True)
-                sel_obj = active_obj
-
-        if not sel_obj:
-            self.report({'WARNING'}, "No mesh object selected.")
-            print("Cancelled: No mesh object selected.")
-            return {'CANCELLED'}
-
-        bpy.app.handlers.frame_change_post.clear()
-        sel_check(self, context, sel_save_check=True)
-
-        if context.area.type == 'VIEW_3D':
-            if self.qm_start == "SEL_SAVE":
-                self.sel_save_mode = True
-
-            self.screen_x = int(bpy.context.region.width * .5)
-
-            args = (self, context)
-            self._handle = bpy.types.SpaceView3D.draw_handler_add(draw_callback_view, args, 'WINDOW', 'POST_VIEW')
-            self._handle_px = bpy.types.SpaceView3D.draw_handler_add(draw_callback_px, args, 'WINDOW', 'POST_PIXEL')
-
-            wm = context.window_manager
-            self._timer = wm.event_timer_add(time_step=0.01, window=context.window)
-            wm.modal_handler_add(self)
-
-            context.area.tag_redraw()
-            context.scene.kekit.qm_running = True
-            return {'RUNNING_MODAL'}
-
-        else:
-            self.report({'WARNING'}, "View3D not found, cannot run operator")
-            print("Cancelled: No suitable viewport found")
-            return {'CANCELLED'}
-
-        return {'FINISHED'}
-
-# -------------------------------------------------------------------------------------------------
-# Class Registration & Unregistration
-# -------------------------------------------------------------------------------------------------
 
 def register():
-    bpy.utils.register_class(VIEW3D_OT_ke_quickmeasure)
+    for c in classes:
+        bpy.utils.register_class(c)
+
 
 def unregister():
-    bpy.utils.unregister_class(VIEW3D_OT_ke_quickmeasure)
-
-if __name__ == "__main__":
-    register()
+    for c in reversed(classes):
+        bpy.utils.unregister_class(c)

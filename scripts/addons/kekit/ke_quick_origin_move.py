@@ -1,22 +1,13 @@
-bl_info = {
-    "name": "keQuickOriginMove",
-    "author": "Kjell Emanuelsson",
-    "category": "Modeling",
-    "version": (1, 0, 1),
-    "blender": (2, 80, 0),
-}
-
 import bpy
 import blf
-from .ke_utils import getset_transform
+from ._utils import getset_transform
 from mathutils import Vector, Matrix
 from bpy_extras.view3d_utils import region_2d_to_location_3d
 
 
-class VIEW3D_OT_ke_quick_origin_move(bpy.types.Operator):
+class KeQuickOriginMove(bpy.types.Operator):
     bl_idname = "view3d.ke_quick_origin_move"
     bl_label = "Quick Origin Move"
-    # bl_description = "Move Object Origin (using Grab in modal, LMB/RMB to finish/cancel)"
     bl_options = {'REGISTER', 'UNDO'}
 
     mode: bpy.props.EnumProperty(
@@ -50,10 +41,10 @@ class VIEW3D_OT_ke_quick_origin_move(bpy.types.Operator):
     def poll(cls, context):
         return context.object is not None
 
-
     def draw_callback_px(self, context, pos):
         hpos, vpos = 64, 64
-        if pos: hpos = pos - 10
+        if pos:
+            hpos = pos - 10
         font_id = 0
         blf.enable(font_id, 4)
         blf.position(font_id, hpos, vpos - 25, 0)
@@ -62,7 +53,6 @@ class VIEW3D_OT_ke_quick_origin_move(bpy.types.Operator):
         blf.shadow(font_id, 5, 0, 0, 0, 1)
         blf.shadow_offset(font_id, 1, -1)
         blf.draw(font_id, "[ Quick Origin Move ]")
-
 
     def invoke(self, context, event):
         self.og_loc = context.object.location[:]
@@ -109,7 +99,7 @@ class VIEW3D_OT_ke_quick_origin_move(bpy.types.Operator):
         args = (context, screen_x)
         self._handle_px = bpy.types.SpaceView3D.draw_handler_add(self.draw_callback_px, args, 'WINDOW', 'POST_PIXEL')
 
-        bpy.context.scene.tool_settings.use_transform_data_origin = True
+        context.scene.tool_settings.use_transform_data_origin = True
 
         bpy.ops.transform.translate('INVOKE_DEFAULT', orient_type=self.ot, orient_matrix_type=self.ot,
                                     constraint_axis=self.axis, mirror=True, use_proportional_edit=False,
@@ -122,7 +112,7 @@ class VIEW3D_OT_ke_quick_origin_move(bpy.types.Operator):
 
         # APPLY ------------------------------------------------------------------------------------------
         if event.type in {'RET', 'SPACE'} or event.type == 'LEFTMOUSE' and event.value == 'RELEASE':
-            bpy.context.scene.tool_settings.use_transform_data_origin = False
+            context.scene.tool_settings.use_transform_data_origin = False
 
             if self.editmode != "OBJECT" and self.mode == "MOVE":
                 bpy.ops.object.mode_set(mode='EDIT')
@@ -132,7 +122,7 @@ class VIEW3D_OT_ke_quick_origin_move(bpy.types.Operator):
 
         # CANCEL ------------------------------------------------------------------------------------------
         elif event.type == 'ESC' or event.type == 'RIGHTMOUSE' and event.value == 'RELEASE':
-            bpy.context.scene.tool_settings.use_transform_data_origin = False
+            context.scene.tool_settings.use_transform_data_origin = False
 
             if self.mode == "MOVE":
                 cursor = context.scene.cursor
@@ -149,15 +139,20 @@ class VIEW3D_OT_ke_quick_origin_move(bpy.types.Operator):
 
         return {'RUNNING_MODAL'}
 
-# -------------------------------------------------------------------------------------------------
-# Class Registration & Unregistration
-# -------------------------------------------------------------------------------------------------
+
+#
+# CLASS REGISTRATION
+#
+classes = (KeQuickOriginMove,)
+
+modules = ()
+
 
 def register():
-    bpy.utils.register_class(VIEW3D_OT_ke_quick_origin_move)
+    for c in classes:
+        bpy.utils.register_class(c)
+
 
 def unregister():
-    bpy.utils.unregister_class(VIEW3D_OT_ke_quick_origin_move)
-
-if __name__ == "__main__":
-    register()
+    for c in reversed(classes):
+        bpy.utils.unregister_class(c)

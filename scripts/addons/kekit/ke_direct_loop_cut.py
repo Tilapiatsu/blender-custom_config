@@ -1,31 +1,25 @@
-bl_info = {
-    "name": "keDirectLoopCut",
-    "author": "Kjell Emanuelsson",
-    "category": "Modeling",
-    "version": (2, 1, 1),
-    "blender": (2, 80, 0),
-}
-
 import bpy
 import bmesh
-from math import sqrt
+from bpy_types import Operator
 from mathutils import Vector
 from mathutils.geometry import intersect_point_line
 from bpy_extras.view3d_utils import location_3d_to_region_2d, region_2d_to_location_3d
-from .ke_utils import mouse_raycast, average_vector, get_vert_nearest_mouse, get_distance
+from ._utils import mouse_raycast, get_vert_nearest_mouse, get_distance, pick_closest_edge, get_face_islands
 
 
-class MESH_OT_ke_direct_loop_cut(bpy.types.Operator):
+class KeDirectLoopCut(Operator):
     bl_idname = "mesh.ke_direct_loop_cut"
     bl_label = "Direct Loop Cut"
-    bl_description = "Inserts edge loop on an edge under the mouse pointer. (No selection needed)\n" \
+    bl_description = "Inserts edge loop (or a vert with DIV) on an edge under the mouse. (No selection needed)\n" \
                      "Limit cut: Select FACES to limit cut to only those faces, from edge under mouse pointer.\n" \
                      "Center & Multi-cut: Select edge(s) with mouse over NOTHING/ANOTHER OBJECT"
     bl_options = {'REGISTER', 'UNDO'}
 
     mode: bpy.props.EnumProperty(items=[
         ("DEFAULT", "Default", "", 1),
-        ("SLIDE", "Slide", "", 2)],
+        ("SLIDE", "Slide", "", 2),
+        ("VERTEX", "Vertex", "", 3),
+        ("VERTEX_SLIDE", "Vertex Slide", "", 4)],
         name="Mode", default="DEFAULT", options={"HIDDEN"})
 
     mouse_pos = [0, 0]
@@ -38,7 +32,6 @@ class MESH_OT_ke_direct_loop_cut(bpy.types.Operator):
     poly_islands = []
     keep_distance = True
     nq_report = 0
-
 
     @classmethod
     def poll(cls, context):
@@ -117,7 +110,8 @@ class MESH_OT_ke_direct_loop_cut(bpy.types.Operator):
                     ab = area_bools[0]
 
                 for b, e in zip(ab, ring_edges[0][1:]):
-                    if b: ring.append(e)
+                    if b:
+                        ring.append(e)
             else:
                 ring = ring_edges[0]
 
@@ -127,11 +121,13 @@ class MESH_OT_ke_direct_loop_cut(bpy.types.Operator):
 
                 ring = [start_edge]
                 for b, e in zip(area_bools[0], ring_edges[0][1:]):
-                    if b and e != start_edge: ring.append(e)
+                    if b and e != start_edge:
+                        ring.append(e)
 
                 rest = []
                 for b, e in zip(area_bools[1], ring_edges[1][1:]):
-                    if b and e not in ring: rest.append(e)
+                    if b and e not in ring:
+                        rest.append(e)
 
                 rest.reverse()
                 ring = rest + ring
@@ -153,47 +149,6 @@ class MESH_OT_ke_direct_loop_cut(bpy.types.Operator):
                 all_edges = rest + ring_edges[0]
 
         return ring, rim_verts, all_edges
-
-
-    def expand_search(self, p, polys):
-        expand = 1000
-        p.tag = True
-        island = [p]
-        while expand > 0:
-            exp = []
-            for p in island:
-                for op in polys:
-                    if not set(p.verts).isdisjoint(op.verts) and not op.tag:
-                        op.tag = True
-                        exp.append(op)
-            if exp:
-                island.extend(exp)
-            else:
-                break
-            expand -= 1
-        return island
-
-
-    def get_poly_islands(self, polys):
-        islands = []
-        for p in polys:
-            if not p.tag:
-                island = self.expand_search(p, polys)
-                if island:
-                    islands.append(island)
-        return islands
-
-
-    def pick_closest_edge(self, edges):
-        pick, prev = None, 9001
-        for e in edges:
-            emp = average_vector([self.mtx @ v.co for v in e.verts])
-            p = location_3d_to_region_2d(self.region, self.rv3d, emp)
-            dist = sqrt((self.mouse_pos[0] - p.x) ** 2 + (self.mouse_pos[1] - p.y) ** 2)
-            if dist < prev:
-                pick, prev = e, dist
-        return pick
-
 
     def get_closest_edge_point(self, vpos1, vpos2):
         mid_point_list = []
@@ -218,22 +173,20 @@ class MESH_OT_ke_direct_loop_cut(bpy.types.Operator):
 
         return new_mid_point[0][-1]
 
-
     def invoke(self, context, event):
         self.mouse_pos[0] = event.mouse_region_x
         self.mouse_pos[1] = event.mouse_region_y
         return self.execute(context)
 
-
     def execute(self, context):
         # VP Setup
         self.region = context.region
         self.rv3d = context.region_data
-        self.screen_x = int(bpy.context.region.width * .5)
+        self.screen_x = int(context.region.width * .5)
 
         ob = context.object
         self.mtx = ob.matrix_world
-        sel_only = bpy.context.scene.kekit.dlc_so
+        sel_only = context.preferences.addons[__package__].preferences.dlc_so
 
         # cheap unevaluated hack - re-enable at end
         mods = []
@@ -260,9 +213,11 @@ class MESH_OT_ke_direct_loop_cut(bpy.types.Operator):
         else:
             hit_face = None
 
-        # Selections -----------------------------------------------------------------------------------------------
+        #
+        # Selections
+        #
         start_edges = []
-        start_vert = None
+        # start_vert = None
         get_fac = True
         og_elen = 1
         og_vec = Vector()
@@ -270,6 +225,8 @@ class MESH_OT_ke_direct_loop_cut(bpy.types.Operator):
         # sel_verts = [v for v in bm.verts if v.select]
         sel_edges = [e for e in bm.edges if e.select]
         sel_polys = [p for p in bm.faces if p.select]
+        # PH
+        start_edge = sel_edges[-1]
 
         if len(sel_polys) != 0:
             self.limit_polys = sel_polys
@@ -277,7 +234,7 @@ class MESH_OT_ke_direct_loop_cut(bpy.types.Operator):
 
         if not sel_only:
             # switching to edge mode, for edge selection (pick, and result select later)
-            bpy.context.tool_settings.mesh_select_mode = (False, True, False)
+            context.tool_settings.mesh_select_mode = (False, True, False)
 
             if hit_face is not None:
                 # Cut the one edge
@@ -292,7 +249,8 @@ class MESH_OT_ke_direct_loop_cut(bpy.types.Operator):
                         if pick[0] in sel_edges:
                             sel_edges = pick
                         else:
-                            sel_edges = [self.pick_closest_edge(sel_edges)]
+                            sel_edges = [pick_closest_edge(context, mtx=self.mtx, mousepos=self.mouse_pos,
+                                                           edges=sel_edges)]
                 else:
                     sel_edges = pick
 
@@ -301,26 +259,32 @@ class MESH_OT_ke_direct_loop_cut(bpy.types.Operator):
                 get_fac = False
 
                 if sel_polys:
-                    sel_edges = [self.pick_closest_edge(sel_edges)]
+                    sel_edges = [pick_closest_edge(context, mtx=self.mtx, mousepos=self.mouse_pos, edges=sel_edges)]
         else:
             if sel_edges:
-                sel_edges = [self.pick_closest_edge(sel_edges)]
+                sel_edges = [pick_closest_edge(context, mtx=self.mtx, mousepos=self.mouse_pos, edges=sel_edges)]
 
-        if self.use_limit:
+        if self.use_limit and self.mode not in {"VERTEX", "VERTEX_SLIDE"}:
             # Check for "checker" (non-continuous) poly selection
             if len(self.limit_polys) > 1:
-                self.poly_islands = self.get_poly_islands(self.limit_polys)
+                self.poly_islands = get_face_islands(bm=bm, sel_faces=self.limit_polys)
                 if len(self.poly_islands) == 1:
                     self.poly_islands = []
 
-        # Check selection for fails ---------------------------------------------------------------------------------
+        #
+        # Check selection for fails
+        #
         ec = len(sel_edges)
+        fac = 0.5
+        start_vert = None
 
         if ec == 0:
             self.report({"WARNING"}, "Edge selection failed/invalid - Cancelled")
             return {"CANCELLED"}
 
-        # Starting Edge Selection Handling --------------------------------------------------------------------------
+        #
+        # Starting Edge Selection Handling
+        #
         if ec == 1:
             start_edge = sel_edges[0]
             start_edges = [start_edge]
@@ -346,15 +310,13 @@ class MESH_OT_ke_direct_loop_cut(bpy.types.Operator):
                 if self.keep_distance:
                     og_elen = start_edge.calc_length()
                     og_vec = Vector((start_vert.co - other_vert.co)).normalized()
-            else:
-                fac = 0.5
 
             if floater:
                 # Split floater edge special
                 nedge, nvert = bmesh.utils.edge_split(start_edge, start_vert, fac)
                 bmesh.update_edit_mesh(me)
                 bpy.ops.mesh.select_all(action="DESELECT")
-                bpy.context.tool_settings.mesh_select_mode = (True, False, False)
+                context.tool_settings.mesh_select_mode = (True, False, False)
                 bm.verts.index_update()
                 nvert.select_set(True)
                 bm.free()
@@ -368,95 +330,114 @@ class MESH_OT_ke_direct_loop_cut(bpy.types.Operator):
         elif ec >= 2:
             start_edges = sel_edges
             get_fac = False
-            fac = 0.5
 
             if False in [bool(e.link_faces) for e in sel_edges]:
                 # If even just one floater, only subdivide
                 bpy.ops.mesh.subdivide()
                 return {"FINISHED"}
 
-        # Cutting edge loops  --------------------------------------------------------------------------------------
+        #
+        # Cutting edge loops
+        #
         new_edges = []
+        new_verts = []
 
-        for edge in start_edges:
-
-            # For mid-cuts, non-fac
+        if self.mode in {"VERTEX", "VERTEX_SLIDE"}:
             if start_vert is None:
-                start_vert = edge.verts[0]
+                start_vert = start_edge.verts[0]
+            nedge, nvert = bmesh.utils.edge_split(start_edge, start_vert, fac)
+            new_verts.append(nvert)
 
-            # Get ring edges (and rim) to cut
-            ring, rim_verts, ring_edges = self.get_edge_rings(edge, start_vert, get_fac)
+            bmesh.update_edit_mesh(me)
+            bm.verts.index_update()
 
-            # check for multiple start-edges on the same ring
-            for r in ring_edges:
-                if r in start_edges and r != edge:
-                    start_edges.remove(r)
+        else:
+            for edge in start_edges:
 
-            # making multiple ("fake") edge rings to cut if islands
-            if self.poly_islands:
-                rings = []
-                for island in self.poly_islands:
-                    i_ring = []
-                    for p in island:
-                        pedges = [e for e in p.edges if e in ring_edges]
-                        i_ring.extend([e for e in pedges if e not in i_ring])
-                    rings.append(i_ring)
-                if not rings:
-                    # fallback justincase
+                # For mid-cuts, non-fac
+                if start_vert is None:
+                    start_vert = edge.verts[0]
+
+                # Get ring edges (and rim) to cut
+                ring, rim_verts, ring_edges = self.get_edge_rings(edge, start_vert, get_fac)
+
+                # check for multiple start-edges on the same ring
+                for r in ring_edges:
+                    if r in start_edges and r != edge:
+                        start_edges.remove(r)
+
+                # making multiple ("fake") edge rings to cut if islands
+                if self.poly_islands:
+                    rings = []
+                    for island in self.poly_islands:
+                        i_ring = []
+                        for p in island:
+                            pedges = [e for e in p.edges if e in ring_edges]
+                            i_ring.extend([e for e in pedges if e not in i_ring])
+                        rings.append(i_ring)
+                    if not rings:
+                        # fallback justincase
+                        rings = [ring]
+                else:
                     rings = [ring]
-            else:
-                rings = [ring]
 
-            for ring in rings:
-                new_verts = []
+                for ring in rings:
+                    new_verts = []
 
-                for e in ring:
-                    # use rim verts as start vert on edges w. fac
-                    if get_fac:
-                        if e.verts[0] in rim_verts:
-                            sv = e.verts[0]
+                    for e in ring:
+                        # use rim verts as start vert on edges w. fac
+                        if get_fac:
+                            if e.verts[0] in rim_verts:
+                                sv = e.verts[0]
+                            else:
+                                sv = e.verts[1]
                         else:
-                            sv = e.verts[1]
-                    else:
-                        # mid cuts
-                        sv = e.verts[0]
+                            # mid cuts
+                            sv = e.verts[0]
 
-                    if self.keep_distance and get_fac:
-                        # This seems to work, idk, maths...well...now
-                        p1, p2 = sv.co, e.other_vert(sv).co
-                        evec = Vector((p1 - p2)).normalized()
-                        elen = e.calc_length()
-                        e_scale = round((og_elen / elen), 3)
-                        d = abs(round(og_vec.dot(evec), 3))
+                        if self.keep_distance and get_fac:
+                            # This seems to work, idk, maths...well...now
+                            p1, p2 = sv.co, e.other_vert(sv).co
+                            evec = Vector((p1 - p2)).normalized()
+                            elen = e.calc_length()
+                            e_scale = round((og_elen / elen), 3)
+                            d = abs(round(og_vec.dot(evec), 3))
 
-                        if d == 0:
-                            d = 1
-                        if d == 1:
-                            efac = fac * (e_scale / d)
+                            if d == 0:
+                                d = 1
+                            if d == 1:
+                                efac = fac * (e_scale / d)
+                            else:
+                                efac = fac
                         else:
                             efac = fac
-                    else:
-                        efac = fac
 
-                    # Split ring edge
-                    nedge, nvert = bmesh.utils.edge_split(e, sv, efac)
-                    new_verts.append(nvert)
+                        # Split ring edge
+                        nedge, nvert = bmesh.utils.edge_split(e, sv, efac)
+                        new_verts.append(nvert)
 
-                # Update
-                bmesh.update_edit_mesh(me)
-                bm.verts.index_update()
+                    # Update
+                    bmesh.update_edit_mesh(me)
+                    bm.verts.index_update()
 
-                # Make new edge loop(s)
-                nedges = bmesh.ops.connect_verts(bm, verts=new_verts)
-                bmesh.update_edit_mesh(me)
-                bm.edges.index_update()
-                nedges = [ne for ne in nedges.values()][0]
-                new_edges.extend(nedges)
+                    # Make new edge loop(s)
+                    nedges = bmesh.ops.connect_verts(bm, verts=new_verts)
+                    bmesh.update_edit_mesh(me)
+                    bm.edges.index_update()
+                    nedges = [ne for ne in nedges.values()][0]
+                    new_edges.extend(nedges)
 
-        # Finish --------------------------------------------------------------------------------------------------
+        #
+        # Finish
+        #
         bpy.ops.mesh.select_all(action="DESELECT")
-        for e in new_edges:
-            e.select_set(True)
+        if self.mode in {"VERTEX", "VERTEX_SLIDE"}:
+            context.tool_settings.mesh_select_mode = (True, False, False)
+            for v in new_verts:
+                v.select_set(True)
+        else:
+            for e in new_edges:
+                e.select_set(True)
 
         me.update()
         bpy.ops.object.mode_set(mode="OBJECT")
@@ -471,18 +452,27 @@ class MESH_OT_ke_direct_loop_cut(bpy.types.Operator):
 
         if self.mode == "SLIDE":
             bpy.ops.transform.edge_slide("INVOKE_DEFAULT")
+        elif self.mode == "VERTEX_SLIDE":
+            bpy.ops.transform.vert_slide("INVOKE_DEFAULT")
 
         return {"FINISHED"}
 
-# -------------------------------------------------------------------------------------------------
-# Class Registration & Unregistration
-# -------------------------------------------------------------------------------------------------
+
+#
+# CLASS REGISTRATION
+#
+classes = (
+    KeDirectLoopCut,
+)
+
+modules = ()
+
 
 def register():
-    bpy.utils.register_class(MESH_OT_ke_direct_loop_cut)
+    for c in classes:
+        bpy.utils.register_class(c)
+
 
 def unregister():
-    bpy.utils.unregister_class(MESH_OT_ke_direct_loop_cut)
-
-if __name__ == "__main__":
-    register()
+    for c in reversed(classes):
+        bpy.utils.unregister_class(c)

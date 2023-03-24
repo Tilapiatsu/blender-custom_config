@@ -1,22 +1,16 @@
-bl_info = {
-    "name": "Merge To Mouse",
-    "author": "Kjell Emanuelsson 2019",
-    "wiki_url": "http://artbykjell.com",
-    "version": (1, 3, 8),
-    "blender": (2, 80, 0),
-}
 import bpy
 import bmesh
 from mathutils import Vector
 from bpy.types import Operator
-from .ke_utils import get_loops, flatten, get_vert_nearest_mouse, get_area_and_type
+from ._utils import vertloops, get_vert_nearest_mouse, get_area_and_type
 
 
-class MESH_OT_merge_to_mouse(Operator):
+class KeMergeToMouse(Operator):
     bl_idname = "mesh.merge_to_mouse"
     bl_label = "Merge to Mouse"
-    bl_description = "Vert/Face Mode: Merge SELECTED verts to the selected (+ edgelinked) vert CLOSEST to the Mouse\n" \
-                     "Edge Mode: Collapse SELECTED edges to edge(s) CLOSEST to the Mouse\n" \
+    bl_description = "Vert & Face Mode: Merge selected verts to the vert nearest the Mouse " \
+                     "(selected + linked verts!)\n" \
+                     "Edge Mode: Collapse selected edges to edge nearest Mouse (+connected, for multiple rows)\n" \
                      "Note: In Quad Windows, Merge to Last is used instead"
     bl_options = {'REGISTER', 'UNDO'}
 
@@ -34,6 +28,7 @@ class MESH_OT_merge_to_mouse(Operator):
         return self.execute(context)
 
     def execute(self, context):
+        sel_mode = context.tool_settings.mesh_select_mode[:]
 
         # IDC...maybe later
         areatype = get_area_and_type()[1]
@@ -41,125 +36,207 @@ class MESH_OT_merge_to_mouse(Operator):
             bpy.ops.mesh.merge(type='LAST')
             return {'FINISHED'}
 
-        obj = bpy.context.object
+        obj = context.object
         obj_mtx = obj.matrix_world.copy()
         mesh = obj.data
         bm = bmesh.from_edit_mesh(mesh)
-        sel_mode = bpy.context.tool_settings.mesh_select_mode[:]
-        edge_mode = False
+        skip_linked = False
+
+        # Sel check
+        sel_verts = [v for v in bm.verts if v.select]
+        if not sel_verts:
+            print("Cancelled: Nothing Selected")
+            return {"CANCELLED"}
 
         if sel_mode[1]:
-            # Check for multiple edgeloops - or just vertcollapse, also tris...
             sel_edges = [e for e in bm.edges if e.select]
 
             if len(sel_edges) > 1:
-                vps, tris = [], []
-                for e in sel_edges:
-                    vps.append(e.verts[:])
-                    for f in e.link_faces:
-                        if f not in tris:
-                            if len(f.verts[:]) < 4:
-                                tris.append(f)
-                edge_loops = get_loops(vps)
-                edge_loops = [i for i in edge_loops if i]
-                if len(edge_loops) > 1 and not tris:
-                    edge_mode = True
+                sedges = vertloops([e.verts for e in sel_edges])
+                start_line = []
 
-        if edge_mode:
-            target_loop = []
-            sel_verts = list(flatten(edge_loops))
+                close_vert_candidate = get_vert_nearest_mouse(context, self.mouse_pos, sel_verts, obj_mtx)
+                for line in sedges:
+                    if close_vert_candidate in line:
+                        start_line = line
 
-            # my crappy loopsort fails on single edges sometimes?
-            sel_verts_check = [v for v in bm.verts if v.select]
-            if len(sel_verts_check) > len(sel_verts):
-                error_sort = [i for i in sel_verts_check if i not in sel_verts]
-                sel_verts = sel_verts_check
-                edge_loops.append(error_sort)
+                if not start_line:
+                    print("Cancelled: Target Edge Loop not found")
+                    return {"CANCELLED"}
 
-            # find the target verts (to merge to)
-            close_vert_candidate = get_vert_nearest_mouse(context, self.mouse_pos, sel_verts, obj_mtx)
-            for i, el in enumerate(edge_loops):
-                if close_vert_candidate in el:
-                    target_loop = edge_loops.pop(i)
+                le = []
+                for v in sel_verts:
+                    for e in v.link_edges:
+                        if all(i in sel_verts for i in e.verts) and e not in sel_edges:
+                            # Brute linkvert back & forth to cover Triangulation
+                            skip = []
+                            ce = []
+                            for edge in sel_edges:
+                                if v in edge.verts:
+                                    ce = edge
+                                    break
+                            ov = e.other_vert(v)
+                            skipmatch = [i for i in ce.verts if i != v]
+                            for ove in ov.link_edges:
+                                rov = ove.other_vert(ov)
+                                if rov in skipmatch:
+                                    skip.append(e)
 
-            # Get perpendicular merge loops (rows of verts to merge to target verts)
-            vlink_edges = []
-            for e in sel_edges:
-                elf = e.link_faces[:]
-                for f in elf:
-                    fe = f.edges[:]
-                    c = [i for i in fe if i in sel_edges]
-                    if len(c) > 1:
-                        perpendicular_edges = [i for i in fe if i not in sel_edges]
-                        vlink_edges.append(perpendicular_edges)
+                            if e not in skip:
+                                le.append(e)
 
-            vlink_edges = list(flatten(vlink_edges))
-            vps = [e.verts[:] for e in vlink_edges]
+                collapse_rows = vertloops([e.verts for e in list(set(le))])
 
-            if not vps:
-                self.report({"INFO"}, "Invalid Selection: Edges do not share face?")
-                return {"CANCELLED"}
+                for row in collapse_rows:
+                    target = [i for i in row if i in start_line][0]
+                    if not target:
+                        target = row[0]
+                    bmesh.ops.pointmerge(bm, verts=row, merge_co=target.co)
+                    bmesh.update_edit_mesh(mesh)
 
-            vert_loops = get_loops(vps)
-
-            merge_loops = []
-            for target_v in target_loop:
-                for vl in vert_loops:
-                    verts = list(set(vl))
-                    if target_v in verts:
-                        vc = [i for i in verts if i != target_v]
-                        vc = [target_v] + vc
-                        merge_loops.append(vc)
-                        break
-
-            if any(len(loop) != 2 for loop in merge_loops):
-                self.report({"INFO"}, "Invalid Selection")
-                return {"CANCELLED"}
-
-            for mloop in merge_loops:
-                pos = mloop[0].co
-                bmesh.ops.pointmerge(bm, verts=mloop, merge_co=pos)
-                bmesh.update_edit_mesh(mesh)
-
-            mesh.update()
-            bpy.ops.object.mode_set(mode="OBJECT")
-            bpy.ops.object.mode_set(mode="EDIT")
+                mesh.update()
+                # trust blender to update the mesh w/o issue? nah ;P
+                bpy.ops.object.mode_set(mode="OBJECT")
+                bpy.ops.object.mode_set(mode="EDIT")
 
         else:
-            sel = [v for v in bm.verts if v.select]
-            if sel:
-                bpy.context.tool_settings.mesh_select_mode = (True, False, False)
-                sel_verts = []
-                for v in sel:
+            context.tool_settings.mesh_select_mode = (True, False, False)
+            if skip_linked:
+                verts = sel_verts
+            else:
+                verts = []
+                for v in sel_verts:
                     for e in v.link_edges:
-                        sel_verts.append(e.other_vert(v))
+                        verts.append(e.other_vert(v))
 
-                sel_verts += sel
-                sel_verts = list(set(sel_verts))
+                verts += sel_verts
+                verts = list(set(verts))
 
-                merge_point = get_vert_nearest_mouse(context, self.mouse_pos, sel_verts, obj_mtx)
+            merge_point = get_vert_nearest_mouse(context, self.mouse_pos, verts, obj_mtx)
 
-                if merge_point:
-                    if merge_point not in sel:
-                        sel.append(merge_point)
-                    bmesh.ops.pointmerge(bm, verts=sel, merge_co=merge_point.co)
-                    bm.select_flush_mode()
-                    bmesh.update_edit_mesh(obj.data)
+            if merge_point:
+                if merge_point not in sel_verts:
+                    sel_verts.append(merge_point)
+                bmesh.ops.pointmerge(bm, verts=sel_verts, merge_co=merge_point.co)
+                bm.select_flush_mode()
+                bmesh.update_edit_mesh(obj.data)
 
-        bpy.context.tool_settings.mesh_select_mode = (sel_mode[0], sel_mode[1], sel_mode[2])
+            context.tool_settings.mesh_select_mode = (sel_mode[0], sel_mode[1], sel_mode[2])
 
         return {'FINISHED'}
 
 
-# -------------------------------------------------------------------------------------------------
-# Class Registration & Unregistration
-# -------------------------------------------------------------------------------------------------
+class KeMergeToActive(Operator):
+    bl_idname = "mesh.ke_merge_to_active"
+    bl_label = "Merge to Active"
+    bl_description = "Vert Mode: Merge selected verts to the Active vert (as 'Merge To Last')\n" \
+                     "no Active Vert in selection = Collapse is used\n" \
+                     "Edge Mode: Merge selected edges to Active Edge (+connected, for multiple rows)\n" \
+                     "Face Mode: Collapse (Average center)"
+    bl_options = {'REGISTER', 'UNDO'}
+
+    @classmethod
+    def poll(cls, context):
+        return (context.object is not None and
+                context.object.type == 'MESH' and
+                context.object.data.is_editmode)
+
+    def execute(self, context):
+        sel_mode = context.tool_settings.mesh_select_mode[:]
+        obj = context.object
+        mesh = obj.data
+        bm = bmesh.from_edit_mesh(mesh)
+
+        # Sel check
+        sel_verts = [v for v in bm.verts if v.select]
+        if not sel_verts:
+            print("Cancelled: Nothing Selected")
+            return {"CANCELLED"}
+
+        if sel_mode[1]:
+            sel_edges = [e for e in bm.edges if e.select]
+
+            if len(sel_edges) > 1:
+                sh = bm.select_history.active
+                ae = sh if sh in sel_edges else []
+                if not ae:
+                    print("Cancelled: Active Edge not found in selection")
+                    return {"CANCELLED"}
+
+                sedges = vertloops([e.verts for e in sel_edges])
+                start_line = []
+                for line in sedges:
+                    if ae.verts[0] in line:
+                        start_line = line
+                        break
+
+                if not start_line:
+                    print("Cancelled: Target Edge Loop not found")
+                    return {"CANCELLED"}
+
+                le = []
+                for v in sel_verts:
+                    for e in v.link_edges:
+                        if all(i in sel_verts for i in e.verts) and e not in sel_edges:
+                            # Brute linkvert back & forth to cover Triangulation
+                            skip = []
+                            ce = []
+                            for edge in sel_edges:
+                                if v in edge.verts:
+                                    ce = edge
+                                    break
+                            ov = e.other_vert(v)
+                            skipmatch = [i for i in ce.verts if i != v]
+                            for ove in ov.link_edges:
+                                rov = ove.other_vert(ov)
+                                if rov in skipmatch:
+                                    skip.append(e)
+
+                            if e not in skip:
+                                le.append(e)
+
+                collapse_rows = vertloops([e.verts for e in list(set(le))])
+
+                for row in collapse_rows:
+                    target = [i for i in row if i in start_line][0]
+                    if not target:
+                        target = row[0]
+                    bmesh.ops.pointmerge(bm, verts=row, merge_co=target.co)
+                    bmesh.update_edit_mesh(mesh)
+
+                mesh.update()
+                # I still don't trust blender to update the mesh w/o issue? toggle! ;P
+                bpy.ops.object.mode_set(mode="OBJECT")
+                bpy.ops.object.mode_set(mode="EDIT")
+
+        else:
+            # Vert mode
+            sh = bm.select_history.active
+            ae = sh if sh in sel_verts else []
+            if ae:
+                bpy.ops.mesh.merge('INVOKE_DEFAULT', type='LAST')
+            else:
+                bpy.ops.mesh.merge('INVOKE_DEFAULT', type='COLLAPSE')
+
+        return {'FINISHED'}
+
+
+#
+# CLASS REGISTRATION
+#
+classes = (
+    KeMergeToMouse,
+    KeMergeToActive
+)
+
+modules = ()
+
 
 def register():
-    bpy.utils.register_class(MESH_OT_merge_to_mouse)
+    for c in classes:
+        bpy.utils.register_class(c)
+
 
 def unregister():
-    bpy.utils.unregister_class(MESH_OT_merge_to_mouse)
-
-if __name__ == "__main__":
-    register()
+    for c in reversed(classes):
+        bpy.utils.unregister_class(c)

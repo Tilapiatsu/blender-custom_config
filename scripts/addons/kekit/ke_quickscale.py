@@ -1,16 +1,28 @@
-bl_info = {
-    "name": "keQuickScale",
-    "author": "Kjell Emanuelsson",
-    "category": "Modeling",
-    "version": (1, 0, 3),
-    "blender": (2, 80, 0),
-}
 import bpy
 from mathutils import Vector
-from .ke_utils import average_vector
+from ._utils import average_vector
 
 
-class VIEW3D_OT_ke_quickscale(bpy.types.Operator):
+def calc_bbox(vpos):
+    x, y, z = [], [], []
+    for i in vpos:
+        x.append(i[0])
+        y.append(i[1])
+        z.append(i[2])
+    x, y, z = sorted(x), sorted(y), sorted(z)
+    return (x[-1] - x[0], y[-1] - y[0], z[-1] - z[0]), (x, y, z)
+
+
+def scale_mesh(new_dimensions, c_o):
+    bpy.ops.transform.resize(value=new_dimensions, orient_type='GLOBAL', orient_matrix_type='GLOBAL',
+                             center_override=c_o,
+                             constraint_axis=(False, False, False), mirror=False, use_proportional_edit=False,
+                             use_proportional_connected=False, use_proportional_projected=False, snap=False,
+                             gpencil_strokes=False, texture_space=False, remove_on_cancel=False,
+                             release_confirm=False)
+
+
+class KeQuickScale(bpy.types.Operator):
     bl_idname = "view3d.ke_quickscale"
     bl_label = "Quick Scale"
     bl_description = "Set size and scale axis to fit. Object(s) & Edit mode (selection)"
@@ -48,7 +60,6 @@ class VIEW3D_OT_ke_quickscale(bpy.types.Operator):
         row.prop(self, "unit_size", toggle=True)
         layout.separator()
 
-
     @classmethod
     def poll(cls, context):
         return (context.object is not None and
@@ -67,26 +78,7 @@ class VIEW3D_OT_ke_quickscale(bpy.types.Operator):
         else:
             obj.scale[user_axis] = obj_val
 
-    def scale_mesh(self, new_dimensions, c_o):
-        bpy.ops.transform.resize(value=new_dimensions, orient_type='GLOBAL', orient_matrix_type='GLOBAL',
-                                 center_override=c_o,
-                                 constraint_axis=(False, False, False), mirror=False, use_proportional_edit=False,
-                                 use_proportional_connected=False, use_proportional_projected=False, snap=False,
-                                 gpencil_strokes=False, texture_space=False, remove_on_cancel=False,
-                                 release_confirm=False)
-
-    def calc_bbox(self, vpos):
-        x, y, z = [], [], []
-        for i in vpos:
-            x.append(i[0])
-            y.append(i[1])
-            z.append(i[2])
-        x, y, z = sorted(x), sorted(y), sorted(z)
-        return (x[-1] - x[0], y[-1] - y[0], z[-1] - z[0]), (x, y, z)
-
-
     def execute(self, context):
-
         user_axis = int(self.user_axis)
         other_axis = [0 ,1 ,2]
         other_axis.pop(user_axis)
@@ -102,6 +94,7 @@ class VIEW3D_OT_ke_quickscale(bpy.types.Operator):
             self.each = "SEPARATE"
 
         tot_bb = []
+        bb = [0,0,0]
 
         for obj in sel_obj:
 
@@ -117,7 +110,7 @@ class VIEW3D_OT_ke_quickscale(bpy.types.Operator):
                         break
 
                     vpos.extend([obj.matrix_world @ obj.data.vertices[v].co for v in sel_verts])
-                    dimension, bb = self.calc_bbox(vpos)
+                    dimension, bb = calc_bbox(vpos)
 
                 if dimension[user_axis] == 0:
                     self.report({'INFO'}, "Cancelled: Zero dimension on selected axis")
@@ -135,7 +128,7 @@ class VIEW3D_OT_ke_quickscale(bpy.types.Operator):
                         new_dimensions[other_axis[0]] = 1
                         new_dimensions[other_axis[1]] = 1
 
-                    self.scale_mesh(new_dimensions, c_o)
+                    scale_mesh(new_dimensions, c_o)
 
             else:
                 obj.update_from_editmode()
@@ -147,10 +140,8 @@ class VIEW3D_OT_ke_quickscale(bpy.types.Operator):
                     if sel_verts:
                         tot_bb.extend([obj.matrix_world @ obj.data.vertices[v].co for v in sel_verts])
 
-
         if self.each == "COMBINED":
-
-            dimension, bb = self.calc_bbox(tot_bb)
+            dimension, bb = calc_bbox(tot_bb)
             edit_val = self.user_value / dimension[user_axis]
             new_dimensions = [edit_val, edit_val, edit_val]
             c_o = average_vector(tot_bb)
@@ -163,30 +154,36 @@ class VIEW3D_OT_ke_quickscale(bpy.types.Operator):
             if context.mode == "OBJECT":
                 bpy.ops.object.editmode_toggle()
                 bpy.ops.mesh.select_all(action="SELECT")
-                self.scale_mesh(new_dimensions, c_o)
+                scale_mesh(new_dimensions, c_o)
                 bpy.ops.object.editmode_toggle()
             else:
-                self.scale_mesh(new_dimensions, c_o)
+                scale_mesh(new_dimensions, c_o)
 
         # Classic - To avoid undo issues n stuff
         bpy.ops.object.editmode_toggle()
         bpy.ops.object.editmode_toggle()
 
         # Update stored values ( if tweaked in redo)
-        bpy.context.scene.kekit.qs_user_value = self.user_value
-        bpy.context.scene.kekit.qs_unit_size = self.unit_size
+        context.preferences.addons[__package__].preferences.qs_user_value = self.user_value
+        context.preferences.addons[__package__].preferences.qs_unit_size = self.unit_size
         return {'FINISHED'}
 
 
-# -------------------------------------------------------------------------------------------------
-# Class Registration & Unregistration
-# -------------------------------------------------------------------------------------------------
+#
+# CLASS REGISTRATION
+#
+classes = (
+    KeQuickScale,
+)
+
+modules = ()
+
 
 def register():
-    bpy.utils.register_class(VIEW3D_OT_ke_quickscale)
+    for c in classes:
+        bpy.utils.register_class(c)
+
 
 def unregister():
-    bpy.utils.unregister_class(VIEW3D_OT_ke_quickscale)
-
-if __name__ == "__main__":
-    register()
+    for c in reversed(classes):
+        bpy.utils.unregister_class(c)

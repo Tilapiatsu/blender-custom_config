@@ -1,24 +1,32 @@
-bl_info = {
-    "name": "keCollision",
-    "author": "Kjell Emanuelsson",
-    "category": "Modeling",
-    "version": (1, 0, 4),
-    "blender": (2, 80, 0),
-}
 import bpy
-from .ke_utils import average_vector, get_layer_collection
+from bpy_types import Operator
+from ._utils import average_vector, get_layer_collection
 from mathutils import Vector
 
 
-class VIEW3D_OT_ke_collision(bpy.types.Operator):
+def bbox_calc(bbx, bby, bbz):
+    bbx.sort()
+    bby.sort()
+    bbz.sort()
+    side_x = bbx[-1] - bbx[0]
+    side_y = bby[-1] - bby[0]
+    side_z = bbz[-1] - bbz[0]
+    minmax = (Vector((bbx[0], bby[0], bbz[0])), Vector((bbx[-1], bby[-1], bbz[-1])))
+    avg_pos = average_vector(minmax)
+    return avg_pos, side_x, side_y, side_z
+
+
+class KeCollision(Operator):
     bl_idname = "view3d.ke_collision"
     bl_label = "Collision"
-    bl_description = "Creates BOX or CONVEX HULL collision-style object from element or obj selection. Multi-object edit mode support."
+    bl_description = "Creates BOX or CONVEX HULL collision-style object from Element or Object selection\n" \
+                     "Multi-Object Edit-Mode support."
     bl_options = {'REGISTER', 'UNDO'}
 
-    col_type : bpy.props.EnumProperty(items=[("BOX", "Box", "", 1),
-                                            ("CONVEX", "Convex Hull", "", 2),
-                                            ], name="Collision Type", default="BOX")
+    col_type: bpy.props.EnumProperty(
+        items=[("BOX", "Box", "", 1),
+               ("CONVEX", "Convex Hull", "", 2)],
+        name="Collision Type", default="BOX")
 
     col_mode : bpy.props.BoolProperty(
         name="Separate Collision Objects",
@@ -31,7 +39,6 @@ class VIEW3D_OT_ke_collision(bpy.types.Operator):
     ref_vp : bpy.props.BoolProperty(
         name="Reference Style Shading",
         default=False, description="Sets collision object(s) viewport to bounds display & not show in renders")
-
 
     def draw(self, context):
         layout = self.layout
@@ -54,21 +61,9 @@ class VIEW3D_OT_ke_collision(bpy.types.Operator):
         split.prop(self, "ref_vp", toggle=True)
         layout.separator(factor=1)
 
-
     @classmethod
     def poll(cls, context):
         return context.object is not None
-
-    def bbox_calc(self, bbx, bby, bbz):
-        bbx.sort()
-        bby.sort()
-        bbz.sort()
-        sideX = bbx[-1] - bbx[0]
-        sideY = bby[-1] - bby[0]
-        sideZ = bbz[-1] - bbz[0]
-        minmax = (Vector((bbx[0], bby[0], bbz[0])), Vector((bbx[-1], bby[-1], bbz[-1])))
-        avg_pos = average_vector(minmax)
-        return avg_pos, sideX, sideY, sideZ
 
     def set_shading(self, obj):
         if self.col_vp:
@@ -117,7 +112,7 @@ class VIEW3D_OT_ke_collision(bpy.types.Operator):
                 if sel_count > 1:
                     bpy.ops.object.join('INVOKE_DEFAULT')
 
-                col_obj = bpy.context.view_layer.objects.active
+                col_obj = context.view_layer.objects.active
                 self.set_shading(col_obj)
 
                 if og_obj:
@@ -132,7 +127,6 @@ class VIEW3D_OT_ke_collision(bpy.types.Operator):
                                          uvs=False, vcols=False, seam=False, sharp=False, materials=False)
                 bpy.ops.object.mode_set(mode='OBJECT')
 
-
             elif self.col_type == "BOX":
                 bpy.ops.object.mode_set(mode='OBJECT')
 
@@ -144,9 +138,14 @@ class VIEW3D_OT_ke_collision(bpy.types.Operator):
                         bby.append(co[1])
                         bbz.append(co[2])
 
-                avg_pos, sideX, sideY, sideZ = self.bbox_calc(bbx, bby, bbz)
+                if len(bbx) == 0:
+                    bpy.ops.object.mode_set(mode='EDIT')
+                    self.report({"INFO"}, "Cancelled: Nothing Selected?")
+                    return {"CANCELLED"}
 
-                bpy.ops.mesh.primitive_box_add(width=sideX/2, depth=sideY/2, height=sideZ/2,
+                avg_pos, side_x, side_y, side_z = bbox_calc(bbx, bby, bbz)
+
+                bpy.ops.mesh.primitive_box_add(width=side_x/2, depth=side_y/2, height=side_z/2,
                                                align='WORLD', location=avg_pos, rotation=(0,0,0))
 
                 col_obj = [o for o in context.scene.objects if o.type == "MESH"][-1]
@@ -155,9 +154,8 @@ class VIEW3D_OT_ke_collision(bpy.types.Operator):
                 else:
                     col_obj.name = col_obj.name + '_col'
 
-                col_obj = bpy.context.view_layer.objects.active
+                col_obj = context.view_layer.objects.active
                 self.set_shading(col_obj)
-
 
         elif mode == "OBJECT":
             new_sel = []
@@ -172,7 +170,7 @@ class VIEW3D_OT_ke_collision(bpy.types.Operator):
                         mesh = bpy.data.meshes.new(name=og_name + '_col')
                         col_obj = bpy.data.objects.new(mesh.name, mesh)
                         obj_collection.objects.link(col_obj)
-                        bpy.context.view_layer.objects.active = col_obj
+                        context.view_layer.objects.active = col_obj
 
                         # Data for CH
                         vco = []
@@ -213,7 +211,7 @@ class VIEW3D_OT_ke_collision(bpy.types.Operator):
                     mesh = bpy.data.meshes.new(name=og_name + '_col')
                     col_obj = bpy.data.objects.new(mesh.name, mesh)
                     obj_collection.objects.link(col_obj)
-                    bpy.context.view_layer.objects.active = col_obj
+                    context.view_layer.objects.active = col_obj
 
                     mesh.from_pydata(vco, [], [])
 
@@ -228,7 +226,6 @@ class VIEW3D_OT_ke_collision(bpy.types.Operator):
                     new_sel.append(col_obj)
                     self.set_shading(col_obj)
                     col_obj.select_set(False)
-
 
             elif self.col_type == "BOX":
 
@@ -255,12 +252,12 @@ class VIEW3D_OT_ke_collision(bpy.types.Operator):
                                 bby.append(co[1])
                                 bbz.append(co[2])
 
-                        avg_pos, sideX, sideY, sideZ = self.bbox_calc(bbx, bby, bbz)
+                        avg_pos, side_x, side_y, side_z = bbox_calc(bbx, bby, bbz)
 
-                        bpy.ops.mesh.primitive_box_add(width=sideX / 2, depth=sideY / 2, height=sideZ / 2,
+                        bpy.ops.mesh.primitive_box_add(width=side_x / 2, depth=side_y / 2, height=side_z / 2,
                                                        align='WORLD', location=avg_pos, rotation=(0, 0, 0))
 
-                        new_obj = bpy.context.view_layer.objects.active
+                        new_obj = context.view_layer.objects.active
                         new_obj.name = o.name + '_col'
                         new_sel.append(new_obj)
                         self.set_shading(new_obj)
@@ -287,12 +284,12 @@ class VIEW3D_OT_ke_collision(bpy.types.Operator):
                                 bby.append(co[1])
                                 bbz.append(co[2])
 
-                    avg_pos, sideX, sideY, sideZ = self.bbox_calc(bbx, bby, bbz)
+                    avg_pos, side_x, side_y, side_z = bbox_calc(bbx, bby, bbz)
 
-                    bpy.ops.mesh.primitive_box_add(width=sideX / 2, depth=sideY / 2, height=sideZ / 2,
+                    bpy.ops.mesh.primitive_box_add(width=side_x / 2, depth=side_y / 2, height=side_z / 2,
                                                    align='WORLD', location=avg_pos, rotation=(0, 0, 0))
 
-                    new_obj = bpy.context.view_layer.objects.active
+                    new_obj = context.view_layer.objects.active
                     new_obj.name = sel_obj[0].name + '_col'
                     new_sel.append(new_obj)
                     self.set_shading(new_obj)
@@ -305,16 +302,22 @@ class VIEW3D_OT_ke_collision(bpy.types.Operator):
 
         return {"FINISHED"}
 
-# -------------------------------------------------------------------------------------------------
-# Class Registration & Unregistration
-# -------------------------------------------------------------------------------------------------
+
+#
+# CLASS REGISTRATION
+#
+classes = (
+    KeCollision,
+)
+
+modules = ()
+
 
 def register():
-    bpy.utils.register_class(VIEW3D_OT_ke_collision)
+    for c in classes:
+        bpy.utils.register_class(c)
 
 
 def unregister():
-    bpy.utils.unregister_class(VIEW3D_OT_ke_collision)
-
-if __name__ == "__main__":
-    register()
+    for c in reversed(classes):
+        bpy.utils.unregister_class(c)
