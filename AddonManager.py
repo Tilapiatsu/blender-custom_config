@@ -6,11 +6,17 @@ import logging
 import shutil
 import subprocess
 import stat
+import bpy
+import re
 from os import path
 
 current_folder = os.getcwd()
 
 dependencies = ['gitpython']
+
+bversion_string = bpy.app.version_string
+bversion_reg = re.match("^(\d\.\d?\d)", bversion_string)
+bversion = float(bversion_reg.group(0))
 
 def install_dependencies():
 	current_dir = path.dirname(path.realpath(__file__))
@@ -23,6 +29,10 @@ def install_dependencies():
 	subprocess.check_call([sys.executable, '-m', 'pip', 'install',
 						  *dependencies, '--target', LineupMaker_dependencies_path])
 
+def enable_addon(addon_name):
+	print(f'Enabling Addon : {addon_name}')
+	bpy.ops.preferences.addon_enable(module=addon_name)
+	bpy.context.window_manager.keyconfigs.update()
 
 def file_acces_handler(func, path, exc_info):
 	# print('Handling Error for file ', path)
@@ -240,14 +250,20 @@ class PathAM():
 
 	@property
 	def exists(self):
+		if self.path is None:
+			return False
 		return path.exists(self.path)
 	
 	@property
 	def is_file(self):
+		if self.path is None:
+			return False
 		return path.isfile(self.path)
 	
 	@property
 	def is_dir(self):
+		if self.path is None:
+			return False
 		return path.isdir(self.path)
 	
 	def remove(self):
@@ -311,8 +327,16 @@ class PathElementAM():
 		print(f'Linking {self.local_subpath.path} -> {self.destination_path.path}')
 		os.symlink(self.local_subpath.path, self.destination_path.path,
 		           target_is_directory=self.destination_path.is_dir)
+	
+	def enable(self):
+		if not self.is_enable:
+			return
 		
-
+		if self.self.destination_path.is_file:
+			enable_addon(path.splitext(path.basename(self.destination_path.path))[0])
+		elif self.destination_path.is_dir:
+			enable_addon(path.basename(self.destination_path.path))
+			
 class ElementAM():
 	def __init__(self, element_dict, name):
 		self._element_dict = element_dict
@@ -327,6 +351,14 @@ class ElementAM():
 		return self._element_dict['enable']
 	
 	@property
+	def branch(self):
+		return self._element_dict['branch']
+	
+	@property
+	def submodule(self):
+		return self._element_dict['submodule']
+
+	@property
 	def online_url(self):
 		return self._element_dict['online_url']
 	
@@ -340,7 +372,7 @@ class ElementAM():
 			return []
 		else:
 			return [PathElementAM(x, self.local_path) for x in self._element_dict['paths']]
-		
+	
 	def __str__(self):
 		s = ''
 		s += f'----------------------------------------{self.name}----------------------------------------\n'
@@ -360,7 +392,7 @@ class ElementAM():
 			p.clean()
 
 		if self.local_path.exists:
-			if not self.is_sync or not self.is_enable:
+			if not self.is_sync:
 				self.local_path.remove()
 			
 
@@ -388,7 +420,16 @@ class ElementAM():
 		
 		for p in self.paths:
 			p.link(overwrite=overwrite)
+	
+	def enable(self):
+		if not self.is_enable:
+			return
 		
+		if not len(self.paths):
+			enable_addon(self.name)
+		else:
+			for p in self.paths:
+				p.enable()
 
 
 class AddonManager():
@@ -420,6 +461,13 @@ class AddonManager():
 				e.link(overwrite=overwrite)
 		elif element_name in self.elements.keys():
 			self.elements[element_name].link(overwrite=overwrite)
+	
+	def enable(self, element_name=None):
+		if element_name is None:
+			for e in self.elements.values():
+				e.enable()
+		elif element_name in self.elements.keys():
+			self.elements[element_name].enable()
 
 	def __str__(self):
 		s = ''
@@ -435,7 +483,7 @@ if __name__ == '__main__':
 	
 	AM.clean()
 	AM.sync(overwrite=True)
-	AM.link(overwrite=True)
+	# AM.link(overwrite=True)
 
 	# element_name = 'PolyQuilt'
 

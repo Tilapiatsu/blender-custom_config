@@ -4,6 +4,8 @@
     "sync": true,
     "enable": false,
     "online_url": "https://github.com/paulcoops/blender_pro-theme.git",
+    "branch" : null,
+    "submodule" : false,
     "local_path": "#\\scripts\\GIT\\ProTheme",
     "paths": [
         {
@@ -17,6 +19,8 @@
     "sync": true,
     "enable": false,
     "online_url": "https://github.com/Tilapiatsu/matcap-selection.git",
+    "branch": null,
+    "submodule" : false,
     "local_path": "#\\scripts\\GIT\\matcap",
     "paths": [
         {
@@ -30,6 +34,8 @@
     "sync": false,
     "enable": false,
     "online_url": null,
+    "branch": null,
+    "submodule" : false,
     "local_path": "R:\\Mon Drive\\00_Blender_Asset_Library\\Hdri",
     "paths": [
         {
@@ -43,6 +49,8 @@
     "sync": true,
     "enable": true,
     "online_url": "https://github.com/sobotka/AgX.git",
+    "branch": null,
+    "submodule" : false,
     "local_path": "#\\scripts\\GIT\\AgX",
     "paths": [
         {
@@ -56,6 +64,8 @@
     "sync": false,
     "enable": false,
     "online_url": "https://github.com/AcademySoftwareFoundation/OpenColorIO-Config-ACES.git",
+    "branch": null,
+    "submodule" : false,
     "local_path": "#\\scripts\\GIT\\OpenColorIO-Config-ACES",
     "paths": [
         {
@@ -70,6 +80,8 @@
     "sync": false,
     "enable": false,
     "online_url": "https://github.com/norgeotloic/BakeMyScan.git",
+    "branch" : null,
+    "submodule" : false,
     "local_path": "#\\scripts\\GIT\\BakeMyScan",
     "paths": [
         {
@@ -83,6 +95,8 @@
     "sync": false,
     "enable": false,
     "online_url": "https://github.com/Lichtso/curve_cad.git",
+    "branch" : null,
+    "submodule" : false,
     "local_path": "#\\scripts\\GIT\\curve_cad",
     "paths": [
         {
@@ -96,6 +110,8 @@
     "sync": false,
     "enable": false,
     "online_url": "https://github.com/JoseConseco/GoB.git",
+    "branch" : null,
+    "submodule" : false,
     "local_path": "#\\scripts\\GIT\\GoB",
     "paths": [
         {
@@ -109,6 +125,8 @@
     "sync": false,
     "enable": false,
     "online_url": "https://github.com/JacquesLucke/animation_nodes.git",
+    "branch" : null,
+    "submodule" : false,
     "local_path": "#\\scripts\\GIT\\animation_nodes",
     "paths": [
         {
@@ -122,6 +140,8 @@
     "sync": false,
     "enable": false,
     "online_url": "https://github.com/stuffmatic/fSpy-Blender.git",
+    "branch" : null,
+    "submodule" : false,
     "local_path": "#\\scripts\\GIT\\fSpy_Blender",
     "paths": [
         {
@@ -135,6 +155,8 @@
     "sync": false,
     "enable": false,
     "online_url": "https://github.com/Takanu/Capsule.git",
+    "branch" : null,
+    "submodule" : false,
     "local_path": "#\\scripts\\GIT\\Capsule",
     "paths": [
         {
@@ -148,6 +170,8 @@
     "sync": false,
     "enable": false,
     "online_url": "https://github.com/nutti/Screencast-Keys.git",
+    "branch" : null,
+    "submodule" : false,
     "local_path": "#\\scripts\\GIT\\ScreenCast_Keys",
     "paths": [
         {
@@ -161,6 +185,8 @@
     "sync": false,
     "enable": false,
     "online_url": "https://github.com/uhlik/bpy.git",
+    "branch" : null,
+    "submodule" : false,
     "local_path": "#\\scripts\\GIT\\bpy_photogrametry",
     "paths": [
         {
@@ -189,6 +215,8 @@
     "sync": false,
     "enable": false,
     "online_url": "https://github.com/fedackb/yavne.git",
+    "branch" : null,
+    "submodule" : false,
     "local_path": "#\\scripts\\GIT\\yavne",
     "paths": [
         {
@@ -202,6 +230,8 @@
     "sync": false,
     "enable": false,
     "online_url": "https://github.com/samytichadou/FontSelector_blender_addon.git",
+    "branch" : null,
+    "submodule" : false,
     "local_path": "#\\scripts\\GIT\\FontSelector",
     "paths": [
         {
@@ -215,6 +245,8 @@
     "sync": false,
     "enable": false,
     "online_url": "https://github.com/eliemichel/MapsModelsImporter.git",
+    "branch" : null,
+    "submodule" : false,
     "local_path": "#\\scripts\\GIT\\MapsModelsImporter",
     "paths": [
         {
@@ -228,6 +260,8 @@
     "sync": false,
     "enable": false,
     "online_url": "https://github.com/oormicreations/BlendShell.git",
+    "branch" : null,
+    "submodule" : false,
     "local_path": "#\\scripts\\GIT\\BlendShell",
     "paths": [
         {
@@ -241,6 +275,8 @@
     "sync": false,
     "enable": false,
     "online_url": "https://github.com/Neltulz/Neltulz_Edge_Curve_Plus.git",
+    "branch" : null,
+    "submodule" : false,
     "local_path": "#\\scripts\\GIT\\Neltulz_Edge_Curve_Plus",
     "paths": [
         {
@@ -254,6 +290,8 @@
     "sync": false,
     "enable": false,
     "online_url": "https://github.com/domlysz/BlenderGIS.git",
+    "branch" : null,
+    "submodule" : false,
     "local_path": "#\\scripts\\GIT\\BlenderGIS",
     "paths": [
         {
@@ -267,6 +305,8 @@
     "sync": false,
     "enable": false,
     "online_url": "https://github.com/LuxCoreRender/BlendLuxCore.git",
+    "branch" : null,
+    "submodule" : false,
     "local_path": "#\\scripts\\GIT\\LuxeCore",
     "paths": [
         {
@@ -280,6 +320,8 @@
     "sync": false,
     "enable": false,
     "online_url": "https://github.com/addam/Export-Paper-Model-from-Blender.git",
+    "branch" : null,
+    "submodule" : false,
     "local_path": "#\\scripts\\GIT\\Export_Paper_Model",
     "paths": [
         {
@@ -293,6 +335,8 @@
     "sync": false,
     "enable": false,
     "online_url": "https://github.com/patriciogonzalezvivo/glslTexture.git",
+    "branch" : null,
+    "submodule" : false,
     "local_path": "#\\scripts\\GIT\\glsl_texture",
     "paths": [
         {
@@ -306,6 +350,8 @@
     "sync": false,
     "enable": false,
     "online_url": "https://github.com/Symstract/modifier_list.git",
+    "branch" : null,
+    "submodule" : false,
     "local_path": "#\\scripts\\GIT\\modifier_list",
     "paths": [
         {
@@ -319,6 +365,8 @@
     "sync": false,
     "enable": false,
     "online_url": "https://gitlab.com/thomaskole/blender-seams-to-sewing-pattern.git",
+    "branch" : null,
+    "submodule" : false,
     "local_path": "#\\scripts\\GIT\\seams_to_sewing_pattern",
     "paths": [
         {
@@ -332,6 +380,8 @@
     "sync": false,
     "enable": false,
     "online_url": "https://github.com/TitusLVR/BMAX_Connector.git",
+    "branch" : null,
+    "submodule" : false,
     "local_path": "#\\scripts\\GIT\\BMax_Connector",
     "paths": [
         {
@@ -345,6 +395,8 @@
     "sync": false,
     "enable": false,
     "online_url": "https://github.com/MaximeHerpin/modular_tree.git",
+    "branch" : null,
+    "submodule" : false,
     "local_path": "#\\scripts\\GIT\\modular_tree",
     "paths": null
 },
@@ -352,6 +404,8 @@
     "sync": false,
     "enable": false,
     "online_url": "https://github.com/bnpr/Abnormal.git",
+    "branch" : null,
+    "submodule" : false,
     "local_path": "#\\scripts\\GIT\\Abnormal",
     "paths": [
         {
@@ -365,6 +419,8 @@
     "sync": false,
     "enable": false,
     "online_url": "https://github.com/joshuabloemer/Shader-to-OpenVDB.git",
+    "branch" : null,
+    "submodule" : false,
     "local_path": "#\\scripts\\GIT\\Shader_to_OpenVDB",
     "paths": [
         {
@@ -378,6 +434,8 @@
     "sync": true,
     "enable": false,
     "online_url": "https://github.com/HEAVYPOLY/HEAVYPOLY_Blender.git",
+    "branch" : null,
+    "submodule" : false,
     "local_path": "#\\scripts\\GIT\\HEAVYPOLY",
     "paths": [
         {
@@ -416,6 +474,8 @@
     "sync": false,
     "enable": false,
     "online_url": "https://gitlab.com/blender/character-pipeline-assistant.git",
+    "branch" : null,
+    "submodule" : false,
     "local_path": "#\\scripts\\GIT\\Character_Pipeline_Assistant",
     "paths": [
         {
@@ -429,6 +489,8 @@
     "sync": false,
     "enable": false,
     "online_url": "https://gitlab.com/blender/lattice_magic.git",
+    "branch" : null,
+    "submodule" : false,
     "local_path": "#\\scripts\\GIT\\Lattice_Magic",
     "paths": [
         {
@@ -442,6 +504,8 @@
     "sync": false,
     "enable": false,
     "online_url": "https://github.com/3d-io/uvpacker-blender-addon.git",
+    "branch" : null,
+    "submodule" : false,
     "local_path": "#\\scripts\\GIT\\uvpacker",
     "paths": [
         {
@@ -455,6 +519,8 @@
     "sync": false,
     "enable": false,
     "online_url": "https://github.com/TomekSc/MeshSlicer.git",
+    "branch" : null,
+    "submodule" : false,
     "local_path": "#\\scripts\\GIT\\MeshSlicer",
     "paths": [
         {
@@ -468,6 +534,8 @@
     "sync": false,
     "enable": false,
     "online_url": "https://github.com/Shahzod114/NodeRelax-Blender-Addon.git",
+    "branch" : null,
+    "submodule" : false,
     "local_path": "#\\scripts\\GIT\\NodeRelax",
     "paths": [
         {
@@ -481,6 +549,8 @@
     "sync": false,
     "enable": false,
     "online_url": "https://github.com/Naxela/The_Lightmapper.git",
+    "branch" : null,
+    "submodule" : false,
     "local_path": "#\\scripts\\GIT\\TheLightmapper",
     "paths": [
         {
@@ -494,6 +564,8 @@
     "sync": false,
     "enable": false,
     "online_url": "https://github.com/greisane/gret.git",
+    "branch" : null,
+    "submodule" : false,
     "local_path": "#\\scripts\\GIT\\gret",
     "paths": [
         {
@@ -507,6 +579,8 @@
     "sync": false,
     "enable": false,
     "online_url": "https://github.com/Yeetus3141/PrintNodes.git",
+    "branch" : null,
+    "submodule" : false,
     "local_path": "#\\scripts\\GIT\\PrintNode",
     "paths": [
         {
@@ -520,6 +594,8 @@
     "sync": false,
     "enable": false,
     "online_url": "https://gitlab.com/AquaticNightmare/ez_baker.git",
+    "branch" : null,
+    "submodule" : false,
     "local_path": "#\\scripts\\GIT\\ez_baker",
     "paths": [
         {
@@ -533,6 +609,8 @@
     "sync": false,
     "enable": false,
     "online_url": "https://github.com/SBCV/Blender-Addon-Photogrammetry-Importer.git",
+    "branch" : null,
+    "submodule" : false,
     "local_path": "#\\scripts\\GIT\\photogrametry_importer",
     "paths": [
         {
@@ -546,6 +624,8 @@
     "sync": true,
     "enable": false,
     "online_url": "https://github.com/Tilapiatsu/blender-Universal_Multi_Importer.git",
+    "branch" : null,
+    "submodule" : false,
     "local_path": "#\\scripts\\GIT\\universal_multi_importer",
     "paths": [
         {
@@ -559,6 +639,8 @@
     "sync": false,
     "enable": false,
     "online_url": "https://github.com/ChrisHinde/MaterialUtilities.git",
+    "branch" : null,
+    "submodule" : false,
     "local_path": "#\\scripts\\GIT\\MaterialUtilities",
     "paths": [
         {
@@ -572,6 +654,8 @@
     "sync": false,
     "enable": false,
     "online_url": "https://gitlab.com/AquaticNightmare/rigging_nodes.git",
+    "branch" : null,
+    "submodule" : false,
     "local_path": "#\\scripts\\GIT\\RiggingNodes",
     "paths": [
         {
@@ -585,6 +669,8 @@
     "sync": false,
     "enable": false,
     "online_url": "https://github.com/prman-pixar/RenderManForBlender.git",
+    "branch" : null,
+    "submodule" : false,
     "local_path": "#\\scripts\\GIT\\Renderman",
     "paths": [
         {
@@ -598,6 +684,8 @@
     "sync": true,
     "enable": false,
     "online_url": "https://github.com/oRazeD/GrabDoc.git",
+    "branch" : null,
+    "submodule" : false,
     "local_path": "#\\scripts\\GIT\\GrabDoc",
     "paths": [
         {
@@ -611,6 +699,8 @@
     "sync": false,
     "enable": false,
     "online_url": "https://github.com/p4ymak/eyek.git",
+    "branch" : null,
+    "submodule" : false,
     "local_path": "#\\scripts\\GIT\\eyek",
     "paths": [
         {
@@ -624,6 +714,8 @@
     "sync": false,
     "enable": false,
     "online_url": "https://github.com/williamchange/b3dsdf.git",
+    "branch" : null,
+    "submodule" : false,
     "local_path": "#\\scripts\\GIT\\b3dsdf",
     "paths": [
         {
@@ -637,6 +729,8 @@
     "sync": false,
     "enable": false,
     "online_url": "https://github.com/hlorus/CAD_Sketcher.git",
+    "branch" : null,
+    "submodule" : false,
     "local_path": "#\\scripts\\GIT\\CAD_Sketcher",
     "paths": [
         {
@@ -650,6 +744,8 @@
     "sync": false,
     "enable": false,
     "online_url": "https://github.com/atticus-lv/RenderNode.git",
+    "branch" : null,
+    "submodule" : false,
     "local_path": "#\\scripts\\GIT\\RenderNode",
     "paths": [
         {
@@ -663,6 +759,8 @@
     "sync": true,
     "enable": false,
     "online_url": "https://github.com/johnnygizmo/asset_snapshot.git",
+    "branch" : null,
+    "submodule" : false,
     "local_path": "#\\scripts\\GIT\\asset_snapshot",
     "paths": [
         {
@@ -676,6 +774,8 @@
     "sync": false,
     "enable": false,
     "online_url": "https://github.com/ubisoft/shotmanager.git",
+    "branch" : null,
+    "submodule" : false,
     "local_path": "#\\scripts\\GIT\\shotmanager",
     "paths": [
         {
@@ -689,6 +789,8 @@
     "sync": false,
     "enable": false,
     "online_url": "https://github.com/strike-digital/asset_bridge.git",
+    "branch" : null,
+    "submodule" : false,
     "local_path": "#\\scripts\\GIT\\asset_bridge",
     "paths": [
         {
@@ -702,6 +804,8 @@
     "sync": false,
     "enable": false,
     "online_url": "https://github.com/CGCookie/io_export_blend.git",
+    "branch" : null,
+    "submodule" : false,
     "local_path": "#\\scripts\\GIT\\io_export_blend",
     "paths": [
         {
@@ -715,6 +819,8 @@
     "sync": false,
     "enable": false,
     "online_url": "https://gitlab.com/lfs.coop/blender/gp-triangulation.git",
+    "branch" : null,
+    "submodule" : false,
     "local_path": "#\\scripts\\GIT\\gp_triangulation",
     "paths": [
         {
@@ -728,6 +834,8 @@
     "sync": false,
     "enable": false,
     "online_url": "https://github.com/JohnKazucki/JD-Miter-Box.git",
+    "branch" : null,
+    "submodule" : false,
     "local_path": "#\\scripts\\GIT\\miter_box",
     "paths": [
         {
@@ -741,6 +849,8 @@
     "sync": false,
     "enable": false,
     "online_url": "https://github.com/shteeve3d/blender-wiggle-2.git",
+    "branch" : null,
+    "submodule" : false,
     "local_path": "#\\scripts\\GIT\\wiggle",
     "paths": [
         {
@@ -755,6 +865,8 @@
     "sync": false,
     "enable": false,
     "online_url": "https://github.com/egtwobits/mesh_mesh_align_plus.git",
+    "branch" : null,
+    "submodule" : false,
     "local_path": "#\\scripts\\GIT\\mesh_align_plus",
     "paths": [
         {
@@ -768,6 +880,8 @@
     "sync": false,
     "enable": false,
     "online_url": null,
+    "branch" : null,
+    "submodule" : false,
     "local_path": null,
     "paths": null
 },
@@ -775,6 +889,8 @@
     "sync": false,
     "enable": false,
     "online_url": "https://github.com/danielenger/Principled-Baker.git",
+    "branch" : null,
+    "submodule" : false,
     "local_path": "#\\scripts\\GIT\\Principled_Baker",
     "paths": [
         {
@@ -788,6 +904,8 @@
     "sync": false,
     "enable": false,
     "online_url": null,
+    "branch" : null,
+    "submodule" : false,
     "local_path": null,
     "paths": null
 },
@@ -795,6 +913,8 @@
     "sync": false,
     "enable": false,
     "online_url": null,
+    "branch" : null,
+    "submodule" : false,
     "local_path": null,
     "paths": null
 },
@@ -802,6 +922,8 @@
     "sync": false,
     "enable": false,
     "online_url": "https://github.com/kevancress/MeasureIt-ARCH.git",
+    "branch" : null,
+    "submodule" : false,
     "local_path": "#\\scripts\\GIT\\MeasureIt_ARCH",
     "paths": [
         {
@@ -815,6 +937,8 @@
     "sync": false,
     "enable": false,
     "online_url": null,
+    "branch" : null,
+    "submodule" : false,
     "local_path": null,
     "paths": null
 },
@@ -822,6 +946,8 @@
     "sync": false,
     "enable": false,
     "online_url": null,
+    "branch" : null,
+    "submodule" : false,
     "local_path": null,
     "paths": null
 },
@@ -829,6 +955,8 @@
     "sync": false,
     "enable": false,
     "online_url": null,
+    "branch" : null,
+    "submodule" : false,
     "local_path": null,
     "paths": null
 },
@@ -836,6 +964,8 @@
     "sync": false,
     "enable": false,
     "online_url": "https://github.com/Vinc3r/Polycount.git",
+    "branch" : null,
+    "submodule" : false,
     "local_path": "#\\scripts\\GIT\\PolyCount",
     "paths": [
         {
@@ -849,6 +979,8 @@
     "sync": false,
     "enable": false,
     "online_url": "https://github.com/mifth/mifthtools.git",
+    "branch" : null,
+    "submodule" : false,
     "local_path": "#\\scripts\\GIT\\mifthtools",
     "paths": [
         {
@@ -862,6 +994,8 @@
     "sync": false,
     "enable": false,
     "online_url": "https://github.com/Neltulz/Neltulz_Smart_Sharpen.git",
+    "branch" : null,
+    "submodule" : false,
     "local_path": "#\\scripts\\GIT\\Neltulz_Smart_Sharpen",
     "paths": [
         {
@@ -875,6 +1009,8 @@
     "sync": false,
     "enable": false,
     "online_url": "https://github.com/Neltulz/Neltulz_Symmetry.git",
+    "branch" : null,
+    "submodule" : false,
     "local_path": "#\\scripts\\GIT\\Neltulz_Symmetry",
     "paths": [
         {
@@ -888,6 +1024,8 @@
     "sync": false,
     "enable": false,
     "online_url": null,
+    "branch" : null,
+    "submodule" : false,
     "local_path": null,
     "paths": null
 },
@@ -895,6 +1033,8 @@
     "sync": false,
     "enable": false,
     "online_url": null,
+    "branch" : null,
+    "submodule" : false,
     "local_path": null,
     "paths": null
 },
@@ -902,6 +1042,8 @@
     "sync": false,
     "enable": false,
     "online_url": null,
+    "branch" : null,
+    "submodule" : false,
     "local_path": null,
     "paths": null
 },
@@ -909,6 +1051,8 @@
     "sync": false,
     "enable": false,
     "online_url": null,
+    "branch" : null,
+    "submodule" : false,
     "local_path": null,
     "paths": null
 },
@@ -916,6 +1060,8 @@
     "sync": false,
     "enable": false,
     "online_url": null,
+    "branch" : null,
+    "submodule" : false,
     "local_path": null,
     "paths": null
 },
@@ -923,6 +1069,8 @@
     "sync": false,
     "enable": false,
     "online_url": null,
+    "branch" : null,
+    "submodule" : false,
     "local_path": null,
     "paths": null
 },
@@ -930,6 +1078,8 @@
     "sync": true,
     "enable": false,
     "online_url": "https://github.com/Tilapiatsu/blender-lineup_maker.git",
+    "branch" : null,
+    "submodule" : false,
     "local_path": "#\\scripts\\GIT\\lineup_maker",
     "paths": [
         {
@@ -947,6 +1097,8 @@
     "sync": true,
     "enable": true,
     "online_url": "https://gitlab.com/blender/easy_weight.git",
+    "branch" : null,
+    "submodule" : false,
     "local_path": "#\\scripts\\GIT\\easy_weight",
     "paths": [
         {
@@ -960,6 +1112,8 @@
     "sync": true,
     "enable": true,
     "online_url": "https://github.com/Weisl/simple_renaming_panel.git",
+    "branch" : null,
+    "submodule" : false,
     "local_path": "#\\scripts\\GIT\\simple_renaming_panel",
     "paths": [
         {
@@ -973,6 +1127,8 @@
     "sync": false,
     "enable": true,
     "online_url": null,
+    "branch" : null,
+    "submodule" : false,
     "local_path": null,
     "paths": null
 },
@@ -980,6 +1136,8 @@
     "sync": true,
     "enable": true,
     "online_url": "https://github.com/SavMartin/TexTools-Blender.git",
+    "branch" : null,
+    "submodule" : false,
     "local_path": "#\\scripts\\GIT\\TextTools",
     "paths": [
         {
@@ -993,6 +1151,8 @@
     "sync": true,
     "enable": true,
     "online_url": null,
+    "branch" : null,
+    "submodule" : false,
     "local_path": null,
     "paths": null
 },
@@ -1000,6 +1160,8 @@
     "sync": true,
     "enable": true,
     "online_url": null,
+    "branch" : null,
+    "submodule" : false,
     "local_path": null,
     "paths": null
 },
@@ -1007,6 +1169,8 @@
     "sync": true,
     "enable": true,
     "online_url": null,
+    "branch" : null,
+    "submodule" : false,
     "local_path": null,
     "paths": null
 },
@@ -1014,6 +1178,8 @@
     "sync": true,
     "enable": true,
     "online_url":null,
+    "branch" : null,
+    "submodule" : false,
     "local_path":"S:\\Mon Drive\\15_Blender\\00_INSTALLED_ADDONS\\MACHIN3tools",
     "paths": [
         {
@@ -1027,6 +1193,8 @@
     "sync": true,
     "enable": true,
     "online_url": null,
+    "branch" : null,
+    "submodule" : false,
     "local_path": "S:\\Mon Drive\\15_Blender\\00_INSTALLED_ADDONS\\MESHmachine",
     "paths": [
         {
@@ -1040,6 +1208,8 @@
     "sync": true,
     "enable": true,
     "online_url": null,
+    "branch" : null,
+    "submodule" : false,
     "local_path": "S:\\Mon Drive\\15_Blender\\00_INSTALLED_ADDONS\\beta_quad",
     "paths": [
         {
@@ -1053,6 +1223,8 @@
     "sync": true,
     "enable": true,
     "online_url": null,
+    "branch" : null,
+    "submodule" : false,
     "local_path": "S:\\Mon Drive\\15_Blender\\00_INSTALLED_ADDONS\\physical-starlight-atmosphere",
     "paths": [
         {
@@ -1066,6 +1238,8 @@
     "sync": true,
     "enable": true,
     "online_url": null,
+    "branch" : null,
+    "submodule" : false,
     "local_path": "S:\\Mon Drive\\15_Blender\\00_INSTALLED_ADDONS\\SculptLayers",
     "paths": [
         {
@@ -1079,6 +1253,8 @@
     "sync": true,
     "enable": true,
     "online_url": null,
+    "branch" : null,
+    "submodule" : false,
     "local_path": "S:\\Mon Drive\\15_Blender\\00_INSTALLED_ADDONS\\uv_toolkit",
     "paths": [
         {
@@ -1092,6 +1268,8 @@
     "sync": true,
     "enable": true,
     "online_url": "https://github.com/Radivarig/UvSquares.git",
+    "branch" : null,
+    "submodule" : false,
     "local_path": "#\\scripts\\GIT\\UvSquares",
     "paths": [
         {
@@ -1105,6 +1283,8 @@
     "sync": true,
     "enable": true,
     "online_url": "https://github.com/samytichadou/Auto_Reload-Blender_addon.git",
+    "branch" : null,
+    "submodule" : false,
     "local_path": "#\\scripts\\GIT\\Auto_Reload",
     "paths": [
         {
@@ -1118,6 +1298,8 @@
     "sync": true,
     "enable": true,
     "online_url": null,
+    "branch" : null,
+    "submodule" : false,
     "local_path": null,
     "paths": null
 },
@@ -1125,6 +1307,8 @@
     "sync": true,
     "enable": true,
     "online_url": null,
+    "branch" : null,
+    "submodule" : false,
     "local_path": null,
     "paths": null
 },
@@ -1132,6 +1316,8 @@
     "sync": true,
     "enable": true,
     "online_url": null,
+    "branch" : null,
+    "submodule" : false,
     "local_path": null,
     "paths": null
 },
@@ -1139,6 +1325,8 @@
     "sync": true,
     "enable": true,
     "online_url": "https://github.com/1C0D/optiloops.git",
+    "branch" : null,
+    "submodule" : false,
     "local_path": "#\\scripts\\GIT\\optiloops",
     "paths": [
         {
@@ -1152,6 +1340,8 @@
     "sync": true,
     "enable": true,
     "online_url": null,
+    "branch" : null,
+    "submodule" : false,
     "local_path": null,
     "paths": null
 },
@@ -1159,6 +1349,8 @@
     "sync": true,
     "enable": true,
     "online_url": null,
+    "branch" : null,
+    "submodule" : false,
     "local_path": null,
     "paths": null
 },
@@ -1166,6 +1358,8 @@
     "sync": true,
     "enable": true,
     "online_url": "https://github.com/sakana3/PolyQuilt.git",
+    "branch" : null,
+    "submodule" : false,
     "local_path": "#\\scripts\\GIT\\PolyQuilt",
     "paths": [
         {
@@ -1179,6 +1373,8 @@
     "sync": true,
     "enable": true,
     "online_url": null,
+    "branch" : null,
+    "submodule" : false,
     "local_path": null,
     "paths": null
 },
@@ -1186,6 +1382,8 @@
     "sync": true,
     "enable": true,
     "online_url": null,
+    "branch" : null,
+    "submodule" : false,
     "local_path": null,
     "paths": null
 },
@@ -1193,6 +1391,8 @@
     "sync": true,
     "enable": true,
     "online_url": "https://github.com/DB3D/Lodify.git",
+    "branch" : null,
+    "submodule" : false,
     "local_path": "#\\scripts\\GIT\\Lodify",
     "paths": [
         {
@@ -1206,6 +1406,8 @@
     "sync": true,
     "enable": true,
     "online_url": null,
+    "branch" : null,
+    "submodule" : false,
     "local_path": null,
     "paths": null
 },
@@ -1213,6 +1415,8 @@
     "sync": true,
     "enable": true,
     "online_url": null,
+    "branch" : null,
+    "submodule" : false,
     "local_path": null,
     "paths": null
 },
@@ -1220,6 +1424,8 @@
     "sync": true,
     "enable": true,
     "online_url": null,
+    "branch" : null,
+    "submodule" : false,
     "local_path": null,
     "paths": null
 },
@@ -1227,6 +1433,8 @@
     "sync": true,
     "enable": true,
     "online_url": null,
+    "branch" : null,
+    "submodule" : false,
     "local_path": null,
     "paths": null
 },
@@ -1234,6 +1442,8 @@
     "sync": true,
     "enable": true,
     "online_url": null,
+    "branch" : null,
+    "submodule" : false,
     "local_path": null,
     "paths": null
 },
@@ -1241,6 +1451,8 @@
     "sync": true,
     "enable": true,
     "online_url": null,
+    "branch" : null,
+    "submodule" : false,
     "local_path": null,
     "paths": null
 },
@@ -1248,6 +1460,8 @@
     "sync": true,
     "enable": true,
     "online_url": null,
+    "branch" : null,
+    "submodule" : false,
     "local_path": null,
     "paths": null
 },
@@ -1255,6 +1469,8 @@
     "sync": true,
     "enable": true,
     "online_url": null,
+    "branch" : null,
+    "submodule" : false,
     "local_path": null,
     "paths": null
 },
@@ -1262,6 +1478,8 @@
     "sync": true,
     "enable": true,
     "online_url": null,
+    "branch" : null,
+    "submodule" : false,
     "local_path": null,
     "paths": null
 },
@@ -1269,6 +1487,8 @@
     "sync": true,
     "enable": true,
     "online_url": null,
+    "branch" : null,
+    "submodule" : false,
     "local_path": null,
     "paths": null
 },
@@ -1276,6 +1496,8 @@
     "sync": true,
     "enable": true,
     "online_url": null,
+    "branch" : null,
+    "submodule" : false,
     "local_path": null,
     "paths": null
 },
@@ -1283,6 +1505,8 @@
     "sync": true,
     "enable": true,
     "online_url": null,
+    "branch" : null,
+    "submodule" : false,
     "local_path": null,
     "paths": null
 },
@@ -1290,6 +1514,8 @@
     "sync": true,
     "enable": true,
     "online_url": "https://github.com/BenjaminSauder/EdgeFlow.git",
+    "branch" : null,
+    "submodule" : false,
     "local_path": "#\\scripts\\GIT\\EdgeFlow",
     "paths": [
         {
@@ -1303,6 +1529,8 @@
     "sync": true,
     "enable": true,
     "online_url": null,
+    "branch" : null,
+    "submodule" : false,
     "local_path": null,
     "paths": null
 },
@@ -1310,6 +1538,8 @@
     "sync": true,
     "enable": true,
     "online_url": null,
+    "branch" : null,
+    "submodule" : false,
     "local_path": null,
     "paths": null
 },
@@ -1318,6 +1548,8 @@
     "sync": true,
     "enable": true,
     "online_url": null,
+    "branch" : null,
+    "submodule" : false,
     "local_path": null,
     "paths": null
 },
@@ -1325,6 +1557,8 @@
     "sync": true,
     "enable": true,
     "online_url": null,
+    "branch" : null,
+    "submodule" : false,
     "local_path": null,
     "paths": null
 },
@@ -1332,6 +1566,8 @@
     "sync": true,
     "enable": true,
     "online_url": null,
+    "branch" : null,
+    "submodule" : false,
     "local_path": null,
     "paths": null
 },
@@ -1339,6 +1575,8 @@
     "sync": true,
     "enable": true,
     "online_url": null,
+    "branch" : null,
+    "submodule" : false,
     "local_path": null,
     "paths": null
 },
@@ -1346,6 +1584,8 @@
     "sync": true,
     "enable": true,
     "online_url": null,
+    "branch" : null,
+    "submodule" : false,
     "local_path": null,
     "paths": null
 },
@@ -1353,6 +1593,8 @@
     "sync": true,
     "enable": true,
     "online_url": "https://github.com/Shriinivas/blenderbezierutils.git",
+    "branch" : null,
+    "submodule" : false,
     "local_path": "#\\scripts\\GIT\\bezierutils",
     "paths": [
         {   
@@ -1366,6 +1608,8 @@
     "sync": true,
     "enable": true,
     "online_url": "https://github.com/oscurart/Blender-28-Addons.git",
+    "branch" : null,
+    "submodule" : false,
     "local_path": "#\\scripts\\GIT\\oscuart",
     "paths" : [
         {
@@ -1384,6 +1628,8 @@
     "sync": true,
     "enable": true,
     "online_url": "https://github.com/andyp123/blender_vertex_color_master.git",
+    "branch" : null,
+    "submodule" : false,
     "local_path": "#\\scripts\\GIT\\vertex_color_master",
     "paths": [
         {
@@ -1397,6 +1643,8 @@
     "sync": true,
     "enable": true,
     "online_url": null,
+    "branch" : null,
+    "submodule" : false,
     "local_path": "S:\\Mon Drive\\15_Blender\\00_INSTALLED_ADDONS\\BakeWrangler",
     "paths": [
         {
@@ -1410,6 +1658,8 @@
     "sync": true,
     "enable": true,
     "online_url": "https://github.com/grantwilk/atomic-data-manager.git",
+    "branch" : null,
+    "submodule" : false,
     "local_path": "#\\scripts\\GIT\\atomic_data_manager",
     "paths": [
         {
@@ -1423,6 +1673,8 @@
     "sync": true,
     "enable": true,
     "online_url": null,
+    "branch" : null,
+    "submodule" : false,
     "local_path": null,
     "paths": null
 },
@@ -1430,6 +1682,8 @@
     "sync": true,
     "enable": true,
     "online_url": null,
+    "branch" : null,
+    "submodule" : false,
     "local_path": null,
     "paths": null
 },
@@ -1437,6 +1691,8 @@
     "sync": true,
     "enable": true,
     "online_url": null,
+    "branch" : null,
+    "submodule" : false,
     "local_path": null,
     "paths": null
 },
@@ -1444,6 +1700,8 @@
     "sync": true,
     "enable": true,
     "online_url": "https://github.com/mrven/Blender-Texel-Density-Checker.git",
+    "branch" : null,
+    "submodule" : false,
     "local_path": "#\\scripts\\GIT\\Texel_Density",
     "paths": [
         {
@@ -1457,6 +1715,8 @@
     "sync": true,
     "enable": true,
     "online_url": null,
+    "branch" : null,
+    "submodule" : false,
     "local_path": null,
     "paths": null
 },
@@ -1464,6 +1724,8 @@
     "sync": true,
     "enable": true,
     "online_url": null,
+    "branch" : null,
+    "submodule" : false,
     "local_path": null,
     "paths": null
 },
@@ -1471,6 +1733,8 @@
     "sync": true,
     "enable": true,
     "online_url": null,
+    "branch" : null,
+    "submodule" : false,
     "local_path": null,
     "paths": null
 },
@@ -1478,6 +1742,8 @@
     "sync": true,
     "enable": true,
     "online_url": "https://github.com/n-taka/BlenderAddons.git",
+    "branch" : null,
+    "submodule" : false,
     "local_path": "#\\scripts\\GIT\\RestoreSymmetry",
     "paths": [
         {
@@ -1491,6 +1757,8 @@
     "sync": true,
     "enable": true,
     "online_url": null,
+    "branch" : null,
+    "submodule" : false,
     "local_path": null,
     "paths": null
 },
@@ -1498,6 +1766,8 @@
     "sync": true,
     "enable": true,
     "online_url": null,
+    "branch" : null,
+    "submodule" : false,
     "local_path": null,
     "paths": null
 },
@@ -1505,6 +1775,8 @@
     "sync": true,
     "enable": true,
     "online_url": null,
+    "branch" : null,
+    "submodule" : false,
     "local_path": null,
     "paths": null
 },
@@ -1512,6 +1784,8 @@
     "sync": true,
     "enable": true,
     "online_url": null,
+    "branch" : null,
+    "submodule" : false,
     "local_path": null,
     "paths": null
 }
