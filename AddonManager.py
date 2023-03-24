@@ -410,7 +410,12 @@ class ElementAM():
 				return
 		
 		print(f'Syncing {self.name} to {self.local_path.path}')
-		git.Repo.clone_from(self.online_url, self.local_path.path)
+		if self.submodule:
+			repo = git.Repo(self.online_url)
+			repo.git.submodule('update', '--init')
+		else:
+			args = {'branch': self.branch} if self.branch is not None else {}
+			git.Repo.clone_from(self.online_url, self.local_path.path, *args)
 
 	def link(self, overwrite=False):
 		if not self.is_sync:

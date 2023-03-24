@@ -2,6 +2,11 @@ config/bookmarks.txt
 config/recent-files.txt
 config/userpref.blend
 *__pycache__*
+
+dependencies/*
+
+scripts/GIT/*
+
 scripts/addons/retopoflow-master/*
 scripts/addons/Capsule/*
 scripts/addons/animation_nodes/*

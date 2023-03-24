@@ -625,7 +625,7 @@
     "enable": false,
     "online_url": "https://github.com/Tilapiatsu/blender-Universal_Multi_Importer.git",
     "branch" : null,
-    "submodule" : false,
+    "submodule" : true,
     "local_path": "#\\scripts\\GIT\\universal_multi_importer",
     "paths": [
         {
@@ -1079,7 +1079,7 @@
     "enable": false,
     "online_url": "https://github.com/Tilapiatsu/blender-lineup_maker.git",
     "branch" : null,
-    "submodule" : false,
+    "submodule" : true,
     "local_path": "#\\scripts\\GIT\\lineup_maker",
     "paths": [
         {
