@@ -1,0 +1,1518 @@
+{
+"_misc": " .................................. Misc data ..................................",
+"ProTheme": {
+    "sync": true,
+    "enable": false,
+    "online_url": "https://github.com/paulcoops/blender_pro-theme.git",
+    "local_path": "#\\scripts\\GIT\\ProTheme",
+    "paths": [
+        {
+            "enable": true,
+            "local_subpath": "blender_pro.xml",
+            "destination_path": "#\\scripts\\presets\\interface_theme\\blender_pro.xml"
+        }
+    ]
+},
+"matcap": {
+    "sync": true,
+    "enable": false,
+    "online_url": "https://github.com/Tilapiatsu/matcap-selection.git",
+    "local_path": "#\\scripts\\GIT\\matcap",
+    "paths": [
+        {
+            "enable": true,
+            "local_subpath": null,
+            "destination_path": "#\\datafiles\\studiolights\\matcap"
+        }
+    ]
+},
+"HDRI": {
+    "sync": false,
+    "enable": false,
+    "online_url": null,
+    "local_path": "R:\\Mon Drive\\00_Blender_Asset_Library\\Hdri",
+    "paths": [
+        {
+            "enable": true,
+            "local_subpath": null,
+            "destination_path": "#\\datafiles\\studiolights\\world"
+        }
+    ]
+},
+"AgX": {
+    "sync": true,
+    "enable": true,
+    "online_url": "https://github.com/sobotka/AgX.git",
+    "local_path": "#\\scripts\\GIT\\AgX",
+    "paths": [
+        {
+            "enable": true,
+            "local_subpath": null,
+            "destination_path": "#\\datafiles\\colormanagement"
+        }
+    ]
+},
+"OpenColorIO-Config-ACES": {
+    "sync": false,
+    "enable": false,
+    "online_url": "https://github.com/AcademySoftwareFoundation/OpenColorIO-Config-ACES.git",
+    "local_path": "#\\scripts\\GIT\\OpenColorIO-Config-ACES",
+    "paths": [
+        {
+            "enable": false,
+            "local_subpath": null,
+            "destination_path": "#\\datafiles\\colormanagement"
+        }
+    ]
+},
+"_disabled": " ..................................Disabled addons from here ..................................",
+"BakeMyScan:": {
+    "sync": false,
+    "enable": false,
+    "online_url": "https://github.com/norgeotloic/BakeMyScan.git",
+    "local_path": "#\\scripts\\GIT\\BakeMyScan",
+    "paths": [
+        {
+            "enable": false,
+            "local_subpath": null,
+            "destination_path": "#\\scripts\\addons\\BakeMyScan"
+        }
+    ]
+},
+"curve_cad": {
+    "sync": false,
+    "enable": false,
+    "online_url": "https://github.com/Lichtso/curve_cad.git",
+    "local_path": "#\\scripts\\GIT\\curve_cad",
+    "paths": [
+        {
+            "enable": false,
+            "local_subpath": null,
+            "destination_path": "#\\scripts\\addons\\curve_cad"
+        }
+    ]
+},
+"GoB": {
+    "sync": false,
+    "enable": false,
+    "online_url": "https://github.com/JoseConseco/GoB.git",
+    "local_path": "#\\scripts\\GIT\\GoB",
+    "paths": [
+        {
+            "enable": false,
+            "local_subpath": null,
+            "destination_path": "#\\scripts\\addons\\GoB"
+        }
+    ]
+},
+"animation_nodes": {
+    "sync": false,
+    "enable": false,
+    "online_url": "https://github.com/JacquesLucke/animation_nodes.git",
+    "local_path": "#\\scripts\\GIT\\animation_nodes",
+    "paths": [
+        {
+            "enable": false,
+            "local_subpath": null,
+            "destination_path": "#\\scripts\\addons\\animation_nodes"
+        }
+    ]
+},
+"fSpy-Blender": {
+    "sync": false,
+    "enable": false,
+    "online_url": "https://github.com/stuffmatic/fSpy-Blender.git",
+    "local_path": "#\\scripts\\GIT\\fSpy_Blender",
+    "paths": [
+        {
+            "enable": false,
+            "local_subpath": null,
+            "destination_path": "#\\scripts\\addons\\fSpy_Blender"
+        }
+    ]
+},
+"Capsule": {
+    "sync": false,
+    "enable": false,
+    "online_url": "https://github.com/Takanu/Capsule.git",
+    "local_path": "#\\scripts\\GIT\\Capsule",
+    "paths": [
+        {
+            "enable": false,
+            "local_subpath": null,
+            "destination_path": "#\\scripts\\addons\\Capsule"
+        }
+    ]
+},
+"ScreenCast_Keys": {
+    "sync": false,
+    "enable": false,
+    "online_url": "https://github.com/nutti/Screencast-Keys.git",
+    "local_path": "#\\scripts\\GIT\\ScreenCast_Keys",
+    "paths": [
+        {
+            "enable": false,
+            "local_subpath": null,
+            "destination_path": "#\\scripts\\addons\\ScreenCast_Keys"
+        }
+    ]
+},
+"bpy_photogrametry": {
+    "sync": false,
+    "enable": false,
+    "online_url": "https://github.com/uhlik/bpy.git",
+    "local_path": "#\\scripts\\GIT\\bpy_photogrametry",
+    "paths": [
+        {
+            "enable": false,
+            "local_subpath": "carbon_tools.py",
+            "destination_path": "#\\scripts\\addons\\carbon_tools.py"
+        },
+        {
+            "enable": false,
+            "local_subpath": "io_import_photoscan_cameras.py",
+            "destination_path": "#\\scripts\\addons\\io_import_photoscan_cameras.py"
+        },
+        {
+            "enable": false,
+            "local_subpath": "system_time_tracker.py",
+            "destination_path": "#\\scripts\\addons\\system_time_tracker.py"
+        },
+        {
+            "enable": false,
+            "local_subpath": "space_view3d_point_cloud_visualizer.py",
+            "destination_path": "#\\scripts\\addons\\space_view3d_point_cloud_visualizer.py"
+        }
+    ]
+},
+"yavne": {
+    "sync": false,
+    "enable": false,
+    "online_url": "https://github.com/fedackb/yavne.git",
+    "local_path": "#\\scripts\\GIT\\yavne",
+    "paths": [
+        {
+            "enable": false,
+            "local_subpath": null,
+            "destination_path": "#\\scripts\\addons\\yavne"
+        }
+    ]
+},
+"FontSelector": {
+    "sync": false,
+    "enable": false,
+    "online_url": "https://github.com/samytichadou/FontSelector_blender_addon.git",
+    "local_path": "#\\scripts\\GIT\\FontSelector",
+    "paths": [
+        {
+            "enable": false,
+            "local_subpath": null,
+            "destination_path": "#\\scripts\\addons\\FontSelector"
+        }
+    ]
+},
+"MapsModelsImporter": {
+    "sync": false,
+    "enable": false,
+    "online_url": "https://github.com/eliemichel/MapsModelsImporter.git",
+    "local_path": "#\\scripts\\GIT\\MapsModelsImporter",
+    "paths": [
+        {
+            "enable": false,
+            "local_subpath": "blender\\MapsModelsImporter",
+            "destination_path": "#\\scripts\\addons\\MapsModelsImporter"
+        }
+    ]
+},
+"BlendShell": {
+    "sync": false,
+    "enable": false,
+    "online_url": "https://github.com/oormicreations/BlendShell.git",
+    "local_path": "#\\scripts\\GIT\\BlendShell",
+    "paths": [
+        {
+            "enable": false,
+            "local_subpath": "blendshell.py",
+            "destination_path": "#\\scripts\\addons\\blendshell.py"
+        }
+    ]
+},
+"Neltulz_Edge_Curve_Plus": {
+    "sync": false,
+    "enable": false,
+    "online_url": "https://github.com/Neltulz/Neltulz_Edge_Curve_Plus.git",
+    "local_path": "#\\scripts\\GIT\\Neltulz_Edge_Curve_Plus",
+    "paths": [
+        {
+            "enable": false,
+            "local_subpath": null,
+            "destination_path": "#\\scripts\\addons\\Neltulz_Edge_Curve_Plus"
+        }
+    ]
+},
+"BlenderGIS": {
+    "sync": false,
+    "enable": false,
+    "online_url": "https://github.com/domlysz/BlenderGIS.git",
+    "local_path": "#\\scripts\\GIT\\BlenderGIS",
+    "paths": [
+        {
+            "enable": false,
+            "local_subpath": null,
+            "destination_path": "#\\scripts\\addons\\BlenderGIS"
+        }
+    ]
+},
+"LuxeCore": {
+    "sync": false,
+    "enable": false,
+    "online_url": "https://github.com/LuxCoreRender/BlendLuxCore.git",
+    "local_path": "#\\scripts\\GIT\\LuxeCore",
+    "paths": [
+        {
+            "enable": false,
+            "local_subpath": null,
+            "destination_path": "#\\scripts\\addons\\LuxeCore"
+        }
+    ]
+},
+"Export_Paper_Model": {
+    "sync": false,
+    "enable": false,
+    "online_url": "https://github.com/addam/Export-Paper-Model-from-Blender.git",
+    "local_path": "#\\scripts\\GIT\\Export_Paper_Model",
+    "paths": [
+        {
+            "enable": false,
+            "local_subpath": null,
+            "destination_path": "#\\scripts\\addons\\Export_Paper_Model"
+        }
+    ]
+},
+"glsl_texture": {
+    "sync": false,
+    "enable": false,
+    "online_url": "https://github.com/patriciogonzalezvivo/glslTexture.git",
+    "local_path": "#\\scripts\\GIT\\glsl_texture",
+    "paths": [
+        {
+            "enable": false,
+            "local_subpath": null,
+            "destination_path": "#\\scripts\\addons\\glsl_texture"
+        }
+    ]
+},
+"modifier_list": {
+    "sync": false,
+    "enable": false,
+    "online_url": "https://github.com/Symstract/modifier_list.git",
+    "local_path": "#\\scripts\\GIT\\modifier_list",
+    "paths": [
+        {
+            "enable": false,
+            "local_subpath": null,
+            "destination_path": "#\\scripts\\addons\\modifier_list"
+        }
+    ]
+},
+"seams_to_sewing_pattern": {
+    "sync": false,
+    "enable": false,
+    "online_url": "https://gitlab.com/thomaskole/blender-seams-to-sewing-pattern.git",
+    "local_path": "#\\scripts\\GIT\\seams_to_sewing_pattern",
+    "paths": [
+        {
+            "enable": false,
+            "local_subpath": null,
+            "destination_path": "#\\scripts\\addons\\seams_to_sewing_pattern"
+        }
+    ]
+},
+"BMax_Connector": {
+    "sync": false,
+    "enable": false,
+    "online_url": "https://github.com/TitusLVR/BMAX_Connector.git",
+    "local_path": "#\\scripts\\GIT\\BMax_Connector",
+    "paths": [
+        {
+            "enable": false,
+            "local_subpath": null,
+            "destination_path": "#\\scripts\\addons\\BMax_Connector"
+        }
+    ]
+},
+"modular_tree": {
+    "sync": false,
+    "enable": false,
+    "online_url": "https://github.com/MaximeHerpin/modular_tree.git",
+    "local_path": "#\\scripts\\GIT\\modular_tree",
+    "paths": null
+},
+"Abnormal": {
+    "sync": false,
+    "enable": false,
+    "online_url": "https://github.com/bnpr/Abnormal.git",
+    "local_path": "#\\scripts\\GIT\\Abnormal",
+    "paths": [
+        {
+            "enable": false,
+            "local_subpath": null,
+            "destination_path": "#\\scripts\\addons\\Abnormal"
+        }
+    ]
+},
+"Shader_to_OpenVDB": {
+    "sync": false,
+    "enable": false,
+    "online_url": "https://github.com/joshuabloemer/Shader-to-OpenVDB.git",
+    "local_path": "#\\scripts\\GIT\\Shader_to_OpenVDB",
+    "paths": [
+        {
+            "enable": false,
+            "local_subpath": null,
+            "destination_path": "#\\scripts\\addons\\Shader_to_OpenVDB"
+        }
+    ]
+},
+"HEAVYPOLY": {
+    "sync": true,
+    "enable": false,
+    "online_url": "https://github.com/HEAVYPOLY/HEAVYPOLY_Blender.git",
+    "local_path": "#\\scripts\\GIT\\HEAVYPOLY",
+    "paths": [
+        {
+            "enable": true,
+            "local_subpath": "scripts\\startup\\HEAVYPOLY_OPERATORS.py",
+            "destination_path": "#\\scripts\\startup\\HEAVYPOLY_OPERATORS.py"
+        },
+        {
+            "enable": true,
+            "local_subpath": "scripts\\startup\\HEAVYPOLY_pie_rotate_90.py",
+            "destination_path": "#\\scripts\\startup\\HEAVYPOLY_pie_rotate_90.py"
+        },
+        {
+            "enable": true,
+            "local_subpath": "scripts\\startup\\HEAVYPOLY_pie_areas.py",
+            "destination_path": "#\\scripts\\startup\\HEAVYPOLY_pie_areas.py"
+        },
+        {
+            "enable": true,
+            "local_subpath": "scripts\\startup\\HEAVYPOLY_pie_symmetry.py",
+            "destination_path": "#\\scripts\\startup\\HEAVYPOLY_pie_symmetry.py"
+        },
+        {
+            "enable": true,
+            "local_subpath": "scripts\\startup\\HEAVYPOLY_pie_add.py",
+            "destination_path": "#\\scripts\\startup\\HEAVYPOLY_pie_add.py"
+        },
+        {
+            "enable": true,
+            "local_subpath": "scripts\\startup\\HEAVYPOLY_pie_boolean.py",
+            "destination_path": "#\\scripts\\startup\\HEAVYPOLY_pie_boolean.py"
+        }
+    ]
+},
+"Character_Pipeline_Assistant": {
+    "sync": false,
+    "enable": false,
+    "online_url": "https://gitlab.com/blender/character-pipeline-assistant.git",
+    "local_path": "#\\scripts\\GIT\\Character_Pipeline_Assistant",
+    "paths": [
+        {
+            "enable": false,
+            "local_subpath": null,
+            "destination_path": "#\\scripts\\addons\\Character_Pipeline_Assistant"
+        }
+    ]
+},
+"Lattice_Magic": {
+    "sync": false,
+    "enable": false,
+    "online_url": "https://gitlab.com/blender/lattice_magic.git",
+    "local_path": "#\\scripts\\GIT\\Lattice_Magic",
+    "paths": [
+        {
+            "enable": false,
+            "local_subpath": null,
+            "destination_path": "#\\scripts\\addons\\Lattice_Magic"
+        }
+    ]
+},
+"uvpacker": {
+    "sync": false,
+    "enable": false,
+    "online_url": "https://github.com/3d-io/uvpacker-blender-addon.git",
+    "local_path": "#\\scripts\\GIT\\uvpacker",
+    "paths": [
+        {
+            "enable": false,
+            "local_subpath": null,
+            "destination_path": "#\\scripts\\addons\\uvpacker"
+        }
+    ]
+},
+"MeshSlicer": {
+    "sync": false,
+    "enable": false,
+    "online_url": "https://github.com/TomekSc/MeshSlicer.git",
+    "local_path": "#\\scripts\\GIT\\MeshSlicer",
+    "paths": [
+        {
+            "enable": false,
+            "local_subpath": null,
+            "destination_path": "#\\scripts\\addons\\MeshSlicer"
+        }
+    ]
+},
+"NodeRelax": {
+    "sync": false,
+    "enable": false,
+    "online_url": "https://github.com/Shahzod114/NodeRelax-Blender-Addon.git",
+    "local_path": "#\\scripts\\GIT\\NodeRelax",
+    "paths": [
+        {
+            "enable": false,
+            "local_subpath": null,
+            "destination_path": "#\\scripts\\addons\\NodeRelax"
+        }
+    ]
+},
+"TheLightmapper": {
+    "sync": false,
+    "enable": false,
+    "online_url": "https://github.com/Naxela/The_Lightmapper.git",
+    "local_path": "#\\scripts\\GIT\\TheLightmapper",
+    "paths": [
+        {
+            "enable": false,
+            "local_subpath": null,
+            "destination_path": "#\\scripts\\addons\\TheLightmapper"
+        }
+    ]
+},
+"gret": {
+    "sync": false,
+    "enable": false,
+    "online_url": "https://github.com/greisane/gret.git",
+    "local_path": "#\\scripts\\GIT\\gret",
+    "paths": [
+        {
+            "enable": false,
+            "local_subpath": null,
+            "destination_path": "#\\scripts\\addons\\gret"
+        }
+    ]
+},
+"PrintNode": {
+    "sync": false,
+    "enable": false,
+    "online_url": "https://github.com/Yeetus3141/PrintNodes.git",
+    "local_path": "#\\scripts\\GIT\\PrintNode",
+    "paths": [
+        {
+            "enable": false,
+            "local_subpath": null,
+            "destination_path": "#\\scripts\\addons\\PrintNode"
+        }
+    ]
+},
+"ez_baker": {
+    "sync": false,
+    "enable": false,
+    "online_url": "https://gitlab.com/AquaticNightmare/ez_baker.git",
+    "local_path": "#\\scripts\\GIT\\ez_baker",
+    "paths": [
+        {
+            "enable": false,
+            "local_subpath": null,
+            "destination_path": "#\\scripts\\addons\\ez_baker"
+        }
+    ]
+},
+"photogrammetry_importer": {
+    "sync": false,
+    "enable": false,
+    "online_url": "https://github.com/SBCV/Blender-Addon-Photogrammetry-Importer.git",
+    "local_path": "#\\scripts\\GIT\\photogrametry_importer",
+    "paths": [
+        {
+            "enable": false,
+            "local_subpath": "photogrammetry_importer",
+            "destination_path": "#\\scripts\\addons\\photogrammetry_importer"
+        }
+    ]
+},
+"universal_multi_importer": {
+    "sync": true,
+    "enable": false,
+    "online_url": "https://github.com/Tilapiatsu/blender-Universal_Multi_Importer.git",
+    "local_path": "#\\scripts\\GIT\\universal_multi_importer",
+    "paths": [
+        {
+            "enable": false,
+            "local_subpath": null,
+            "destination_path": "#\\scripts\\addons\\universal_multi_importer"
+        }
+    ]
+},
+"MaterialUtilities": {
+    "sync": false,
+    "enable": false,
+    "online_url": "https://github.com/ChrisHinde/MaterialUtilities.git",
+    "local_path": "#\\scripts\\GIT\\MaterialUtilities",
+    "paths": [
+        {
+            "enable": false,
+            "local_subpath": null,
+            "destination_path": "#\\scripts\\addons\\MaterialUtilities"
+        }
+    ]
+},
+"RiggingNodes": {
+    "sync": false,
+    "enable": false,
+    "online_url": "https://gitlab.com/AquaticNightmare/rigging_nodes.git",
+    "local_path": "#\\scripts\\GIT\\RiggingNodes",
+    "paths": [
+        {
+            "enable": false,
+            "local_subpath": null,
+            "destination_path": "#\\scripts\\addons\\RiggingNodes"
+        }
+    ]
+},
+"Renderman": {
+    "sync": false,
+    "enable": false,
+    "online_url": "https://github.com/prman-pixar/RenderManForBlender.git",
+    "local_path": "#\\scripts\\GIT\\Renderman",
+    "paths": [
+        {
+            "enable": false,
+            "local_subpath": null,
+            "destination_path": "#\\scripts\\addons\\Renderman"
+        }
+    ]
+},
+"GrabDoc": {
+    "sync": true,
+    "enable": false,
+    "online_url": "https://github.com/oRazeD/GrabDoc.git",
+    "local_path": "#\\scripts\\GIT\\GrabDoc",
+    "paths": [
+        {
+            "enable": false,
+            "local_subpath": null,
+            "destination_path": "#\\scripts\\addons\\GrabDoc"
+        }
+    ]
+},
+"eyek": {
+    "sync": false,
+    "enable": false,
+    "online_url": "https://github.com/p4ymak/eyek.git",
+    "local_path": "#\\scripts\\GIT\\eyek",
+    "paths": [
+        {
+            "enable": false,
+            "local_subpath": null,
+            "destination_path": "#\\scripts\\addons\\eyek"
+        }
+    ]
+},
+"b3dsdf": {
+    "sync": false,
+    "enable": false,
+    "online_url": "https://github.com/williamchange/b3dsdf.git",
+    "local_path": "#\\scripts\\GIT\\b3dsdf",
+    "paths": [
+        {
+            "enable": false,
+            "local_subpath": null,
+            "destination_path": "#\\scripts\\addons\\b3dsdf"
+        }
+    ]
+},
+"CAD_Sketcher": {
+    "sync": false,
+    "enable": false,
+    "online_url": "https://github.com/hlorus/CAD_Sketcher.git",
+    "local_path": "#\\scripts\\GIT\\CAD_Sketcher",
+    "paths": [
+        {
+            "enable": false,
+            "local_subpath": null,
+            "destination_path": "#\\scripts\\addons\\CAD_Sketcher"
+        }
+    ]
+},
+"RenderNode": {
+    "sync": false,
+    "enable": false,
+    "online_url": "https://github.com/atticus-lv/RenderNode.git",
+    "local_path": "#\\scripts\\GIT\\RenderNode",
+    "paths": [
+        {
+            "enable": false,
+            "local_subpath": null,
+            "destination_path": "#\\scripts\\addons\\RenderNode"
+        }
+    ]
+},
+"asset_snapshot": {
+    "sync": true,
+    "enable": false,
+    "online_url": "https://github.com/johnnygizmo/asset_snapshot.git",
+    "local_path": "#\\scripts\\GIT\\asset_snapshot",
+    "paths": [
+        {
+            "enable": false,
+            "local_subpath": null,
+            "destination_path": "#\\scripts\\addons\\asset_snapshot"
+        }
+    ]
+},
+"shotmanager": {
+    "sync": false,
+    "enable": false,
+    "online_url": "https://github.com/ubisoft/shotmanager.git",
+    "local_path": "#\\scripts\\GIT\\shotmanager",
+    "paths": [
+        {
+            "enable": false,
+            "local_subpath": null,
+            "destination_path": "#\\scripts\\addons\\shotmanager"
+        }
+    ]
+},
+"asset_bridge": {
+    "sync": false,
+    "enable": false,
+    "online_url": "https://github.com/strike-digital/asset_bridge.git",
+    "local_path": "#\\scripts\\GIT\\asset_bridge",
+    "paths": [
+        {
+            "enable": false,
+            "local_subpath": null,
+            "destination_path": "#\\scripts\\addons\\asset_bridge"
+        }
+    ]
+},
+"io_export_blend": {
+    "sync": false,
+    "enable": false,
+    "online_url": "https://github.com/CGCookie/io_export_blend.git",
+    "local_path": "#\\scripts\\GIT\\io_export_blend",
+    "paths": [
+        {
+            "enable": false,
+            "local_subpath": null,
+            "destination_path": "#\\scripts\\addons\\io_export_blend"
+        }
+    ]
+},
+"gp_triangulation": {
+    "sync": false,
+    "enable": false,
+    "online_url": "https://gitlab.com/lfs.coop/blender/gp-triangulation.git",
+    "local_path": "#\\scripts\\GIT\\gp_triangulation",
+    "paths": [
+        {
+            "enable": false,
+            "local_subpath": null,
+            "destination_path": "#\\scripts\\addons\\gp_triangulation"
+        }
+    ]
+},
+"miter_box": {
+    "sync": false,
+    "enable": false,
+    "online_url": "https://github.com/JohnKazucki/JD-Miter-Box.git",
+    "local_path": "#\\scripts\\GIT\\miter_box",
+    "paths": [
+        {
+            "enable": false,
+            "local_subpath": null,
+            "destination_path": "#\\scripts\\addons\\miter_box"
+        }
+    ]
+},
+"wiggle": {
+    "sync": false,
+    "enable": false,
+    "online_url": "https://github.com/shteeve3d/blender-wiggle-2.git",
+    "local_path": "#\\scripts\\GIT\\wiggle",
+    "paths": [
+        {
+            "enable": false,
+            "local_subpath": "wiggle_2.py",
+            "destination_path": "#\\scripts\\addons\\wiggle.py"
+        }
+    ]
+},
+
+"mesh_align_plus": {
+    "sync": false,
+    "enable": false,
+    "online_url": "https://github.com/egtwobits/mesh_mesh_align_plus.git",
+    "local_path": "#\\scripts\\GIT\\mesh_align_plus",
+    "paths": [
+        {
+            "enable": true,
+            "local_subpath": null,
+            "destination_path": "#\\scripts\\addons\\mesh_align_plus"
+        }
+    ]
+},
+"mesh_snap_utilities_line": {
+    "sync": false,
+    "enable": false,
+    "online_url": null,
+    "local_path": null,
+    "paths": null
+},
+"Principled_Baker": {
+    "sync": false,
+    "enable": false,
+    "online_url": "https://github.com/danielenger/Principled-Baker.git",
+    "local_path": "#\\scripts\\GIT\\Principled_Baker",
+    "paths": [
+        {
+            "enable": true,
+            "local_subpath": null,
+            "destination_path": "#\\scripts\\addons\\Principled_Baker"
+        }
+    ]
+},
+"BystedtsBlenderBaker": {
+    "sync": false,
+    "enable": false,
+    "online_url": null,
+    "local_path": null,
+    "paths": null
+},
+"SSGI": {
+    "sync": false,
+    "enable": false,
+    "online_url": null,
+    "local_path": null,
+    "paths": null
+},
+"MeasureIt_ARCH": {
+    "sync": false,
+    "enable": false,
+    "online_url": "https://github.com/kevancress/MeasureIt-ARCH.git",
+    "local_path": "#\\scripts\\GIT\\MeasureIt_ARCH",
+    "paths": [
+        {
+            "enable": true,
+            "local_subpath": null,
+            "destination_path": "#\\scripts\\addons\\MeasureIt_ARCH"
+        }
+    ]
+},
+"RetopoFlow": {
+    "sync": false,
+    "enable": false,
+    "online_url": null,
+    "local_path": null,
+    "paths": null
+},
+"space_view3d_copy_attributes": {
+    "sync": false,
+    "enable": false,
+    "online_url": null,
+    "local_path": null,
+    "paths": null
+},
+"space_view3d_align_tools": {
+    "sync": false,
+    "enable": false,
+    "online_url": null,
+    "local_path": null,
+    "paths": null
+},
+"Polycount": {
+    "sync": false,
+    "enable": false,
+    "online_url": "https://github.com/Vinc3r/Polycount.git",
+    "local_path": "#\\scripts\\GIT\\PolyCount",
+    "paths": [
+        {
+            "enable": true,
+            "local_subpath": "polycount",
+            "destination_path": "#\\scripts\\addons\\PolyCount"
+        }
+    ]
+},
+"mira_tools": {
+    "sync": false,
+    "enable": false,
+    "online_url": "https://github.com/mifth/mifthtools.git",
+    "local_path": "#\\scripts\\GIT\\mifthtools",
+    "paths": [
+        {
+            "enable": true,
+            "local_subpath": "blender\\addons\\2.8\\mira_tools",
+            "destination_path": "#\\scripts\\addons\\mifthtools"
+        }
+    ]
+},
+"Neltulz_Smart_Sharpen": {
+    "sync": false,
+    "enable": false,
+    "online_url": "https://github.com/Neltulz/Neltulz_Smart_Sharpen.git",
+    "local_path": "#\\scripts\\GIT\\Neltulz_Smart_Sharpen",
+    "paths": [
+        {
+            "enable": true,
+            "local_subpath": null,
+            "destination_path": "#\\scripts\\addons\\Neltulz_Smart_Sharpen"
+        }
+    ]
+},
+"Neltulz_Symmetry": {
+    "sync": false,
+    "enable": false,
+    "online_url": "https://github.com/Neltulz/Neltulz_Symmetry.git",
+    "local_path": "#\\scripts\\GIT\\Neltulz_Symmetry",
+    "paths": [
+        {
+            "enable": true,
+            "local_subpath": null,
+            "destination_path": "#\\scripts\\addons\\Neltulz_Symmetry"
+        }
+    ]
+},
+"keentools_facebuilder": {
+    "sync": false,
+    "enable": false,
+    "online_url": null,
+    "local_path": null,
+    "paths": null
+},
+"mouselook_navigation": {
+    "sync": false,
+    "enable": false,
+    "online_url": null,
+    "local_path": null,
+    "paths": null
+},
+"keymesh": {
+    "sync": false,
+    "enable": false,
+    "online_url": null,
+    "local_path": null,
+    "paths": null
+},
+"ZWeightTools-1_0_1": {
+    "sync": false,
+    "enable": false,
+    "online_url": null,
+    "local_path": null,
+    "paths": null
+},
+"W_Mesh": {
+    "sync": false,
+    "enable": false,
+    "online_url": null,
+    "local_path": null,
+    "paths": null
+},
+"fspy": {
+    "sync": false,
+    "enable": false,
+    "online_url": null,
+    "local_path": null,
+    "paths": null
+},
+"lineup_maker": {
+    "sync": true,
+    "enable": false,
+    "online_url": "https://github.com/Tilapiatsu/blender-lineup_maker.git",
+    "local_path": "#\\scripts\\GIT\\lineup_maker",
+    "paths": [
+        {
+            "enable": true,
+            "local_subpath": null,
+            "destination_path": "#\\scripts\\addons\\lineup_maker"
+        }
+    ]
+},
+
+
+"_enabled" : " ..................................Enabled addons from here ..................................",
+
+"easy_weight": {
+    "sync": true,
+    "enable": true,
+    "online_url": "https://gitlab.com/blender/easy_weight.git",
+    "local_path": "#\\datafiles\\brushes\\easy_weight",
+    "paths": [
+        {
+            "enable": true,
+            "local_subpath": null,
+            "destination_path": "#\\scripts\\addons\\easy_weight"
+        }
+    ]
+},
+"simple_renaming_panel": {
+    "sync": true,
+    "enable": true,
+    "online_url": "https://github.com/Weisl/simple_renaming_panel.git",
+    "local_path": "#\\datafiles\\brushes\\simple_renaming_panel",
+    "paths": [
+        {
+            "enable": true,
+            "local_subpath": null,
+            "destination_path": "#\\scripts\\addons\\simple_renaming_panel"
+        }
+    ]
+},
+"mesh_f2":{
+    "sync": false,
+    "enable": true,
+    "online_url": null,
+    "local_path": null,
+    "paths": null
+},
+"TexTools:": {
+    "sync": true,
+    "enable": true,
+    "online_url": "https://github.com/SavMartin/TexTools-Blender.git",
+    "local_path": "#\\scripts\\GIT\\TextTools",
+    "paths": [
+        {
+            "enable":true,
+            "local_subpath": null,
+            "destination_path": "#\\scripts\\addons\\TextTools"
+        }
+    ]
+},
+"io_import_images_as_planes":{
+    "sync": true,
+    "enable": true,
+    "online_url": null,
+    "local_path": null,
+    "paths": null
+},
+"object_print3d_utils":{
+    "sync": true,
+    "enable": true,
+    "online_url": null,
+    "local_path": null,
+    "paths": null
+},
+"mesh_looptools":{
+    "sync": true,
+    "enable": true,
+    "online_url": null,
+    "local_path": null,
+    "paths": null
+},
+"MACHIN3tools": {
+    "sync": true,
+    "enable": true,
+    "online_url":null,
+    "local_path":"S:\\Mon Drive\\15_Blender\\00_INSTALLED_ADDONS\\MACHIN3tools",
+    "paths": [
+        {
+            "enable": true,
+            "local_subpath": null,
+            "destination_path": "#\\scripts\\addons\\MACHIN3tools"
+        }
+    ]
+},
+"MESHmachine":{
+    "sync": true,
+    "enable": true,
+    "online_url": null,
+    "local_path": "S:\\Mon Drive\\15_Blender\\00_INSTALLED_ADDONS\\MESHmachine",
+    "paths": [
+        {
+            "enable": true,
+            "local_subpath": null,
+            "destination_path": "#\\scripts\\addons\\MESHmachine"
+        }
+    ]
+},
+"beta_quad": {
+    "sync": true,
+    "enable": true,
+    "online_url": null,
+    "local_path": "S:\\Mon Drive\\15_Blender\\00_INSTALLED_ADDONS\\beta_quad",
+    "paths": [
+        {
+            "enable": true,
+            "local_subpath": null,
+            "destination_path": "#\\scripts\\addons\\beta_quad"
+        }
+    ]
+},
+"physical_starlight_atmosphere": {
+    "sync": true,
+    "enable": true,
+    "online_url": null,
+    "local_path": "S:\\Mon Drive\\15_Blender\\00_INSTALLED_ADDONS\\physical-starlight-atmosphere",
+    "paths": [
+        {
+            "enable": true,
+            "local_subpath": null,
+            "destination_path": "#\\scripts\\addons\\physical_starlight_atmosphere"
+        }
+    ]
+},
+"SculptLayers": {
+    "sync": true,
+    "enable": true,
+    "online_url": null,
+    "local_path": "S:\\Mon Drive\\15_Blender\\00_INSTALLED_ADDONS\\SculptLayers",
+    "paths": [
+        {
+            "enable": true,
+            "local_subpath": null,
+            "destination_path": "#\\scripts\\addons\\SculptLayers"
+        }
+    ]
+},
+"uv_toolkit": {
+    "sync": true,
+    "enable": true,
+    "online_url": null,
+    "local_path": "S:\\Mon Drive\\15_Blender\\00_INSTALLED_ADDONS\\uv_toolkit",
+    "paths": [
+        {
+            "enable": true,
+            "local_subpath": null,
+            "destination_path": "#\\scripts\\addons\\uv_toolkit"
+        }
+    ]
+},
+"UvSquares": {
+    "sync": true,
+    "enable": true,
+    "online_url": "https://github.com/Radivarig/UvSquares.git",
+    "local_path": "#\\scripts\\GIT\\UvSquares",
+    "paths": [
+        {
+            "enable": true,
+            "local_subpath": null,
+            "destination_path": "#\\scripts\\addons\\UvSquares"
+        }
+    ]
+},
+"Auto_Reload": {
+    "sync": true,
+    "enable": true,
+    "online_url": "https://github.com/samytichadou/Auto_Reload-Blender_addon.git",
+    "local_path": "#\\scripts\\GIT\\Auto_Reload",
+    "paths": [
+        {
+            "enable": true,
+            "local_subpath": null,
+            "destination_path": "#\\scripts\\addons\\Auto_Reload"
+        }
+    ]
+},
+"node_wrangler": {
+    "sync": true,
+    "enable": true,
+    "online_url": null,
+    "local_path": null,
+    "paths": null
+},
+"node_presets": {
+    "sync": true,
+    "enable": true,
+    "online_url": null,
+    "local_path": null,
+    "paths": null
+},
+"object_boolean_tools": {
+    "sync": true,
+    "enable": true,
+    "online_url": null,
+    "local_path": null,
+    "paths": null
+},
+"optiloops": {
+    "sync": true,
+    "enable": true,
+    "online_url": "https://github.com/1C0D/optiloops.git",
+    "local_path": "#\\scripts\\GIT\\optiloops",
+    "paths": [
+        {
+            "enable": true,
+            "local_subpath": "optiloops_v1_3_2.py",
+            "destination_path": "#\\scripts\\addons\\optiloops.py"
+        }
+    ]
+},
+"magic_uv": {
+    "sync": true,
+    "enable": true,
+    "online_url": null,
+    "local_path": null,
+    "paths": null
+},
+"transfer_vertex_order": {
+    "sync": true,
+    "enable": true,
+    "online_url": null,
+    "local_path": null,
+    "paths": null
+},
+"PolyQuilt": {
+    "sync": true,
+    "enable": true,
+    "online_url": "https://github.com/sakana3/PolyQuilt.git",
+    "local_path": "#\\scripts\\GIT\\PolyQuilt",
+    "paths": [
+        {
+            "enable": true,
+            "local_subpath": null,
+            "destination_path": "#\\scripts\\addons\\PolyQuilt"
+        }
+    ]
+},
+"slcad_transform": {
+    "sync": true,
+    "enable": true,
+    "online_url": null,
+    "local_path": null,
+    "paths": null
+},
+"EasyHDRI": {
+    "sync": true,
+    "enable": true,
+    "online_url": null,
+    "local_path": null,
+    "paths": null
+},
+"Lodify": {
+    "sync": true,
+    "enable": true,
+    "online_url": "https://github.com/DB3D/Lodify.git",
+    "local_path": "#\\scripts\\GIT\\Lodify",
+    "paths": [
+        {
+            "enable": true,
+            "local_subpath": null,
+            "destination_path": "#\\scripts\\addons\\Lodify"
+        }
+    ]
+},
+"add_curve_extra_objects": {
+    "sync": true,
+    "enable": true,
+    "online_url": null,
+    "local_path": null,
+    "paths": null
+},
+"add_mesh_extra_objects": {
+    "sync": true,
+    "enable": true,
+    "online_url": null,
+    "local_path": null,
+    "paths": null
+},
+"io_scene_fbx": {
+    "sync": true,
+    "enable": true,
+    "online_url": null,
+    "local_path": null,
+    "paths": null
+},
+"io_scene_obj": {
+    "sync": true,
+    "enable": true,
+    "online_url": null,
+    "local_path": null,
+    "paths": null
+},
+"io_scene_x3d": {
+    "sync": true,
+    "enable": true,
+    "online_url": null,
+    "local_path": null,
+    "paths": null
+},
+"io_scene_gltf2": {
+    "sync": true,
+    "enable": true,
+    "online_url": null,
+    "local_path": null,
+    "paths": null
+},
+"io_mesh_stl": {
+    "sync": true,
+    "enable": true,
+    "online_url": null,
+    "local_path": null,
+    "paths": null
+},
+"io_curve_svg": {
+    "sync": true,
+    "enable": true,
+    "online_url": null,
+    "local_path": null,
+    "paths": null
+},
+"io_mesh_ply": {
+    "sync": true,
+    "enable": true,
+    "online_url": null,
+    "local_path": null,
+    "paths": null
+},
+"io_mesh_uv_layout": {
+    "sync": true,
+    "enable": true,
+    "online_url": null,
+    "local_path": null,
+    "paths": null
+},
+"object_collection_manager": {
+    "sync": true,
+    "enable": true,
+    "online_url": null,
+    "local_path": null,
+    "paths": null
+},
+"space_view3d_modifier_tools": {
+    "sync": true,
+    "enable": true,
+    "online_url": null,
+    "local_path": null,
+    "paths": null
+},
+"EdgeFlow": {
+    "sync": true,
+    "enable": true,
+    "online_url": "https://github.com/BenjaminSauder/EdgeFlow.git",
+    "local_path": "#\\scripts\\GIT\\EdgeFlow",
+    "paths": [
+        {
+            "enable": true,
+            "local_subpath": null,
+            "destination_path": "#\\scripts\\addons\\EdgeFlow"
+        }
+    ]
+},
+"mesh_tools": {
+    "sync": true,
+    "enable": true,
+    "online_url": null,
+    "local_path": null,
+    "paths": null
+},
+"cycles": {
+    "sync": true,
+    "enable": true,
+    "online_url": null,
+    "local_path": null,
+    "paths": null
+},
+
+"MeshDataTransfer": {
+    "sync": true,
+    "enable": true,
+    "online_url": null,
+    "local_path": null,
+    "paths": null
+},
+"kekit": {
+    "sync": true,
+    "enable": true,
+    "online_url": null,
+    "local_path": null,
+    "paths": null
+},
+"Poly_Source": {
+    "sync": true,
+    "enable": true,
+    "online_url": null,
+    "local_path": null,
+    "paths": null
+},
+"maxivz_tools": {
+    "sync": true,
+    "enable": true,
+    "online_url": null,
+    "local_path": null,
+    "paths": null
+},
+"rotate_an_hdri": {
+    "sync": true,
+    "enable": true,
+    "online_url": null,
+    "local_path": null,
+    "paths": null
+},
+"blenderbezierutils": {
+    "sync": true,
+    "enable": true,
+    "online_url": "https://github.com/Shriinivas/blenderbezierutils.git",
+    "local_path": "#\\scripts\\GIT\\bezierutils",
+    "paths": [
+        {   
+            "enable": true,
+            "local_subpath": "blenderbezierutils.py",
+            "destination_path": "#\\scripts\\addons\\bezierutils.py"
+        }
+    ]
+},
+"oscurart_edit_split_normals": {
+    "sync": true,
+    "enable": true,
+    "online_url": "https://github.com/oscurart/Blender-28-Addons.git",
+    "local_path": "#\\scripts\\GIT\\oscuart",
+    "paths" : [
+        {
+            "enable": true,
+            "local_subpath": "oscurart_edit_split_normals.py",
+            "destination_path": "#\\scripts\\addons\\oscurart_edit_split_normals.py"
+        },
+        {
+            "enable": true,
+            "local_subpath": "oscurart_bake_pbr.py",
+            "destination_path": "#\\scripts\\addons\\oscurart_bake_pbr.py"
+        }
+    ]
+},
+"vertex_color_master": {
+    "sync": true,
+    "enable": true,
+    "online_url": "https://github.com/andyp123/blender_vertex_color_master.git",
+    "local_path": "#\\scripts\\GIT\\vertex_color_master",
+    "paths": [
+        {
+            "enable": true,
+            "local_subpath": null,
+            "destination_path": "#\\scripts\\addons\\vertex_color_master"
+        }
+    ]
+},
+"BakeWrangler": {
+    "sync": true,
+    "enable": true,
+    "online_url": null,
+    "local_path": "S:\\Mon Drive\\15_Blender\\00_INSTALLED_ADDONS\\BakeWrangler",
+    "paths": [
+        {
+            "enable": true,
+            "local_subpath": null,
+            "destination_path": "#\\scripts\\addons\\BakeWrangler"
+        }
+    ]
+},
+"atomic_data_manager": {
+    "sync": true,
+    "enable": true,
+    "online_url": "https://github.com/grantwilk/atomic-data-manager.git",
+    "local_path": "#\\scripts\\GIT\\atomic_data_manager",
+    "paths": [
+        {
+            "enable": true,
+            "local_subpath": null,
+            "destination_path": "#\\scripts\\addons\\atomic_data_manager"
+        }
+    ]
+},
+"ImagePaste": {
+    "sync": true,
+    "enable": true,
+    "online_url": null,
+    "local_path": null,
+    "paths": null
+},
+"greasepencil_tools": {
+    "sync": true,
+    "enable": true,
+    "online_url": null,
+    "local_path": null,
+    "paths": null
+},
+"uvpackmaster3": {
+    "sync": true,
+    "enable": true,
+    "online_url": null,
+    "local_path": null,
+    "paths": null
+},
+"Texel_Density": {
+    "sync": true,
+    "enable": true,
+    "online_url": "https://github.com/mrven/Blender-Texel-Density-Checker.git",
+    "local_path": "#\\scripts\\GIT\\Texel_Density",
+    "paths": [
+        {
+            "enable": true,
+            "local_subpath": "Texel_Density_3_4_341",
+            "destination_path": "#\\scripts\\addons\\Texel_Density"
+        }
+    ]
+},
+"noodler": {
+    "sync": true,
+    "enable": true,
+    "online_url": null,
+    "local_path": null,
+    "paths": null
+},
+"NGon Loop Select": {
+    "sync": true,
+    "enable": true,
+    "online_url": null,
+    "local_path": null,
+    "paths": null
+},
+"quad_remesher": {
+    "sync": true,
+    "enable": true,
+    "online_url": null,
+    "local_path": null,
+    "paths": null
+},
+"mesh_restoresymmetry": {
+    "sync": true,
+    "enable": true,
+    "online_url": "https://github.com/n-taka/BlenderAddons.git",
+    "local_path": "#\\scripts\\GIT\\RestoreSymmetry",
+    "paths": [
+        {
+            "enable": true,
+            "local_subpath": "RestoreSymmetry",
+            "destination_path": "#\\scripts\\addons\\RestoreSymmetry"
+        }
+    ]
+},
+"surface_inflate": {
+    "sync": true,
+    "enable": true,
+    "online_url": null,
+    "local_path": null,
+    "paths": null
+},
+"Pro_Aligner": {
+    "sync": true,
+    "enable": true,
+    "online_url": null,
+    "local_path": null,
+    "paths": null
+},
+"UnwrapMe": {
+    "sync": true,
+    "enable": true,
+    "online_url": null,
+    "local_path": null,
+    "paths": null
+},
+"Tila_Config": {
+    "sync": true,
+    "enable": true,
+    "online_url": null,
+    "local_path": null,
+    "paths": null
+}
+}
