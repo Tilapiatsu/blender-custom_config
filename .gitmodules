@@ -1,1 +1,10 @@
 
+[submodule "scripts/addon_library/GIT_Submodules/tila_matcap"]
+	path = scripts/addon_library/GIT_Submodules/tila_matcap
+	url = https://github.com/Tilapiatsu/matcap-selection.git
+[submodule "scripts/addon_library/GIT_Submodules/tila_universal_multi_importer"]
+	path = scripts/addon_library/GIT_Submodules/tila_universal_multi_importer
+	url = https://github.com/Tilapiatsu/blender-Universal_Multi_Importer.git
+[submodule "scripts/addon_library/GIT_Submodules/tila_lineup_maker"]
+	path = scripts/addon_library/GIT_Submodules/tila_lineup_maker
+	url = https://github.com/Tilapiatsu/blender-lineup_maker.git

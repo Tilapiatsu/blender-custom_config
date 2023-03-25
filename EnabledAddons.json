@@ -1,12 +1,12 @@
 {
-"_misc": " .................................. Misc data ..................................",
+"_misc": " .................................. Misc..................................",
 "ProTheme": {
     "sync": true,
     "enable": false,
     "online_url": "https://github.com/paulcoops/blender_pro-theme.git",
     "branch" : null,
     "submodule" : false,
-    "local_path": "#\\scripts\\GIT\\ProTheme",
+    "local_path": "#\\scripts\\addon_library\\GIT_Clones\\ProTheme",
     "paths": [
         {
             "enable": true,
@@ -20,8 +20,8 @@
     "enable": false,
     "online_url": "https://github.com/Tilapiatsu/matcap-selection.git",
     "branch": null,
-    "submodule" : false,
-    "local_path": "#\\scripts\\GIT\\matcap",
+    "submodule" : true,
+    "local_path": "#\\scripts\\addon_library\\GIT_Submodules\\matcap",
     "paths": [
         {
             "enable": true,
@@ -51,7 +51,7 @@
     "online_url": "https://github.com/sobotka/AgX.git",
     "branch": null,
     "submodule" : false,
-    "local_path": "#\\scripts\\GIT\\AgX",
+    "local_path": "#\\scripts\\addon_library\\GIT_Clones\\AgX",
     "paths": [
         {
             "enable": true,
@@ -66,7 +66,7 @@
     "online_url": "https://github.com/AcademySoftwareFoundation/OpenColorIO-Config-ACES.git",
     "branch": null,
     "submodule" : false,
-    "local_path": "#\\scripts\\GIT\\OpenColorIO-Config-ACES",
+    "local_path": "#\\scripts\\addon_library\\GIT_Clones\\OpenColorIO-Config-ACES",
     "paths": [
         {
             "enable": false,
@@ -75,14 +75,14 @@
         }
     ]
 },
-"_addon_library": " ..................................Addon Library..................................",
+"_addon_library_local": " ..................................Addon Library Local..................................",
 "BystedtsBlenderBaker": {
     "sync": false,
     "enable": false,
     "online_url": "https://3dbystedt.gumroad.com/l/JAqLT",
     "branch": null,
     "submodule": false,
-    "local_path": "#\\scripts\\addon_library\\BystedtsBlenderBaker",
+    "local_path": "#\\scripts\\addon_library\\local\\BystedtsBlenderBaker",
     "paths": [
         {
             "enable": false,
@@ -97,7 +97,7 @@
     "online_url": "https://vfxgrace.gumroad.com/l/apny",
     "branch": null,
     "submodule": false,
-    "local_path": "#\\scripts\\addon_library\\CheckToolBox",
+    "local_path": "#\\scripts\\addon_library\\local\\CheckToolBox",
     "paths": [
         {
             "enable": false,
@@ -112,7 +112,7 @@
     "online_url": "https://roaoao.gumroad.com/l/context_browser",
     "branch": null,
     "submodule": false,
-    "local_path": "#\\scripts\\addon_library\\context_browser",
+    "local_path": "#\\scripts\\addon_library\\local\\context_browser",
     "paths": [
         {
             "enable": false,
@@ -127,7 +127,7 @@
     "online_url": "https://andreasaust.gumroad.com/l/drop_it",
     "branch": null,
     "submodule": false,
-    "local_path": "#\\scripts\\addon_library\\drop_it",
+    "local_path": "#\\scripts\\addon_library\\local\\drop_it",
     "paths": [
         {
             "enable": false,
@@ -157,7 +157,7 @@
     "online_url": "https://clemensbeute.gumroad.com/l/heZDT",
     "branch": null,
     "submodule": false,
-    "local_path": "#\\scripts\\addon_library\\flow_map_painter",
+    "local_path": "#\\scripts\\addon_library\\local\\flow_map_painter",
     "paths": [
         {
             "enable": false,
@@ -172,7 +172,7 @@
     "online_url": "https://keentools.io/download/facebuilder-for-blender",
     "branch": null,
     "submodule": false,
-    "local_path": "#\\scripts\\addon_library\\keentools",
+    "local_path": "#\\scripts\\addon_library\\local\\keentools",
     "paths": [
         {
             "enable": false,
@@ -187,7 +187,7 @@
     "online_url": "https://kjell.gumroad.com/l/kekit_blender",
     "branch": null,
     "submodule": false,
-    "local_path": "#\\scripts\\addon_library\\kekit",
+    "local_path": "#\\scripts\\addon_library\\local\\kekit",
     "paths": [
         {
             "enable": true,
@@ -202,7 +202,7 @@
     "online_url": "https://bookyakuno.gumroad.com/l/lazy-shapekeys",
     "branch": null,
     "submodule": false,
-    "local_path": "#\\scripts\\addon_library\\lazy_shapekeys",
+    "local_path": "#\\scripts\\addon_library\\local\\lazy_shapekeys",
     "paths": [
         {
             "enable": false,
@@ -217,7 +217,7 @@
     "online_url": "https://mmemoli.gumroad.com/l/tOKEh",
     "branch": null,
     "submodule": false,
-    "local_path": "#\\scripts\\addon_library\\MeshDataTransfer",
+    "local_path": "#\\scripts\\addon_library\\local\\MeshDataTransfer",
     "paths": [
         {
             "enable": true,
@@ -232,7 +232,7 @@
     "online_url": "https://moth3r.gumroad.com/l/mouselook",
     "branch": null,
     "submodule": false,
-    "local_path": "#\\scripts\\addon_library\\mouselook_navigation",
+    "local_path": "#\\scripts\\addon_library\\local\\mouselook_navigation",
     "paths": [
         {
             "enable": false,
@@ -247,7 +247,7 @@
     "online_url": "https://amanbairwal.gumroad.com/l/NGonLoopSelect",
     "branch": null,
     "submodule": false,
-    "local_path": "#\\scripts\\addon_library\\NGon Loop Select",
+    "local_path": "#\\scripts\\addon_library\\local\\NGon Loop Select",
     "paths": [
         {
             "enable": true,
@@ -262,7 +262,7 @@
     "online_url": "https://derksen.gumroad.com/l/polysource",
     "branch": null,
     "submodule": false,
-    "local_path": "#\\scripts\\addon_library\\Poly_Source",
+    "local_path": "#\\scripts\\addon_library\\local\\Poly_Source",
     "paths": [
         {
             "enable": true,
@@ -277,7 +277,7 @@
     "online_url": "https://cggalaxy.gumroad.com/l/proaligner",
     "branch": null,
     "submodule": false,
-    "local_path": "#\\scripts\\addon_library\\Pro_Aligner",
+    "local_path": "#\\scripts\\addon_library\\local\\Pro_Aligner",
     "paths": [
         {
             "enable": true,
@@ -292,7 +292,7 @@
     "online_url": "https://sanislovart.gumroad.com/l/gOEV",
     "branch": null,
     "submodule": false,
-    "local_path": "#\\scripts\\addon_library\\QBlocker",
+    "local_path": "#\\scripts\\addon_library\\local\\QBlocker",
     "paths": [
         {
             "enable": false,
@@ -307,7 +307,7 @@
     "online_url": "https://bookyakuno.gumroad.com/l/render-task-list",
     "branch": null,
     "submodule": false,
-    "local_path": "#\\scripts\\addon_library\\render_task_list",
+    "local_path": "#\\scripts\\addon_library\\local\\render_task_list",
     "paths": [
         {
             "enable": false,
@@ -316,18 +316,18 @@
         }
     ]
 },
-"Retopoflow": {
+"RetopoFlow": {
     "sync": false,
     "enable": false,
     "online_url": "https://github.com/CGCookie/retopoflow.git",
     "branch": null,
     "submodule": false,
-    "local_path": "#\\scripts\\addon_library\\Retopoflow",
+    "local_path": "#\\scripts\\addon_library\\local\\RetopoFlow",
     "paths": [
         {
             "enable": false,
             "local_subpath": null,
-            "destination_path": "#\\scipts\\addons\\Retopoflow"
+            "destination_path": "#\\scipts\\addons\\RetopoFlow"
         }
     ]
 },
@@ -337,7 +337,7 @@
     "online_url": "https://alexbel.gumroad.com/l/XQYEl",
     "branch": null,
     "submodule": false,
-    "local_path": "#\\scripts\\addon_library\\rotate_an_hdri",
+    "local_path": "#\\scripts\\addon_library\\local\\rotate_an_hdri",
     "paths": [
         {
             "enable": false,
@@ -352,7 +352,7 @@
     "online_url": "https://captainhansode.gumroad.com/l/wqaMJ",
     "branch": null,
     "submodule": false,
-    "local_path": "#\\scripts\\addon_library\\sj_selection_set",
+    "local_path": "#\\scripts\\addon_library\\local\\sj_selection_set",
     "paths": [
         {
             "enable": false,
@@ -367,7 +367,7 @@
     "online_url": "https://blender-archipack.gumroad.com/l/nQVcS",
     "branch": null,
     "submodule": false,
-    "local_path": "#\\scripts\\addon_library\\slcad_transform",
+    "local_path": "#\\scripts\\addon_library\\local\\slcad_transform",
     "paths": [
         {
             "enable": true,
@@ -382,7 +382,7 @@
     "online_url": "https://mmemoli.gumroad.com/l/softmod",
     "branch": null,
     "submodule": false,
-    "local_path": "#\\scripts\\addon_library\\softMod",
+    "local_path": "#\\scripts\\addon_library\\local\\softMod",
     "paths": [
         {
             "enable": false,
@@ -397,7 +397,7 @@
     "online_url": "https://n0451.gumroad.com/l/PgyXc",
     "branch": null,
     "submodule": false,
-    "local_path": "#\\scripts\\addon_library\\SSGI",
+    "local_path": "#\\scripts\\addon_library\\local\\SSGI",
     "paths": [
         {
             "enable": false,
@@ -412,7 +412,7 @@
     "online_url": "https://kushiro.gumroad.com/l/inmas",
     "branch": null,
     "submodule": false,
-    "local_path": "#\\scripts\\addon_library\\surface_inflate",
+    "local_path": "#\\scripts\\addon_library\\local\\surface_inflate",
     "paths": [
         {
             "enable": true,
@@ -427,7 +427,7 @@
     "online_url": "https://m-soluyanov.gumroad.com/l/afoty",
     "branch": null,
     "submodule": false,
-    "local_path": "#\\scripts\\addon_library\\Synchronize Workspace",
+    "local_path": "#\\scripts\\addon_library\\local\\Synchronize Workspace",
     "paths": [
         {
             "enable": false,
@@ -442,7 +442,7 @@
     "online_url": "https://github.com/3e33/UnwrapMe.git",
     "branch": null,
     "submodule": false,
-    "local_path": "#\\scripts\\addon_library\\UnwrapMe",
+    "local_path": "#\\scripts\\addon_library\\local\\UnwrapMe",
     "paths": [
         {
             "enable": true,
@@ -457,7 +457,7 @@
     "online_url": "https://strike-digital.gumroad.com/l/weight_layers",
     "branch": null,
     "submodule": false,
-    "local_path": "#\\scripts\\addon_library\\weight_layers",
+    "local_path": "#\\scripts\\addon_library\\local\\weight_layers",
     "paths": [
         {
             "enable": false,
@@ -472,7 +472,7 @@
     "online_url": "https://bookyakuno.gumroad.com/l/vgRSB",
     "branch": null,
     "submodule": false,
-    "local_path": "#\\scripts\\addon_library\\auto_mirror_ex",
+    "local_path": "#\\scripts\\addon_library\\local\\auto_mirror_ex",
     "paths": [
         {
             "enable": false,
@@ -744,7 +744,7 @@
     "online_url": "https://gitlab.com/blender/easy_weight.git",
     "branch": null,
     "submodule": false,
-    "local_path": "#\\scripts\\GIT\\Easy_Weight",
+    "local_path": "#\\scripts\\addon_library\\GIT_Clones\\Easy_Weight",
     "paths": [
         {
             "enable": false,
@@ -759,7 +759,7 @@
     "online_url": "https://github.com/DB3D/Noodler.git",
     "branch": null,
     "submodule": false,
-    "local_path": "#\\scripts\\GIT\\noodler",
+    "local_path": "#\\scripts\\addon_library\\GIT_Clones\\noodler",
     "paths": [
         {
             "enable": true,
@@ -774,7 +774,7 @@
     "online_url": "https://github.com/pablodp606/keymesh-addon.git",
     "branch": null,
     "submodule": false,
-    "local_path": "#\\scripts\\GIT\\keymesh",
+    "local_path": "#\\scripts\\addon_library\\GIT_Clones\\keymesh",
     "paths": [
         {
             "enable": false,
@@ -789,7 +789,7 @@
     "online_url": "https://github.com/leomoon-studios/leomoon-lightstudio.git",
     "branch": null,
     "submodule": false,
-    "local_path": "#\\scripts\\GIT\\leomoon-lightstudio",
+    "local_path": "#\\scripts\\addon_library\\GIT_Clones\\leomoon-lightstudio",
     "paths": [
         {
             "enable": false,
@@ -804,7 +804,7 @@
     "online_url": "https://github.com/norgeotloic/BakeMyScan.git",
     "branch" : null,
     "submodule" : false,
-    "local_path": "#\\scripts\\GIT\\BakeMyScan",
+    "local_path": "#\\scripts\\addon_library\\GIT_Clones\\BakeMyScan",
     "paths": [
         {
             "enable": false,
@@ -819,7 +819,7 @@
     "online_url": "https://github.com/Lichtso/curve_cad.git",
     "branch" : null,
     "submodule" : false,
-    "local_path": "#\\scripts\\GIT\\curve_cad",
+    "local_path": "#\\scripts\\addon_library\\GIT_Clones\\curve_cad",
     "paths": [
         {
             "enable": false,
@@ -834,7 +834,7 @@
     "online_url": "https://github.com/JoseConseco/GoB.git",
     "branch" : null,
     "submodule" : false,
-    "local_path": "#\\scripts\\GIT\\GoB",
+    "local_path": "#\\scripts\\addon_library\\GIT_Clones\\GoB",
     "paths": [
         {
             "enable": false,
@@ -849,7 +849,7 @@
     "online_url": "https://github.com/JacquesLucke/animation_nodes.git",
     "branch" : null,
     "submodule" : false,
-    "local_path": "#\\scripts\\GIT\\animation_nodes",
+    "local_path": "#\\scripts\\addon_library\\GIT_Clones\\animation_nodes",
     "paths": [
         {
             "enable": false,
@@ -864,7 +864,7 @@
     "online_url": "https://github.com/stuffmatic/fSpy-Blender.git",
     "branch" : null,
     "submodule" : false,
-    "local_path": "#\\scripts\\GIT\\fSpy_Blender",
+    "local_path": "#\\scripts\\addon_library\\GIT_Clones\\fSpy_Blender",
     "paths": [
         {
             "enable": false,
@@ -879,7 +879,7 @@
     "online_url": "https://github.com/Takanu/Capsule.git",
     "branch" : null,
     "submodule" : false,
-    "local_path": "#\\scripts\\GIT\\Capsule",
+    "local_path": "#\\scripts\\addon_library\\GIT_Clones\\Capsule",
     "paths": [
         {
             "enable": false,
@@ -894,7 +894,7 @@
     "online_url": "https://github.com/nutti/Screencast-Keys.git",
     "branch" : null,
     "submodule" : false,
-    "local_path": "#\\scripts\\GIT\\ScreenCast_Keys",
+    "local_path": "#\\scripts\\addon_library\\GIT_Clones\\ScreenCast_Keys",
     "paths": [
         {
             "enable": false,
@@ -909,7 +909,7 @@
     "online_url": "https://github.com/uhlik/bpy.git",
     "branch" : null,
     "submodule" : false,
-    "local_path": "#\\scripts\\GIT\\bpy_photogrametry",
+    "local_path": "#\\scripts\\addon_library\\GIT_Clones\\bpy_photogrametry",
     "paths": [
         {
             "enable": false,
@@ -939,7 +939,7 @@
     "online_url": "https://github.com/fedackb/yavne.git",
     "branch" : null,
     "submodule" : false,
-    "local_path": "#\\scripts\\GIT\\yavne",
+    "local_path": "#\\scripts\\addon_library\\GIT_Clones\\yavne",
     "paths": [
         {
             "enable": false,
@@ -954,7 +954,7 @@
     "online_url": "https://github.com/samytichadou/FontSelector_blender_addon.git",
     "branch" : null,
     "submodule" : false,
-    "local_path": "#\\scripts\\GIT\\FontSelector",
+    "local_path": "#\\scripts\\addon_library\\GIT_Clones\\FontSelector",
     "paths": [
         {
             "enable": false,
@@ -969,7 +969,7 @@
     "online_url": "https://github.com/eliemichel/MapsModelsImporter.git",
     "branch" : null,
     "submodule" : false,
-    "local_path": "#\\scripts\\GIT\\MapsModelsImporter",
+    "local_path": "#\\scripts\\addon_library\\GIT_Clones\\MapsModelsImporter",
     "paths": [
         {
             "enable": false,
@@ -984,7 +984,7 @@
     "online_url": "https://github.com/oormicreations/BlendShell.git",
     "branch" : null,
     "submodule" : false,
-    "local_path": "#\\scripts\\GIT\\BlendShell",
+    "local_path": "#\\scripts\\addon_library\\GIT_Clones\\BlendShell",
     "paths": [
         {
             "enable": false,
@@ -999,7 +999,7 @@
     "online_url": "https://github.com/Neltulz/Neltulz_Edge_Curve_Plus.git",
     "branch" : null,
     "submodule" : false,
-    "local_path": "#\\scripts\\GIT\\Neltulz_Edge_Curve_Plus",
+    "local_path": "#\\scripts\\addon_library\\GIT_Clones\\Neltulz_Edge_Curve_Plus",
     "paths": [
         {
             "enable": false,
@@ -1014,7 +1014,7 @@
     "online_url": "https://github.com/domlysz/BlenderGIS.git",
     "branch" : null,
     "submodule" : false,
-    "local_path": "#\\scripts\\GIT\\BlenderGIS",
+    "local_path": "#\\scripts\\addon_library\\GIT_Clones\\BlenderGIS",
     "paths": [
         {
             "enable": false,
@@ -1029,7 +1029,7 @@
     "online_url": "https://github.com/LuxCoreRender/BlendLuxCore.git",
     "branch" : null,
     "submodule" : false,
-    "local_path": "#\\scripts\\GIT\\LuxeCore",
+    "local_path": "#\\scripts\\addon_library\\GIT_Clones\\LuxeCore",
     "paths": [
         {
             "enable": false,
@@ -1044,7 +1044,7 @@
     "online_url": "https://github.com/addam/Export-Paper-Model-from-Blender.git",
     "branch" : null,
     "submodule" : false,
-    "local_path": "#\\scripts\\GIT\\Export_Paper_Model",
+    "local_path": "#\\scripts\\addon_library\\GIT_Clones\\Export_Paper_Model",
     "paths": [
         {
             "enable": false,
@@ -1059,7 +1059,7 @@
     "online_url": "https://github.com/patriciogonzalezvivo/glslTexture.git",
     "branch" : null,
     "submodule" : false,
-    "local_path": "#\\scripts\\GIT\\glsl_texture",
+    "local_path": "#\\scripts\\addon_library\\GIT_Clones\\glsl_texture",
     "paths": [
         {
             "enable": false,
@@ -1074,7 +1074,7 @@
     "online_url": "https://github.com/Symstract/modifier_list.git",
     "branch" : null,
     "submodule" : false,
-    "local_path": "#\\scripts\\GIT\\modifier_list",
+    "local_path": "#\\scripts\\addon_library\\GIT_Clones\\modifier_list",
     "paths": [
         {
             "enable": false,
@@ -1089,7 +1089,7 @@
     "online_url": "https://gitlab.com/thomaskole/blender-seams-to-sewing-pattern.git",
     "branch" : null,
     "submodule" : false,
-    "local_path": "#\\scripts\\GIT\\seams_to_sewing_pattern",
+    "local_path": "#\\scripts\\addon_library\\GIT_Clones\\seams_to_sewing_pattern",
     "paths": [
         {
             "enable": false,
@@ -1104,7 +1104,7 @@
     "online_url": "https://github.com/TitusLVR/BMAX_Connector.git",
     "branch" : null,
     "submodule" : false,
-    "local_path": "#\\scripts\\GIT\\BMax_Connector",
+    "local_path": "#\\scripts\\addon_library\\GIT_Clones\\BMax_Connector",
     "paths": [
         {
             "enable": false,
@@ -1119,7 +1119,7 @@
     "online_url": "https://github.com/MaximeHerpin/modular_tree.git",
     "branch" : null,
     "submodule" : false,
-    "local_path": "#\\scripts\\GIT\\modular_tree",
+    "local_path": "#\\scripts\\addon_library\\GIT_Clones\\modular_tree",
     "paths": null
 },
 "Abnormal": {
@@ -1128,7 +1128,7 @@
     "online_url": "https://github.com/bnpr/Abnormal.git",
     "branch" : null,
     "submodule" : false,
-    "local_path": "#\\scripts\\GIT\\Abnormal",
+    "local_path": "#\\scripts\\addon_library\\GIT_Clones\\Abnormal",
     "paths": [
         {
             "enable": false,
@@ -1143,7 +1143,7 @@
     "online_url": "https://github.com/joshuabloemer/Shader-to-OpenVDB.git",
     "branch" : null,
     "submodule" : false,
-    "local_path": "#\\scripts\\GIT\\Shader_to_OpenVDB",
+    "local_path": "#\\scripts\\addon_library\\GIT_Clones\\Shader_to_OpenVDB",
     "paths": [
         {
             "enable": false,
@@ -1158,7 +1158,7 @@
     "online_url": "https://github.com/HEAVYPOLY/HEAVYPOLY_Blender.git",
     "branch" : null,
     "submodule" : false,
-    "local_path": "#\\scripts\\GIT\\HEAVYPOLY",
+    "local_path": "#\\scripts\\addon_library\\GIT_Clones\\HEAVYPOLY",
     "paths": [
         {
             "enable": true,
@@ -1198,7 +1198,7 @@
     "online_url": "https://gitlab.com/blender/character-pipeline-assistant.git",
     "branch" : null,
     "submodule" : false,
-    "local_path": "#\\scripts\\GIT\\Character_Pipeline_Assistant",
+    "local_path": "#\\scripts\\addon_library\\GIT_Clones\\Character_Pipeline_Assistant",
     "paths": [
         {
             "enable": false,
@@ -1213,7 +1213,7 @@
     "online_url": "https://gitlab.com/blender/lattice_magic.git",
     "branch" : null,
     "submodule" : false,
-    "local_path": "#\\scripts\\GIT\\Lattice_Magic",
+    "local_path": "#\\scripts\\addon_library\\GIT_Clones\\Lattice_Magic",
     "paths": [
         {
             "enable": false,
@@ -1228,7 +1228,7 @@
     "online_url": "https://github.com/3d-io/uvpacker-blender-addon.git",
     "branch" : null,
     "submodule" : false,
-    "local_path": "#\\scripts\\GIT\\uvpacker",
+    "local_path": "#\\scripts\\addon_library\\GIT_Clones\\uvpacker",
     "paths": [
         {
             "enable": false,
@@ -1243,7 +1243,7 @@
     "online_url": "https://github.com/TomekSc/MeshSlicer.git",
     "branch" : null,
     "submodule" : false,
-    "local_path": "#\\scripts\\GIT\\MeshSlicer",
+    "local_path": "#\\scripts\\addon_library\\GIT_Clones\\MeshSlicer",
     "paths": [
         {
             "enable": false,
@@ -1258,7 +1258,7 @@
     "online_url": "https://github.com/Shahzod114/NodeRelax-Blender-Addon.git",
     "branch" : null,
     "submodule" : false,
-    "local_path": "#\\scripts\\GIT\\NodeRelax",
+    "local_path": "#\\scripts\\addon_library\\GIT_Clones\\NodeRelax",
     "paths": [
         {
             "enable": false,
@@ -1273,7 +1273,7 @@
     "online_url": "https://github.com/Naxela/The_Lightmapper.git",
     "branch" : null,
     "submodule" : false,
-    "local_path": "#\\scripts\\GIT\\TheLightmapper",
+    "local_path": "#\\scripts\\addon_library\\GIT_Clones\\TheLightmapper",
     "paths": [
         {
             "enable": false,
@@ -1288,7 +1288,7 @@
     "online_url": "https://github.com/greisane/gret.git",
     "branch" : null,
     "submodule" : false,
-    "local_path": "#\\scripts\\GIT\\gret",
+    "local_path": "#\\scripts\\addon_library\\GIT_Clones\\gret",
     "paths": [
         {
             "enable": false,
@@ -1303,7 +1303,7 @@
     "online_url": "https://github.com/Yeetus3141/PrintNodes.git",
     "branch" : null,
     "submodule" : false,
-    "local_path": "#\\scripts\\GIT\\PrintNode",
+    "local_path": "#\\scripts\\addon_library\\GIT_Clones\\PrintNode",
     "paths": [
         {
             "enable": false,
@@ -1318,7 +1318,7 @@
     "online_url": "https://gitlab.com/AquaticNightmare/ez_baker.git",
     "branch" : null,
     "submodule" : false,
-    "local_path": "#\\scripts\\GIT\\ez_baker",
+    "local_path": "#\\scripts\\addon_library\\GIT_Clones\\ez_baker",
     "paths": [
         {
             "enable": false,
@@ -1333,7 +1333,7 @@
     "online_url": "https://github.com/SBCV/Blender-Addon-Photogrammetry-Importer.git",
     "branch" : null,
     "submodule" : false,
-    "local_path": "#\\scripts\\GIT\\photogrametry_importer",
+    "local_path": "#\\scripts\\addon_library\\GIT_Clones\\photogrametry_importer",
     "paths": [
         {
             "enable": false,
@@ -1348,7 +1348,7 @@
     "online_url": "https://github.com/Tilapiatsu/blender-Universal_Multi_Importer.git",
     "branch" : null,
     "submodule" : true,
-    "local_path": "#\\scripts\\GIT\\universal_multi_importer",
+    "local_path": "#\\scripts\\addon_library\\GIT_Submodules\\universal_multi_importer",
     "paths": [
         {
             "enable": false,
@@ -1363,7 +1363,7 @@
     "online_url": "https://github.com/ChrisHinde/MaterialUtilities.git",
     "branch" : null,
     "submodule" : false,
-    "local_path": "#\\scripts\\GIT\\MaterialUtilities",
+    "local_path": "#\\scripts\\addon_library\\GIT_Clones\\MaterialUtilities",
     "paths": [
         {
             "enable": false,
@@ -1378,7 +1378,7 @@
     "online_url": "https://gitlab.com/AquaticNightmare/rigging_nodes.git",
     "branch" : null,
     "submodule" : false,
-    "local_path": "#\\scripts\\GIT\\RiggingNodes",
+    "local_path": "#\\scripts\\addon_library\\GIT_Clones\\RiggingNodes",
     "paths": [
         {
             "enable": false,
@@ -1393,7 +1393,7 @@
     "online_url": "https://github.com/prman-pixar/RenderManForBlender.git",
     "branch" : null,
     "submodule" : false,
-    "local_path": "#\\scripts\\GIT\\Renderman",
+    "local_path": "#\\scripts\\addon_library\\GIT_Clones\\Renderman",
     "paths": [
         {
             "enable": false,
@@ -1408,7 +1408,7 @@
     "online_url": "https://github.com/oRazeD/GrabDoc.git",
     "branch" : null,
     "submodule" : false,
-    "local_path": "#\\scripts\\GIT\\GrabDoc",
+    "local_path": "#\\scripts\\addon_library\\GIT_Clones\\GrabDoc",
     "paths": [
         {
             "enable": false,
@@ -1423,7 +1423,7 @@
     "online_url": "https://github.com/p4ymak/eyek.git",
     "branch" : null,
     "submodule" : false,
-    "local_path": "#\\scripts\\GIT\\eyek",
+    "local_path": "#\\scripts\\addon_library\\GIT_Clones\\eyek",
     "paths": [
         {
             "enable": false,
@@ -1438,7 +1438,7 @@
     "online_url": "https://github.com/williamchange/b3dsdf.git",
     "branch" : null,
     "submodule" : false,
-    "local_path": "#\\scripts\\GIT\\b3dsdf",
+    "local_path": "#\\scripts\\addon_library\\GIT_Clones\\b3dsdf",
     "paths": [
         {
             "enable": false,
@@ -1453,7 +1453,7 @@
     "online_url": "https://github.com/hlorus/CAD_Sketcher.git",
     "branch" : null,
     "submodule" : false,
-    "local_path": "#\\scripts\\GIT\\CAD_Sketcher",
+    "local_path": "#\\scripts\\addon_library\\GIT_Clones\\CAD_Sketcher",
     "paths": [
         {
             "enable": false,
@@ -1468,7 +1468,7 @@
     "online_url": "https://github.com/atticus-lv/RenderNode.git",
     "branch" : null,
     "submodule" : false,
-    "local_path": "#\\scripts\\GIT\\RenderNode",
+    "local_path": "#\\scripts\\addon_library\\GIT_Clones\\RenderNode",
     "paths": [
         {
             "enable": false,
@@ -1483,7 +1483,7 @@
     "online_url": "https://github.com/johnnygizmo/asset_snapshot.git",
     "branch" : null,
     "submodule" : false,
-    "local_path": "#\\scripts\\GIT\\asset_snapshot",
+    "local_path": "#\\scripts\\addon_library\\GIT_Clones\\asset_snapshot",
     "paths": [
         {
             "enable": false,
@@ -1498,7 +1498,7 @@
     "online_url": "https://github.com/ubisoft/shotmanager.git",
     "branch" : null,
     "submodule" : false,
-    "local_path": "#\\scripts\\GIT\\shotmanager",
+    "local_path": "#\\scripts\\addon_library\\GIT_Clones\\shotmanager",
     "paths": [
         {
             "enable": false,
@@ -1513,7 +1513,7 @@
     "online_url": "https://github.com/strike-digital/asset_bridge.git",
     "branch" : null,
     "submodule" : false,
-    "local_path": "#\\scripts\\GIT\\asset_bridge",
+    "local_path": "#\\scripts\\addon_library\\GIT_Clones\\asset_bridge",
     "paths": [
         {
             "enable": false,
@@ -1528,7 +1528,7 @@
     "online_url": "https://github.com/CGCookie/io_export_blend.git",
     "branch" : null,
     "submodule" : false,
-    "local_path": "#\\scripts\\GIT\\io_export_blend",
+    "local_path": "#\\scripts\\addon_library\\GIT_Clones\\io_export_blend",
     "paths": [
         {
             "enable": false,
@@ -1543,7 +1543,7 @@
     "online_url": "https://gitlab.com/lfs.coop/blender/gp-triangulation.git",
     "branch" : null,
     "submodule" : false,
-    "local_path": "#\\scripts\\GIT\\gp_triangulation",
+    "local_path": "#\\scripts\\addon_library\\GIT_Clones\\gp_triangulation",
     "paths": [
         {
             "enable": false,
@@ -1558,7 +1558,7 @@
     "online_url": "https://github.com/JohnKazucki/JD-Miter-Box.git",
     "branch" : null,
     "submodule" : false,
-    "local_path": "#\\scripts\\GIT\\miter_box",
+    "local_path": "#\\scripts\\addon_library\\GIT_Clones\\miter_box",
     "paths": [
         {
             "enable": false,
@@ -1573,7 +1573,7 @@
     "online_url": "https://github.com/shteeve3d/blender-wiggle-2.git",
     "branch" : null,
     "submodule" : false,
-    "local_path": "#\\scripts\\GIT\\wiggle",
+    "local_path": "#\\scripts\\addon_library\\GIT_Clones\\wiggle",
     "paths": [
         {
             "enable": false,
@@ -1589,7 +1589,7 @@
     "online_url": "https://github.com/egtwobits/mesh_mesh_align_plus.git",
     "branch" : null,
     "submodule" : false,
-    "local_path": "#\\scripts\\GIT\\mesh_align_plus",
+    "local_path": "#\\scripts\\addon_library\\GIT_Clones\\mesh_align_plus",
     "paths": [
         {
             "enable": true,
@@ -1613,7 +1613,7 @@
     "online_url": "https://github.com/danielenger/Principled-Baker.git",
     "branch" : null,
     "submodule" : false,
-    "local_path": "#\\scripts\\GIT\\Principled_Baker",
+    "local_path": "#\\scripts\\addon_library\\GIT_Clones\\Principled_Baker",
     "paths": [
         {
             "enable": true,
@@ -1628,7 +1628,7 @@
     "online_url": "https://github.com/kevancress/MeasureIt-ARCH.git",
     "branch" : null,
     "submodule" : false,
-    "local_path": "#\\scripts\\GIT\\MeasureIt_ARCH",
+    "local_path": "#\\scripts\\addon_library\\GIT_Clones\\MeasureIt_ARCH",
     "paths": [
         {
             "enable": true,
@@ -1636,15 +1636,6 @@
             "destination_path": "#\\scripts\\addons\\MeasureIt_ARCH"
         }
     ]
-},
-"RetopoFlow": {
-    "sync": false,
-    "enable": false,
-    "online_url": null,
-    "branch" : null,
-    "submodule" : false,
-    "local_path": null,
-    "paths": null
 },
 "space_view3d_copy_attributes": {
     "sync": false,
@@ -1670,7 +1661,7 @@
     "online_url": "https://github.com/Vinc3r/Polycount.git",
     "branch" : null,
     "submodule" : false,
-    "local_path": "#\\scripts\\GIT\\PolyCount",
+    "local_path": "#\\scripts\\addon_library\\GIT_Clones\\PolyCount",
     "paths": [
         {
             "enable": true,
@@ -1685,7 +1676,7 @@
     "online_url": "https://github.com/mifth/mifthtools.git",
     "branch" : null,
     "submodule" : false,
-    "local_path": "#\\scripts\\GIT\\mifthtools",
+    "local_path": "#\\scripts\\addon_library\\GIT_Clones\\mifthtools",
     "paths": [
         {
             "enable": true,
@@ -1700,7 +1691,7 @@
     "online_url": "https://github.com/Neltulz/Neltulz_Smart_Sharpen.git",
     "branch" : null,
     "submodule" : false,
-    "local_path": "#\\scripts\\GIT\\Neltulz_Smart_Sharpen",
+    "local_path": "#\\scripts\\addon_library\\GIT_Clones\\Neltulz_Smart_Sharpen",
     "paths": [
         {
             "enable": true,
@@ -1715,7 +1706,7 @@
     "online_url": "https://github.com/Neltulz/Neltulz_Symmetry.git",
     "branch" : null,
     "submodule" : false,
-    "local_path": "#\\scripts\\GIT\\Neltulz_Symmetry",
+    "local_path": "#\\scripts\\addon_library\\GIT_Clones\\Neltulz_Symmetry",
     "paths": [
         {
             "enable": true,
@@ -1766,7 +1757,7 @@
     "online_url": "https://github.com/Tilapiatsu/blender-lineup_maker.git",
     "branch" : null,
     "submodule" : true,
-    "local_path": "#\\scripts\\GIT\\lineup_maker",
+    "local_path": "#\\scripts\\addon_library\\GIT_Submodules\\lineup_maker",
     "paths": [
         {
             "enable": true,
@@ -1781,7 +1772,7 @@
     "online_url": "https://github.com/sketchfab/blender-plugin.git",
     "branch": null,
     "submodule": false,
-    "local_path": "#\\scripts\\GIT\\io_sketchfab",
+    "local_path": "#\\scripts\\addon_library\\GIT_Clones\\io_sketchfab",
     "paths": [
         {
             "enable": false,
@@ -1801,7 +1792,7 @@
     "online_url": "https://gitlab.com/blender/easy_weight.git",
     "branch" : null,
     "submodule" : false,
-    "local_path": "#\\scripts\\GIT\\easy_weight",
+    "local_path": "#\\scripts\\addon_library\\GIT_Clones\\easy_weight",
     "paths": [
         {
             "enable": true,
@@ -1816,7 +1807,7 @@
     "online_url": "https://github.com/Weisl/simple_renaming_panel.git",
     "branch" : null,
     "submodule" : false,
-    "local_path": "#\\scripts\\GIT\\simple_renaming_panel",
+    "local_path": "#\\scripts\\addon_library\\GIT_Clones\\simple_renaming_panel",
     "paths": [
         {
             "enable": true,
@@ -1840,7 +1831,7 @@
     "online_url": "https://github.com/SavMartin/TexTools-Blender.git",
     "branch" : null,
     "submodule" : false,
-    "local_path": "#\\scripts\\GIT\\TextTools",
+    "local_path": "#\\scripts\\addon_library\\GIT_Clones\\TextTools",
     "paths": [
         {
             "enable":true,
@@ -1882,7 +1873,7 @@
     "online_url": "https://github.com/Radivarig/UvSquares.git",
     "branch" : null,
     "submodule" : false,
-    "local_path": "#\\scripts\\GIT\\UvSquares",
+    "local_path": "#\\scripts\\addon_library\\GIT_Clones\\UvSquares",
     "paths": [
         {
             "enable": true,
@@ -1897,7 +1888,7 @@
     "online_url": "https://github.com/samytichadou/Auto_Reload-Blender_addon.git",
     "branch" : null,
     "submodule" : false,
-    "local_path": "#\\scripts\\GIT\\Auto_Reload",
+    "local_path": "#\\scripts\\addon_library\\GIT_Clones\\Auto_Reload",
     "paths": [
         {
             "enable": true,
@@ -1939,7 +1930,7 @@
     "online_url": "https://github.com/1C0D/optiloops.git",
     "branch" : null,
     "submodule" : false,
-    "local_path": "#\\scripts\\GIT\\optiloops",
+    "local_path": "#\\scripts\\addon_library\\GIT_Clones\\optiloops",
     "paths": [
         {
             "enable": true,
@@ -1963,7 +1954,7 @@
     "online_url": "https://github.com/sakana3/PolyQuilt.git",
     "branch" : null,
     "submodule" : false,
-    "local_path": "#\\scripts\\GIT\\PolyQuilt",
+    "local_path": "#\\scripts\\addon_library\\GIT_Clones\\PolyQuilt",
     "paths": [
         {
             "enable": true,
@@ -1978,7 +1969,7 @@
     "online_url": "https://github.com/DB3D/Lodify.git",
     "branch" : null,
     "submodule" : false,
-    "local_path": "#\\scripts\\GIT\\Lodify",
+    "local_path": "#\\scripts\\addon_library\\GIT_Clones\\Lodify",
     "paths": [
         {
             "enable": true,
@@ -2101,7 +2092,7 @@
     "online_url": "https://github.com/BenjaminSauder/EdgeFlow.git",
     "branch" : null,
     "submodule" : false,
-    "local_path": "#\\scripts\\GIT\\EdgeFlow",
+    "local_path": "#\\scripts\\addon_library\\GIT_Clones\\EdgeFlow",
     "paths": [
         {
             "enable": true,
@@ -2143,7 +2134,7 @@
     "online_url": "https://github.com/Shriinivas/blenderbezierutils.git",
     "branch" : null,
     "submodule" : false,
-    "local_path": "#\\scripts\\GIT\\bezierutils",
+    "local_path": "#\\scripts\\addon_library\\GIT_Clones\\bezierutils",
     "paths": [
         {   
             "enable": true,
@@ -2158,7 +2149,7 @@
     "online_url": "https://github.com/oscurart/Blender-28-Addons.git",
     "branch" : null,
     "submodule" : false,
-    "local_path": "#\\scripts\\GIT\\oscuart",
+    "local_path": "#\\scripts\\addon_library\\GIT_Clones\\oscuart",
     "paths" : [
         {
             "enable": true,
@@ -2178,7 +2169,7 @@
     "online_url": "https://github.com/andyp123/blender_vertex_color_master.git",
     "branch" : null,
     "submodule" : false,
-    "local_path": "#\\scripts\\GIT\\vertex_color_master",
+    "local_path": "#\\scripts\\addon_library\\GIT_Clones\\vertex_color_master",
     "paths": [
         {
             "enable": true,
@@ -2193,7 +2184,7 @@
     "online_url": "https://github.com/grantwilk/atomic-data-manager.git",
     "branch" : null,
     "submodule" : false,
-    "local_path": "#\\scripts\\GIT\\atomic_data_manager",
+    "local_path": "#\\scripts\\addon_library\\GIT_Clones\\atomic_data_manager",
     "paths": [
         {
             "enable": true,
@@ -2226,7 +2217,7 @@
     "online_url": "https://github.com/mrven/Blender-Texel-Density-Checker.git",
     "branch" : null,
     "submodule" : false,
-    "local_path": "#\\scripts\\GIT\\Texel_Density",
+    "local_path": "#\\scripts\\addon_library\\GIT_Clones\\Texel_Density",
     "paths": [
         {
             "enable": true,
@@ -2250,7 +2241,7 @@
     "online_url": "https://github.com/n-taka/BlenderAddons.git",
     "branch" : null,
     "submodule" : false,
-    "local_path": "#\\scripts\\GIT\\RestoreSymmetry",
+    "local_path": "#\\scripts\\addon_library\\GIT_Clones\\RestoreSymmetry",
     "paths": [
         {
             "enable": true,

@@ -5,7 +5,7 @@ config/userpref.blend
 
 dependencies/*
 
-scripts/GIT/*
+scripts/addon_library/GIT_Clones/*
 
 scripts/addons/retopoflow-master/*
 scripts/addons/Capsule/*
