@@ -8,3 +8,6 @@
 [submodule "scripts/addon_library/GIT_Submodules/tila_lineup_maker"]
 	path = scripts/addon_library/GIT_Submodules/tila_lineup_maker
 	url = https://github.com/Tilapiatsu/blender-lineup_maker.git
+[submodule "scripts/addon_library/GIT_Submodules/tila_export_as_blend"]
+	path = scripts/addon_library/GIT_Submodules/tila_export_as_blend
+	url = https://github.com/Tilapiatsu/blender-export_as_blend.git
