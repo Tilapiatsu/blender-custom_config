@@ -8,9 +8,10 @@ import subprocess
 import stat
 import bpy
 import re
+import bpy
 from os import path
 
-current_folder = os.getcwd()
+root_folder = path.dirname(bpy.utils.script_path_user())
 
 dependencies = ['gitpython']
 
@@ -20,14 +21,32 @@ bversion = float(bversion_reg.group(0))
 
 def install_dependencies():
 	current_dir = path.dirname(path.realpath(__file__))
-	LineupMaker_dependencies_path = path.join(
-		current_dir, 'Dependencies')
-	if LineupMaker_dependencies_path not in sys.path:
-		sys.path.append(LineupMaker_dependencies_path)
+	dependencies_path = path.join(current_dir, 'Dependencies')
+	print(dependencies_path)
+	if dependencies_path not in sys.path:
+		sys.path.append(dependencies_path)
 
+	if not path.exists(dependencies_path):
+		os.mkdir(dependencies_path)
+		install = True
+	else:
+		install = False
+		dependency_subfolder = os.listdir(dependencies_path)
 
+		for d in dependencies:
+			found = False
+			for s in dependency_subfolder:
+				if d.lower() in s.lower():
+					found = True
+				
+			if not found:
+				install = True
+				break
+
+	if not install:
+		return 
 	subprocess.check_call([sys.executable, '-m', 'pip', 'install',
-						  *dependencies, '--target', LineupMaker_dependencies_path])
+						  *dependencies, '--target', dependencies_path])
 
 def enable_addon(addon_name):
 	print(f'Enabling Addon : {addon_name}')
@@ -47,12 +66,13 @@ def file_acces_handler(func, path, exc_info):
 try:
 	import git
 except (ModuleNotFoundError, ImportError) as e:
+	print(e)
 	install_dependencies()
 	import git
 
 def get_log_file():
 	try:
-		filepath = current_folder
+		filepath = root_folder
 	except AttributeError:
 		filepath = ''
 	if path.exists(filepath):
@@ -246,7 +266,7 @@ class PathAM():
 		if self._path is None:
 			return None
 		else:
-			return self._path.replace('#', current_folder)
+			return self._path.replace('#', root_folder)
 
 	@property
 	def exists(self):
@@ -482,12 +502,12 @@ class AddonManager():
 		return s
 
 if __name__ == '__main__':
-	AM = AddonManager(path.join(current_folder, 'EnabledAddons.json'))
+	AM = AddonManager(path.join(root_folder, 'EnabledAddons.json'))
 
 	print(AM)
 	
-	AM.clean()
-	AM.sync(overwrite=True)
+	# AM.clean()
+	# AM.sync(overwrite=True)
 	# AM.link(overwrite=True)
 
 	# element_name = 'PolyQuilt'

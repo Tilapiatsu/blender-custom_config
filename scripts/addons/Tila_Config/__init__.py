@@ -11,8 +11,17 @@
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 
+from bpy.props import IntProperty, StringProperty, BoolProperty, EnumProperty, FloatProperty, FloatVectorProperty
+import bpy
+from . preferences import TILA_Config_Preferences
+from . operators import (	TILA_Config_RegisterKeymaps,
+                        	TILA_Config_UnregisterKeymaps,
+                         	TILA_Config_PrintAddonList,
+                          	TILA_Config_SyncAddonList)
+
+
 bl_info = {
-	"name" : "Tila_Config",
+	"name" : "Tila Config",
 	"author" : "Tilapiatsu",
 	"description" : "",
 	"blender" : (2, 80, 0),
@@ -20,32 +29,12 @@ bl_info = {
 	"warning" : "",
 	"category" : "Preferences"
 }
-import bpy
-from . import tila_keymaps
-
-class TILA_OP_RegisterKeymaps(bpy.types.Operator):
-	bl_idname = "wm.tila_register_keymaps"
-	bl_label = "Tilapiatsu : Register Keymaps"
-	bl_options = {'REGISTER'}
-	
-	def execute(self,context):
-		tila_keymaps.register()
-		return {'FINISHED'}
- 
-
-class TILA_OP_UnegisterKeymaps(bpy.types.Operator):
-	bl_idname = "wm.tila_unregister_keymaps"
-	bl_label = "Tilapiatsu : Unregister Keymaps"
-	bl_options = {'REGISTER'}
-	
-	
-	def execute(self,context):
-		tila_keymaps.unregister()
-		return {'FINISHED'}
 		
-		
-
-classes = (TILA_OP_RegisterKeymaps, TILA_OP_UnegisterKeymaps)
+classes = (	TILA_Config_PrintAddonList,
+            TILA_Config_SyncAddonList,
+	   		TILA_Config_RegisterKeymaps,
+		   	TILA_Config_UnregisterKeymaps,
+		   	TILA_Config_Preferences)
 
 def register():
 	for cls in classes:

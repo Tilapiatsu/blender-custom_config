@@ -21,7 +21,7 @@
     "online_url": "https://github.com/Tilapiatsu/matcap-selection.git",
     "branch": null,
     "submodule" : true,
-    "local_path": "#\\scripts\\addon_library\\GIT_Submodules\\matcap",
+    "local_path": "#\\scripts\\addon_library\\GIT_Submodules\\tila_matcap",
     "paths": [
         {
             "enable": true,
@@ -1348,7 +1348,7 @@
     "online_url": "https://github.com/Tilapiatsu/blender-Universal_Multi_Importer.git",
     "branch" : null,
     "submodule" : true,
-    "local_path": "#\\scripts\\addon_library\\GIT_Submodules\\universal_multi_importer",
+    "local_path": "#\\scripts\\addon_library\\GIT_Submodules\\tila_universal_multi_importer",
     "paths": [
         {
             "enable": false,
@@ -1757,7 +1757,7 @@
     "online_url": "https://github.com/Tilapiatsu/blender-lineup_maker.git",
     "branch" : null,
     "submodule" : true,
-    "local_path": "#\\scripts\\addon_library\\GIT_Submodules\\lineup_maker",
+    "local_path": "#\\scripts\\addon_library\\GIT_Submodules\\tila_lineup_maker",
     "paths": [
         {
             "enable": true,

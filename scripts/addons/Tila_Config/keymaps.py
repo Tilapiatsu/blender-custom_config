@@ -1,18 +1,18 @@
-from .Tila_KeymapManager import KeymapManager
 import bpy
 import os, re
+from .KeymapManager import KeymapManager
 
-bl_info = {
-	"name": "Tilapiatsu Hotkeys",
-	"description": "Hotkeys",
-	"author": "Tilapiatsu",
-	"version": (0, 1, 0),
-	"blender": (2, 80, 0),
-	"location": "",
-	"warning": "",
-	"doc_url": "",
-	"category": "Hotkeys"
-	}
+# bl_info = {
+# 	"name": "Tilapiatsu Hotkeys",
+# 	"description": "Hotkeys",
+# 	"author": "Tilapiatsu",
+# 	"version": (0, 1, 0),
+# 	"blender": (2, 80, 0),
+# 	"location": "",
+# 	"warning": "",
+# 	"doc_url": "",
+# 	"category": "Hotkeys"
+# 	}
 
 
 # TODO  
@@ -46,18 +46,11 @@ bversion_string = bpy.app.version_string
 bversion_reg = re.match("^(\d\.\d?\d)", bversion_string)
 bversion = float(bversion_reg.group(0))
 
-class TilaKeymaps(KeymapManager.KeymapManager):
-	bl_idname = "settings.tila_set_keymap"
-	bl_label = "TILA: Set all Keymaps"
 
-	def execute(self, context):
-		bpy.ops.script.reload()
-		self.set_tila_keymap()
-
-
+class TILA_Config_Keymaps(KeymapManager.KeymapManager):
 	def __init__(self):
 
-		super(TilaKeymaps, self).__init__()
+		super(TILA_Config_Keymaps, self).__init__()
 
 		self.k_viewfit = 'MIDDLEMOUSE'
 		self.k_manip = 'LEFTMOUSE'
@@ -1369,45 +1362,45 @@ class TilaKeymaps(KeymapManager.KeymapManager):
 		print("----------------------------------------------------------------")
 		print("")
 
-keymap_List = {}
+# keymap_List = {}
 
-def register():
-	TK = TilaKeymaps()
-	TK.set_tila_keymap()
+# def register():
+# 	TK = TilaKeymaps()
+# 	TK.set_tila_keymap()
 
-	keymap_List['new'] = TK.keymap_List['new']
-	keymap_List['replaced'] = TK.keymap_List['replaced']
+# 	keymap_List['new'] = TK.keymap_List['new']
+# 	keymap_List['replaced'] = TK.keymap_List['replaced']
 
-def unregister():
-	print("----------------------------------------------------------------")
-	print("Reverting Tilapiatsu's keymap")
-	print("----------------------------------------------------------------")
-	print("")
+# def unregister():
+# 	print("----------------------------------------------------------------")
+# 	print("Reverting Tilapiatsu's keymap")
+# 	print("----------------------------------------------------------------")
+# 	print("")
 
-	TK = TilaKeymaps()
-	for k in keymap_List['replaced']:
-		try:
-			TK.km = k['km']
-			print("{} : Replacing '{}' : '{}'  by '{}' : '{}'".format(k['km'].name, k['new_kmi'].idname, k['new_kmi'].to_string(), k['old_kmi'].idname, k['old_kmi'].to_string()))
-			TK.replace_km(k['old_kmi'], k['kmis'].from_id(k['old_kmi_id']))
-		except Exception as e:
-			print("Warning: %r" % e)
+# 	TK = TilaKeymaps()
+# 	for k in keymap_List['replaced']:
+# 		try:
+# 			TK.km = k['km']
+# 			print("{} : Replacing '{}' : '{}'  by '{}' : '{}'".format(k['km'].name, k['new_kmi'].idname, k['new_kmi'].to_string(), k['old_kmi'].idname, k['old_kmi'].to_string()))
+# 			TK.replace_km(k['old_kmi'], k['kmis'].from_id(k['old_kmi_id']))
+# 		except Exception as e:
+# 			print("Warning: %r" % e)
 
-	for k in keymap_List['new']:
-		try:
-			TK.km = k[0]
-			print("{} : Removing keymap for '{}' : '{}'".format(k[0].name, k[1].idname, k[1].to_string()))
-			TK.km.keymap_items.remove(k[1])
+# 	for k in keymap_List['new']:
+# 		try:
+# 			TK.km = k[0]
+# 			print("{} : Removing keymap for '{}' : '{}'".format(k[0].name, k[1].idname, k[1].to_string()))
+# 			TK.km.keymap_items.remove(k[1])
 			
-		except Exception as e:
-			print("Warning: %r" % e)
+# 		except Exception as e:
+# 			print("Warning: %r" % e)
 	
-	keymap_List.clear()
+# 	keymap_List.clear()
 
-	print("----------------------------------------------------------------")
-	print("Revert complete")
-	print("----------------------------------------------------------------")
-	print("")
+# 	print("----------------------------------------------------------------")
+# 	print("Revert complete")
+# 	print("----------------------------------------------------------------")
+# 	print("")
 
-if __name__ == "__main__":
-	register()
+# if __name__ == "__main__":
+# 	register()

@@ -7,6 +7,8 @@ dependencies/*
 
 scripts/addon_library/GIT_Clones/*
 
+scripts/addons/Tila_Config/AddonManager/Dependencies/*
+
 scripts/addons/retopoflow-master/*
 scripts/addons/Capsule/*
 scripts/addons/animation_nodes/*
