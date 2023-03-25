@@ -1,16 +1,15 @@
 import bpy
-import mathutils
-import bmesh
+# import mathutils
+# import bmesh
 import math
 from bpy_extras.view3d_utils import region_2d_to_vector_3d, region_2d_to_origin_3d
-from .grid_utils import *
-from .math_utils import *
+from .grid_utils import GetGridHitPoint, isGridFrontal
+from .math_utils import LinePlaneCollision
 
 
 # Get location in matrix space
 def GetPlaneLocation(context, coord, matrix):
     matrix_inv = matrix.inverted()
-    scene = context.scene
     region = context.region
     rv3d = context.region_data
     view_vector = region_2d_to_vector_3d(region, rv3d, coord)
@@ -29,7 +28,6 @@ def GetPlaneLocation(context, coord, matrix):
 # Get height location in matrix space at specific centerpoint
 def GetHeightLocation(context, coord, matrix, secpos):
     matrix_inv = matrix.inverted()
-    scene = context.scene
     region = context.region
     rv3d = context.region_data
     view_vector = region_2d_to_vector_3d(region, rv3d, coord)

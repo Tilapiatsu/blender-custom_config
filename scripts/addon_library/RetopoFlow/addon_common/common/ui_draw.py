@@ -1,5 +1,5 @@
 '''
-Copyright (C) 2021 CG Cookie
+Copyright (C) 2022 CG Cookie
 http://cgcookie.com
 hello@cgcookie.com
 
@@ -19,6 +19,7 @@ Created by Jonathan Denning, Jonathan Williamson
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 '''
 
+import bpy
 import bgl
 
 from .ui_styling import UI_Styling, ui_defaultstylings
@@ -38,7 +39,7 @@ from .maths import Vec2D, Color, mid, Box2D, Size1D, Size2D, Point2D, RelPoint2D
 from .maths import floor_if_finite, ceil_if_finite
 from .profiler import profiler, time_it
 from .shaders import Shader
-from .utils import iter_head, any_args, join, abspath
+from .utils import iter_head, any_args, join
 
 
 class UI_Draw:
@@ -97,8 +98,9 @@ class UI_Draw:
         vertex_positions = [(0,0),(1,0),(1,1),  (1,1),(0,1),(0,0)]
         vertex_shader, fragment_shader = Shader.parse_file('ui_element.glsl', includeVersion=False)
         print(f'Addon Common: compiling UI shader')
+        Drawing.glCheckError(f'Pre-compile check: UI Shader check')
         shader = gpu.types.GPUShader(vertex_shader, fragment_shader) #name='RetopoFlowUIShader'
-        Drawing.glCheckError(f'Compiled shader {shader}')
+        Drawing.glCheckError(f'Compiled UI Shader {shader}')
         print(f'Addon Common: batching for shader')
         batch = batch_for_shader(shader, 'TRIS', {"pos": vertex_positions})
         Drawing.glCheckError(f'Batched for shader {batch}')
@@ -177,11 +179,13 @@ class UI_Draw:
             if texture_id is not None:
                 bgl.glActiveTexture(atex)
                 bgl.glBindTexture(bgl.GL_TEXTURE_2D, texture_id)
+            # Drawing.glCheckError(f'checking gl errors after binding shader and setting uniforms')
             batch.draw(shader)
 
         UI_Draw._draw = draw
 
     def __init__(self):
+        if bpy.app.background: return
         if not UI_Draw._initialized:
             self.init_draw()
             UI_Draw._initialized = True

@@ -3,7 +3,7 @@ from ..addon import prefs, temp_prefs, is_28, ic
 from ..utils.ui_utils import split
 from ..constants import (
     ICON_NONE, ICON_FOLDER, ICON_COL,
-    get_icon, get_bool_icon, LIST_ROW_SCALE_Y
+    get_icon, get_bool_icon, LIST_ROW_SCALE_Y, PROOT
 )
 
 
@@ -32,6 +32,7 @@ class CB_UL_obj_list(bpy.types.UIList):
             icon, active_data, active_propname, index):
         self.use_filter_show = True
 
+        tpr = temp_prefs()
         is_group = item.type == 'GROUP'
         icon = ICON_FOLDER if is_group else ICON_NONE
         left, _, right = item.name.partition("|")
@@ -40,7 +41,7 @@ class CB_UL_obj_list(bpy.types.UIList):
             row.alignment = 'LEFT'
             if not is_group:
                 row.active = False
-            row.label(text=left, icon=ic(icon))
+            row.label(text=tpr.cd.data_label(left), icon=ic(icon))
 
             row = layout.row(align=True)
             row.alignment = 'RIGHT'
@@ -52,7 +53,7 @@ class CB_UL_obj_list(bpy.types.UIList):
             layout.alignment = 'LEFT'
             if not is_group:
                 layout.active = False
-            layout.label(text=left, icon=ic(icon))
+            layout.label(text=tpr.cd.data_label(left), icon=ic(icon))
 
 
 class CB_UL_info_list(bpy.types.UIList):
@@ -164,15 +165,69 @@ class CB_OT_copy_path_area(bpy.types.Operator):
 
     def execute(self, context):
         path = repr(context.screen)
+        index = -1
 
         for i, a in enumerate(context.screen.areas):
             if a == context.area:
                 index = i
                 break
 
+        if index == -1:
+            return {'CANCELLED'}
+
         path += ".areas[%d]" % index
         context.window_manager.clipboard = path
 
+        return {'FINISHED'}
+
+
+class CB_OT_path_set(bpy.types.Operator):
+    bl_idname = "cb.path_set"
+    bl_label = "Set Path"
+    bl_description = "Set path"
+    bl_options = {'INTERNAL'}
+
+    path: bpy.props.StringProperty()
+
+    def execute(self, context):
+        temp_prefs().cd.update_lists(self.path)
+        return {'FINISHED'}
+
+
+class CB_OT_bookmarks_menu(bpy.types.Operator):
+    bl_idname = "cb.menu"
+    bl_label = "Bookmarks Menu"
+    bl_description = "Bookmarks menu"
+    bl_options = {'INTERNAL'}
+
+    def draw_menu(self, menu, context):
+        layout = menu.layout
+        layout.operator_context = 'INVOKE_DEFAULT'
+        layout.operator(
+            CB_OT_path_set.bl_idname, text="Context",
+            icon=ic('BLENDER')).path = \
+            PROOT
+        layout.operator(
+            CB_OT_path_set.bl_idname, text="Data",
+            icon=ic('BLENDER')).path = \
+            "D"
+
+        pr = prefs()
+        if pr.bookmarks:
+            layout.separator()
+
+            for b in pr.bookmarks:
+                layout.operator(
+                    "cb.bookmark", text=b.name,
+                    icon=ic('SOLO_ON')).bookmark = b.path
+
+        layout.separator()
+        layout.operator(
+            "cb.bookmark_add", text="Add Bookmark",
+            icon=ic('ZOOMIN'))
+
+    def execute(self, context):
+        context.window_manager.popup_menu(self.draw_menu, title="Bookmarks")
         return {'FINISHED'}
 
 
@@ -183,7 +238,7 @@ class CB_OT_browser(bpy.types.Operator):
 
     instance = None
 
-    path = bpy.props.StringProperty(default="C")
+    path: bpy.props.StringProperty(default=PROOT)
 
     def draw(self, context):
         pr = prefs()
@@ -193,10 +248,14 @@ class CB_OT_browser(bpy.types.Operator):
         col = layout.column(align=True)
         row = col.box().row()
 
+        root_id = tpr.breadcrumb_items[0][0]
         sub = row.row(align=True)
-        sub.operator("cb.bookmark_menu", text="", icon=ic('BOOKMARKS'))
+        sub.operator(
+            CB_OT_bookmarks_menu.bl_idname,
+            icon=ic('TRIA_DOWN'), text="",
+            depress=tpr.cd.path == root_id
+        )
 
-        sub = row.row(align=True)
         if len(tpr.breadcrumb_items) > 1:
             left = sub.row(align=True)
             left.alignment = 'LEFT'
@@ -204,6 +263,7 @@ class CB_OT_browser(bpy.types.Operator):
                 if id == tpr.breadcrumb_items[-1][0]:
                     break
                 left.prop_enum(tpr, "path", id)
+
         sub.prop_enum(tpr, "path", tpr.breadcrumb_items[-1][0])
 
         sub = row.row(align=True)
@@ -259,6 +319,7 @@ class CB_OT_browser(bpy.types.Operator):
         self.area_icon = bpy.types.UILayout.enum_item_icon(
             context.area, "type", self.area_type)
         self.area_spaces = len(context.area.spaces)
+        self.area_index = -1
 
         for i, a in enumerate(context.screen.areas):
             if a == context.area:

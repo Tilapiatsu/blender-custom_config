@@ -1,5 +1,5 @@
 '''
-Copyright (C) 2021 CG Cookie
+Copyright (C) 2022 CG Cookie
 http://cgcookie.com
 hello@cgcookie.com
 
@@ -20,7 +20,6 @@ Created by Jonathan Denning, Jonathan Williamson
 '''
 
 import math
-import bgl
 import random
 from mathutils import Matrix, Vector
 
@@ -41,11 +40,11 @@ This RFWidget is useful for very simple cursor setting.
 class RFWidget_Default_Factory:
     '''
     This is a class factory.  It is needed, because the FSM is shared across instances.
-    RFTools might need to share RFWidges that are independent of each other.
+    RFTools might need to share RFWidgets that are independent of each other.
     '''
 
     @staticmethod
-    def create(action_name, cursor='DEFAULT'):
+    def create(*, action_name=None, cursor='DEFAULT'):
         class RFWidget_Default(RFWidget):
             rfw_name = 'Default'
             rfw_cursor = cursor

@@ -1,5 +1,5 @@
 '''
-Copyright (C) 2021 CG Cookie
+Copyright (C) 2022 CG Cookie
 http://cgcookie.com
 hello@cgcookie.com
 
@@ -35,21 +35,21 @@ from concurrent.futures import ThreadPoolExecutor
 import bpy
 
 from ...addon_common.cookiecutter.cookiecutter import CookieCutter
+from ...addon_common.common.blender import get_preferences, get_path_from_addon_root
 from ...addon_common.common.boundvar import BoundVar, BoundBool, BoundFloat, BoundString
-from ...addon_common.common.utils import delay_exec, abspath
 from ...addon_common.common.globals import Globals
-from ...addon_common.common.blender import get_preferences
+from ...addon_common.common.inspect import ScopeBuilder
+from ...addon_common.common.profiler import profiler
 from ...addon_common.common.ui_core import UI_Element
 from ...addon_common.common.ui_styling import load_defaultstylings
-from ...addon_common.common.profiler import profiler
+from ...addon_common.common.utils import delay_exec
 
 from ...config.options import (
     options, themes, visualization,
-    retopoflow_issues_url, retopoflow_tip_url,
-    retopoflow_version, retopoflow_version_git, retopoflow_cgcookie_built,
+    retopoflow_urls, retopoflow_product, retopoflow_files,
     build_platform,
     platform_system, platform_node, platform_release, platform_version, platform_machine, platform_processor,
-    gpu_vendor, gpu_renderer, gpu_version, gpu_shading,
+    gpu_info,
 )
 
 def get_environment_details():
@@ -59,14 +59,21 @@ def get_environment_details():
 
     env_details = []
     env_details += ['Environment:\n']
-    env_details += [f'- RetopoFlow: {retopoflow_version}']
-    if retopoflow_version_git:
-        env_details += [f'- RF git: {retopoflow_version_git}']
-    if retopoflow_cgcookie_built:
-        env_details += ['- CG Cookie built']
+    env_details += [f'- RetopoFlow: {retopoflow_product["version"]}']
+    if retopoflow_product['git version']:
+        env_details += [f'- RF git: {retopoflow_product["git version"]}']
+    elif retopoflow_product['cgcookie built']:
+        if retopoflow_product['github']:
+            env_details += ['- CG Cookie built for GitHub']
+        elif retopoflow_product['blender market']:
+            env_details += ['- CG Cookie built for Blender Market']
+        else:
+            env_details += ['- CG Cookie built for ??']
+    else:
+        env_details += ['- Self built']
     env_details += [f'- Blender: {blender_version} {blender_branch} {blender_date}']
     env_details += [f'- Platform: {platform_system}, {platform_release}, {platform_version}, {platform_machine}, {platform_processor}']
-    env_details += [f'- GPU: {gpu_vendor}, {gpu_renderer}, {gpu_version}, {gpu_shading}']
+    env_details += [f'- GPU: {gpu_info}']
     env_details += [f'- Timestamp: {datetime.today().isoformat(" ")}']
 
     return '\n'.join(env_details)
@@ -94,16 +101,23 @@ class RetopoFlow_UI_Alert:
 
     @CookieCutter.Exception_Callback
     def handle_exception(self, e):
-        print('RF_UI.handle_exception', e)
+        print('RetopoFlow_UI_Alert.handle_exception', e)
         if False:
             for entry in inspect.stack():
                 print(f'  {entry}')
         message,h = Globals.debugger.get_exception_info_and_hash()
         message = '\n'.join(f'- {l}' for l in message.splitlines())
-        self.alert_user(title='Exception caught', message=message, level='exception', msghash=h)
+        self.alert_user(
+            title='Exception caught',
+            message=message,
+            level='exception',
+            msghash=h,
+        )
         if hasattr(self, 'rftool'): self.rftool._reset()
 
     def alert_user(self, message=None, title=None, level=None, msghash=None):
+        scope = ScopeBuilder()
+
         if not hasattr(self, '_msghashes'): self._msghashes = set()
         if not hasattr(self, 'alert_windows'): self.alert_windows = 0
         if msghash and msghash in self._msghashes: return # have already seen this error!!
@@ -125,7 +139,7 @@ class RetopoFlow_UI_Alert:
         if title is None and self.rftool: title = self.rftool.name
 
         def screenshot():
-            ss_filename = options['screenshot filename']
+            ss_filename = retopoflow_files['screenshot filename']
             if getattr(bpy.data, 'filepath', ''):
                 # loaded .blend file
                 filepath = os.path.split(os.path.abspath(bpy.data.filepath))[0]
@@ -136,7 +150,7 @@ class RetopoFlow_UI_Alert:
             bpy.ops.screen.screenshot(filepath=filepath)
             self.alert_user(message=f'Saved screenshot to "{filepath}"')
         def open_issues():
-            bpy.ops.wm.url_open(url=retopoflow_issues_url)
+            bpy.ops.wm.url_open(url=retopoflow_urls['github issues'])
         def search():
             url = f'https://github.com/CGCookie/retopoflow/issues?q=is%3Aissue+{msghash}'
             bpy.ops.wm.url_open(url=url)
@@ -144,13 +158,13 @@ class RetopoFlow_UI_Alert:
             nonlocal msg_report
             nonlocal report_details
 
-            path = abspath('..', '..', 'help', 'issue_template_simple.md')
+            path = get_path_from_addon_root('help', 'issue_template_simple.md')
             issue_template = open(path, 'rt').read()
             data = {
                 'title': f'{self.rftool.name}: {title}',
                 'body': f'{issue_template}\n\n```\n{msg_report}\n```',
             }
-            url =  f'{options["github new issue url"]}?{urllib.parse.urlencode(data)}'
+            url =  f'{retopoflow_urls["new github issue"]}?{urllib.parse.urlencode(data)}'
             bpy.ops.wm.url_open(url=url)
 
         if msghash:
@@ -212,15 +226,16 @@ class RetopoFlow_UI_Alert:
                     print(e)
                     # ignore for now
                     pass
-                size = f'{"fourth" if buttons==4 else "fifth"}-size'
-                UI_Element.BUTTON(innerText='Screenshot', classes=f'action {size}', on_mouseclick=screenshot, title='Save a screenshot of Blender', parent=ui_buttons)
-                UI_Element.BUTTON(innerText='Similar',    classes=f'action {size}', on_mouseclick=search, title='Search the RetopoFlow Issue Tracker for similar issues', parent=ui_buttons)
-                UI_Element.BUTTON(innerText='All Issues', classes=f'action {size}', on_mouseclick=open_issues, title='Open RetopoFlow Issue Tracker', parent=ui_buttons)
-                UI_Element.BUTTON(innerText='Report',     classes=f'action {size}', on_mouseclick=report, title='Report a new issue on the RetopoFlow Issue Tracker', parent=ui_buttons)
+                size = 'fourth-size' if buttons==4 else 'fifth-size'
+                UI_Element.BUTTON(innerText='Screenshot', classes=f'action {size}', parent=ui_buttons, on_mouseclick=screenshot,  title='Save a screenshot of Blender')
+                UI_Element.BUTTON(innerText='Similar',    classes=f'action {size}', parent=ui_buttons, on_mouseclick=search,      title='Search the RetopoFlow Issue Tracker for similar issues')
+                UI_Element.BUTTON(innerText='All Issues', classes=f'action {size}', parent=ui_buttons, on_mouseclick=open_issues, title='Open RetopoFlow Issue Tracker')
+                UI_Element.BUTTON(innerText='Report',     classes=f'action {size}', parent=ui_buttons, on_mouseclick=report,      title='Report a new issue on the RetopoFlow Issue Tracker')
 
             executor = ThreadPoolExecutor()
             executor.submit(check_github)
 
+        msg_report = ''
         if level in {'note'}:
             title = 'Note' + (f': {title}' if title else '')
             message = message or 'a note'
@@ -232,6 +247,8 @@ class RetopoFlow_UI_Alert:
             show_quit = True
             darken = True
         elif level in {'assert', 'exception'}:
+            self.save_emergency()  # make an emergency save!
+
             if level == 'assert':
                 title = 'Assert Error' + (f': {title}' if title else '!')
                 desc = 'An internal assertion has failed.'
@@ -252,16 +269,13 @@ class RetopoFlow_UI_Alert:
                 get_trace_details(undo_stack_actions, msghash=msghash, message=message_orig),
             ])
 
-            def clipboard():
-                try: bpy.context.window_manager.clipboard = msg_report
-                except: pass
-
             show_quit = True
             darken = True
         else:
             title = level.upper() + (f': {title}' if title else '')
             message = message or 'a note'
 
+        @scope.capture_fn
         def close():
             nonlocal win
             if win.parent:
@@ -270,22 +284,36 @@ class RetopoFlow_UI_Alert:
             if self.document.sticky_element == win:
                 self.document.sticky_element = None
             self.document.clear_last_under()
+        @scope.capture_fn
         def mouseleave_event(e):
             nonlocal win
             if not win.is_hovered: close()
+        @scope.capture_fn
         def keypress_event(e):
             if e.key == 'ESC': close()
+        @scope.capture_fn
         def quit():
             self.done()
+        @scope.capture_fn
+        def copy_to_clipboard():
+            nonlocal msg_report
+            try: bpy.context.window_manager.clipboard = msg_report
+            except: pass
 
         if self.alert_windows >= 5:
             return
             #self.exit = True
 
-        win = UI_Element.fromHTMLFile(abspath('alert_dialog.html'))[0]
+        scope.capture_var('level')
+
+        win = UI_Element.fromHTMLFile(
+            get_path_from_addon_root('retopoflow', 'html', 'alert_dialog.html'),
+            frame_depth=2,
+            **scope
+        )[0]
         self.document.body.append_child(win)
         win.getElementById('alert-title').innerText = title
-        win.getElementById('alert-message').set_markdown(mdown=message)
+        win.getElementById('alert-message').set_markdown(mdown=message, frame_depth=2, **scope)
         if not msg_report and not ui_checker:
             win.getElementById('alert-details').is_visible = False
         if msg_report: win.getElementById('alert-report').innerText = msg_report

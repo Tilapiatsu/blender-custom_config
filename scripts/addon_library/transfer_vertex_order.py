@@ -19,8 +19,8 @@
 bl_info = {
     "name": "Transfer Vert Order",
     "author": "Jose Conseco based on UV Transfer from MagicUV Nutti",
-    "version": (2, 2),
-    "blender": (2, 80, 0),
+    "version": (2, 3),
+    "blender": (2, 82, 0),
     "location": "Sidebar (N) -> Tools panel",
     "description": "Transfer Verts IDs by verts proximity or by selected faces",
     "warning": "",
@@ -33,7 +33,7 @@ from collections import OrderedDict
 import bpy
 import bmesh
 from bpy.props import BoolProperty,BoolProperty
-from mathutils import kdtree
+from mathutils import kdtree, Vector
 
 
 class CopyIDs():
@@ -44,6 +44,7 @@ class ID_DATA():
     face_vert_ids = []
     face_edge_ids = []
     faces_id = []
+    face_loop_ids = []
 
 
 class VOT_PT_CopyVertIds(bpy.types.Panel):
@@ -57,12 +58,12 @@ class VOT_PT_CopyVertIds(bpy.types.Panel):
     def draw(self, context):
         layout = self.layout
         if context.mode == 'OBJECT':
-            layout.label(text = 'Transfer IDs from object')
+            layout.label(text = 'More options in Edit mode')
             layout.operator("object.vert_id_transfer_proximity")
+            layout.operator("object.vert_id_transfer_uv")
 
         elif context.mode == 'EDIT_MESH':
             layout.separator()
-            layout.label(text='Transfer IDs by faces')
             layout.operator("object.copy_vert_id")
             layout.operator("object.paste_vert_id")
 
@@ -70,7 +71,7 @@ class VOT_PT_CopyVertIds(bpy.types.Panel):
 
 class VOT_OT_TransferVertId(bpy.types.Operator):
     """Transfer vert ID by vert proximity"""
-    bl_label = "Transfer IDs  by location"
+    bl_label = "Transfer IDs using location"
     bl_idname = "object.vert_id_transfer_proximity"
     bl_description = "Transfer verts IDs by vert positions (for meshes with exactly same shape)\nTwo mesh objects have to be selected"
     bl_options = {'REGISTER'}
@@ -139,6 +140,81 @@ class VOT_OT_TransferVertId(bpy.types.Operator):
             self.report({'INFO'}, 'Pasted '+str(copiedCount)+' vert id\'s ')
         return {"FINISHED"}
 
+class VOT_OT_TransferVertIdByUV(bpy.types.Operator):
+    """Transfer vert ID by vert UVs"""
+    bl_label = "Transfer IDs using UVs"
+    bl_idname = "object.vert_id_transfer_uv"
+    bl_description = "Transfer verts IDs from selected to active object using UVs (for meshes with different shape but same UVs)\nTwo mesh objects have to be selected"
+    bl_options = {'REGISTER'}
+
+    @staticmethod
+    def find_face_uv_center(face: bmesh.types.BMFace, uv_layer):
+        uv_ctr = Vector((0.0, 0.0))
+        uv_cnt = 0
+        for loop in face.loops:
+            uv_ctr += loop[uv_layer].uv
+            uv_cnt += 1
+
+        # calculate winding value to better deal with multiple faces with the same UV center
+        # (the main thing this is for is mirrored meshes that have the same UVs for both sides)
+        winding_1: Vector = (face.loops[1][uv_layer].uv - face.loops[0][uv_layer].uv).to_3d()
+        winding_2: Vector = (face.loops[2][uv_layer].uv - face.loops[0][uv_layer].uv).to_3d()
+        # by not normalizing, it also serves to differentiate by face size centers that otherwise might match
+        # will only be a z value since the input vectors were 2d on xy
+        winding = winding_1.cross(winding_2)
+
+        return (uv_ctr / uv_cnt).to_3d() + winding
+
+    delta: bpy.props.FloatProperty(name="Delta", description="SearchDistance", default=0.01, min=0, max=0.1, precision = 5)
+    def execute(self, context):
+        sourceObj = context.active_object
+        TargetObjs = [obj for obj in context.selected_objects if obj!=sourceObj and obj.type=='MESH']
+
+        if not TargetObjs:
+            self.report({'ERROR'}, 'You seed to select two mesh objects (source then target that will receive vert order)! Cancelling')
+            return {'CANCELLED'}
+
+        bm_src = bmesh.new()  # load mesh
+        bm_src.from_mesh(sourceObj.data)
+        bm_src.faces.ensure_lookup_table()
+
+        src_obj_kd_faces = kdtree.KDTree(len(bm_src.faces))
+        for f in bm_src.faces:
+            src_obj_kd_faces.insert(self.find_face_uv_center(f, bm_src.loops.layers.uv.active), f.index)
+        src_obj_kd_faces.balance()
+        processedVertsIdDict = {}
+        processedEdgesIdDict = {}
+        processedFacesIdDict = {}
+        for target in TargetObjs:
+            processedVertsIdDict.clear()
+            bm = bmesh.new()  # load mesh
+            bm.from_mesh(target.data)
+            for face in bm.faces:
+                co, index, dist = src_obj_kd_faces.find(self.find_face_uv_center(face, bm.loops.layers.uv.active))
+                if dist<self.delta:  #delta
+                    face.index = index
+                    processedFacesIdDict[face] = index
+                    for loop_src, loop_dst in zip(bm_src.faces[index].loops, face.loops):
+                        # will be copied over to the actual data later (so as to only be done once per vert/edge)
+                        processedEdgesIdDict[loop_dst.edge] = loop_src.edge.index
+                        loop_dst.edge.index = loop_src.edge.index
+                        processedVertsIdDict[loop_dst.vert] = loop_src.vert.index
+                        loop_dst.vert.index = loop_src.vert.index
+
+            copiedCount = len(processedVertsIdDict)
+            copiedCount += len(processedEdgesIdDict)
+            copiedCount += len(processedFacesIdDict)
+
+            VOT_OT_PasteVertID.sortOtherVerts(processedVertsIdDict, processedEdgesIdDict, processedFacesIdDict, bm)
+            bm.verts.sort()
+            bm.edges.sort()
+            bm.faces.sort()
+            bm.to_mesh(target.data)
+            bm.free()
+            self.report({'INFO'}, 'Pasted '+str(copiedCount)+' vert id\'s ')
+        bm_src.free()
+        return {"FINISHED"}
+
 
 class VOT_OT_CopyVertID(bpy.types.Operator):
     bl_idname = "object.copy_vert_id"
@@ -154,6 +230,7 @@ class VOT_OT_CopyVertID(bpy.types.Operator):
         bm.edges.ensure_lookup_table()
         bm.faces.ensure_lookup_table()
 
+        props.face_loop_ids.clear()
         props.face_vert_ids.clear()
         props.face_edge_ids.clear()
         props.faces_id.clear()
@@ -173,8 +250,10 @@ class VOT_OT_CopyVertID(bpy.types.Operator):
         all_sorted_faces = main_parse(self, sel_faces, active_face, active_face_nor)
         if all_sorted_faces:
             for face, face_data in all_sorted_faces.items():
-                verts = face_data[0]
-                edges = face_data[1]
+                loops = face_data[0]
+                verts = face_data[1]
+                edges = face_data[2]
+                props.face_loop_ids.append([loop.index for loop in loops])
                 props.face_vert_ids.append([vert.index for vert in verts])
                 props.face_edge_ids.append([e.index for e in edges])
                 props.faces_id.append(face.index)
@@ -196,7 +275,7 @@ class VOT_OT_PasteVertID(bpy.types.Operator):
     def sortOtherVerts(processedVertsIdDict, preocessedEdgesIsDict, preocessedFaceIsDict, bm):
         """Prevet verts on other islands from being all shuffled"""
         # dicts instead of lists - faster search 4x?
-        if len(bm.verts) == len(processedVertsIdDict) and len(bm.faces) == len(preocessedFaceIsDict): 
+        if len(bm.verts) == len(processedVertsIdDict) and len(bm.faces) == len(preocessedFaceIsDict):
             return #all verts, and faces were processed - > no other Islands -> quit
 
         def fix_islands(processed_items, bm_element): #face, verts, or edges
@@ -233,6 +312,7 @@ class VOT_OT_PasteVertID(bpy.types.Operator):
             return {'CANCELLED'}
 
         # parse selection history
+        loopID_dict = {}
         vertID_dict = {}
         edgeID_dict = {}
         faceID_dict = {}
@@ -258,12 +338,13 @@ class VOT_OT_PasteVertID(bpy.types.Operator):
                     return {'FINISHED'}
 
                 for j,(face, face_data) in enumerate(all_sorted_faces.items()):
+                    loop_ids_cache = props.face_loop_ids[j]
                     vert_ids_cache = props.face_vert_ids[j]
                     edge_ids_cache = props.face_edge_ids[j]
                     face_id_cache = props.faces_id[j]
 
                     # check amount of copied/pasted verts
-                    if len(vert_ids_cache) != len(face_data[0]):
+                    if len(vert_ids_cache) != len(face_data[1]):
                         bpy.ops.mesh.select_all(action='DESELECT')
                         # select problematic face
                         list(all_sorted_faces.keys())[j].select = True
@@ -274,21 +355,32 @@ class VOT_OT_PasteVertID(bpy.types.Operator):
                         return {'FINISHED'}
 
 
-                    for k, vert in enumerate(face_data[0]):
+                    for k, vert in enumerate(face_data[1]):
                         vert.index = vert_ids_cache[k]  #index
                         vertID_dict[vert] = vert.index
+
+                    for k, loop in enumerate(face_data[0]):
+                        loop.index = loop_ids_cache[k]  #index
+                        loopID_dict[loop] = loop.index
+
                     face.index = face_id_cache
                     faceID_dict[face] = face_id_cache
-                    for k, edge in enumerate(face_data[1]): #edges
+
+                    for k, edge in enumerate(face_data[2]): #edges
                         edge.index = edge_ids_cache[k]  # index
                         edgeID_dict[edge] = edge.index
         self.sortOtherVerts(vertID_dict, edgeID_dict, faceID_dict, bm)
+        #? does not exist bm.loops.sort()
         bm.verts.sort()
         bm.edges.sort()
         bm.faces.sort()
+
+        #! !!! for faces in bm.fa
         bmesh.update_edit_mesh(active_obj.data)
 
         return {'FINISHED'}
+
+
 
 
 def main_parse(self, sel_faces, active_face, active_face_nor):
@@ -374,7 +466,7 @@ def parse_faces(check_face, face_stuff, used_verts, used_edges, all_sorted_faces
     """recurse faces around the new_grow only"""
 
     new_shared_faces = []
-    for sorted_edge in face_stuff[1]:
+    for sorted_edge in face_stuff[2]:
         shared_faces = sorted_edge.link_faces
         if shared_faces:
             if len(shared_faces) > 2:
@@ -391,7 +483,7 @@ def parse_faces(check_face, face_stuff, used_verts, used_edges, all_sorted_faces
                 vert1 = sorted_edge.verts[0]
                 vert2 = sorted_edge.verts[1]
 
-                if face_stuff[0].index(vert1) > face_stuff[0].index(vert2):
+                if face_stuff[1].index(vert1) > face_stuff[1].index(vert2):
                     vert1 = sorted_edge.verts[1]
                     vert2 = sorted_edge.verts[0]
 
@@ -425,6 +517,15 @@ def get_other_verts_edges(face, vert1, vert2, first_edge):
 
     other_edges = [edge for edge in face.edges if edge not in face_edges]
 
+    face_loops = []  # ! move to vert processing above? To maintain order ids?
+    def add_vert_loop(ver): #add vert link_loops
+        for loop in ver.link_loops:
+            if loop.face == face:
+                face_loops.append(loop)
+                break
+
+    add_vert_loop(vert1) #add loops in same order as verts
+    add_vert_loop(vert2)
     for _ in range(len(other_edges)):
         found_edge = None
         # get sorted verts and edges
@@ -434,6 +535,7 @@ def get_other_verts_edges(face, vert1, vert2, first_edge):
 
                 if other_vert not in face_verts:
                     face_verts.append(other_vert)
+                    add_vert_loop(other_vert)
 
                 found_edge = edge
                 if found_edge not in face_edges:
@@ -442,7 +544,7 @@ def get_other_verts_edges(face, vert1, vert2, first_edge):
 
         other_edges.remove(found_edge)
 
-    return [face_verts, face_edges]
+    return [face_loops, face_verts, face_edges]
 
 
 panels = (
@@ -478,11 +580,12 @@ class WertOrderPreferences(bpy.types.AddonPreferences):
         col = row.column()
         col.label(text="Tab Category:")
         col.prop(self, "category", text="")
-        
-        
+
+
 classes = (
     WertOrderPreferences,
     VOT_OT_TransferVertId,
+    VOT_OT_TransferVertIdByUV,
     VOT_OT_CopyVertID,
     VOT_OT_PasteVertID,
     VOT_PT_CopyVertIds,

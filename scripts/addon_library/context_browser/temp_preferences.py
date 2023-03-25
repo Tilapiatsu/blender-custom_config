@@ -5,7 +5,7 @@ from inspect import isfunction, ismethod
 from .addon import TEMP_PREFS_ID, prefs, temp_prefs
 from .constants import (
     ICON_UNKNOWN, ICON_FOLDER, ICON_FUNC, ICON_PROP, ICON_NONE,
-    TOOLTIP_LEN,
+    TOOLTIP_LEN, PROOT, PDOT,
     get_icon)
 from .utils.collection_utils import sort_collection
 
@@ -29,10 +29,22 @@ def isfunc(obj):
 
 class ContextData:
     def __init__(self):
-        self.path = "C"
+        self.path = PROOT
         self.data = None
         self.properties = []
         self.functions = []
+
+    def data_label(self, name):
+        if name.startswith("[") and name.endswith("]"):
+            k = name[1:-1]
+            if k.isdigit():
+                obj = self.data[int(k)]
+                if hasattr(obj, "name"):
+                    return "%s %s" % (name, obj.name)
+                elif hasattr(obj, "type"):
+                    return "%s %s" % (name, obj.type)
+
+        return name
 
     def eval_path(self, path, globals=None, locals=None):
         if globals:
@@ -192,7 +204,7 @@ class ContextData:
                         self.properties.append(item)
                     continue
 
-            item_path = self.path + "." + item
+            item_path = self.path + PDOT + item
             obj = self.eval_path(item_path)
 
             if isfunc(obj):
@@ -219,17 +231,21 @@ class ContextData:
         self.properties.clear()
 
         C = bpy.context
+        D = bpy.data
         while True:
             try:
                 self.data = self.eval_path(path, globals(), locals())
                 break
             except:
-                path = ".".join(path.split(".")[:-1])
+                if PDOT in path:
+                    path = PDOT.join(path.split(PDOT)[:-1])
+                else:
+                    path = PROOT
 
         self.path = path
 
-        if self.path != "C":
-            par_path, _, part = path.rpartition(".")
+        if PDOT in self.path:
+            par_path, _, part = path.rpartition(PDOT)
             i = part.find("[")
             if i != -1:
                 par_path = "%s.%s" % (par_path, part[:i])
@@ -264,8 +280,8 @@ class ContextData:
 
 
 class ListItem(bpy.types.PropertyGroup):
-    data = bpy.props.StringProperty()
-    type = bpy.props.EnumProperty(
+    data: bpy.props.StringProperty()
+    type: bpy.props.EnumProperty(
         items=(
             ('ITEM', "", ""),
             ('GROUP', "", ""),
@@ -293,12 +309,12 @@ class TempPreferences(bpy.types.PropertyGroup):
         self["obj_list_idx"] = -1
         self.cd.update_lists(item.data)
 
-    obj_list = bpy.props.CollectionProperty(type=ListItem)
-    obj_list_idx = bpy.props.IntProperty(update=obj_list_idx_update)
-    info_list = bpy.props.CollectionProperty(type=ListItem)
-    info_list_idx = bpy.props.IntProperty(get=lambda s: -1)
-    last_path = bpy.props.StringProperty(default="C")
-    path = bpy.props.EnumProperty(
+    obj_list: bpy.props.CollectionProperty(type=ListItem)
+    obj_list_idx: bpy.props.IntProperty(update=obj_list_idx_update)
+    info_list: bpy.props.CollectionProperty(type=ListItem)
+    info_list_idx: bpy.props.IntProperty(get=lambda s: -1)
+    last_path: bpy.props.StringProperty(default=PROOT)
+    path: bpy.props.EnumProperty(
         name="Path", description="Path",
         items=get_path_items,
         update=update_path)
@@ -309,7 +325,7 @@ class TempPreferences(bpy.types.PropertyGroup):
 
     def update_breadcrumbs(self, path):
         self.breadcrumb_items.clear()
-        items = path.split(".")
+        items = path.split(PDOT)
         path = ""
         item_idx = -1
         for item in items:
@@ -321,14 +337,14 @@ class TempPreferences(bpy.types.PropertyGroup):
                 a = item[idx:]
                 path += a
                 self.breadcrumb_items.append((path, a, path))
-                path += "."
+                path += PDOT
                 item_idx += 2
 
             else:
                 item_idx += 1
                 path += item
                 self.breadcrumb_items.append((path, item, path))
-                path += "."
+                path += PDOT
 
         self["path"] = item_idx
 

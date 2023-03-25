@@ -25,3 +25,11 @@ def GetBRect(points):
     t_right_x = max(point[0] for point in points)
     t_right_y = max(point[1] for point in points)
     return [mathutils.Vector((b_left_x, b_left_y, 0)), mathutils.Vector((t_right_x, t_right_y, 0))]
+
+
+def GetBRect2D(points):
+    b_left_x = min(point[0] for point in points)
+    b_left_y = min(point[1] for point in points)
+    t_right_x = max(point[0] for point in points)
+    t_right_y = max(point[1] for point in points)
+    return [mathutils.Vector((b_left_x, b_left_y)), mathutils.Vector((t_right_x, t_right_y))]

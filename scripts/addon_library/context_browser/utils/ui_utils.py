@@ -21,9 +21,14 @@ def operator(
         layout, bl_idname, text_="", icon_='NONE',
         emboss_=True, icon_value_=0,
         **kwargs):
-    properties = layout.operator(
-        bl_idname, text=text_, icon=ic(icon_),
-        emboss=emboss_, icon_value=icon_value_)
+    if text_ is None:
+        properties = layout.operator(
+            bl_idname, icon=ic(icon_),
+            emboss=emboss_, icon_value=icon_value_)
+    else:
+        properties = layout.operator(
+            bl_idname, text=text_, icon=ic(icon_),
+            emboss=emboss_, icon_value=icon_value_)
 
     for k, v in kwargs.items():
         setattr(properties, k, v)

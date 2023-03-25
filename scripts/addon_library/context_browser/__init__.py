@@ -2,11 +2,12 @@ bl_info = {
     "name": "Context Browser",
     "category": "Development",
     "author": "roaoao",
-    "version": (1, 2, 1),
+    "version": (1, 4, 0),
     "blender": (2, 80, 0),
     "tracker_url": "http://blenderartists.org/forum/showthread.php?447962",
     "wiki_url": (
-        "https://wiki.blender.org/index.php/User:Raa/Addons/Context_Browser"),
+        "https://archive.blender.org/wiki/index.php/User:Raa/Addons/"
+        "Context_Browser/"),
 }
 
 use_reload = "addon" in locals()

@@ -269,7 +269,7 @@ class UVMeshData (MeshData):
             if marked:
                 seam_edges.append (edge)
 
-        bpy.context.view_layer.objects.active = current_object
+        #bpy.context.view_layer.objects.active = current_object
 
         bpy.ops.object.mode_set (mode=current_mode)
 

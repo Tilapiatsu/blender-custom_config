@@ -7,12 +7,12 @@ from . import tools
 bl_info = {
     "name": "Synchronize Workspaces",
     "author": "Michael Soluyanov (multlabs.com)",
-    "version": (1, 8),
+    "version": (1, 11),
     "blender": (3, 0, 0),
     "location": "View3D -> Top Bar",
     "description": "Synchronize 3D views between workspaces",
     "warning": "",
-    "doc_url": "",
+    "doc_url": "https://blenderartists.org/t/synchronize-workspaces-blender-add-on/1356695",
     "category": "Interface",
 }
 
@@ -77,10 +77,15 @@ def update_workspace(args):
     if prevArea is None:
         return
 
-    nr3d = nextArea.spaces[0].region_3d
-    pr3d = prevArea.spaces[0].region_3d
-    ns3d = nextArea.spaces[0]
-    ps3d = prevArea.spaces[0]
+    for ns3d in nextArea.spaces:
+        if ns3d.type == "VIEW_3D":
+            break
+    for ps3d in prevArea.spaces:
+        if ps3d.type == "VIEW_3D":
+            break
+
+    nr3d = ns3d.region_3d
+    pr3d = ps3d.region_3d
 
     if (ps3d.local_view is not None):
         objects = [ob for ob in bpy.context.view_layer.objects
@@ -123,25 +128,25 @@ def update_workspace(args):
     nr3d.view_camera_offset = pr3d.view_camera_offset
     nr3d.view_camera_zoom = pr3d.view_camera_zoom
 
-    nr3d.view_location = pr3d.view_location
     # TODO is there a better way? 90deg, 180 deg is culling here
-
     nr3d.view_matrix = copy.copy(pr3d.view_matrix)
     if nr3d.is_orthographic_side_view:
         tools.setView(nextArea, pr3d.view_rotation)
         nr3d.view_rotation = pr3d.view_rotation
 
+    nr3d.view_location = pr3d.view_location
+
     # space 3d settings:
-    tools.copy_space_settings(ps3d, ns3d)
+    tools.copy_settings(ps3d, ns3d)
 
     if bpy.context.scene.synch_settings.shading_type:
         ns3d.shading.type = ps3d.shading.type
 
     if bpy.context.scene.synch_settings.shading_settings:
-        tools.copy_shading_settings(ps3d.shading, ns3d.shading)
+        tools.copy_settings(ps3d.shading, ns3d.shading)
 
     if bpy.context.scene.synch_settings.overlays:
-        tools.copy_overlays_settings(ps3d.overlay, ns3d.overlay)
+        tools.copy_settings(ps3d.overlay, ns3d.overlay)
 
     nr3d.update()
     nextArea.tag_redraw()
@@ -169,10 +174,10 @@ def register_rna_sub():
     )
 
 
-class SYNCW_PT_link(bpy.types.Panel):
+class SYNCW_PT_link1(bpy.types.Panel):
     """You can toggle synchronization on specific workspaces"""
     bl_label = "Synchronize settings"
-    bl_idname = "VIEW3D_SYNCW_PT_link"
+    bl_idname = "VIEW3D_SYNCW_PT_link1"
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'WINDOW'
     bl_context = "layout"
@@ -195,7 +200,9 @@ class SYNCW_PT_link(bpy.types.Panel):
 
 def setCurrent(self, context):
     if bpy.context.scene.synch_settings.active:
-        sinchmanager.last_workspace = bpy.context.workspace.name
+        bigestarea = get_biggest_area(context.workspace, "VIEW_3D", True)
+        if bigestarea:
+            sinchmanager.last_workspace = bpy.context.workspace.name
     return None
 
 
@@ -221,7 +228,7 @@ def drawheader(self, context):
     sub = row.row(align=True)
     sub.active = context.scene.synch_settings.active
     sub.popover(
-        SYNCW_PT_link.bl_idname,
+        SYNCW_PT_link1.bl_idname,
         text='',
         text_ctxt='',
         icon='NONE',
@@ -235,17 +242,17 @@ class SyncSettings(bpy.types.PropertyGroup):
         default=True,
         update=setCurrent)
     shading_type: bpy.props.BoolProperty(
-        name="Sync also shading type",
+        name="Synchronize also shading type",
         default=False)
     shading_settings: bpy.props.BoolProperty(
-        name="Sync also shading settings",
+        name="Synchronize also shading settings",
         default=False)
     overlays: bpy.props.BoolProperty(
-        name="Sync also overlays",
+        name="Synchronize also overlays",
         default=False)
 
 
-classes = (SYNCW_PT_link, SyncSettings)
+classes = (SYNCW_PT_link1, SyncSettings)
 
 
 def register():
@@ -262,13 +269,25 @@ def register():
     )
     bpy.app.handlers.load_post.append(load_handler)
     register_rna_sub()
-    bpy.types.VIEW3D_HT_header.append(drawheader)
+    if hasattr(bpy.types, 'VIEW3D_HT_header'):
+        bpy.types.VIEW3D_HT_header.append(drawheader)
+    else:
+        for pt in bpy.types.Header.__subclasses__():
+            if pt.__name__ == "VIEW3D_HT_header":
+                break
+        pt.append(drawheader)
 
 
 def unregister():
     bpy.app.handlers.load_post.remove(load_handler)
     bpy.msgbus.clear_by_owner(sinchmanager)
-    bpy.types.VIEW3D_HT_header.remove(drawheader)
+    if hasattr(bpy.types, 'VIEW3D_HT_header'):
+        bpy.types.VIEW3D_HT_header.remove(drawheader)
+    else:
+        for pt in bpy.types.Header.__subclasses__():
+            if pt.__name__ == "VIEW3D_HT_header":
+                break
+        pt.remove(drawheader)
     bpy.types.Scene.synch_settings = None
     bpy.types.WorkSpace.synch_active = None
     for cls in classes:

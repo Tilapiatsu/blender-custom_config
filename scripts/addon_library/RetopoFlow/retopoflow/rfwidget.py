@@ -1,5 +1,5 @@
 '''
-Copyright (C) 2021 CG Cookie
+Copyright (C) 2022 CG Cookie
 http://cgcookie.com
 hello@cgcookie.com
 
@@ -20,6 +20,7 @@ Created by Jonathan Denning, Jonathan Williamson, and Patrick Moore
 '''
 
 from ..addon_common.common.debug import debugger
+from ..addon_common.common.drawing import Cursors
 from ..addon_common.common.fsm import FSM
 from ..addon_common.common.drawing import DrawCallbacks
 from ..addon_common.common.functools import find_fns
@@ -154,6 +155,9 @@ class RFWidget:
             RFWidget.rfcontext.dirty()
             return ret
         return wrapper
+
+    def set_cursor(self):
+        Cursors.set(self.rfw_cursor)
 
     def inactive_passthrough(self): pass
 

@@ -40,7 +40,7 @@ def update_obj_folder_index(self, context):
 
 	if not obj:
 		return
-	if not obj.type == "MESH":
+	if not obj.type in {"MESH","CURVE","SURFACE"}:
 		return
 
 	# フォルダーリストでもインデックスに参照できるように、シェイプキーの方の値に同じ値になるようにしておく

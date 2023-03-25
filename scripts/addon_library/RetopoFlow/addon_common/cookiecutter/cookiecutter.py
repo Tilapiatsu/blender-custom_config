@@ -1,5 +1,5 @@
 '''
-Copyright (C) 2021 CG Cookie
+Copyright (C) 2022 CG Cookie
 
 https://github.com/CGCookie/retopoflow
 
@@ -30,12 +30,27 @@ from ..common.debug import debugger, tprint
 from ..common.profiler import profiler
 from ..common.useractions import Actions, ActionHandler
 
-from .cookiecutter_fsm import CookieCutter_FSM
-from .cookiecutter_ui import CookieCutter_UI
-from .cookiecutter_blender import CookieCutter_Blender
+from .cookiecutter_actions    import CookieCutter_Actions
+from .cookiecutter_blender    import CookieCutter_Blender
+from .cookiecutter_debug      import CookieCutter_Debug
 from .cookiecutter_exceptions import CookieCutter_Exceptions
+from .cookiecutter_fsm        import CookieCutter_FSM
+from .cookiecutter_modal      import CookieCutter_Modal
+from .cookiecutter_ui         import CookieCutter_UI
 
-class CookieCutter(Operator, CookieCutter_UI, CookieCutter_FSM, CookieCutter_Blender, CookieCutter_Exceptions):
+
+is_broken = False
+
+class CookieCutter(
+    Operator,
+    CookieCutter_UI,
+    CookieCutter_Actions,
+    CookieCutter_FSM,
+    CookieCutter_Blender,
+    CookieCutter_Exceptions,
+    CookieCutter_Debug,
+    CookieCutter_Modal,
+):
     '''
     CookieCutter is used to create advanced operators very quickly!
 
@@ -78,119 +93,47 @@ class CookieCutter(Operator, CookieCutter_UI, CookieCutter_FSM, CookieCutter_Ble
     @classmethod
     def can_start(cls, context): return True
 
+    def prestart(self): pass
+    def is_ready_to_start(self): return True
     def start(self): pass
     def update(self): pass
     def end_commit(self): pass
     def end_cancel(self): pass
     def end(self): pass
     def should_pass_through(self, context, event): return False
+
     ############################################################################
+
+    @staticmethod
+    def cc_break():
+        global is_broken
+        is_broken = True
 
     @classmethod
     def poll(cls, context):
-        try: return cls.can_start(context)
-        except Exception as e: cls._handle_exception(e, 'call can_start()')
+        global is_broken
+        if is_broken: return False
+        with cls.try_exception('call can_start()'):
+            return cls.can_start(context)
+        print('BREAKING COOKIECUTTER')
+        print(f'{cls.bl_idname}')
+        cls.cc_break()
         return False
 
     def invoke(self, context, event):
-        self._nav = False
-        self._nav_time = 0
-        self._done = False
-        self.context = context
-        self.event = None
-        self._start_time = time.time()
-        self._tmp_time = self._start_time
-        self._debug_print_actions = False
-
-        try:
-            self._cc_exception_init()
-            self._cc_fsm_init()
-            self._cc_ui_init()
-            self._cc_actions_init()
-        except Exception as e:
-            self._handle_exception(e, 'initializing Exception Callbacks, FSM, UI, Actions')
-        try: self.start()
-        except Exception as e: self._handle_exception(e, 'call start()')
-        try: self._cc_ui_start()
-        except Exception as e: self._handle_exception(e, 'starting UI')
-
-        self.context.window_manager.modal_handler_add(self)
-        return {'RUNNING_MODAL'}
-
-    def done(self, cancel=False):
-        self._done = 'commit' if not cancel else 'cancel'
-
-    def modal(self, context, event):
-        # print('CookieCutter.modal', event.type, time.time())
+        self._cc_stage = 'prestart'
         self.context = context
         self.event = event
-        self.drawcallbacks.reset_pre()
 
-        if time.time() - self._tmp_time >= 1:
-            self._tmp_time = time.time()
-            # print('--- %d ---' % int(self._tmp_time - self._start_time))
-            profiler.printfile()
+        context.window_manager.modal_handler_add(self)
+        return {'RUNNING_MODAL'}
 
-        if self._done:
-            try:
-                if self._done == 'commit':
-                    self.end_commit()
-                else:
-                    self.end_cancel()
-                self.end()
-            except Exception as e:
-                self._handle_exception(e, 'call end() with %s' % self._done)
-            self._cc_ui_end()
-            self._cc_actions_end()
-            self._cc_exception_done()
-            return {'FINISHED'} if self._done=='finish' else {'CANCELLED'}
-
-        ret = None
-
-        self._cc_actions_update()
-
-        if self._cc_ui_update():
-            ret = {'RUNNING_MODAL'}
+    def done(self, *, cancel=False, emergency_bail=False):
+        if emergency_bail:
+            self._done = 'bail'
         else:
-            # allow window actions to pass through to Blender
-            if self._cc_actions.using('blender window action'): ret = {'PASS_THROUGH'}
+            self._done = 'commit' if not cancel else 'cancel'
 
-            # allow navigation actions to pass through to Blender
-            if self._cc_actions.navigating() or (self._cc_actions.timer and self._nav):
-                # let Blender handle navigation
-                self._cc_actions.unuse('navigate')  # pass-through commands do not receive a release event
-                self._nav = True
-                if not self._cc_actions.trackpad: self.drawing.set_cursor('HAND')
-                ret = {'PASS_THROUGH'}
-            elif self._nav:
-                self._nav = False
-                self._nav_time = time.time()
-
-        try: self.update()
-        except Exception as e: self._handle_exception(e, 'call update')
-
-
-        if self.should_pass_through(context, event):
-            ret = {'PASS_THROUGH'}
-
-        if not ret:
-            self._cc_fsm_update()
-            ret = {'RUNNING_MODAL'}
-
-        perform_redraw_all(only_area=context.area)
-        return ret
-
-
-    def _cc_actions_init(self):
-        self._cc_actions = ActionHandler(self.context)
-        self._timer = self._cc_actions.start_timer(10)
-
-    def _cc_actions_update(self):
-        self._cc_actions.update(self.context, self.event, print_actions=self._debug_print_actions)
-
-    def _cc_actions_end(self):
-        self._timer.done()
-        self._cc_actions.done()
 
 
 

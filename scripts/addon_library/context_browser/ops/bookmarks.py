@@ -12,7 +12,7 @@ class CB_OT_bookmark(bpy.types.Operator):
     )
     bl_options = {'INTERNAL'}
 
-    bookmark = bpy.props.StringProperty()
+    bookmark: bpy.props.StringProperty()
 
     def execute(self, context):
         return {'FINISHED'}
@@ -46,8 +46,8 @@ class CB_OT_bookmark_rename(bpy.types.Operator):
     bl_options = {'INTERNAL'}
     bl_property = "name"
 
-    path = bpy.props.StringProperty()
-    name = bpy.props.StringProperty()
+    path: bpy.props.StringProperty()
+    name: bpy.props.StringProperty()
 
     def check(self, context):
         return True
@@ -66,36 +66,3 @@ class CB_OT_bookmark_rename(bpy.types.Operator):
                 self.name = b.name
                 break
         return context.window_manager.invoke_props_dialog(self)
-
-
-class CB_OT_bookmark_menu(bpy.types.Operator):
-    bl_idname = "cb.bookmark_menu"
-    bl_label = ""
-    bl_description = "Bookmarks"
-    bl_options = {'INTERNAL'}
-
-    def draw_bookmark_menu(self, menu, context):
-        pr = prefs()
-        layout = menu.layout
-        layout.operator_context = 'INVOKE_DEFAULT'
-
-        layout.operator(
-            CB_OT_bookmark_add.bl_idname, text="Add Bookmark",
-            icon=ic('ZOOMIN'))
-
-        if pr.bookmarks:
-            layout.separator()
-
-        for b in pr.bookmarks:
-            layout.operator(
-                CB_OT_bookmark.bl_idname, text=b.name,
-                icon=ic('SOLO_ON')).bookmark = b.path
-
-        layout.separator()
-
-        layout.operator("wm.save_userpref", icon=ic('FILE_TICK'))
-
-    def execute(self, context):
-        context.window_manager.popup_menu(
-            self.draw_bookmark_menu, title="Bookmarks")
-        return {'FINISHED'}

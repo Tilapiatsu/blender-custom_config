@@ -1,5 +1,5 @@
 '''
-Copyright (C) 2021 CG Cookie
+Copyright (C) 2022 CG Cookie
 http://cgcookie.com
 hello@cgcookie.com
 
@@ -25,19 +25,21 @@ import bpy
 
 from ..updater import updater
 
+from ...addon_common.common.blender import get_path_from_addon_root
 from ...addon_common.common.globals import Globals
 from ...addon_common.common.utils import delay_exec, abspath
 from ...addon_common.common.ui_styling import load_defaultstylings
 from ...addon_common.common.ui_core import UI_Element
+from ...addon_common.common.human_readable import convert_actions_to_human_readable
 
-from ...config.options import options, retopoflow_version, retopoflow_helpdocs_url, retopoflow_blendermarket_url
-from ...config.keymaps import get_keymaps, reset_all_keymaps, save_custom_keymaps, reset_keymap
+from ...config.options import options
+from ...config.keymaps import get_keymaps, reset_all_keymaps, save_custom_keymaps, reset_keymap, default_rf_keymaps
 
 class RetopoFlow_KeymapSystem:
     @staticmethod
     def reload_stylings():
         load_defaultstylings()
-        path = os.path.join(os.path.dirname(__file__), '..', '..', 'config', 'ui.css')
+        path = get_path_from_addon_root('config', 'ui.css')
         try:
             Globals.ui_draw.load_stylesheet(path)
         except AssertionError as e:
@@ -55,7 +57,7 @@ class RetopoFlow_KeymapSystem:
             m = re.search(r'{{(?P<action>[^}]+)}}', mdown)
             if not m: break
             action = { s.strip() for s in m.group('action').split(',') }
-            sub = f'{pre}{wrap_pre}' + self.actions.to_human_readable(action, join=f'{wrap_post}{separator}{wrap_pre}', onlyfirst=onlyfirst) + f'{wrap_post}{post}'
+            sub = f'{pre}{wrap_pre}' + self.actions.to_human_readable(action, sep=f'{wrap_post}{separator}{wrap_pre}', onlyfirst=onlyfirst) + f'{wrap_post}{post}'
             mdown = mdown[:m.start()] + sub + mdown[m.end():]
         return mdown
 
@@ -138,27 +140,25 @@ class RetopoFlow_KeymapSystem:
             ui_button.can_focus = True
             self.document.focus(ui_button, full=True)
             capture_edit_key_span()
-        def edit_lmb():
+        def edit_capture_mouse(action):
             clear_edit_key_span()
-            edit_data['key'] = 'LMB'
-        def edit_mmb():
-            clear_edit_key_span()
-            edit_data['key'] = 'MMB'
-        def edit_rmb():
-            clear_edit_key_span()
-            edit_data['key'] = 'RMB'
-        def edit_wheelup():
-            clear_edit_key_span()
-            edit_data['key'] = 'WheelUp'
-        def edit_wheeldown():
-            clear_edit_key_span()
-            edit_data['key'] = 'WheelDown'
+            edit_data['key'] = action
         def edit_capture_key(event):
+            if event.key is None or event.key == 'NONE': return
             ui_button = self.document.body.getElementById('edit-key-span')
             if self.document.activeElement != ui_button: return
+            has_ctrl  = 'CTRL+'  in event.key
+            has_shift = 'SHIFT+' in event.key
+            has_alt   = 'ALT+'   in event.key
+            has_oskey = 'OSKEY+' in event.key
             key = event.key.replace('CTRL+','').replace('SHIFT+','').replace('ALT+','').replace('OSKEY+','')
             set_edit_key_span(humanread([key], visible=True))
             edit_data['key'] = key
+            editor = self.document.body.getElementById('keymapconfig')
+            editor.getElementById('edit-ctrl').checked  = has_ctrl
+            editor.getElementById('edit-shift').checked = has_shift
+            editor.getElementById('edit-alt').checked   = has_alt
+            editor.getElementById('edit-oskey').checked = has_oskey
             self.document.blur()
         def edit_ok():
             nonlocal edit_data, keymaps, tokmi
@@ -182,10 +182,11 @@ class RetopoFlow_KeymapSystem:
             nk += '+DOUBLE' if editor.getElementById('edit-double').checked else ''
             nk += '+DRAG'   if editor.getElementById('edit-drag').checked   else ''
             a = edit_data['action']
+            al = edit_data['action label']
             # do not change ordering of keymaps, just update
             idx = keymaps[a].index(edit_data['keymap'])
             keymaps[a][idx] = nk
-            rebuild_action(a)
+            rebuild_action(a, al)
         def edit_cancel():
             self.document.body.getElementById('keymapconfig').style = "display: none"
             self.document.body.getElementById('keymapsystem-cover').style = "display: none"
@@ -195,7 +196,7 @@ class RetopoFlow_KeymapSystem:
             self.document.body.getElementById('keymapconfig').style = "display: none"
             self.document.body.getElementById('keymapsystem-cover').style = "display: none"
             delete_keymap(edit_data['action'], edit_data['keymap'])
-        def edit_start(a, k):
+        def edit_start(a, al, k):
             nonlocal edit_data, keymaps
             aid = action_to_id(a)
             ok = str(k)
@@ -211,6 +212,7 @@ class RetopoFlow_KeymapSystem:
             if not is_key: hm, hk = hk, ''
             else: hm = ''
             edit_data['action'] = a
+            edit_data['action label'] = al
             edit_data['keymap'] = ok
             edit_data['key'] = k
             self.document.body.getElementById('keymapsystem-cover').style = ""
@@ -233,25 +235,25 @@ class RetopoFlow_KeymapSystem:
             editor.getElementById('edit-double').checked = hkdouble
             editor.getElementById('edit-drag').checked   = hkdrag
 
-        def add_keymap(a):
+        def add_keymap(a, al):
             nonlocal keymaps
             keymaps[a].append('')
-            edit_start(a, '')
-        def delete_keymap(a, k):
+            edit_start(a, al, '')
+        def delete_keymap(a, al, k):
             keymaps[a].remove(k)
-            rebuild_action(a)
+            rebuild_action(a, al)
 
-        def keymap_html(a):
+        def keymap_html(a, al):
             nonlocal edit_start, delete_keymap, rebuild_action, add_keymap
             aid = action_to_id(a)
             html = ''
             for k in keymaps[a]:
-                html += f'''<button id="keymap-{aid}-key" class="key" on_mouseclick="edit_start('{a}', '{k}')">{humanread(k, visible=True)}</button>'''
-                html += f'''<button id="keymap-{aid}-del" class="delkey" on_mouseclick="delete_keymap('{a}', '{k}')">✕</button>'''
-            html += f'''<button class="half-size" on_mouseclick="add_keymap('{a}')">+ Add New Keymap</button>'''
-            html += f'''<button class="half-size" on_mouseclick="reset_keymap('{a}'); rebuild_action('{a}')">Reset Keymap</button>'''
+                html += f'''<button id="keymap-{aid}-key" class="key" on_mouseclick="edit_start('{a}', '{al}', '{k}')" title="Click to edit this keymap for {al}">{humanread(k, visible=True)}</button>'''
+                html += f'''<button id="keymap-{aid}-del" class="delkey" on_mouseclick="delete_keymap('{a}', '{al}', '{k}')" title="Click to delete this keymap for {al}">✕</button>'''
+            html += f'''<button class="half-size" on_mouseclick="add_keymap('{a}', '{al}')" title="Click to add a new keymap for {al}">+ Add New Keymap</button>'''
+            html += f'''<button class="half-size" on_mouseclick="reset_keymap('{a}'); rebuild_action('{a}', '{al}')" title="Click to reset the keymaps for {al}">Reset Keymap</button>'''
             return html
-        def rebuild_action(a):
+        def rebuild_action(a, al):
             # vvv this must be here so fromHTML() can see these fns!
             nonlocal edit_start, delete_keymap, rebuild_action, add_keymap
             # ^^^ this must be here so fromHTML() can see these fns!
@@ -259,7 +261,7 @@ class RetopoFlow_KeymapSystem:
             aid = action_to_id(a)
             ui_td = self.document.body.getElementById(f'keymap-{aid}')
             ui_td.clear_children()
-            ui_td.append_children(UI_Element.fromHTML(keymap_html(a)))
+            ui_td.append_children(UI_Element.fromHTML(keymap_html(a, al)))
         def rebuild():
             # vvv this must be here so fromHTML() can see these fns!
             nonlocal edit_start, delete_keymap, rebuild_action, add_keymap
@@ -275,7 +277,7 @@ class RetopoFlow_KeymapSystem:
                     aid = action_to_id(a)
                     html += f'<tr>'
                     html += f'<td class="action">{al}:</td>'
-                    html += f'<td id="keymap-{aid}" class="keymap">{keymap_html(a)}</td>'
+                    html += f'<td id="keymap-{aid}" class="keymap">{keymap_html(a, al)}</td>'
                     html += f'</tr>'
                 html += f'</table>'
                 html += f'</details>'
@@ -283,10 +285,16 @@ class RetopoFlow_KeymapSystem:
             ui_keymaps.append_children(UI_Element.fromHTML(html))
 
 
-        ui_keymaps = UI_Element.fromHTMLFile(abspath('keymaps_dialog.html'))
+        ui_keymaps = UI_Element.fromHTMLFile(abspath('../html/keymaps_dialog.html'))
         self.document.body.append_children(ui_keymaps)
         self.document.body.getElementById('keymapconfig').style = 'display: none'
         self.document.body.getElementById('keymapsystem-cover').style = "display: none"
+
+        self.document.body.getElementById('edit-ctrl').innerText  = convert_actions_to_human_readable('CTRL')
+        self.document.body.getElementById('edit-shift').innerText = convert_actions_to_human_readable('SHIFT')
+        self.document.body.getElementById('edit-oskey').innerText = convert_actions_to_human_readable('OSKEY')
+        self.document.body.getElementById('edit-alt').innerText   = convert_actions_to_human_readable('ALT')
+
         rebuild()
         self.document.body.dirty()
 
@@ -296,11 +304,13 @@ keymap_details = [
         ('confirm', 'Confirm'),
         ('confirm drag', 'Confirm with Drag (sometimes this is needed for certain actions)'),
         ('cancel', 'Cancel'),
+        ('done', 'Quit RetopoFlow'),
+        ('done alt0', 'Quit RetopoFlow (alternative)'),
+        ('toggle ui', 'Toggle UI visibility'),
+        ('blender passthrough', 'Blender passthrough'),
     ]),
     ('Insert, Move, Rotate, Scale', [
         ('insert', 'Insert new geometry'),
-        # ('insert alt0', 'Insert new geometry (alt0)'),
-        # ('insert alt1', 'Insert new geometry (alt1)'),
         ('quick insert', 'Quick insert (Knife, Loops)'),
         ('increase count', 'Increase Count'),
         ('decrease count', 'Decrease Count'),
@@ -319,13 +329,10 @@ keymap_details = [
         ('fill', 'Patches: fill'),
         ('knife reset', 'Knife: reset'),
     ]),
-    ('Selection, Hiding/Reveal', [
+    ('Selection', [
         ('select all', 'Select all'),
         ('select invert', 'Select invert'),
         ('deselect all', 'Deselect all'),
-        ('hide selected', 'Hide selected geometry'),
-        ('hide unselected', 'Hide unselected geometry'),
-        ('reveal hidden', 'Reveal hidden geometry'),
         ('select single', 'Select single item (default depends on Blender selection setting)'),
         ('select single add', 'Add single item to selection (default depends on Blender selection setting)'),
         ('select smart', 'Smart selection (default depends on Blender selection setting)'),
@@ -333,6 +340,14 @@ keymap_details = [
         ('select paint', 'Selection painting (default depends on Blender selection setting)'),
         ('select paint add', 'Paint to add to selection (default depends on Blender selection setting)'),
         ('select path add', 'Select along shortest path (default depends on Blender selection setting)'),
+    ]),
+    ('Geometry Attributes', [
+        ('hide selected', 'Hide selected geometry'),
+        ('hide unselected', 'Hide unselected geometry'),
+        ('reveal hidden', 'Reveal hidden geometry'),
+        ('pin', 'Pin selected geometry'),
+        ('unpin', 'Unpin selected geometry'),
+        ('unpin all', 'Unpin all geometry'),
     ]),
     ('Switching Between Tools', [
         ('contours tool', 'Switch to Contours'),
@@ -361,6 +376,7 @@ keymap_details = [
     ('Pie Menus', [
         ('pie menu', 'Show pie menu'),
         ('pie menu alt0', 'Show tool/alt pie menu'),
+        ('pie menu confirm', 'Confirm pie menu selection'),
     ]),
     ('Help', [
         ('all help', 'Show all help'),
@@ -369,3 +385,23 @@ keymap_details = [
     ]),
 ]
 
+ignored_keys = {
+    'autosave',
+    'grease clear', 'grease pencil tool',
+    'stretch tool',
+    'toggle full area',
+    'reload css',
+}
+
+# check that all keymaps are able to be edited
+def check_keymap_editor():
+    flattened_details = { key for (_, keyset) in keymap_details for (key, _) in keyset }
+    default_keys = set(default_rf_keymaps.keys()) - ignored_keys
+    missing_keys = default_keys - flattened_details
+    extra_keys = flattened_details - default_keys
+    if not missing_keys and not extra_keys: return
+    print(f'Error detected in keymap editor')
+    if missing_keys: print(f'Missing Keys: {sorted(missing_keys)}\nEither add to keymap_details or ignored_keys in rf_keymapsystem.py')
+    if extra_keys:   print(f'Extra Keys: {sorted(extra_keys)}\nRemove these from keymap_details')
+    assert False
+check_keymap_editor()

@@ -5,41 +5,41 @@ from .ops.context_browser import CB_OT_browser
 
 
 class BookmarkItem(bpy.types.PropertyGroup):
-    path = bpy.props.StringProperty()
+    path: bpy.props.StringProperty()
 
 
 class CB_Preferences(bpy.types.AddonPreferences):
     bl_idname = ADDON_ID
 
-    bookmarks = bpy.props.CollectionProperty(type=BookmarkItem)
+    bookmarks: bpy.props.CollectionProperty(type=BookmarkItem)
 
     def update_lists(self, context):
         tpr = temp_prefs()
         tpr.cd.update_lists(tpr.path, False)
 
-    show_bool_props = bpy.props.BoolProperty(
+    show_bool_props: bpy.props.BoolProperty(
         name="Show Bool Properties", description="Show bool properties",
         default=True, update=update_lists)
-    show_int_props = bpy.props.BoolProperty(
+    show_int_props: bpy.props.BoolProperty(
         name="Show Int Properties", description="Show int properties",
         default=True, update=update_lists)
-    show_float_props = bpy.props.BoolProperty(
+    show_float_props: bpy.props.BoolProperty(
         name="Show Float Properties", description="Show float properties",
         default=True, update=update_lists)
-    show_str_props = bpy.props.BoolProperty(
+    show_str_props: bpy.props.BoolProperty(
         name="Show String Properties", description="Show string properties",
         default=True, update=update_lists)
-    show_enum_props = bpy.props.BoolProperty(
+    show_enum_props: bpy.props.BoolProperty(
         name="Show Enum Properties", description="Show enum properties",
         default=True, update=update_lists)
-    show_vector_props = bpy.props.BoolProperty(
+    show_vector_props: bpy.props.BoolProperty(
         name="Show Vector Properties", description="Show vector properties",
         default=True, update=update_lists)
-    group_none = bpy.props.BoolProperty(
+    group_none: bpy.props.BoolProperty(
         name="Group None Objects",
         description="Group None objects",
-        default=False, update=update_lists)
-    show_prop_ids = bpy.props.BoolProperty(
+        default=True, update=update_lists)
+    show_prop_ids: bpy.props.BoolProperty(
         name="Show Property Identifiers",
         description="Show property identifiers",
         default=True)
@@ -47,19 +47,19 @@ class CB_Preferences(bpy.types.AddonPreferences):
     def show_header_btn_update(self, context):
         prefs().register_header_btn(self.show_header_btn)
 
-    show_header_btn = bpy.props.BoolProperty(
+    show_header_btn: bpy.props.BoolProperty(
         name="Show Header Button",
         description="Show header button",
         update=show_header_btn_update,
         default=True)
-    obj_list_width = bpy.props.IntProperty(
+    obj_list_width: bpy.props.IntProperty(
         name="Width", description="Width of the list",
         subtype='PERCENTAGE',
         default=40, min=20, max=80)
-    list_height = bpy.props.IntProperty(
+    list_height: bpy.props.IntProperty(
         name="Number of Rows", description="Number of rows in lists",
         default=10, min=5, max=100)
-    popup_width = bpy.props.IntProperty(
+    popup_width: bpy.props.IntProperty(
         name="Width", description="Popup width",
         subtype='PIXEL',
         default=640, min=300, max=3000)
@@ -134,7 +134,8 @@ class CB_Preferences(bpy.types.AddonPreferences):
     @staticmethod
     def header_menu(menu, context):
         layout = menu.layout
-        layout.operator("cb.browser", text="", icon=ic('BLENDER'), emboss=False)
+        layout.operator(
+            "cb.browser", text="", icon=ic('BLENDER'), emboss=False)
 
 
 def register():

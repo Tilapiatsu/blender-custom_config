@@ -1,5 +1,5 @@
 '''
-Copyright (C) 2021 CG Cookie
+Copyright (C) 2022 CG Cookie
 http://cgcookie.com
 hello@cgcookie.com
 
@@ -40,7 +40,8 @@ import gpu
 
 from mathutils import Vector, Matrix
 
-from .boundvar import BoundVar
+from .boundvar import BoundVar, BoundInt, BoundFloat
+from .blender import tag_redraw_all
 from .debug import debugger, dprint, tprint
 from .decorators import debug_test_call, blender_version_wrapper, add_cache
 from .fontmanager import FontManager
@@ -172,6 +173,7 @@ tags_known = {
     'pre', 'code',
     'br',
     'img',
+    'progress',
     'table', 'tr', 'th', 'td',
     'dialog',
     'label', 'input',
@@ -206,24 +208,37 @@ events_known = {
 
 class UI_Element_Elements():
     @classmethod
-    def fromHTMLFile(cls, path_html, *, frame_depth=1, f_globals=None, f_locals=None):
+    def fromHTMLFile(cls, path_html, *, frame_depth=1, frames_deep=1, f_globals=None, f_locals=None, **kwargs):
         if not path_html: return []
         assert os.path.exists(path_html), f'Could not find HTML {path_html}'
         html = open(path_html, 'rt').read()
-        return cls.fromHTML(html, frame_depth=frame_depth+1, f_globals=f_globals, f_locals=f_locals)
+        return cls.fromHTML(
+            html,
+            frame_depth=frame_depth+1,
+            frames_deep=frames_deep,
+            f_globals=f_globals,
+            f_locals=f_locals,
+            **kwargs
+        )
 
     @classmethod
-    def fromHTML(cls, html, *, frame_depth=1, f_globals=None, f_locals=None):
+    def fromHTML(cls, html, *, frame_depth=1, frames_deep=1, f_globals=None, f_locals=None, **kwargs):
         # use passed global and local contexts or grab contexts from calling function
         # these contexts are needed for bound variables
         if f_globals and f_locals:
             f_globals = f_globals
             f_locals = dict(f_locals)
         else:
+            ff_globals, ff_locals = {}, {}
             frame = inspect.currentframe()
-            for i in range(frame_depth): frame = frame.f_back
-            f_globals = f_globals or frame.f_globals
-            f_locals = dict(f_locals or frame.f_locals)
+            for i in range(frame_depth + frames_deep):
+                if i >= frame_depth:
+                    ff_globals = frame.f_globals | ff_globals
+                    ff_locals  = frame.f_locals  | ff_locals
+                frame = frame.f_back
+            f_globals = f_globals or ff_globals
+            f_locals  = dict(f_locals or ff_locals)
+        f_locals |= kwargs
 
         def next_close(html, tagName):
             m_tag = re_html_tag.search(html)
@@ -308,10 +323,18 @@ class UI_Element_Elements():
                         v = delay_exec(v, f_globals=f_globals, f_locals=f_locals, ordered_parameters=['event'], precall=precall)
                     elif v.lower() in {'true'}:  v = True
                     elif v.lower() in {'false'}: v = False
-                    elif m_self:                 v = eval(v, f_globals, f_locals)
-                    elif m_bound:                v = eval(v, f_globals, f_locals)
                     elif m_int:                  v = int(v)
                     elif m_float:                v = float(v)
+                    elif m_self:                 v = eval(v, f_globals, f_locals)
+                    elif m_bound:
+                        try:
+                            v = eval(v, f_globals, f_locals)
+                        except Exception as e:
+                            print(f'')
+                            print(f'Caught Exception {e} while trying to eval {v}')
+                            print(f'{f_globals=}')
+                            print(f'{f_locals=}')
+                            raise e
 
                     attribs[k] = v
 
@@ -422,7 +445,16 @@ class UI_Element_Elements():
             # but that would exclude any non-US-keyboard inputs
             pass
         elif input_type == 'number':
-            allowed = '''0123456789.-'''
+            if type(self._value) is BoundInt:
+                if self._value.min_value is not None and self._value.min_value >= 0:
+                    # only non-negative ints
+                    allowed = '''0123456789'''
+                else:
+                    # can be negative
+                    allowed = '''-0123456789'''
+            else:
+                # can be float
+                allowed = '''0123456789.-'''
         else:
             assert False, f'UI_Element.process_input_box: unhandled type {input_type}'
 
@@ -446,7 +478,7 @@ class UI_Element_Elements():
                     self._ui_marker.reposition(
                         left=data['pos'].x - self._ui_marker._absolute_size.width / 2,
                         top=data['pos'].y,
-                        clamp_position=False,
+                        clamp_position=(self.scrollLeft <= 0),
                     )
                     cursor_postflow()
                 else:
@@ -532,14 +564,21 @@ class UI_Element_Elements():
             elif len(e.key) > 1:
                 return
             elif allowed is None or e.key in allowed:
-                data['text'] = data['text'][0:data['idx']] + e.key + data['text'][data['idx']:]
+                newtext = data['text'][:data['idx']] + e.key + data['text'][data['idx']:]
+                if self.maxlength is not None and len(newtext) > self.maxlength: return
+                data['text'] = newtext
                 data['idx'] += 1
             preclean()
         def paste(e):
             if data['text'] == None: return
             clipboardData = str(e.clipboardData)
             if allowed: clipboardData = ''.join(c for c in clipboardData if c in allowed)
-            data['text'] = data['text'][0:data['idx']] + clipboardData + data['text'][data['idx']:]
+            if self.maxlength is not None:
+                # only insert enough chars to prevent going above maxlength
+                origlen, cliplen = len(data['text']), len(clipboardData)
+                if origlen + cliplen > self.maxlength:
+                    clipboardData = clipboardData[:(self.maxlength - origlen)]
+            data['text'] = data['text'][:data['idx']] + clipboardData + data['text'][data['idx']:]
             data['idx'] += len(clipboardData)
             preclean()
 
@@ -774,6 +813,48 @@ class UI_Element_Elements():
 
         return self._children
 
+    def _process_progress(self):
+        # print('=====================')
+        # print('PROCESSING PROGRESS')
+        if self._ui_marker is None:
+            self._ui_marker = self.append_new_child(
+                tagName='progressmarker', #self._tagName,
+                classes=self._classes_str,
+                # pseudoelement='marker',
+            )
+
+            prev = -1
+
+            def update_progress():
+                nonlocal prev
+                try:
+                    percent = float(self.value or 0) / float(self.valueMax or 100)
+                except Exception as e:
+                    percent = random.random()
+                    print(f'Caught {e} with {self.value=} and {self.valueMax=}')
+                percent = int(100 * percent)
+                if percent == prev: return
+                prev = percent
+
+                self._ui_marker.style = f'width:{percent}%'
+                # self._ui_marker.style_width = f'{percent}%'
+                self.dirty()
+                self.dirty_flow()
+                self._ui_marker.dirty()
+                self._ui_marker.dirty_flow()
+                # tag_redraw_all('update progress')
+                # self.document.force_dirty_all()
+            update_progress()
+            self.add_eventListener('on_input', update_progress)
+
+        # else:
+        #     self._children_gen = [self._ui_marker]
+        #     self._new_content = True
+
+
+        return self._children # [self._ui_marker]
+
+
     def _process_h1(self):
         if self._parent and self._parent._tagName == 'dialog' and self._parent._children[0] == self:
             dialog = self._parent
@@ -872,6 +953,7 @@ class UI_Element_Elements():
             'dialog':         self._process_dialog,
             'h1':             self._process_h1,
             'li':             self._process_li,
+            'progress':       self._process_progress,
         }
         processor = processors.get(tagtype, None)
 

@@ -1,5 +1,5 @@
 '''
-Copyright (C) 2021 CG Cookie
+Copyright (C) 2022 CG Cookie
 http://cgcookie.com
 hello@cgcookie.com
 
@@ -21,9 +21,10 @@ Created by Jonathan Denning, Jonathan Williamson, and Patrick Moore
 
 from functools import wraps
 
+from ..addon_common.common.blender import BlenderIcon
 from ..addon_common.common.fsm import FSM
 from ..addon_common.common.functools import find_fns
-from ..addon_common.common.drawing import DrawCallbacks
+from ..addon_common.common.drawing import DrawCallbacks, Cursors
 from ..addon_common.common.boundvar import (
     BoundVar,
     BoundBool,
@@ -119,6 +120,7 @@ class RFTool:
         RFTool.drawing = rfcontext.drawing
         RFTool.actions = rfcontext.actions
         RFTool.document = rfcontext.document
+        self.rfwidges = {}
         self.rfwidget = None
         self._fsm = FSM(self, start=start, reset_state=reset_state)
         self._draw = DrawCallbacks(self)
@@ -157,3 +159,22 @@ class RFTool:
     def _draw_post3d(self): self._draw.post3d()
     def _draw_post2d(self): self._draw.post2d()
 
+    @classmethod
+    @property
+    def icon_id(cls):
+        return BlenderIcon.icon_id(cls.icon)
+
+    def clear_widget(self):
+        self.set_widget(None)
+    def set_widget(self, widget):
+        self.rfwidget = self.rfwidgets[widget] if type(widget) is str else widget
+        if self.rfwidget: self.rfwidget.set_cursor()
+        else: Cursors.set('DEFAULT')
+
+    def handle_inactive_passthrough(self):
+        for rfwidget in self.rfwidgets.values():
+            if self.rfwidget == rfwidget: continue
+            if rfwidget.inactive_passthrough():
+                self.set_widget(rfwidget)
+                return True
+        return False

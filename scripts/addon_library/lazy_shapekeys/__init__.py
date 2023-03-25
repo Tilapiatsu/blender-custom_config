@@ -1,5 +1,5 @@
 '''
-Lazy Shapekeys Addon (C) 2021-2022 Bookyakuno
+Lazy Shapekeys Addon (C) 2021-2023 Bookyakuno
 Created by Bookyakuno
 License : GNU General Public License version3 (http://www.gnu.org/licenses/)
 '''
@@ -7,8 +7,8 @@ License : GNU General Public License version3 (http://www.gnu.org/licenses/)
 bl_info = {
 	"name" : "Lazy Shapekeys",
 	"author" : "Bookyakuno",
-	"version" : (1, 0, 36),
-	"blender" : (3, 2, 0),
+	"version" : (1, 0, 4),
+	"blender" : (3, 4, 0),
 	"location" : "3D View",
 	"description" : "Shapekeys Utility. Transfer Shape(Forced) / Create Objects for All Shape Keys.",
 	"warning" : "",
@@ -95,7 +95,15 @@ class LAZYSHAPEKEYS_MT_AddonPreferences(AddonPreferences):
 	 ('LINK', "Link", "","URL",1)], default='OPTION')
 	use_folder : BoolProperty(name="Use Folder in List Menu",description="Make the shape key block with '@' at the beginning of the name line into a folder.\nAdd a step to the shape key list menu to make it easier to classify",update=update_use_folder,default=True)
 	sk_menu_use_slider : BoolProperty(name="Use Slider Display",default=True)
+	display_folder_sk_option : BoolProperty(name="Display Folder Option",description="Display hidden shape key info when folder shape key is active (for debugging)")
 
+
+	items = [
+	("DEFAULT","Default","Default Shape keys list.\nBy adding a shape key for the folder, you can collapse the item with the ▼ button","SORTSIZE",0),
+	("FOLDER","Folder","Displayed in two columns, [List of folders] and [Shape keys in folders].\nIf you don't see anything, add a folder","FILE_FOLDER",1),
+	("SYNC","Objects Sync","Synchronize the shape keys with the same name of different objects and operate them all at once","LINK_BLEND",2),
+	]
+	list_mode : EnumProperty(default="DEFAULT",name="List Mode",items= items)
 
 	# use_dialog : BoolProperty(default=True, name = "Use Dialog", description = "Menu remains visible unless clicked")
 	# menu_width         : IntProperty(default=410, name = "Menu Width", description = "Width setting when menu layout is broken. \n Blender Settings-> Interface-> If 'Resolution Scale' is set to a value smaller than 1,\n  icons may be squished together so closely",min = 0)
@@ -185,6 +193,8 @@ def draw_drag_move_in_graph_editor(self,context):
 
 def draw_menu(self,context):
 	layout = self.layout
+	addon_prefs = preference()
+
 	layout.separator()
 	layout.operator("lazy_shapekeys.shape_keys_transfer_forced",icon="MOD_DATA_TRANSFER")
 	layout.operator("lazy_shapekeys.shape_keys_create_obj_from_all",icon="DUPLICATE")
@@ -195,7 +205,18 @@ def draw_menu(self,context):
 	layout.operator("lazy_shapekeys.shape_keys_apply_modifier",icon=icon_val)
 	layout.operator("lazy_shapekeys.shape_keys_sort",icon="SORTALPHA")
 	layout.operator("lazy_shapekeys.shape_keys_separeate",icon="MOD_MIRROR")
+	layout.separator()
 
+	obj = bpy.context.active_object
+	kb = obj.data.shape_keys.key_blocks
+	id = obj.active_shape_key_index
+	sk = kb[id]
+	is_folder_bool = is_folder(sk)
+
+	col = layout.column(align=True)
+	col.active=is_folder_bool
+	col.prop(addon_prefs,"display_folder_sk_option")
+	layout.operator("lazy_shapekeys.shape_keys_act_sk_to_folder").to_folder = bool(not is_folder_bool)
 
 
 

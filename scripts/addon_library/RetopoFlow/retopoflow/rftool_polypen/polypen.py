@@ -1,5 +1,5 @@
 '''
-Copyright (C) 2021 CG Cookie
+Copyright (C) 2022 CG Cookie
 http://cgcookie.com
 hello@cgcookie.com
 
@@ -26,6 +26,7 @@ from mathutils.geometry import intersect_line_line_2d as intersect2d_segment_seg
 
 from ..rftool import RFTool
 from ..rfwidgets.rfwidget_default import RFWidget_Default_Factory
+from ..rfwidgets.rfwidget_hidden  import RFWidget_Hidden_Factory
 from ..rfmesh.rfmesh_wrapper import RFVert, RFEdge, RFFace
 
 from ...addon_common.common.drawing import (
@@ -42,6 +43,7 @@ from ...addon_common.common.utils import iter_pairs
 from ...addon_common.common.blender import tag_redraw_all
 from ...addon_common.common.drawing import DrawCallbacks
 from ...addon_common.common.boundvar import BoundBool, BoundInt, BoundFloat, BoundString
+from ...addon_common.common.debug import dprint
 
 
 from ...config.options import options, themes
@@ -56,10 +58,11 @@ class PolyPen(RFTool):
     statusbar   = '{{insert}} Insert'
     ui_config   = 'polypen_options.html'
 
-    RFWidget_Default   = RFWidget_Default_Factory.create('PolyPen default')
-    RFWidget_Crosshair = RFWidget_Default_Factory.create('PolyPen crosshair', 'CROSSHAIR')
-    RFWidget_Move      = RFWidget_Default_Factory.create('PolyPen move', 'HAND')
-    RFWidget_Knife     = RFWidget_Default_Factory.create('PolyPen knife', 'KNIFE')
+    RFWidget_Default   = RFWidget_Default_Factory.create()
+    RFWidget_Crosshair = RFWidget_Default_Factory.create(cursor='CROSSHAIR')
+    RFWidget_Move      = RFWidget_Default_Factory.create(cursor='HAND')
+    RFWidget_Knife     = RFWidget_Default_Factory.create(cursor='KNIFE')
+    RFWidget_Hidden    = RFWidget_Hidden_Factory.create()
 
     @RFTool.on_init
     def init(self):
@@ -68,8 +71,11 @@ class PolyPen(RFTool):
             'insert':  self.RFWidget_Crosshair(self),
             'hover':   self.RFWidget_Move(self),
             'knife':   self.RFWidget_Knife(self),
+            'hidden':  self.RFWidget_Hidden(self),
         }
         self.rfwidget = None
+        self.next_state = 'unset'
+        self.nearest_vert, self.nearest_edge, self.nearest_face, self.nearest_geom = None, None, None, None
         self.update_state_info()
         self.first_time = True
         self._var_merge_dist  = BoundFloat( '''options['polypen merge dist'] ''')
@@ -97,7 +103,6 @@ class PolyPen(RFTool):
     @RFTool.on_target_change
     @RFTool.on_view_change
     @FSM.onlyinstate('main')
-    # @profiler.function
     def update_state_info(self):
         if True: # with profiler.code('getting selected geometry'):
             self.sel_verts = self.rfcontext.rftarget.get_selected_verts()
@@ -119,11 +124,17 @@ class PolyPen(RFTool):
         self.set_next_state(force=True)
         tag_redraw_all('PolyPen mouse stop')
 
-    # @profiler.function
     def set_next_state(self, force=False):
         '''
         determines what the next state will be, based on selected mode, selected geometry, and hovered geometry
         '''
+
+        # if previously computed nearest geometry is invalid, force a recompute
+        force |= self.nearest_vert is not None and not self.nearest_vert.is_valid
+        force |= self.nearest_edge is not None and not self.nearest_edge.is_valid
+        force |= self.nearest_face is not None and not self.nearest_face.is_valid
+        force |= self.nearest_geom is not None and not self.nearest_geom.is_valid
+
         if not self.actions.mouse and not force: return
 
         if True: # with profiler.code('getting nearest geometry'):
@@ -136,8 +147,9 @@ class PolyPen(RFTool):
         num_verts = len(self.sel_verts)
         num_edges = len(self.sel_edges)
         num_faces = len(self.sel_faces)
+        self.insert_edge,_ = self.rfcontext.accel_nearest2D_edge(max_dist=options['polypen insert dist'])
 
-        if self.nearest_edge and self.nearest_edge.select:      # overriding: if hovering over a selected edge, knife it!
+        if self.insert_edge and self.insert_edge.select:      # overriding: if hovering over a selected edge, knife it!
             self.next_state = 'knife selected edge'
 
         elif options['polypen insert mode'] == 'Tri/Quad':
@@ -200,7 +212,7 @@ class PolyPen(RFTool):
             if num_verts == 0:
                 self.next_state = 'new vertex'
             else:
-                if self.nearest_edge:
+                if self.insert_edge:
                     self.next_state = 'vert-edge'
                 else:
                     self.next_state = 'vert-edge-vert'
@@ -218,23 +230,21 @@ class PolyPen(RFTool):
             self.set_next_state(force=True)
             self.first_time = False
             tag_redraw_all('PolyPen mousemove')
+        elif self.nearest_geom and not self.nearest_geom.is_valid:
+            self.set_next_state(force=True)
 
         self.previs_timer.enable(self.actions.using_onlymods('insert'))
         if self.actions.using_onlymods('insert'):
             if self.next_state == 'knife selected edge':
-                self.rfwidget = self.rfwidgets['knife']
+                self.set_widget('knife')
             else:
-                self.rfwidget = self.rfwidgets['insert']
+                self.set_widget('insert')
         elif self.nearest_geom and self.nearest_geom.select:
-            self.rfwidget = self.rfwidgets['hover']
+            self.set_widget('hover')
         else:
-            self.rfwidget = self.rfwidgets['default']
+            self.set_widget('default')
 
-        for rfwidget in self.rfwidgets.values():
-            if self.rfwidget == rfwidget: continue
-            if rfwidget.inactive_passthrough():
-                self.rfwidget = rfwidget
-                return
+        if self.handle_inactive_passthrough(): return
 
         if self.actions.pressed('pie menu alt0'):
             def callback(option):
@@ -390,7 +400,7 @@ class PolyPen(RFTool):
             if not bmv:
                 self.rfcontext.undo_cancel()
                 return 'main'
-            bme0,bmv2 = self.nearest_edge.split()
+            bme0,bmv2 = self.insert_edge.split()
             bmv.merge(bmv2)
             self.rfcontext.select(bmv)
             self.mousedown = self.actions.mousedown
@@ -423,7 +433,7 @@ class PolyPen(RFTool):
                 if not bmv1:
                     self.rfcontext.undo_cancel()
                     return 'main'
-                if dist is not None and dist < self.rfcontext.drawing.scale(15):
+                if dist is not None and dist < self.rfcontext.drawing.scale(options['polypen insert dist']):
                     if bmv0 in nearest_edge.verts:
                         # selected vert already part of edge; split
                         bme0,bmv2 = nearest_edge.split()
@@ -452,6 +462,8 @@ class PolyPen(RFTool):
                     if not bmv1:
                         self.rfcontext.undo_cancel()
                         return 'main'
+                if bmv0 == bmv1:
+                    return 'main'
                 bme = bmv0.shared_edge(bmv1) or self.rfcontext.new_edge((bmv0, bmv1))
                 self.rfcontext.select(bmv1)
 
@@ -485,7 +497,7 @@ class PolyPen(RFTool):
                     return 'main'
                 bmf = self.rfcontext.new_face([bmv0, bmv1, bmv2])
 
-            self.rfcontext.select(bmf)
+            if bmf: self.rfcontext.select(bmf)
             self.mousedown = self.actions.mousedown
             xy = self.rfcontext.Point_to_Point2D(bmv2.co)
             if not xy:
@@ -514,7 +526,7 @@ class PolyPen(RFTool):
                 return 'main'
             e1 = bmv2.shared_edge(bmv3)
             if not e1: e1 = self.rfcontext.new_edge([bmv2, bmv3])
-            bmf = self.rfcontext.new_face([bmv0, bmv1, bmv2, bmv3])
+            self.rfcontext.new_face([bmv0, bmv1, bmv2, bmv3])
             bmes = [bmv1.shared_edge(bmv2), bmv0.shared_edge(bmv3), bmv2.shared_edge(bmv3)]
             self.rfcontext.select(bmes, subparts=False)
             self.mousedown = self.actions.mousedown
@@ -535,7 +547,7 @@ class PolyPen(RFTool):
             if intersect2d_segment_segment(p1, p2, p3, p0): bmv2,bmv3 = bmv3,bmv2
             # if e0.vector2D(self.rfcontext.Point_to_Point2D).dot(e1.vector2D(self.rfcontext.Point_to_Point2D)) > 0:
             #     bmv2,bmv3 = bmv3,bmv2
-            bmf = self.rfcontext.new_face([bmv0, bmv1, bmv2, bmv3])
+            self.rfcontext.new_face([bmv0, bmv1, bmv2, bmv3])
             # select all non-manifold edges that share vertex with e1
             bmes = [e for e in bmv2.link_edges + bmv3.link_edges if not e.is_manifold and not e.share_face(e1)]
             if not bmes:
@@ -571,7 +583,7 @@ class PolyPen(RFTool):
             self.rfcontext.select(bmv1, only=False)
             xy = self.rfcontext.Point_to_Point2D(bmv1.co)
             if not xy:
-                # dprint('Could not insert: ' + str(bmv3.co))
+                # dprint('Could not insert: ' + str(bmv1.co))
                 pass
                 self.rfcontext.undo_cancel()
                 return 'main'
@@ -584,7 +596,7 @@ class PolyPen(RFTool):
         if not bmv:
             self.rfcontext.undo_cancel()
             return 'main'
-        if d is not None and d < self.rfcontext.drawing.scale(15):
+        if d is not None and d < self.rfcontext.drawing.scale(options['polypen insert dist']):
             bme0,bmv2 = nearest_edge.split()
             bmv.merge(bmv2)
         self.rfcontext.select(bmv)
@@ -659,6 +671,8 @@ class PolyPen(RFTool):
         self.rfcontext.split_target_visualization_selected()
         self.previs_timer.start()
         self.rfcontext.set_accel_defer(True)
+
+        if options['hide cursor on tweak']: self.set_widget('hidden')
 
     @FSM.on_state('move')
     # @profiler.function
@@ -749,11 +763,12 @@ class PolyPen(RFTool):
         # TODO: put all logic into set_next_state(), such as vertex snapping, edge splitting, etc.
 
         #if self.rfcontext.nav or self.mode != 'main': return
-        if not self.actions.using_onlymods('insert'): return  # 'insert alt1'??
+        if not self.actions.using_onlymods('insert'): return
         hit_pos = self.actions.hit_pos
         if not hit_pos: return
 
-        self.set_next_state()
+        if self.next_state == 'unset': return
+        #self.set_next_state()
 
         bgl.glEnable(bgl.GL_BLEND)
         CC_DRAW.stipple(pattern=[4,4])
@@ -761,8 +776,8 @@ class PolyPen(RFTool):
         CC_DRAW.line_width(2)
 
         if self.next_state == 'knife selected edge':
-            bmv1,bmv2 = self.nearest_edge.verts
-            faces = self.nearest_edge.link_faces
+            bmv1,bmv2 = self.insert_edge.verts
+            faces = self.insert_edge.link_faces
             if faces:
                 for f in faces:
                     lco = []
@@ -780,7 +795,7 @@ class PolyPen(RFTool):
             e1,d = self.rfcontext.nearest2D_edge(edges=self.vis_edges)
             if e1:
                 bmv1,bmv2 = e1.verts
-                if d is not None and d < self.rfcontext.drawing.scale(15):
+                if d is not None and d < self.rfcontext.drawing.scale(options['polypen insert dist']):
                     f = next(iter(e1.link_faces), None)
                     if f:
                         lco = []
@@ -807,7 +822,7 @@ class PolyPen(RFTool):
                 e1,d = self.rfcontext.nearest2D_edge(edges=self.vis_edges)
                 if e1:
                     bmv1,bmv2 = e1.verts
-                    if d is not None and d < self.rfcontext.drawing.scale(15):
+                    if d is not None and d < self.rfcontext.drawing.scale(options['polypen insert dist']):
                         f = next(iter(e1.link_faces), None)
                         if f:
                             lco = []
@@ -836,7 +851,7 @@ class PolyPen(RFTool):
                 e0,_ = self.rfcontext.nearest2D_edge(edges=self.sel_edges) #next(iter(self.sel_edges))
                 if not e0: return
                 e1,d = self.rfcontext.nearest2D_edge(edges=self.vis_edges)
-                if e1 and d < self.rfcontext.drawing.scale(15) and e0 == e1:
+                if e1 and d < self.rfcontext.drawing.scale(options['polypen insert dist']) and e0 == e1:
                     bmv1,bmv2 = e1.verts
                     p0 = hit_pos
                     f = next(iter(e1.link_faces), None)

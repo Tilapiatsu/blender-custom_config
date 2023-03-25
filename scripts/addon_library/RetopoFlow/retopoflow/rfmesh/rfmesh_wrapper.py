@@ -1,5 +1,5 @@
 '''
-Copyright (C) 2021 CG Cookie
+Copyright (C) 2022 CG Cookie
 http://cgcookie.com
 hello@cgcookie.com
 
@@ -38,6 +38,8 @@ from ...addon_common.common.maths import (
     segment2D_intersection,
     Vec2D, Point, Point2D, Vec, Direction, Normal,
 )
+
+from ...config.options import options
 
 
 '''
@@ -143,7 +145,7 @@ class BMElemWrapper:
 
 class RFVert(BMElemWrapper):
     def __repr__(self):
-        return '<RFVert: %s>' % repr(self.bmelem)
+        return f'<RFVert: {self.bmelem}>'
 
     @staticmethod
     def get_link_edges(rfverts):
@@ -160,7 +162,9 @@ class RFVert(BMElemWrapper):
     @co.setter
     def co(self, co):
         if any(math.isnan(v) for v in co): return
-        assert not any(math.isnan(v) for v in co), 'Setting RFVert.co to ' + str(co)
+        # assert not any(math.isnan(v) for v in co), f'Setting RFVert.co to {co}'
+        if options['pin enabled'] and self.pinned: return
+        if options['pin seam']    and self.seam:   return
         co = self.symmetry_real(co, to_world=False)
         # # the following does not work well, because new verts have co=(0,0,0)
         # mm = BMElemWrapper.mirror_mod
@@ -172,6 +176,17 @@ class RFVert(BMElemWrapper):
         #     if nx or ny or nz:
         #         co = rft.snap_to_symmetry(co, mm._symmetry, to_world=False, from_world=False)
         self.bmelem.co = co
+
+    @property
+    def pinned(self):
+        return bool(self.bmelem[self.rftarget.layer_pin])
+    @pinned.setter
+    def pinned(self, v):
+        self.bmelem[self.rftarget.layer_pin] = 1 if bool(v) else 0
+
+    @property
+    def seam(self):
+        return any(e.seam for e in self.bmelem.link_edges)
 
     @property
     def normal(self):
@@ -292,8 +307,7 @@ class RFVert(BMElemWrapper):
         vert_dissolve(bmv)
 
     def compute_normal(self):
-        ''' computes normal as average of normals of all linked faces '''
-        return Normal(sum((f.compute_normal() for f in self.link_faces), Vec((0,0,0))))
+        return Normal.average(f.compute_normal() for f in self.link_faces)
 
 
 class RFEdge(BMElemWrapper):
@@ -613,7 +627,7 @@ class RFFace(BMElemWrapper):
         for bmv in vs:
             bmv0,bmv1,bmv2 = bmv1,bmv2,bmv
             v0,v1 = -v1,bmv2.co-bmv1.co
-            an = an + Normal(v0.cross(v1))
+            an = an + v0.cross(v1)
         return self.l2w_normal(Normal(an))
 
     def is_flipped(self):

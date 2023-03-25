@@ -1,28 +1,33 @@
 import bpy
 import gpu
 import bgl
+# import bmesh
 from gpu_extras.batch import batch_for_shader
 import mathutils
-import time
-from .utilities.grid_utils import *
-from .utilities.math_utils import *
+# import numpy
+from .utilities.grid_utils import GetGridVector
+from .utilities.math_utils import LinePlaneCollision
+from bpy_extras.view3d_utils import region_2d_to_vector_3d, region_2d_to_origin_3d
+from .utilities.qspace_utils import VecToMatrix, Distance
+
 
 redC = (0.984, 0.2, 0.318, 1.0)
 greenC = (0.525, 0.824, 0.012, 1.0)
 blueC = (0.157, 0.557, 0.988, 1.0)
-vcolors = [greenC, greenC, redC, redC, blueC, blueC]
+aVcolors = [greenC, greenC, redC, redC, blueC, blueC]
+
 
 def QSpaceDrawHandler(qSpace, context):
     bgl.glLineWidth(2)
     pos = qSpace.wMatrix.translation
     mat = qSpace.wMatrix.to_3x3()
-    vecX = pos + mat.col[0] 
-    vecY = pos + mat.col[1] 
-    vecZ = pos + mat.col[2] 
+    vecX = pos + mat.col[0]
+    vecY = pos + mat.col[1]
+    vecZ = pos + mat.col[2]
 
     coords = [pos, vecX, pos, vecY, pos, vecZ]
     shader = gpu.shader.from_builtin('3D_SMOOTH_COLOR')
-    batch = batch_for_shader(shader, 'LINES', {"pos": coords, "color": vcolors})
+    batch = batch_for_shader(shader, 'LINES', {"pos": coords, "color": aVcolors})
 
     shader.bind()
     batch.draw(shader)
@@ -30,6 +35,7 @@ def QSpaceDrawHandler(qSpace, context):
 
 class CoordSysClass:
     operator = None
+    addon_prefs = None
     context = None
     lastHitresult = (False, None, None, None, None, None)
     isGridhit = False
@@ -39,19 +45,26 @@ class CoordSysClass:
     isPropAxis = True
     object_eval = None
 
-    def __init__(self, _context, _op, _isAxis):
+    scene = None
+    region = None
+    rv3d = None
+
+    def __init__(self, _context, _op, _isAxis, _addon_prefs):
+        self.addon_prefs = _addon_prefs
         self.operator = _op
         self.context = _context
         self.isPropAxis = _isAxis
+        self.scene = self.context.scene
+        self.region = self.context.region
+        self.rv3d = self.context.region_data
+
         if _isAxis:
             args = (self, _context)
             self._handle = bpy.types.SpaceView3D.draw_handler_add(QSpaceDrawHandler, args, 'WINDOW', 'POST_VIEW')
-        print("CoordSysClass created!")
 
     def CleanUp(self):
         if self.isPropAxis and self._handle:
             bpy.types.SpaceView3D.draw_handler_remove(self._handle, 'WINDOW')
-        print("SnappingClass cleaned!")
 
     def ToggleAxis(self, _state):
         if self.isPropAxis:
@@ -64,164 +77,159 @@ class CoordSysClass:
                     bpy.types.SpaceView3D.draw_handler_remove(self._handle, 'WINDOW')
                     self._handle = None
 
-
-
-
-
-    def VecToMatrix(self, _vecZ, _pos):
-        vecZ = _vecZ.normalized()
-        if abs(vecZ[2]) == 1:
-            vecY = vecZ.cross(mathutils.Vector((1.0, 0.0, 0.0)))
-        else:
-            vecY = vecZ.cross(mathutils.Vector((0.0, 0.0, -1.0)))
-        vecY.normalize()
-        vecX = vecY.cross(vecZ)
-        vecX.normalize()
-
-        matrix = mathutils.Matrix()
-        matrix[0].xyz = vecX[0], vecY[0], vecZ[0]
-        matrix[1].xyz = vecX[1], vecY[1], vecZ[1]
-        matrix[2].xyz = vecX[2], vecY[2], vecZ[2]
-        matrix.translation = _pos
-        return matrix
-
     # raycast into scene from mouse pos
-    def HitScene(self, context, coord):
-        scene = context.scene
-        region = context.region
-        rv3d = context.region_data
-        view_vector = region_2d_to_vector_3d(region, rv3d, coord)
-        ray_origin = region_2d_to_origin_3d(region, rv3d, coord)
-        hitresult = scene.ray_cast(context.view_layer, ray_origin, view_vector)
+    def HitScene(self, coord):
+        view_vector = region_2d_to_vector_3d(self.region, self.rv3d, coord)
+        ray_origin = region_2d_to_origin_3d(self.region, self.rv3d, coord)
+
+        # mod if version 2.91 or 3.0
+        appversion = bpy.app.version
+
+        if appversion[0] == 3:
+            hitresult = self.scene.ray_cast(self.context.view_layer.depsgraph, ray_origin, view_vector)
+        elif bpy.app.version[1] >= 91:
+            hitresult = self.scene.ray_cast(self.context.view_layer.depsgraph, ray_origin, view_vector)
+        else:
+            hitresult = self.scene.ray_cast(self.context.view_layer, ray_origin, view_vector)
+
         return hitresult
 
     def ResetResult(self):
         self.lastHitresult = (False, None, None, None, None, None)
+        if self.isModifiedMesh:
+            self.RemoveTempMesh()
+
+    def UpdateMeshEditMode(self):
+        if self.mesh_data is not None and self.lastHitresult[4] is not None:
+            depsgraph = bpy.context.evaluated_depsgraph_get()
+            self.object_eval = bpy.context.active_object.evaluated_get(depsgraph)
+            self.mesh_data = self.object_eval.to_mesh()
+
+    def RemoveTempMesh(self):
+        self.object_eval.to_mesh_clear()
+        self.mesh_data = None
+        self.isModifiedMesh = False
+        self.isGridhit = True
+
+    def IsFiltered(self, coord, hitresult):
+        # if grid only always hit grid
+        if self.operator.object_ignorebehind == 'GRID':
+            return False
+        # if front of grid, check if object is behind
+        elif self.operator.object_ignorebehind == 'FRONT' and hitresult[0]:
+            ray_origin = region_2d_to_origin_3d(self.region, self.rv3d, coord)
+            hitDist = Distance(hitresult[1], ray_origin)
+            gridMat = self.GetActiveGridAlign(coord)
+            gridHitDist = Distance(gridMat.to_translation(), ray_origin)
+            if not hitDist + 0.0001 < gridHitDist:
+                return False
+        return True
 
     # main function
     def GetCoordSys(self, context, coord, isoriented):
         # time_start = time.time() # timetest
         if self.operator.toolstage != 0:
             self.operator.qObject.HideObject(True)
-        hitresult = self.HitScene(context, coord)
+        hitresult = self.HitScene(coord)
         cSysMatrix = None
         # if object hit
-        if hitresult[0] and hitresult[4].type == 'MESH':
-            if hitresult[4] != self.lastHitresult[4]:
-                # check if modified object
-                if len(hitresult[4].modifiers) != 0:
-                    depsgraph = context.evaluated_depsgraph_get()
-                    self.object_eval = hitresult[4].evaluated_get(depsgraph)
-                    self.mesh_data = self.object_eval.to_mesh()
-                    # self.mesh_data.name = "TempMesh"
-                    self.isModifiedMesh = True
-                elif self.isModifiedMesh:
-                    # bpy.data.meshes.remove(self.mesh_data)
-                    self.object_eval.to_mesh_clear()
-                    self.mesh_data = None
-                    self.isModifiedMesh = False           
-            # GET Working Matrix
-            # if oriented          
+        if hitresult[0] and hitresult[4].type == 'MESH' and self.IsFiltered(coord, hitresult):
+            if hitresult[4] != self.operator.qObject.bObject:
+                # if not the same object, then create evaluated mesh data
+                if hitresult[4] != self.lastHitresult[4]:
+                    # remove last mesh if that was modified
+                    if self.isModifiedMesh:
+                        self.RemoveTempMesh()
+                    # check if hit modified object
+                    if len(hitresult[4].modifiers) != 0:
+                        depsgraph = context.evaluated_depsgraph_get()
+                        self.object_eval = hitresult[4].evaluated_get(depsgraph)
+                        self.mesh_data = self.object_eval.to_mesh()
+                        self.isModifiedMesh = True
+                    else:
+                        self.mesh_data = hitresult[4].data
+            # Get matrix if oriented or axis aligned
             if isoriented:
-                if self.isModifiedMesh:
-                    cSysMatrix = self.GetOrientedAlign(hitresult, self.mesh_data)
-                else:
-                    cSysMatrix = self.GetOrientedAlign(hitresult, hitresult[4].data)
-            # if axis aligned
+                cSysMatrix = self.GetOrientedAlign(hitresult)
             else:
                 cSysMatrix = self.GetAxisAlign(hitresult)
             self.isGridhit = False
-        # if gridhit       
-        else:     
-            if self.isModifiedMesh:
-                # bpy.data.meshes.remove(self.mesh_data, do_unlink=True)
-                self.object_eval.to_mesh_clear()
-                self.isModifiedMesh = False
-                self.mesh_data = None
-            if self.operator.isWorkingPlane:
-                cSysMatrix = self.GetWPlaneAlign(context, coord, self.operator.workingplane.matrix)
-            else:
-                cSysMatrix = self.GetGridAlign(context, coord)
- 
-            self.isGridhit = True
+            self.lastHitresult = hitresult
+        # if gridhit
+        else:
+            if not self.isGridhit:
+                self.ResetResult()
+                self.isGridhit = True
+            cSysMatrix = self.GetActiveGridAlign(coord)
+            self.lastHitresult = (False, None, None, None, None, None)
+
         if self.operator.toolstage != 0:
             self.operator.qObject.HideObject(False)
-        self.lastHitresult = hitresult
-        self.wMatrix = cSysMatrix 
+
+        self.wMatrix = cSysMatrix
         return cSysMatrix
 
-    # AXIS ALIGNED
-    def GetAxisAlign(self, _hitresult):
-        ret_matrix = self.VecToMatrix(_hitresult[2], _hitresult[1])
-        return ret_matrix
-
-    # GRID ALIGNED
-    def GetGridAlign(self, context, coord):
-        # get view ray
-        scene = context.scene
-        region = context.region
-        rv3d = context.region_data
-        view_vector = region_2d_to_vector_3d(region, rv3d, coord)
-        ray_origin = region_2d_to_origin_3d(region, rv3d, coord)
-
-        # check grid and collide with view ray
-        grid_vector = GetGridVector(context)
-        hitpoint = LinePlaneCollision(view_vector, ray_origin, (0.0, 0.0, 0.0), grid_vector)
-
-        # create matrix
-        grid_vector = mathutils.Vector(grid_vector)
-        ret_matrix = self.VecToMatrix(grid_vector, hitpoint)
-        return ret_matrix  
+    # Get space align (wqrking plane or world grid)
+    def GetActiveGridAlign(self, coord):
+        cSysMatrix = None
+        if self.operator.isWorkingPlane and not self.operator.wPlaneHold:
+            cSysMatrix = self.GetWPlaneAlign(coord, self.operator.workingplane.matrix)
+        else:
+            cSysMatrix = self.GetGridAlign(coord)
+        return cSysMatrix
 
     # WPLANE ALIGNED
-    def GetWPlaneAlign(self, context, coord, _matrix):
+    def GetWPlaneAlign(self, coord, _matrix):
         # get view ray
-        scene = context.scene
-        region = context.region
-        rv3d = context.region_data
-        view_vector = region_2d_to_vector_3d(region, rv3d, coord)
-        ray_origin = region_2d_to_origin_3d(region, rv3d, coord)
-
+        view_vector = region_2d_to_vector_3d(self.region, self.rv3d, coord)
+        ray_origin = region_2d_to_origin_3d(self.region, self.rv3d, coord)
+        # check grid and collide with view ray
         grid_vector = _matrix.col[2].xyz
         hitpoint = LinePlaneCollision(view_vector, ray_origin, _matrix.translation, grid_vector)
-
         # create matrix
         ret_matrix = _matrix.copy()
         ret_matrix.translation = hitpoint
-        return ret_matrix  
+        return ret_matrix
+
+    # GRID ALIGNED
+    def GetGridAlign(self, coord):
+        # get view ray
+        view_vector = region_2d_to_vector_3d(self.region, self.rv3d, coord)
+        ray_origin = region_2d_to_origin_3d(self.region, self.rv3d, coord)
+        # check grid and collide with view ray
+        grid_vector = GetGridVector(self.context)
+        hitpoint = LinePlaneCollision(view_vector, ray_origin, (0.0, 0.0, 0.0), grid_vector)
+        # create matrix
+        grid_vector = mathutils.Vector(grid_vector)
+        ret_matrix = VecToMatrix(grid_vector, hitpoint)
+        return ret_matrix
+
+    # AXIS ALIGNED
+    def GetAxisAlign(self, _hitresult):
+        return VecToMatrix(_hitresult[2], _hitresult[1])
 
     # ORIENTED ALIGN
-    def GetOrientedAlign(self, _hitresult, meshData):
-        verts = self.GetTargetPolyVerts(_hitresult, meshData)
-
-        if _hitresult[4] == self.lastHitresult[4] and _hitresult[2] == self.lastHitresult[2]:
-                self.wMatrix.translation = _hitresult[1]
-                return self.wMatrix
+    def GetOrientedAlign(self, _hitresult):
+        # if same object and face, only move the matrix
+        if _hitresult[4] == self.lastHitresult[4] and _hitresult[3] == self.lastHitresult[3]:
+            self.wMatrix.translation = _hitresult[1]
+            return self.wMatrix
         else:
+            verts = self.GetTargetPolyVerts(_hitresult)
             # create matrix from face normal
-            matrix = self.VecToMatrix(_hitresult[2], _hitresult[1])
+            matrix = VecToMatrix(_hitresult[2], _hitresult[1])
             mat_inv = matrix.inverted()
-
             # transform verts to poly space
-            vertsL = []
-            for v in verts:
-                v2 = mat_inv @ v
-                v2[2] = 0.0
-                vertsL.append(v2)
-
+            vertsL = [(mat_inv @ v) for v in verts]
             # calc best rotation
             verts2DL = [(p[0], p[1]) for p in vertsL]
             bboxangle = mathutils.geometry.box_fit_2d(verts2DL)
             mat_rot = mathutils.Matrix.Rotation(-bboxangle, 4, 'Z')
-            ret_matrix = matrix @ mat_rot   
+            ret_matrix = matrix @ mat_rot
             return ret_matrix
 
     # get vertices from polygon in world space
-    def GetTargetPolyVerts(self, _hitresult, meshData):
-        verts = []
-        meshFace = meshData.polygons[_hitresult[3]]
+    def GetTargetPolyVerts(self, _hitresult):
+        meshFace = self.mesh_data.polygons[_hitresult[3]]
         matrix = _hitresult[4].matrix_world.copy()
-        for v in meshFace.vertices:
-            pos = _hitresult[4].matrix_world @ (meshData.vertices[v].co)
-            verts.append(pos)
-        return verts
+        return [(matrix @ self.mesh_data.vertices[v].co) for v in meshFace.vertices]

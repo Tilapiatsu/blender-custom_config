@@ -6,8 +6,8 @@ License : GNU General Public License version3 (http://www.gnu.org/licenses/)
 bl_info = {
 	"name": "Hide Only Vertex",
 	"author": "Saidenka, Bookyakuno(Blender2.8x- Updated)",
-	"version": (1, 0, 2),
-	"blender": (2, 91, 0),
+	"version": (1, 0, 4),
+	"blender": (3, 00, 0),
 	"location": "Mesh or Curve Edit Mode → Show/Hide → 'Hide Only Vertex'(Ctrl + Shift + H)",
 	"description": "Hide and Fix Selected vertices",
 	"warning": "",
@@ -20,6 +20,7 @@ import bpy
 from bpy.props import *
 from bpy.types import Operator, AddonPreferences, Panel, PropertyGroup
 import rna_keymap_ui
+import os, csv, codecs #辞書
 
 
 
@@ -77,15 +78,13 @@ class HIDEVONLY_MT_AddonPreferences(AddonPreferences):
 			layout.operator( "wm.url_open", text="Github(Blender2.79ver)", icon="URL").url = "https://github.com/bookyakuno/Blender-Scramble-Addon"
 
 
-
 def hide_vertex_only_menu(self, context):
 	layout = self.layout
 	layout.separator()
 	layout.separator()
 	layout.separator()
-	layout.operator("hide_vertex_only.hide_vertex_only",icon="PLUGIN")
-
-
+	layout.operator("hide_vertex_only.hide_vertex_only",icon="PLUGIN").unselected = False
+	layout.operator("hide_vertex_only.hide_vertex_only",text="Hide Only Vertex(Unselected)",icon="PLUGIN").unselected = True
 
 
 class HIDEVONLY_OT_HideVertexOnly(Operator):
@@ -94,77 +93,96 @@ class HIDEVONLY_OT_HideVertexOnly(Operator):
 	bl_description = "Hide and Fix Selected vertices\nTo restore the display, perform the normal 'Reveal Hidden'"
 	bl_options = {'REGISTER', 'UNDO'}
 
+	unselected : BoolProperty(name="Unselected")
+
+	@classmethod
+	def poll(cls, context):
+		return bpy.context.object
+
 	def execute(self, context):
-		obj = context.active_object
+		act_obj = bpy.context.object
+		old_mode = act_obj.mode
 
-		if obj.type == "MESH":
-			bpy.ops.object.mode_set(mode="OBJECT")
-			me = obj.data
-			for vert in me.vertices:
-				if vert.select:
-					vert.hide = True
-			bpy.ops.object.mode_set(mode="EDIT")
+		bpy.ops.object.mode_set(mode="OBJECT")
 
-		elif obj.type == "CURVE":
-			bpy.ops.object.mode_set(mode="OBJECT")
+		sel_l = bpy.context.selected_objects
+		if not act_obj in sel_l:
+			sel_l += act_obj
+
+		for obj in sel_l:
 			me = obj.data
-			for sp in me.splines:
-				if sp.type == "BEZIER":
-					for pt in sp.bezier_points:
-						if pt.select_control_point:
-							pt.hide = True
-				else:
+			if not obj.type == act_obj.type: # 同じオブジェクトタイプのみ
+				continue
+
+			# メッシュ
+			if obj.type == "MESH":
+				for vert in me.vertices:
+					if self.unselected:
+						if not vert.select:
+							vert.hide = True
+					else:
+						if vert.select:
+							vert.hide = True
+
+			# カーブ
+			elif obj.type == "CURVE":
+				for sp in me.splines:
+					if sp.type == "BEZIER":
+						for pt in sp.bezier_points:
+							if self.unselected:
+								if not pt.select_control_point:
+									pt.hide = True
+							else:
+								if pt.select_control_point:
+									pt.hide = True
+					else:
+						for pt in sp.points:
+							if self.unselected:
+								if not pt.select:
+									pt.hide = True
+							else:
+								if pt.select:
+									pt.hide = True
+
+			# サーフェス
+			elif obj.type == "SURFACE":
+				for sp in me.splines:
 					for pt in sp.points:
 						if pt.select:
 							pt.hide = True
 
-			bpy.ops.object.mode_set(mode="EDIT")
 
-		elif obj.type == "SURFACE":
-			bpy.ops.object.mode_set(mode="OBJECT")
-			me = obj.data
-			for sp in me.splines:
-				for pt in sp.points:
-					if pt.select:
-						pt.hide = True
-			bpy.ops.object.mode_set(mode="EDIT")
-		# elif obj.type == "ARMATURE":
-			# bpy.ops.object.mode_set(mode="OBJECT")
-			# me = obj.data
-			# for bn in me.bones:
-			# 	if bn.select:
-			# 		bn.hide = True
-					# bn.hide_select = False
-					# bn.select = False
-			# bpy.ops.object.mode_set(mode="EDIT")
-
-		# elif obj.type == "GPENCIL":
-		# 	bpy.ops.object.mode_set(mode="OBJECT")
-		# 	me = obj.data
-		# 	obj.data.layers[0].frames[0].strokes[0].select
-		# 	for sp in me.layers:
-		# 		# for pt in sp.frames:
-		# 		# 	for pt in sp.strokes:
-		# 		# 		if pt.select:
-		# 					pt.hide = True
-		# 	bpy.ops.object.mode_set(mode="EDIT_GPENCIL")
-
-		else:
-			self.report(
-				type={"ERROR"}, message="Running on Mesh or Curve object is active")
+		bpy.ops.object.mode_set(mode=old_mode)
 		return {'FINISHED'}
 
 
 
-HIDEVONLY_translation_dict = {
-	"en_US": {},
-	"ja_JP": {
-		("*", "Running on Mesh or Curve object is active"): "メッシュもしくはアクティブオブジェクトでの実行がアクティブです",
-		("*", "Hide Only Vertex"): "頂点のみを隠す",
-		("*", "Hide and Fix Selected vertices\nTo restore the display, perform the normal 'Reveal Hidden'"): "選択している頂点のみを隠して、編集されないように固定します\n表示を元に戻すには、通常の「隠したものを表示」を実行します",
+# HIDEVONLY_translation_dict = {
+# 	"en_US": {},
+# 	"ja_JP": {
+# 		("*", "Hide Only Vertex"): "頂点のみを隠す",
+# 		("*", "Hide Only Vertex(Unselected)"): "頂点のみを隠す(非選択物)",
+# 		("*", "Hide and Fix Selected vertices\nTo restore the display, perform the normal 'Reveal Hidden'"): "選択している頂点のみを隠して、編集されないように固定します\n表示を元に戻すには、通常の「隠したものを表示」を実行します",
+#
+# 	}
+# }
 
-	}
-}
+
+
+# 翻訳辞書の取得
+def GetTranslationDict():
+	dict = {}
+	reader = [
+	["頂点のみを隠す","Hide Only Vertex"],
+	["頂点のみを隠す(非選択物)","Hide Only Vertex(Unselected)"],
+	["選択している頂点のみを隠して、編集されないように固定します\n表示を元に戻すには、通常の「隠したものを表示」を実行します","Hide and Fix Selected vertices\nTo restore the display, perform the normal 'Reveal Hidden'"],
+	]
+	dict['ja_JP'] = {}
+	for row in reader:
+		for context in bpy.app.translations.contexts:
+			dict['ja_JP'][(context, row[1].replace('\\n', '\n'))] = row[0].replace('\\n', '\n')
+
+	return dict
 
 
 classes = (
@@ -181,22 +199,37 @@ def register():
 
 	bpy.types.VIEW3D_MT_edit_mesh_showhide.append(hide_vertex_only_menu)
 	bpy.types.VIEW3D_MT_edit_curve_showhide.append(hide_vertex_only_menu)
+	# translation
 	try:
-		bpy.app.translations.register(__name__, HIDEVONLY_translation_dict)  # 辞書
-	except: pass
+		bpy.app.translations.register(__name__, GetTranslationDict())
+	except Exception as e: print(e)
 
 	wm = bpy.context.window_manager
 	kc = wm.keyconfigs.addon
 
 	if kc:
+		# メッシュ
 		km = wm.keyconfigs.addon.keymaps.new(name='Mesh')
 		kmi = km.keymap_items.new("hide_vertex_only.hide_vertex_only", 'H', 'PRESS', ctrl=True, shift=True)
 		addon_keymaps.append((km, kmi))
 		kmi.active = True
+		kmi.properties.unselected = False
+		kmi = km.keymap_items.new("hide_vertex_only.hide_vertex_only", 'H', 'PRESS', ctrl=True, shift=True,alt=True)
+		addon_keymaps.append((km, kmi))
+		kmi.active = True
+		kmi.properties.unselected = True
+
+		# カーブ
 		km = wm.keyconfigs.addon.keymaps.new(name='Curve')
 		kmi = km.keymap_items.new("hide_vertex_only.hide_vertex_only", 'H', 'PRESS', ctrl=True, shift=True)
 		addon_keymaps.append((km, kmi))
 		kmi.active = True
+		kmi.properties.unselected = False
+		kmi = km.keymap_items.new("hide_vertex_only.hide_vertex_only", 'H', 'PRESS', ctrl=True, shift=True,alt=True)
+		addon_keymaps.append((km, kmi))
+		kmi.active = True
+		kmi.properties.unselected = True
+
 
 def unregister():
 	for cls in classes:

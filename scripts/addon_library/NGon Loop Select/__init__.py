@@ -4,13 +4,13 @@ import os
 import bpy
 import rna_keymap_ui
 bl_info = {
-	"name": "NGon Loop Select",
-	"author": "Amandeep",
-	"description": "NGon Edge Loop Selection",
-	"blender": (2, 90, 0),
-	"version": (1, 0, 0),
-	"warning": "",
-	"category": "Object",
+    "name": "NGon Loop Select",
+    "author": "Amandeep",
+    "description": "NGon Edge Loop Selection",
+    "blender": (2, 90, 0),
+    "version": (2, 1, 0),
+    "warning": "",
+    "category": "Object",
 }
 
 # This program is free software; you can redistribute it and/or modify
@@ -27,303 +27,408 @@ bl_info = {
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 kmaps_3dview=["ls.select"]
 def draw_hotkeys(col,km_name):
-	kc = bpy.context.window_manager.keyconfigs.user
-	for kmi in kmaps_3dview:
-		km2=kc.keymaps[km_name]
-		kmi2=[]
-		for a,b in km2.keymap_items.items():
-			if a==kmi:
-				kmi2.append(b)
-		
-		if kmi2:
-			for a in kmi2:
-				col.context_pointer_set("keymap", km2)
-				rna_keymap_ui.draw_kmi([], kc, km2, a, col, 0)
+    kc = bpy.context.window_manager.keyconfigs.user
+    for kmi in kmaps_3dview:
+        km2=kc.keymaps[km_name]
+        kmi2=[]
+        for a,b in km2.keymap_items.items():
+            if a==kmi:
+                kmi2.append(b)
+        
+        if kmi2:
+            for a in kmi2:
+                col.context_pointer_set("keymap", km2)
+                rna_keymap_ui.draw_kmi([], kc, km2, a, col, 0)
 class LSPrefs(bpy.types.AddonPreferences):
-	bl_idname = __package__
-	def draw(self,context):
-		layout=self.layout
-		draw_hotkeys(layout,'Mesh')
+    bl_idname = __package__
+    def draw(self,context):
+        layout=self.layout
+        draw_hotkeys(layout,'Mesh')
 def deselect_all():
-	if bpy.context.mode == 'OBJECT':
-		bpy.ops.object.select_all(action='DESELECT')
-	elif 'EDIT' in bpy.context.mode:
-		bpy.ops.mesh.select_all(action='DESELECT')
+    if bpy.context.mode == 'OBJECT':
+        bpy.ops.object.select_all(action='DESELECT')
+    elif 'EDIT' in bpy.context.mode:
+        bpy.ops.mesh.select_all(action='DESELECT')
 
 
 
 def get_angle(e1,e2,vert):
-	v1=e1.other_vert(vert)
-	v3=e2.other_vert(vert)
-	a1=vert.co-v1.co
-	a2=v3.co-vert.co
-	angle=a1.angle(a2)
-	return angle
+    v1=e1.other_vert(vert)
+    v3=e2.other_vert(vert)
+    a1=vert.co-v1.co
+    a2=v3.co-vert.co
+    angle=a1.angle(a2)
+    return angle
 import math
 # from collections import OrderedDict
 # edges=OrderedDict()
 #                     for a in sorted_edge:
 #                         new_angle=get_angle(a,active_edge,vert)
 #                         edges[str(round(new_angle,2))]=sorted(edges[str(round(new_angle,2))]+[a,],key =lambda x:True if x.index in new_selection else False) if str(round(new_angle,2)) in edges.keys() else [a,]
-						
+                        
 #                     sorted_edges=[]
 #                     for key,value in edges.items():
 #                         sorted_edges.extend(value)
 class LS_OT_Select(bpy.types.Operator):
-	bl_idname = "ls.select"
-	bl_label = "Loop Select"
-	bl_description = "Select Loop"
-	bl_options = {"REGISTER", "UNDO"}
-	edge_threshold: bpy.props.FloatProperty(default=math.radians(100),name="Edge Threshold",subtype ='ANGLE')
-	face_threshold: bpy.props.FloatProperty(default=math.radians(60),name="Face Threshold",subtype ='ANGLE')
-	deselect: bpy.props.BoolProperty(default=False, name="Deselect")
-	
-	def __init__(self):
-		self.loc = None
-  
-	@classmethod
-	def poll(cls, context):
-		return context.mode == 'EDIT_MESH'
+    bl_idname = "ls.select"
+    bl_label = "Loop Select"
+    bl_description = "Select Loop"
+    bl_options = {"REGISTER", "UNDO"}
+    edge_threshold:bpy.props.FloatProperty(default=math.radians(100),name="Edge Threshold",subtype ='ANGLE')
+    face_threshold:bpy.props.FloatProperty(default=math.radians(60),name="Face Threshold",subtype ='ANGLE')
+    @classmethod
+    def poll(cls, context):
+        return context.mode == 'EDIT_MESH'
 
-	def invoke(self, context, event):
-		self.loc = event.mouse_region_x, event.mouse_region_y
-		return self.execute(context)
-	
-	def execute(self, context):
-		active = context.active_object
-		bm=bmesh.from_edit_mesh(active.data)
-		# re select element under cursor
-		bpy.ops.view3d.select(extend=True, deselect=self.deselect, toggle=False, location=self.loc)
-  
-		if issubclass(type(bm.select_history.active),bmesh.types.BMEdge):
-			active_edge=bm.select_history.active
-			#print(active_edge)
-			# bpy.ops.mesh.loop_multi_select(ring=False)
-			# active.data.update()
-			# bm=bmesh.from_edit_mesh(active.data)
+    def execute(self, context):
 
-			# new_selection=[a.index for a in bm.edges if a.select]
-			# deselect_all()
-			# active_edge=bm.edges[active_edge_index]
-			# active_edge.select=True
-			og_edge=active_edge
-			if active_edge and len(active_edge.link_faces)==2:
-				angle=active_edge.calc_face_angle_signed()
-				vert=active_edge.other_vert(active_edge.verts[0])
-				og_vert=vert
-				other_vert=active_edge.verts[0]
-				used=[]
-				used.append(active_edge.verts[0])
-				used.append(active_edge.verts[1])
-				while vert:
-					#sorted_edge=sorted([e for e in vert.link_edges],key =lambda x:True if [f for f in x.link_faces if f in active_edge.link_faces] else False)
-					sorted_edge=sorted([e for e in vert.link_edges],key =lambda x:get_angle(x,active_edge,vert))
-					
-					l=filter(lambda x:get_angle(x,active_edge,vert)<self.edge_threshold,sorted_edge)
-					
-					for e in l:
-						if e!=active_edge and len(e.link_faces)==2:
-							
-							if abs(e.calc_face_angle_signed()-angle)<self.face_threshold:
-								e.select = not self.deselect
-								active_edge=e
-								vert=[v for v in e.verts if v!=vert and v not in used]
-								if vert:
-									vert=vert[0]
-									used.append(vert)
-								break
-					else:
-								vert=None
-				vert=other_vert
-				active_edge=og_edge
-				while vert:
-					sorted_edge=sorted([e for e in vert.link_edges],key =lambda x:get_angle(x,active_edge,vert))
-					
-					l=filter(lambda x:get_angle(x,active_edge,vert)<self.edge_threshold,sorted_edge)
-					for e in l:
-						if e!=active_edge  and len(e.link_faces)==2:
-							if abs(e.calc_face_angle_signed()-angle)<self.face_threshold:
-								e.select=not self.deselect
-								active_edge=e
-								vert=[v for v in e.verts if v!=vert and v not in used]
-								if vert:
-									vert=vert[0]
-									used.append(vert)
-								break
-					else:
-								vert=None
-				selected_verts=[v for v in bm.verts if v.select]
-				vert=other_vert
-				active_edge=og_edge
-				#print(vert)
-				split_verts=get_split_vert(vert,active_edge)
-				edges_to_deselect=[]
-				if split_verts:
+        active = context.active_object
+        bm=bmesh.from_edit_mesh(active.data)
+        bm.edges.ensure_lookup_table()
+        #print([a for a in bm.verts if a.select])
+        #if issubclass(type(bm.select_history.active),bmesh.types.BMVert) and bm.select_history.active.link_edges:
+        #    bm.select_history.add(bm.select_history.active.link_edges[0])
 
-					for split_vert in split_verts:
-						
-						deselect=False
-						
-						for e in split_vert.link_edges:
-							if e.select:
-								(length,edges)=get_path_to_self(vert,e,split_vert)
-								
-								if length<99999:
-									deselect=True
-								else:
-									edges_to_deselect.append((length,edges))
-					edges_to_deselect=sorted(edges_to_deselect,key=lambda x : x[0])
-					if deselect:
-						for i,e in enumerate(edges_to_deselect):
-								for edge in e[1]:
-									edge.select=False
-				vert=og_vert
-				active_edge=og_edge
-				#print(vert)
-				split_verts=get_split_vert(vert,active_edge)
-				edges_to_deselect=[]
-				if split_verts:
+        if self.active_edge is not None: #and issubclass(type(bm.select_history.active),bmesh.types.BMEdge):
+            active_edge=bm.select_history.active
+            active_edge=bm.edges[self.active_edge]
+            #print(active_edge)
+            # bpy.ops.mesh.loop_multi_select(ring=False)
+            # active.data.update()
+            # bm=bmesh.from_edit_mesh(active.data)
 
-					for split_vert in split_verts:
-						
-						deselect=False
-						
-						for e in split_vert.link_edges:
-							if e.select:
-								(length,edges)=get_path_to_self(vert,e,split_vert)
-								
-								if length<99999:
-									deselect=True
-								else:
-									edges_to_deselect.append((length,edges))
-					edges_to_deselect=sorted(edges_to_deselect,key=lambda x : x[0])
-					if deselect:
-						for i,e in enumerate(edges_to_deselect):
-								for edge in e[1]:
-									edge.select=False
-				if self.deselect:
-					bpy.ops.view3d.select(deselect=True, extend=False, location=self.loc)
-     
-				context.active_object.data.update()
-			else:
-				self.report({'WARNING'},'Edge has more than 2 adjacent faces')
-		else:
-			self.report({'WARNING'},'Active element must be an edge!')
-		return {'FINISHED'}
+            # new_selection=[a.index for a in bm.edges if a.select]
+            # deselect_all()
+            # active_edge=bm.edges[active_edge_index]
+            # active_edge.select=True
+            og_edge=active_edge
+            if active_edge :
+                if len(active_edge.link_faces)==2:
+                    angle=active_edge.calc_face_angle_signed()
+                    vert=active_edge.other_vert(active_edge.verts[0])
+                    og_vert=vert
+                    other_vert=active_edge.verts[0]
+                    used=[]
+                    used.append(active_edge.verts[0])
+                    used.append(active_edge.verts[1])
+                    while vert:
+                        #sorted_edge=sorted([e for e in vert.link_edges],key =lambda x:True if [f for f in x.link_faces if f in active_edge.link_faces] else False)
+                        sorted_edge=sorted([e for e in vert.link_edges],key =lambda x:get_angle(x,active_edge,vert))
+                        
+                        l=filter(lambda x:get_angle(x,active_edge,vert)<self.edge_threshold,sorted_edge)
+                        
+                        for e in l:
+                            if e!=active_edge and len(e.link_faces)==2:
+                                
+                                if abs(e.calc_face_angle_signed()-angle)<self.face_threshold:
+                                    e.select=True
+                                    active_edge=e
+                                    vert=[v for v in e.verts if v!=vert and v not in used]
+                                    if vert:
+                                        vert=vert[0]
+                                        used.append(vert)
+                                    break
+                        else:
+                                    vert=None
+                    vert=other_vert
+                    active_edge=og_edge
+                    while vert:
+                        sorted_edge=sorted([e for e in vert.link_edges],key =lambda x:get_angle(x,active_edge,vert))
+                        
+                        l=filter(lambda x:get_angle(x,active_edge,vert)<self.edge_threshold,sorted_edge)
+                        for e in l:
+                            if e!=active_edge  and len(e.link_faces)==2:
+                                if abs(e.calc_face_angle_signed()-angle)<self.face_threshold:
+                                    e.select=True
+                                    active_edge=e
+                                    vert=[v for v in e.verts if v!=vert and v not in used]
+                                    if vert:
+                                        vert=vert[0]
+                                        used.append(vert)
+                                    break
+                        else:
+                                    vert=None
+                    selected_verts=[v for v in bm.verts if v.select]
+                    vert=other_vert
+                    active_edge=og_edge
+                    #print(vert)
+                    split_verts=get_split_vert(vert,active_edge)
+                    edges_to_deselect=[]
+                    if split_verts:
 
+                        for split_vert in split_verts:
+                            
+                            deselect=False
+                            
+                            for e in split_vert.link_edges:
+                                if e.select:
+                                    (length,edges)=get_path_to_self(vert,e,split_vert)
+                                    
+                                    if length<99999:
+                                        deselect=True
+                                    else:
+                                        edges_to_deselect.append((length,edges))
+                        edges_to_deselect=sorted(edges_to_deselect,key=lambda x : x[0])
+                        if deselect:
+                            for i,e in enumerate(edges_to_deselect):
+                                    for edge in e[1]:
+                                        edge.select=False
+                    vert=og_vert
+                    active_edge=og_edge
+                    #print(vert)
+                    split_verts=get_split_vert(vert,active_edge)
+                    edges_to_deselect=[]
+                    if split_verts:
+
+                        for split_vert in split_verts:
+                            
+                            deselect=False
+                            
+                            for e in split_vert.link_edges:
+                                if e.select:
+                                    (length,edges)=get_path_to_self(vert,e,split_vert)
+                                    
+                                    if length<99999:
+                                        deselect=True
+                                    else:
+                                        edges_to_deselect.append((length,edges))
+                        edges_to_deselect=sorted(edges_to_deselect,key=lambda x : x[0])
+                        if deselect:
+                            for i,e in enumerate(edges_to_deselect):
+                                    for edge in e[1]:
+                                        edge.select=False
+                    context.tool_settings.mesh_select_mode=self.previous_selection_mode
+                    context.active_object.data.update()
+                else:
+                    if len(active_edge.link_faces)==1:
+                        #angle=active_edge.calc_face_angle_signed()
+                        linked_faces=len(active_edge.link_faces)
+                        vert=active_edge.other_vert(active_edge.verts[0])
+                        og_vert=vert
+                        other_vert=active_edge.verts[0]
+                        used=[]
+                        used.append(active_edge.verts[0])
+                        used.append(active_edge.verts[1])
+                        while vert:
+                            #sorted_edge=sorted([e for e in vert.link_edges],key =lambda x:True if [f for f in x.link_faces if f in active_edge.link_faces] else False)
+                            sorted_edge=sorted([e for e in vert.link_edges],key =lambda x:get_angle(x,active_edge,vert))
+                            
+                            l=filter(lambda x:get_angle(x,active_edge,vert)<self.edge_threshold,sorted_edge)
+                            
+                            for e in l:
+                                if e!=active_edge :
+                                    if len(e.link_faces)==linked_faces:
+                                        e.select=True
+                                        active_edge=e
+                                        vert=[v for v in e.verts if v!=vert and v not in used]
+                                        if vert:
+                                            vert=vert[0]
+                                            used.append(vert)
+                                        break
+                            else:
+                                        vert=None
+                        vert=other_vert
+                        active_edge=og_edge
+                        while vert:
+                            sorted_edge=sorted([e for e in vert.link_edges],key =lambda x:get_angle(x,active_edge,vert))
+                            
+                            l=filter(lambda x:get_angle(x,active_edge,vert)<self.edge_threshold,sorted_edge)
+                            for e in l:
+                                if e!=active_edge :
+                                    if len(e.link_faces)==linked_faces:
+                                        e.select=True
+                                        active_edge=e
+                                        vert=[v for v in e.verts if v!=vert and v not in used]
+                                        if vert:
+                                            vert=vert[0]
+                                            used.append(vert)
+                                        break
+                            else:
+                                        vert=None
+                        selected_verts=[v for v in bm.verts if v.select]
+                        vert=other_vert
+                        active_edge=og_edge
+                        #print(vert)
+                        split_verts=get_split_vert(vert,active_edge)
+                        edges_to_deselect=[]
+                        if split_verts:
+
+                            for split_vert in split_verts:
+                                
+                                deselect=False
+                                
+                                for e in split_vert.link_edges:
+                                    if e.select:
+                                        (length,edges)=get_path_to_self(vert,e,split_vert)
+                                        
+                                        if length<99999:
+                                            deselect=True
+                                        else:
+                                            edges_to_deselect.append((length,edges))
+                            edges_to_deselect=sorted(edges_to_deselect,key=lambda x : x[0])
+                            if deselect:
+                                for i,e in enumerate(edges_to_deselect):
+                                        for edge in e[1]:
+                                            edge.select=False
+                        vert=og_vert
+                        active_edge=og_edge
+                        #print(vert)
+                        split_verts=get_split_vert(vert,active_edge)
+                        edges_to_deselect=[]
+                        if split_verts:
+
+                            for split_vert in split_verts:
+                                
+                                deselect=False
+                                
+                                for e in split_vert.link_edges:
+                                    if e.select:
+                                        (length,edges)=get_path_to_self(vert,e,split_vert)
+                                        
+                                        if length<99999:
+                                            deselect=True
+                                        else:
+                                            edges_to_deselect.append((length,edges))
+                            edges_to_deselect=sorted(edges_to_deselect,key=lambda x : x[0])
+                            if deselect:
+                                for i,e in enumerate(edges_to_deselect):
+                                        for edge in e[1]:
+                                            edge.select=False
+                        context.tool_settings.mesh_select_mode=self.previous_selection_mode
+                        context.active_object.data.update()
+                    else:
+                        self.report({'WARNING'},'Edge has more than 2 adjacent faces')
+            
+        else:
+            self.report({'WARNING'},'Active element must be an edge!')
+            bpy.context.tool_settings.mesh_select_mode=self.previous_selection_mode
+            return {'PASS_THROUGH'}
+        
+        return {'FINISHED'}
+    def invoke(self, context,event):
+        self.active_edge=None
+        self.previous_selection_mode = context.tool_settings.mesh_select_mode[:]
+        if self.previous_selection_mode ==(False,False,True):
+            return bpy.ops.mesh.loop_select('INVOKE_DEFAULT')
+            #return {'PASS_THROUGH'}
+        bpy.ops.mesh.select_mode(type="EDGE")  
+        bpy.ops.view3d.select('INVOKE_DEFAULT',extend=True)
+        bm=bmesh.from_edit_mesh(context.active_object.data)
+
+        if issubclass(type(bm.select_history.active),bmesh.types.BMEdge):
+            self.active_edge=bm.select_history.active.index
+        return self.execute(context)
 def get_split_vert(vert,active_edge):
-	used=[]
-	split_verts=[]
-	while vert:
-		sorted_edge=[e for e in vert.link_edges if e.select]
-		if sorted_edge:
-				
-			for e in sorted_edge:
-				if e!=active_edge:
-						active_edge=e
-						vert=[v for v in e.verts if v!=vert and v not in used]
-						if vert:
-							vert=vert[0]
-							used.append(vert)
-							#print(vert)
-							#print([e for e in vert.link_edges if e.select])
-							if len([e for e in vert.link_edges if e.select])==3:
-								split_verts.append(vert)
-								break
+    used=[]
+    split_verts=[]
+    while vert:
+        sorted_edge=[e for e in vert.link_edges if e.select]
+        if sorted_edge:
+                
+            for e in sorted_edge:
+                if e!=active_edge:
+                        active_edge=e
+                        vert=[v for v in e.verts if v!=vert and v not in used]
+                        if vert:
+                            vert=vert[0]
+                            used.append(vert)
+                            if len([e for e in vert.link_edges if e.select])==3:
+                                split_verts.append(vert)
+                                break
 
-						break
-			else:
-						vert=None
-		else:
-			vert=None
-	return split_verts
+                        break
+            else:
+                        vert=None
+        else:
+            vert=None
+    return split_verts
 def get_path_to_self(vert,active_edge,split_vert):
-	og_vert=vert
+    og_vert=vert
    # print("Target",vert)
-	vert=active_edge.other_vert(split_vert)
-	#print("OG",vert)
-	used=[]
-	length=0
-	edges=[active_edge,]
-	visited_edges=[]
-	if vert==og_vert:
-		return (active_edge.calc_length(),[])
-	while vert:
-		sorted_edge=[e for e in vert.link_edges if e.select]
-		if sorted_edge:
-				
-			for e in sorted_edge:
-				if e!=active_edge and e not in visited_edges:
-						length+=e.calc_length()
-						active_edge=e
-						edges.append(e)
-						visited_edges.append(e)
-						#print("Used",used)
-						#print("All",[v for v in e.verts])
-						vert=[v for v in e.verts if v!=vert and v not in used]
-						#print("Verts",vert)
-						if vert and vert[0]==og_vert:
-							return (length,edges)
-						if vert:
-							vert=vert[0]
-							used.append(vert)
-						
-						break
-			else:
-						vert=None
-		else:
-			vert=None
-	return (9999999999,edges)
+    vert=active_edge.other_vert(split_vert)
+    #print("OG",vert)
+    used=[]
+    length=0
+    edges=[active_edge,]
+    visited_edges=[]
+    if vert==og_vert:
+        return (active_edge.calc_length(),[])
+    while vert:
+        sorted_edge=[e for e in vert.link_edges if e.select]
+        if sorted_edge:
+                
+            for e in sorted_edge:
+                if e!=active_edge and e not in visited_edges:
+                        length+=e.calc_length()
+                        active_edge=e
+                        edges.append(e)
+                        visited_edges.append(e)
+                        #print("Used",used)
+                        #print("All",[v for v in e.verts])
+                        vert=[v for v in e.verts if v!=vert and v not in used]
+                        #print("Verts",vert)
+                        if vert and vert[0]==og_vert:
+                            return (length,edges)
+                        if vert:
+                            vert=vert[0]
+                            used.append(vert)
+                        
+                        break
+            else:
+                        vert=None
+        else:
+            vert=None
+    return (9999999999,edges)
 
 classes = (LS_OT_Select,LSPrefs
-		   )
+           )
 icon_collection = {}
 addon_keymaps = []
 
 
 def register():
-	from bpy.utils import register_class
-	for cls in classes:
-		register_class(cls)
+    from bpy.utils import register_class
+    for cls in classes:
+        register_class(cls)
 
-	# wm = bpy.context.window_manager
-	# kc = wm.keyconfigs.addon
+    wm = bpy.context.window_manager
+    kc = wm.keyconfigs.addon
 
-	# km = kc.keymaps.new(name="Mesh", space_type="EMPTY")
-	# if kc:
-		
+    km = kc.keymaps.new(name="Mesh", space_type="EMPTY")
+    if kc:
+        
 
-	# 	kmi = km.keymap_items.new(
-	# 		"ls.select",
-	# 		type='D',
-	# 		value="PRESS",
-	# 	)
-	# 	addon_keymaps.append((km, kmi))
-	# 	kmi = km.keymap_items.new(
-	# 		"ls.select",
-	# 		type='LEFTMOUSE',
-	# 		value="DOUBLE_CLICK",
-	# 	)
-	# 	addon_keymaps.append((km, kmi))
-	# 	kmi = km.keymap_items.new(
-	# 		"ls.select",
-	# 		type='LEFTMOUSE',
-	# 		value="DOUBLE_CLICK",shift=True
-	# 	)
-	# 	addon_keymaps.append((km, kmi))
+        kmi = km.keymap_items.new(
+            "ls.select",
+            type='D',
+            value="PRESS",
+        )
+        addon_keymaps.append((km, kmi))
+        kmi = km.keymap_items.new(
+            "ls.select",
+            type='LEFTMOUSE',
+            value="DOUBLE_CLICK",
+        )
+        addon_keymaps.append((km, kmi))
+        kmi = km.keymap_items.new(
+            "ls.select",
+            type='LEFTMOUSE',
+            value="DOUBLE_CLICK",shift=True
+        )
+        addon_keymaps.append((km, kmi))
 
 
 
 def unregister():
 
-	from bpy.utils import unregister_class
+    from bpy.utils import unregister_class
 
-	for cls in reversed(classes):
-		unregister_class(cls)
-	# for (km, kmi) in addon_keymaps:
-	# 	km.keymap_items.remove(kmi)
-	# addon_keymaps.clear()
+    for cls in reversed(classes):
+        unregister_class(cls)
+    for (km, kmi) in addon_keymaps:
+        km.keymap_items.remove(kmi)
+    addon_keymaps.clear()
 
 
 if __name__ == "__main__":
-	register()
+    register()

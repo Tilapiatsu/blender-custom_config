@@ -6,8 +6,8 @@ class CB_OT_prop_popup(bpy.types.Operator):
     bl_idname = "cb.prop_popup"
     bl_label = "Prop Popup"
 
-    data_path = bpy.props.StringProperty()
-    prop = bpy.props.StringProperty()
+    data_path: bpy.props.StringProperty()
+    prop: bpy.props.StringProperty()
 
     def check(self, context):
         return True

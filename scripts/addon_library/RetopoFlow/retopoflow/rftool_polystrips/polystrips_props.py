@@ -1,5 +1,5 @@
 '''
-Copyright (C) 2021 CG Cookie
+Copyright (C) 2022 CG Cookie
 http://cgcookie.com
 hello@cgcookie.com
 
@@ -25,7 +25,6 @@ import math
 from itertools import chain
 
 import bpy
-import bgl
 from mathutils import Matrix
 
 from ..rftool import RFTool

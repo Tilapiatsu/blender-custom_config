@@ -6,7 +6,6 @@ import os
 from bpy.types import PropertyGroup, Operator, Panel, AddonPreferences
 from mathutils import Vector, Matrix
 from bpy_extras.io_utils import ImportHelper
-from urllib import request
 from collections import Counter
 from bpy.props import (
         BoolProperty,
@@ -22,7 +21,7 @@ bl_info = {
     "name": "kei2m",
     "author": "Kjell Emanuelsson",
     "category": "Import-Export",
-    "version": (1, 1, 0, 0),
+    "version": (1, 2, 0, 0),
     "blender": (2, 80, 0),
     "location": "Viewport / N-Panel / kei2m",
     "warning": "",
@@ -31,11 +30,10 @@ bl_info = {
 }
 
 
-kei2m_version = 1.1
-new_kei2m_version = None
+kei2m_version = 1.2
 
 
-def make_entry(h, width, w, pixels, cap=None):
+def make_entry(h, width, w, pixels):
     idx = (h * width) + w
     px_index = idx * 4
     return pixels[px_index:px_index + 4]
@@ -140,16 +138,16 @@ class KeI2M(Operator):
                                          "(So the Right/Top images can be just silhouettes)")
 
     c2threshold: FloatProperty(min=0, max=1, default=0.52, name="Color Threshold",
-                         description="Tolerance for color separation / reduction (anti-aliasing removal)\n"
-                                     "Do not use as slider! Use keyboard input!")
+                               description="Tolerance for color separation / reduction (anti-aliasing removal)\n"
+                                           "Do not use as slider! Use keyboard input!")
 
     c2m: BoolProperty(default=False, name="Color Split Materials",
-                                  description="Split colors to materials")
+                      description="Split colors to materials")
 
     c2m_smooth: IntProperty(min=0, max=100, default=100, name="Mesh Smoothing", subtype="PERCENTAGE",
-                         description="Smooths vertices below the pixel edge length threshold\n"
-                                     "(Avoiding long straight edges)\n"
-                                     "Do not use as slider! Use keyboard input!")
+                            description="Smooths vertices below the pixel edge length threshold\n"
+                                        "(Avoiding long straight edges)\n"
+                                        "Do not use as slider! Use keyboard input!")
 
     qnd_mat: BoolProperty(default=False, name="QnD Materials",
                           description="Will add Quick-n-Dirty Roughness and Bump nodes in addition to color.\n"
@@ -177,15 +175,32 @@ class KeI2M(Operator):
                                      "Each Pixel makes up one face, using Vertex Color instead of texture(s)")
 
     vcthreshold: FloatProperty(min=0, max=1, default=0, name="Color Threshold",
-                         description="Tolerance for color separation / reduction (anti-aliasing removal)\n"
-                                     "0 = No limit (full rgb) in Vertex Color Mode (Also Faster)\n"
-                                     "Sensitive: Increase by steps of 0.05 (Also, very slow!)\n"
-                                     "Do not use as slider! Use keyboard input!")
+                               description="Tolerance for color separation / reduction (anti-aliasing removal)\n"
+                                           "0 = No limit (full rgb) in Vertex Color Mode (Also Faster)\n"
+                                           "Sensitive: Increase by steps of 0.05 (Also, very slow!)\n"
+                                           "Do not use as slider! Use keyboard input!")
 
     dilation: IntProperty(min=0, max=99, default=0, name="Expand Border",
                           description="Using a simple brute force dilation on the alpha,\n"
                                       "expanding it beyond the original image alpha borders. Zero to disable.\n"
                                       "Tip: Tweak Tolerance value 1st - only use EB if necessary")
+
+    pixel_width: FloatProperty(min=0, max=1, default=0, name="Pixel Width", precision=5,
+                               description="Set pixel size in BU (meter)\n"
+                                           "Mesh Width is calculated with Pixel Width * Work Res")
+
+    width: FloatProperty(min=0, default=1, name="Mesh Width", precision=3,
+                         description="Set Custom width/size in BU (meter)")
+
+    size: EnumProperty(
+        items=[("AUTOFIT", "Autofit", "", "", 1),
+               ("WIDTH", "Custom Width", "", "", 2),
+               ("PIXEL", "Pixel Width", "", "", 3),
+               ],
+        name="Size", default="AUTOFIT",
+        description="Autofit: Automatically fits all resolutions to 1 BU (meter)\n"
+                    "Width: Set custom mesh size/width\n"
+                    "Pixel: Calculate size based on set custom pixel size/width \n")
 
     coll = None
     wm = None
@@ -228,6 +243,13 @@ class KeI2M(Operator):
         if self.custom_workres == 0:
             layout.prop(self, "workres")
         layout.prop(self, "custom_workres")
+        layout.separator(factor=0.5)
+
+        layout.prop(self, "size", expand=True)
+        if self.size == "WIDTH":
+            layout.prop(self, "width")
+        elif self.size == "PIXEL":
+            layout.prop(self, "pixel_width")
         layout.separator(factor=0.5)
 
         if not self.c2m:
@@ -337,30 +359,31 @@ class KeI2M(Operator):
 
         return pixel_map
 
-    def make_mesh_data(self, pixel_map, scl, name, axis="Front"):
+    def make_mesh_data(self, pixel_map, work_res, scl, name, axis="Front"):
         s = scl * 0.5
+        w = (work_res * scl) * 0.5
         verts = []
         faces = []
         if axis == "Right":
             for i, v in enumerate(pixel_map):
                 x, y = v[:2]
-                x -= 0.5
+                x -= w
                 verts.extend([[0, -s + x, s + y], [0, -s + x, -s + y], [0, s + x, -s + y], [0, s + x, s + y]])
                 offset = i * 4
                 faces.append([0 + offset, 1 + offset, 2 + offset, 3 + offset])
         elif axis == "Top":
             for i, v in enumerate(pixel_map):
                 x, y = v[:2]
-                x -= 0.5
-                y -= 0.5
+                x -= w
+                y -= w
                 verts.extend(
-                    [[-s + x, s + y, 0.5], [-s + x, -s + y, 0.5], [s + x, -s + y, 0.5], [s + x, s + y, 0.5]])
+                    [[-s + x, s + y, w], [-s + x, -s + y, w], [s + x, -s + y, w], [s + x, s + y, w]])
                 offset = i * 4
                 faces.append([0 + offset, 1 + offset, 2 + offset, 3 + offset])
         else:  # Front
             for i, v in enumerate(pixel_map):
                 x, y = v[:2]
-                x -= 0.5
+                x -= w
                 verts.extend([[-s + x, 0, s + y], [-s + x, 0, -s + y], [s + x, 0, -s + y], [s + x, 0, s + y]])
                 offset = i * 4
                 faces.append([0 + offset, 1 + offset, 2 + offset, 3 + offset])
@@ -408,7 +431,7 @@ class KeI2M(Operator):
                                 smoothverts.append(e.verts[1])
                             smedges.append(e)
                     smoothverts = list(set(smoothverts))
-                    smedges = list(set(smedges))
+                    # smedges = list(set(smedges))
                     bmesh.ops.smooth_vert(bm, verts=smoothverts, factor=(self.c2m_smooth / 100) * 0.5,
                                           use_axis_x=True, use_axis_y=True, use_axis_z=True)
                     # bmesh.ops.dissolve_limit(bm, angle_limit=0.17455, verts=smoothverts, edges=smedges,
@@ -445,7 +468,7 @@ class KeI2M(Operator):
 
         # ELSE: NO reduction - FULL PIXELATION
 
-        # COMPENSATE SCALE OFFSET
+        # COMPENSATE SCALE OFFSET "FIX"
         c = scl * 0.5
         mtx = Matrix()
         if axis == "Front":
@@ -465,7 +488,7 @@ class KeI2M(Operator):
             obj.data.use_auto_smooth = True
         return obj
 
-    def make_projector(self, p_name, axis="Front"):
+    def make_projector(self, p_name, w, axis="Front"):
         existing = bpy.data.objects.get(p_name)
         if existing:
             bpy.data.objects.remove(existing)
@@ -485,13 +508,13 @@ class KeI2M(Operator):
             projector.rotation_euler = (-3.1415926, 0, 1.5707963)
         else:  # Front
             projector.rotation_euler[0] = 1.5707963
-        projector.location[2] = 0.5
-        # Hack compensation§
+        projector.location[2] = w
+        # Hack compensation
         if self.geo == "SCREW":
-            val = (self.screw_xcomp / 1000) + 0.5
-            projector.scale = (val, 0.5, 0.5)
+            val = (self.screw_xcomp / 1000) + w
+            projector.scale = (val, w, w)
         else:
-            projector.scale = (0.5, 0.5, 0.5)
+            projector.scale = (w, w, w)
         return projector
 
     def make_material(self, name, img):
@@ -751,7 +774,9 @@ class KeI2M(Operator):
             elif replace_bottom:
                 replaced_images[2] = front_img
 
-        # Image resolution/square match check
+        # ----------------------------------------------------------------------------------------------
+        # Image resolution / square match check
+        # ----------------------------------------------------------------------------------------------
         res_check = True
         ref_image = count_images[0]
         base_xy = ref_image.size
@@ -791,16 +816,30 @@ class KeI2M(Operator):
         if self.custom_workres != 0:
             work_res = self.custom_workres
 
+        # ----------------------------------------------------------------------------------------------
+        # Set Scale (& custom override)
+        # ----------------------------------------------------------------------------------------------
         scl = 1 / work_res
+
+        if self.size == "PIXEL":
+            scl = self.pixel_width
+            self.width = self.pixel_width * work_res
+
+        elif self.size == "WIDTH":
+            scl = self.width / work_res
+            self.pixel_width = scl
+
+        w = (work_res * scl) * 0.5
+
+        # ----------------------------------------------------------------------------------------------
+        # Process Mesh Images (0-2)
+        # ----------------------------------------------------------------------------------------------
 
         # Main Object Name - w/o filetype
         name = ref_image.name
         if "." in name:
             name = name.split(".")[0]
 
-        # ----------------------------------------------------------------------------------------------
-        # Process Mesh Images (0-2)
-        # ----------------------------------------------------------------------------------------------
         if self.geo == "BOOLEAN":
             mesh_images = images[:3]
             mesh_axis = axis[:3]
@@ -836,7 +875,7 @@ class KeI2M(Operator):
                 existing = bpy.data.meshes.get(mesh_name)
                 if existing:
                     bpy.data.meshes.remove(existing)
-                mesh = self.make_mesh_data(pixel_map, scl, name=mesh_name, axis=axis_name)
+                mesh = self.make_mesh_data(pixel_map, work_res, scl, name=mesh_name, axis=axis_name)
                 self.progress_update(context, " Create Mesh Data   ", True)
 
                 # Bmesh Cleanup & Processing
@@ -879,7 +918,7 @@ class KeI2M(Operator):
 
             for axis_name in plist:
                 pname = final_object.name + axis_name + "_UVProjector"
-                projector = self.make_projector(pname, axis_name)
+                projector = self.make_projector(pname, w, axis_name)
                 projector.parent = final_object
                 projectors.append(projector)
 
@@ -914,7 +953,7 @@ class KeI2M(Operator):
             for obj in solidify_objects:
                 context.view_layer.objects.active = obj
                 solidify = obj.modifiers.new(name="I2M Solidify", type="SOLIDIFY")
-                solidify.thickness = 1.0
+                solidify.thickness = scl * 100
                 solidify.offset = 0.0
                 solidify.use_quality_normals = True
                 if not self.apply_none:
@@ -959,9 +998,9 @@ class KeI2M(Operator):
                 uv_project.projectors[i].object = p
                 if not self.front_only:
                     if i == 4 and self.flip_left:
-                        p.scale = (-0.5, 0.5, 0.5)
+                        p.scale = (-w, w, w)
                     elif i == 3 and self.flip_back:
-                        p.scale = (-0.5, 0.5, 0.5)
+                        p.scale = (-w, w, w)
             if self.noz and not self.front_only:
                 uv_project.projectors[2].object = None
                 uv_project.projectors[5].object = None
@@ -1008,6 +1047,7 @@ class KeI2M(Operator):
 
         # Needed for 1st-runs, or images can't be accessed by redo panel?!
         bpy.ops.ed.undo_push()
+        context.area.tag_redraw()
 
         # Very silly
         if self.geo != "BOOLEAN" and self.front_only:
@@ -1183,21 +1223,10 @@ def load_slot(path):
 # UI
 # ------------------------------------------------------------------------------------------------------------
 class VIEW3D_PT_i2m(Panel):
-    bl_label = "kei2m"
+    bl_label = 'keI2M v%.1f' % kei2m_version
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'UI'
     bl_category = 'kei2m'
-
-    def draw_header_preset(self, context):
-        layout = self.layout
-        layout.emboss = 'NONE'
-        row = layout.row(align=True)
-        if new_kei2m_version is not None:
-            row.label(text="v%.3f >" % kei2m_version)
-            row.operator("wm.url_open", text="%.3f " % new_kei2m_version,
-                         icon="ERROR").url = "https://kjell.gumroad.com/l/i2m"
-        else:
-            row.label(text="v%.3f " % kei2m_version)
 
     def draw(self, context):
         k = context.scene.kei2m
@@ -1292,21 +1321,6 @@ class VIEW3D_PT_i2m(Panel):
 # ------------------------------------------------------------------------------------------------------------
 # Prefs
 # ------------------------------------------------------------------------------------------------------------
-def version_check():
-    v = 0
-    try:
-        v = float(request.urlopen("https://artbykjell.com/kei2m/kei2m_version.v").read())
-    except Exception as e:
-        print(e)
-        pass
-
-    global new_kei2m_version
-    if v > kei2m_version:
-        new_kei2m_version = v
-    else:
-        new_kei2m_version = None
-
-
 # Panels to update
 panels = (
         VIEW3D_PT_i2m,
@@ -1341,12 +1355,11 @@ class KeI2Maddonprefs(AddonPreferences):
     use_rgb: BoolProperty(name="Use RGB instead of Alpha", default=False,
                           description="Use the user RGB color instead of Alpha channel")
     user_rgb: FloatVectorProperty(name="User RGB", subtype="COLOR", size=3, default=(1.0, 1.0, 1.0))
-    cap : IntProperty(default=16, name="Material Cap",
-                      description="Maximum number of materials generated in Color 2 Material Mode.")
+    cap: IntProperty(default=16, name="Material Cap",
+                     description="Maximum number of materials generated in Color 2 Material Mode.")
 
     def draw(self, context):
         layout = self.layout
-        # todo: Category pyAPI functionality is bugged in Blender - Restore when fixed
         row = layout.row()
         row.label(text="Tab Location (Category):")
         row.prop(self, "category", text="")
@@ -1359,42 +1372,42 @@ class KeI2Maddonprefs(AddonPreferences):
 
 
 class KeI2Mprops(PropertyGroup):
-    FRONT : StringProperty(default="", name="Front Image", description="-Y Axis Image")
-    RIGHT : StringProperty(default="", name="Right Image", description="+X Axis Image")
-    TOP : StringProperty(default="", name="Top Image", description="+Z Axis Image")
-    BACK : StringProperty(default="", name="Back Image", description="+Y Axis Image")
-    LEFT : StringProperty(default="", name="Left Image", description="-X Axis Image")
-    BOTTOM : StringProperty(default="", name="Bottom Image", description="-Z Axis Image")
-    autofill : BoolProperty(name="Autofill", default=False,
-                            description="Auto-Fill slots by suffixes when loading.\n "
-                                        "Valid suffixes:\n"
-                                        "_front, _right, _top\n"
-                                        "_back,  _left,  _bottom")
-    info : BoolProperty(name="kei2m General Info", default=False,
-                        description="Load Alpha Images to convert into mesh (in Object Mode).\n"
-                                    "Front Image is required for PLANE & SCREW (& C2M) modes.\n"
-                                    "Front + Right or Top are required for BOOLEAN mode.\n"
-                                    "Change Modes & Options in Redo Panel.\n"
-                                    "Non-alpha color option in Addon Preferences.\n"
-                                    "Color 2 Material works with or without Alpha.\n"
-                                    "See progress in Console Window")
-    opacity : IntProperty(default=95)
-    workres : StringProperty(default="128")
-    geo : StringProperty(default="PLANE")
-    screw_flip : BoolProperty(default=False)
-    screw_xcomp : IntProperty(default=15)
-    reduce : StringProperty(default="SIMPLE")
-    shade_smooth : BoolProperty(default=True)
-    front_only : BoolProperty(default=False)
-    qnd_mat : BoolProperty(default=False)
-    apply : BoolProperty(default=False)
-    apply_none : BoolProperty(default=False)
-    angle : FloatProperty(default=0.5)
-    custom_workres : IntProperty(default=0)
-    vcolor : BoolProperty(default=False)
-    c2m : BoolProperty(name="Color 2 Material Mode", default=False,
-                       description="Splits the mesh along color borders, assigning a material to each color.\n"
-                                   "With or without Alpha (or RGB-as-Alpha)")
+    FRONT: StringProperty(default="", name="Front Image", description="-Y Axis Image")
+    RIGHT: StringProperty(default="", name="Right Image", description="+X Axis Image")
+    TOP: StringProperty(default="", name="Top Image", description="+Z Axis Image")
+    BACK: StringProperty(default="", name="Back Image", description="+Y Axis Image")
+    LEFT: StringProperty(default="", name="Left Image", description="-X Axis Image")
+    BOTTOM: StringProperty(default="", name="Bottom Image", description="-Z Axis Image")
+    autofill: BoolProperty(name="Autofill", default=False,
+                           description="Auto-Fill slots by suffixes when loading.\n "
+                                       "Valid suffixes:\n"
+                                       "_front, _right, _top\n"
+                                       "_back,  _left,  _bottom")
+    info: BoolProperty(name="kei2m General Info", default=False,
+                       description="Load Alpha Images to convert into mesh (in Object Mode).\n"
+                                   "Front Image is required for PLANE & SCREW (& C2M) modes.\n"
+                                   "Front + Right or Top are required for BOOLEAN mode.\n"
+                                   "Change Modes & Options in Redo Panel.\n"
+                                   "Non-alpha color option in Addon Preferences.\n"
+                                   "Color 2 Material works with or without Alpha.\n"
+                                   "See progress in Console Window")
+    opacity: IntProperty(default=95)
+    workres: StringProperty(default="128")
+    geo: StringProperty(default="PLANE")
+    screw_flip: BoolProperty(default=False)
+    screw_xcomp: IntProperty(default=15)
+    reduce: StringProperty(default="SIMPLE")
+    shade_smooth: BoolProperty(default=True)
+    front_only: BoolProperty(default=False)
+    qnd_mat: BoolProperty(default=False)
+    apply: BoolProperty(default=False)
+    apply_none: BoolProperty(default=False)
+    angle: FloatProperty(default=0.5)
+    custom_workres: IntProperty(default=0)
+    vcolor: BoolProperty(default=False)
+    c2m: BoolProperty(name="Color 2 Material Mode", default=False,
+                      description="Splits the mesh along color borders, assigning a material to each color.\n"
+                                  "With or without Alpha (or RGB-as-Alpha)")
 
 
 # ------------------------------------------------------------------------------------------------------------
@@ -1417,8 +1430,6 @@ def register():
         bpy.utils.register_class(c)
 
     bpy.types.Scene.kei2m = PointerProperty(type=KeI2Mprops)
-
-    version_check()
 
     # Force Panel Udpate, for custom tab location.
     try:

@@ -1,5 +1,5 @@
 '''
-Copyright (C) 2021 CG Cookie
+Copyright (C) 2022 CG Cookie
 http://cgcookie.com
 hello@cgcookie.com
 
@@ -38,7 +38,7 @@ from ...config.options import themes
 class RFWidget_BrushStroke_Factory:
     '''
     This is a class factory.  It is needed, because the FSM is shared across instances.
-    RFTools might need to share RFWidges that are independent of each other.
+    RFTools might need to share RFWidgets that are independent of each other.
     '''
 
     @staticmethod
@@ -156,7 +156,9 @@ class RFWidget_BrushStroke_Factory:
                 if not p: return
                 depth = self.rfcontext.Point_to_depth(p)
                 if not depth: return
-                self.scale = self.rfcontext.size2D_to_size(1.0, xy, depth)
+                scale = self.rfcontext.size2D_to_size(1.0, xy, depth)
+                if scale is None: return
+                self.scale = scale
 
                 # draw below
                 bgl.glDepthFunc(bgl.GL_GREATER)

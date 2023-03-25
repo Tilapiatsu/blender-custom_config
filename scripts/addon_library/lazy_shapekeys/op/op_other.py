@@ -348,6 +348,31 @@ class LAZYSHAPEKEYS_OT_fcurve_drag_move(Operator):
 		return {'RUNNING_MODAL'}
 
 
+class LAZYSHAPEKEYS_OT_shape_keys_act_sk_to_folder(Operator):
+	bl_idname = "lazy_shapekeys.shape_keys_act_sk_to_folder"
+	bl_label = "Change Active Shapekey to Folder"
+	bl_description = "Change the active shape key to be treated as a folder shape key.\nAdds a string recognized for folders to vertex group options"
+	bl_options = {'REGISTER', 'UNDO'}
+
+	to_folder : BoolProperty("To Folder",default=True)
+
+	@classmethod
+	def poll(cls, context):
+		return bpy.context.object and bpy.context.object.type == "MESH"
+
+
+	def execute(self, context):
+		obj = bpy.context.active_object
+		kb = obj.data.shape_keys.key_blocks
+		id = obj.active_shape_key_index
+		if self.to_folder:
+			kb[id].vertex_group = "folder:1,exp:1,mute:0"
+		else:
+			kb[id].vertex_group = ""
+
+		return{'FINISHED'}
+
+
 class LAZYSHAPEKEYS_OT_shape_keys_separeate(Operator):
 	bl_idname = "lazy_shapekeys.shape_keys_separeate"
 	bl_label = "Separate shape keys L/R"

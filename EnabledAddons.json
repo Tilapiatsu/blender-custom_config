@@ -75,7 +75,729 @@
         }
     ]
 },
-"_disabled": " ..................................Disabled addons from here ..................................",
+"_addon_library": " ..................................Addon Library..................................",
+"BystedtsBlenderBaker": {
+    "sync": false,
+    "enable": false,
+    "online_url": "https://3dbystedt.gumroad.com/l/JAqLT",
+    "branch": null,
+    "submodule": false,
+    "local_path": "#\\scripts\\addon_library\\BystedtsBlenderBaker",
+    "paths": [
+        {
+            "enable": false,
+            "local_subpath": null,
+            "destination_path": "#\\scipts\\addons\\BystedtsBlenderBaker"
+        }
+    ]
+},
+"CheckToolBox": {
+    "sync": false,
+    "enable": false,
+    "online_url": "https://vfxgrace.gumroad.com/l/apny",
+    "branch": null,
+    "submodule": false,
+    "local_path": "#\\scripts\\addon_library\\CheckToolBox",
+    "paths": [
+        {
+            "enable": false,
+            "local_subpath": null,
+            "destination_path": "#\\scipts\\addons\\CheckToolBox"
+        }
+    ]
+},
+"context_browser": {
+    "sync": false,
+    "enable": false,
+    "online_url": "https://roaoao.gumroad.com/l/context_browser",
+    "branch": null,
+    "submodule": false,
+    "local_path": "#\\scripts\\addon_library\\context_browser",
+    "paths": [
+        {
+            "enable": false,
+            "local_subpath": null,
+            "destination_path": "#\\scipts\\addons\\context_browser"
+        }
+    ]
+},
+"drop_it": {
+    "sync": false,
+    "enable": false,
+    "online_url": "https://andreasaust.gumroad.com/l/drop_it",
+    "branch": null,
+    "submodule": false,
+    "local_path": "#\\scripts\\addon_library\\drop_it",
+    "paths": [
+        {
+            "enable": false,
+            "local_subpath": null,
+            "destination_path": "#\\scipts\\addons\\drop_it"
+        }
+    ]
+},
+"EasyHDRI": {
+    "sync": false,
+    "enable": false,
+    "online_url": "https://codeofart.gumroad.com/l/EasyHDRI",
+    "branch": null,
+    "submodule": false,
+    "local_path": "#\\scripts\\addon_library",
+    "paths": [
+        {
+            "enable": false,
+            "local_subpath": "EasyHDRI.py",
+            "destination_path": "#\\scipts\\addons\\EasyHDRI.py"
+        }
+    ]
+},
+"flow_map_painter": {
+    "sync": false,
+    "enable": false,
+    "online_url": "https://clemensbeute.gumroad.com/l/heZDT",
+    "branch": null,
+    "submodule": false,
+    "local_path": "#\\scripts\\addon_library\\flow_map_painter",
+    "paths": [
+        {
+            "enable": false,
+            "local_subpath": null,
+            "destination_path": "#\\scipts\\addons\\flow_map_painter"
+        }
+    ]
+},
+"keentools": {
+    "sync": false,
+    "enable": false,
+    "online_url": "https://keentools.io/download/facebuilder-for-blender",
+    "branch": null,
+    "submodule": false,
+    "local_path": "#\\scripts\\addon_library\\keentools",
+    "paths": [
+        {
+            "enable": false,
+            "local_subpath": null,
+            "destination_path": "#\\scipts\\addons\\keentools"
+        }
+    ]
+},
+"kekit": {
+    "sync": false,
+    "enable": true,
+    "online_url": "https://kjell.gumroad.com/l/kekit_blender",
+    "branch": null,
+    "submodule": false,
+    "local_path": "#\\scripts\\addon_library\\kekit",
+    "paths": [
+        {
+            "enable": true,
+            "local_subpath": null,
+            "destination_path": "#\\scipts\\addons\\kekit"
+        }
+    ]
+},
+"lazy_shapekeys": {
+    "sync": false,
+    "enable": false,
+    "online_url": "https://bookyakuno.gumroad.com/l/lazy-shapekeys",
+    "branch": null,
+    "submodule": false,
+    "local_path": "#\\scripts\\addon_library\\lazy_shapekeys",
+    "paths": [
+        {
+            "enable": false,
+            "local_subpath": null,
+            "destination_path": "#\\scipts\\addons\\lazy_shapekeys"
+        }
+    ]
+},
+"MeshDataTransfer": {
+    "sync": false,
+    "enable": true,
+    "online_url": "https://mmemoli.gumroad.com/l/tOKEh",
+    "branch": null,
+    "submodule": false,
+    "local_path": "#\\scripts\\addon_library\\MeshDataTransfer",
+    "paths": [
+        {
+            "enable": true,
+            "local_subpath": null,
+            "destination_path": "#\\scipts\\addons\\MeshDataTransfer"
+        }
+    ]
+},
+"mouselook_navigation": {
+    "sync": false,
+    "enable": false,
+    "online_url": "https://moth3r.gumroad.com/l/mouselook",
+    "branch": null,
+    "submodule": false,
+    "local_path": "#\\scripts\\addon_library\\mouselook_navigation",
+    "paths": [
+        {
+            "enable": false,
+            "local_subpath": null,
+            "destination_path": "#\\scipts\\addons\\mouselook_navigation"
+        }
+    ]
+},
+"NGon Loop Select": {
+    "sync": false,
+    "enable": true,
+    "online_url": "https://amanbairwal.gumroad.com/l/NGonLoopSelect",
+    "branch": null,
+    "submodule": false,
+    "local_path": "#\\scripts\\addon_library\\NGon Loop Select",
+    "paths": [
+        {
+            "enable": true,
+            "local_subpath": null,
+            "destination_path": "#\\scipts\\addons\\NGon Loop Select"
+        }
+    ]
+},
+"Poly_Source": {
+    "sync": false,
+    "enable": true,
+    "online_url": "https://derksen.gumroad.com/l/polysource",
+    "branch": null,
+    "submodule": false,
+    "local_path": "#\\scripts\\addon_library\\Poly_Source",
+    "paths": [
+        {
+            "enable": true,
+            "local_subpath": null,
+            "destination_path": "#\\scipts\\addons\\Poly_Source"
+        }
+    ]
+},
+"Pro_Aligner": {
+    "sync": false,
+    "enable": true,
+    "online_url": "https://cggalaxy.gumroad.com/l/proaligner",
+    "branch": null,
+    "submodule": false,
+    "local_path": "#\\scripts\\addon_library\\Pro_Aligner",
+    "paths": [
+        {
+            "enable": true,
+            "local_subpath": null,
+            "destination_path": "#\\scipts\\addons\\Pro_Aligner"
+        }
+    ]
+},
+"QBlocker": {
+    "sync": false,
+    "enable": false,
+    "online_url": "https://sanislovart.gumroad.com/l/gOEV",
+    "branch": null,
+    "submodule": false,
+    "local_path": "#\\scripts\\addon_library\\QBlocker",
+    "paths": [
+        {
+            "enable": false,
+            "local_subpath": null,
+            "destination_path": "#\\scipts\\addons\\QBlocker"
+        }
+    ]
+},
+"render_task_list": {
+    "sync": false,
+    "enable": false,
+    "online_url": "https://bookyakuno.gumroad.com/l/render-task-list",
+    "branch": null,
+    "submodule": false,
+    "local_path": "#\\scripts\\addon_library\\render_task_list",
+    "paths": [
+        {
+            "enable": false,
+            "local_subpath": null,
+            "destination_path": "#\\scipts\\addons\\render_task_list"
+        }
+    ]
+},
+"Retopoflow": {
+    "sync": false,
+    "enable": false,
+    "online_url": "https://github.com/CGCookie/retopoflow.git",
+    "branch": null,
+    "submodule": false,
+    "local_path": "#\\scripts\\addon_library\\Retopoflow",
+    "paths": [
+        {
+            "enable": false,
+            "local_subpath": null,
+            "destination_path": "#\\scipts\\addons\\Retopoflow"
+        }
+    ]
+},
+"rotate_an_hdri": {
+    "sync": false,
+    "enable": false,
+    "online_url": "https://alexbel.gumroad.com/l/XQYEl",
+    "branch": null,
+    "submodule": false,
+    "local_path": "#\\scripts\\addon_library\\rotate_an_hdri",
+    "paths": [
+        {
+            "enable": false,
+            "local_subpath": null,
+            "destination_path": "#\\scipts\\addons\\rotate_an_hdri"
+        }
+    ]
+},
+"sj_selection_set": {
+    "sync": false,
+    "enable": false,
+    "online_url": "https://captainhansode.gumroad.com/l/wqaMJ",
+    "branch": null,
+    "submodule": false,
+    "local_path": "#\\scripts\\addon_library\\sj_selection_set",
+    "paths": [
+        {
+            "enable": false,
+            "local_subpath": null,
+            "destination_path": "#\\scipts\\addons\\sj_selection_set"
+        }
+    ]
+},
+"slcad_transform": {
+    "sync": false,
+    "enable": true,
+    "online_url": "https://blender-archipack.gumroad.com/l/nQVcS",
+    "branch": null,
+    "submodule": false,
+    "local_path": "#\\scripts\\addon_library\\slcad_transform",
+    "paths": [
+        {
+            "enable": true,
+            "local_subpath": null,
+            "destination_path": "#\\scipts\\addons\\slcad_transform"
+        }
+    ]
+},
+"softMod": {
+    "sync": false,
+    "enable": false,
+    "online_url": "https://mmemoli.gumroad.com/l/softmod",
+    "branch": null,
+    "submodule": false,
+    "local_path": "#\\scripts\\addon_library\\softMod",
+    "paths": [
+        {
+            "enable": false,
+            "local_subpath": null,
+            "destination_path": "#\\scipts\\addons\\softMod"
+        }
+    ]
+},
+"SSGI": {
+    "sync": false,
+    "enable": false,
+    "online_url": "https://n0451.gumroad.com/l/PgyXc",
+    "branch": null,
+    "submodule": false,
+    "local_path": "#\\scripts\\addon_library\\SSGI",
+    "paths": [
+        {
+            "enable": false,
+            "local_subpath": null,
+            "destination_path": "#\\scipts\\addons\\SSGI"
+        }
+    ]
+},
+"surface_inflate": {
+    "sync": false,
+    "enable": true,
+    "online_url": "https://kushiro.gumroad.com/l/inmas",
+    "branch": null,
+    "submodule": false,
+    "local_path": "#\\scripts\\addon_library\\surface_inflate",
+    "paths": [
+        {
+            "enable": true,
+            "local_subpath": null,
+            "destination_path": "#\\scipts\\addons\\surface_inflate"
+        }
+    ]
+},
+"Synchronize Workspace": {
+    "sync": false,
+    "enable": false,
+    "online_url": "https://m-soluyanov.gumroad.com/l/afoty",
+    "branch": null,
+    "submodule": false,
+    "local_path": "#\\scripts\\addon_library\\Synchronize Workspace",
+    "paths": [
+        {
+            "enable": false,
+            "local_subpath": null,
+            "destination_path": "#\\scipts\\addons\\Synchronize Workspace"
+        }
+    ]
+},
+"UnwrapMe": {
+    "sync": false,
+    "enable": true,
+    "online_url": "https://github.com/3e33/UnwrapMe.git",
+    "branch": null,
+    "submodule": false,
+    "local_path": "#\\scripts\\addon_library\\UnwrapMe",
+    "paths": [
+        {
+            "enable": true,
+            "local_subpath": null,
+            "destination_path": "#\\scipts\\addons\\UnwrapMe"
+        }
+    ]
+},
+"weight_layers": {
+    "sync": false,
+    "enable": false,
+    "online_url": "https://strike-digital.gumroad.com/l/weight_layers",
+    "branch": null,
+    "submodule": false,
+    "local_path": "#\\scripts\\addon_library\\weight_layers",
+    "paths": [
+        {
+            "enable": false,
+            "local_subpath": null,
+            "destination_path": "#\\scipts\\addons\\weight_layers"
+        }
+    ]
+},
+"auto_mirror_ex": {
+    "sync": false,
+    "enable": false,
+    "online_url": "https://bookyakuno.gumroad.com/l/vgRSB",
+    "branch": null,
+    "submodule": false,
+    "local_path": "#\\scripts\\addon_library\\auto_mirror_ex",
+    "paths": [
+        {
+            "enable": false,
+            "local_subpath": null,
+            "destination_path": "#\\scipts\\addons\\auto_mirror_ex"
+        }
+    ]
+},
+"bakeToVertexColor": {
+    "sync": false,
+    "enable": false,
+    "online_url": "https://3dbystedt.gumroad.com/l/zdgxg",
+    "branch": null,
+    "submodule": false,
+    "local_path": "#\\scripts\\addon_library",
+    "paths": [
+        {
+            "enable": false,
+            "local_subpath": "bakeToVertexColor.py",
+            "destination_path": "#\\scipts\\addons\\bakeToVertexColor.py"
+        }
+    ]
+},
+"Blender_light_manager": {
+    "sync": false,
+    "enable": true,
+    "online_url": "https://engelik.gumroad.com/l/DQNYI",
+    "branch": null,
+    "submodule": false,
+    "local_path": "#\\scripts\\addon_library",
+    "paths": [
+        {
+            "enable": true,
+            "local_subpath": "Blender_light_manager.py",
+            "destination_path": "#\\scipts\\addons\\Blender_light_manager.py"
+        }
+    ]
+},
+"boundary_alinged_remesh": {
+    "sync": false,
+    "enable": false,
+    "online_url": "https://bookyakuno.gumroad.com/l/NEMDA",
+    "branch": null,
+    "submodule": false,
+    "local_path": "#\\scripts\\addon_library",
+    "paths": [
+        {
+            "enable": false,
+            "local_subpath": "boundary_alinged_remesh.py",
+            "destination_path": "#\\scipts\\addons\\boundary_alinged_remesh.py"
+        }
+    ]
+},
+"hide_only_vertex": {
+    "sync": false,
+    "enable": false,
+    "online_url": "https://bookyakuno.gumroad.com/l/NEMDA",
+    "branch": null,
+    "submodule": false,
+    "local_path": "#\\scripts\\addon_library",
+    "paths": [
+        {
+            "enable": false,
+            "local_subpath": "hide_only_vertex.py",
+            "destination_path": "#\\scipts\\addons\\hide_only_vertex.py"
+        }
+    ]
+},
+"ke_i2m": {
+    "sync": false,
+    "enable": false,
+    "online_url": "https://kjell.gumroad.com/l/i2m",
+    "branch": null,
+    "submodule": false,
+    "local_path": "#\\scripts\\addon_library",
+    "paths": [
+        {
+            "enable": false,
+            "local_subpath": "ke_i2m.py",
+            "destination_path": "#\\scipts\\addons\\ke_i2m.py"
+        }
+    ]
+},
+"thumbMate": {
+    "sync": false,
+    "enable": false,
+    "online_url": "https://www.braverabbit.com/braverabbit/tools/thumbmate/",
+    "branch": null,
+    "submodule": false,
+    "local_path": "#\\scripts\\addon_library",
+    "paths": [
+        {
+            "enable": false,
+            "local_subpath": "thumbMate.py",
+            "destination_path": "#\\scipts\\addons\\thumbMate.py"
+        }
+    ]
+},
+"transfer_vertex_order": {
+    "sync": false,
+    "enable": false,
+    "online_url": "https://bartoszstyperek.gumroad.com/l/copy_verts_ids",
+    "branch": null,
+    "submodule": false,
+    "local_path": "#\\scripts\\addon_library",
+    "paths": [
+        {
+            "enable": false,
+            "local_subpath": "transfer_vertex_order.py",
+            "destination_path": "#\\scipts\\addons\\transfer_vertex_order.py"
+        }
+    ]
+},
+"ZWeightTools": {
+    "sync": false,
+    "enable": false,
+    "online_url": "https://zacheastin.gumroad.com/l/tukDb",
+    "branch": null,
+    "submodule": false,
+    "local_path": "#\\scripts\\addon_library",
+    "paths": [
+        {
+            "enable": false,
+            "local_subpath": "ZWeightTools.py",
+            "destination_path": "#\\scipts\\addons\\ZWeightTools.py"
+        }
+    ]
+},
+"_software_data": " ..................................Software Data addons..................................",
+"uvpackmaster3": {
+    "sync": false,
+    "enable": true,
+    "online_url": "https://glukoz.gumroad.com/l/uvpackmaster3",
+    "branch": null,
+    "submodule": false,
+    "local_path": "S:\\Mon Drive\\15_Blender\\00_INSTALLED_ADDONS\\uvpackmaster3",
+    "paths": [
+        {
+            "enable": true,
+            "local_subpath": null,
+            "destination_path": "#\\scripts\\addons\\uvpackmaster3"
+        }
+    ]
+},
+"beta_quad": {
+    "sync": false,
+    "enable": true,
+    "online_url": null,
+    "branch": null,
+    "submodule": false,
+    "local_path": "S:\\Mon Drive\\15_Blender\\00_INSTALLED_ADDONS\\beta_quad",
+    "paths": [
+        {
+            "enable": true,
+            "local_subpath": null,
+            "destination_path": "#\\scripts\\addons\\beta_quad"
+        }
+    ]
+},
+"MACHIN3tools": {
+    "sync": false,
+    "enable": true,
+    "online_url": null,
+    "branch": null,
+    "submodule": false,
+    "local_path": "S:\\Mon Drive\\15_Blender\\00_INSTALLED_ADDONS\\MACHIN3tools",
+    "paths": [
+        {
+            "enable": true,
+            "local_subpath": null,
+            "destination_path": "#\\scripts\\addons\\MACHIN3tools"
+        }
+    ]
+},
+"MESHmachine": {
+    "sync": false,
+    "enable": true,
+    "online_url": null,
+    "branch": null,
+    "submodule": false,
+    "local_path": "S:\\Mon Drive\\15_Blender\\00_INSTALLED_ADDONS\\MESHmachine",
+    "paths": [
+        {
+            "enable": true,
+            "local_subpath": null,
+            "destination_path": "#\\scripts\\addons\\MESHmachine"
+        }
+    ]
+},
+"physical_starlight_atmosphere": {
+    "sync": false,
+    "enable": true,
+    "online_url": null,
+    "branch": null,
+    "submodule": false,
+    "local_path": "S:\\Mon Drive\\15_Blender\\00_INSTALLED_ADDONS\\physical-starlight-atmosphere",
+    "paths": [
+        {
+            "enable": true,
+            "local_subpath": null,
+            "destination_path": "#\\scripts\\addons\\physical_starlight_atmosphere"
+        }
+    ]
+},
+"SculptLayers": {
+    "sync": false,
+    "enable": true,
+    "online_url": null,
+    "branch": null,
+    "submodule": false,
+    "local_path": "S:\\Mon Drive\\15_Blender\\00_INSTALLED_ADDONS\\SculptLayers",
+    "paths": [
+        {
+            "enable": true,
+            "local_subpath": null,
+            "destination_path": "#\\scripts\\addons\\SculptLayers"
+        }
+    ]
+},
+"uv_toolkit": {
+    "sync": false,
+    "enable": true,
+    "online_url": null,
+    "branch": null,
+    "submodule": false,
+    "local_path": "S:\\Mon Drive\\15_Blender\\00_INSTALLED_ADDONS\\uv_toolkit",
+    "paths": [
+        {
+            "enable": true,
+            "local_subpath": null,
+            "destination_path": "#\\scripts\\addons\\uv_toolkit"
+        }
+    ]
+},
+"BakeWrangler": {
+    "sync": false,
+    "enable": true,
+    "online_url": null,
+    "branch": null,
+    "submodule": false,
+    "local_path": "S:\\Mon Drive\\15_Blender\\00_INSTALLED_ADDONS\\BakeWrangler",
+    "paths": [
+        {
+            "enable": true,
+            "local_subpath": null,
+            "destination_path": "#\\scripts\\addons\\BakeWrangler"
+        }
+    ]
+},
+"quad_remehser": {
+    "sync": false,
+    "enable": true,
+    "online_url": "https://exoside.com/quadremesher/quadremesher-download/",
+    "branch": null,
+    "submodule": false,
+    "local_path": "S:\\Mon Drive\\15_Blender\\00_INSTALLED_ADDONS\\quad_remehser",
+    "paths": [
+        {
+            "enable": true,
+            "local_subpath": null,
+            "destination_path": "#\\scripts\\addons\\quad_remehser"
+        }
+    ]
+},
+"_disabled": " ..................................Disabled addons..................................",
+"Easy_Weight": {
+    "sync": false,
+    "enable": false,
+    "online_url": "https://gitlab.com/blender/easy_weight.git",
+    "branch": null,
+    "submodule": false,
+    "local_path": "#\\scripts\\GIT\\Easy_Weight",
+    "paths": [
+        {
+            "enable": false,
+            "local_subpath": null,
+            "destination_path": "#\\scripts\\addons\\Easy_Weight"
+        }
+    ]
+},
+"noodler": {
+    "sync": true,
+    "enable": true,
+    "online_url": "https://github.com/DB3D/Noodler.git",
+    "branch": null,
+    "submodule": false,
+    "local_path": "#\\scripts\\GIT\\noodler",
+    "paths": [
+        {
+            "enable": true,
+            "local_subpath": "noodler.py",
+            "destination_path": "#\\scipts\\addons"
+        }
+    ]
+},
+"keymesh": {
+    "sync": false,
+    "enable": false,
+    "online_url": "https://github.com/pablodp606/keymesh-addon.git",
+    "branch": null,
+    "submodule": false,
+    "local_path": "#\\scripts\\GIT\\keymesh",
+    "paths": [
+        {
+            "enable": false,
+            "local_subpath": "keymesh.py",
+            "destination_path": "#\\scipts\\addons"
+        }
+    ]
+},
+"leomoon-lightstudio": {
+    "sync": false,
+    "enable": false,
+    "online_url": "https://github.com/leomoon-studios/leomoon-lightstudio.git",
+    "branch": null,
+    "submodule": false,
+    "local_path": "#\\scripts\\GIT\\leomoon-lightstudio",
+    "paths": [
+        {
+            "enable": false,
+            "local_subpath": null,
+            "destination_path": "#\\scipts\\addons\\leomoon-lightstudio"
+        }
+    ]
+},
 "BakeMyScan:": {
     "sync": false,
     "enable": false,
@@ -900,24 +1622,6 @@
         }
     ]
 },
-"BystedtsBlenderBaker": {
-    "sync": false,
-    "enable": false,
-    "online_url": null,
-    "branch" : null,
-    "submodule" : false,
-    "local_path": null,
-    "paths": null
-},
-"SSGI": {
-    "sync": false,
-    "enable": false,
-    "online_url": null,
-    "branch" : null,
-    "submodule" : false,
-    "local_path": null,
-    "paths": null
-},
 "MeasureIt_ARCH": {
     "sync": false,
     "enable": false,
@@ -1029,24 +1733,6 @@
     "local_path": null,
     "paths": null
 },
-"mouselook_navigation": {
-    "sync": false,
-    "enable": false,
-    "online_url": null,
-    "branch" : null,
-    "submodule" : false,
-    "local_path": null,
-    "paths": null
-},
-"keymesh": {
-    "sync": false,
-    "enable": false,
-    "online_url": null,
-    "branch" : null,
-    "submodule" : false,
-    "local_path": null,
-    "paths": null
-},
 "ZWeightTools-1_0_1": {
     "sync": false,
     "enable": false,
@@ -1089,9 +1775,25 @@
         }
     ]
 },
+"io_sketchfab": {
+    "sync": false,
+    "enable": false,
+    "online_url": "https://github.com/sketchfab/blender-plugin.git",
+    "branch": null,
+    "submodule": false,
+    "local_path": "#\\scripts\\GIT\\io_sketchfab",
+    "paths": [
+        {
+            "enable": false,
+            "local_subpath": "addons\\io_sketchfab_plugin",
+            "destination_path": "#\\scripts\\addons\\io_sketchfab"
+        }
+    ]
+},
 
 
-"_enabled" : " ..................................Enabled addons from here ..................................",
+
+"_enabled" : " ..................................Enabled addons..................................",
 
 "easy_weight": {
     "sync": true,
@@ -1174,96 +1876,6 @@
     "local_path": null,
     "paths": null
 },
-"MACHIN3tools": {
-    "sync": true,
-    "enable": true,
-    "online_url":null,
-    "branch" : null,
-    "submodule" : false,
-    "local_path":"S:\\Mon Drive\\15_Blender\\00_INSTALLED_ADDONS\\MACHIN3tools",
-    "paths": [
-        {
-            "enable": true,
-            "local_subpath": null,
-            "destination_path": "#\\scripts\\addons\\MACHIN3tools"
-        }
-    ]
-},
-"MESHmachine":{
-    "sync": true,
-    "enable": true,
-    "online_url": null,
-    "branch" : null,
-    "submodule" : false,
-    "local_path": "S:\\Mon Drive\\15_Blender\\00_INSTALLED_ADDONS\\MESHmachine",
-    "paths": [
-        {
-            "enable": true,
-            "local_subpath": null,
-            "destination_path": "#\\scripts\\addons\\MESHmachine"
-        }
-    ]
-},
-"beta_quad": {
-    "sync": true,
-    "enable": true,
-    "online_url": null,
-    "branch" : null,
-    "submodule" : false,
-    "local_path": "S:\\Mon Drive\\15_Blender\\00_INSTALLED_ADDONS\\beta_quad",
-    "paths": [
-        {
-            "enable": true,
-            "local_subpath": null,
-            "destination_path": "#\\scripts\\addons\\beta_quad"
-        }
-    ]
-},
-"physical_starlight_atmosphere": {
-    "sync": true,
-    "enable": true,
-    "online_url": null,
-    "branch" : null,
-    "submodule" : false,
-    "local_path": "S:\\Mon Drive\\15_Blender\\00_INSTALLED_ADDONS\\physical-starlight-atmosphere",
-    "paths": [
-        {
-            "enable": true,
-            "local_subpath": null,
-            "destination_path": "#\\scripts\\addons\\physical_starlight_atmosphere"
-        }
-    ]
-},
-"SculptLayers": {
-    "sync": true,
-    "enable": true,
-    "online_url": null,
-    "branch" : null,
-    "submodule" : false,
-    "local_path": "S:\\Mon Drive\\15_Blender\\00_INSTALLED_ADDONS\\SculptLayers",
-    "paths": [
-        {
-            "enable": true,
-            "local_subpath": null,
-            "destination_path": "#\\scripts\\addons\\SculptLayers"
-        }
-    ]
-},
-"uv_toolkit": {
-    "sync": true,
-    "enable": true,
-    "online_url": null,
-    "branch" : null,
-    "submodule" : false,
-    "local_path": "S:\\Mon Drive\\15_Blender\\00_INSTALLED_ADDONS\\uv_toolkit",
-    "paths": [
-        {
-            "enable": true,
-            "local_subpath": null,
-            "destination_path": "#\\scripts\\addons\\uv_toolkit"
-        }
-    ]
-},
 "UvSquares": {
     "sync": true,
     "enable": true,
@@ -1345,15 +1957,6 @@
     "local_path": null,
     "paths": null
 },
-"transfer_vertex_order": {
-    "sync": true,
-    "enable": true,
-    "online_url": null,
-    "branch" : null,
-    "submodule" : false,
-    "local_path": null,
-    "paths": null
-},
 "PolyQuilt": {
     "sync": true,
     "enable": true,
@@ -1368,24 +1971,6 @@
             "destination_path": "#\\scripts\\addons\\PolyQuilt"
         }
     ]
-},
-"slcad_transform": {
-    "sync": true,
-    "enable": true,
-    "online_url": null,
-    "branch" : null,
-    "submodule" : false,
-    "local_path": null,
-    "paths": null
-},
-"EasyHDRI": {
-    "sync": true,
-    "enable": true,
-    "online_url": null,
-    "branch" : null,
-    "submodule" : false,
-    "local_path": null,
-    "paths": null
 },
 "Lodify": {
     "sync": true,
@@ -1543,44 +2128,7 @@
     "local_path": null,
     "paths": null
 },
-
-"MeshDataTransfer": {
-    "sync": true,
-    "enable": true,
-    "online_url": null,
-    "branch" : null,
-    "submodule" : false,
-    "local_path": null,
-    "paths": null
-},
-"kekit": {
-    "sync": true,
-    "enable": true,
-    "online_url": null,
-    "branch" : null,
-    "submodule" : false,
-    "local_path": null,
-    "paths": null
-},
-"Poly_Source": {
-    "sync": true,
-    "enable": true,
-    "online_url": null,
-    "branch" : null,
-    "submodule" : false,
-    "local_path": null,
-    "paths": null
-},
 "maxivz_tools": {
-    "sync": true,
-    "enable": true,
-    "online_url": null,
-    "branch" : null,
-    "submodule" : false,
-    "local_path": null,
-    "paths": null
-},
-"rotate_an_hdri": {
     "sync": true,
     "enable": true,
     "online_url": null,
@@ -1639,21 +2187,6 @@
         }
     ]
 },
-"BakeWrangler": {
-    "sync": true,
-    "enable": true,
-    "online_url": null,
-    "branch" : null,
-    "submodule" : false,
-    "local_path": "S:\\Mon Drive\\15_Blender\\00_INSTALLED_ADDONS\\BakeWrangler",
-    "paths": [
-        {
-            "enable": true,
-            "local_subpath": null,
-            "destination_path": "#\\scripts\\addons\\BakeWrangler"
-        }
-    ]
-},
 "atomic_data_manager": {
     "sync": true,
     "enable": true,
@@ -1687,15 +2220,6 @@
     "local_path": null,
     "paths": null
 },
-"uvpackmaster3": {
-    "sync": true,
-    "enable": true,
-    "online_url": null,
-    "branch" : null,
-    "submodule" : false,
-    "local_path": null,
-    "paths": null
-},
 "Texel_Density": {
     "sync": true,
     "enable": true,
@@ -1710,24 +2234,6 @@
             "destination_path": "#\\scripts\\addons\\Texel_Density"
         }
     ]
-},
-"noodler": {
-    "sync": true,
-    "enable": true,
-    "online_url": null,
-    "branch" : null,
-    "submodule" : false,
-    "local_path": null,
-    "paths": null
-},
-"NGon Loop Select": {
-    "sync": true,
-    "enable": true,
-    "online_url": null,
-    "branch" : null,
-    "submodule" : false,
-    "local_path": null,
-    "paths": null
 },
 "quad_remesher": {
     "sync": true,
@@ -1752,33 +2258,6 @@
             "destination_path": "#\\scripts\\addons\\RestoreSymmetry"
         }
     ]
-},
-"surface_inflate": {
-    "sync": true,
-    "enable": true,
-    "online_url": null,
-    "branch" : null,
-    "submodule" : false,
-    "local_path": null,
-    "paths": null
-},
-"Pro_Aligner": {
-    "sync": true,
-    "enable": true,
-    "online_url": null,
-    "branch" : null,
-    "submodule" : false,
-    "local_path": null,
-    "paths": null
-},
-"UnwrapMe": {
-    "sync": true,
-    "enable": true,
-    "online_url": null,
-    "branch" : null,
-    "submodule" : false,
-    "local_path": null,
-    "paths": null
 },
 "Tila_Config": {
     "sync": true,

@@ -1,5 +1,5 @@
 '''
-Copyright (C) 2021 CG Cookie
+Copyright (C) 2022 CG Cookie
 http://cgcookie.com
 hello@cgcookie.com
 
@@ -124,7 +124,7 @@ class UI_Document:
 
         self._context = context
         self._area = context.area
-        self.actions = ActionHandler(bpy.context, UI_Document.default_keymap)
+        self.actions = ActionHandler(context, UI_Document.default_keymap)
         self._body = UI_Element(tagName='body', document=self)  # root level element
         self._tooltip = UI_Element(tagName='dialog', classes='tooltip', can_hover=False, parent=self._body)
         self._tooltip.is_visible = False
@@ -176,9 +176,9 @@ class UI_Document:
         if element is None: return
         def center():
             element._relative_pos = None
-            mx,my = self.actions.mouse
+            mx, my = self.actions.mouse if self.actions.mouse else (10, 10)
             # w,h = element.width_pixels,element.height_pixels
-            w,h = element.width_pixels,element._dynamic_full_size.height
+            w, h = element.width_pixels, element._dynamic_full_size.height
             l = mx-w/2
             t = -self._body.height_pixels + my + h/2
             element.reposition(left=l, top=t)
@@ -202,6 +202,12 @@ class UI_Document:
             self._under_mousedown = None
         if self._focus and self._focus.is_descendant_of(ui_element):
             self._focus = None
+
+    def force_dirty_all(self):
+        self._body.dirty(children=True)
+        self._body.dirty_styling()
+        self._body.dirty_flow()
+        tag_redraw_all('Force Dirty All')
 
     # @profiler.function
     def update(self, context, event):

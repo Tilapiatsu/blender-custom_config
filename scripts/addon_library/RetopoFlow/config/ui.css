@@ -428,7 +428,7 @@ summary {
     background: transparent;
     margin: 0px;
     border: 0px;
-    padding: 4px 6px;
+    padding: 4px 0px 0px 6px; /* leave right and bottom at 0 to help prevent wrapping of innertext! */
 }
 summary:hover {
     background: var(--option-hover-background);
@@ -581,6 +581,11 @@ div.collection > div#fpsdiv {
     margin: 4px;
 }
 
+/* these are used to show/hide content based on state */
+div.show-hide {
+    margin: 0px;
+    padding: 0px;
+}
 
 
 /********************************/
@@ -655,7 +660,7 @@ label.tool > span {
 
 
 
-label.symmetry-enable {
+label.mirror-enable {
     display: inline;
     width: 33.333%;
     overflow-x: hidden;
@@ -776,6 +781,8 @@ div#helpsystem-buttons > button {
     display: inline;
     width: 25%;
     text-align: center;
+    overflow: hidden;
+    white-space: pre;
 }
 
 
@@ -1261,7 +1268,7 @@ dialog#pie-menu {
 }
 
 div#pie-menu-contents {
-    /*   width, height, padding, border-radius are set in rf_states.py   */
+    /*   width, height, padding, border-radius are set in rf_fsm.py   */
     display: block;
     position: absolute;
     left: 0px;
@@ -1272,7 +1279,7 @@ div#pie-menu-contents {
     overflow: visible;
 }
 div.pie-menu-option {
-    /*  width, height are set in rf_states.py  */
+    /*  width, height are set in rf_fsm.py  */
     position: absolute;
     display: block;
     background-color: rgba(64, 64, 64, 0.975);
@@ -1300,7 +1307,7 @@ div.pie-menu-option:hover div.pie-menu-option-text {
     color: white;
 }
 img.pie-menu-option-image {
-    /* width is set in rf_states.py */
+    /* width is set in rf_fsm.py */
     display: block;
     width: 20px;
     height: 20px;
@@ -1311,7 +1318,7 @@ img.pie-menu-option-image {
 }
 
 div.pie-menu-center {
-    /*  width, height, border-radius are set in rf_states.py  */
+    /*  width, height, border-radius are set in rf_fsm.py  */
     position: absolute;
     background-color: rgba(0, 0, 0, 0.15);
     margin: 0px;

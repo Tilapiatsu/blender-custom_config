@@ -85,8 +85,6 @@ def draw_replace_shapekeys_list(self, context, layout, data, item, icon, active_
 	addon_prefs = preference()
 	obj = active_data
 	key_block = item
-	# print(8888,obj)
-
 
 	use_open_window = False
 	if data.animation_data:
@@ -121,8 +119,15 @@ def draw_replace_shapekeys_list(self, context, layout, data, item, icon, active_
 		row = sp.row(align=True)
 		row.alignment="RIGHT"
 
+		rows = row.row(align=True)
+		sk_bl = active_data.data.shape_keys.key_blocks
+		act_id = active_data.active_shape_key_index
+		try:
+			aff_folder_sk = get_affiliation_folder(sk_bl[act_id], act_id, sk_bl)
+			rows.enabled = bool(not item == aff_folder_sk)
+		except IndexError: pass
 
-		op = row.operator("lazy_shapekeys.folder_move_sk",text="",icon="IMPORT",emboss=False)
+		op = rows.operator("lazy_shapekeys.folder_move_sk",text="",icon="IMPORT",emboss=False)
 		op.index = -1
 		op.folder_name = item.name
 		op.obj_name =  obj.name
@@ -236,6 +241,7 @@ def LAZYSHAPEKEYS_PT_shape_keys_innner(self, context, is_misc_menu, layout, tgt_
 
 	key = ob.data.shape_keys
 	kb = ob.active_shape_key
+	addon_prefs = preference()
 
 	enable_edit = ob.mode != 'EDIT'
 	enable_edit_value = False
@@ -247,10 +253,10 @@ def LAZYSHAPEKEYS_PT_shape_keys_innner(self, context, is_misc_menu, layout, tgt_
 			enable_edit_value = True
 
 	row = layout.row(align=True)
-	row.prop(props,"list_mode",expand=True)
-	if props.list_mode == "FOLDER":
+	row.prop(addon_prefs,"list_mode",expand=True)
+	if addon_prefs.list_mode == "FOLDER":
 		draw_folder(self, context, layout, tgt_obj, is_misc_menu)
-	elif props.list_mode == "SYNC":
+	elif addon_prefs.list_mode == "SYNC":
 		draw_sync(self, context ,layout)
 
 	else:
@@ -293,7 +299,7 @@ def LAZYSHAPEKEYS_PT_shape_keys_innner(self, context, is_misc_menu, layout, tgt_
 			sub.operator("object.shape_key_retime", icon='RECOVER_LAST', text="")
 
 
-		if not is_folder(kb):
+		if not is_folder(kb) or addon_prefs.display_folder_sk_option:
 			if key.use_relative:
 				if ob.active_shape_key_index != 0:
 					row = layout.row()
@@ -325,7 +331,6 @@ def LAZYSHAPEKEYS_PT_shape_keys_innner(self, context, is_misc_menu, layout, tgt_
 			# layout.operator("lazy_shapekeys.shape_keys_separeate",icon="MOD_MIRROR")
 
 
-
 # フォルダー
 def draw_folder(self,context,layout, tgt_obj, is_misc_menu):
 	ob = tgt_obj
@@ -344,6 +349,7 @@ def draw_folder(self,context,layout, tgt_obj, is_misc_menu):
 	row = sp.row(align=True)
 	op = row.operator("lazy_shapekeys.item_add", icon='NEWFOLDER', text="")
 	op.obj_name = ob.name
+	op.move_to_act_pos = False
 	rows = row.row(align=True)
 	rows.active = is_use_folder
 	op = rows.operator("lazy_shapekeys.sk_item_remove", icon='REMOVE', text="")
@@ -433,7 +439,7 @@ def draw_sidebar(self, context, layout, tgt_obj, is_in_folder):
 	col.separator()
 	op = col.operator("lazy_shapekeys.item_add", icon='NEWFOLDER', text="")
 	op.obj_name = ob.name
-
+	op.move_to_act_pos = True
 
 
 # 同期

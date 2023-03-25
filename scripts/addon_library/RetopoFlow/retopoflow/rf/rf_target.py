@@ -1,5 +1,5 @@
 '''
-Copyright (C) 2021 CG Cookie
+Copyright (C) 2022 CG Cookie
 http://cgcookie.com
 hello@cgcookie.com
 
@@ -49,8 +49,9 @@ class RetopoFlow_Target:
     # @profiler.function
     def setup_target(self):
         ''' target is the active object.  must be selected and visible '''
-        assert self.tar_object, 'Could not find valid target?'
-        self.rftarget = RFTarget.new(self.tar_object, self.unit_scaling_factor)
+        tar_object = self.get_target()
+        assert tar_object, 'Could not find valid target?'
+        self.rftarget = RFTarget.new(tar_object, self.unit_scaling_factor)
         opts = visualization.get_target_settings()
         self.rftarget_draw = RFMeshRender.new(self.rftarget, opts)
         self.rftarget_version = None
@@ -75,16 +76,38 @@ class RetopoFlow_Target:
         self.rftarget.obj_viewport_hide()
         self.rftarget.obj_render_hide()
 
+    def check_target_symmetry(self):
+        bad = self.rftarget.check_symmetry()
+        if not bad: return
+
+        message = ['\n'.join([
+            f'Symmetry is enabled on the {", ".join(bad)} {"axis" if len(bad)==1 else "axes"}, but vertices were found on the "wrong" side of the symmetry {"plane" if len(bad)==1 else "planes"}.',
+            f'',
+            f'Editing these vertices will cause them to snap to the symmetry plane.',
+            f'(Editing vertices on the "correct" side of symmetry will work as expected)',
+            f'',
+            f'You can see these vertices by clicking Select Bad Symmetry button under Target Cleaning > Symmetry',
+        ])]
+
+        self.alert_user(
+            title='Bad Target Symmetry',
+            message='\n\n'.join(message),
+            level='warning',
+        )
+
+    def select_bad_symmetry(self):
+        self.deselect_all()
+        self.rftarget.select_bad_symmetry()
+
     def teardown_target(self):
-        # IMPORTANT: changes here should also go in rf_blendersave.backup_recover()
+        # IMPORTANT: changes here should also go in rf_blender_save.backup_recover()
         self.rftarget.obj_viewport_unhide()
         self.rftarget.obj_render_unhide()
 
     def done_target(self):
         del self.rftarget_draw
         del self.rftarget
-        self.tar_object.to_mesh_clear()
-        del self.tar_object
+        self.get_target().to_mesh_clear()
 
 
     #########################################
@@ -367,9 +390,9 @@ class RetopoFlow_Target:
     ########################################
     # symmetry utils
 
-    def apply_symmetry(self):
-        self.undo_push('applying symmetry')
-        self.rftarget.apply_symmetry(self.nearest_sources_Point)
+    def apply_mirror_symmetry(self):
+        self.undo_push('applying mirror symmetry')
+        self.rftarget.apply_mirror_symmetry(self.nearest_sources_Point)
 
     # @profiler.function
     def clip_pointloop(self, pointloop, connected):
@@ -466,9 +489,8 @@ class RetopoFlow_Target:
     def push_then_snap_all_verts(self):
         self.undo_push('push then snap all non-hidden verts')
         d = options['push and snap distance']
-        bmvs = self.rftarget.get_verts()
-        for bmv in bmvs:
-            if not bmv.hide: bmv.co += bmv.normal * d
+        bmvs = [bmv for bmv in self.rftarget.get_verts() if not bmv.hide]
+        for bmv in bmvs: bmv.co += bmv.normal * d
         self.rftarget.snap_all_nonhidden_verts(self.nearest_sources_Point)
         self.recalculate_face_normals(verts=bmvs)
 
@@ -476,8 +498,7 @@ class RetopoFlow_Target:
         self.undo_push('push then snap selected verts')
         d = options['push and snap distance']
         bmvs = self.rftarget.get_selected_verts()
-        for bmv in bmvs:
-            if bmv.select: bmv.co += bmv.normal * d
+        for bmv in bmvs: bmv.co += bmv.normal * d
         self.rftarget.snap_selected_verts(self.nearest_sources_Point)
         self.recalculate_face_normals(verts=bmvs)
 
@@ -573,21 +594,22 @@ class RetopoFlow_Target:
 
 
     def new_vert_point(self, xyz:Point):
-        xyz,norm,_,_ = self.nearest_sources_Point(xyz)
+        if not xyz: return None
+        xyz, norm, _, _ = self.nearest_sources_Point(xyz)
         if not xyz or not norm: return None
         rfvert = self.rftarget.new_vert(xyz, norm)
         d = self.Point_to_Direction(xyz)
-        _,n,_,_ = self.raycast_sources_Point(xyz)
+        _, n, _, _ = self.raycast_sources_Point(xyz)
         if d and n and n.dot(d) > 0.5: self._detected_bad_normals = True
         # if (d is None or norm.dot(d) > 0.5) and self.is_visible(rfvert.co, bbox_factor_override=0, dist_offset_override=0):
         #     self._detected_bad_normals = True
         return rfvert
 
     def new2D_vert_point(self, xy:Point2D):
-        xyz,norm,_,_ = self.raycast_sources_Point2D(xy)
+        xyz, norm, _, _ = self.raycast_sources_Point2D(xy)
         if not xyz or not norm: return None
         rfvert = self.rftarget.new_vert(xyz, norm)
-        if rfvert.normal.dot(self.Point2D_to_Direction(xy)) > 0 and self.is_visible(rfvert.co):
+        if rfvert.normal.dot(self.Point2D_to_Direction(xy)) >= 0 and self.is_visible(rfvert.co):
             self._detected_bad_normals = True
         return rfvert
 
@@ -606,7 +628,8 @@ class RetopoFlow_Target:
         for pair0,pair1 in zip(iter_pairs(vloop0, connected), iter_pairs(vloop1, connected)):
             v00,v01 = pair0
             v10,v11 = pair1
-            faces += [self.new_face((v00,v01,v11,v10))]
+            nf = self.new_face((v00,v01,v11,v10))
+            if nf: faces.append(nf)
         return faces
 
     def holes_fill(self, edges, sides):
@@ -745,6 +768,28 @@ class RetopoFlow_Target:
         eloop,connected = self.get_inner_edge_loop(edge)
         self.rftarget.select(eloop, **kwargs)
 
+    def pin_selected(self):
+        self.undo_push('pinning selected')
+        self.rftarget.pin_selected()
+        self.dirty()
+    def unpin_selected(self):
+        self.undo_push('unpinning selected')
+        self.rftarget.unpin_selected()
+        self.dirty()
+    def unpin_all(self):
+        self.undo_push('unpinning all')
+        self.rftarget.unpin_all()
+        self.dirty()
+
+    def mark_seam_selected(self):
+        self.undo_push('pinning selected')
+        self.rftarget.mark_seam_selected()
+        self.dirty()
+    def clear_seam_selected(self):
+        self.undo_push('unpinning selected')
+        self.rftarget.clear_seam_selected()
+        self.dirty()
+
     def hide_selected(self):
         self.undo_push('hide selected')
         selected = set()
@@ -865,6 +910,7 @@ class RetopoFlow_Target:
     def update_rot_object(self):
         bbox = self.rftarget.get_selection_bbox()
         if bbox.min == None:
+            if not options['move rotate object if no selection']: return
             #bbox = BBox.merge(src.get_bbox() for src in self.rfsources)
             bboxes = []
             for s in self.rfsources:

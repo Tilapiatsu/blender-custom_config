@@ -1,5 +1,5 @@
 '''
-Copyright (C) 2021 CG Cookie
+Copyright (C) 2022 CG Cookie
 https://github.com/CGCookie/retopoflow
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -26,7 +26,20 @@ class CookieCutter_Exceptions:
         print(f'    action: {action}')
         debugger.print_exception()
         if fatal: assert False
-        CookieCutter_Exceptions._instance._callback_exception_callbacks(e)
+        if hasattr(CookieCutter_Exceptions, '_instance'):
+            CookieCutter_Exceptions._instance._callback_exception_callbacks(e)
+
+    @staticmethod
+    @contextlib.contextmanager
+    def try_exception(action, *, fatal=False, fn_succeed=None, fn_exception=None, fn_finally=None):
+        try:
+            yield
+            if fn_succeed: fn_succeed()
+        except Exception as e:
+            CookieCutter_Exceptions._handle_exception(e, action, fatal=fatal)
+            if fn_exception: fn_exception(e)
+        finally:
+            if fn_finally: fn_finally()
 
     @staticmethod
     def _exception_callback_wrapper(fn):
@@ -54,5 +67,6 @@ class CookieCutter_Exceptions:
 
     def _cc_exception_done(self):
         del self._exceptionhandler
+        del CookieCutter_Exceptions._instance
         self._exceptionhandler = None
         ExceptionHandler.clear_universal_callbacks()

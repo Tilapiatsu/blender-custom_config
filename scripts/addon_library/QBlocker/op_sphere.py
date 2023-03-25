@@ -1,8 +1,8 @@
 import bpy
-import bmesh
-import gpu
+# import bmesh
+# import gpu
 from .op_mesh import *
-from .qsphere import *
+from .qobjects.qsphere import *
 
 
 # box create op new
@@ -18,6 +18,7 @@ class SphereCreateOperator(MeshCreateOperator):
 
     meshSegments = 16
     originalSegments = 16
+    minSegment = 4
 
     # create Qobject tpye
     def CreateQobject(self):
@@ -29,9 +30,20 @@ class SphereCreateOperator(MeshCreateOperator):
 
     def ChangeMeshSegments(self):
         allstep = int((self.mouse_pos[0] - self.mouseStart[0]) // self.inc_px)
-        prevalue = max(4, min(128, self.qObject.originalSegments + allstep))
+        prevalue = max(self.minSegment, min(128, self.qObject.originalSegments + allstep))
         if prevalue != self.qObject.meshSegments:
             self.qObject.meshSegments = prevalue
             self.mouseEnd_x = self.mouseStart[0] + ((prevalue - self.qObject.originalSegments) * self.inc_px)
             self.qObject.UpdateMesh()
         self.meshSegments = self.qObject.meshSegments
+
+    # step mesh segments dinamically
+    def StepMeshSegments(self, _val):
+        if _val == 1 and self.meshSegments < 128:
+            self.meshSegments += 1
+            self.qObject.meshSegments = self.meshSegments
+            self.qObject.UpdateMesh()
+        if _val == -1 and self.meshSegments > self.minSegment:
+            self.meshSegments -= 1
+            self.qObject.meshSegments = self.meshSegments
+            self.qObject.UpdateMesh()

@@ -68,7 +68,7 @@ class AddItemOperator:
     bl_description = "Add an item"
     bl_options = {'INTERNAL'}
 
-    idx = bpy.props.IntProperty(default=-1, options={'SKIP_SAVE'})
+    idx: bpy.props.IntProperty(default=-1, options={'SKIP_SAVE'})
 
     def get_collection(self):
         return None
@@ -96,10 +96,10 @@ class MoveItemOperator:
     bl_description = "Move the item"
     bl_options = {'INTERNAL'}
 
-    old_idx = bpy.props.IntProperty(default=-1, options={'SKIP_SAVE'})
-    old_idx_last = bpy.props.IntProperty(default=-1, options={'SKIP_SAVE'})
-    new_idx = bpy.props.IntProperty(default=-1, options={'SKIP_SAVE'})
-    swap = bpy.props.BoolProperty(options={'SKIP_SAVE'})
+    old_idx: bpy.props.IntProperty(default=-1, options={'SKIP_SAVE'})
+    old_idx_last: bpy.props.IntProperty(default=-1, options={'SKIP_SAVE'})
+    new_idx: bpy.props.IntProperty(default=-1, options={'SKIP_SAVE'})
+    swap: bpy.props.BoolProperty(options={'SKIP_SAVE'})
 
     def get_collection(self):
         return None
@@ -181,8 +181,8 @@ class RemoveItemOperator:
     bl_description = "Remove item(s)"
     bl_options = {'INTERNAL'}
 
-    idx = bpy.props.IntProperty(default=-1, options={'SKIP_SAVE'})
-    all = bpy.props.BoolProperty(options={'SKIP_SAVE'})
+    idx: bpy.props.IntProperty(default=-1, options={'SKIP_SAVE'})
+    all: bpy.props.BoolProperty(options={'SKIP_SAVE'})
 
     def get_collection(self):
         return None

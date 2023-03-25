@@ -108,6 +108,9 @@ def init_addon(
 def get_classes():
     ret = set()
     bpy_struct = bpy.types.bpy_struct
+    cprop = bpy.props.CollectionProperty
+    pprop = bpy.props.PointerProperty
+    pdtype = getattr(bpy.props, "_PropertyDeferred", tuple)
     mems = set()
     mem_data = []
     for mod in MODULE_NAMES:
@@ -120,15 +123,16 @@ def get_classes():
                 mems.add(mem)
                 classes = []
 
-                cprop = bpy.props.CollectionProperty
-                pprop = bpy.props.PointerProperty
-                for pname, pvalue in vars(mem).items():
-                    if not isinstance(pvalue, tuple):
-                        continue
+                if hasattr(mem, "__annotations__"):
+                    for pname, pd in mem.__annotations__.items():
+                        if not isinstance(pd, pdtype):
+                            continue
 
-                    ptype = pvalue[0]
-                    if ptype is cprop or ptype is pprop:
-                        classes.append(pvalue[1]["type"])
+                        pfunc = getattr(pd, "function", None) or pd[0]
+                        pkeywords = pd.keywords if hasattr(pd, "keywords") \
+                            else pd[1]
+                        if pfunc is cprop or pfunc is pprop:
+                            classes.append(pkeywords["type"])
 
                 if not classes:
                     ret.add(mem)
@@ -222,9 +226,9 @@ class Timeout:
     bl_options = {'INTERNAL'}
     data = dict()
 
-    idx = bpy.props.IntProperty(
+    idx: bpy.props.IntProperty(
         name="Index", options={'SKIP_SAVE', 'HIDDEN'})
-    delay = bpy.props.FloatProperty(
+    delay: bpy.props.FloatProperty(
         name="Delay (s)", description="Delay in seconds",
         default=0.0001, options={'SKIP_SAVE', 'HIDDEN'})
 

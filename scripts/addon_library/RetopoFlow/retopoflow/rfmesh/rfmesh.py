@@ -1,5 +1,5 @@
 '''
-Copyright (C) 2021 CG Cookie
+Copyright (C) 2022 CG Cookie
 http://cgcookie.com
 hello@cgcookie.com
 
@@ -22,6 +22,7 @@ Created by Jonathan Denning, Jonathan Williamson
 import math
 import copy
 import heapq
+import random
 from dataclasses import dataclass, field
 
 import bpy
@@ -42,7 +43,7 @@ from ...addon_common.common.maths import Point, Normal, Direction
 from ...addon_common.common.maths import Point2D
 from ...addon_common.common.maths import Ray, XForm, BBox, Plane
 from ...addon_common.common.hasher import hash_object, Hasher
-from ...addon_common.common.utils import min_index, UniqueCounter, iter_pairs, accumulate_last
+from ...addon_common.common.utils import min_index, UniqueCounter, iter_pairs, accumulate_last, deduplicate_list, has_duplicates
 from ...addon_common.common.decorators import stats_wrapper, blender_version_wrapper
 from ...addon_common.common.debug import dprint
 from ...addon_common.common.profiler import profiler, time_it
@@ -112,7 +113,6 @@ class RFMesh():
         # setup init
         self.obj = obj
         self.xform = XForm(self.obj.matrix_world)
-        # print('hashing object')
         self.hash = hash_object(self.obj)
         self._version = None
         self._version_selection = None
@@ -140,6 +140,10 @@ class RFMesh():
         if triangulate:
             # print('RFMesh.__setup__: triangulating')
             self.triangulate()
+
+        for bmv in self.bme.verts:
+            if not bmv.is_wire:
+                bmv.normal_update()
 
         # setup finishing
         self.selection_center = Point((0, 0, 0))
@@ -242,22 +246,10 @@ class RFMesh():
     def get_obj_name(self):
         return self.obj.name
 
-    @blender_version_wrapper('<', '2.80')
-    def obj_viewport_hide_get(self): return self.obj.hide
-    @blender_version_wrapper('>=', '2.80')
     def obj_viewport_hide_get(self): return self.obj.hide_viewport
-    @blender_version_wrapper('<', '2.80')
-    def obj_viewport_hide_set(self, v): self.obj.hide = v
-    @blender_version_wrapper('>=', '2.80')
     def obj_viewport_hide_set(self, v): self.obj.hide_viewport = v
 
-    @blender_version_wrapper('<','2.80')
-    def obj_select_get(self): return self.obj.select
-    @blender_version_wrapper('>=','2.80')
     def obj_select_get(self): return self.obj.select_get()
-    @blender_version_wrapper('<','2.80')
-    def obj_select_set(self, v): self.obj.select = v
-    @blender_version_wrapper('>=','2.80')
     def obj_select_set(self, v): self.obj.select_set(v)
 
     def obj_render_hide_get(self): return self.obj.hide_render
@@ -664,11 +656,12 @@ class RFMesh():
     def raycast(self, ray:Ray):
         ray_local = self.xform.w2l_ray(ray)
         p,n,i,d = self.get_bvh().ray_cast(ray_local.o, ray_local.d, ray_local.max)
-        if p is None: return (None,None,None,None)
+        if p is None: return (None, None, None, None)
         #if not self.get_bbox().Point_within(p, margin=1):
         #    return (None,None,None,None)
         p_w,n_w = self.xform.l2w_point(p), self.xform.l2w_normal(n)
         d_w = (ray.o - p_w).length
+        if math.isinf(d_w) or math.isnan(d_w): return (None, None, None, None)
         return (p_w,n_w,i,d_w)
 
     def raycast_all(self, ray:Ray):
@@ -1222,7 +1215,7 @@ class RFMesh():
         touched = set()
         edges = [edge]
 
-        '''
+        r'''
         description of crawl(bme0, bmv01) below...
         given: bme0=A, bmv01=B
         find:  bme1=C, bmv12=D
@@ -1369,6 +1362,10 @@ class RFSource(RFMesh):
     def __str__(self):
         return '<RFSource %s>' % self.obj.name
 
+    @property
+    def layer_pin(self):
+        return None
+
 
 
 class RFTarget(RFMesh):
@@ -1415,6 +1412,11 @@ class RFTarget(RFMesh):
         self.yz_symmetry_accel = yz_symmetry_accel
         self.unit_scaling_factor = unit_scaling_factor
 
+    @property
+    def layer_pin(self):
+        il = self.bme.verts.layers.int
+        return il['pin'] if 'pin' in il else il.new('pin')
+
     def setup_mirror(self):
         self.mirror_mod = ModifierWrapper_Mirror.get_from_object(self.obj)
         if not self.mirror_mod:
@@ -1445,10 +1447,25 @@ class RFTarget(RFMesh):
         px,py,pz = point
         threshold = self.mirror_mod.symmetry_threshold * self.unit_scaling_factor / 2.0
         symmetry = set()
-        if self.mirror_mod.x and px <= threshold: symmetry.add('x')
+        if self.mirror_mod.x and  px <= threshold: symmetry.add('x')
         if self.mirror_mod.y and -py <= threshold: symmetry.add('y')
-        if self.mirror_mod.z and pz <= threshold: symmetry.add('z')
+        if self.mirror_mod.z and  pz <= threshold: symmetry.add('z')
         return symmetry
+
+    def check_symmetry(self):
+        threshold = self.mirror_mod.symmetry_threshold * self.unit_scaling_factor / 2.0
+        ret = list()
+        if self.mirror_mod.x and any(bmv.co.x < -threshold for bmv in self.bme.verts): ret.append('X')
+        if self.mirror_mod.y and any(bmv.co.y >  threshold for bmv in self.bme.verts): ret.append('Y')
+        if self.mirror_mod.z and any(bmv.co.z < -threshold for bmv in self.bme.verts): ret.append('Z')
+        return ret
+
+    def select_bad_symmetry(self):
+        threshold = self.mirror_mod.symmetry_threshold * self.unit_scaling_factor / 2.0
+        for bmv in self.bme.verts:
+            if self.mirror_mod.x and bmv.co.x < -threshold: bmv.select = True
+            if self.mirror_mod.y and bmv.co.y >  threshold: bmv.select = True
+            if self.mirror_mod.z and bmv.co.z < -threshold: bmv.select = True
 
     def snap_to_symmetry(self, point, symmetry, from_world=True, to_world=True):
         if not symmetry and from_world == to_world: return point
@@ -1526,36 +1543,52 @@ class RFTarget(RFMesh):
     def cancel(self):
         self.restore_state()
 
+
     def clean(self):
         super().clean()
+
         version = self.get_version()
         if self.editmesh_version == version: return
         self.editmesh_version = version
 
-        # print('CLEANING RFTARGET')
+        try:
+            self._clean_mesh()
+            self._clean_selection()
+            self._clean_mirror()
+            self._clean_displace()
+        except Exception as e:
+            print(f'Caught Exception while trying to clean RFTarget: {e}')
+            self.handle_exception(e)
 
-        # bpy.ops.object.editmode_toggle()
-        self.bme.to_mesh(self.obj.data)
-        # bpy.ops.object.editmode_toggle()
+    def _clean_mesh(self):
+        prev_mesh = self.obj.data
+        prev_mesh_name = prev_mesh.name
+        new_mesh = self.obj.data.copy()
+        self.bme.to_mesh(new_mesh)
+        self.obj.data = new_mesh
+        bpy.data.meshes.remove(prev_mesh)
+        new_mesh.name = prev_mesh_name
 
-        # bmesh.update_edit_mesh(self.obj.data)
+    def _clean_selection(self):
         for bmv,emv in zip(self.bme.verts, self.obj.data.vertices):
             emv.select = bmv.select
         for bme,eme in zip(self.bme.edges, self.obj.data.edges):
             eme.select = bme.select
         for bmf,emf in zip(self.bme.faces, self.obj.data.polygons):
             emf.select = bmf.select
-        self.mirror_mod.write()
-        self.clean_displace()
 
-    def clean_displace(self):
+    def _clean_mirror(self):
+        self.mirror_mod.write()
+
+    def _clean_displace(self):
         self.displace_mod.strength = self.displace_strength
+
 
     def enable_symmetry(self, axis): self.mirror_mod.enable_axis(axis)
     def disable_symmetry(self, axis): self.mirror_mod.disable_axis(axis)
     def has_symmetry(self, axis): return self.mirror_mod.is_enabled_axis(axis)
 
-    def apply_symmetry(self, nearest):
+    def apply_mirror_symmetry(self, nearest):
         out = []
         def apply_mirror_and_return_geom(axis):
             return mirror(
@@ -1602,12 +1635,10 @@ class RFTarget(RFMesh):
         )
         if face_in_common: return next(iter(face_in_common))
         verts = [self._unwrap(v) for v in verts]
-        # make sure there are now duplicate verts (issue #957)
-        seen, nverts = set(), list()
-        for v in verts:
-            if v in seen: continue
-            seen.add(v)
-            nverts.append(v)
+        # make sure there are no duplicate verts (issue #957)
+        # however, this _could_ reduce vert count < 3
+        nverts = deduplicate_list(verts)
+        if len(nverts) < 3: return None
         bmf = self.bme.faces.new(nverts)
         self.update_face_normal(bmf)
         return self._wrap_bmface(bmf)
@@ -1641,44 +1672,44 @@ class RFTarget(RFMesh):
                 for f in v.link_faces:
                     if f not in faces: continue
                     working_next |= {v_ for v_ in f.verts if v_ in remaining}
-            average = Point.average([v.co for v in working])
+            average = Point.average(v.co for v in working)
             p, n, _, _ = nearest(average)
-            bmv = self.new_vert(p, n)
+            rfv = self.new_vert(p, n)
             for v in working:
-                bmv = bmv.merge_robust(v)
-            bmv.co = p
-            bmv.normal = n
-            bmv.select = True
+                rfv = rfv.merge_robust(v)
+            rfv.co = p
+            rfv.normal = n
+            rfv.select = True
 
 
     def delete_selection(self, del_empty_edges=True, del_empty_verts=True, del_verts=True, del_edges=True, del_faces=True):
         if del_faces:
-            faces = set(f for f in self.bme.faces if f.select)
+            faces = { f for f in self.bme.faces if f.select }
             self.delete_faces(faces, del_empty_edges=del_empty_edges, del_empty_verts=del_empty_verts)
         if del_edges:
-            edges = set(e for e in self.bme.edges if e.select)
+            edges = { e for e in self.bme.edges if e.select }
             self.delete_edges(edges, del_empty_verts=del_empty_verts)
         if del_verts:
-            verts = set(v for v in self.bme.verts if v.select)
+            verts = { v for v in self.bme.verts if v.select }
             self.delete_verts(verts)
 
 
     def delete_verts(self, verts):
         for bmv in map(self._unwrap, verts):
-            if bmv.is_valid: self.bme.verts.remove(bmv)
+            if bmv.is_valid and not bmv.hide: self.bme.verts.remove(bmv)
 
     def delete_edges(self, edges, del_empty_verts=True):
-        edges = set(self._unwrap(e) for e in edges)
-        verts = set(v for e in edges for v in e.verts)
+        edges = { self._unwrap(e) for e in edges if e.is_valid and not e.hide }
+        verts = { v for e in edges for v in e.verts }
         for bme in edges: self.bme.edges.remove(bme)
         if del_empty_verts:
             for bmv in verts:
                 if len(bmv.link_edges) == 0: self.bme.verts.remove(bmv)
 
     def delete_faces(self, faces, del_empty_edges=True, del_empty_verts=True):
-        faces = set(self._unwrap(f) for f in faces)
-        edges = set(e for f in faces for e in f.edges)
-        verts = set(v for f in faces for v in f.verts)
+        faces = { self._unwrap(f) for f in faces if f.is_valid and not f.hide }
+        edges = { e for f in faces for e in f.edges }
+        verts = { v for f in faces for v in f.verts }
         for bmf in faces: self.bme.faces.remove(bmf)
         if del_empty_edges:
             for bme in edges:
@@ -1688,19 +1719,19 @@ class RFTarget(RFMesh):
                 if len(bmv.link_faces) == 0: self.bme.verts.remove(bmv)
 
     def dissolve_verts(self, verts, use_face_split=False, use_boundary_tear=False):
-        verts = list(map(self._unwrap, verts))
+        verts = [ self._unwrap(v) for v in verts if v.is_valid and not v.hide ]
         dissolve_verts(self.bme, verts=verts, use_face_split=use_face_split, use_boundary_tear=use_boundary_tear)
 
     def dissolve_edges(self, edges, use_verts=True, use_face_split=False):
-        edges = list(map(self._unwrap, edges))
+        edges = [ self._unwrap(e) for e in edges if e.is_valid and not e.hide ]
         dissolve_edges(self.bme, edges=edges, use_verts=use_verts, use_face_split=use_face_split)
 
     def dissolve_faces(self, faces, use_verts=True):
-        faces = list(map(self._unwrap, faces))
+        faces = [ self._unwrap(f) for f in faces if f.is_valid and not f.hide ]
         dissolve_faces(self.bme, faces=faces, use_verts=use_verts)
 
     def update_verts_faces(self, verts):
-        faces = set(f for v in verts if v.is_valid for f in self._unwrap(v).link_faces)
+        faces = { f for v in verts if v.is_valid for f in self._unwrap(v).link_faces }
         for bmf in faces:
             n = compute_normal(v.co for v in bmf.verts)
             vnorm = sum((v.normal for v in bmf.verts), Vector())
@@ -1746,9 +1777,12 @@ class RFTarget(RFMesh):
                 bmf = self._wrap_bmface(bme1.link_faces[0])
                 s = bmf.select
                 self.bme.edges.remove(bme1)
-                mapping[bmf] = self.new_face(lbmv)
-                mapping[bmf].select = s
-                #self.create_face(lbmv)
+                nf = self.new_face(lbmv)
+                if not nf:
+                    print(f'clean_duplicate_bmedges: could not create new bmface: {lbmv}')
+                else:
+                    mapping[bmf] = nf
+                    mapping[bmf].select = s
                 handled = True
             if not handled:
                 # assert handled, 'unhandled count of linked faces %d, %d' % (l0,l1)
@@ -1778,11 +1812,11 @@ class RFTarget(RFMesh):
         '''
         snap verts when fn_filter returns True
         '''
-        for v in self.get_verts():
-            if not fn_filter(v): continue
-            xyz,norm,_,_ = nearest(v.co)
-            v.co = xyz
-            v.normal = norm
+        for rfv in self.iter_verts():
+            if not fn_filter(rfv): continue
+            xyz,norm,_,_ = nearest(rfv.co)
+            rfv.co = xyz
+            rfv.normal = norm
         self.dirty()
 
 #    def snap_all_verts(self, nearest):
@@ -1796,6 +1830,23 @@ class RFTarget(RFMesh):
 
 #     def snap_unselected_verts(self, nearest):
 #         self.snap_verts_filter(nearest, lambda v: v.unselect)
+
+    def pin_selected(self):
+        for v in self.iter_verts():
+            if v.select: v.pinned = True
+    def unpin_selected(self):
+        for v in self.iter_verts():
+            if v.select: v.pinned = False
+    def unpin_all(self):
+        for v in self.iter_verts():
+            v.pinned = False
+
+    def mark_seam_selected(self):
+        for v in self.iter_edges():
+            if v.select: v.seam = True
+    def clear_seam_selected(self):
+        for v in self.iter_edges():
+            if v.select: v.seam = False
 
     def remove_all_doubles(self, dist):
         bmv = [v for v in self.bme.verts if not v.hide]
@@ -1812,7 +1863,8 @@ class RFTarget(RFMesh):
             bmf.normal_flip()
             for bmv in bmf.verts: verts.add(bmv)
         for bmv in verts:
-            bmv.normal_update()
+            if not bmv.is_wire:
+                bmv.normal_update()
         self.dirty()
 
     def recalculate_face_normals(self, *, verts=None, faces=None):

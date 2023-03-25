@@ -1,5 +1,5 @@
 '''
-Copyright (C) 2021 CG Cookie
+Copyright (C) 2022 CG Cookie
 http://cgcookie.com
 hello@cgcookie.com
 
@@ -38,7 +38,7 @@ import ctypes
 import random
 import traceback
 
-import bgl
+import gpu
 import bpy
 from bpy_extras.view3d_utils import (
     location_3d_to_region_2d, region_2d_to_vector_3d
@@ -49,6 +49,7 @@ from bpy_extras.view3d_utils import (
 from mathutils import Vector, Matrix, Quaternion
 from mathutils.bvhtree import BVHTree
 
+from . import gpustate
 from .debug import dprint
 from .drawing import Drawing
 from .shaders import Shader
@@ -56,7 +57,7 @@ from .utils import shorten_floats
 from .maths import Point, Direction, Frame, XForm
 from .maths import invert_matrix, matrix_normal
 from .profiler import profiler
-from .decorators import blender_version_wrapper, add_cache
+from .decorators import blender_version_wrapper, add_cache, only_in_blender_version
 
 
 
@@ -70,83 +71,12 @@ from .decorators import blender_version_wrapper, add_cache
 #      3.2    150      4.4    440
 #      3.3    330      4.5    450
 #                      4.6    460
-print('Addon Common: (bmesh_render) GLSL Version:', bgl.glGetString(bgl.GL_SHADING_LANGUAGE_VERSION))
+print(f'Addon Common: (bmesh_render) GLSL Version: {gpustate.gpu_info()}')
 
 
-@blender_version_wrapper('<', '2.80')
 def glSetDefaultOptions():
-    bgl.glDisable(bgl.GL_LIGHTING)
-    bgl.glEnable(bgl.GL_MULTISAMPLE)
-    bgl.glEnable(bgl.GL_BLEND)
-    bgl.glEnable(bgl.GL_DEPTH_TEST)
-    bgl.glEnable(bgl.GL_POINT_SMOOTH)
-    bgl.glEnable(bgl.GL_LINE_SMOOTH)
-    bgl.glHint(bgl.GL_LINE_SMOOTH_HINT, bgl.GL_NICEST)
-@blender_version_wrapper('>=', '2.80')
-def glSetDefaultOptions():
-    # bgl.glEnable(bgl.GL_MULTISAMPLE)
-    bgl.glEnable(bgl.GL_BLEND)
-    bgl.glEnable(bgl.GL_DEPTH_TEST)
-    # bgl.glEnable(bgl.GL_LINE_SMOOTH)
-    # bgl.glHint(bgl.GL_LINE_SMOOTH_HINT, bgl.GL_NICEST)
-
-@blender_version_wrapper('<', '2.80')
-def glEnableStipple(enable=True):
-    if enable:
-        bgl.glLineStipple(4, 0x5555)
-        bgl.glEnable(bgl.GL_LINE_STIPPLE)
-    else:
-        bgl.glDisable(bgl.GL_LINE_STIPPLE)
-@blender_version_wrapper('>=', '2.80')
-def glEnableStipple(enable=True):
-    pass
-    # if enable:
-    #     bgl.glLineStipple(4, 0x5555)
-    #     bgl.glEnable(bgl.GL_LINE_STIPPLE)
-    # else:
-    #     bgl.glDisable(bgl.GL_LINE_STIPPLE)
-
-
-# def glEnableBackfaceCulling(enable=True):
-#     if enable:
-#         bgl.glDisable(bgl.GL_CULL_FACE)
-#         bgl.glDepthFunc(bgl.GL_GEQUAL)
-#     else:
-#         bgl.glDepthFunc(bgl.GL_LEQUAL)
-#         bgl.glEnable(bgl.GL_CULL_FACE)
-
-
-def glSetOptions(prefix, opts):
-    if not opts: return
-
-    prefix = '%s ' % prefix if prefix else ''
-
-    def set_if_set(opt, cb):
-        opt = '%s%s' % (prefix, opt)
-        if opt not in opts: return
-        cb(opts[opt])
-        Drawing.glCheckError('setting %s to %s' % (str(opt), str(opts[opt])))
-    def set_linewidth(v):
-        dpi_mult = opts.get('dpi mult', 1.0)
-        #bgl.glLineWidth(v*dpi_mult)
-        Drawing.glCheckError('setting line width to %s' % (str(v*dpi_mult)))
-    def set_pointsize(v):
-        dpi_mult = opts.get('dpi mult', 1.0)
-        bgl.glPointSize(v*dpi_mult)
-        Drawing.glCheckError('setting point size to %s' % (str(v*dpi_mult)))
-    def set_stipple(v):
-        glEnableStipple(v)
-        Drawing.glCheckError('setting stipple to %s' % (str(v)))
-    Drawing.glCheckError('about to set options')
-    set_if_set('offset',         lambda v: bmeshShader.assign('offset', v))
-    set_if_set('dotoffset',      lambda v: bmeshShader.assign('dotoffset', v))
-    set_if_set('color',          lambda v: bmeshShader.assign('color', v))
-    set_if_set('color selected', lambda v: bmeshShader.assign('color_selected', v))
-    set_if_set('color warning',  lambda v: bmeshShader.assign('color_warning', v))
-    set_if_set('hidden',         lambda v: bmeshShader.assign('hidden', v))
-    set_if_set('width',          set_linewidth)
-    set_if_set('size',           set_pointsize)
-    set_if_set('stipple',        set_stipple)
+    gpustate.blend('ALPHA')
+    gpustate.depth_test('LESS_EQUAL')
 
 
 def glSetMirror(symmetry=None, view=None, effect=0.0, frame: Frame=None):
@@ -190,46 +120,65 @@ import gpu
 from gpu_extras.batch import batch_for_shader
 from .shaders import Shader
 
+Drawing.glCheckError(f'Pre-compile check: bmesh render shader')
 verts_vs, verts_fs = Shader.parse_file('bmesh_render_verts.glsl', includeVersion=False)
 verts_shader = gpu.types.GPUShader(verts_vs, verts_fs)
 edges_vs, edges_fs = Shader.parse_file('bmesh_render_edges.glsl', includeVersion=False)
 edges_shader = gpu.types.GPUShader(edges_vs, edges_fs)
 faces_vs, faces_fs = Shader.parse_file('bmesh_render_faces.glsl', includeVersion=False)
 faces_shader = gpu.types.GPUShader(faces_vs, faces_fs)
+Drawing.glCheckError(f'Compiled bmesh render shader')
 
 
 class BufferedRender_Batch:
     _quarantine = {}
 
-    def __init__(self, gltype):
+    POINTS    = 1
+    LINES     = 2
+    TRIANGLES = 3
+
+    def __init__(self, drawtype):
         global faces_shader, edges_shader, verts_shader
         self.count = 0
-        self.gltype = gltype
-        self.shader, self.shader_type, self.gltype_name, self.gl_count, self.options_prefix = {
-            bgl.GL_POINTS:    (verts_shader, 'POINTS', 'points',    1, 'point'),
-            bgl.GL_LINES:     (edges_shader, 'LINES',  'lines',     2, 'line'),
-            bgl.GL_TRIANGLES: (faces_shader, 'TRIS',   'triangles', 3, 'poly'),
-        }[self.gltype]
+        self.drawtype = drawtype
+        self.shader, self.shader_type, self.drawtype_name, self.gl_count, self.options_prefix = {
+            self.POINTS:    (verts_shader, 'POINTS', 'points',    1, 'point'),
+            self.LINES:     (edges_shader, 'LINES',  'lines',     2, 'line'),
+            self.TRIANGLES: (faces_shader, 'TRIS',   'triangles', 3, 'poly'),
+        }[self.drawtype]
         self.batch = None
         self._quarantine.setdefault(self.shader, set())
 
-    def buffer(self, pos, norm, sel, warn):
+    def buffer(self, pos, norm, sel, warn, pin, seam):
         if self.shader == None: return
         if self.shader_type == 'POINTS':
             data = {
+                # repeat each value 6 times
                 'vert_pos':    [p for p in pos  for __ in range(6)],
                 'vert_norm':   [n for n in norm for __ in range(6)],
                 'selected':    [s for s in sel  for __ in range(6)],
                 'warning':     [w for w in warn for __ in range(6)],
+                'pinned':      [p for p in pin  for __ in range(6)],
+                'seam':        [p for p in seam for __ in range(6)],
                 'vert_offset': [o for _ in pos for o in [(0,0), (1,0), (0,1), (0,1), (1,0), (1,1)]],
             }
         elif self.shader_type == 'LINES':
             data = {
-                'vert_pos0':   [p0 for (p0,p1) in zip(pos[0::2], pos[1::2] ) for __ in range(6)],
-                'vert_pos1':   [p1 for (p0,p1) in zip(pos[0::2], pos[1::2] ) for __ in range(6)],
-                'vert_norm':   [n0 for (n0,n1) in zip(norm[0::2],norm[1::2]) for __ in range(6)],
-                'selected':    [s0 for (s0,s1) in zip(sel[0::2], sel[1::2] ) for __ in range(6)],
-                'warning':     [s0 for (s0,s1) in zip(warn[0::2], warn[1::2] ) for __ in range(6)],
+                # repeat each value 6 times
+                # 'vert_pos0':   [p0 for (p0,p1) in zip( pos[0::2],  pos[1::2]) for __ in range(6)],
+                # 'vert_pos1':   [p1 for (p0,p1) in zip( pos[0::2],  pos[1::2]) for __ in range(6)],
+                # 'vert_norm':   [n0 for (n0,n1) in zip(norm[0::2], norm[1::2]) for __ in range(6)],
+                # 'selected':    [s0 for (s0,s1) in zip( sel[0::2],  sel[1::2]) for __ in range(6)],
+                # 'warning':     [s0 for (s0,s1) in zip(warn[0::2], warn[1::2]) for __ in range(6)],
+                # 'pinned':      [s0 for (s0,s1) in zip( pin[0::2],  pin[1::2]) for __ in range(6)],
+                # 'seam':        [s0 for (s0,s1) in zip(seam[0::2], seam[1::2]) for __ in range(6)],
+                'vert_pos0':   [p0 for p0 in pos[ 0::2] for __ in range(6)],
+                'vert_pos1':   [p1 for p1 in pos[ 1::2] for __ in range(6)],
+                'vert_norm':   [n  for n  in norm[0::2] for __ in range(6)],
+                'selected':    [s  for s  in sel[ 0::2] for __ in range(6)],
+                'warning':     [w  for w  in warn[0::2] for __ in range(6)],
+                'pinned':      [p  for p  in pin[ 0::2] for __ in range(6)],
+                'seam':        [s  for s  in seam[0::2] for __ in range(6)],
                 'vert_offset': [o  for _ in pos[0::2] for o in [(0,0), (0,1), (1,1), (0,0), (1,1), (1,0)]],
         }
         elif self.shader_type == 'TRIS':
@@ -237,19 +186,21 @@ class BufferedRender_Batch:
                 'vert_pos':    pos,
                 'vert_norm':   norm,
                 'selected':    sel,
+                'pinned':      pin,
+                # 'seam':        seam,
             }
         else: assert False, 'BufferedRender_Batch.buffer: Unhandled type: ' + self.shader_type
-        self.batch = batch_for_shader(self.shader, 'TRIS', data) # self.shader_type, data)
+        self.batch = batch_for_shader(self.shader, 'TRIS', data)
         self.count = len(pos)
 
     def set_options(self, prefix, opts):
         if not opts: return
         shader = self.shader
 
-        prefix = '%s ' % prefix if prefix else ''
+        prefix = f'{prefix} ' if prefix else ''
 
         def set_if_set(opt, cb):
-            opt = '%s%s' % (prefix, opt)
+            opt = f'{prefix}{opt}'
             if opt not in opts: return
             cb(opts[opt])
             Drawing.glCheckError('setting %s to %s' % (str(opt), str(opts[opt])))
@@ -259,6 +210,8 @@ class BufferedRender_Batch:
         set_if_set('color',          lambda v: self.uniform_float('color', v))
         set_if_set('color selected', lambda v: self.uniform_float('color_selected', v))
         set_if_set('color warning',  lambda v: self.uniform_float('color_warning', v))
+        set_if_set('color pinned',   lambda v: self.uniform_float('color_pinned', v))
+        set_if_set('color seam',     lambda v: self.uniform_float('color_seam', v))
         set_if_set('hidden',         lambda v: self.uniform_float('hidden', v))
         set_if_set('offset',         lambda v: self.uniform_float('offset', v))
         set_if_set('dotoffset',      lambda v: self.uniform_float('dotoffset', v))
@@ -293,8 +246,8 @@ class BufferedRender_Batch:
 
     def draw(self, opts):
         if self.shader == None or self.count == 0: return
-        if self.gltype == bgl.GL_LINES and opts.get('line width', 1.0) <= 0: return
-        if self.gltype == bgl.GL_POINTS and opts.get('point size', 1.0) <= 0: return
+        if self.drawtype == self.LINES  and opts.get('line width', 1.0) <= 0: return
+        if self.drawtype == self.POINTS and opts.get('point size', 1.0) <= 0: return
 
         shader = self.shader
 
@@ -304,17 +257,24 @@ class BufferedRender_Batch:
         self.uniform_float('color',          (1,1,1,0.5))
         self.uniform_float('color_selected', (0.5,1,0.5,0.5))
         self.uniform_float('color_warning',  (1.0,0.5,0.0,0.5))
+        self.uniform_float('color_pinned',   (1.0,0.0,0.5,0.5))
+        self.uniform_float('color_seam',     (1.0,0.0,0.5,0.5))
         self.uniform_float('hidden',         0.9)
         self.uniform_float('offset',         0)
         self.uniform_float('dotoffset',      0)
         self.uniform_float('vert_scale',     (1, 1, 1))
         self.uniform_float('radius',         1) #random.random()*10)
 
-        nosel = opts.get('no selection', False)
-        nowarn = opts.get('no warning', False)
+        nosel  = opts.get('no selection', False)
+        nowarn = opts.get('no warning',   False)
+        nopin  = opts.get('no pinned',    False)
+        noseam = opts.get('no seam',      False)
+
         self.uniform_bool('use_selection', [not nosel])  # must be a sequence!?
         self.uniform_bool('use_warning',   [not nowarn]) # must be a sequence!?
-        self.uniform_bool('use_rounding',  [self.gltype == bgl.GL_POINTS]) # must be a sequence!?
+        self.uniform_bool('use_pinned',    [not nopin])  # must be a sequence!?
+        self.uniform_bool('use_seam',      [not noseam])  # must be a sequence!?
+        self.uniform_bool('use_rounding',  [self.drawtype == self.POINTS]) # must be a sequence!?
 
         self.uniform_float('matrix_m',    opts['matrix model'])
         self.uniform_float('matrix_mn',   opts['matrix normal'])
@@ -365,7 +325,7 @@ class BufferedRender_Batch:
         self._draw(1, 1, 1)
 
         if opts['draw mirrored'] and (mx or my or mz):
-            self.set_options('%s mirror' % self.options_prefix, opts)
+            self.set_options(f'{self.options_prefix} mirror', opts)
             if mx:               self._draw(-1,  1,  1)
             if        my:        self._draw( 1, -1,  1)
             if               mz: self._draw( 1,  1, -1)

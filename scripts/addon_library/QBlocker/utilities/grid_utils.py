@@ -1,8 +1,8 @@
 import bpy
 import mathutils
-from mathutils import Vector
-from bpy_extras.view3d_utils import region_2d_to_vector_3d, region_2d_to_origin_3d, location_3d_to_region_2d
-from .math_utils import *
+# from mathutils import Vector
+from bpy_extras.view3d_utils import region_2d_to_vector_3d, region_2d_to_origin_3d
+from .math_utils import LinePlaneCollision
 
 
 # create matrix from vector for gridsnap
@@ -16,7 +16,6 @@ def GetGridMatrix(Zvec):
 
 # get the position and vector on grid
 def GetGridHitPoint(context, coord):
-    scene = context.scene
     region = context.region
     rv3d = context.region_data
     view_vector = region_2d_to_vector_3d(region, rv3d, coord)

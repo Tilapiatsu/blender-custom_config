@@ -58,6 +58,9 @@ class LAZYSHAPEKEYS_OT_folder_move_sk(Operator):
 	def execute(self, context):
 		old_act = bpy.context.view_layer.objects.active
 		obj = get_target_obj(self.obj_name)
+		if not obj == bpy.context.object:
+			bpy.context.view_layer.objects.active = obj
+
 		sks = obj.data.shape_keys
 		sk_bl = sks.key_blocks
 		old_index = obj.active_shape_key_index
@@ -71,29 +74,34 @@ class LAZYSHAPEKEYS_OT_folder_move_sk(Operator):
 
 
 		item = sk_bl[tgt_id]
+		obj.active_shape_key_index = tgt_id
 		folder_index = sk_bl.find(self.folder_name)
 
-		obj.active_shape_key_index = tgt_id
-
-		if not obj == bpy.context.object:
-			bpy.context.view_layer.objects.active = obj
-
-		bpy.ops.object.shape_key_move(type='TOP') # 一番上に移動した後、フォルダ下に移動する。
-		inner_items = get_folder_innner_sk_list(folder_index, sks)
-		if inner_items:
-			for i in range(sk_bl.find(inner_items[-1]) -1 ):
-				bpy.ops.object.shape_key_move(type='DOWN')
-		else:
-			for i in range(folder_index - 1):
-				bpy.ops.object.shape_key_move(type='DOWN')
 
 
+		inner_items = get_folder_innner_sk_list(folder_index, sks) # フォルダー内のアイテム
+		print(inner_items)
 
+
+		move_num = len(inner_items) + folder_index
+		if len(sk_bl)-1 <= move_num:
+			move_num = len(sk_bl)-2
+
+		# 一番上に移動した後、フォルダ下に移動する
+		bpy.ops.object.shape_key_move(type='TOP') # 一番上に移動
+		for i in range(move_num):
+			bpy.ops.object.shape_key_move(type='DOWN')
+
+
+
+		# インデックスを変える
 		obj.lazy_shapekeys.folder_colle_index = sk_bl.find(old_folder_item.name)
 		if is_folder(sk_bl[old_index]) and not (len(sk_bl)-1 < old_index):
 			obj.active_shape_key_index = old_index + 1
 		else:
 			obj.active_shape_key_index = old_index
+
+		# アクティブを戻す
 		bpy.context.view_layer.objects.active = old_act
 
 		return{'FINISHED'}
@@ -106,6 +114,7 @@ class LAZYSHAPEKEYS_OT_folder_item_add(Operator):
 	bl_options = {'REGISTER', 'UNDO'}
 
 	obj_name : StringProperty()
+	move_to_act_pos : BoolProperty()
 
 	@classmethod
 	def poll(cls, context):
@@ -123,20 +132,26 @@ class LAZYSHAPEKEYS_OT_folder_item_add(Operator):
 
 
 		sk_bl = obj.data.shape_keys.key_blocks
+		old_index = obj.active_shape_key_index
+
+		# フォルダーがない場合は、最初の位置に移動する
 		is_first_add = False
 		folder_l = [sk for sk in sk_bl if is_folder(sk)]
-
 		if not folder_l:
 			is_first_add = True
 
+		# フォルダー名の設定
 		count = [i for i in sk_bl if i.name.startswith("Folder")]
 		if count:
 			item_name = "Folder " + str(len(count))
 		else:
 			item_name = "Folder"
 
+
+		# シェイプキーブロックを追加
 		new_item = obj.shape_key_add(name=item_name)
 
+		# フォルダーの情報を頂点グループオプション内に追加する
 		dic = {}
 		dic["folder"] = 1
 		dic["exp"] = 1
@@ -144,16 +159,27 @@ class LAZYSHAPEKEYS_OT_folder_item_add(Operator):
 		new_item.vertex_group = convert_dic_to_mini_text(dic)
 		obj.active_shape_key_index = sk_bl.find(new_item.name)
 
+		# アクティブオブジェクトを切り替える
 		if not obj == bpy.context.object:
 			bpy.context.view_layer.objects.active = obj
+
 
 		# 並び替え
 		if is_first_add:
 			bpy.ops.object.shape_key_move(type='TOP')
+		else:
+			if self.move_to_act_pos:
+				bpy.ops.object.shape_key_move(type='TOP')
+				for i in range(old_index):
+					bpy.ops.object.shape_key_move(type='DOWN')
+
+
+
 
 
 		obj.lazy_shapekeys.folder_colle_index = sk_bl.find(new_item.name)
 
+		# アクティブオブジェクトを戻す
 		bpy.context.view_layer.objects.active = old_act
 
 		return{'FINISHED'}
@@ -211,7 +237,7 @@ class LAZYSHAPEKEYS_OT_sk_item_add(Operator):
 			item_name = "Key " + str(len(count))
 		else:
 			item_name = "Key"
-		new_item = obj.shape_key_add(name=item_name)
+		new_item = obj.shape_key_add(name=item_name,from_mix=False)
 
 
 
@@ -309,18 +335,24 @@ def folder_remove(self, obj, folder_index):
 
 
 	# 中身のアイテムを全て上に移動する
-	for sk_name in reversed(get_folder_innner_sk_list(folder_index, obj.data.shape_keys)):
+	inner_sk_l = get_folder_innner_sk_list(folder_index, obj.data.shape_keys)
+	if not inner_sk_l:
+		bpy.ops.object.shape_key_remove()
+		return
+		
+	for sk_name in reversed(inner_sk_l):
 		obj.active_shape_key_index = sk_bl.find(sk_name)
 		bpy.ops.object.shape_key_move(type='TOP')
+
 
 	# アクティブなフォルダーを削除する
 	obj.active_shape_key_index = sk_bl.find(folder_name)
 	bpy.ops.object.shape_key_remove()
 
+
 	# インデックス設定
 	if not new_folder_index == -1:
 		obj.lazy_shapekeys.folder_colle_index = sk_bl.find(new_folder_index.name)
-
 
 
 class LAZYSHAPEKEYS_OT_folder_item_duplicate(Operator):

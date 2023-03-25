@@ -1,5 +1,5 @@
 '''
-Copyright (C) 2021 CG Cookie
+Copyright (C) 2022 CG Cookie
 http://cgcookie.com
 hello@cgcookie.com
 
@@ -64,7 +64,7 @@ from .hasher import Hasher
 from .maths import Vec2D, Color, mid, Box2D, Size1D, Size2D, Point2D, RelPoint2D, Index2D, clamp, NumberUnit
 from .profiler import profiler, time_it
 from .shaders import Shader
-from .utils import iter_head, any_args, join, abspath
+from .utils import iter_head, any_args, join
 
 from ..ext import png
 from ..ext.apng import APNG
@@ -244,6 +244,10 @@ class UI_Element_Properties:
     def append_new_child(self, *args, **kwargs):
         ui = self.new_element(*args, **kwargs)
         self.append_child(ui)
+        return ui
+    def append_new_children_fromHTML(self, html, **kwargs):
+        ui = self.fromHTML(html, frame_depth=2, **kwargs)
+        self.append_children(ui)
         return ui
     def prepend_new_child(self, *args, **kwargs):
         ui = self.new_element(*args, **kwargs)
@@ -964,6 +968,7 @@ class UI_Element_Properties:
         if not self.is_visible: return
         self.dispatch_event('on_input')
         self.dirty(cause='changing value can affect selector and content', children=True)
+        self.dirty_flow()
     def value_bind(self, boundvar):
         self._value = boundvar
         self._value.on_change(self._value_change)
@@ -973,6 +978,13 @@ class UI_Element_Properties:
         self._value = v
         self._value_bound = False
         return p
+
+    @property
+    def maxlength(self):
+        return self._maxlength
+    @maxlength.setter
+    def maxlength(self, v):
+        self._maxlength = max(0, int(v))
 
     @property
     def valueMax(self):

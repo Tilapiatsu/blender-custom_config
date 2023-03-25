@@ -123,8 +123,8 @@ def folder_filter_items(self, context, data, propname):
 
 		# 除去
 		folder_l = [i for i in items if is_folder(i)]
-		if  folder_l:
 
+		if folder_l:
 			new_l = []
 			for i,sk in enumerate(sk_bl):
 				if i > tgt_index:

@@ -1,8 +1,6 @@
-import bpy
-import bmesh
-import gpu
-from .op_mesh import *
-from .qpyramid import *
+from .op_mesh import MeshCreateOperator
+from .qobjects.qpyramid import Qpyramid
+from .draw_module import draw_callback_cube
 
 
 # box create op new

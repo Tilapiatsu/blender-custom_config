@@ -1,5 +1,5 @@
 '''
-Copyright (C) 2021 CG Cookie
+Copyright (C) 2022 CG Cookie
 http://cgcookie.com
 hello@cgcookie.com
 
@@ -24,7 +24,7 @@ import random
 import re
 from typing import List
 
-import bgl
+import gpu
 from mathutils import Matrix, Vector, Quaternion
 from bmesh.types import BMVert
 from mathutils.geometry import intersect_line_plane, intersect_point_tri
@@ -134,9 +134,7 @@ class Vec(VecUtils, Entity3D):
         for v in vecs:
             vx,vy,vz = v
             ax,ay,az,ac = ax+vx,ay+vy,az+vz,ac+1
-        if ac == 0:
-            return Vec((0, 0, 0))
-        return Vec((ax / ac, ay / ac, az / ac))
+        return Vec((ax / ac, ay / ac, az / ac)) if ac else Vec((0, 0, 0))
 
 
 class Index2D:
@@ -216,9 +214,7 @@ class Point2D(Vector, Entity2D):
             x += p.x
             y += p.y
             c += 1
-        if c == 0:
-            return Point2D((0, 0))
-        return Point2D((x / c, y / c))
+        return Point2D((x / c, y / c)) if c else Point2D((0, 0))
 
     @staticmethod
     def weighted_average(weight_points):
@@ -227,9 +223,7 @@ class Point2D(Vector, Entity2D):
             x += p.x * w
             y += p.y * w
             c += w
-        if c == 0:
-            return Point2D((0, 0))
-        return Point2D((x / c, y / c))
+        return Point2D((x / c, y / c)) if c else Point2D((0, 0))
 
 
 class RelPoint2D(Vector, Entity2D):
@@ -288,9 +282,7 @@ class RelPoint2D(Vector, Entity2D):
             x += p.x
             y += p.y
             c += 1
-        if c == 0:
-            return RelPoint2D((0, 0))
-        return RelPoint2D((x / c, y / c))
+        return RelPoint2D((x / c, y / c)) if c else RelPoint2D((0, 0))
 
     @staticmethod
     def weighted_average(weight_points):
@@ -299,9 +291,7 @@ class RelPoint2D(Vector, Entity2D):
             x += p.x * w
             y += p.y * w
             c += w
-        if c == 0:
-            return RelPoint2D((0, 0))
-        return RelPoint2D((x / c, y / c))
+        return RelPoint2D((x / c, y / c)) if c else RelPoint2D((0, 0))
 RelPoint2D.ZERO = RelPoint2D((0,0))
 
 
@@ -365,9 +355,7 @@ class Point(Vector, Entity3D):
             y += p.y
             z += p.z
             c += 1
-        if c == 0:
-            return Point((0, 0, 0))
-        return Point((x / c, y / c, z / c))
+        return Point((x / c, y / c, z / c)) if c else Point((0, 0, 0))
 
     @staticmethod
     def weighted_average(weight_points):
@@ -377,9 +365,7 @@ class Point(Vector, Entity3D):
             y += p.y * w
             z += p.z * w
             c += w
-        if c == 0:
-            return Point((0, 0, 0))
-        return Point((x / c, y / c, z / c))
+        return Point((x / c, y / c, z / c)) if c else Point((0, 0, 0))
 
 class Direction2D(Vector, Entity2D):
     @stats_wrapper
@@ -498,11 +484,14 @@ class Normal(VecUtils, Entity3D):
         for n in normals:
             v += n
             c += 1
-        if c: return Normal(v)
-        return v
+        return Normal(v) if c else v
 
 
 class Color(Vector):
+    @staticmethod
+    def from_ints(r, g, b, a=255):
+        return Color((r/255.0, g/255.0, b/255.0, a/255.0))
+
     @staticmethod
     def as_vec4(c):
         if type(c) in {float, int}: return Vector((c, c, c, 1.0))
@@ -627,7 +616,8 @@ class Ray(Entity3D):
         return self.__str__()
 
     def eval(self, t: float):
-        return self.o + max(0.0, min(self.max, t)) * self.d
+        v = self.d * clamp(t, 0.0, self.max)
+        return self.o + v
 
     @classmethod
     def from_screenspace(cls, pos: Vector):
@@ -921,6 +911,19 @@ class Frame:
 
 class XForm:
     @staticmethod
+    def Scale(factor):
+        if type(factor) in {int, float}:
+            x = y = z = factor
+        else:
+            x, y, z = factor
+        return XForm(rows=((
+            (x, 0, 0, 0),
+            (0, y, 0, 0),
+            (0, 0, z, 0),
+            (0, 0, 0, 1),
+            )))
+
+    @staticmethod
     def get_mats(mx: Matrix):
         smat, d = str(mx), XForm.get_mats.__dict__
         if smat not in d:
@@ -929,20 +932,22 @@ class XForm:
                 'mx_d': None, 'imx_d': None,
                 'mx_n': None, 'imx_n': None
             }
-            m['mx_p'] = Matrix(mx)
-            m['mx_t'] = mx.transposed()
+            m[ 'mx_p'] = Matrix(mx)
+            m[ 'mx_t'] = mx.transposed()
             m['imx_p'] = mx.inverted_safe()
-            m['mx_d'] = mx.to_3x3()
+            m[ 'mx_d'] = mx.to_3x3()
             m['imx_d'] = m['mx_d'].inverted_safe()
-            m['mx_n'] = m['imx_d'].transposed()
+            m[ 'mx_n'] = m['imx_d'].transposed()
             m['imx_n'] = m['mx_d'].transposed()
             d[smat] = m
         return d[smat]
 
     @stats_wrapper
-    def __init__(self, mx: Matrix=None):
+    def __init__(self, mx: Matrix=None, *, rows=None):
         if mx is None:
             mx = Matrix()
+        elif type(mx) is not Matrix:
+            mx = Matrix(rows)
         self.assign(mx)
 
     def assign(self, mx):
@@ -985,7 +990,18 @@ class XForm:
                '       (%0.4f, %0.4f, %0.4f, %0.4f)>' % v
 
     def __repr__(self):
-        return self.__str__()
+        v = tuple(x for r in self.mx_p for x in r)
+        return 'XForm(((%f, %f, %f, %f),\n' \
+               '       (%f, %f, %f, %f),\n' \
+               '       (%f, %f, %f, %f),\n' \
+               '       (%f, %f, %f, %f)))' % v
+
+    @property
+    def matrix(self):
+        return Matrix(self.mx_p)
+    @matrix.setter
+    def matrix(self, mx):
+        self.assign(mx)
 
     def __mul__(self, other):
         t = type(other)
@@ -1006,14 +1022,6 @@ class XForm:
         for v in self.mx_p:
             yield v
 
-    @blender_version_wrapper('<', '2.80')
-    def to_frame(self):
-        o = Point(self.mx_p * Point((0, 0, 0)))
-        x = Direction(self.mx_d * Direction((1, 0, 0)))
-        y = Direction(self.mx_d * Direction((0, 1, 0)))
-        z = Direction(self.mx_d * Direction((0, 0, 1)))
-        return Frame(o=o, x=x, y=y, z=z)
-    @blender_version_wrapper('>=', '2.80')
     def to_frame(self):
         o = Point(self.mx_p @ Point((0, 0, 0)))
         x = Direction(self.mx_d @ Direction((1, 0, 0)))
@@ -1037,50 +1045,21 @@ class XForm:
         )
         return self.fn_w2l_typed[t](data)
 
-    @blender_version_wrapper('<', '2.80')
-    def l2w_point(self, p: Point) -> Point: return Point(self.mx_p * p)
-    @blender_version_wrapper('>=', '2.80')
     def l2w_point(self, p: Point) -> Point:
         #return Point(self.mx_p @ p)
         v = self.mx_p @ Vector((p.x, p.y, p.z, 1.0))
         return Point(v.xyz / v.w)
 
-    @blender_version_wrapper('<', '2.80')
-    def w2l_point(self, p: Point) -> Point: return Point(self.imx_p * p)
-    @blender_version_wrapper('>=', '2.80')
     def w2l_point(self, p: Point) -> Point:
         # return Point(self.imx_p @ p)
         v = self.imx_p @ Vector((p.x, p.y, p.z, 1.0))
         return Point(v.xyz / v.w)
 
-    @blender_version_wrapper('<', '2.80')
-    def l2w_direction(self, d: Direction) -> Direction: return Direction(self.mx_d.to_3x3() * d)
-    @blender_version_wrapper('>=', '2.80')
     def l2w_direction(self, d: Direction) -> Direction: return Direction(self.mx_d.to_3x3() @ d)
-
-    @blender_version_wrapper('<', '2.80')
-    def w2l_direction(self, d: Direction) -> Direction: return Direction(self.imx_d.to_3x3() * d)
-    @blender_version_wrapper('>=', '2.80')
     def w2l_direction(self, d: Direction) -> Direction: return Direction(self.imx_d.to_3x3() @ d)
-
-    @blender_version_wrapper('<', '2.80')
-    def l2w_normal(self, n: Normal) -> Normal: return Normal(self.mx_n.to_3x3() * n)
-    @blender_version_wrapper('>=', '2.80')
     def l2w_normal(self, n: Normal) -> Normal: return Normal(self.mx_n.to_3x3() @ n)
-
-    @blender_version_wrapper('<', '2.80')
-    def w2l_normal(self, n: Normal) -> Normal: return Normal(self.imx_n.to_3x3() * n)
-    @blender_version_wrapper('>=', '2.80')
     def w2l_normal(self, n: Normal) -> Normal: return Normal(self.imx_n.to_3x3() @ n)
-
-    @blender_version_wrapper('<', '2.80')
-    def l2w_vector(self, v: Vector) -> Vec: return Vec(self.mx_d.to_3x3() * v)
-    @blender_version_wrapper('>=', '2.80')
     def l2w_vector(self, v: Vector) -> Vec: return Vec(self.mx_d.to_3x3() @ v)
-
-    @blender_version_wrapper('<', '2.80')
-    def w2l_vector(self, v: Vector) -> Vec: return Vec(self.imx_d.to_3x3() * v)
-    @blender_version_wrapper('>=', '2.80')
     def w2l_vector(self, v: Vector) -> Vec: return Vec(self.imx_d.to_3x3() @ v)
 
     def l2w_ray(self, ray: Ray) -> Ray:
@@ -1107,31 +1086,21 @@ class XForm:
     def w2l_plane(self, plane: Plane) -> Plane:
         return Plane(o=self.w2l_point(plane.o), n=self.w2l_normal(plane.n))
 
-    @blender_version_wrapper('<', '2.80')
-    def l2w_bmvert(self, bmv: BMVert) -> Point: return Point(self.mx_p * bmv.co)
-    @blender_version_wrapper('>=', '2.80')
     def l2w_bmvert(self, bmv: BMVert) -> Point: return Point(self.mx_p @ bmv.co)
-
-    @blender_version_wrapper('<', '2.80')
-    def w2l_bmvert(self, bmv: BMVert) -> Point: return Point(self.imx_p * bmv.co)
-    @blender_version_wrapper('>=', '2.80')
     def w2l_bmvert(self, bmv: BMVert) -> Point: return Point(self.imx_p @ bmv.co)
 
     @staticmethod
-    def to_bglMatrix(mat):
-        # return bgl.Buffer(
-        #     bgl.GL_FLOAT, len(mat)**2, [v for r in mat for v in r]
-        # )
-        return bgl.Buffer(bgl.GL_FLOAT, [len(mat), len(mat)], mat)
+    def to_gpubuffer(mat):
+        return gpu.types.Buffer('FLOAT', [len(mat), len(mat)], mat)
 
-    def to_bglMatrix_Model(self):
-        return self.to_bglMatrix(self.mx_p)
+    def to_gpubuffer_Model(self):
+        return self.to_gpubuffer(self.mx_p)
 
-    def to_bglMatrix_Inverse(self):
-        return self.to_bglMatrix(self.imx_p)
+    def to_gpubuffer_Inverse(self):
+        return self.to_gpubuffer(self.imx_p)
 
-    def to_bglMatrix_Normal(self):
-        return self.to_bglMatrix(self.mx_n)
+    def to_gpubuffer_Normal(self):
+        return self.to_gpubuffer(self.mx_n)
 
 
 class BBox:
@@ -1184,7 +1153,9 @@ class BBox:
     def size_z(self): return self.Mz - self.mz
 
     @staticmethod
-    def merge(boxes):
+    def merge(boxes, *args):
+        if type(boxes) is BBox: boxes = [boxes]
+        if args: boxes = boxes + args
         return BBox(from_coords=[Point(p) for b in boxes for p in [
             (b.mx, b.my, b.mz),
             (b.Mx, b.My, b.Mz)
@@ -1207,6 +1178,21 @@ class BBox:
             m - margin <= v and v <= M + margin
             for (v, m, M) in zip(point, self.min, self.max)
         )
+
+    def closest_Point(self, point:Point):
+        return Point((
+            clamp(point.x, self.mx, self.Mx),
+            clamp(point.y, self.my, self.My),
+            clamp(point.z, self.mz, self.Mz),
+        ))
+
+    def farthest_Point(self, point:Point):
+        cx, cy, cz = (self.mx + self.Mx) / 2, (self.my + self.My) / 2, (self.mz + self.Mz) / 2
+        return Point((
+            self.mx if point.x > cx else self.Mx,
+            self.my if point.y > cy else self.My,
+            self.mz if point.z > cz else self.Mz,
+        ))
 
     def get_min_dimension(self):
         return self.min_dim

@@ -3,7 +3,7 @@ from bpy_extras.view3d_utils import region_2d_to_vector_3d, region_2d_to_origin_
 from gpu_extras.batch import batch_for_shader
 
 
-####### Functions to draw circles ########
+# Functions to draw circles
 
 # get circle vertices on pos 2D by segments
 def GenerateCircleVerts(position, radius, segments):
@@ -75,8 +75,7 @@ def draw_multicircles_fill_2d(positions, color, radius, segments=8, alpha=False)
     batch.draw(shader)
 
 
-####### The draw handler for the class ########
-
+# The draw handler for the class
 def PointsDrawHandler(_op, _context):
     region = _context.region
     rv3d = _context.region_data
@@ -97,15 +96,13 @@ def PointsDrawHandler(_op, _context):
     draw_circle_fill_2d(position=pos2D, color=pointColor, radius=8, segments=16, alpha=False)
 
 
-
-
 class ModalCircleDrawOperator(bpy.types.Operator):
     """Draw circles with the mouse"""
     bl_idname = "view3d.modal_circles_operator"
     bl_label = "Draw Circles"
 
-    worldPosList = [(-1.0,-1.0,0.0),(1.0,-1.0,0.0),(-1.0,1.0,0.0),(1.0,1.0,0.0)]
-    singlePointPos =  (0.0,0.0,1.0)
+    worldPosList = [(-1.0, -1.0, 0.0), (1.0, -1.0, 0.0),(-1.0, 1.0, 0.0),(1.0, 1.0, 0.0)]
+    singlePointPos = (0.0, 0.0, 1.0)
 
     def modal(self, context, event):
         context.area.tag_redraw()

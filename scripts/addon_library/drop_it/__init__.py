@@ -26,7 +26,7 @@ import random
 bl_info = {
     "name": "Drop It",
     "author": "Andreas Aust",
-    "version": (1, 1),
+    "version": (1, 2),
     "blender": (2, 80, 0),
     "location": "View3D > Object Mode > Object Context Menu (W / Right Click on Object)",
     "description": "Drop Objects to Ground or Surface",
@@ -45,6 +45,20 @@ class DROPIT_OT_drop_it(bpy.types.Operator):
     bl_idname = "object.drop_it"
     bl_label = "Drop It"
     bl_options = {'REGISTER', 'UNDO'}
+
+    drop_by: bpy.props.EnumProperty(
+        name="",
+        description="Drop by lowest Vertex or Origin",
+        items=[
+            ("lw_vertex", "Lowest Vertex", ""),
+            ("origin", "Origin", "")]
+    )
+
+    col_in_sel: bpy.props.BoolProperty(
+        name="Collision in Selection",
+        description="Collision for selected Objects",
+        default=True
+    )
 
     affect_parenting: bpy.props.BoolProperty(
         name="Parenting Settings",
@@ -101,9 +115,14 @@ class DROPIT_OT_drop_it(bpy.types.Operator):
 
     def draw(self, context):
         layout = self.layout
-        #col = layout.column(align=True)
-        #col.enabled = False
-        # col.label(text="Info")
+        col = layout.column(align=True)
+
+        col.label(text="Drop By:")
+        row = layout.row()
+        row.prop(self, "drop_by")
+        row.prop(self, "col_in_sel")
+        for i in range(10):
+            layout.column()
 
         col = layout.column(align=True)
         col.label(text="Random:")
@@ -144,12 +163,23 @@ class DROPIT_OT_drop_it(bpy.types.Operator):
         if bpy.app.version >= (2, 91, 0):
             dgraph = dgraph.depsgraph
 
+        if len(objs) > 1:
+            # HIDE ALL SELECTED TO IGNORE SELF HIT
+            if not self.col_in_sel:
+                for obj in objs:
+                    obj.hide_set(True)
+            else:
+                # SORT SELECTION BY LOC Z TO START HIT FROM BOTTOM TO TOP
+                objs_sorted = [(obj, obj.location.z) for obj in objs]
+                objs_sorted = sorted(objs_sorted, key=lambda os: os[1])
+                objs = [obj[0] for obj in objs_sorted]
+
         for obj in objs:
             if obj.type == 'MESH' or obj.type == 'EMPTY':
 
                 parent = None
                 children = []
-                hidden_children = []
+                hidden_objs = []
                 obj_rot_z = obj.rotation_euler[2]
 
                 # IGNORE SELECTED CHILDREN IF ENABLED
@@ -192,71 +222,68 @@ class DROPIT_OT_drop_it(bpy.types.Operator):
                 # UPDATE MATRIX
                 view_layer.update()
 
-                # GET LOWEST VERTICES FROM MESH
-                if obj.type == 'MESH':
+                # GET LOWEST VERTICES OR ORIGIN
+                if self.drop_by == "lw_vertex":
+                    # DROP BY LOWEST VERTEX
                     lowest_verts = get_lowest_verts(obj)
-
-                # GET LOC FROM EMPTY AND HIDE CHILDS FOR CAST
                 else:
-                    lowest_verts = numpy.array(obj.location)
-                    lowest_verts.shape = (1, 3)
-                    if obj.children:
-                        for child in obj.children:
-                            if not child.hide_get():
-                                hidden_children.append(child)
-                                child.hide_set(True)
+                    lowest_verts = [obj.location]
 
-                hit_loc = []
-                hit_nrm = []
+                hidden_objs.append(obj)
+                obj.hide_set(True)
+
+                # IGNORE RAYCAST FOR OWN CHILDS
+                if obj.children:
+                    for child in obj.children:
+                        if not child.hide_get():
+                            hidden_objs.append(child)
+                            child.hide_set(True)
+
+                hit_info = {}
 
                 # LINE CAST FROM LOW VERTS
                 for co in lowest_verts:
                     cast = raycast(context, co.copy())
-                    hit_loc.append(cast[0])
-                    hit_nrm.append(cast[1])
+                    if cast is not None:
+                        hit_info.update(cast)
+                #print("hit_info", hit_info)
+                # SET LOCATION Z BY DIST FROM HIT
+                dist = 0
+                hitloc_nrm = (0, 0)
+                if len(hit_info) == 0:
+                    dist = lowest_verts[0][2]
+                    hitloc_nrm = (lowest_verts[0], mathutils.Vector((0, 0, 1)))
+                else:
+                    # GET MIN HIT DIST AND NRM
+                    dist = min(hit_info.keys())
+                    hitloc_nrm = hit_info.get(dist)
 
-                # GET NEAREST HIT
-                hit_loc = numpy.array(hit_loc)
-                hit_z_max = hit_loc[:, 2].max()
-                hit_z_idx = numpy.where(hit_loc == hit_z_max)
-                hit_z_idx = hit_z_idx[0]
-
-                # NEAREST / LOWEST VERT LOCATION
-                lv = lowest_verts[hit_z_idx]
-                lv = lv[0]
-
-                # NEAREST HIT LOC
-                hit_zloc = hit_loc[hit_z_idx]
-                hit_zloc = mathutils.Vector(hit_zloc[0])
-
-                # SET TO HIT Z LOCATION
-                obj.location.z -= (lv[2] - hit_z_max)
+                obj.location.z -= (dist)
                 view_layer.update()
 
                 # ROTATE TO HIT NORMAL
                 if context.window_manager.surf_align:
-                    hit_normal = hit_nrm[hit_z_idx[0]]
-                    rotate_object(obj, hit_zloc, hit_normal)
+                    rotate_object(obj, hitloc_nrm[0], hitloc_nrm[1])
                     obj.rotation_euler.rotate_axis('Z', obj_rot_z)
-                    view_layer.update()
+                    # view_layer.update()
 
                 # RANDOM Z ROTATION
                 if self.rand_zrot > 0:
                     obj.rotation_euler.rotate_axis(
                         'Z', math.radians(random.randrange(-self.rand_zrot, self.rand_zrot)))
-                    view_layer.update()
+                    # view_layer.update()
 
                 # ADD LOCAl Z OFFSET LOCATION
                 if self.offset_z != 0:
                     vec = mathutils.Vector((0.0, 0.0, self.offset_z))
                     local_loc = vec @ obj.matrix_world.inverted()
                     obj.location += local_loc
-                    view_layer.update()
+                    # view_layer.update()
 
                 # SET PARENT IF AVAILABLE
                 if parent:
                     set_parent(parent, obj)
-                    view_layer.update()
+                    # view_layer.update()
 
                 # SET CHILDS IF AVAILABLE
                 if children:
@@ -265,9 +292,17 @@ class DROPIT_OT_drop_it(bpy.types.Operator):
                     # view_layer.update()
 
                 # RESET VISIBILITY FOR HIDDEN CHILDS
-                if hidden_children:
-                    for child in hidden_children:
-                        child.hide_set(False)
+                if hidden_objs:
+                    for o in hidden_objs:
+                        o.hide_set(False)
+                        o.select_set(True)
+
+                view_layer.update()
+
+        if not self.col_in_sel:
+            for obj in objs:
+                obj.hide_set(False)
+                obj.select_set(True)
 
         print("Drop It, calculation time: ",
               str(time.time() - time_start))
@@ -338,17 +373,17 @@ def get_lowest_verts(obj):
 
 def raycast(context, origin):
     _origin = origin
-    _origin[2] -= 0.0001
+    _origin[2] -= 0  # 0.0001
 
     cast = context.scene.ray_cast(dgraph, _origin, (0, 0, -1), distance=1000)
 
     if cast[0] == False:
-        origin[2] = 0
-        return origin, mathutils.Vector((0, 0, 1))
+        return None
 
-    loc = cast[1]
+    hitloc = cast[1]
     nrm = cast[2]
-    return loc, nrm
+    dist = origin[2] - hitloc[2]
+    return {dist: (hitloc, nrm)}
 
 
 classes = [

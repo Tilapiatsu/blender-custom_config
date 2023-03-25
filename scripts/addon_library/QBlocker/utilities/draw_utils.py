@@ -5,12 +5,13 @@ from gpu_extras.batch import batch_for_shader
 # get circle vertices on pos 2D by segments
 def GenerateCircleVerts(position, radius, segments):
     from math import sin, cos, pi
-    coords = [position]
-    mul = (1.0 / segments) * (pi * 2)
-    for i in range(1, segments + 1):
-        coord = (sin(i * mul) * radius + position[0], cos(i * mul) * radius + position[1])
-        coords.append(coord)
-    return coords
+    if position is not None:
+        coords = [position]
+        mul = (1.0 / segments) * (pi * 2)
+        for i in range(1, segments + 1):
+            coord = (sin(i * mul) * radius + position[0], cos(i * mul) * radius + position[1])
+            coords.append(coord)
+        return coords
 
 
 # get circle triangles by segments
@@ -59,7 +60,8 @@ def draw_multicircles_fill_2d(positions, color, radius, segments=8, alpha=False)
     # create vertices
     for center in positions:
         actCoords = GenerateCircleVerts(center, radius, segments)
-        coords.extend(actCoords)
+        if actCoords is not None:
+            coords.extend(actCoords)
     # create triangles
     for tris in range(len(positions)):
         actTris = GenerateCircleTris(segments, tris*(segments+1))

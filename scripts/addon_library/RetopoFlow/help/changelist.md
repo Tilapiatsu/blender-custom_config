@@ -2,6 +2,76 @@
 
 This document contains details about what has changed in RetopoFlow since version 2.x.
 
+### RetopoFlow 3.2.9&rarr;3.3.0
+
+- New undo system
+- New recovery system
+- Revamped action system
+- Added button to open online documents for Warning Details
+- Improved error handling at startup
+- Refactored large sections and cleaned code
+- Removed code for Blender 2.79 and earlier
+- Reorganized file structure
+- Improved Hive integration
+- Added option to keep viewport orbit center when nothing is selected
+- Added options to control Tweak/Relax brush alpha
+- Fixed disappearing text on detail UI elements at certain Blender UI scales
+- Fixed crash when exiting RetopoFlow after starting in wireframe mode
+- Fixed issue where selected but hidden geometry could get deleted
+- Turning off shading optimization now restores original shading settings
+- General code improvement
+
+### RetopoFlow 3.2.8&rarr;3.2.9
+
+- Fixed bug where scaling of target and viewport changes with save/undo
+- Fixed rare bug in PolyPen
+
+### RetopoFlow 3.2.7&rarr;3.2.8
+
+- Fixed bug where checkedness of alert checkboxes is not saved
+- Fixed bug with Stroke snapping distance
+
+### RetopoFlow 3.2.6&rarr;3.2.7
+
+- Fixed bug when pressing MMB while moving geometry with LMB
+- Significantly improved Auto Save and Auto Save recovery
+- Added quick bail if unexpected exceptions occur to prevent work loss
+- Temp mesh is used when updating to prevent work loss
+- PolyPen now has option to adjust distance for inserting vertex into edge
+- Fixed issue where loose verts and edges are unselectable
+- Fixed issue with crashing when using tablet
+- Improved auto adjustment of view clipping
+- Improved stability of Strokes and PolyPen
+- Added option for snapping to geometry while using Strokes instead of using brush radius
+- Checking for invalid characters in add-on folder name
+- Improved and debugged UI code
+- Removed RetopoFlow menu from all modes other than Object and Mesh Edit
+- Moved version number from the menu title to the menu header
+
+### RetopoFlow 3.2.5&rarr;3.2.6
+
+- Vertex pinning and unpinning, where pinned vertices cannot be moved
+- Seam edges can be pinned
+- Option to hide mouse cursor when moving geometry
+- Keymap editor improvements: shows keys for done and toggle UI, added Blender passthrough, fixed many bugs
+- Fixed bug where modifier key states would be out of sync if pressed or unpressed while changing view
+- Added auto clip adjustment setting, which adjusts clip settings based on view position and distance to bbox of sources
+- Fixed visualization bug where depth test wasn't always enabled and depth range might not be [0,1]
+- Added check for and button to select vertices that are on the "wrong" side of symmetry planes.
+- Fixed many bugs and cleaned up code
+
+### RetopoFlow 3.2.4&rarr;3.2.5
+
+- Worked around a major crashing bug in Blender 3.0 and 3.1
+- Overhauled RetopoFlow's Blender menu, by adding custom icons to buttons, improving the wording, buttons to online help documents, buttons to updater
+- Modifier keys (i.e., `Ctrl`, `Shift`, `Alt`, `OSKey`) now show OSX-specific symbols (i.e., `^`, `⇧`, `⌥`, `⌘`) for better readability on OSX machines
+- Improved keymap editor
+- Minor improvements for smaller screens
+- Started working on improvements for error reporting
+- Started refactoring code for major changes to Blender 3.0+ API, such as removing dependence on the deprecated `bgl` module
+- Many bug fixes
+- General cleaning up of old code and adding comments
+
 ### RetopoFlow 3.2.3&rarr;3.2.4
 
 - Fixed visual bug that affected machines with Apple's M1 processor (issue #915)

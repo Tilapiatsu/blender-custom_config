@@ -1,5 +1,5 @@
 '''
-Copyright (C) 2021 CG Cookie
+Copyright (C) 2022 CG Cookie
 http://cgcookie.com
 hello@cgcookie.com
 
@@ -32,13 +32,13 @@ from ...addon_common.common.blender import tag_redraw_all, matrix_vector_mult
 from ...addon_common.common.drawing import DrawCallbacks
 from ...addon_common.common.boundvar import BoundBool, BoundInt, BoundFloat
 from ...addon_common.common.maths import Vec, Point, Point2D, Direction, Color, Vec2D
-from ...config.options import themes
+from ...config.options import themes, options
 
 
 class RFWidget_BrushFalloff_Factory:
     '''
     This is a class factory.  It is needed, because the FSM is shared across instances.
-    RFTools might need to share RFWidges that are independent of each other.
+    RFTools might need to share RFWidgets that are independent of each other.
     '''
 
     @staticmethod
@@ -122,13 +122,15 @@ class RFWidget_BrushFalloff_Factory:
                 if not p: return
                 depth = self.rfcontext.Point_to_depth(p)
                 if not depth: return
-                self.scale = self.rfcontext.size2D_to_size(1.0, xy, depth)
+                scale = self.rfcontext.size2D_to_size(1.0, xy, depth)
+                if scale is None: return
+                self.scale = scale
 
                 r = self.radius * self.scale
                 co = self.outer_color
                 ci = self.inner_color
                 cc = self.fill_color * self.fill_color_scale
-                ff = math.pow(0.5, 1.0 / self.falloff)
+                ff = math.pow(0.5, 1.0 / max(self.falloff, 0.0001))
                 fs = (1-ff) * r
 
                 # draw below
@@ -158,7 +160,7 @@ class RFWidget_BrushFalloff_Factory:
                 co = self.outer_color
                 ci = self.inner_color
                 cc = self.fill_color * self.fill_color_scale
-                ff = math.pow(0.5, 1.0 / self.falloff)
+                ff = math.pow(0.5, 1.0 / max(self.falloff, 0.0001))
                 fs = (1-ff) * self.radius
                 Globals.drawing.draw2D_circle(self._change_center, r-fs/2, cc, width=fs)
                 Globals.drawing.draw2D_circle(self._change_center, r,      co, width=1)
@@ -247,14 +249,14 @@ class RFWidget_BrushFalloff_Factory:
                 falloff.set(max(0.0, min(100.0, float(v))))
 
             def falloff_to_dist(self):
-                return self.radius * math.pow(0.5, 1.0 / self.falloff)
+                return self.radius * math.pow(0.5, 1.0 / max(self.falloff, 0.0001))
 
             def dist_to_falloff(self, d):
                 self.falloff = math.log(0.5) / math.log(max(0.01, min(0.99, d / self.radius)))
 
             def falloff_gettersetter(self):
                 def getter():
-                    return int(100 * math.pow(0.5, 1.0 / self.falloff))
+                    return int(100 * math.pow(0.5, 1.0 / max(self.falloff, 0.0001)))
                 def setter(v):
                     self.falloff = math.log(0.5) / math.log(max(0.01, min(0.99, v / 100)))
                     pass
@@ -268,7 +270,7 @@ class RFWidget_BrushFalloff_Factory:
 
             @property
             def fill_color_scale(self):
-                return Color((1, 1, 1, self.strength * 0.60 + 0.10))
+                return Color((1, 1, 1, self.strength * (options['brush max alpha'] - options['brush min alpha']) + options['brush min alpha']))
 
             ##################
             # mouse
@@ -282,7 +284,9 @@ class RFWidget_BrushFalloff_Factory:
                 if not p: return
                 depth = self.rfcontext.Point_to_depth(p)
                 if not depth: return
-                self.scale = self.rfcontext.size2D_to_size(1.0, xy, depth)
+                scale = self.rfcontext.size2D_to_size(1.0, xy, depth)
+                if scale is None: return
+                self.scale = scale
 
                 # p,n = self.actions.hit_pos,self.actions.hit_norm
                 # if p is None or n is None:
@@ -295,7 +299,6 @@ class RFWidget_BrushFalloff_Factory:
                 # xy = self.rfcontext.actions.mouse
                 rmat = Matrix.Rotation(Direction.Z.angle(n), 4, Direction.Z.cross(n))
                 self.hit = True
-                self.scale = self.rfcontext.size2D_to_size(1.0, xy, depth)
                 self.hit_p = p
                 self.hit_x = Vec(matrix_vector_mult(rmat, Direction.X))
                 self.hit_y = Vec(matrix_vector_mult(rmat, Direction.Y))

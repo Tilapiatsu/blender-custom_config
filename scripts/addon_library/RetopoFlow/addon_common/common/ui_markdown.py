@@ -1,5 +1,5 @@
 '''
-Copyright (C) 2021 CG Cookie
+Copyright (C) 2022 CG Cookie
 http://cgcookie.com
 hello@cgcookie.com
 
@@ -41,6 +41,7 @@ from .ui_utilities import UIRender_Block, UIRender_Inline, get_unique_ui_id
 from .utils import kwargopts, kwargs_translate, kwargs_splitter, iter_head
 from .ui_styling import UI_Styling
 
+from .blender import get_path_from_addon_root, get_path_from_addon_common
 from .boundvar import BoundVar, BoundFloat, BoundInt, BoundString, BoundStringToBool, BoundBool
 from .decorators import blender_version_wrapper
 from .drawing import Drawing, ScissorStack
@@ -49,7 +50,7 @@ from .globals import Globals
 from .maths import Point2D, Vec2D, clamp, mid, Color, Box2D, Size2D, NumberUnit
 from .markdown import Markdown
 from .profiler import profiler, time_it
-from .utils import Dict, delay_exec, get_and_discard, strshort, abspath
+from .utils import Dict, delay_exec, get_and_discard, strshort
 
 
 from ..ext import png
@@ -90,12 +91,11 @@ def get_mdown_path(fn, ext=None, subfolders=None):
     # or <root>/images where <root> is the 2 levels above this file
     if subfolders is None:
         subfolders = ['help']
-    if ext:
-        fn = '%s.%s' % (fn,ext)
-    paths = [abspath('..', '..', p, fn) for p in subfolders]
-    paths += [abspath('images', fn)]
+    if ext: fn = f'{fn}.{ext}'
+    paths = [get_path_from_addon_root(subfolder, fn) for subfolder in subfolders]
+    paths += [get_path_from_addon_common('common', 'images', fn)]
     paths = [p for p in paths if os.path.exists(p)]
-    return iter_head(paths, None)
+    return iter_head(paths, default=None)
 
 def load_text_file(path):
     try: return open(path, 'rt').read()
@@ -111,16 +111,42 @@ def load_text_file(path):
 
 class UI_Markdown:
     # @profiler.function
-    def set_markdown(self, mdown=None, mdown_path=None, preprocess_fns=None, f_globals=None, f_locals=None, frame_depth=1):
-        if f_globals is None or f_locals is None:
-            frame = inspect.currentframe()                      # get frame   of calling function
-            for _ in range(frame_depth): frame = frame.f_back
-            if f_globals is None: f_globals = frame.f_globals   # get globals of calling function
-            if f_locals  is None: f_locals  = frame.f_locals    # get locals  of calling function
+    def set_markdown(self, mdown=None, *, mdown_path=None, preprocess_fns=None, f_globals=None, f_locals=None, frame_depth=1, frames_deep=1, remove_indentation=True, **kwargs):
+        if f_globals and f_locals:
+            f_globals = f_globals
+            f_locals = dict(f_locals)
+        else:
+            ff_globals, ff_locals = {}, {}
+            frame = inspect.currentframe()
+            for i in range(frame_depth + frames_deep):
+                if i >= frame_depth:
+                    ff_globals = frame.f_globals | ff_globals
+                    ff_locals  = frame.f_locals  | ff_locals
+                frame = frame.f_back
+            f_globals = f_globals or ff_globals
+            f_locals  = dict(f_locals or ff_locals)
+        f_locals |= kwargs
+
+        # if f_globals is None or f_locals is None:
+        #     frame = inspect.currentframe()                      # get frame   of calling function
+        #     for _ in range(frame_depth): frame = frame.f_back
+        #     if f_globals is None: f_globals = frame.f_globals   # get globals of calling function
+        #     if f_locals  is None: f_locals  = frame.f_locals    # get locals  of calling function
 
         self._src_mdown_path = mdown_path or ''
 
-        if mdown_path: mdown = load_text_file(get_mdown_path(mdown_path))
+        if mdown_path:
+            mdown = load_text_file(get_mdown_path(mdown_path))
+        if remove_indentation and mdown:
+            indent = min((
+                len(line) - len(line.lstrip())
+                for line in mdown.splitlines()
+                if line.strip()
+            ), default=0)
+            mdown = '\n'.join(
+                line if not line.strip() else line[indent:]
+                for line in mdown.splitlines()
+            )
         if preprocess_fns:
             for preprocess_fn in preprocess_fns:
                 mdown = preprocess_fn(mdown)
@@ -192,24 +218,32 @@ class UI_Markdown:
                             process_words(m.group('text'), lambda word: container.append_new_child(tagName='b', innerText=word))
                         elif t == 'italic':
                             process_words(m.group('text'), lambda word: container.append_new_child(tagName='i', innerText=word))
-                        elif t == 'checkbox':
-                            params = m.group('params')
-                            innertext = m.group('innertext')
-                            value = None
-                            for param in re.finditer(r'(?P<key>[a-zA-Z]+)(="(?P<val>.*?)")?', params):
-                                key = param.group('key')
-                                val = param.group('val')
-                                if key == 'type':
-                                    pass
-                                elif key == 'value':
-                                    value = val
-                                else:
-                                    assert False, 'Unhandled checkbox parameter key="%s", val="%s" (%s)' % (key,val,param)
-                            assert value is not None, 'Unhandled checkbox parameters: expected value (%s)' % (params)
-                            # print('CREATING input_checkbox(label="%s", checked=BoundVar("%s", ...)' % (innertext, value))
-                            ui_label = container.append_new_child(tagName='label')
-                            ui_label.append_new_child(tagName='input', type='checkbox', checked=BoundVar(value, f_globals=f_globals, f_locals=f_locals))
-                            ui_label.append_new_child(tagName='text', innerText=innertext, pseudoelement='text')
+                        elif t == 'html':
+                            ui = container.append_new_children_fromHTML(m.group(), f_globals=f_globals, f_locals=f_locals)
+                        # elif t == 'checkbox':
+                        #     params = m.group('params')
+                        #     innertext = m.group('innertext')
+                        #     value = None
+                        #     for param in re.finditer(r'(?P<key>[a-zA-Z]+)(="(?P<val>.*?)")?', params):
+                        #         key = param.group('key')
+                        #         val = param.group('val')
+                        #         if key == 'type':
+                        #             pass
+                        #         elif key == 'value':
+                        #             value = val
+                        #         else:
+                        #             assert False, 'Unhandled checkbox parameter key="%s", val="%s" (%s)' % (key,val,param)
+                        #     assert value is not None, 'Unhandled checkbox parameters: expected value (%s)' % (params)
+                        #     # print('CREATING input_checkbox(label="%s", checked=BoundVar("%s", ...)' % (innertext, value))
+                        #     ui_label = container.append_new_child(tagName='label')
+                        #     ui_label.append_new_child(tagName='input', type='checkbox', checked=BoundVar(value, f_globals=f_globals, f_locals=f_locals))
+                        #     ui_label.append_new_child(tagName='text', innerText=innertext, pseudoelement='text')
+                        # elif t == 'button':
+                        #     ui_element = self.fromHTML(m.group(0), f_globals=f_globals, f_locals=f_locals)[0]
+                        #     container.append_child(ui_element)
+                        # elif t == 'progress':
+                        #     ui_element = self.fromHTML(m.group(0), f_globals=f_globals, f_locals=f_locals)[0]
+                        #     container.append_child(ui_element)
                         else:
                             assert False, 'Unhandled inline markdown type "%s" ("%s") with "%s"' % (str(t), str(m), line)
                         para = para[m.end():]

@@ -1,5 +1,5 @@
 '''
-Copyright (C) 2021 CG Cookie
+Copyright (C) 2022 CG Cookie
 http://cgcookie.com
 hello@cgcookie.com
 
@@ -20,11 +20,22 @@ Created by Jonathan Denning, Jonathan Williamson
 '''
 
 import os
+import re
 import json
 import time
 import inspect
+from functools import wraps
 
 import bpy
+
+
+def run(*args, **kwargs):
+    if len(args) == 1 and not kwargs and inspect.isfunction(args[0]):
+        # call right away
+        return args[0]()
+    def wrapper(fn):
+        return fn(*args, **kwargs)
+    return wrapper
 
 
 debug_run_test_calls = False
@@ -41,6 +52,26 @@ def debug_test_call(*args, **kwargs):
         return fn
     return wrapper
 
+
+def ignore_exceptions(*exceptions, default=None, warn=False):
+    def wrap(fn):
+        @wraps(fn)
+        def run_with_ignore_exceptions(*args, **kwargs):
+            ret = default
+            try:
+                ret = fn(*args, **kwargs)
+            except Exception as e:
+                if not any(isinstance(e, ex) for ex in exceptions):
+                    # this exception should not be ignored
+                    raise e
+                # ignoring thrown exception!
+                if warn:
+                    print(f'Addon Common: ignoring exception')
+                    print(f'  Function:  {fn.__name__}')
+                    print(f'  Exception: {e}')
+            return ret
+        return run_with_ignore_exceptions
+    return wrap
 
 
 def stats_wrapper(fn):
@@ -208,6 +239,64 @@ def blender_version_wrapper(op, ver):
 
         return callit
     return wrapit
+
+def only_in_blender_version(*args, ignore_others=False, ignore_return=None):
+    self = only_in_blender_version
+    if not hasattr(self, 'fns'):
+        major, minor, rev = bpy.app.version
+        self.blenderver = '%d.%02d' % (major, minor)
+        self.fns = {}
+        self.ignores = {}
+        self.ops = {
+            '<':  lambda v: self.blenderver <  v,
+            '>':  lambda v: self.blenderver >  v,
+            '<=': lambda v: self.blenderver <= v,
+            '==': lambda v: self.blenderver == v,
+            '>=': lambda v: self.blenderver >= v,
+            '!=': lambda v: self.blenderver != v,
+        }
+        self.re_blender_version = re.compile(r'^(?P<comparison><|<=|==|!=|>=|>) *(?P<version>\d\.\d\d)$')
+
+    matches = [self.re_blender_version.match(arg) for arg in args]
+    assert all(match is not None for match in matches), f'At least one arg did not match version comparison: {args}'
+    results = [self.ops[match.group('comparison')](match.group('version')) for match in matches]
+    version_matches = all(results)
+
+    def wrapit(fn):
+        fn_name = fn.__name__
+
+        if version_matches:
+            assert fn_name not in self.fns, f'Multiple functions {fn_name} match the Blender version {self.blenderver}'
+            self.fns[fn_name] = fn
+
+        if ignore_others and fn_name not in self.ignores:
+            self.ignores[fn_name] = ignore_return
+
+        @wraps(fn)
+        def callit(*args, **kwargs):
+            fn = self.fns.get(fn_name, None)
+            if fn_name not in self.ignores:
+                assert fn, f'Could not find appropriate function named {fn_name} for version Blender version {self.blenderver}'
+            elif fn is None:
+                return self.ignores[fn_name]
+            return fn(*args, **kwargs)
+
+        return callit
+    return wrapit
+
+def warn_once(warning):
+    def wrapper(fn):
+        nonlocal warning
+        @wraps(fn)
+        def wrapped(*args, **kwargs):
+            nonlocal warning
+            if warning:
+                print(warning)
+                warning = None
+            return fn(*args, **kwargs)
+        return wrapped
+    return wrapper
+
 
 class PersistentOptions:
     class WrappedDict:

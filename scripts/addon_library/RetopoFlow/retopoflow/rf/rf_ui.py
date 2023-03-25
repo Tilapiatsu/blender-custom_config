@@ -1,5 +1,5 @@
 '''
-Copyright (C) 2021 CG Cookie
+Copyright (C) 2022 CG Cookie
 http://cgcookie.com
 hello@cgcookie.com
 
@@ -36,20 +36,18 @@ import bpy
 
 from ...addon_common.cookiecutter.cookiecutter import CookieCutter
 from ...addon_common.common.boundvar import BoundVar, BoundBool, BoundFloat, BoundString
-from ...addon_common.common.utils import delay_exec, abspath
+from ...addon_common.common.utils import delay_exec
 from ...addon_common.common.globals import Globals
-from ...addon_common.common.blender import get_preferences
+from ...addon_common.common.blender import get_preferences, get_path_from_addon_root
 from ...addon_common.common.ui_core import UI_Element
 from ...addon_common.common.ui_styling import load_defaultstylings
 from ...addon_common.common.profiler import profiler
 
 from ...config.options import (
     options, themes, visualization,
-    retopoflow_issues_url, retopoflow_tip_url,
-    retopoflow_version, retopoflow_version_git, retopoflow_cgcookie_built,
+    retopoflow_urls, retopoflow_product,   # these are needed for UI
     build_platform,
     platform_system, platform_node, platform_release, platform_version, platform_machine, platform_processor,
-    gpu_vendor, gpu_renderer, gpu_version, gpu_shading,
 )
 
 
@@ -65,11 +63,12 @@ class RetopoFlow_UI:
         self.alert_user(title='Exception caught', message=message, level='exception', msghash=h)
         self.rftool._reset()
 
+
     #################################
     # pie menu
 
     def setup_pie_menu(self):
-        path_pie_menu_html = abspath('pie_menu.html')
+        path_pie_menu_html = get_path_from_addon_root('retopoflow', 'html', 'pie_menu.html')
         self.ui_pie_menu = UI_Element.fromHTMLFile(path_pie_menu_html)[0]
         self.ui_pie_menu.can_hover = False
         self.document.body.append_child(self.ui_pie_menu)
@@ -84,8 +83,82 @@ class RetopoFlow_UI:
         self.pie_menu_always_callback = always_callback
         self.fsm.force_set_state('pie menu')
 
+
     #################################
     # ui
+
+    def blender_ui_set(self, scale_to_unit_box=True, add_rotate=True, hide_target=True):
+        # print('RetopoFlow: blender_ui_set', 'scale_to_unit_box='+str(scale_to_unit_box), 'add_rotate='+str(add_rotate))
+        bpy.ops.object.mode_set(mode='OBJECT')
+        if scale_to_unit_box:
+            self.start_normalize()
+            self.scene_scale_set(1.0)
+        self.viewaa_simplify()
+
+        if self.shading_type_get() in {'WIREFRAME', 'RENDERED'}:
+            self.shading_type_set('SOLID')
+
+        self.gizmo_hide()
+
+        if get_preferences().system.use_region_overlap or options['hide panels no overlap']:
+            ignore = None if options['hide header panel'] else {'header'}
+            self.panels_hide(ignore=ignore)
+        if options['hide overlays']:
+            self.overlays_hide()
+        self.blender_shading_update()
+        self.quadview_hide()
+        self.region_darken()
+        self.header_text_set('RetopoFlow')
+        self.statusbar_text_set('')
+        if add_rotate: self.setup_rotate_about_active()
+        if hide_target: self.hide_target()
+
+    def blender_shading_update(self):
+        if options['override shading'] == 'off':
+            self.shading_restore()
+            return
+
+        # common optimizations
+        self.shading_type_set(options['shading view'])
+        self.shading_backface_set(options['shading backface culling'])
+        self.shading_shadows_set(options['shading shadows'])
+        self.shading_xray_set(options['shading xray'])
+        self.shading_cavity_set(options['shading cavity'])
+        self.shading_outline_set(options['shading outline'])
+
+        # theme-based optimizations
+        if options['override shading'] == 'light':
+            self.shading_light_set(options['shading light'])
+            self.shading_colortype_set(options['shading colortype'])
+            self.shading_matcap_set(options['shading matcap light'])
+            self.shading_color_set(options['shading color light'])
+        elif options['override shading'] == 'dark':
+            self.shading_light_set(options['shading light'])
+            self.shading_colortype_set(options['shading colortype'])
+            self.shading_matcap_set(options['shading matcap dark'])
+            self.shading_color_set(options['shading color dark'])
+
+    def blender_ui_reset(self, *, ignore_panels=False):
+        # IMPORTANT: changes here should also go in rf_blender_save.backup_recover()
+        self.end_rotate_about_active()
+        self.teardown_target()
+        self.end_normalize(self.context)
+        self._cc_blenderui_end(ignore=({'panels'} if ignore_panels else None))
+        bpy.ops.object.mode_set(mode='EDIT')
+
+    @contextlib.contextmanager
+    def blender_ui_pause(self, *, ignore_panels=False):
+        self.blender_ui_reset(ignore_panels=ignore_panels)
+        yield None
+        self.blender_ui_set()
+        self.update_clip_settings(rescale=False)
+
+    def setup_ui_blender(self):
+        self.blender_ui_set(scale_to_unit_box=False, add_rotate=False, hide_target=False)
+
+
+
+
 
     def update_ui(self):
         if not hasattr(self, 'rftools_ui'): return
@@ -100,69 +173,6 @@ class RetopoFlow_UI:
         if changed:
             self.ui_options.dirty(cause='update', parent=True, children=True)
 
-    def blender_ui_set(self, scale_to_unit_box=True, add_rotate=True, hide_target=True):
-        # print('RetopoFlow: blender_ui_set', 'scale_to_unit_box='+str(scale_to_unit_box), 'add_rotate='+str(add_rotate))
-        bpy.ops.object.mode_set(mode='OBJECT')
-        if scale_to_unit_box:
-            self.scale_to_unit_box(clip_override=options['clip override'], clip_start=options['clip start override'], clip_end=options['clip end override'])
-            self.scene_scale_set(1.0)
-        self.viewaa_simplify()
-
-        if self.shading_type_get() in {'WIREFRAME', 'RENDERED'}:
-            self.shading_type_set('SOLID')
-
-        self.manipulator_hide() # <---------------------------------------------------------------
-        self._space.show_gizmo = True
-
-        if get_preferences().system.use_region_overlap:
-            # DO NOT HIDE HEADER WHEN REGION OVERLAP IS OFF!!!
-            # bug in 282a (at least)
-            self.panels_hide()
-        if options['hide overlays']: self.overlays_hide()
-        self.blender_shading_update()
-        self.quadview_hide()
-        self.region_darken()
-        self.header_text_set('RetopoFlow')
-        self.statusbar_stats_hide()
-        if add_rotate: self.setup_rotate_about_active()
-        if hide_target: self.hide_target()
-
-    def blender_shading_update(self):
-        if options['override shading'] != 'off':
-            self.shading_type_set(options['shading view'])
-            self.shading_backface_set(options['shading backface culling'])
-            self.shading_shadows_set(options['shading shadows'])
-            self.shading_xray_set(options['shading xray'])
-            self.shading_cavity_set(options['shading cavity'])
-            self.shading_outline_set(options['shading outline'])
-            if options['override shading'] == 'light':
-                self.shading_light_set(options['shading light'])
-                self.shading_colortype_set(options['shading colortype'])
-                self.shading_matcap_set(options['shading matcap light'])
-                self.shading_color_set(options['shading color light'])
-            elif options['override shading'] == 'dark':
-                self.shading_light_set(options['shading light'])
-                self.shading_colortype_set(options['shading colortype'])
-                self.shading_matcap_set(options['shading matcap dark'])
-                self.shading_color_set(options['shading color dark'])
-        else:
-            self.shading_restore()
-
-    def blender_ui_reset(self, ignore_panels=False):
-        # IMPORTANT: changes here should also go in rf_blendersave.backup_recover()
-        self.end_rotate_about_active()
-        self.teardown_target()
-        self.unscale_from_unit_box()
-        self.restore_window_state(ignore_panels=ignore_panels)
-        self._cc_blenderui_end(ignore_panels=ignore_panels)
-        bpy.ops.object.mode_set(mode='EDIT')
-
-    @contextlib.contextmanager
-    def blender_ui_pause(self):
-        self.blender_ui_reset()
-        yield None
-        self.blender_ui_set()
-
     def update_ui_geometry(self):
         if not self.ui_geometry: return
         vis = self.ui_geometry.is_visible
@@ -173,9 +183,6 @@ class RetopoFlow_UI:
         self.ui_geometry.getElementById('geometry-edges').innerText = f'{self.rftarget.get_edge_count()}'
         self.ui_geometry.getElementById('geometry-faces').innerText = f'{self.rftarget.get_face_count()}'
         if vis: self.ui_geometry.is_visible = True
-
-    def setup_ui_blender(self):
-        self.blender_ui_set(scale_to_unit_box=False, add_rotate=False, hide_target=False)
 
     def minimize_geometry_window(self, target):
         if target.id != 'geometrydialog': return
@@ -269,7 +276,7 @@ class RetopoFlow_UI:
 
     def setup_ui(self):
         # NOTE: lambda is needed on next line so that RF keymaps are bound!
-        humanread = lambda x: self.actions.to_human_readable(x, join=' / ')
+        humanread = lambda x: self.actions.to_human_readable(x, sep=' / ')
 
         self.hide_target()
 
@@ -279,10 +286,10 @@ class RetopoFlow_UI:
 
         self._var_auto_hide_options = BoundBool('''options['tools autohide']''', on_change=self.update_ui)
 
-        rf_starting_tool = getattr(self, 'rf_starting_tool', None) or options['quickstart tool']
+        rf_starting_tool = getattr(self, 'rf_starting_tool', None) or options['starting tool']
 
         def setup_counts_ui():
-            self.document.body.append_children(UI_Element.fromHTMLFile(abspath('geometry.html')))
+            self.document.body.append_children(UI_Element.fromHTMLFile(get_path_from_addon_root('retopoflow', 'html', 'geometry.html')))
             self.ui_geometry = self.document.body.getElementById('geometrydialog')
             self.ui_geometry_min = self.document.body.getElementById('geometrydialog-minimized')
             self.ui_geometry.is_visible = options['show geometry window']
@@ -291,12 +298,12 @@ class RetopoFlow_UI:
 
         def setup_tiny_ui():
             nonlocal humanread
-            self.ui_tiny = UI_Element.fromHTMLFile(abspath('main_tiny.html'))[0]
+            self.ui_tiny = UI_Element.fromHTMLFile(get_path_from_addon_root('retopoflow', 'html', 'main_tiny.html'))[0]
             self.document.body.append_child(self.ui_tiny)
 
         def setup_main_ui():
             nonlocal humanread
-            self.ui_main = UI_Element.fromHTMLFile(abspath('main_full.html'))[0]
+            self.ui_main = UI_Element.fromHTMLFile(get_path_from_addon_root('retopoflow', 'html', 'main_full.html'))[0]
             self.document.body.append_child(self.ui_main)
 
         def setup_tool_buttons():
@@ -329,7 +336,7 @@ class RetopoFlow_UI:
 
             self.document.defer_cleaning = True
 
-            self.document.body.append_children(UI_Element.fromHTMLFile(abspath('options_dialog.html')))
+            self.document.body.append_children(UI_Element.fromHTMLFile(get_path_from_addon_root('retopoflow', 'html', 'options_dialog.html')))
             self.ui_options = self.document.body.getElementById('optionsdialog')
             self.ui_options_min = self.document.body.getElementById('optionsdialog-minimized')
             self.ui_options.is_visible = options['show options window']
@@ -381,7 +388,7 @@ class RetopoFlow_UI:
                 if e.key in {'ESC', 'TAB'}: hide_ui_quit()
                 if e.key in {'RET', 'NUMPAD_ENTER'}: self.done()
 
-            self.ui_quit = UI_Element.fromHTMLFile(abspath('quit_dialog.html'))[0]
+            self.ui_quit = UI_Element.fromHTMLFile(get_path_from_addon_root('retopoflow', 'html', 'quit_dialog.html'))[0]
             self.ui_quit.is_visible = False
             self.document.body.append_child(self.ui_quit)
 
@@ -399,7 +406,7 @@ class RetopoFlow_UI:
                 self.delete_dissolve_collapse_option(opt)
                 hide_ui_delete()
 
-            self.ui_delete = UI_Element.fromHTMLFile(abspath('delete_dialog.html'))[0]
+            self.ui_delete = UI_Element.fromHTMLFile(get_path_from_addon_root('retopoflow', 'html', 'delete_dialog.html'))[0]
             self.ui_delete.is_visible = False
             self.document.body.append_child(self.ui_delete)
 
