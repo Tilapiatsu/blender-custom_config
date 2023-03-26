@@ -56,6 +56,9 @@ class TILA_Config_Preferences(bpy.types.AddonPreferences):
 		column.operator("tila.config_sync_addon_list", text="Sync Addon List")
 		column.operator("tila.config_link_addon_list", text="Link Addon List")
 		column.operator("tila.config_enable_addon_list", text="Enable Addon List")
+		column.operator("tila.config_register_keymaps", text="Register Keymaps")
+		column.operator("tila.config_set_settings", text="Set Settings")
+		
 
 	def draw_addons(self, box):
 		wm = bpy.context.window_manager
@@ -72,8 +75,8 @@ class TILA_Config_Preferences(bpy.types.AddonPreferences):
 		row = column.row(align=True)
 
 		row.scale_y = 1.5
-		row.operator("wm.url_open", text='MACHIN3tools',
-					icon='INFO').url = 'https://machin3.io/MACHIN3tools/'
+		# row.operator("wm.url_open", text='MACHIN3tools',
+		# 			icon='INFO').url = 'https://machin3.io/MACHIN3tools/'
 
 	def draw_progress(self, box):
 		row = box.row(align=True)

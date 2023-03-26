@@ -3,6 +3,7 @@ import os
 from os import path
 from bpy.types import (Operator)
 from . keymaps import TILA_Config_Keymaps as KM
+from . settings import TILA_Config_Settings as S
 from .AddonManager import AddonManager
 
 
@@ -25,7 +26,7 @@ class TILA_Config_RegisterKeymaps(Operator):
 
 class TILA_Config_UnregisterKeymaps(Operator):
 	bl_idname = "tila.config_unregister_keymaps"
-	bl_label = "TilaConfig : Unregister Keymaps"
+	bl_label = "Tila Config : Unregister Keymaps"
 	bl_options = {'REGISTER'}
 
 	def execute(self, context):
@@ -35,7 +36,7 @@ class TILA_Config_UnregisterKeymaps(Operator):
 
 class TILA_Config_PrintAddonList(Operator):
 	bl_idname = "tila.config_print_addon_list"
-	bl_label = "TilaConfig : Print Addon List"
+	bl_label = "Tila Config : Print Addon List"
 	bl_options = {'REGISTER'}
 
 	def execute(self, context):
@@ -46,7 +47,7 @@ class TILA_Config_PrintAddonList(Operator):
 
 class TILA_Config_CleanAddonList(Operator):
 	bl_idname = "tila.config_clean_addon_list"
-	bl_label = "TilaConfig : clean Addon List"
+	bl_label = "Tila Config : clean Addon List"
 	bl_options = {'REGISTER'}
 
 	def execute(self, context):
@@ -75,7 +76,7 @@ class TILA_Config_CleanAddonList(Operator):
 
 class TILA_Config_SyncAddonList(Operator):
 	bl_idname = "tila.config_sync_addon_list"
-	bl_label = "TilaConfig : Sync Addon List"
+	bl_label = "Tila Config : Sync Addon List"
 	bl_options = {'REGISTER'}
 	
 	_timer = None
@@ -105,7 +106,7 @@ class TILA_Config_SyncAddonList(Operator):
 
 class TILA_Config_LinkAddonList(Operator):
 	bl_idname = "tila.config_link_addon_list"
-	bl_label = "TilaConfig : Link Addon List"
+	bl_label = "Tila Config : Link Addon List"
 	bl_options = {'REGISTER'}
 
 	def execute(self, context):
@@ -120,7 +121,7 @@ class TILA_Config_LinkAddonList(Operator):
 
 class TILA_Config_EnableAddonList(Operator):
 	bl_idname = "tila.config_enable_addon_list"
-	bl_label = "TilaConfig : Enable Addon List"
+	bl_label = "Tila Config : Enable Addon List"
 	bl_options = {'REGISTER'}
 
 	def execute(self, context):
@@ -144,3 +145,13 @@ class TILA_Config_EnableAddonList(Operator):
 				self.AM.next_action()
 
 		return {"PASS_THROUGH"}
+
+
+class TILA_Config_SetSettings(Operator):
+	bl_idname = "tila.config_set_settings"
+	bl_label = "Tila Config : Set Settings"
+	bl_options = {'REGISTER'}
+
+	def execute(self, context):
+		S.set_settings()
+		return {"FINISHED"}

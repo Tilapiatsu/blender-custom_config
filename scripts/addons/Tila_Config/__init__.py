@@ -11,7 +11,6 @@
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 
-from bpy.props import IntProperty, StringProperty, BoolProperty, EnumProperty, FloatProperty, FloatVectorProperty
 import bpy
 from . preferences import TILA_Config_Preferences
 from . operators import (	TILA_Config_RegisterKeymaps,
@@ -20,11 +19,12 @@ from . operators import (	TILA_Config_RegisterKeymaps,
                             TILA_Config_CleanAddonList,
                           	TILA_Config_SyncAddonList,
 			                TILA_Config_LinkAddonList,
-			                TILA_Config_EnableAddonList)
+                            TILA_Config_EnableAddonList, 
+			                TILA_Config_SetSettings)
 
 
 bl_info = {
-	"name" : "Tila Config",
+	"name" : "Tila Addon Manager",
 	"author" : "Tilapiatsu",
 	"description" : "",
 	"blender" : (2, 80, 0),
@@ -40,7 +40,8 @@ classes = (	TILA_Config_PrintAddonList,
             TILA_Config_EnableAddonList,
 	   		TILA_Config_RegisterKeymaps,
 		   	TILA_Config_UnregisterKeymaps,
-		   	TILA_Config_Preferences)
+		   	TILA_Config_Preferences,
+            TILA_Config_SetSettings)
 
 def register():
 	for cls in classes:

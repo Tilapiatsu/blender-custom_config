@@ -11,7 +11,7 @@ import re
 import bpy
 from os import path
 from . import admin
-from . Logger import Logger, get_log_file
+from . Logger import Logger
 
 root_folder = path.dirname(bpy.utils.script_path_user())
 
@@ -19,9 +19,6 @@ dependencies = ['gitpython']
 
 create_symbolic_link_file = path.join(path.dirname(path.realpath(__file__)), 'create_symbolic_link.py')
 
-bversion_string = bpy.app.version_string
-bversion_reg = re.match("^(\d\.\d?\d)", bversion_string)
-bversion = float(bversion_reg.group(0))
 
 def install_dependencies():
 	current_dir = path.dirname(path.realpath(__file__))
