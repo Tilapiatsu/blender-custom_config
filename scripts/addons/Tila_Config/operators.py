@@ -113,7 +113,7 @@ class TILA_Config_LinkAddonList(Operator):
 
 		self.AM.link()
 		
-		bpy.ops.preferences.addon_refresh()
+		bpy.ops.preferences.addon_refresh('EXEC_DEFAULT')
 
 		return {"FINISHED"}
 

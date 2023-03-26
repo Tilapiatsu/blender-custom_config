@@ -47,7 +47,7 @@
 },
 "AgX": {
     "sync": true,
-    "enable": true,
+    "enable": false,
     "online_url": "https://github.com/sobotka/AgX.git",
     "branch": null,
     "submodule" : false,
@@ -662,7 +662,7 @@
         }
     ]
 },
-"physical_starlight_atmosphere": {
+"physical-starlight-atmosphere": {
     "sync": false,
     "enable": true,
     "online_url": null,
@@ -673,7 +673,7 @@
         {
             "enable": true,
             "local_subpath": null,
-            "destination_path": "#\\scripts\\addons\\physical_starlight_atmosphere"
+            "destination_path": "#\\scripts\\addons\\physical-starlight-atmosphere"
         }
     ]
 },
@@ -722,18 +722,18 @@
         }
     ]
 },
-"quad_remehser": {
+"quad_remesher": {
     "sync": false,
     "enable": true,
     "online_url": "https://exoside.com/quadremesher/quadremesher-download/",
     "branch": null,
     "submodule": false,
-    "local_path": "S:\\Mon Drive\\15_Blender\\00_INSTALLED_ADDONS\\quad_remehser",
+    "local_path": "S:\\Mon Drive\\15_Blender\\00_INSTALLED_ADDONS\\quad_remesher",
     "paths": [
         {
             "enable": true,
             "local_subpath": null,
-            "destination_path": "#\\scripts\\addons\\quad_remehser"
+            "destination_path": "#\\scripts\\addons\\quad_remesher"
         }
     ]
 },
@@ -764,7 +764,7 @@
         {
             "enable": true,
             "local_subpath": "noodler.py",
-            "destination_path": "#\\scripts\\addons"
+            "destination_path": "#\\scripts\\addons\\noodler.py"
         }
     ]
 },
@@ -779,7 +779,7 @@
         {
             "enable": false,
             "local_subpath": "keymesh.py",
-            "destination_path": "#\\scripts\\addons"
+            "destination_path": "#\\scripts\\addons\\keymesh.py"
         }
     ]
 },
@@ -989,7 +989,7 @@
         {
             "enable": false,
             "local_subpath": "blendshell.py",
-            "destination_path": "#\\scripts\\addons\\blendshell.py"
+            "destination_path": "#\\scripts\\addons\\BlendShell.py"
         }
     ]
 },
@@ -1607,7 +1607,7 @@
     "local_path": "#\\scripts\\addon_library\\GIT_Clones\\mesh_align_plus",
     "paths": [
         {
-            "enable": true,
+            "enable": false,
             "local_subpath": null,
             "destination_path": "#\\scripts\\addons\\mesh_align_plus"
         }
@@ -1631,7 +1631,7 @@
     "local_path": "#\\scripts\\addon_library\\GIT_Clones\\Principled_Baker",
     "paths": [
         {
-            "enable": true,
+            "enable": false,
             "local_subpath": null,
             "destination_path": "#\\scripts\\addons\\Principled_Baker"
         }
@@ -1646,7 +1646,7 @@
     "local_path": "#\\scripts\\addon_library\\GIT_Clones\\MeasureIt_ARCH",
     "paths": [
         {
-            "enable": true,
+            "enable": false,
             "local_subpath": null,
             "destination_path": "#\\scripts\\addons\\MeasureIt_ARCH"
         }
@@ -1679,7 +1679,7 @@
     "local_path": "#\\scripts\\addon_library\\GIT_Clones\\PolyCount",
     "paths": [
         {
-            "enable": true,
+            "enable": false,
             "local_subpath": "polycount",
             "destination_path": "#\\scripts\\addons\\PolyCount"
         }
@@ -1694,7 +1694,7 @@
     "local_path": "#\\scripts\\addon_library\\GIT_Clones\\mifthtools",
     "paths": [
         {
-            "enable": true,
+            "enable": false,
             "local_subpath": "blender\\addons\\2.8\\mira_tools",
             "destination_path": "#\\scripts\\addons\\mifthtools"
         }
@@ -1709,7 +1709,7 @@
     "local_path": "#\\scripts\\addon_library\\GIT_Clones\\Neltulz_Smart_Sharpen",
     "paths": [
         {
-            "enable": true,
+            "enable": false,
             "local_subpath": null,
             "destination_path": "#\\scripts\\addons\\Neltulz_Smart_Sharpen"
         }
@@ -1724,7 +1724,7 @@
     "local_path": "#\\scripts\\addon_library\\GIT_Clones\\Neltulz_Symmetry",
     "paths": [
         {
-            "enable": true,
+            "enable": false,
             "local_subpath": null,
             "destination_path": "#\\scripts\\addons\\Neltulz_Symmetry"
         }
@@ -1775,7 +1775,7 @@
     "local_path": "#\\scripts\\addon_library\\GIT_Submodules\\tila_lineup_maker",
     "paths": [
         {
-            "enable": true,
+            "enable": false,
             "local_subpath": null,
             "destination_path": "#\\scripts\\addons\\lineup_maker"
         }
@@ -2117,7 +2117,7 @@
     ]
 },
 "mesh_tools": {
-    "sync": true,
+    "sync": false,
     "enable": true,
     "online_url": null,
     "branch" : null,
@@ -2126,7 +2126,7 @@
     "paths": null
 },
 "cycles": {
-    "sync": true,
+    "sync": false,
     "enable": true,
     "online_url": null,
     "branch" : null,
@@ -2135,15 +2135,15 @@
     "paths": null
 },
 "maxivz_tools": {
-    "sync": true,
-    "enable": true,
+    "sync": false,
+    "enable": false,
     "online_url": null,
     "branch" : null,
     "submodule" : false,
     "local_path": null,
     "paths": null
 },
-"blenderbezierutils": {
+"bezierutils": {
     "sync": true,
     "enable": true,
     "online_url": "https://github.com/Shriinivas/blenderbezierutils.git",
@@ -2211,14 +2211,20 @@
 "ImagePaste": {
     "sync": true,
     "enable": true,
-    "online_url": null,
+    "online_url": "https://yeetusblenditus.gumroad.com/l/ImPaste",
     "branch" : null,
     "submodule" : false,
-    "local_path": null,
-    "paths": null
+    "local_path": "#\\scripts\\addon_library\\local\\ImagePaste",
+    "paths": [
+        {
+            "enable": true,
+            "local_subpath": null,
+            "destination_path": "#\\scripts\\addons\\ImagePaste"
+        }
+    ]
 },
 "greasepencil_tools": {
-    "sync": true,
+    "sync": false,
     "enable": true,
     "online_url": null,
     "branch" : null,
@@ -2241,16 +2247,7 @@
         }
     ]
 },
-"quad_remesher": {
-    "sync": true,
-    "enable": true,
-    "online_url": null,
-    "branch" : null,
-    "submodule" : false,
-    "local_path": null,
-    "paths": null
-},
-"mesh_restoresymmetry": {
+"RestoreSymmetry": {
     "sync": true,
     "enable": true,
     "online_url": "https://github.com/n-taka/BlenderAddons.git",
@@ -2261,12 +2258,12 @@
         {
             "enable": true,
             "local_subpath": "RestoreSymmetry\\mesh_restoresymmetry.py",
-            "destination_path": "#\\scripts\\addons\\RestoreSymmetry"
+            "destination_path": "#\\scripts\\addons\\RestoreSymmetry.py"
         }
     ]
 },
 "Tila_Config": {
-    "sync": true,
+    "sync": false,
     "enable": true,
     "online_url": null,
     "branch" : null,

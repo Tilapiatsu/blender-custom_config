@@ -11,6 +11,7 @@ import re
 import bpy
 from os import path
 from . import admin
+from . Logger import Logger, get_log_file
 
 root_folder = path.dirname(bpy.utils.script_path_user())
 
@@ -73,96 +74,6 @@ except (ModuleNotFoundError, ImportError) as e:
 	install_dependencies()
 	import git
 
-def get_log_file():
-	try:
-		filepath = root_folder
-	except AttributeError:
-		filepath = ''
-	if path.exists(filepath):
-		log_file = path.join(path.dirname(filepath), '{}.log'.format(
-			path.splitext(path.basename(filepath))[0]))
-	else:
-		tempf = tempfile.TemporaryFile().name
-		log_file = '{}.log'.format(tempf)
-
-	return log_file
-
-
-class Logger(object):
-	def __init__(self, context='ROOT'):
-		self.context = context
-
-		self.log_file = get_log_file()
-		self.timeformat = '%m/%d/%Y %I:%M:%S %p'
-		self.set_basic_config()
-
-		self.success = []
-		self.failure = []
-		# self.message_list = []
-
-		self._pretty = '---------------------'
-
-	def info(self, message, asset=None, print_log=True):
-		self.set_basic_config()
-		if asset is not None:
-			warning = asset.warnings.add()
-			warning.message = message
-		# if print_log:
-		# 	self.message_list.append(message)
-		# 	print_progress(bpy.context, self.message_list, title=self.context, icon='NONE')
-		logging.info(message)
-
-	def debug(self, message, asset=None, print_log=True):
-		self.set_basic_config()
-		if asset is not None:
-			warning = asset.warnings.add()
-			warning.message = message
-		# if print_log:
-		# 	self.message_list.append(message)
-		# 	print_progress(bpy.context, self.message_list, title=self.context, icon='NONE')
-		logging.debug(message)
-
-	def warning(self, message, asset=None, print_log=True):
-		self.set_basic_config()
-		if asset is not None:
-			warning = asset.warnings.add()
-			warning.message = message
-		# if print_log:
-		# 	self.message_list.append(message)
-		# 	print_progress(bpy.context, self.message_list, title=self.context, icon='NONE')
-		logging.warning(message)
-
-	def error(self, message, asset=None, print_log=True):
-		self.set_basic_config()
-		if asset is not None:
-			warning = asset.warnings.add()
-			warning.message = message
-		# if print_log:
-		# 	self.message_list.append(message)
-		# 	print_progress(bpy.context, self.message_list, title=self.context, icon='NONE')
-		logging.error(message)
-
-	def set_basic_config(self):
-		self.format = 'LINEUP MAKER : %(asctime)s - %(levelname)s : {} :    %(message)s'.format(
-			self.context)
-		logging.basicConfig(filename=self.log_file, level=logging.DEBUG,
-							datefmt=self.timeformat, filemode='w', format=self.format)
-
-	def store_success(self, success):
-		self.success.append(success)
-
-	def store_failure(self, failure):
-		self.failure.append(failure)
-
-	def pretty(self, str):
-
-		p = self._pretty
-
-		for c in str:
-			p += '-'
-
-		return p
-	
 
 class File(object):
 	def __init__(self, path):
@@ -348,7 +259,9 @@ class PathElementAM():
 				print(f'Path Already Exists : Skipping {self.destination_path.path}')
 				return []
 
-		return str([self.local_subpath.path, self.destination_path.path, self.destination_path.is_dir])
+		print(
+			f'Linking {self.local_subpath.path} -> {self.destination_path.path} {self.local_subpath.is_dir}')
+		return str([self.local_subpath.path, self.destination_path.path, self.local_subpath.is_dir])
 	
 		# if admin.is_admin():
 		# 	os.symlink(self.local_subpath.path, self.destination_path.path, target_is_directory=self.destination_path.is_dir)
@@ -362,7 +275,7 @@ class PathElementAM():
 		if not self.is_enable:
 			return
 		
-		if self.self.destination_path.is_file:
+		if self.destination_path.is_file:
 			enable_addon(path.splitext(path.basename(self.destination_path.path))[0])
 		elif self.destination_path.is_dir:
 			enable_addon(path.basename(self.destination_path.path))
@@ -431,7 +344,7 @@ class ElementAM():
 	def sync(self, overwrite=False):
 		if not self.is_sync:
 			return
-		if self.online_url is None or self.local_path is None:
+		if self.online_url is None or self.local_path.path is None:
 			return
 		
 		if self.local_path.exists and not self.submodule:
@@ -455,9 +368,7 @@ class ElementAM():
 		print(f'Syncing Done!')
 
 	def link(self, overwrite=False):
-		if not self.is_sync:
-			return []
-		if self.local_path is None:
+		if self.local_path.path is None:
 			return []
 		
 		link_commands = []
@@ -485,6 +396,7 @@ class AddonManager():
 		self.json = Json(json_path)
 		self.processing = False
 		self.queue_list = []
+		self.log = Logger('AddonManager')
 
 	@property
 	def elements(self):
@@ -543,6 +455,10 @@ class AddonManager():
 				return
 			link_command = command
 
+		# for c in link_command:
+		# 	print(c)
+		# 	# self.log.info(c)
+
 		admin.elevate([create_symbolic_link_file, '--', '--file_to_link', *link_command])
 
 		self.processing = False
@@ -568,9 +484,9 @@ class AddonManager():
 	def queue_enable(self, element_name=None, overwrite=False):
 		if element_name is None:
 			for e in self.elements.values():
-				self.queue([self.enable, {'element_name': e.name, 'overwrite': overwrite}])
+				self.queue([self.enable, {'element_name': e.name}])
 		elif element_name in self.elements.keys():
-			self.queue([self.enable, {'element_name': element_name, 'overwrite': overwrite}])
+			self.queue([self.enable, {'element_name': element_name}])
 	
 	def queue(self, action):
 		self.queue_list.append(action)
