@@ -10,10 +10,13 @@ import bpy
 import re
 import bpy
 from os import path
+from . import admin
 
 root_folder = path.dirname(bpy.utils.script_path_user())
 
 dependencies = ['gitpython']
+
+create_symbolic_link_file = path.join(path.dirname(path.realpath(__file__)), 'create_symbolic_link.py')
 
 bversion_string = bpy.app.version_string
 bversion_reg = re.match("^(\d\.\d?\d)", bversion_string)
@@ -328,25 +331,32 @@ class PathElementAM():
 		if self.destination_path.exists:
 			if not self.is_enable:
 				self.destination_path.remove()
+				print(f'Clean Done!')
 
 
 	def link(self, overwrite=False):
 		if not self.is_enable:
-			return
+			return []
 		
 		if self.local_subpath is None or self.destination_path is None:
-			return
+			return []
 		
 		if self.destination_path.exists:
 			if overwrite:
 				self.destination_path.remove()
 			else:
 				print(f'Path Already Exists : Skipping {self.destination_path.path}')
-				return
-		
-		print(f'Linking {self.local_subpath.path} -> {self.destination_path.path}')
-		os.symlink(self.local_subpath.path, self.destination_path.path,
-				   target_is_directory=self.destination_path.is_dir)
+				return []
+
+		return str([self.local_subpath.path, self.destination_path.path, self.destination_path.is_dir])
+	
+		# if admin.is_admin():
+		# 	os.symlink(self.local_subpath.path, self.destination_path.path, target_is_directory=self.destination_path.is_dir)
+		# else:
+		# 	print(f'Linking {self.local_subpath.path} -> {self.destination_path.path}')
+		# 	admin.elevate([create_symbolic_link_file, '--', '--file_to_link',
+		# 	              str([self.local_subpath.path, self.destination_path.path, self.destination_path.is_dir])])
+		# 	print(f'Linking Done!')
 	
 	def enable(self):
 		if not self.is_enable:
@@ -356,6 +366,8 @@ class PathElementAM():
 			enable_addon(path.splitext(path.basename(self.destination_path.path))[0])
 		elif self.destination_path.is_dir:
 			enable_addon(path.basename(self.destination_path.path))
+		
+		print(f'Enable Done!')
 			
 class ElementAM():
 	def __init__(self, element_dict, name):
@@ -422,7 +434,7 @@ class ElementAM():
 		if self.online_url is None or self.local_path is None:
 			return
 		
-		if self.local_path.exists:
+		if self.local_path.exists and not self.submodule:
 			if overwrite:
 				self.local_path.remove()
 			else:
@@ -431,20 +443,31 @@ class ElementAM():
 		
 		print(f'Syncing {self.name} to {self.local_path.path}')
 		if self.submodule:
-			repo = git.Repo(self.online_url)
+			repo = git.Repo(self.local_path.path)
 			repo.git.submodule('update', '--init')
+			if self.branch is not None:
+				repo.git.checkout(self.branch)
 		else:
-			args = {'branch': self.branch} if self.branch is not None else {}
-			git.Repo.clone_from(self.online_url, self.local_path.path, *args)
+			kwargs = {'branch': self.branch} if self.branch is not None else {}
+			# if self.branch is not None:
+			git.Repo.clone_from(self.online_url, self.local_path.path, **kwargs)
+		
+		print(f'Syncing Done!')
 
 	def link(self, overwrite=False):
 		if not self.is_sync:
-			return
+			return []
 		if self.local_path is None:
-			return
+			return []
 		
+		link_commands = []
 		for p in self.paths:
-			p.link(overwrite=overwrite)
+			command = p.link(overwrite=overwrite)
+			if not len(command):
+				continue
+			link_commands.append(p.link(overwrite=overwrite))
+		
+		return link_commands
 	
 	def enable(self):
 		if not self.is_enable:
@@ -456,43 +479,113 @@ class ElementAM():
 			for p in self.paths:
 				p.enable()
 
-
 class AddonManager():
 	def __init__(self, json_path):
 		self._json_path = json_path
 		self.json = Json(json_path)
+		self.processing = False
+		self.queue_list = []
 
 	@property
 	def elements(self):
 		return {k: ElementAM(v, k) for k,v in self.json.json_data.items() if k[0] != '_'}
 	
 	def clean(self, element_name=None):
+		self.processing = True
+
 		if element_name is None:
 			for e in self.elements.values():
 				e.clean()
 		elif element_name in self.elements.keys():
 			self.elements[element_name].clean()
+		
+		self.processing = False
+	
+	def queue_sync(self, element_name=None, overwrite=False):
+		if element_name is None:
+			for e in self.elements.values():
+				self.queue([self.sync, {'element_name': e.name, 'overwrite': overwrite}])
+		elif element_name in self.elements.keys():
+			self.queue(
+				[self.sync, {'element_name': element_name, 'overwrite': overwrite}])
 
 	def sync(self, element_name=None, overwrite=False):
+		self.processing = True
+
 		if element_name is None:
 			for e in self.elements.values():
 				e.sync(overwrite=overwrite)
 		elif element_name in self.elements.keys():
 			self.elements[element_name].sync(overwrite=overwrite)
+		
+		self.processing = False
 	
-	def link(self, element_name=None, overwrite=False):
+	def queue_clean(self, element_name=None, overwrite =False):
 		if element_name is None:
 			for e in self.elements.values():
-				e.link(overwrite=overwrite)
+				self.queue([self.clean, {'element_name': e.name, 'overwrite': overwrite}])
 		elif element_name in self.elements.keys():
-			self.elements[element_name].link(overwrite=overwrite)
+			self.queue([self.clean, {'element_name': element_name, 'overwrite': overwrite}])
+
+	def link(self, element_name=None, overwrite=False):
+		self.processing = True
+
+		link_command = []
+		if element_name is None:
+			for e in self.elements.values():
+				command = e.link(overwrite=overwrite)
+				if not len(command):
+					continue
+				link_command += command
+		elif element_name in self.elements.keys():
+			command = self.elements[element_name].link(overwrite=overwrite)
+			if not len(command):
+				return
+			link_command = command
+
+		admin.elevate([create_symbolic_link_file, '--', '--file_to_link', *link_command])
+
+		self.processing = False
+
+	def queue_link(self, element_name=None, overwrite=False):
+		if element_name is None:
+			for e in self.elements.values():
+				self.queue([self.link, {'element_name': e.name, 'overwrite': overwrite}])
+		elif element_name in self.elements.keys():
+			self.queue([self.link, {'element_name': element_name, 'overwrite': overwrite}])
 	
 	def enable(self, element_name=None):
+		self.processing = True
+
 		if element_name is None:
 			for e in self.elements.values():
 				e.enable()
 		elif element_name in self.elements.keys():
 			self.elements[element_name].enable()
+
+		self.processing = False
+
+	def queue_enable(self, element_name=None, overwrite=False):
+		if element_name is None:
+			for e in self.elements.values():
+				self.queue([self.enable, {'element_name': e.name, 'overwrite': overwrite}])
+		elif element_name in self.elements.keys():
+			self.queue([self.enable, {'element_name': element_name, 'overwrite': overwrite}])
+	
+	def queue(self, action):
+		self.queue_list.append(action)
+
+	def flush_queue(self):
+		self.queue_list = []
+
+	def next_action(self):
+		if len(self.queue_list) == 0:
+			print('Queue Done !')
+			return
+		
+		action = self.queue_list.pop(0)
+
+		action[0](**action[1])
 
 	def __str__(self):
 		s = ''

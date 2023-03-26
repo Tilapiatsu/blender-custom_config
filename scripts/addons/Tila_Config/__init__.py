@@ -17,7 +17,10 @@ from . preferences import TILA_Config_Preferences
 from . operators import (	TILA_Config_RegisterKeymaps,
                         	TILA_Config_UnregisterKeymaps,
                          	TILA_Config_PrintAddonList,
-                          	TILA_Config_SyncAddonList)
+                            TILA_Config_CleanAddonList,
+                          	TILA_Config_SyncAddonList,
+			                TILA_Config_LinkAddonList,
+			                TILA_Config_EnableAddonList)
 
 
 bl_info = {
@@ -31,7 +34,10 @@ bl_info = {
 }
 		
 classes = (	TILA_Config_PrintAddonList,
+            TILA_Config_CleanAddonList,
             TILA_Config_SyncAddonList,
+            TILA_Config_LinkAddonList,
+            TILA_Config_EnableAddonList,
 	   		TILA_Config_RegisterKeymaps,
 		   	TILA_Config_UnregisterKeymaps,
 		   	TILA_Config_Preferences)

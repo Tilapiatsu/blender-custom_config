@@ -19,7 +19,7 @@
     "sync": true,
     "enable": false,
     "online_url": "https://github.com/Tilapiatsu/matcap-selection.git",
-    "branch": null,
+    "branch" : "master",
     "submodule" : true,
     "local_path": "#\\scripts\\addon_library\\GIT_Submodules\\tila_matcap",
     "paths": [
@@ -87,7 +87,7 @@
         {
             "enable": false,
             "local_subpath": null,
-            "destination_path": "#\\scipts\\addons\\BystedtsBlenderBaker"
+            "destination_path": "#\\scripts\\addons\\BystedtsBlenderBaker"
         }
     ]
 },
@@ -102,7 +102,7 @@
         {
             "enable": false,
             "local_subpath": null,
-            "destination_path": "#\\scipts\\addons\\CheckToolBox"
+            "destination_path": "#\\scripts\\addons\\CheckToolBox"
         }
     ]
 },
@@ -117,7 +117,7 @@
         {
             "enable": false,
             "local_subpath": null,
-            "destination_path": "#\\scipts\\addons\\context_browser"
+            "destination_path": "#\\scripts\\addons\\context_browser"
         }
     ]
 },
@@ -132,7 +132,7 @@
         {
             "enable": false,
             "local_subpath": null,
-            "destination_path": "#\\scipts\\addons\\drop_it"
+            "destination_path": "#\\scripts\\addons\\drop_it"
         }
     ]
 },
@@ -147,7 +147,7 @@
         {
             "enable": false,
             "local_subpath": "EasyHDRI.py",
-            "destination_path": "#\\scipts\\addons\\EasyHDRI.py"
+            "destination_path": "#\\scripts\\addons\\EasyHDRI.py"
         }
     ]
 },
@@ -162,7 +162,7 @@
         {
             "enable": false,
             "local_subpath": null,
-            "destination_path": "#\\scipts\\addons\\flow_map_painter"
+            "destination_path": "#\\scripts\\addons\\flow_map_painter"
         }
     ]
 },
@@ -177,7 +177,7 @@
         {
             "enable": false,
             "local_subpath": null,
-            "destination_path": "#\\scipts\\addons\\keentools"
+            "destination_path": "#\\scripts\\addons\\keentools"
         }
     ]
 },
@@ -192,7 +192,7 @@
         {
             "enable": true,
             "local_subpath": null,
-            "destination_path": "#\\scipts\\addons\\kekit"
+            "destination_path": "#\\scripts\\addons\\kekit"
         }
     ]
 },
@@ -207,7 +207,7 @@
         {
             "enable": false,
             "local_subpath": null,
-            "destination_path": "#\\scipts\\addons\\lazy_shapekeys"
+            "destination_path": "#\\scripts\\addons\\lazy_shapekeys"
         }
     ]
 },
@@ -222,7 +222,7 @@
         {
             "enable": true,
             "local_subpath": null,
-            "destination_path": "#\\scipts\\addons\\MeshDataTransfer"
+            "destination_path": "#\\scripts\\addons\\MeshDataTransfer"
         }
     ]
 },
@@ -237,7 +237,7 @@
         {
             "enable": false,
             "local_subpath": null,
-            "destination_path": "#\\scipts\\addons\\mouselook_navigation"
+            "destination_path": "#\\scripts\\addons\\mouselook_navigation"
         }
     ]
 },
@@ -252,7 +252,7 @@
         {
             "enable": true,
             "local_subpath": null,
-            "destination_path": "#\\scipts\\addons\\NGon Loop Select"
+            "destination_path": "#\\scripts\\addons\\NGon Loop Select"
         }
     ]
 },
@@ -267,7 +267,7 @@
         {
             "enable": true,
             "local_subpath": null,
-            "destination_path": "#\\scipts\\addons\\Poly_Source"
+            "destination_path": "#\\scripts\\addons\\Poly_Source"
         }
     ]
 },
@@ -282,7 +282,7 @@
         {
             "enable": true,
             "local_subpath": null,
-            "destination_path": "#\\scipts\\addons\\Pro_Aligner"
+            "destination_path": "#\\scripts\\addons\\Pro_Aligner"
         }
     ]
 },
@@ -297,7 +297,7 @@
         {
             "enable": false,
             "local_subpath": null,
-            "destination_path": "#\\scipts\\addons\\QBlocker"
+            "destination_path": "#\\scripts\\addons\\QBlocker"
         }
     ]
 },
@@ -312,7 +312,7 @@
         {
             "enable": false,
             "local_subpath": null,
-            "destination_path": "#\\scipts\\addons\\render_task_list"
+            "destination_path": "#\\scripts\\addons\\render_task_list"
         }
     ]
 },
@@ -327,7 +327,7 @@
         {
             "enable": false,
             "local_subpath": null,
-            "destination_path": "#\\scipts\\addons\\RetopoFlow"
+            "destination_path": "#\\scripts\\addons\\RetopoFlow"
         }
     ]
 },
@@ -342,7 +342,7 @@
         {
             "enable": false,
             "local_subpath": null,
-            "destination_path": "#\\scipts\\addons\\rotate_an_hdri"
+            "destination_path": "#\\scripts\\addons\\rotate_an_hdri"
         }
     ]
 },
@@ -357,7 +357,7 @@
         {
             "enable": false,
             "local_subpath": null,
-            "destination_path": "#\\scipts\\addons\\sj_selection_set"
+            "destination_path": "#\\scripts\\addons\\sj_selection_set"
         }
     ]
 },
@@ -372,7 +372,7 @@
         {
             "enable": true,
             "local_subpath": null,
-            "destination_path": "#\\scipts\\addons\\slcad_transform"
+            "destination_path": "#\\scripts\\addons\\slcad_transform"
         }
     ]
 },
@@ -387,7 +387,7 @@
         {
             "enable": false,
             "local_subpath": null,
-            "destination_path": "#\\scipts\\addons\\softMod"
+            "destination_path": "#\\scripts\\addons\\softMod"
         }
     ]
 },
@@ -402,7 +402,7 @@
         {
             "enable": false,
             "local_subpath": null,
-            "destination_path": "#\\scipts\\addons\\SSGI"
+            "destination_path": "#\\scripts\\addons\\SSGI"
         }
     ]
 },
@@ -417,7 +417,7 @@
         {
             "enable": true,
             "local_subpath": null,
-            "destination_path": "#\\scipts\\addons\\surface_inflate"
+            "destination_path": "#\\scripts\\addons\\surface_inflate"
         }
     ]
 },
@@ -432,7 +432,7 @@
         {
             "enable": false,
             "local_subpath": null,
-            "destination_path": "#\\scipts\\addons\\Synchronize Workspace"
+            "destination_path": "#\\scripts\\addons\\Synchronize Workspace"
         }
     ]
 },
@@ -447,7 +447,7 @@
         {
             "enable": true,
             "local_subpath": null,
-            "destination_path": "#\\scipts\\addons\\UnwrapMe"
+            "destination_path": "#\\scripts\\addons\\UnwrapMe"
         }
     ]
 },
@@ -462,7 +462,7 @@
         {
             "enable": false,
             "local_subpath": null,
-            "destination_path": "#\\scipts\\addons\\weight_layers"
+            "destination_path": "#\\scripts\\addons\\weight_layers"
         }
     ]
 },
@@ -477,7 +477,7 @@
         {
             "enable": false,
             "local_subpath": null,
-            "destination_path": "#\\scipts\\addons\\auto_mirror_ex"
+            "destination_path": "#\\scripts\\addons\\auto_mirror_ex"
         }
     ]
 },
@@ -492,7 +492,7 @@
         {
             "enable": false,
             "local_subpath": "bakeToVertexColor.py",
-            "destination_path": "#\\scipts\\addons\\bakeToVertexColor.py"
+            "destination_path": "#\\scripts\\addons\\bakeToVertexColor.py"
         }
     ]
 },
@@ -507,7 +507,7 @@
         {
             "enable": true,
             "local_subpath": "Blender_light_manager.py",
-            "destination_path": "#\\scipts\\addons\\Blender_light_manager.py"
+            "destination_path": "#\\scripts\\addons\\Blender_light_manager.py"
         }
     ]
 },
@@ -522,7 +522,7 @@
         {
             "enable": false,
             "local_subpath": "boundary_alinged_remesh.py",
-            "destination_path": "#\\scipts\\addons\\boundary_alinged_remesh.py"
+            "destination_path": "#\\scripts\\addons\\boundary_alinged_remesh.py"
         }
     ]
 },
@@ -537,7 +537,7 @@
         {
             "enable": false,
             "local_subpath": "hide_only_vertex.py",
-            "destination_path": "#\\scipts\\addons\\hide_only_vertex.py"
+            "destination_path": "#\\scripts\\addons\\hide_only_vertex.py"
         }
     ]
 },
@@ -552,7 +552,7 @@
         {
             "enable": false,
             "local_subpath": "ke_i2m.py",
-            "destination_path": "#\\scipts\\addons\\ke_i2m.py"
+            "destination_path": "#\\scripts\\addons\\ke_i2m.py"
         }
     ]
 },
@@ -567,7 +567,7 @@
         {
             "enable": false,
             "local_subpath": "thumbMate.py",
-            "destination_path": "#\\scipts\\addons\\thumbMate.py"
+            "destination_path": "#\\scripts\\addons\\thumbMate.py"
         }
     ]
 },
@@ -582,7 +582,7 @@
         {
             "enable": false,
             "local_subpath": "transfer_vertex_order.py",
-            "destination_path": "#\\scipts\\addons\\transfer_vertex_order.py"
+            "destination_path": "#\\scripts\\addons\\transfer_vertex_order.py"
         }
     ]
 },
@@ -597,7 +597,7 @@
         {
             "enable": false,
             "local_subpath": "ZWeightTools.py",
-            "destination_path": "#\\scipts\\addons\\ZWeightTools.py"
+            "destination_path": "#\\scripts\\addons\\ZWeightTools.py"
         }
     ]
 },
@@ -764,7 +764,7 @@
         {
             "enable": true,
             "local_subpath": "noodler.py",
-            "destination_path": "#\\scipts\\addons"
+            "destination_path": "#\\scripts\\addons"
         }
     ]
 },
@@ -779,7 +779,7 @@
         {
             "enable": false,
             "local_subpath": "keymesh.py",
-            "destination_path": "#\\scipts\\addons"
+            "destination_path": "#\\scripts\\addons"
         }
     ]
 },
@@ -794,7 +794,7 @@
         {
             "enable": false,
             "local_subpath": null,
-            "destination_path": "#\\scipts\\addons\\leomoon-lightstudio"
+            "destination_path": "#\\scripts\\addons\\leomoon-lightstudio"
         }
     ]
 },
@@ -1347,13 +1347,28 @@
     "enable": false,
     "online_url": "https://github.com/Tilapiatsu/blender-Universal_Multi_Importer.git",
     "branch" : null,
-    "submodule" : true,
+    "submodule" : "main",
     "local_path": "#\\scripts\\addon_library\\GIT_Submodules\\tila_universal_multi_importer",
     "paths": [
         {
             "enable": false,
             "local_subpath": null,
             "destination_path": "#\\scripts\\addons\\universal_multi_importer"
+        }
+    ]
+},
+"export_as_blend": {
+    "sync": true,
+    "enable": false,
+    "online_url": "https://github.com/Tilapiatsu/blender-export_as_blend.git",
+    "branch" : "main",
+    "submodule" : true,
+    "local_path": "#\\scripts\\addon_library\\GIT_Submodules\\tila_export_as_blend",
+    "paths": [
+        {
+            "enable": false,
+            "local_subpath": null,
+            "destination_path": "#\\scripts\\addons\\export_as_blend"
         }
     ]
 },
@@ -1755,7 +1770,7 @@
     "sync": true,
     "enable": false,
     "online_url": "https://github.com/Tilapiatsu/blender-lineup_maker.git",
-    "branch" : null,
+    "branch" : "blender-format-assets",
     "submodule" : true,
     "local_path": "#\\scripts\\addon_library\\GIT_Submodules\\tila_lineup_maker",
     "paths": [
@@ -1952,7 +1967,7 @@
     "sync": true,
     "enable": true,
     "online_url": "https://github.com/sakana3/PolyQuilt.git",
-    "branch" : null,
+    "branch" : "Future",
     "submodule" : false,
     "local_path": "#\\scripts\\addon_library\\GIT_Clones\\PolyQuilt",
     "paths": [
@@ -2245,7 +2260,7 @@
     "paths": [
         {
             "enable": true,
-            "local_subpath": "RestoreSymmetry",
+            "local_subpath": "RestoreSymmetry\\mesh_restoresymmetry.py",
             "destination_path": "#\\scripts\\addons\\RestoreSymmetry"
         }
     ]
