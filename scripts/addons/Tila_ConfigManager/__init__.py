@@ -24,7 +24,7 @@ from . operators import (	TILA_Config_RegisterKeymaps,
 
 
 bl_info = {
-	"name" : "Tila Addon Manager",
+	"name" : "Tila Config Manager",
 	"author" : "Tilapiatsu",
 	"description" : "",
 	"blender" : (2, 80, 0),

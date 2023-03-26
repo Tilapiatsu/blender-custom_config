@@ -19,8 +19,8 @@ class TILA_Config_RegisterKeymaps(Operator):
 	bl_options = {'REGISTER'}
 
 	def execute(self, context):
-		bpy.ops.script.reload()
-		KM.set_tila_keymap()
+		keymap = KM()
+		keymap.set_tila_keymap()
 		return {'FINISHED'}
 
 
@@ -153,5 +153,6 @@ class TILA_Config_SetSettings(Operator):
 	bl_options = {'REGISTER'}
 
 	def execute(self, context):
-		S.set_settings()
+		settings = S()
+		settings.set_settings()
 		return {"FINISHED"}

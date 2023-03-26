@@ -2209,7 +2209,7 @@
     ]
 },
 "ImagePaste": {
-    "sync": true,
+    "sync": false,
     "enable": true,
     "online_url": "https://yeetusblenditus.gumroad.com/l/ImPaste",
     "branch" : null,

@@ -1,13 +1,10 @@
 import os
 import sys
 import json
-import tempfile
-import logging
 import shutil
 import subprocess
 import stat
 import bpy
-import re
 import bpy
 from os import path
 from . import admin
@@ -329,6 +326,13 @@ class ElementAM():
 		else:
 			return [PathElementAM(x, self.local_path) for x in self._element_dict['paths']]
 	
+	def ensure_repo_init(self):
+		subdir = os.listdir(self.local_path.path)
+
+		if '.git' not in [path.dirname(s) for s in subdir]:
+			repo = git.Repo(root_folder)
+			repo.git.submodule('update', '--init')
+	
 	def clean(self):
 		for p in self.paths:
 			p.clean()
@@ -337,7 +341,6 @@ class ElementAM():
 			if not self.is_sync:
 				self.local_path.remove()
 			
-
 	def sync(self, overwrite=False):
 		if not self.is_sync:
 			return
@@ -353,6 +356,7 @@ class ElementAM():
 		
 		print(f'Syncing {self.name} to {self.local_path.path}')
 		if self.submodule:
+			self.ensure_repo_init()
 			repo = git.Repo(self.local_path.path)
 			repo.git.submodule('update', '--init')
 			if self.branch is not None:
