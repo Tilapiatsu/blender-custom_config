@@ -129,15 +129,14 @@ class TILA_Config_EnableAddonList(Operator):
 		self.AM.flush_queue()
 		self.AM.queue_enable()
 
-		self._timer = bpy.context.window_manager.event_timer_add(
-			0.1, window=context.window)
+		self._timer = bpy.context.window_manager.event_timer_add(0.1, window=context.window)
 		bpy.context.window_manager.modal_handler_add(self)
 		return {'RUNNING_MODAL'}
 
 	def modal(self, context, event):
 		if event.type == 'TIMER':
 			if len(self.AM.queue_list) == 0:
-				self.report({'INFO'}, 'TilaConfig : Enable Done !')
+				self.report({'INFO'}, 'TilaConfig : Sync Done !')
 				bpy.context.window_manager.event_timer_remove(self._timer)
 				return {"FINISHED"}
 
