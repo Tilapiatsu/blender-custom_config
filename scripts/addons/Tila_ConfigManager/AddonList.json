@@ -2262,7 +2262,7 @@
         }
     ]
 },
-"Tila_Config": {
+"Tila_ConfigManager": {
     "sync": false,
     "enable": true,
     "online_url": null,
