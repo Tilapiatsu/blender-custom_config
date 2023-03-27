@@ -2264,7 +2264,7 @@
 },
 "Tila_ConfigManager": {
     "sync": false,
-    "enable": true,
+    "enable": false,
     "online_url": null,
     "branch" : null,
     "submodule" : false,

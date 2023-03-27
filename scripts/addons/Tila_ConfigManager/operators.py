@@ -115,6 +115,8 @@ class TILA_Config_LinkAddonList(Operator):
 		self.AM.link()
 		
 		bpy.ops.preferences.addon_refresh('EXEC_DEFAULT')
+		
+		self.report({'INFO'}, 'TilaConfig : Link Done !')
 
 		return {"FINISHED"}
 
@@ -137,7 +139,7 @@ class TILA_Config_EnableAddonList(Operator):
 	def modal(self, context, event):
 		if event.type == 'TIMER':
 			if len(self.AM.queue_list) == 0:
-				self.report({'INFO'}, 'TilaConfig : Sync Done !')
+				self.report({'INFO'}, 'TilaConfig : Enable Done !')
 				bpy.context.window_manager.event_timer_remove(self._timer)
 				return {"FINISHED"}
 

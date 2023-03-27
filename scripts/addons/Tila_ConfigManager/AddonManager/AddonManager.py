@@ -270,9 +270,15 @@ class PathElementAM():
 			return
 		
 		if self.destination_path.is_file:
-			enable_addon(path.splitext(path.basename(self.destination_path.path))[0])
+			addon_name = path.splitext(path.basename(self.destination_path.path))[0]
+			if addon_name in bpy.context.preferences.addons:
+				return
+			enable_addon(addon_name)
 		elif self.destination_path.is_dir:
-			enable_addon(path.basename(self.destination_path.path))
+			addon_name = path.basename(self.destination_path.path)
+			if addon_name in bpy.context.preferences.addons:
+				return
+			enable_addon(addon_name)
 		
 		print(f'Enable Done!')
 			
