@@ -487,7 +487,7 @@
     "online_url": "https://3dbystedt.gumroad.com/l/zdgxg",
     "branch": null,
     "submodule": false,
-    "local_path": "#\\scripts\\addon_library",
+    "local_path": "#\\scripts\\addon_library\\local",
     "paths": [
         {
             "enable": false,
@@ -502,7 +502,7 @@
     "online_url": "https://engelik.gumroad.com/l/DQNYI",
     "branch": null,
     "submodule": false,
-    "local_path": "#\\scripts\\addon_library",
+    "local_path": "#\\scripts\\addon_library\\local",
     "paths": [
         {
             "enable": true,
@@ -517,7 +517,7 @@
     "online_url": "https://bookyakuno.gumroad.com/l/NEMDA",
     "branch": null,
     "submodule": false,
-    "local_path": "#\\scripts\\addon_library",
+    "local_path": "#\\scripts\\addon_library\\local",
     "paths": [
         {
             "enable": false,
@@ -532,7 +532,7 @@
     "online_url": "https://bookyakuno.gumroad.com/l/NEMDA",
     "branch": null,
     "submodule": false,
-    "local_path": "#\\scripts\\addon_library",
+    "local_path": "#\\scripts\\addon_library\\local",
     "paths": [
         {
             "enable": false,
@@ -547,7 +547,7 @@
     "online_url": "https://kjell.gumroad.com/l/i2m",
     "branch": null,
     "submodule": false,
-    "local_path": "#\\scripts\\addon_library",
+    "local_path": "#\\scripts\\addon_library\\local",
     "paths": [
         {
             "enable": false,
@@ -562,7 +562,7 @@
     "online_url": "https://www.braverabbit.com/braverabbit/tools/thumbmate/",
     "branch": null,
     "submodule": false,
-    "local_path": "#\\scripts\\addon_library",
+    "local_path": "#\\scripts\\addon_library\\local",
     "paths": [
         {
             "enable": false,
@@ -577,7 +577,7 @@
     "online_url": "https://bartoszstyperek.gumroad.com/l/copy_verts_ids",
     "branch": null,
     "submodule": false,
-    "local_path": "#\\scripts\\addon_library",
+    "local_path": "#\\scripts\\addon_library\\local",
     "paths": [
         {
             "enable": false,
@@ -592,7 +592,7 @@
     "online_url": "https://zacheastin.gumroad.com/l/tukDb",
     "branch": null,
     "submodule": false,
-    "local_path": "#\\scripts\\addon_library",
+    "local_path": "#\\scripts\\addon_library\\local",
     "paths": [
         {
             "enable": false,
