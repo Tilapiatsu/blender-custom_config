@@ -60,8 +60,8 @@ class TILA_Config_Preferences(bpy.types.AddonPreferences):
 		column.operator("tila.config_sync_addon_list", text="Sync Addon List")
 		column.operator("tila.config_link_addon_list", text="Link Addon List")
 		column.operator("tila.config_enable_addon_list", text="Enable Addon List")
-		column.operator("tila.config_register_keymaps", text="Register Keymaps")
 		column.operator("tila.config_set_settings", text="Set Settings")
+		column.operator("tila.config_register_keymaps", text="Register Keymaps")
 		
 
 	def draw_addons(self, box):

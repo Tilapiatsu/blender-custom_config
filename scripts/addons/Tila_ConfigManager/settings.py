@@ -53,11 +53,6 @@ class TILA_Config_Settings():
 		self.set_machin3tool_settings(context, 'activate_save_pie' , True)
 		self.set_machin3tool_settings(context, 'activate_align_pie' , True)
 		self.set_machin3tool_settings(context, 'activate_cursor_pie' , True)
-		kmi = bpy.context.window_manager.keyconfigs.addon.keymaps['Window'].keymap_items
-		for k in kmi:
-			if k.type == 'S' and k.properties.name == 'MACHIN3_MT_save_pie':
-				k.shift = True
-				bpy.context.window_manager.keyconfigs.update()
 
 		# object_collection_manager
 		addon = context.preferences.addons.get('object_collection_manager')

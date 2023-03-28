@@ -43,10 +43,10 @@ class TILA_Config_SetupBlender(Operator):
 				case 'LINK_DONE':
 					bpy.ops.tila.config_enable_addon_list('EXEC_DEFAULT')
 				case 'ENABLE_DONE':
-					bpy.ops.tila.config_register_keymaps('EXEC_DEFAULT')
-				case 'REGISTER_KEYMAP_DONE':
 					bpy.ops.tila.config_set_settings('EXEC_DEFAULT')
 				case 'SET_SETTINGS_DONE':
+					bpy.ops.tila.config_register_keymaps('EXEC_DEFAULT')
+				case 'REGISTER_KEYMAP_DONE':
 					context.window_manager.tila_setup_blender_progress = "NONE"
 					self.report({'INFO'}, 'TilaConfig : Blender Setup Done !')
 					return {"FINISHED"}
