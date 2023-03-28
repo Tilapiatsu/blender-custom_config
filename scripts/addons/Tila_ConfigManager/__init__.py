@@ -13,7 +13,7 @@
 
 import bpy
 from . preferences import TILA_Config_Preferences
-from . items import setup_blender_step
+from . items import setup_blender_progress
 from . operators import (	TILA_Config_RegisterKeymaps,
 							TILA_Config_UnregisterKeymaps,
 						 	TILA_Config_PrintAddonList,
@@ -47,7 +47,7 @@ classes = (	TILA_Config_PrintAddonList,
 			TILA_Config_SetupBlender)
 
 def register():
-	bpy.types.WindowManager.setup_blender_step = bpy.props.EnumProperty(items=setup_blender_step)
+	bpy.types.WindowManager.tila_setup_blender_progress = bpy.props.EnumProperty(default="NONE", items=setup_blender_progress)
 	for cls in classes:
 		bpy.utils.register_class(cls)
 
@@ -55,7 +55,7 @@ def unregister():
 	for cls in reversed(classes):
 		bpy.utils.unregister_class(cls)
 	
-	del bpy.types.WindowManager.setup_blender_step
+	del bpy.types.WindowManager.tila_setup_blender_progress
 	
 if __name__ == "__main__":
 	register()

@@ -19,13 +19,46 @@ class TILA_Config_SetupBlender(Operator):
 	bl_options = {'REGISTER'}
 
 	def execute(self, context):
-		bpy.ops.tila.config_clean_addon_list('EXEC_DEFAULT')
-		bpy.ops.tila.config_sync_addon_list('EXEC_DEFAULT')
-		bpy.ops.tila.config_link_addon_list('EXEC_DEFAULT')
-		bpy.ops.tila.config_enable_addon_list('EXEC_DEFAULT')
-		bpy.ops.tila.config_register_keymaps('EXEC_DEFAULT')
-		bpy.ops.tila.config_set_settings('EXEC_DEFAULT')
-		return {'FINISHED'}
+		self.AM = AddonManager.AddonManager(AL)
+
+		context.window_manager.tila_setup_blender_progress = "NONE"
+
+		self._timer = bpy.context.window_manager.event_timer_add(
+			0.1, window=context.window)
+		bpy.context.window_manager.modal_handler_add(self)
+		return {'RUNNING_MODAL'}
+
+	def modal(self, context, event):
+		if event.type == 'TIMER':
+			match context.window_manager.tila_setup_blender_progress:
+				case 'NONE':
+					bpy.ops.tila.config_clean_addon_list('EXEC_DEFAULT')
+				case 'CLEAN_STARTED':
+					context.window_manager.tila_setup_blender_progress = "CLEAN_DONE"
+				case 'CLEAN_DONE':
+					bpy.ops.tila.config_sync_addon_list('EXEC_DEFAULT')
+				case 'SYNC_STARTED':
+					context.window_manager.tila_setup_blender_progress = "SYNC_DONE"
+				case 'SYNC_DONE':
+					bpy.ops.tila.config_link_addon_list('EXEC_DEFAULT')
+				case 'LINK_STARTED':
+					context.window_manager.tila_setup_blender_progress = "LINK_DONE"
+				case 'LINK_DONE':
+					bpy.ops.tila.config_enable_addon_list('EXEC_DEFAULT')
+				case 'ENABLE_STARTED':
+					context.window_manager.tila_setup_blender_progress = "ENABLE_DONE"
+				case 'ENABLE_DONE':
+					bpy.ops.tila.config_register_keymaps('EXEC_DEFAULT')
+				case 'REGISTER_KEYMAP_STARTED':
+					context.window_manager.tila_setup_blender_progress = "REGISTER_KEYMAP_DONE"
+				case 'REGISTER_KEYMAP_DONE':
+					bpy.ops.tila.config_set_settings('EXEC_DEFAULT')
+				case 'SET_SETTINGS_STARTED':
+					context.window_manager.tila_setup_blender_progress = "SET_SETTINGS_DONE"
+				case 'SET_SETTINGS_DONE':
+					context.window_manager.tila_setup_blender_progress = "NONE"
+
+		return {"PASS_THROUGH"}
 
 class TILA_Config_PrintAddonList(Operator):
 	bl_idname = "tila.config_print_addon_list"

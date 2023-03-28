@@ -403,6 +403,7 @@ class AddonManager():
 		self.json = Json(json_path)
 		self.processing = False
 		self.queue_list = []
+		self.wm = bpy.context.WindowManager
 		self.log = Logger('AddonManager')
 
 	@property
@@ -411,6 +412,7 @@ class AddonManager():
 	
 	def clean(self, element_name=None):
 		self.processing = True
+		self.wm.tila_setup_blender_progress = "CLEAN_STARTED"
 
 		if element_name is None:
 			for e in self.elements.values():
@@ -418,6 +420,7 @@ class AddonManager():
 		elif element_name in self.elements.keys():
 			self.elements[element_name].clean()
 		
+		self.wm.tila_setup_blender_progress = "CLEAN_DONE"
 		self.processing = False
 	
 	def queue_sync(self, element_name=None, overwrite=False):
@@ -430,6 +433,7 @@ class AddonManager():
 
 	def sync(self, element_name=None, overwrite=False):
 		self.processing = True
+		self.wm.tila_setup_blender_progress = "SYNC_STARTED"
 
 		if element_name is None:
 			for e in self.elements.values():
@@ -437,6 +441,7 @@ class AddonManager():
 		elif element_name in self.elements.keys():
 			self.elements[element_name].sync(overwrite=overwrite)
 		
+		self.wm.tila_setup_blender_progress = "SYNC_DONE"
 		self.processing = False
 	
 	def queue_clean(self, element_name=None, overwrite =False):
@@ -448,6 +453,7 @@ class AddonManager():
 
 	def link(self, element_name=None, overwrite=False):
 		self.processing = True
+		self.wm.tila_setup_blender_progress = "LINK_STARTED"
 
 		link_command = []
 		if element_name is None:
@@ -468,6 +474,7 @@ class AddonManager():
 
 		admin.elevate([create_symbolic_link_file, '--', '--file_to_link', *link_command])
 
+		self.wm.tila_setup_blender_progress = "LINK_DONE"
 		self.processing = False
 
 	def queue_link(self, element_name=None, overwrite=False):
@@ -479,6 +486,7 @@ class AddonManager():
 	
 	def enable(self, element_name=None):
 		self.processing = True
+		self.wm.tila_setup_blender_progress = "ENABLE_STARTED"
 
 		if element_name is None:
 			for e in self.elements.values():
@@ -486,6 +494,7 @@ class AddonManager():
 		elif element_name in self.elements.keys():
 			self.elements[element_name].enable()
 
+		self.wm.tila_setup_blender_progress = "ENABLE_DONE"
 		self.processing = False
 
 	def queue_enable(self, element_name=None, overwrite=False):
