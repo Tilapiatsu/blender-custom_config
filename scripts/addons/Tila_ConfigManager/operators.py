@@ -1,5 +1,6 @@
 import bpy
 import os
+import time
 from os import path
 from bpy.types import (Operator)
 from . keymaps import TILA_Config_Keymaps as KM
@@ -145,6 +146,7 @@ class TILA_Config_LinkAddonList(Operator):
 		self.report({'INFO'}, 'TilaConfig : Start Link')
 		
 		self.AM.link()
+		time.sleep(1)
 		
 		bpy.ops.preferences.addon_refresh('EXEC_DEFAULT')
 
