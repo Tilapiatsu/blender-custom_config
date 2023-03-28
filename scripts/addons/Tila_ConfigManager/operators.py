@@ -28,6 +28,7 @@ class TILA_Config_SetupBlender(Operator):
 		self._timer = bpy.context.window_manager.event_timer_add(
 			0.1, window=context.window)
 		bpy.context.window_manager.modal_handler_add(self)
+		self.report({'INFO'}, 'TilaConfig : Blender Setup Started !')
 		return {'RUNNING_MODAL'}
 
 	def modal(self, context, event):
@@ -47,6 +48,8 @@ class TILA_Config_SetupBlender(Operator):
 					bpy.ops.tila.config_set_settings('EXEC_DEFAULT')
 				case 'SET_SETTINGS_DONE':
 					context.window_manager.tila_setup_blender_progress = "NONE"
+					self.report({'INFO'}, 'TilaConfig : Blender Setup Done !')
+					return {"FINISHED"}
 
 		return {"PASS_THROUGH"}
 
