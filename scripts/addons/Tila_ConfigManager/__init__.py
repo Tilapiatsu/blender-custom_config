@@ -13,15 +13,16 @@
 
 import bpy
 from . preferences import TILA_Config_Preferences
+from . items import setup_blender_step
 from . operators import (	TILA_Config_RegisterKeymaps,
-                        	TILA_Config_UnregisterKeymaps,
-                         	TILA_Config_PrintAddonList,
-                            TILA_Config_CleanAddonList,
-                          	TILA_Config_SyncAddonList,
-			                TILA_Config_LinkAddonList,
-                            TILA_Config_EnableAddonList, 
-			                TILA_Config_SetSettings,
-                            TILA_Config_SetupBlender)
+							TILA_Config_UnregisterKeymaps,
+						 	TILA_Config_PrintAddonList,
+							TILA_Config_CleanAddonList,
+						  	TILA_Config_SyncAddonList,
+							TILA_Config_LinkAddonList,
+							TILA_Config_EnableAddonList, 
+							TILA_Config_SetSettings,
+							TILA_Config_SetupBlender)
 
 
 bl_info = {
@@ -35,23 +36,26 @@ bl_info = {
 }
 		
 classes = (	TILA_Config_PrintAddonList,
-            TILA_Config_CleanAddonList,
-            TILA_Config_SyncAddonList,
-            TILA_Config_LinkAddonList,
-            TILA_Config_EnableAddonList,
+			TILA_Config_CleanAddonList,
+			TILA_Config_SyncAddonList,
+			TILA_Config_LinkAddonList,
+			TILA_Config_EnableAddonList,
 	   		TILA_Config_RegisterKeymaps,
 		   	TILA_Config_UnregisterKeymaps,
 		   	TILA_Config_Preferences,
-            TILA_Config_SetSettings,
-            TILA_Config_SetupBlender)
+			TILA_Config_SetSettings,
+			TILA_Config_SetupBlender)
 
 def register():
+	bpy.types.WindowManager.setup_blender_step = bpy.props.EnumProperty(items=setup_blender_step)
 	for cls in classes:
 		bpy.utils.register_class(cls)
 
 def unregister():
 	for cls in reversed(classes):
 		bpy.utils.unregister_class(cls)
+	
+	del bpy.types.WindowManager.setup_blender_step
 	
 if __name__ == "__main__":
 	register()
