@@ -5,6 +5,13 @@ from . blender_version import bversion
 class TILA_Config_Settings():
 	def __init__(self):
 		pass
+	
+	def set_machin3tool_settings(self, context, setting_name, value):
+		if getattr(context.preferences.addons.get('MACHIN3tools').preferences, setting_name) == value:
+			return
+		
+		setattr(context.preferences.addons.get('MACHIN3tools').preferences, setting_name, value)
+		
 
 	def set_settings(self):
 		# Set Theme to Tila
@@ -23,33 +30,34 @@ class TILA_Config_Settings():
 
 		# Machin3Tools
 		addon = context.preferences.addons.get('MACHIN3tools')
-		addon.preferences.activate_smart_vert = False
-		addon.preferences.activate_smart_edge = False
-		addon.preferences.activate_smart_face = False
-		addon.preferences.activate_focus = False
-		addon.preferences.activate_mirror = True
-		addon.preferences.activate_modes_pie = False
-		addon.preferences.activate_views_pie = False
-		addon.preferences.activate_transform_pie = False
-		addon.preferences.activate_collections_pie = False
-		addon.preferences.activate_align = True
-		addon.preferences.activate_filebrowser_tools = True
-		addon.preferences.activate_extrude = True
-		addon.preferences.activate_clean_up = True
-		addon.preferences.activate_edge_constraint = True
-		addon.preferences.activate_surface_slide = True
-		addon.preferences.activate_group = False
-		addon.preferences.activate_mesh_cut = True
-		addon.preferences.activate_thread = True
-		addon.preferences.activate_material_picker = True
-		addon.preferences.activate_save_pie = True
-		addon.preferences.activate_align_pie = True
-		addon.preferences.activate_cursor_pie = True
-		# kmi = bpy.context.window_manager.keyconfigs.addon.keymaps['Window'].keymap_items
-		# for k in kmi:
-		# 	if k.type == 'S' and k.properties.name == 'MACHIN3_MT_save_pie':
-		# 		k.shift = True
-		# 		bpy.context.window_manager.keyconfigs.update()
+		
+		self.set_machin3tool_settings(context, 'activate_smart_vert' , False)
+		self.set_machin3tool_settings(context, 'activate_smart_edge' , False)
+		self.set_machin3tool_settings(context, 'activate_smart_face' , False)
+		self.set_machin3tool_settings(context, 'activate_focus' , False)
+		self.set_machin3tool_settings(context, 'activate_mirror' , True)
+		self.set_machin3tool_settings(context, 'activate_modes_pie' , False)
+		self.set_machin3tool_settings(context, 'activate_views_pie' , False)
+		self.set_machin3tool_settings(context, 'activate_transform_pie' , False)
+		self.set_machin3tool_settings(context, 'activate_collections_pie' , False)
+		self.set_machin3tool_settings(context, 'activate_align' , True)
+		self.set_machin3tool_settings(context, 'activate_filebrowser_tools' , True)
+		self.set_machin3tool_settings(context, 'activate_extrude' , True)
+		self.set_machin3tool_settings(context, 'activate_clean_up' , True)
+		self.set_machin3tool_settings(context, 'activate_edge_constraint' , True)
+		self.set_machin3tool_settings(context, 'activate_surface_slide' , True)
+		self.set_machin3tool_settings(context, 'activate_group' , False)
+		self.set_machin3tool_settings(context, 'activate_mesh_cut' , True)
+		self.set_machin3tool_settings(context, 'activate_thread' , True)
+		self.set_machin3tool_settings(context, 'activate_material_picker' , True)
+		self.set_machin3tool_settings(context, 'activate_save_pie' , True)
+		self.set_machin3tool_settings(context, 'activate_align_pie' , True)
+		self.set_machin3tool_settings(context, 'activate_cursor_pie' , True)
+		kmi = bpy.context.window_manager.keyconfigs.addon.keymaps['Window'].keymap_items
+		for k in kmi:
+			if k.type == 'S' and k.properties.name == 'MACHIN3_MT_save_pie':
+				k.shift = True
+				bpy.context.window_manager.keyconfigs.update()
 
 		# object_collection_manager
 		addon = context.preferences.addons.get('object_collection_manager')
@@ -108,3 +116,5 @@ class TILA_Config_Settings():
 		# # Auto Reload
 		addon = context.preferences.addons.get('Auto_Reload')
 		addon.preferences.update_check_launch = False
+
+		bpy.ops.wm.save_userpref()
