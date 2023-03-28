@@ -148,7 +148,7 @@ class TILA_Config_LinkAddonList(Operator):
 		
 		bpy.ops.preferences.addon_refresh('EXEC_DEFAULT')
 
-		self.wm.tila_setup_blender_progress = "LINK_STARTED"
+		self.wm.tila_setup_blender_progress = "LINK_DONE"
 		
 		self.report({'INFO'}, 'TilaConfig : Link Done !')
 
