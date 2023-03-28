@@ -208,6 +208,7 @@ class TILA_Config_RegisterKeymaps(Operator):
 		keymap.set_tila_keymap()
 		bpy.context.window_manager.keyconfigs.update()
 		self.wm.tila_setup_blender_progress = "REGISTER_KEYMAP_DONE"
+		self.report({'INFO'}, 'TilaConfig : Start Register Done')
 
 		return {'FINISHED'}
 
@@ -235,5 +236,5 @@ class TILA_Config_SetSettings(Operator):
 		self.report({'INFO'}, 'TilaConfig : Start Set Setting')
 		settings.set_settings()
 		self.wm.tila_setup_blender_progress = "SET_SETTINGS_DONE"
-		
+		self.report({'INFO'}, 'TilaConfig : Start Set Done')
 		return {"FINISHED"}
