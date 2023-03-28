@@ -21,7 +21,8 @@ class TILA_Config_SetupBlender(Operator):
 	def execute(self, context):
 		self.AM = AddonManager.AddonManager(AL)
 
-		context.window_manager.tila_setup_blender_progress = "NONE"
+		self.wm = bpy.context.window_manager
+		self.wm.tila_setup_blender_progress = "NONE"
 
 		self._timer = bpy.context.window_manager.event_timer_add(
 			0.1, window=context.window)
@@ -66,7 +67,7 @@ class TILA_Config_CleanAddonList(Operator):
 
 	def execute(self, context):
 		self.wm = bpy.context.window_manager
-
+		self.wm.tila_setup_blender_progress = "NONE"
 		self.AM = AddonManager.AddonManager(AL)
 
 		self.AM.flush_queue()
@@ -87,6 +88,7 @@ class TILA_Config_CleanAddonList(Operator):
 
 			elif not self.AM.processing:
 				if self.wm.tila_setup_blender_progress == "NONE":
+					self.report({'INFO'}, 'TilaConfig : Start Clean')
 					self.wm.tila_setup_blender_progress = "CLEAN_STARTED"
 				self.AM.next_action()
 
@@ -102,7 +104,7 @@ class TILA_Config_SyncAddonList(Operator):
 
 	def execute(self, context):
 		self.wm = bpy.context.window_manager
-
+		self.wm.tila_setup_blender_progress = "NONE"
 		self.AM = AddonManager.AddonManager(AL)
 
 		self.AM.flush_queue()
@@ -122,6 +124,7 @@ class TILA_Config_SyncAddonList(Operator):
 		
 			elif not self.AM.processing:
 				if self.wm.tila_setup_blender_progress == "NONE":
+					self.report({'INFO'}, 'TilaConfig : Start Sync')
 					self.wm.tila_setup_blender_progress = "SYNC_STARTED"
 				self.AM.next_action()
 
@@ -135,10 +138,12 @@ class TILA_Config_LinkAddonList(Operator):
 
 	def execute(self, context):
 		self.wm = bpy.context.window_manager
-
+		self.wm.tila_setup_blender_progress = "NONE"
 		self.AM = AddonManager.AddonManager(AL)
 
 		self.wm.tila_setup_blender_progress = "LINK_STARTED"
+		self.report({'INFO'}, 'TilaConfig : Start Link')
+		
 		self.AM.link()
 		
 		bpy.ops.preferences.addon_refresh('EXEC_DEFAULT')
@@ -157,7 +162,7 @@ class TILA_Config_EnableAddonList(Operator):
 
 	def execute(self, context):
 		self.wm = bpy.context.window_manager
-
+		self.wm.tila_setup_blender_progress = "NONE"
 		self.AM = AddonManager.AddonManager(AL)
 
 		self.AM.flush_queue()
@@ -177,6 +182,7 @@ class TILA_Config_EnableAddonList(Operator):
 
 			elif not self.AM.processing:
 				if self.wm.tila_setup_blender_progress == "NONE":
+					self.report({'INFO'}, 'TilaConfig : Start Enable')
 					self.wm.tila_setup_blender_progress = "ENABLE_STARTED"
 				self.AM.next_action()
 
@@ -193,6 +199,7 @@ class TILA_Config_RegisterKeymaps(Operator):
 		keymap = KM()
 
 		self.wm.tila_setup_blender_progress = "REGISTER_KEYMAP_STARTED"
+		self.report({'INFO'}, 'TilaConfig : Start Register Keymaps')
 		keymap.set_tila_keymap()
 		self.wm.tila_setup_blender_progress = "REGISTER_KEYMAP_DONE"
 
@@ -219,6 +226,7 @@ class TILA_Config_SetSettings(Operator):
 		settings = S()
 
 		self.wm.tila_setup_blender_progress = "SET_SETTINGS_STARTED"
+		self.report({'INFO'}, 'TilaConfig : Start Set Setting')
 		settings.set_settings()
 		self.wm.tila_setup_blender_progress = "SET_SETTINGS_DONE"
 		
