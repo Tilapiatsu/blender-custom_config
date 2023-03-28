@@ -50,6 +50,10 @@ class TILA_Config_Preferences(bpy.types.AddonPreferences):
 		b = split.box()
 		
 		column = b.column(align=True)
+		row = column.row()
+		row.scale_y = 3
+		row.operator("tila.config_setup_blender", text="Setup Blender")
+		column.separator()
 		column.operator("tila.config_print_addon_list", text="Print Addon List")
 		column.separator()
 		column.operator("tila.config_clean_addon_list", text="Clean Addon List")

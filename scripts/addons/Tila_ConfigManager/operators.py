@@ -13,26 +13,19 @@ def get_path():
 
 AL = path.join(get_path(), 'AddonList.json')
 
-class TILA_Config_RegisterKeymaps(Operator):
-	bl_idname = "tila.config_register_keymaps"
-	bl_label = "Tila Config : Register Keymaps"
+class TILA_Config_SetupBlender(Operator):
+	bl_idname = "tila.config_setup_blender"
+	bl_label = "Tila Config : Print Setup Blender"
 	bl_options = {'REGISTER'}
 
 	def execute(self, context):
-		keymap = KM()
-		keymap.set_tila_keymap()
+		bpy.ops.tila.config_clean_addon_list('EXEC_DEFAULT')
+		bpy.ops.tila.config_sync_addon_list('EXEC_DEFAULT')
+		bpy.ops.tila.config_link_addon_list('EXEC_DEFAULT')
+		bpy.ops.tila.config_enable_addon_list('EXEC_DEFAULT')
+		bpy.ops.tila.config_register_keymaps('EXEC_DEFAULT')
+		bpy.ops.tila.config_set_settings('EXEC_DEFAULT')
 		return {'FINISHED'}
-
-
-class TILA_Config_UnregisterKeymaps(Operator):
-	bl_idname = "tila.config_unregister_keymaps"
-	bl_label = "Tila Config : Unregister Keymaps"
-	bl_options = {'REGISTER'}
-
-	def execute(self, context):
-		# keymaps.unregister()
-		return {'FINISHED'}
-
 
 class TILA_Config_PrintAddonList(Operator):
 	bl_idname = "tila.config_print_addon_list"
@@ -148,7 +141,26 @@ class TILA_Config_EnableAddonList(Operator):
 
 		return {"PASS_THROUGH"}
 
+class TILA_Config_RegisterKeymaps(Operator):
+	bl_idname = "tila.config_register_keymaps"
+	bl_label = "Tila Config : Register Keymaps"
+	bl_options = {'REGISTER'}
 
+	def execute(self, context):
+		keymap = KM()
+		keymap.set_tila_keymap()
+		return {'FINISHED'}
+
+
+class TILA_Config_UnregisterKeymaps(Operator):
+	bl_idname = "tila.config_unregister_keymaps"
+	bl_label = "Tila Config : Unregister Keymaps"
+	bl_options = {'REGISTER'}
+
+	def execute(self, context):
+		# keymaps.unregister()
+		return {'FINISHED'}
+	
 class TILA_Config_SetSettings(Operator):
 	bl_idname = "tila.config_set_settings"
 	bl_label = "Tila Config : Set Settings"

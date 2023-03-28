@@ -20,7 +20,8 @@ from . operators import (	TILA_Config_RegisterKeymaps,
                           	TILA_Config_SyncAddonList,
 			                TILA_Config_LinkAddonList,
                             TILA_Config_EnableAddonList, 
-			                TILA_Config_SetSettings)
+			                TILA_Config_SetSettings,
+                            TILA_Config_SetupBlender)
 
 
 bl_info = {
@@ -41,7 +42,8 @@ classes = (	TILA_Config_PrintAddonList,
 	   		TILA_Config_RegisterKeymaps,
 		   	TILA_Config_UnregisterKeymaps,
 		   	TILA_Config_Preferences,
-            TILA_Config_SetSettings)
+            TILA_Config_SetSettings,
+            TILA_Config_SetupBlender)
 
 def register():
 	for cls in classes:
