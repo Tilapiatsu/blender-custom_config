@@ -201,6 +201,7 @@ class TILA_Config_RegisterKeymaps(Operator):
 		self.wm.tila_setup_blender_progress = "REGISTER_KEYMAP_STARTED"
 		self.report({'INFO'}, 'TilaConfig : Start Register Keymaps')
 		keymap.set_tila_keymap()
+		bpy.context.window_manager.keyconfigs.update('EXEC_DEFAULT')
 		self.wm.tila_setup_blender_progress = "REGISTER_KEYMAP_DONE"
 
 		return {'FINISHED'}
