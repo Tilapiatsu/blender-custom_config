@@ -231,13 +231,11 @@ class PathElementAM():
 	def destination_path(self):
 		return PathAM(self._path_dict['destination_path'])
 	
-
 	def clean(self):
 		if self.destination_path.exists:
 			if not self.is_enable:
 				self.destination_path.remove()
 				print(f'Clean Done!')
-
 
 	def link(self, overwrite=False):
 		if not self.is_enable:
@@ -342,10 +340,6 @@ class ElementAM():
 	def clean(self):
 		for p in self.paths:
 			p.clean()
-
-		if self.local_path.exists:
-			if not self.is_sync:
-				self.local_path.remove()
 			
 	def sync(self, overwrite=False):
 		if not self.is_sync:
@@ -419,11 +413,11 @@ class AddonManager():
 	def clean(self, element_name=None):
 		self.processing = True
 
-		# if element_name is None:
-		# 	for e in self.elements.values():
-		# 		e.clean()
-		# elif element_name in self.elements.keys():
-		# 	self.elements[element_name].clean()
+		if element_name is None:
+			for e in self.elements.values():
+				e.clean()
+		elif element_name in self.elements.keys():
+			self.elements[element_name].clean()
 		
 		self.processing = False
 	
@@ -445,7 +439,6 @@ class AddonManager():
 			self.elements[element_name].sync(overwrite=overwrite)
 		
 		self.processing = False
-	
 
 	def queue_link(self, element_name=None, overwrite=False):
 		if element_name is None:
@@ -453,7 +446,6 @@ class AddonManager():
 				self.queue([self.link, {'element_name': e.name, 'overwrite': overwrite}])
 		elif element_name in self.elements.keys():
 			self.queue([self.link, {'element_name': element_name, 'overwrite': overwrite}])
-	
 
 	def link(self, element_name=None, overwrite=False):
 		self.processing = True
