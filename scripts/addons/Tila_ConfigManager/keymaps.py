@@ -432,6 +432,10 @@ class TILA_Config_Keymaps(KeymapManager.KeymapManager):
 		print("Assigning Tilapiatsu's keymaps")
 		print("----------------------------------------------------------------")
 		print("")
+		
+		print("Revert Keymap to default")
+		# bpy.ops.preferences.keyconfig_activate(
+		# 	filepath="E:\\00_PortableApps\\BlenderLauncher\\BlenderVersions\\stable\\blender-3.4.1+stable.55485cb379f7\\3.4\\scripts\\presets\\keyconfig\\Blender.py")
 
 		##### Window
 		self.kmi_init(name='Window', space_type='EMPTY', region_type='WINDOW')

@@ -51,6 +51,12 @@ def enable_addon(addon_name):
 	bpy.ops.preferences.addon_enable(module=addon_name)
 	bpy.context.window_manager.keyconfigs.update()
 
+
+def disable_addon(addon_name):
+	print(f'Disabling Addon : {addon_name}')
+	bpy.ops.preferences.addon_disable(module=addon_name)
+	bpy.context.window_manager.keyconfigs.update()
+	
 def file_acces_handler(func, path, exc_info):
 	# print('Handling Error for file ', path)
 	# print(exc_info)
@@ -279,6 +285,21 @@ class PathElementAM():
 			enable_addon(addon_name)
 		
 		print(f'Enable Done!')
+		
+	def disable(self):
+		if self.is_enable:
+			return
+		
+		addon_name = path.splitext(path.basename(self.destination_path.path))[0]
+
+		if addon_name not in bpy.context.preferences.addons:
+			return
+		
+		disable_addon(addon_name)
+		print(f'Disable Done!')
+	
+	def is_enable(self):
+		return
 			
 class ElementAM():
 	def __init__(self, element_dict, name):
@@ -391,6 +412,16 @@ class ElementAM():
 			for p in self.paths:
 				p.enable()
 
+	def disable(self):
+		if self.is_enable:
+			return
+
+		if not len(self.paths):
+			disable_addon(self.name)
+		else:
+			for p in self.paths:
+				p.disable()
+
 class AddonManager():
 	def __init__(self, json_path):
 		self._json_path = json_path
@@ -473,7 +504,6 @@ class AddonManager():
 				self.queue([self.enable, {'element_name': e.name}])
 		elif element_name in self.elements.keys():
 			self.queue([self.enable, {'element_name': element_name}])
-	
 
 	def enable(self, element_name=None):
 		self.processing = True
@@ -483,6 +513,24 @@ class AddonManager():
 				e.enable()
 		elif element_name in self.elements.keys():
 			self.elements[element_name].enable()
+
+		self.processing = False
+	
+	def queue_disable(self, element_name=None):
+		if element_name is None:
+			for e in self.elements.values():
+				self.queue([self.disable, {'element_name': e.name}])
+		elif element_name in self.elements.keys():
+			self.queue([self.disable, {'element_name': element_name}])
+
+	def disable(self, element_name=None):
+		self.processing = True
+
+		if element_name is None:
+			for e in self.elements.values():
+				e.disable()
+		elif element_name in self.elements.keys():
+			self.elements[element_name].disable()
 
 		self.processing = False
 

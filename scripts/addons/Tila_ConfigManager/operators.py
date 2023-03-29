@@ -16,7 +16,7 @@ AL = path.join(get_path(), 'AddonList.json')
 
 class TILA_Config_SetupBlender(Operator):
 	bl_idname = "tila.config_setup_blender"
-	bl_label = "Tila Config : Print Setup Blender"
+	bl_label = "Tila Config : Setup Blender"
 	bl_options = {'REGISTER'}
 
 	def execute(self, context):
@@ -35,6 +35,45 @@ class TILA_Config_SetupBlender(Operator):
 		if event.type == 'TIMER':
 			match context.window_manager.tila_setup_blender_progress:
 				case 'NONE':
+					bpy.ops.tila.config_sync_addon_list('EXEC_DEFAULT')
+				case 'SYNC_DONE':
+					bpy.ops.tila.config_link_addon_list('EXEC_DEFAULT')
+				case 'LINK_DONE':
+					bpy.ops.tila.config_enable_addon_list('EXEC_DEFAULT')
+				case 'ENABLE_DONE':
+					bpy.ops.tila.config_set_settings('EXEC_DEFAULT')
+				case 'SET_SETTINGS_DONE':
+					bpy.ops.tila.config_register_keymaps('EXEC_DEFAULT')
+				case 'REGISTER_KEYMAP_DONE':
+					context.window_manager.tila_setup_blender_progress = "NONE"
+					self.report({'INFO'}, 'TilaConfig : Blender Setup Done !')
+					return {"FINISHED"}
+
+		return {"PASS_THROUGH"}
+	
+class TILA_Config_UpdateSetupBlender(Operator):
+	bl_idname = "tila.config_update_setup_blender"
+	bl_label = "Tila Config : Update Setup Blender"
+	bl_options = {'REGISTER'}
+
+	def execute(self, context):
+		self.AM = AddonManager.AddonManager(AL)
+
+		self.wm = bpy.context.window_manager
+		self.wm.tila_setup_blender_progress = "NONE"
+
+		self._timer = bpy.context.window_manager.event_timer_add(
+			0.1, window=context.window)
+		bpy.context.window_manager.modal_handler_add(self)
+		self.report({'INFO'}, 'TilaConfig : Update Blender Setup Started !')
+		return {'RUNNING_MODAL'}
+
+	def modal(self, context, event):
+		if event.type == 'TIMER':
+			match context.window_manager.tila_setup_blender_progress:
+				case 'NONE':
+					bpy.ops.tila.config_disable_addon_list('EXEC_DEFAULT')
+				case 'DISABLE_DONE':
 					bpy.ops.tila.config_clean_addon_list('EXEC_DEFAULT')
 				case 'CLEAN_DONE':
 					bpy.ops.tila.config_sync_addon_list('EXEC_DEFAULT')
@@ -48,7 +87,7 @@ class TILA_Config_SetupBlender(Operator):
 					bpy.ops.tila.config_register_keymaps('EXEC_DEFAULT')
 				case 'REGISTER_KEYMAP_DONE':
 					context.window_manager.tila_setup_blender_progress = "NONE"
-					self.report({'INFO'}, 'TilaConfig : Blender Setup Done !')
+					self.report({'INFO'}, 'TilaConfig : Update Blender Setup Done !')
 					return {"FINISHED"}
 
 		return {"PASS_THROUGH"}
@@ -189,6 +228,41 @@ class TILA_Config_EnableAddonList(Operator):
 				if self.wm.tila_setup_blender_progress == "NONE":
 					self.report({'INFO'}, 'TilaConfig : Start Enable')
 					self.wm.tila_setup_blender_progress = "ENABLE_STARTED"
+				self.AM.next_action()
+
+		return {"PASS_THROUGH"}
+	
+
+class TILA_Config_DisableAddonList(Operator):
+	bl_idname = "tila.config_disable_addon_list"
+	bl_label = "Tila Config : Disable Addon List"
+	bl_options = {'REGISTER'}
+
+	def execute(self, context):
+		self.wm = bpy.context.window_manager
+		self.wm.tila_setup_blender_progress = "NONE"
+		self.AM = AddonManager.AddonManager(AL)
+
+		self.AM.flush_queue()
+		self.AM.queue_disable()
+
+		self._timer = bpy.context.window_manager.event_timer_add(
+			0.1, window=context.window)
+		bpy.context.window_manager.modal_handler_add(self)
+		return {'RUNNING_MODAL'}
+
+	def modal(self, context, event):
+		if event.type == 'TIMER':
+			if len(self.AM.queue_list) == 0:
+				self.report({'INFO'}, 'TilaConfig : Disable Done !')
+				self.wm.tila_setup_blender_progress = "DISABLE_DONE"
+				bpy.context.window_manager.event_timer_remove(self._timer)
+				return {"FINISHED"}
+
+			elif not self.AM.processing:
+				if self.wm.tila_setup_blender_progress == "NONE":
+					self.report({'INFO'}, 'TilaConfig : Disable Enable')
+					self.wm.tila_setup_blender_progress = "DISABLE_STARTED"
 				self.AM.next_action()
 
 		return {"PASS_THROUGH"}

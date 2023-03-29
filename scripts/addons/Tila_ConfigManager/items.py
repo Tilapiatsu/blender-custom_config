@@ -4,6 +4,8 @@ preferences_tabs = [("GENERAL", "General", ""),
                     ("ABOUT", "About", "")]
 
 setup_blender_progress = [  ('NONE', 'None', ''),
+                            ('DISABLE_STARTED', 'Disable Started', ''),
+                            ('DISABLE_DONE', 'Disable Done', ''),
                             ('CLEAN_STARTED', 'Clean Started', ''),
                             ('CLEAN_DONE', 'Clean Done', ''),
                             ('SYNC_STARTED', 'Sync Started', ''),
