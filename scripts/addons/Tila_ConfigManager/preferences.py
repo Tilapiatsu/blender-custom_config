@@ -53,6 +53,7 @@ class TILA_Config_Preferences(bpy.types.AddonPreferences):
 		row = column.row()
 		row.scale_y = 3
 		row.operator("tila.config_setup_blender", text="Setup Blender")
+		row.operator("tila.config_update_setup_blender", text="Update Blender Setup")
 		column.separator()
 		column.operator("tila.config_print_addon_list", text="Print Addon List")
 		column.separator()
