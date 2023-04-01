@@ -1,8 +1,0 @@
-shader exposure(
-    color input = color(1.0, 1.0, 1.0),
-    float exposure = 1.0,
-    output color result = color(1.0, 1.0, 1.0)
-    )
-{
-    result = input * pow(2 ,exposure);
-}
