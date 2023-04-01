@@ -157,7 +157,7 @@
     "online_url": "https://codeofart.gumroad.com/l/EasyHDRI",
     "branch": null,
     "submodule": false,
-    "local_path": "#\\scripts\\addon_library",
+    "local_path": "#\\scripts\\addon_library\\local",
     "paths": [
         {
             "enable": false,
@@ -348,14 +348,14 @@
 },
 "rotate_an_hdri": {
     "sync": false,
-    "enable": false,
+    "enable": true,
     "online_url": "https://alexbel.gumroad.com/l/XQYEl",
     "branch": null,
     "submodule": false,
     "local_path": "#\\scripts\\addon_library\\local\\rotate_an_hdri",
     "paths": [
         {
-            "enable": false,
+            "enable": true,
             "local_subpath": null,
             "destination_path": "#\\scripts\\addons\\rotate_an_hdri"
         }
