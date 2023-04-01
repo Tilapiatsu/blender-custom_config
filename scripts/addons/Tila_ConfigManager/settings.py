@@ -11,10 +11,21 @@ class TILA_Config_Settings():
 			return
 		
 		setattr(context.preferences.addons.get('MACHIN3tools').preferences, setting_name, value)
-		
+	
+	@property
+	def get_gpu_device(self):
+		cycles_preferences = bpy.context.preferences.addons['cycles'].preferences
+		devices = cycles_preferences.get_devices()
+		return devices
 
 	def set_settings(self):
 		context = bpy.context
+
+		#########################
+		# Adjust addon Preference
+		#########################
+
+		print("Loading Tilapiatu's user preferences")
 
 		# # Set Theme to Tila
 		root_path = bpy.utils.resource_path('USER')
@@ -24,18 +35,73 @@ class TILA_Config_Settings():
 			filepath=theme_filepath, menu_idname='USERPREF_MT_interface_theme_presets')
 		
 		# # Set Asset Library
-		library_name = '00_Blender_Asset_Library'
-		asset_library_path = os.path.join('R:\\', 'Mon Drive', library_name)
-		bpy.ops.preferences.asset_library_add(
-			'EXEC_DEFAULT', directory=asset_library_path)
-		if bversion < 3.2:
-			library_name = ''
+		if 'Tilapiatsu' not in context.preferences.filepaths.asset_libraries:
+			library_name = '00_Blender_Asset_Library'
+			asset_library_path = os.path.join('R:\\', 'Mon Drive', library_name)
+			bpy.ops.preferences.asset_library_add(
+				'EXEC_DEFAULT', directory=asset_library_path)
+			if bversion < 3.2:
+				library_name = ''
 
-		context.preferences.filepaths.asset_libraries[library_name].name = 'Tilapiatsu'
+			context.preferences.filepaths.asset_libraries[library_name].import_method = 'LINK'
+			context.preferences.filepaths.asset_libraries[library_name].name = 'Tilapiatsu'
+
+		# View Settings
+		context.preferences.view.show_tooltips = True
+		context.preferences.view.show_tooltips_python = True
+		context.preferences.view.render_display_type = "WINDOW"
+		context.preferences.view.use_weight_color_range = True
+		context.preferences.view.show_developer_ui = True
+		context.preferences.view.show_statusbar_memory = True
+		if self.get_gpu_device is not None:
+			context.preferences.view.show_statusbar_vram = True
+
+		# Edit Weight color
+		for c in enumerate(context.preferences.view.weight_color_range.elements):
+			if len(context.preferences.view.weight_color_range.elements)>1:
+				context.preferences.view.weight_color_range.elements.remove(context.preferences.view.weight_color_range.elements[0])
+
+		context.preferences.view.weight_color_range.elements[0].color = (1,0,1,1)
+		context.preferences.view.weight_color_range.elements[0].position = 1
+
+		context.preferences.view.weight_color_range.elements.new(0)
+		context.preferences.view.weight_color_range.elements[0].color = (0,0,0,1)
+
+		context.preferences.view.weight_color_range.elements.new(0.25)
+		context.preferences.view.weight_color_range.elements[1].color = (0,0,1,1)
+
+		context.preferences.view.weight_color_range.elements.new(0.5)
+		context.preferences.view.weight_color_range.elements[2].color = (1,1,0,1)
+
+		context.preferences.view.weight_color_range.elements.new(0.75)
+		context.preferences.view.weight_color_range.elements[3].color = (1,0,0,1)
+
+		# Edit Settings
+		context.preferences.edit.object_align = "CURSOR"
+		context.preferences.edit.undo_steps = 200
+		context.preferences.edit.keyframe_new_interpolation_type = "LINEAR"
+
+		# Input Settings
+		context.preferences.inputs.view_zoom_axis = "HORIZONTAL"
+		context.preferences.inputs.ndof_view_navigate_method = "FREE"
+		context.preferences.inputs.view_rotate_method = "TRACKBALL"
+		context.preferences.inputs.view_rotate_sensitivity_trackball = 2
+		context.preferences.inputs.drag_threshold_tablet = 1
+		context.preferences.inputs.ndof_view_rotate_method = "TRACKBALL"
+		context.preferences.inputs.use_auto_perspective = True
+		context.preferences.inputs.use_mouse_depth_navigate = True
+		context.preferences.inputs.use_numeric_input_advanced = True
+		# context.preferences.inputs.use_mouse_emulate_3_button = True
+		context.preferences.inputs.use_zoom_to_mouse = True
+		context.preferences.inputs.pressure_softness = -0.5
+
+		print("Loading Tilapiatu's user preferences Completed")
 		
 		#########################
 		# Adjust addon Preference
 		#########################
+
+		print("Loading Addon Preferences")
 
 		# # PolyQuilt
 		addon_name = 'PolyQuilt'
@@ -132,6 +198,8 @@ class TILA_Config_Settings():
 		if addon_name in bpy.context.preferences.addons:
 			addon = context.preferences.addons.get(addon_name)
 			addon.preferences.update_check_launch = False
+
+		print("Loading Addon Preferences Done !")
 
 		# Save Preference
 		bpy.ops.wm.save_userpref()
