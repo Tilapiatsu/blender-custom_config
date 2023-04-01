@@ -46,17 +46,27 @@ def install_dependencies():
 						  *dependencies, '--target', dependencies_path])
 
 def enable_addon(addon_name):
+	if addon_name in bpy.context.preferences.addons:
+		return False
+	
 	print(f'Enabling Addon : {addon_name}')
 	bpy.ops.preferences.addon_enable(module=addon_name)
 	bpy.context.window_manager.keyconfigs.update()	
 	print(f'Enable Done!')
 
+	return True
+
 
 def disable_addon(addon_name):
+	if addon_name not in bpy.context.preferences.addons:
+		return False
+	
 	print(f'Disabling Addon : {addon_name}')
 	bpy.ops.preferences.addon_disable(module=addon_name)
 	bpy.context.window_manager.keyconfigs.update()
 	print(f'Disable Done!')
+
+	return True
 	
 def file_acces_handler(func, path, exc_info):
 	# print('Handling Error for file ', path)
@@ -255,7 +265,7 @@ class PathElementAM():
 			if overwrite:
 				self.destination_path.remove()
 			else:
-				print(f'Path Already Exists : Skipping {self.destination_path.path}')
+				# print(f'Path Already Exists : Skipping {self.destination_path.path}')
 				return None
 
 		print(f'Linking {self.local_subpath.path} -> {self.destination_path.path} {self.local_subpath.is_dir}')
@@ -267,26 +277,23 @@ class PathElementAM():
 		
 		if self.destination_path.is_file:
 			addon_name = path.splitext(path.basename(self.destination_path.path))[0]
-			if addon_name in bpy.context.preferences.addons:
+
+			if not enable_addon(addon_name):
 				return
-			enable_addon(addon_name)
 		elif self.destination_path.is_dir:
 			addon_name = path.basename(self.destination_path.path)
-			if addon_name in bpy.context.preferences.addons:
+
+			if not enable_addon(addon_name):
 				return
-			enable_addon(addon_name)
 		
 	def disable(self):
 		if self.is_enable:
 			return
 		
 		addon_name = path.splitext(path.basename(self.destination_path.path))[0]
-
-		if addon_name not in bpy.context.preferences.addons:
-			return
 		
-		disable_addon(addon_name)
-		print(f'Disable Done!')
+		if not disable_addon(addon_name):
+			return
 			
 class ElementAM():
 	def __init__(self, element_dict, name):
@@ -359,7 +366,7 @@ class ElementAM():
 			if overwrite:
 				self.local_path.remove()
 			else:
-				print(f'Path Already Exists : Skipping {self.local_path.path}')
+				# print(f'Path Already Exists : Skipping {self.local_path.path}')
 				return
 		
 		print(f'Syncing {self.name} to {self.local_path.path}')
