@@ -2,9 +2,8 @@ import tempfile
 import logging
 import os
 from os import path
-import bpy
 
-root_folder = path.dirname(bpy.utils.script_path_user())
+root_folder = __file__
 
 def get_log_file():
 	try:
@@ -34,41 +33,29 @@ class Logger(object):
 
 		self._pretty = '---------------------'
 
-	def info(self, message, asset=None, print_log=True):
+	def info(self, message, print_log=True):
 		self.set_basic_config()
-		if asset is not None:
-			warning = asset.warnings.add()
-			warning.message = message
 		# if print_log:
 		# 	self.message_list.append(message)
 		# 	print_progress(bpy.context, self.message_list, title=self.context, icon='NONE')
 		logging.info(message)
 
-	def debug(self, message, asset=None, print_log=True):
+	def debug(self, message, print_log=True):
 		self.set_basic_config()
-		if asset is not None:
-			warning = asset.warnings.add()
-			warning.message = message
 		# if print_log:
 		# 	self.message_list.append(message)
 		# 	print_progress(bpy.context, self.message_list, title=self.context, icon='NONE')
 		logging.debug(message)
 
-	def warning(self, message, asset=None, print_log=True):
+	def warning(self, message, print_log=True):
 		self.set_basic_config()
-		if asset is not None:
-			warning = asset.warnings.add()
-			warning.message = message
 		# if print_log:
 		# 	self.message_list.append(message)
 		# 	print_progress(bpy.context, self.message_list, title=self.context, icon='NONE')
 		logging.warning(message)
 
-	def error(self, message, asset=None, print_log=True):
+	def error(self, message, print_log=True):
 		self.set_basic_config()
-		if asset is not None:
-			warning = asset.warnings.add()
-			warning.message = message
 		# if print_log:
 		# 	self.message_list.append(message)
 		# 	print_progress(bpy.context, self.message_list, title=self.context, icon='NONE')

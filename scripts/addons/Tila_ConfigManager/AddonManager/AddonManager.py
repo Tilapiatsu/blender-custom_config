@@ -245,20 +245,19 @@ class PathElementAM():
 
 	def link(self, overwrite=False):
 		if not self.is_enable:
-			return []
+			return None
 		
-		if self.local_subpath is None or self.destination_path is None:
-			return []
+		if self.local_subpath.path is None or self.destination_path.path is None:
+			return None
 		
 		if self.destination_path.exists:
 			if overwrite:
 				self.destination_path.remove()
 			else:
 				print(f'Path Already Exists : Skipping {self.destination_path.path}')
-				return []
+				return None
 
-		print(
-			f'Linking {self.local_subpath.path} -> {self.destination_path.path} {self.local_subpath.is_dir}')
+		print(f'Linking {self.local_subpath.path} -> {self.destination_path.path} {self.local_subpath.is_dir}')
 		return str([self.local_subpath.path, self.destination_path.path, self.local_subpath.is_dir])
 	
 		# if admin.is_admin():
@@ -297,9 +296,6 @@ class PathElementAM():
 		
 		disable_addon(addon_name)
 		print(f'Disable Done!')
-	
-	def is_enable(self):
-		return
 			
 class ElementAM():
 	def __init__(self, element_dict, name):
@@ -396,7 +392,7 @@ class ElementAM():
 		link_commands = []
 		for p in self.paths:
 			command = p.link(overwrite=overwrite)
-			if not len(command):
+			if command is None:
 				continue
 			link_commands.append(p.link(overwrite=overwrite))
 		
@@ -555,18 +551,3 @@ class AddonManager():
 			s += f'{v}\n'
 		
 		return s
-
-if __name__ == '__main__':
-	AM = AddonManager(path.join(root_folder, 'EnabledAddons.json'))
-
-	print(AM)
-	
-	# AM.clean()
-	# AM.sync(overwrite=True)
-	# AM.link(overwrite=True)
-
-	# element_name = 'PolyQuilt'
-
-	# AM.clean(element_name=element_name)
-	# AM.sync(element_name=element_name, overwrite=True)
-	# AM.link(element_name=element_name, overwrite=True)

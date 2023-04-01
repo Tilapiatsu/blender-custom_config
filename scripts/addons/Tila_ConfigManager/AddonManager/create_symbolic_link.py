@@ -1,10 +1,11 @@
 import sys
 import argparse
 import os
-
+from Logger import Logger
 
 class CreateSymbolicLink():
 	def __init__(self, argv=''):
+		self.log = Logger()
 		self.parse_argsv(argv[argv.index("--") + 1:])
 	
 	def parse_argsv(self, argv):
@@ -22,9 +23,11 @@ class CreateSymbolicLink():
 			files.append(eval(f))
 
 		self.file_to_link = files
+		self.log.info(files)
 
 	def create_symbolic_link(self):
 		for f in self.file_to_link:
+			self.log.info(f"Linking {f[0]}")
 			os.symlink(f[0], f[1], target_is_directory=f[2])
 		
 if __name__ == '__main__':
