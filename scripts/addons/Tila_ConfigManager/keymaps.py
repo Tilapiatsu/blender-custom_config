@@ -2,18 +2,6 @@ import bpy
 import os, re
 from .KeymapManager import KeymapManager
 
-# bl_info = {
-# 	"name": "Tilapiatsu Hotkeys",
-# 	"description": "Hotkeys",
-# 	"author": "Tilapiatsu",
-# 	"version": (0, 1, 0),
-# 	"blender": (2, 80, 0),
-# 	"location": "",
-# 	"warning": "",
-# 	"doc_url": "",
-# 	"category": "Hotkeys"
-# 	}
-
 
 # TODO  
 #  Need to read : https://wiki.blender.org/wiki/Source/Depsgraph
@@ -1348,18 +1336,18 @@ class TILA_Config_Keymaps(KeymapManager.KeymapManager):
 		self.modal_set_replace('SELECT', self.k_cursor, 'RELEASE', any=True)
 
 		###### 3D View Tool: Edit Mesh, PolyQuilt
-		self.kmi_init(name='3D View Tool: Edit Mesh, PolyQuilt', space_type='VIEW_3D', region_type='WINDOW')
-		self.kmi_set_active(False, idname='mesh.poly_quilt', type='LEFTMOUSE', value='PRESS', ctrl=False, shift=False, alt=False, oskey=False)
-		self.kmi_set_active(False, idname='mesh.poly_quilt', type='LEFTMOUSE', value='PRESS', ctrl=True, shift=True, alt=False, oskey=False)
-		self.kmi_set_active(False, idname='mesh.poly_quilt', type='LEFTMOUSE', value='PRESS', ctrl=True, shift=False, alt=False, oskey=False)
-		self.kmi_set_replace('mesh.poly_quilt', self.k_manip, 'PRESS', properties={'tool_mode': 'LOWPOLY'}, disable_double=True)
-		self.kmi_set_replace('mesh.poly_quilt', self.k_manip, 'PRESS', shift=True, properties={'tool_mode': 'BRUSH', 'brush_type': 'SMOOTH'})
-		self.kmi_set_replace('mesh.poly_quilt', self.k_cursor, 'PRESS', shift=True, properties={'tool_mode': 'BRUSH', 'brush_type': 'MOVE'}, disable_double=True)
-		self.kmi_set_replace('mesh.poly_quilt', self.k_manip, 'PRESS', ctrl=True, properties={'tool_mode': 'EXTRUDE'}, disable_double=True)
-		self.kmi_set_replace('mesh.poly_quilt', self.k_manip, 'PRESS', ctrl=True, shift=True, properties={'tool_mode': 'EDGELOOP'}, disable_double=True)
-		self.kmi_set_replace('mesh.poly_quilt', self.k_cursor, 'PRESS', ctrl=True, properties={'tool_mode': 'KNIFE'}, disable_double=True)
-		self.kmi_set_replace('mesh.poly_quilt', self.k_context, 'PRESS', ctrl=True, shift=True, properties={'tool_mode': 'LOOPCUT'}, disable_double=True)
-		self.kmi_set_replace('mesh.poly_quilt', self.k_manip, 'PRESS', ctrl=True, alt=True, shift=True, properties={'tool_mode': 'DELETE'}, disable_double=True)
+		if self.kmi_init(name='3D View Tool: Edit Mesh, PolyQuilt', space_type='VIEW_3D', region_type='WINDOW'):
+			self.kmi_set_active(False, idname='mesh.poly_quilt', type='LEFTMOUSE', value='PRESS', ctrl=False, shift=False, alt=False, oskey=False)
+			self.kmi_set_active(False, idname='mesh.poly_quilt', type='LEFTMOUSE', value='PRESS', ctrl=True, shift=True, alt=False, oskey=False)
+			self.kmi_set_active(False, idname='mesh.poly_quilt', type='LEFTMOUSE', value='PRESS', ctrl=True, shift=False, alt=False, oskey=False)
+			self.kmi_set_replace('mesh.poly_quilt', self.k_manip, 'PRESS', properties={'tool_mode': 'LOWPOLY'}, disable_double=True)
+			self.kmi_set_replace('mesh.poly_quilt', self.k_manip, 'PRESS', shift=True, properties={'tool_mode': 'BRUSH', 'brush_type': 'SMOOTH'})
+			self.kmi_set_replace('mesh.poly_quilt', self.k_cursor, 'PRESS', shift=True, properties={'tool_mode': 'BRUSH', 'brush_type': 'MOVE'}, disable_double=True)
+			self.kmi_set_replace('mesh.poly_quilt', self.k_manip, 'PRESS', ctrl=True, properties={'tool_mode': 'EXTRUDE'}, disable_double=True)
+			self.kmi_set_replace('mesh.poly_quilt', self.k_manip, 'PRESS', ctrl=True, shift=True, properties={'tool_mode': 'EDGELOOP'}, disable_double=True)
+			self.kmi_set_replace('mesh.poly_quilt', self.k_cursor, 'PRESS', ctrl=True, properties={'tool_mode': 'KNIFE'}, disable_double=True)
+			self.kmi_set_replace('mesh.poly_quilt', self.k_context, 'PRESS', ctrl=True, shift=True, properties={'tool_mode': 'LOOPCUT'}, disable_double=True)
+			self.kmi_set_replace('mesh.poly_quilt', self.k_manip, 'PRESS', ctrl=True, alt=True, shift=True, properties={'tool_mode': 'DELETE'}, disable_double=True)
 		
 		print("----------------------------------------------------------------")
 		print("Assignment complete")

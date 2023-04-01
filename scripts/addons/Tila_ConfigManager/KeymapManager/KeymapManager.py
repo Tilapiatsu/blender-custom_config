@@ -300,6 +300,8 @@ class KeymapManager():
             return None
 
     def kmi_init(self, name, space_type='EMPTY', region_type='WINDOW', modal=False, tool=False, addon=False):
+        if name not in self.kcu.keymaps:
+            return False
         self.ukmis = self.kcu.keymaps[name].keymap_items
         try:
             self.akmis = self.kca.keymaps[name].keymap_items
@@ -313,7 +315,7 @@ class KeymapManager():
             self.km = self.kca.keymaps.new(name, space_type=space_type, region_type=region_type, modal=modal, tool=tool)
             self.kmis = self.akmis
         
-        
+        return True
 
     def kmi_prop_setattr(self, kmi_props, attr, value):
         try:
