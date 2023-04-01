@@ -5,7 +5,6 @@ import shutil
 import subprocess
 import stat
 import bpy
-import bpy
 from os import path
 from . import admin
 from . Logger import Logger
@@ -49,13 +48,15 @@ def install_dependencies():
 def enable_addon(addon_name):
 	print(f'Enabling Addon : {addon_name}')
 	bpy.ops.preferences.addon_enable(module=addon_name)
-	bpy.context.window_manager.keyconfigs.update()
+	bpy.context.window_manager.keyconfigs.update()	
+	print(f'Enable Done!')
 
 
 def disable_addon(addon_name):
 	print(f'Disabling Addon : {addon_name}')
 	bpy.ops.preferences.addon_disable(module=addon_name)
 	bpy.context.window_manager.keyconfigs.update()
+	print(f'Disable Done!')
 	
 def file_acces_handler(func, path, exc_info):
 	# print('Handling Error for file ', path)
@@ -260,14 +261,6 @@ class PathElementAM():
 		print(f'Linking {self.local_subpath.path} -> {self.destination_path.path} {self.local_subpath.is_dir}')
 		return str([self.local_subpath.path, self.destination_path.path, self.local_subpath.is_dir])
 	
-		# if admin.is_admin():
-		# 	os.symlink(self.local_subpath.path, self.destination_path.path, target_is_directory=self.destination_path.is_dir)
-		# else:
-		# 	print(f'Linking {self.local_subpath.path} -> {self.destination_path.path}')
-		# 	admin.elevate([create_symbolic_link_file, '--', '--file_to_link',
-		# 	              str([self.local_subpath.path, self.destination_path.path, self.destination_path.is_dir])])
-		# 	print(f'Linking Done!')
-	
 	def enable(self):
 		if not self.is_enable:
 			return
@@ -282,8 +275,6 @@ class PathElementAM():
 			if addon_name in bpy.context.preferences.addons:
 				return
 			enable_addon(addon_name)
-		
-		print(f'Enable Done!')
 		
 	def disable(self):
 		if self.is_enable:
