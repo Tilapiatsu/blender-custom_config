@@ -2276,14 +2276,5 @@
             "destination_path": "#\\scripts\\addons\\RestoreSymmetry.py"
         }
     ]
-},
-"Tila_ConfigManager": {
-    "sync": false,
-    "enable": false,
-    "online_url": null,
-    "branch" : null,
-    "submodule" : false,
-    "local_path": null,
-    "paths": null
 }
 }
