@@ -76,6 +76,21 @@
     ]
 },
 "_addon_library_local": " ..................................Addon Library Local..................................",
+"BulkAsset": {
+    "sync": false,
+    "enable": false,
+    "online_url": "https://johnnygizmo.gumroad.com/l/bulk-asset-tools",
+    "branch": null,
+    "submodule": false,
+    "local_path": "#\\scripts\\addon_library\\local\\BulkAsset",
+    "paths": [
+        {
+            "enable": false,
+            "local_subpath": null,
+            "destination_path": "#\\scripts\\addons\\BulkAsset"
+        }
+    ]
+},
 "BystedtsBlenderBaker": {
     "sync": false,
     "enable": false,
