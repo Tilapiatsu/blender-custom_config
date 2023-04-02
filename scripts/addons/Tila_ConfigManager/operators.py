@@ -147,7 +147,7 @@ class TILA_Config_CleanAddonList(Operator):
 		self.AM = AddonManager.AddonManager(AL)
 
 		self.AM.flush_queue()
-		self.AM.queue_clean(self.force)
+		self.AM.queue_clean(force=self.force)
 
 		self._timer = bpy.context.window_manager.event_timer_add(
 			0.1, window=context.window)
@@ -275,7 +275,7 @@ class TILA_Config_DisableAddonList(Operator):
 	bl_options = {'REGISTER'}
 
 	force: bpy.props.BoolProperty(
-		name="Force Disable", default=False, description='remove all config for a fresh start')
+		name="Force Disable", default=False, description='Disable all addons listed in the list regardless if it is set as enable or not')
 
 	def execute(self, context):
 		self.wm = bpy.context.window_manager
@@ -283,7 +283,7 @@ class TILA_Config_DisableAddonList(Operator):
 		self.AM = AddonManager.AddonManager(AL)
 
 		self.AM.flush_queue()
-		self.AM.queue_disable(self.force)
+		self.AM.queue_disable(force=self.force)
 
 		self._timer = bpy.context.window_manager.event_timer_add(
 			0.1, window=context.window)
@@ -300,7 +300,7 @@ class TILA_Config_DisableAddonList(Operator):
 
 			elif not self.AM.processing:
 				if self.wm.tila_setup_blender_progress == "NONE":
-					self.report({'INFO'}, 'TilaConfig : Disable Enable')
+					self.report({'INFO'}, 'TilaConfig : Start Disable')
 					self.wm.tila_setup_blender_progress = "DISABLE_STARTED"
 				self.AM.next_action()
 

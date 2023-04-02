@@ -58,6 +58,7 @@ class TILA_Config_Preferences(bpy.types.AddonPreferences):
 		column.operator("tila.config_print_addon_list", text="Print Addon List")
 		column.separator()
 		column.operator("tila.config_remove", text="Remove Config")
+		column.operator("tila.config_disable_addon_list", text="Disable All Addons").force=True
 		column.operator("tila.config_clean_addon_list", text="Clean Addon List").force=False
 		column.operator("tila.config_sync_addon_list", text="Sync Addon List")
 		column.operator("tila.config_link_addon_list", text="Link Addon List")

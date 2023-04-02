@@ -366,7 +366,7 @@ class ElementAM():
 		for p in self.paths:
 			p.clean(force=force)
 
-		if force and self.is_sync:
+		if force and self.is_sync and self.submodule is None:
 			if self.local_path.exists:
 				self.local_path.remove()
 			
