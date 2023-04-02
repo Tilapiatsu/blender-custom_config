@@ -753,21 +753,6 @@
     ]
 },
 "_disabled": " ..................................Disabled addons..................................",
-"Easy_Weight": {
-    "sync": false,
-    "enable": false,
-    "online_url": "https://gitlab.com/blender/easy_weight.git",
-    "branch": null,
-    "submodule": false,
-    "local_path": "#\\scripts\\addon_library\\GIT_Clones\\Easy_Weight",
-    "paths": [
-        {
-            "enable": false,
-            "local_subpath": null,
-            "destination_path": "#\\scripts\\addons\\Easy_Weight"
-        }
-    ]
-},
 "noodler": {
     "sync": true,
     "enable": true,
@@ -1135,7 +1120,13 @@
     "branch" : null,
     "submodule" : false,
     "local_path": "#\\scripts\\addon_library\\GIT_Clones\\modular_tree",
-    "paths": null
+    "paths": [
+        {
+            "enable": false,
+            "local_subpath": null,
+            "destination_path": "#\\scripts\\addons\\modular_tree"
+        }
+    ]
 },
 "Abnormal": {
     "sync": false,
