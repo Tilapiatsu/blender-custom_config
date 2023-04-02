@@ -185,6 +185,10 @@ class Json(File):
 class PathAM():
 	def __init__(self, path):
 		self._path = path
+		
+	@property
+	def is_set(self):
+		return self._path is not None
 
 	@property
 	def path(self):
@@ -195,20 +199,20 @@ class PathAM():
 
 	@property
 	def exists(self):
-		if self.path is None:
+		if not self.is_set:
 			return False
 		return path.exists(self.path)
 	
 	@property
 	def is_file(self):
-		if self.path is None:
-			return False
+		if not self.is_set:
+			return None
 		return path.isfile(self.path)
 	
 	@property
 	def is_dir(self):
 		if self.path is None:
-			return False
+			return None
 		return path.isdir(self.path)
 	
 	def remove(self):
@@ -248,8 +252,12 @@ class PathElementAM():
 	def destination_path(self):
 		return PathAM(self._path_dict['destination_path'])
 	
-	def clean(self):
-		if self.destination_path.exists:
+	def clean(self, force=False):
+		if force:
+			if self.destination_path.exists:
+				self.destination_path.remove()
+
+		elif self.destination_path.exists:
 			if not self.is_enable:
 				self.destination_path.remove()
 				print(f'Clean Done!')
@@ -274,8 +282,9 @@ class PathElementAM():
 	def enable(self):
 		if not self.is_enable:
 			return
-		
-		if self.destination_path.is_file:
+		if not self.destination_path.is_set:
+			return
+		elif self.destination_path.is_file:
 			addon_name = path.splitext(path.basename(self.destination_path.path))[0]
 
 			if not enable_addon(addon_name):
@@ -286,9 +295,10 @@ class PathElementAM():
 			if not enable_addon(addon_name):
 				return
 		
-	def disable(self):
-		if self.is_enable:
-			return
+	def disable(self, force=False):
+		if not force:
+			if self.is_enable:
+				return
 		
 		addon_name = path.splitext(path.basename(self.destination_path.path))[0]
 		
@@ -352,9 +362,13 @@ class ElementAM():
 			repo = git.Repo(root_folder)
 			repo.git.submodule('update', '--init')
 	
-	def clean(self):
+	def clean(self, force=False):
 		for p in self.paths:
-			p.clean()
+			p.clean(force=force)
+
+		if force and self.is_sync:
+			if self.local_path.exists:
+				self.local_path.remove()
 			
 	def sync(self, overwrite=False):
 		if not self.is_sync:
@@ -392,7 +406,7 @@ class ElementAM():
 			command = p.link(overwrite=overwrite)
 			if command is None:
 				continue
-			link_commands.append(p.link(overwrite=overwrite))
+			link_commands.append(command)
 		
 		return link_commands
 	
@@ -406,15 +420,16 @@ class ElementAM():
 			for p in self.paths:
 				p.enable()
 
-	def disable(self):
-		if self.is_enable:
-			return
+	def disable(self, force=False):
+		if not force:
+			if self.is_enable:
+				return
 
 		if not len(self.paths):
 			disable_addon(self.name)
 		else:
 			for p in self.paths:
-				p.disable()
+				p.disable(force=force)
 
 class AddonManager():
 	def __init__(self, json_path):
@@ -428,22 +443,22 @@ class AddonManager():
 	def elements(self):
 		return {k: ElementAM(v, k) for k,v in self.json.json_data.items() if k[0] != '_'}
 	
-	def queue_clean(self, element_name=None):
+	def queue_clean(self, element_name=None, force=False):
 		if element_name is None:
 			for e in self.elements.values():
-				self.queue([self.clean, {'element_name': e.name}])
+				self.queue([self.clean, {'element_name': e.name, 'force':force}])
 		elif element_name in self.elements.keys():
-			self.queue([self.clean, {'element_name': element_name}])
+			self.queue([self.clean, {'element_name': element_name, 'force': force}])
 			
-	def clean(self, element_name=None):
+	def clean(self, element_name=None, force=False):
 		self.processing = True
 
 		if element_name is None:
 			for e in self.elements.values():
-				e.clean()
+				e.clean(force=force)
 		elif element_name in self.elements.keys():
-			self.elements[element_name].clean()
-		
+			self.elements[element_name].clean(force=force)
+
 		self.processing = False
 	
 	def queue_sync(self, element_name=None, overwrite=False):
@@ -510,21 +525,21 @@ class AddonManager():
 
 		self.processing = False
 	
-	def queue_disable(self, element_name=None):
+	def queue_disable(self, element_name=None, force=False):
 		if element_name is None:
 			for e in self.elements.values():
-				self.queue([self.disable, {'element_name': e.name}])
+				self.queue([self.disable, {'element_name': e.name, 'force': force}])
 		elif element_name in self.elements.keys():
-			self.queue([self.disable, {'element_name': element_name}])
+			self.queue([self.disable, {'element_name': element_name, 'force': force}])
 
-	def disable(self, element_name=None):
+	def disable(self, element_name=None, force=False):
 		self.processing = True
 
 		if element_name is None:
 			for e in self.elements.values():
-				e.disable()
+				e.disable(force=force)
 		elif element_name in self.elements.keys():
-			self.elements[element_name].disable()
+			self.elements[element_name].disable(force=force)
 
 		self.processing = False
 
