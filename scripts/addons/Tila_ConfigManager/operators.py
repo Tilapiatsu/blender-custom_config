@@ -3,7 +3,7 @@ import os
 import time
 from os import path
 from bpy.types import (Operator)
-from . keymaps import TILA_Config_Keymaps as KM
+from .AddonManager.keymaps import TILA_Config_Keymaps_Global as KM
 from . settings import TILA_Config_Settings as S
 from .AddonManager import AddonManager
 
@@ -311,20 +311,41 @@ class TILA_Config_RegisterKeymaps(Operator):
 	bl_label = "Tila Config : Register Keymaps"
 	bl_options = {'REGISTER'}
 
+	addon_name : bpy.props.StringProperty(name="Addon Name", default="", description='Name of the addon to register Keymaps for')
+	
 	def execute(self, context):
 		self.wm = bpy.context.window_manager
+		self.wm.tila_setup_blender_progress = "NONE"
+		self.AM = AddonManager.AddonManager(AL)
 
-		keymap = KM()
+		self.AM.flush_queue()
+		if self.addon_name == '':
+			self.AM.queue_set_keymaps()
+		else:
+			self.AM.queue_set_keymaps(self.addon_name)
 
-		self.wm.tila_setup_blender_progress = "REGISTER_KEYMAP_STARTED"
-		self.report({'INFO'}, 'TilaConfig : Start Register Keymaps')
-		keymap.set_tila_keymap()
-		bpy.context.window_manager.keyconfigs.update()
-		bpy.ops.wm.save_userpref()
-		self.wm.tila_setup_blender_progress = "REGISTER_KEYMAP_DONE"
-		self.report({'INFO'}, 'TilaConfig : Start Register Done')
+		self._timer = bpy.context.window_manager.event_timer_add(
+			0.1, window=context.window)
+		bpy.context.window_manager.modal_handler_add(self)
+		return {'RUNNING_MODAL'}
 
-		return {'FINISHED'}
+	def modal(self, context, event):
+		if event.type == 'TIMER':
+			if len(self.AM.queue_list) == 0:
+				self.report({'INFO'}, 'TilaConfig : Register Keymaps Done !')
+				self.wm.tila_setup_blender_progress = "REGISTER_KEYMAP_DONE"
+				bpy.context.window_manager.keyconfigs.update()
+				bpy.ops.wm.save_userpref()
+				bpy.context.window_manager.event_timer_remove(self._timer)
+				return {"FINISHED"}
+
+			elif not self.AM.processing:
+				if self.wm.tila_setup_blender_progress == "NONE":
+					self.report({'INFO'}, 'TilaConfig : Start Register Keymaps')
+					self.wm.tila_setup_blender_progress = "REGISTER_KEYMAP_STARTED"
+				self.AM.next_action()
+
+		return {"PASS_THROUGH"}
 
 
 class TILA_Config_UnregisterKeymaps(Operator):

@@ -1,5 +1,16 @@
 {
-"_misc": " .................................. Misc..................................",
+"_global_keymaps": " ..................................Global Keymaps..................................",
+"Global":{
+    "sync": false,
+    "enable": false,
+    "online_url": null,
+    "branch" : null,
+    "submodule" : false,
+    "local_path": null,
+    "paths": null,
+    "keymaps": true
+},
+"_misc": " ..................................Misc..................................",
 "ProTheme": {
     "sync": true,
     "enable": false,
@@ -13,7 +24,8 @@
             "local_subpath": "blender_pro.xml",
             "destination_path": "#\\scripts\\presets\\interface_theme\\blender_pro.xml"
         }
-    ]
+    ],
+    "keymaps": false
 },
 "matcap": {
     "sync": true,
@@ -28,7 +40,8 @@
             "local_subpath": null,
             "destination_path": "#\\datafiles\\studiolights\\matcap"
         }
-    ]
+    ],
+    "keymaps": false
 },
 "HDRI": {
     "sync": false,
@@ -43,7 +56,8 @@
             "local_subpath": null,
             "destination_path": "#\\datafiles\\studiolights\\world"
         }
-    ]
+    ],
+    "keymaps": false
 },
 "AgX": {
     "sync": true,
@@ -58,7 +72,8 @@
             "local_subpath": null,
             "destination_path": "#\\datafiles\\colormanagement"
         }
-    ]
+    ],
+    "keymaps": false
 },
 "OpenColorIO-Config-ACES": {
     "sync": false,
@@ -73,7 +88,8 @@
             "local_subpath": null,
             "destination_path": "#\\datafiles\\colormanagement"
         }
-    ]
+    ],
+    "keymaps": false
 },
 "_addon_library_local": " ..................................Addon Library Local..................................",
 "BulkAsset": {
@@ -89,7 +105,8 @@
             "local_subpath": null,
             "destination_path": "#\\scripts\\addons\\BulkAsset"
         }
-    ]
+    ],
+    "keymaps": false
 },
 "BystedtsBlenderBaker": {
     "sync": false,
@@ -104,7 +121,8 @@
             "local_subpath": null,
             "destination_path": "#\\scripts\\addons\\BystedtsBlenderBaker"
         }
-    ]
+    ],
+    "keymaps": false
 },
 "CheckToolBox": {
     "sync": false,
@@ -119,7 +137,8 @@
             "local_subpath": null,
             "destination_path": "#\\scripts\\addons\\CheckToolBox"
         }
-    ]
+    ],
+    "keymaps": false
 },
 "context_browser": {
     "sync": false,
@@ -134,7 +153,8 @@
             "local_subpath": null,
             "destination_path": "#\\scripts\\addons\\context_browser"
         }
-    ]
+    ],
+    "keymaps": false
 },
 "drop_it": {
     "sync": false,
@@ -149,7 +169,8 @@
             "local_subpath": null,
             "destination_path": "#\\scripts\\addons\\drop_it"
         }
-    ]
+    ],
+    "keymaps": false
 },
 "EasyHDRI": {
     "sync": false,
@@ -164,7 +185,8 @@
             "local_subpath": "EasyHDRI.py",
             "destination_path": "#\\scripts\\addons\\EasyHDRI.py"
         }
-    ]
+    ],
+    "keymaps": false
 },
 "flow_map_painter": {
     "sync": false,
@@ -179,7 +201,8 @@
             "local_subpath": null,
             "destination_path": "#\\scripts\\addons\\flow_map_painter"
         }
-    ]
+    ],
+    "keymaps": false
 },
 "keentools": {
     "sync": false,
@@ -194,7 +217,8 @@
             "local_subpath": null,
             "destination_path": "#\\scripts\\addons\\keentools"
         }
-    ]
+    ],
+    "keymaps": false
 },
 "kekit": {
     "sync": false,
@@ -209,7 +233,8 @@
             "local_subpath": null,
             "destination_path": "#\\scripts\\addons\\kekit"
         }
-    ]
+    ],
+    "keymaps": false
 },
 "lazy_shapekeys": {
     "sync": false,
@@ -224,7 +249,8 @@
             "local_subpath": null,
             "destination_path": "#\\scripts\\addons\\lazy_shapekeys"
         }
-    ]
+    ],
+    "keymaps": false
 },
 "MeshDataTransfer": {
     "sync": false,
@@ -239,7 +265,8 @@
             "local_subpath": null,
             "destination_path": "#\\scripts\\addons\\MeshDataTransfer"
         }
-    ]
+    ],
+    "keymaps": false
 },
 "mouselook_navigation": {
     "sync": false,
@@ -254,7 +281,8 @@
             "local_subpath": null,
             "destination_path": "#\\scripts\\addons\\mouselook_navigation"
         }
-    ]
+    ],
+    "keymaps": false
 },
 "NGon Loop Select": {
     "sync": false,
@@ -269,7 +297,8 @@
             "local_subpath": null,
             "destination_path": "#\\scripts\\addons\\NGon Loop Select"
         }
-    ]
+    ],
+    "keymaps": false
 },
 "Poly_Source": {
     "sync": false,
@@ -284,7 +313,8 @@
             "local_subpath": null,
             "destination_path": "#\\scripts\\addons\\Poly_Source"
         }
-    ]
+    ],
+    "keymaps": false
 },
 "Pro_Aligner": {
     "sync": false,
@@ -299,7 +329,8 @@
             "local_subpath": null,
             "destination_path": "#\\scripts\\addons\\Pro_Aligner"
         }
-    ]
+    ],
+    "keymaps": false
 },
 "QBlocker": {
     "sync": false,
@@ -314,7 +345,8 @@
             "local_subpath": null,
             "destination_path": "#\\scripts\\addons\\QBlocker"
         }
-    ]
+    ],
+    "keymaps": false
 },
 "render_task_list": {
     "sync": false,
@@ -329,7 +361,8 @@
             "local_subpath": null,
             "destination_path": "#\\scripts\\addons\\render_task_list"
         }
-    ]
+    ],
+    "keymaps": false
 },
 "RetopoFlow": {
     "sync": false,
@@ -344,7 +377,8 @@
             "local_subpath": null,
             "destination_path": "#\\scripts\\addons\\RetopoFlow"
         }
-    ]
+    ],
+    "keymaps": false
 },
 "rotate_an_hdri": {
     "sync": false,
@@ -359,7 +393,8 @@
             "local_subpath": null,
             "destination_path": "#\\scripts\\addons\\rotate_an_hdri"
         }
-    ]
+    ],
+    "keymaps": false
 },
 "sj_selection_set": {
     "sync": false,
@@ -374,7 +409,8 @@
             "local_subpath": null,
             "destination_path": "#\\scripts\\addons\\sj_selection_set"
         }
-    ]
+    ],
+    "keymaps": false
 },
 "slcad_transform": {
     "sync": false,
@@ -389,7 +425,8 @@
             "local_subpath": null,
             "destination_path": "#\\scripts\\addons\\slcad_transform"
         }
-    ]
+    ],
+    "keymaps": false
 },
 "softMod": {
     "sync": false,
@@ -404,7 +441,8 @@
             "local_subpath": null,
             "destination_path": "#\\scripts\\addons\\softMod"
         }
-    ]
+    ],
+    "keymaps": false
 },
 "SSGI": {
     "sync": false,
@@ -419,7 +457,8 @@
             "local_subpath": null,
             "destination_path": "#\\scripts\\addons\\SSGI"
         }
-    ]
+    ],
+    "keymaps": false
 },
 "surface_inflate": {
     "sync": false,
@@ -434,7 +473,8 @@
             "local_subpath": null,
             "destination_path": "#\\scripts\\addons\\surface_inflate"
         }
-    ]
+    ],
+    "keymaps": false
 },
 "Synchronize Workspace": {
     "sync": false,
@@ -449,7 +489,8 @@
             "local_subpath": null,
             "destination_path": "#\\scripts\\addons\\Synchronize Workspace"
         }
-    ]
+    ],
+    "keymaps": false
 },
 "UnwrapMe": {
     "sync": false,
@@ -464,7 +505,8 @@
             "local_subpath": null,
             "destination_path": "#\\scripts\\addons\\UnwrapMe"
         }
-    ]
+    ],
+    "keymaps": false
 },
 "weight_layers": {
     "sync": false,
@@ -479,7 +521,8 @@
             "local_subpath": null,
             "destination_path": "#\\scripts\\addons\\weight_layers"
         }
-    ]
+    ],
+    "keymaps": false
 },
 "auto_mirror_ex": {
     "sync": false,
@@ -494,7 +537,8 @@
             "local_subpath": null,
             "destination_path": "#\\scripts\\addons\\auto_mirror_ex"
         }
-    ]
+    ],
+    "keymaps": false
 },
 "bakeToVertexColor": {
     "sync": false,
@@ -509,7 +553,8 @@
             "local_subpath": "bakeToVertexColor.py",
             "destination_path": "#\\scripts\\addons\\bakeToVertexColor.py"
         }
-    ]
+    ],
+    "keymaps": false
 },
 "Blender_light_manager": {
     "sync": false,
@@ -524,7 +569,8 @@
             "local_subpath": "Blender_light_manager.py",
             "destination_path": "#\\scripts\\addons\\Blender_light_manager.py"
         }
-    ]
+    ],
+    "keymaps": false
 },
 "boundary_alinged_remesh": {
     "sync": false,
@@ -539,7 +585,8 @@
             "local_subpath": "boundary_alinged_remesh.py",
             "destination_path": "#\\scripts\\addons\\boundary_alinged_remesh.py"
         }
-    ]
+    ],
+    "keymaps": false
 },
 "hide_only_vertex": {
     "sync": false,
@@ -554,7 +601,8 @@
             "local_subpath": "hide_only_vertex.py",
             "destination_path": "#\\scripts\\addons\\hide_only_vertex.py"
         }
-    ]
+    ],
+    "keymaps": false
 },
 "ke_i2m": {
     "sync": false,
@@ -569,7 +617,8 @@
             "local_subpath": "ke_i2m.py",
             "destination_path": "#\\scripts\\addons\\ke_i2m.py"
         }
-    ]
+    ],
+    "keymaps": false
 },
 "thumbMate": {
     "sync": false,
@@ -584,7 +633,8 @@
             "local_subpath": "thumbMate.py",
             "destination_path": "#\\scripts\\addons\\thumbMate.py"
         }
-    ]
+    ],
+    "keymaps": false
 },
 "transfer_vertex_order": {
     "sync": false,
@@ -599,7 +649,8 @@
             "local_subpath": "transfer_vertex_order.py",
             "destination_path": "#\\scripts\\addons\\transfer_vertex_order.py"
         }
-    ]
+    ],
+    "keymaps": false
 },
 "ZWeightTools": {
     "sync": false,
@@ -614,7 +665,8 @@
             "local_subpath": "ZWeightTools.py",
             "destination_path": "#\\scripts\\addons\\ZWeightTools.py"
         }
-    ]
+    ],
+    "keymaps": false
 },
 "_software_data": " ..................................Software Data addons..................................",
 "uvpackmaster3": {
@@ -630,7 +682,8 @@
             "local_subpath": null,
             "destination_path": "#\\scripts\\addons\\uvpackmaster3"
         }
-    ]
+    ],
+    "keymaps": false
 },
 "beta_quad": {
     "sync": false,
@@ -645,7 +698,8 @@
             "local_subpath": null,
             "destination_path": "#\\scripts\\addons\\beta_quad"
         }
-    ]
+    ],
+    "keymaps": false
 },
 "MACHIN3tools": {
     "sync": false,
@@ -660,7 +714,8 @@
             "local_subpath": null,
             "destination_path": "#\\scripts\\addons\\MACHIN3tools"
         }
-    ]
+    ],
+    "keymaps": true
 },
 "MESHmachine": {
     "sync": false,
@@ -675,7 +730,8 @@
             "local_subpath": null,
             "destination_path": "#\\scripts\\addons\\MESHmachine"
         }
-    ]
+    ],
+    "keymaps": false
 },
 "physical-starlight-atmosphere": {
     "sync": false,
@@ -690,7 +746,8 @@
             "local_subpath": null,
             "destination_path": "#\\scripts\\addons\\physical-starlight-atmosphere"
         }
-    ]
+    ],
+    "keymaps": false
 },
 "SculptLayers": {
     "sync": false,
@@ -705,7 +762,8 @@
             "local_subpath": null,
             "destination_path": "#\\scripts\\addons\\SculptLayers"
         }
-    ]
+    ],
+    "keymaps": false
 },
 "uv_toolkit": {
     "sync": false,
@@ -720,7 +778,8 @@
             "local_subpath": null,
             "destination_path": "#\\scripts\\addons\\uv_toolkit"
         }
-    ]
+    ],
+    "keymaps": false
 },
 "BakeWrangler": {
     "sync": false,
@@ -735,7 +794,8 @@
             "local_subpath": null,
             "destination_path": "#\\scripts\\addons\\BakeWrangler"
         }
-    ]
+    ],
+    "keymaps": false
 },
 "quad_remesher": {
     "sync": false,
@@ -750,7 +810,8 @@
             "local_subpath": null,
             "destination_path": "#\\scripts\\addons\\quad_remesher"
         }
-    ]
+    ],
+    "keymaps": false
 },
 "_disabled": " ..................................Disabled addons..................................",
 "noodler": {
@@ -766,7 +827,8 @@
             "local_subpath": "noodler.py",
             "destination_path": "#\\scripts\\addons\\noodler.py"
         }
-    ]
+    ],
+    "keymaps": true
 },
 "keymesh": {
     "sync": false,
@@ -781,7 +843,8 @@
             "local_subpath": "keymesh.py",
             "destination_path": "#\\scripts\\addons\\keymesh.py"
         }
-    ]
+    ],
+    "keymaps": false
 },
 "leomoon-lightstudio": {
     "sync": false,
@@ -796,7 +859,8 @@
             "local_subpath": null,
             "destination_path": "#\\scripts\\addons\\leomoon-lightstudio"
         }
-    ]
+    ],
+    "keymaps": false
 },
 "BakeMyScan:": {
     "sync": false,
@@ -811,7 +875,8 @@
             "local_subpath": null,
             "destination_path": "#\\scripts\\addons\\BakeMyScan"
         }
-    ]
+    ],
+    "keymaps": false
 },
 "curve_cad": {
     "sync": false,
@@ -826,7 +891,8 @@
             "local_subpath": null,
             "destination_path": "#\\scripts\\addons\\curve_cad"
         }
-    ]
+    ],
+    "keymaps": false
 },
 "GoB": {
     "sync": false,
@@ -841,7 +907,8 @@
             "local_subpath": null,
             "destination_path": "#\\scripts\\addons\\GoB"
         }
-    ]
+    ],
+    "keymaps": false
 },
 "animation_nodes": {
     "sync": false,
@@ -856,7 +923,8 @@
             "local_subpath": null,
             "destination_path": "#\\scripts\\addons\\animation_nodes"
         }
-    ]
+    ],
+    "keymaps": false
 },
 "fSpy-Blender": {
     "sync": false,
@@ -871,7 +939,8 @@
             "local_subpath": null,
             "destination_path": "#\\scripts\\addons\\fSpy_Blender"
         }
-    ]
+    ],
+    "keymaps": false
 },
 "Capsule": {
     "sync": false,
@@ -886,7 +955,8 @@
             "local_subpath": null,
             "destination_path": "#\\scripts\\addons\\Capsule"
         }
-    ]
+    ],
+    "keymaps": false
 },
 "ScreenCast_Keys": {
     "sync": false,
@@ -901,7 +971,8 @@
             "local_subpath": null,
             "destination_path": "#\\scripts\\addons\\ScreenCast_Keys"
         }
-    ]
+    ],
+    "keymaps": false
 },
 "bpy_photogrametry": {
     "sync": false,
@@ -931,7 +1002,8 @@
             "local_subpath": "space_view3d_point_cloud_visualizer.py",
             "destination_path": "#\\scripts\\addons\\space_view3d_point_cloud_visualizer.py"
         }
-    ]
+    ],
+    "keymaps": false
 },
 "yavne": {
     "sync": false,
@@ -946,7 +1018,8 @@
             "local_subpath": null,
             "destination_path": "#\\scripts\\addons\\yavne"
         }
-    ]
+    ],
+    "keymaps": false
 },
 "FontSelector": {
     "sync": false,
@@ -961,7 +1034,8 @@
             "local_subpath": null,
             "destination_path": "#\\scripts\\addons\\FontSelector"
         }
-    ]
+    ],
+    "keymaps": false
 },
 "MapsModelsImporter": {
     "sync": false,
@@ -976,7 +1050,8 @@
             "local_subpath": "blender\\MapsModelsImporter",
             "destination_path": "#\\scripts\\addons\\MapsModelsImporter"
         }
-    ]
+    ],
+    "keymaps": false
 },
 "BlendShell": {
     "sync": false,
@@ -991,7 +1066,8 @@
             "local_subpath": "blendshell.py",
             "destination_path": "#\\scripts\\addons\\BlendShell.py"
         }
-    ]
+    ],
+    "keymaps": false
 },
 "Neltulz_Edge_Curve_Plus": {
     "sync": false,
@@ -1006,7 +1082,8 @@
             "local_subpath": null,
             "destination_path": "#\\scripts\\addons\\Neltulz_Edge_Curve_Plus"
         }
-    ]
+    ],
+    "keymaps": false
 },
 "BlenderGIS": {
     "sync": false,
@@ -1021,7 +1098,8 @@
             "local_subpath": null,
             "destination_path": "#\\scripts\\addons\\BlenderGIS"
         }
-    ]
+    ],
+    "keymaps": false
 },
 "LuxeCore": {
     "sync": false,
@@ -1036,7 +1114,8 @@
             "local_subpath": null,
             "destination_path": "#\\scripts\\addons\\LuxeCore"
         }
-    ]
+    ],
+    "keymaps": false
 },
 "Export_Paper_Model": {
     "sync": false,
@@ -1051,7 +1130,8 @@
             "local_subpath": null,
             "destination_path": "#\\scripts\\addons\\Export_Paper_Model"
         }
-    ]
+    ],
+    "keymaps": false
 },
 "glsl_texture": {
     "sync": false,
@@ -1066,7 +1146,8 @@
             "local_subpath": null,
             "destination_path": "#\\scripts\\addons\\glsl_texture"
         }
-    ]
+    ],
+    "keymaps": false
 },
 "modifier_list": {
     "sync": false,
@@ -1081,7 +1162,8 @@
             "local_subpath": null,
             "destination_path": "#\\scripts\\addons\\modifier_list"
         }
-    ]
+    ],
+    "keymaps": false
 },
 "seams_to_sewing_pattern": {
     "sync": false,
@@ -1096,7 +1178,8 @@
             "local_subpath": null,
             "destination_path": "#\\scripts\\addons\\seams_to_sewing_pattern"
         }
-    ]
+    ],
+    "keymaps": false
 },
 "BMax_Connector": {
     "sync": false,
@@ -1111,7 +1194,8 @@
             "local_subpath": null,
             "destination_path": "#\\scripts\\addons\\BMax_Connector"
         }
-    ]
+    ],
+    "keymaps": false
 },
 "modular_tree": {
     "sync": false,
@@ -1126,7 +1210,8 @@
             "local_subpath": null,
             "destination_path": "#\\scripts\\addons\\modular_tree"
         }
-    ]
+    ],
+    "keymaps": false
 },
 "Abnormal": {
     "sync": false,
@@ -1141,7 +1226,8 @@
             "local_subpath": null,
             "destination_path": "#\\scripts\\addons\\Abnormal"
         }
-    ]
+    ],
+    "keymaps": false
 },
 "Shader_to_OpenVDB": {
     "sync": false,
@@ -1156,7 +1242,8 @@
             "local_subpath": null,
             "destination_path": "#\\scripts\\addons\\Shader_to_OpenVDB"
         }
-    ]
+    ],
+    "keymaps": false
 },
 "HEAVYPOLY": {
     "sync": true,
@@ -1196,7 +1283,8 @@
             "local_subpath": "scripts\\startup\\HEAVYPOLY_pie_boolean.py",
             "destination_path": "#\\scripts\\startup\\HEAVYPOLY_pie_boolean.py"
         }
-    ]
+    ],
+    "keymaps": false
 },
 "Character_Pipeline_Assistant": {
     "sync": false,
@@ -1211,7 +1299,8 @@
             "local_subpath": null,
             "destination_path": "#\\scripts\\addons\\Character_Pipeline_Assistant"
         }
-    ]
+    ],
+    "keymaps": false
 },
 "Lattice_Magic": {
     "sync": false,
@@ -1226,7 +1315,8 @@
             "local_subpath": null,
             "destination_path": "#\\scripts\\addons\\Lattice_Magic"
         }
-    ]
+    ],
+    "keymaps": false
 },
 "uvpacker": {
     "sync": false,
@@ -1241,7 +1331,8 @@
             "local_subpath": null,
             "destination_path": "#\\scripts\\addons\\uvpacker"
         }
-    ]
+    ],
+    "keymaps": false
 },
 "MeshSlicer": {
     "sync": false,
@@ -1256,7 +1347,8 @@
             "local_subpath": null,
             "destination_path": "#\\scripts\\addons\\MeshSlicer"
         }
-    ]
+    ],
+    "keymaps": false
 },
 "NodeRelax": {
     "sync": false,
@@ -1271,7 +1363,8 @@
             "local_subpath": null,
             "destination_path": "#\\scripts\\addons\\NodeRelax"
         }
-    ]
+    ],
+    "keymaps": false
 },
 "TheLightmapper": {
     "sync": false,
@@ -1286,7 +1379,8 @@
             "local_subpath": null,
             "destination_path": "#\\scripts\\addons\\TheLightmapper"
         }
-    ]
+    ],
+    "keymaps": false
 },
 "gret": {
     "sync": false,
@@ -1301,7 +1395,8 @@
             "local_subpath": null,
             "destination_path": "#\\scripts\\addons\\gret"
         }
-    ]
+    ],
+    "keymaps": false
 },
 "PrintNode": {
     "sync": false,
@@ -1316,7 +1411,8 @@
             "local_subpath": null,
             "destination_path": "#\\scripts\\addons\\PrintNode"
         }
-    ]
+    ],
+    "keymaps": false
 },
 "ez_baker": {
     "sync": false,
@@ -1331,7 +1427,8 @@
             "local_subpath": null,
             "destination_path": "#\\scripts\\addons\\ez_baker"
         }
-    ]
+    ],
+    "keymaps": false
 },
 "photogrammetry_importer": {
     "sync": false,
@@ -1346,7 +1443,8 @@
             "local_subpath": "photogrammetry_importer",
             "destination_path": "#\\scripts\\addons\\photogrammetry_importer"
         }
-    ]
+    ],
+    "keymaps": false
 },
 "universal_multi_importer": {
     "sync": true,
@@ -1361,7 +1459,8 @@
             "local_subpath": null,
             "destination_path": "#\\scripts\\addons\\universal_multi_importer"
         }
-    ]
+    ],
+    "keymaps": false
 },
 "export_as_blend": {
     "sync": true,
@@ -1376,7 +1475,8 @@
             "local_subpath": null,
             "destination_path": "#\\scripts\\addons\\export_as_blend"
         }
-    ]
+    ],
+    "keymaps": false
 },
 "MaterialUtilities": {
     "sync": false,
@@ -1391,7 +1491,8 @@
             "local_subpath": null,
             "destination_path": "#\\scripts\\addons\\MaterialUtilities"
         }
-    ]
+    ],
+    "keymaps": false
 },
 "RiggingNodes": {
     "sync": false,
@@ -1406,7 +1507,8 @@
             "local_subpath": null,
             "destination_path": "#\\scripts\\addons\\RiggingNodes"
         }
-    ]
+    ],
+    "keymaps": false
 },
 "Renderman": {
     "sync": false,
@@ -1421,7 +1523,8 @@
             "local_subpath": null,
             "destination_path": "#\\scripts\\addons\\Renderman"
         }
-    ]
+    ],
+    "keymaps": false
 },
 "GrabDoc": {
     "sync": true,
@@ -1436,7 +1539,8 @@
             "local_subpath": null,
             "destination_path": "#\\scripts\\addons\\GrabDoc"
         }
-    ]
+    ],
+    "keymaps": false
 },
 "eyek": {
     "sync": false,
@@ -1451,7 +1555,8 @@
             "local_subpath": null,
             "destination_path": "#\\scripts\\addons\\eyek"
         }
-    ]
+    ],
+    "keymaps": false
 },
 "b3dsdf": {
     "sync": false,
@@ -1466,7 +1571,8 @@
             "local_subpath": null,
             "destination_path": "#\\scripts\\addons\\b3dsdf"
         }
-    ]
+    ],
+    "keymaps": false
 },
 "CAD_Sketcher": {
     "sync": false,
@@ -1481,7 +1587,8 @@
             "local_subpath": null,
             "destination_path": "#\\scripts\\addons\\CAD_Sketcher"
         }
-    ]
+    ],
+    "keymaps": false
 },
 "RenderNode": {
     "sync": false,
@@ -1496,7 +1603,8 @@
             "local_subpath": null,
             "destination_path": "#\\scripts\\addons\\RenderNode"
         }
-    ]
+    ],
+    "keymaps": false
 },
 "asset_snapshot": {
     "sync": true,
@@ -1511,7 +1619,8 @@
             "local_subpath": null,
             "destination_path": "#\\scripts\\addons\\asset_snapshot"
         }
-    ]
+    ],
+    "keymaps": false
 },
 "shotmanager": {
     "sync": false,
@@ -1526,7 +1635,8 @@
             "local_subpath": null,
             "destination_path": "#\\scripts\\addons\\shotmanager"
         }
-    ]
+    ],
+    "keymaps": false
 },
 "asset_bridge": {
     "sync": false,
@@ -1541,7 +1651,8 @@
             "local_subpath": null,
             "destination_path": "#\\scripts\\addons\\asset_bridge"
         }
-    ]
+    ],
+    "keymaps": false
 },
 "io_export_blend": {
     "sync": false,
@@ -1556,7 +1667,8 @@
             "local_subpath": null,
             "destination_path": "#\\scripts\\addons\\io_export_blend"
         }
-    ]
+    ],
+    "keymaps": false
 },
 "gp_triangulation": {
     "sync": false,
@@ -1571,7 +1683,8 @@
             "local_subpath": null,
             "destination_path": "#\\scripts\\addons\\gp_triangulation"
         }
-    ]
+    ],
+    "keymaps": false
 },
 "miter_box": {
     "sync": false,
@@ -1586,7 +1699,8 @@
             "local_subpath": null,
             "destination_path": "#\\scripts\\addons\\miter_box"
         }
-    ]
+    ],
+    "keymaps": false
 },
 "wiggle": {
     "sync": false,
@@ -1601,7 +1715,8 @@
             "local_subpath": "wiggle_2.py",
             "destination_path": "#\\scripts\\addons\\wiggle.py"
         }
-    ]
+    ],
+    "keymaps": false
 },
 
 "mesh_align_plus": {
@@ -1617,7 +1732,8 @@
             "local_subpath": null,
             "destination_path": "#\\scripts\\addons\\mesh_align_plus"
         }
-    ]
+    ],
+    "keymaps": false
 },
 "mesh_snap_utilities_line": {
     "sync": false,
@@ -1626,7 +1742,8 @@
     "branch" : null,
     "submodule" : false,
     "local_path": null,
-    "paths": null
+    "paths": null,
+    "keymaps": false
 },
 "Principled_Baker": {
     "sync": false,
@@ -1641,7 +1758,8 @@
             "local_subpath": null,
             "destination_path": "#\\scripts\\addons\\Principled_Baker"
         }
-    ]
+    ],
+    "keymaps": false
 },
 "MeasureIt_ARCH": {
     "sync": false,
@@ -1656,7 +1774,8 @@
             "local_subpath": null,
             "destination_path": "#\\scripts\\addons\\MeasureIt_ARCH"
         }
-    ]
+    ],
+    "keymaps": false
 },
 "space_view3d_copy_attributes": {
     "sync": false,
@@ -1665,7 +1784,8 @@
     "branch" : null,
     "submodule" : false,
     "local_path": null,
-    "paths": null
+    "paths": null,
+    "keymaps": false
 },
 "space_view3d_align_tools": {
     "sync": false,
@@ -1674,7 +1794,8 @@
     "branch" : null,
     "submodule" : false,
     "local_path": null,
-    "paths": null
+    "paths": null,
+    "keymaps": false
 },
 "Polycount": {
     "sync": false,
@@ -1689,7 +1810,8 @@
             "local_subpath": "polycount",
             "destination_path": "#\\scripts\\addons\\PolyCount"
         }
-    ]
+    ],
+    "keymaps": false
 },
 "mira_tools": {
     "sync": false,
@@ -1704,7 +1826,8 @@
             "local_subpath": "blender\\addons\\2.8\\mira_tools",
             "destination_path": "#\\scripts\\addons\\mifthtools"
         }
-    ]
+    ],
+    "keymaps": false
 },
 "Neltulz_Smart_Sharpen": {
     "sync": false,
@@ -1719,7 +1842,8 @@
             "local_subpath": null,
             "destination_path": "#\\scripts\\addons\\Neltulz_Smart_Sharpen"
         }
-    ]
+    ],
+    "keymaps": false
 },
 "Neltulz_Symmetry": {
     "sync": false,
@@ -1734,7 +1858,8 @@
             "local_subpath": null,
             "destination_path": "#\\scripts\\addons\\Neltulz_Symmetry"
         }
-    ]
+    ],
+    "keymaps": false
 },
 "keentools_facebuilder": {
     "sync": false,
@@ -1743,7 +1868,8 @@
     "branch" : null,
     "submodule" : false,
     "local_path": null,
-    "paths": null
+    "paths": null,
+    "keymaps": false
 },
 "ZWeightTools-1_0_1": {
     "sync": false,
@@ -1752,7 +1878,8 @@
     "branch" : null,
     "submodule" : false,
     "local_path": null,
-    "paths": null
+    "paths": null,
+    "keymaps": false
 },
 "W_Mesh": {
     "sync": false,
@@ -1761,7 +1888,8 @@
     "branch" : null,
     "submodule" : false,
     "local_path": null,
-    "paths": null
+    "paths": null,
+    "keymaps": false
 },
 "fspy": {
     "sync": false,
@@ -1770,7 +1898,8 @@
     "branch" : null,
     "submodule" : false,
     "local_path": null,
-    "paths": null
+    "paths": null,
+    "keymaps": false
 },
 "lineup_maker": {
     "sync": true,
@@ -1785,7 +1914,8 @@
             "local_subpath": null,
             "destination_path": "#\\scripts\\addons\\lineup_maker"
         }
-    ]
+    ],
+    "keymaps": false
 },
 "io_sketchfab": {
     "sync": false,
@@ -1800,7 +1930,8 @@
             "local_subpath": "addons\\io_sketchfab_plugin",
             "destination_path": "#\\scripts\\addons\\io_sketchfab"
         }
-    ]
+    ],
+    "keymaps": false
 },
 
 
@@ -1820,7 +1951,8 @@
             "local_subpath": null,
             "destination_path": "#\\scripts\\addons\\easy_weight"
         }
-    ]
+    ],
+    "keymaps": false
 },
 "simple_renaming_panel": {
     "sync": true,
@@ -1835,7 +1967,8 @@
             "local_subpath": null,
             "destination_path": "#\\scripts\\addons\\simple_renaming_panel"
         }
-    ]
+    ],
+    "keymaps": false
 },
 "mesh_f2":{
     "sync": false,
@@ -1844,7 +1977,8 @@
     "branch" : null,
     "submodule" : false,
     "local_path": null,
-    "paths": null
+    "paths": null,
+    "keymaps": false
 },
 "TexTools:": {
     "sync": true,
@@ -1859,7 +1993,8 @@
             "local_subpath": null,
             "destination_path": "#\\scripts\\addons\\TextTools"
         }
-    ]
+    ],
+    "keymaps": false
 },
 "io_import_images_as_planes":{
     "sync": true,
@@ -1868,7 +2003,8 @@
     "branch" : null,
     "submodule" : false,
     "local_path": null,
-    "paths": null
+    "paths": null,
+    "keymaps": false
 },
 "object_print3d_utils":{
     "sync": true,
@@ -1877,7 +2013,8 @@
     "branch" : null,
     "submodule" : false,
     "local_path": null,
-    "paths": null
+    "paths": null,
+    "keymaps": false
 },
 "mesh_looptools":{
     "sync": true,
@@ -1886,7 +2023,8 @@
     "branch" : null,
     "submodule" : false,
     "local_path": null,
-    "paths": null
+    "paths": null,
+    "keymaps": false
 },
 "UvSquares": {
     "sync": true,
@@ -1901,7 +2039,8 @@
             "local_subpath": null,
             "destination_path": "#\\scripts\\addons\\UvSquares"
         }
-    ]
+    ],
+    "keymaps": false
 },
 "Auto_Reload": {
     "sync": true,
@@ -1916,7 +2055,8 @@
             "local_subpath": null,
             "destination_path": "#\\scripts\\addons\\Auto_Reload"
         }
-    ]
+    ],
+    "keymaps": false
 },
 "node_wrangler": {
     "sync": true,
@@ -1925,7 +2065,8 @@
     "branch" : null,
     "submodule" : false,
     "local_path": null,
-    "paths": null
+    "paths": null,
+    "keymaps": false
 },
 "node_presets": {
     "sync": true,
@@ -1934,7 +2075,8 @@
     "branch" : null,
     "submodule" : false,
     "local_path": null,
-    "paths": null
+    "paths": null,
+    "keymaps": false
 },
 "object_boolean_tools": {
     "sync": true,
@@ -1943,7 +2085,8 @@
     "branch" : null,
     "submodule" : false,
     "local_path": null,
-    "paths": null
+    "paths": null,
+    "keymaps": false
 },
 "optiloops": {
     "sync": true,
@@ -1958,7 +2101,8 @@
             "local_subpath": "optiloops_v1_3_2.py",
             "destination_path": "#\\scripts\\addons\\optiloops.py"
         }
-    ]
+    ],
+    "keymaps": false
 },
 "magic_uv": {
     "sync": true,
@@ -1967,7 +2111,8 @@
     "branch" : null,
     "submodule" : false,
     "local_path": null,
-    "paths": null
+    "paths": null,
+    "keymaps": false
 },
 "PolyQuilt": {
     "sync": true,
@@ -1982,7 +2127,8 @@
             "local_subpath": "addons\\PolyQuilt",
             "destination_path": "#\\scripts\\addons\\PolyQuilt"
         }
-    ]
+    ],
+    "keymaps": true
 },
 "Lodify": {
     "sync": true,
@@ -1997,7 +2143,8 @@
             "local_subpath": null,
             "destination_path": "#\\scripts\\addons\\Lodify"
         }
-    ]
+    ],
+    "keymaps": false
 },
 "add_curve_extra_objects": {
     "sync": true,
@@ -2006,7 +2153,8 @@
     "branch" : null,
     "submodule" : false,
     "local_path": null,
-    "paths": null
+    "paths": null,
+    "keymaps": false
 },
 "add_mesh_extra_objects": {
     "sync": true,
@@ -2015,7 +2163,8 @@
     "branch" : null,
     "submodule" : false,
     "local_path": null,
-    "paths": null
+    "paths": null,
+    "keymaps": false
 },
 "io_scene_fbx": {
     "sync": true,
@@ -2024,7 +2173,8 @@
     "branch" : null,
     "submodule" : false,
     "local_path": null,
-    "paths": null
+    "paths": null,
+    "keymaps": false
 },
 "io_scene_obj": {
     "sync": true,
@@ -2033,7 +2183,8 @@
     "branch" : null,
     "submodule" : false,
     "local_path": null,
-    "paths": null
+    "paths": null,
+    "keymaps": false
 },
 "io_scene_x3d": {
     "sync": true,
@@ -2042,7 +2193,8 @@
     "branch" : null,
     "submodule" : false,
     "local_path": null,
-    "paths": null
+    "paths": null,
+    "keymaps": false
 },
 "io_scene_gltf2": {
     "sync": true,
@@ -2051,7 +2203,8 @@
     "branch" : null,
     "submodule" : false,
     "local_path": null,
-    "paths": null
+    "paths": null,
+    "keymaps": false
 },
 "io_mesh_stl": {
     "sync": true,
@@ -2060,7 +2213,8 @@
     "branch" : null,
     "submodule" : false,
     "local_path": null,
-    "paths": null
+    "paths": null,
+    "keymaps": false
 },
 "io_curve_svg": {
     "sync": true,
@@ -2069,7 +2223,8 @@
     "branch" : null,
     "submodule" : false,
     "local_path": null,
-    "paths": null
+    "paths": null,
+    "keymaps": false
 },
 "io_mesh_ply": {
     "sync": true,
@@ -2078,7 +2233,8 @@
     "branch" : null,
     "submodule" : false,
     "local_path": null,
-    "paths": null
+    "paths": null,
+    "keymaps": false
 },
 "io_mesh_uv_layout": {
     "sync": true,
@@ -2087,7 +2243,8 @@
     "branch" : null,
     "submodule" : false,
     "local_path": null,
-    "paths": null
+    "paths": null,
+    "keymaps": false
 },
 "object_collection_manager": {
     "sync": true,
@@ -2096,7 +2253,8 @@
     "branch" : null,
     "submodule" : false,
     "local_path": null,
-    "paths": null
+    "paths": null,
+    "keymaps": false
 },
 "space_view3d_modifier_tools": {
     "sync": true,
@@ -2105,7 +2263,8 @@
     "branch" : null,
     "submodule" : false,
     "local_path": null,
-    "paths": null
+    "paths": null,
+    "keymaps": false
 },
 "EdgeFlow": {
     "sync": true,
@@ -2120,7 +2279,8 @@
             "local_subpath": null,
             "destination_path": "#\\scripts\\addons\\EdgeFlow"
         }
-    ]
+    ],
+    "keymaps": false
 },
 "mesh_tools": {
     "sync": false,
@@ -2129,7 +2289,8 @@
     "branch" : null,
     "submodule" : false,
     "local_path": null,
-    "paths": null
+    "paths": null,
+    "keymaps": false
 },
 "cycles": {
     "sync": false,
@@ -2138,7 +2299,8 @@
     "branch" : null,
     "submodule" : false,
     "local_path": null,
-    "paths": null
+    "paths": null,
+    "keymaps": false
 },
 "maxivz_tools": {
     "sync": false,
@@ -2147,7 +2309,8 @@
     "branch" : null,
     "submodule" : false,
     "local_path": null,
-    "paths": null
+    "paths": null,
+    "keymaps": false
 },
 "bezierutils": {
     "sync": true,
@@ -2162,7 +2325,8 @@
             "local_subpath": "blenderbezierutils.py",
             "destination_path": "#\\scripts\\addons\\bezierutils.py"
         }
-    ]
+    ],
+    "keymaps": false
 },
 "oscurart_edit_split_normals": {
     "sync": true,
@@ -2182,7 +2346,8 @@
             "local_subpath": "oscurart_bake_pbr.py",
             "destination_path": "#\\scripts\\addons\\oscurart_bake_pbr.py"
         }
-    ]
+    ],
+    "keymaps": false
 },
 "vertex_color_master": {
     "sync": true,
@@ -2197,7 +2362,8 @@
             "local_subpath": null,
             "destination_path": "#\\scripts\\addons\\vertex_color_master"
         }
-    ]
+    ],
+    "keymaps": false
 },
 "atomic_data_manager": {
     "sync": true,
@@ -2212,7 +2378,8 @@
             "local_subpath": null,
             "destination_path": "#\\scripts\\addons\\atomic_data_manager"
         }
-    ]
+    ],
+    "keymaps": false
 },
 "ImagePaste": {
     "sync": false,
@@ -2227,7 +2394,8 @@
             "local_subpath": null,
             "destination_path": "#\\scripts\\addons\\ImagePaste"
         }
-    ]
+    ],
+    "keymaps": false
 },
 "greasepencil_tools": {
     "sync": false,
@@ -2236,7 +2404,8 @@
     "branch" : null,
     "submodule" : false,
     "local_path": null,
-    "paths": null
+    "paths": null,
+    "keymaps": false
 },
 "Texel_Density": {
     "sync": true,
@@ -2251,7 +2420,8 @@
             "local_subpath": "Texel_Density_3_4_341",
             "destination_path": "#\\scripts\\addons\\Texel_Density"
         }
-    ]
+    ],
+    "keymaps": false
 },
 "RestoreSymmetry": {
     "sync": true,
@@ -2266,6 +2436,7 @@
             "local_subpath": "RestoreSymmetry\\mesh_restoresymmetry.py",
             "destination_path": "#\\scripts\\addons\\RestoreSymmetry.py"
         }
-    ]
+    ],
+    "keymaps": false
 }
 }

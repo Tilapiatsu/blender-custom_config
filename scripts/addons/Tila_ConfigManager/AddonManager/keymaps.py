@@ -1,6 +1,7 @@
 import bpy
-import os, re
+from abc import ABC, abstractmethod
 from .KeymapManager import KeymapManager
+from .blender_version import bversion
 
 
 # TODO  
@@ -28,43 +29,42 @@ from .KeymapManager import KeymapManager
 # - Script to visualize Texture checker in all objects in the viewport
 # - Fix the smart edit mode in UV context
 
+class TILA_Config_Keymaps(ABC, KeymapManager.KeymapManager):
+	k_viewfit = 'MIDDLEMOUSE'
+	k_manip = 'LEFTMOUSE'
+	k_cursor = 'MIDDLEMOUSE'
+	k_nav = 'MIDDLEMOUSE'
+	k_menu = 'SPACE'
+	k_select = 'LEFTMOUSE'
+	k_lasso = 'RIGHTMOUSE'
+	k_lasso_through = 'MIDDLEMOUSE'
+	k_box = 'LEFTMOUSE'
+	k_box_through = 'MIDDLEMOUSE'
+	k_select_attatched = 'MIDDLEMOUSE'
+	k_context = 'RIGHTMOUSE'
+	k_more = 'UP_ARROW'
+	k_less = 'DOWN_ARROW'
+	k_linked = 'W'
+	k_vert_mode = 'ONE'
+	k_edge_mode = 'TWO'
+	k_face_mode = 'THREE'
+	k_move = 'G'
+	k_rotate = 'R'
+	k_scale = 'S'
 
+	def __init__(self):
+		super(TILA_Config_Keymaps, self).__init__()
 
-bversion_string = bpy.app.version_string
-bversion_reg = re.match("^(\d\.\d?\d)", bversion_string)
-bversion = float(bversion_reg.group(0))
+	@abstractmethod
+	def set_keymaps(self):
+		pass
 
-
-class TILA_Config_Keymaps(KeymapManager.KeymapManager):
+class TILA_Config_Keymaps_Global(TILA_Config_Keymaps):
 	def __init__(self):
 
 		super(TILA_Config_Keymaps, self).__init__()
 
-		self.k_viewfit = 'MIDDLEMOUSE'
-		self.k_manip = 'LEFTMOUSE'
-		self.k_cursor = 'MIDDLEMOUSE'
-		self.k_nav = 'MIDDLEMOUSE'
-		self.k_menu = 'SPACE'
-		self.k_select = 'LEFTMOUSE'
-		self.k_lasso = 'RIGHTMOUSE'
-		self.k_lasso_through = 'MIDDLEMOUSE'
-		self.k_box = 'LEFTMOUSE'
-		self.k_box_through = 'MIDDLEMOUSE'
-		self.k_select_attatched = 'MIDDLEMOUSE'
-		self.k_context = 'RIGHTMOUSE'
-		self.k_more = 'UP_ARROW'
-		self.k_less = 'DOWN_ARROW'
-		self.k_linked = 'W'
-		self.k_vert_mode = 'ONE'
-		self.k_edge_mode = 'TWO'
-		self.k_face_mode = 'THREE'
-
-		self.k_move = 'G'
-		self.k_rotate = 'R'
-		self.k_scale = 'S'
-
 	# Global Keymap Functions
-
 	def global_keys(self):
 		# Disable Keymap
 		self.kmi_set_active(False, type='X')
@@ -415,15 +415,11 @@ class TILA_Config_Keymaps(KeymapManager.KeymapManager):
 		self.kmi_set_replace('object.tila_smart_join', 'J', 'PRESS', ctrl=True, shift=True, alt=True, properties={'apply_modifiers': True, 'duplicate': True}, disable_double=True)
 
 	# Keymap define
-	def set_tila_keymap(self):
+	def set_keymaps(self):
 		print("----------------------------------------------------------------")
 		print("Assigning Tilapiatsu's keymaps")
 		print("----------------------------------------------------------------")
 		print("")
-		
-		print("Revert Keymap to default")
-		# bpy.ops.preferences.keyconfig_activate(
-		# 	filepath="E:\\00_PortableApps\\BlenderLauncher\\BlenderVersions\\stable\\blender-3.4.1+stable.55485cb379f7\\3.4\\scripts\\presets\\keyconfig\\Blender.py")
 
 		##### Window
 		self.kmi_init(name='Window', space_type='EMPTY', region_type='WINDOW')
@@ -1354,45 +1350,30 @@ class TILA_Config_Keymaps(KeymapManager.KeymapManager):
 		print("----------------------------------------------------------------")
 		print("")
 
-# keymap_List = {}
+class TILA_Config_Keymaps_Empty(TILA_Config_Keymaps):
+	def __init__(self):
+		super(TILA_Config_Keymaps, self).__init__()
 
-# def register():
-# 	TK = TilaKeymaps()
-# 	TK.set_tila_keymap()
+	def set_keymaps(self):
+		print("Assigning Polyquilt Keymaps")
 
-# 	keymap_List['new'] = TK.keymap_List['new']
-# 	keymap_List['replaced'] = TK.keymap_List['replaced']
+class TILA_Config_Keymaps_PolyQuilt(TILA_Config_Keymaps):
+	def __init__(self):
+		super(TILA_Config_Keymaps, self).__init__()
 
-# def unregister():
-# 	print("----------------------------------------------------------------")
-# 	print("Reverting Tilapiatsu's keymap")
-# 	print("----------------------------------------------------------------")
-# 	print("")
+	def set_keymaps(self):
+		print("Assigning Polyquilt Keymaps")
 
-# 	TK = TilaKeymaps()
-# 	for k in keymap_List['replaced']:
-# 		try:
-# 			TK.km = k['km']
-# 			print("{} : Replacing '{}' : '{}'  by '{}' : '{}'".format(k['km'].name, k['new_kmi'].idname, k['new_kmi'].to_string(), k['old_kmi'].idname, k['old_kmi'].to_string()))
-# 			TK.replace_km(k['old_kmi'], k['kmis'].from_id(k['old_kmi_id']))
-# 		except Exception as e:
-# 			print("Warning: %r" % e)
+class TILA_Config_Keymaps_MACHIN3tools(TILA_Config_Keymaps):
+	def __init__(self):
+		super(TILA_Config_Keymaps, self).__init__()
 
-# 	for k in keymap_List['new']:
-# 		try:
-# 			TK.km = k[0]
-# 			print("{} : Removing keymap for '{}' : '{}'".format(k[0].name, k[1].idname, k[1].to_string()))
-# 			TK.km.keymap_items.remove(k[1])
-			
-# 		except Exception as e:
-# 			print("Warning: %r" % e)
-	
-# 	keymap_List.clear()
+	def set_keymaps(self):
+		print("Assigning MACHIN3tools Keymaps")
 
-# 	print("----------------------------------------------------------------")
-# 	print("Revert complete")
-# 	print("----------------------------------------------------------------")
-# 	print("")
+class TILA_Config_Keymaps_noodler(TILA_Config_Keymaps):
+	def __init__(self):
+		super(TILA_Config_Keymaps, self).__init__()
 
-# if __name__ == "__main__":
-# 	register()
+	def set_keymaps(self):
+		print("Assigning noodler Keymaps")

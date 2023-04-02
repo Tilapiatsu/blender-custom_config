@@ -5,6 +5,7 @@ import shutil
 import subprocess
 import stat
 import bpy
+from . import keymaps
 from os import path
 from . import admin
 from . Logger import Logger
@@ -349,6 +350,10 @@ class ElementAM():
 		return PathAM(self._element_dict['local_path'])
 	
 	@property
+	def keymaps(self):
+		return self._element_dict['keymaps']
+	
+	@property
 	def paths(self):
 		if self._element_dict['paths'] is None:
 			return []
@@ -430,6 +435,15 @@ class ElementAM():
 		else:
 			for p in self.paths:
 				p.disable(force=force)
+
+	def set_keymaps(self):
+		if self.keymaps:
+			try:
+				km = eval(f'keymaps.TILA_Config_Keymaps_{self.name}')
+				keymap_instance = km()
+				keymap_instance.set_keymaps()
+			except AttributeError as e:
+				print(f'{self.name} Addon have no keymaps Set')
 
 class AddonManager():
 	def __init__(self, json_path):
@@ -543,6 +557,31 @@ class AddonManager():
 
 		self.processing = False
 
+	def queue_set_keymaps(self, element_name=None):
+		if element_name is None:
+			for e in self.elements.values():
+				if not e.keymaps:
+					continue
+
+				self.queue([self.set_keymaps, {'element_name': e.name}])
+				
+		elif element_name in self.elements.keys():
+			if not self.elements[element_name].keymaps:
+				return
+			
+			self.queue([self.set_keymaps, {'element_name': element_name}])
+
+	def set_keymaps(self, element_name=None):
+		self.processing = True
+
+		if element_name is None:
+			for e in self.elements.values():
+				e.set_keymaps()
+		elif element_name in self.elements.keys():
+			self.elements[element_name].set_keymaps()
+
+		self.processing = False
+
 	def queue(self, action):
 		self.queue_list.append(action)
 
@@ -557,6 +596,7 @@ class AddonManager():
 		action = self.queue_list.pop(0)
 
 		action[0](**action[1])
+
 
 	def __str__(self):
 		s = ''

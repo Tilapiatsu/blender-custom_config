@@ -1,6 +1,6 @@
 import bpy
 import os
-from . blender_version import bversion
+from .AddonManager.blender_version import bversion
 
 class TILA_Config_Settings():
 	def __init__(self):
