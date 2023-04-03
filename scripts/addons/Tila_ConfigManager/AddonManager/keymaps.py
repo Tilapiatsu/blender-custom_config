@@ -749,7 +749,7 @@ class TILA_Config_Keymaps_Global(TILA_Config_Keymaps):
 		# self.kmi_set_replace('mesh.f2', 'P', 'PRESS', disable_double=True)
 
 		# MAXVIZ
-		self.kmi_set_replace('mesh.quick_pivot', 'S', 'PRESS', alt=True, disable_double=True)
+		self.kmi_set_replace('mesh.tila_smart_pivot', 'S', 'PRESS', alt=True, disable_double=True)
 
 		# EdgeFlow
 		# self.kmi_set_replace('mesh.set_edge_flow', 'F', 'PRESS', alt=True, properties={'tension': 180, 'iterations': 1, 'min_angle': 120}, disable_double=True)
