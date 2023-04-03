@@ -59,7 +59,15 @@ class TILA_Config_Keymaps(ABC, KeymapManager.KeymapManager):
 	def set_keymaps(self):
 		pass
 
+	def print_status(self, message):
+		print("----------------------------------------------------------------")
+		print(f"{message}")
+		print("----------------------------------------------------------------")
+		print("")
+
 class TILA_Config_Keymaps_Global(TILA_Config_Keymaps):
+	addon_name = "Global"
+
 	def __init__(self):
 
 		super(TILA_Config_Keymaps, self).__init__()
@@ -416,32 +424,27 @@ class TILA_Config_Keymaps_Global(TILA_Config_Keymaps):
 
 	# Keymap define
 	def set_keymaps(self):
-		print("----------------------------------------------------------------")
-		print("Assigning Tilapiatsu's keymaps")
-		print("----------------------------------------------------------------")
-		print("")
+		self.print_status(f"Assigning {self.addon_name} Keymaps")
 
 		##### Window
 		self.kmi_init(name='Window', space_type='EMPTY', region_type='WINDOW')
 		self.global_keys()
 		self.right_mouse()
 		# self.kmi_set_replace("wm.call_menu_pie", self.k_menu, "PRESS", ctrl=True, shift=True, alt=True)
-		self.kmi_set_replace("wm.revert_without_prompt", "N", "PRESS", shift=True)
+		# self.kmi_set_replace("wm.revert_without_prompt", "N", "PRESS", shift=True)
 		
 		self.kmi_set_active(False, idname='wm.call_menu', type='F2')
 		self.kmi_set_active(False, idname='wm.toolbar')
 		self.selection_tool(tool='builtin.select_box')
 		
-		# MACHINE3tools
-		# self.kmi_init(name='Window', space_type='EMPTY', region_type='WINDOW', addon=True)
-		# self.kmi_set_active(False, 'wm.call_menu_pie', type='S', value='PRESS', alt=False, ctrl=True, shift=False, properties={'name': 'MACHIN3_MT_save_pie'})
 		self.kmi_init(name='Window', space_type='EMPTY', region_type='WINDOW', addon=False)
 		self.kmi_set_active(False, 'wm.save_as_mainfile', type='S', value='PRESS', ctrl=True, shift=True)
-		self.kmi_set_replace('wm.call_menu_pie', 'S', "PRESS", ctrl=True, shift=True, properties={'name': 'MACHIN3_MT_save_pie'}, disable_double=True)
-		# self.kmi_set_active(False, 'wm.call_menu_pie', type='S', value='PRESS', ctrl=True, properties={'name': 'MACHIN3_MT_save_pie'})
+
+		# MACHINE3tools
+		# self.kmi_set_replace('wm.call_menu_pie', 'S', "PRESS", ctrl=True, shift=True, properties={'name': 'MACHIN3_MT_save_pie'}, disable_double=True)
 		
 		# Atomic Data Manager
-		self.kmi_set_replace('atomic.invoke_pie_menu_ui', 'DEL', "PRESS", ctrl=True, shift=True, disable_double=True)
+		# self.kmi_set_replace('atomic.invoke_pie_menu_ui', 'DEL', "PRESS", ctrl=True, shift=True, disable_double=True)
 		
 
 		##### 3D View
@@ -502,7 +505,6 @@ class TILA_Config_Keymaps_Global(TILA_Config_Keymaps):
 			
 		self.kmi_set_replace('wm.call_menu_pie', 'Z', 'PRESS', properties={'name':'TILA_MT_pie_render_mode'}, disable_double=True)
 
-
 		self.kmi_set_replace('object.transfer_mode', self.k_cursor, 'CLICK', alt=True, disable_double=True)
 
 		self.kmi_set_replace('view3d.tila_orthographic_navigation', self.k_cursor, 'CLICK_DRAG', ctrl=False, alt=True, shift=False, disable_double=True, properties={'relative_to_selected_element': False})
@@ -517,27 +519,24 @@ class TILA_Config_Keymaps_Global(TILA_Config_Keymaps):
 		self.kmi_set_active(enable=False, idname='view3d.view_axis', type=self.k_cursor, value='CLICK_DRAG',  alt=True, direction='SOUTH')
 		self.kmi_set_active(enable=False, idname='view3d.view_axis', type=self.k_cursor, value='CLICK_DRAG',  alt=True, direction='WEST')
 
-		# KE_Kit
-		self.kmi_set_replace('view3d.ke_get_set_material', 'M', 'PRESS', shift=True)
+		# kekit
+		# self.kmi_set_replace('view3d.ke_get_set_material', 'M', 'PRESS', shift=True)
 
 		# # MouseLook_Navigation
 		# self.kmi_set_replace('mouselook_navigation.navigate', self.k_cursor, 'CLICK_DRAG', ctrl=False, alt=True, shift=False,  disable_double=True)
 
 		# Rotate an HDRI
-		self.kmi_set_replace('rotate.hdri', self.k_context, 'PRESS', ctrl=True, alt=True, shift=False,  disable_double=True)
-		self.kmi_set_active(enable=True, idname='rotate.hdri')
+		# self.kmi_set_replace('rotate.hdri', self.k_context, 'PRESS', ctrl=True, alt=True, shift=False,  disable_double=True)
+		# self.kmi_set_active(enable=True, idname='rotate.hdri')
 		
 		# GreasePencil tools
 		# self.kmi_set_replace('view3d.rotate_canvas', self.k_context, 'PRESS', alt=True, disable_double=True)
 
 		# Polysource
-		self.kmi_set_active(enable=False, idname='wm.call_menu_pie', type=self.k_menu, value='PRESS', properties={'name': 'PS_MT_tk_menu'})
+		# self.kmi_set_active(enable=False, idname='wm.call_menu_pie', type=self.k_menu, value='PRESS', properties={'name': 'PS_MT_tk_menu'})
 
 		##### 3D View Generic
 		self.kmi_init(name='3D View Generic', space_type='VIEW_3D', region_type='WINDOW')
-
-		# MACHINE3tools
-		# self.kmi_set_replace('wm.call_menu_pie', 'Z', "PRESS", properties={'name', 'MACHIN3_MT_shading_pie'}, disable_double=True)
 
 		###### 3d Cursor
 		self.kmi_set_replace('view3d.cursor3d', self.k_cursor, 'CLICK', ctrl=True, alt=True, shift=True, properties={'use_depth': True, 'orientation': 'GEOM'}, disable_double=True)
@@ -643,10 +642,10 @@ class TILA_Config_Keymaps_Global(TILA_Config_Keymaps):
 		self.kmi_set_replace('view2d.tila_action_center_2d_cursor_toggle', 'S', 'PRESS', ctrl=True, alt=True, shift=True, disable_double=True)
 
 		# Machin3Tools
-		self.kmi_set_replace('wm.call_menu_pie', 'D', "PRESS", alt=True, shift=True, properties={'name': 'MACHIN3_MT_uv_align_pie'}, disable_double=True)
+		# self.kmi_set_replace('wm.call_menu_pie', 'D', "PRESS", alt=True, shift=True, properties={'name': 'MACHIN3_MT_uv_align_pie'}, disable_double=True)
 
 		# UV Toolkit
-		self.kmi_set_replace('uv.toolkit_orient_to_edge', 'D', "PRESS", ctrl=True, alt=True, shift=True, disable_double=True)
+		# self.kmi_set_replace('uv.toolkit_orient_to_edge', 'D', "PRESS", ctrl=True, alt=True, shift=True, disable_double=True)
 		
 
 		###### Mesh
@@ -700,8 +699,7 @@ class TILA_Config_Keymaps_Global(TILA_Config_Keymaps):
 		
 		# self.kmi_set_replace('transform.vert_slide', 'S', 'PRESS', ctrl=True, alt=True, properties={'correct_uv': True})
 
-		self.kmi_set_replace('wm.tool_set_by_id', 'F', 'PRESS', shift=True, properties={'name': 'mesh_tool.poly_quilt'}, disable_double=True)
-
+		# self.kmi_set_replace('wm.tool_set_by_id', 'F', 'PRESS', shift=True, properties={'name': 'mesh_tool.poly_quilt'}, disable_double=True)
 
 		self.kmi_set_replace('mesh.remove_doubles', 'M', 'PRESS', ctrl=True, shift=True, disable_double=True)
 		kmi = self.kmi_set_replace('mesh.separate_and_select', 'D', 'PRESS', ctrl=True, shift=True)
@@ -728,24 +726,24 @@ class TILA_Config_Keymaps_Global(TILA_Config_Keymaps):
 		self.kmi_set_replace('mesh.tris_convert_to_quads', 'T', "PRESS", alt=True, shift=True)
 
 		# KE_Kit
-		kmi = self.kmi_find(idname='wm.call_menu', type='C', ctrl=True)
-		if kmi is not None:
-			kmi.shift = True
+		# kmi = self.kmi_find(idname='wm.call_menu', type='C', ctrl=True)
+		# if kmi is not None:
+		# 	kmi.shift = True
 
-		kmi = self.kmi_find(idname='wm.call_menu', type='V', ctrl=True)
-		if kmi is not None:
-			kmi.shift = True
+		# kmi = self.kmi_find(idname='wm.call_menu', type='V', ctrl=True)
+		# if kmi is not None:
+		# 	kmi.shift = True
 
-		self.kmi_set_replace('view3d.ke_copyplus', 'C', "PRESS", ctrl=True, properties={'mode': 'COPY'}, disable_double=True)
-		self.kmi_set_replace('view3d.ke_copyplus', 'X', "PRESS", ctrl=True, properties={'mode': 'CUT'}, disable_double=True)
-		self.kmi_set_replace('view3d.ke_copyplus', 'V', "PRESS", ctrl=True, properties={'mode': 'PASTE'}, disable_double=True)
+		# self.kmi_set_replace('view3d.ke_copyplus', 'C', "PRESS", ctrl=True, properties={'mode': 'COPY'}, disable_double=True)
+		# self.kmi_set_replace('view3d.ke_copyplus', 'X', "PRESS", ctrl=True, properties={'mode': 'CUT'}, disable_double=True)
+		# self.kmi_set_replace('view3d.ke_copyplus', 'V', "PRESS", ctrl=True, properties={'mode': 'PASTE'}, disable_double=True)
 
-		self.kmi_set_replace('mesh.ke_direct_loop_cut', 'C', "PRESS", alt=True, shift=True, properties={'mode': 'SLIDE'}, disable_double=True)
+		# self.kmi_set_replace('mesh.ke_direct_loop_cut', 'C', "PRESS", alt=True, shift=True, properties={'mode': 'SLIDE'}, disable_double=True)
 
 		# MACHINE3tools
-		kmi = self.kmi_set_replace('machin3.clean_up', 'ZERO', "PRESS", ctrl=True, alt=True, shift=True)
-		self.kmi_set_replace('wm.call_menu_pie', 'D', "PRESS", alt=True, shift=True, properties={'name': 'MACHIN3_MT_align_pie'}, disable_double=True)
-		self.kmi_set_active(False, 'machin3.select')
+		# kmi = self.kmi_set_replace('machin3.clean_up', 'ZERO', "PRESS", ctrl=True, alt=True, shift=True)
+		# self.kmi_set_replace('wm.call_menu_pie', 'D', "PRESS", alt=True, shift=True, properties={'name': 'MACHIN3_MT_align_pie'}, disable_double=True)
+		# self.kmi_set_active(False, 'machin3.select')
 
 		# F2
 		# self.kmi_set_replace('mesh.f2', 'P', 'PRESS', disable_double=True)
@@ -754,7 +752,7 @@ class TILA_Config_Keymaps_Global(TILA_Config_Keymaps):
 		self.kmi_set_replace('mesh.quick_pivot', 'S', 'PRESS', alt=True, disable_double=True)
 
 		# EdgeFlow
-		self.kmi_set_replace('mesh.set_edge_flow', 'F', 'PRESS', alt=True, properties={'tension': 180, 'iterations': 1, 'min_angle': 120}, disable_double=True)
+		# self.kmi_set_replace('mesh.set_edge_flow', 'F', 'PRESS', alt=True, properties={'tension': 180, 'iterations': 1, 'min_angle': 120}, disable_double=True)
 
 
 		###### Object Mode
@@ -792,13 +790,9 @@ class TILA_Config_Keymaps_Global(TILA_Config_Keymaps):
 		self.kmi_set_replace('object.tila_multires_project_subdivide', 'P', 'PRESS', ctrl=True, alt=True, shift=True, disable_double=True)
 
 		# MACHIN3tools
-		self.kmi_set_replace('machin3.align', 'A', "PRESS", alt=True, disable_double=True)
-		self.kmi_set_replace('machin3.mirror', 'X', "PRESS", alt=True, shift=True, properties={'flick':True, 'remove':False}, disable_double=True)
+		# self.kmi_set_replace('machin3.align', 'A', "PRESS", alt=True, disable_double=True)
+		# self.kmi_set_replace('machin3.mirror', 'X', "PRESS", alt=True, shift=True, properties={'flick':True, 'remove':False}, disable_double=True)
 
-		###### 3D View Tool: Tweak
-		# self.kmi_init(name='3D View Tool: Tweak', space_type='EMPTY', region_type='WINDOW')
-		# self.kmi_set_replace('view3d.select', self.k_select, 'PRESS', properties={'deselect_all': True}, disable_double=True)
-		
 		###### Sculpt
 		self.kmi_init(name='Sculpt', space_type='EMPTY', region_type='WINDOW')
 		self.global_keys()
@@ -1117,11 +1111,11 @@ class TILA_Config_Keymaps_Global(TILA_Config_Keymaps):
 		self.kmi_set_replace('node.node_copy_color', 'C', 'PRESS', ctrl=True, shift=True, disable_double=True)
 		
 		# Noodler
-		self.kmi_set_replace('noodler.draw_route', 'E', 'PRESS', disable_double=True)
-		self.kmi_set_replace('noodler.chamfer', 'B', 'PRESS', disable_double=True)
-		self.kmi_set_replace('noodler.draw_frame', 'J', 'PRESS', ctrl=True, disable_double=True)
-		self.kmi_set_replace('noodler.dependency_select', self.k_manip, 'DOUBLE_CLICK', shift=True, properties={'mode': "downstream", 'repsel': True}, disable_double=True)
-		self.kmi_set_replace('noodler.dependency_select', self.k_manip, 'DOUBLE_CLICK', ctrl=True, properties={'mode': "upstream", 'repsel': True}, disable_double=True)
+		# self.kmi_set_replace('noodler.draw_route', 'E', 'PRESS', disable_double=True)
+		# self.kmi_set_replace('noodler.chamfer', 'B', 'PRESS', disable_double=True)
+		# self.kmi_set_replace('noodler.draw_frame', 'J', 'PRESS', ctrl=True, disable_double=True)
+		# self.kmi_set_replace('noodler.dependency_select', self.k_manip, 'DOUBLE_CLICK', shift=True, properties={'mode': "downstream", 'repsel': True}, disable_double=True)
+		# self.kmi_set_replace('noodler.dependency_select', self.k_manip, 'DOUBLE_CLICK', ctrl=True, properties={'mode': "upstream", 'repsel': True}, disable_double=True)
 
 		###### Animation
 		self.kmi_init(name='Animation', space_type='EMPTY', region_type='WINDOW')
@@ -1141,7 +1135,7 @@ class TILA_Config_Keymaps_Global(TILA_Config_Keymaps):
 		self.right_mouse()
 		self.tool_transform()
 		# MACHIN3tools
-		self.kmi_set_replace('machin3.align', 'A', "PRESS", alt=True, disable_double=True)
+		# self.kmi_set_replace('machin3.align', 'A', "PRESS", alt=True, disable_double=True)
 
 		###### Metaball
 		self.kmi_init(name='Metaball', space_type='EMPTY', region_type='WINDOW')
@@ -1330,9 +1324,34 @@ class TILA_Config_Keymaps_Global(TILA_Config_Keymaps):
 		###### Gesture Box Modal Map
 		self.kmi_init(name='Gesture Box', space_type='EMPTY', region_type='WINDOW')
 		self.modal_set_replace('SELECT', self.k_cursor, 'RELEASE', any=True)
+		
+		self.print_status(f"Assignment of {self.addon_name} complete")
+
+class TILA_Config_Keymaps_Empty(TILA_Config_Keymaps):
+	addon_name = "Empty"
+
+	def __init__(self):
+		super(TILA_Config_Keymaps, self).__init__()
+
+	def set_keymaps(self):
+		self.print_status(f"Assigning {self.addon_name} Keymaps")
+
+		self.print_status(f"Assignment of {self.addon_name} complete")
+
+class TILA_Config_Keymaps_PolyQuilt(TILA_Config_Keymaps):
+	addon_name = "PolyQuilt"
+
+	def __init__(self):
+		super(TILA_Config_Keymaps, self).__init__()
+
+	def set_keymaps(self):
+		self.print_status(f"Assigning {self.addon_name} Keymaps")
+
+		if self.kmi_init(name='Mesh', space_type='EMPTY', region_type='WINDOW', addon=True, restore_to_default=False):
+			self.kmi_set_replace('wm.tool_set_by_id', 'F', 'PRESS', shift=True, properties={'name': 'mesh_tool.poly_quilt'}, disable_double=True)
 
 		###### 3D View Tool: Edit Mesh, PolyQuilt
-		if self.kmi_init(name='3D View Tool: Edit Mesh, PolyQuilt', space_type='VIEW_3D', region_type='WINDOW'):
+		if self.kmi_init(name='3D View Tool: Edit Mesh, PolyQuilt', space_type='VIEW_3D', region_type='WINDOW', addon=True, restore_to_default=False):
 			self.kmi_set_active(False, idname='mesh.poly_quilt', type='LEFTMOUSE', value='PRESS', ctrl=False, shift=False, alt=False, oskey=False)
 			self.kmi_set_active(False, idname='mesh.poly_quilt', type='LEFTMOUSE', value='PRESS', ctrl=True, shift=True, alt=False, oskey=False)
 			self.kmi_set_active(False, idname='mesh.poly_quilt', type='LEFTMOUSE', value='PRESS', ctrl=True, shift=False, alt=False, oskey=False)
@@ -1344,36 +1363,154 @@ class TILA_Config_Keymaps_Global(TILA_Config_Keymaps):
 			self.kmi_set_replace('mesh.poly_quilt', self.k_cursor, 'PRESS', ctrl=True, properties={'tool_mode': 'KNIFE'}, disable_double=True)
 			self.kmi_set_replace('mesh.poly_quilt', self.k_context, 'PRESS', ctrl=True, shift=True, properties={'tool_mode': 'LOOPCUT'}, disable_double=True)
 			self.kmi_set_replace('mesh.poly_quilt', self.k_manip, 'PRESS', ctrl=True, alt=True, shift=True, properties={'tool_mode': 'DELETE'}, disable_double=True)
-		
-		print("----------------------------------------------------------------")
-		print("Assignment complete")
-		print("----------------------------------------------------------------")
-		print("")
 
-class TILA_Config_Keymaps_Empty(TILA_Config_Keymaps):
-	def __init__(self):
-		super(TILA_Config_Keymaps, self).__init__()
-
-	def set_keymaps(self):
-		print("Assigning Polyquilt Keymaps")
-
-class TILA_Config_Keymaps_PolyQuilt(TILA_Config_Keymaps):
-	def __init__(self):
-		super(TILA_Config_Keymaps, self).__init__()
-
-	def set_keymaps(self):
-		print("Assigning Polyquilt Keymaps")
+		self.print_status(f"Assignment of {self.addon_name} complete")
 
 class TILA_Config_Keymaps_MACHIN3tools(TILA_Config_Keymaps):
+	addon_name = "MACHIN3tools"
+
 	def __init__(self):
 		super(TILA_Config_Keymaps, self).__init__()
 
 	def set_keymaps(self):
-		print("Assigning MACHIN3tools Keymaps")
+		self.print_status(f"Assigning {self.addon_name} Keymaps")
+
+		if self.kmi_init(name='Window', space_type='EMPTY', region_type='WINDOW', addon=True, restore_to_default=False):
+			self.kmi_set_replace('wm.call_menu_pie', 'S', "PRESS", ctrl=True, shift=True, properties={'name': 'MACHIN3_MT_save_pie'}, disable_double=True)
+
+		if self.kmi_init(name='UV Editor', space_type='EMPTY', region_type='WINDOW', addon=True, restore_to_default=False):
+			self.kmi_set_replace('wm.call_menu_pie', 'D', "PRESS", alt=True, shift=True, properties={'name': 'MACHIN3_MT_uv_align_pie'}, disable_double=True)
+
+		if self.kmi_init(name='Mesh', space_type='EMPTY', region_type='WINDOW', addon=True, restore_to_default=False):
+			kmi = self.kmi_set_replace('machin3.clean_up', 'ZERO', "PRESS", ctrl=True, alt=True, shift=True)
+			self.kmi_set_replace('wm.call_menu_pie', 'D', "PRESS", alt=True, shift=True, properties={'name': 'MACHIN3_MT_align_pie'}, disable_double=True)
+			self.kmi_set_active(False, 'machin3.select')
+
+		if self.kmi_init(name='Object Mode', space_type='EMPTY', region_type='WINDOW', addon=True, restore_to_default=False):
+			self.kmi_set_replace('machin3.align', 'A', "PRESS", alt=True, disable_double=True)
+			self.kmi_set_replace('machin3.mirror', 'X', "PRESS", alt=True, shift=True, properties={'flick':True, 'remove':False}, disable_double=True)
+
+		if self.kmi_init(name='Pose', space_type='EMPTY', region_type='WINDOW', addon=True, restore_to_default=False):
+			self.kmi_set_replace('machin3.align', 'A', "PRESS", alt=True, disable_double=True)
+			
+		self.print_status(f"Assignment of {self.addon_name} complete")
 
 class TILA_Config_Keymaps_noodler(TILA_Config_Keymaps):
+	addon_name = "noodler"
+
 	def __init__(self):
 		super(TILA_Config_Keymaps, self).__init__()
 
 	def set_keymaps(self):
-		print("Assigning noodler Keymaps")
+		self.print_status(f"Assigning {self.addon_name} Keymaps")
+
+		if self.kmi_init(name='Node Editor', space_type='NODE_EDITOR', region_type='WINDOW', addon=True, restore_to_default=False):
+			self.kmi_set_replace('noodler.draw_route', 'E', 'PRESS', disable_double=True)
+			self.kmi_set_replace('noodler.chamfer', 'B', 'PRESS', disable_double=True)
+			self.kmi_set_replace('noodler.draw_frame', 'J', 'PRESS', ctrl=True, disable_double=True)
+			self.kmi_set_replace('noodler.dependency_select', self.k_manip, 'DOUBLE_CLICK', shift=True, properties={'mode': "downstream", 'repsel': True}, disable_double=True)
+			self.kmi_set_replace('noodler.dependency_select', self.k_manip, 'DOUBLE_CLICK', ctrl=True, properties={'mode': "upstream", 'repsel': True}, disable_double=True)
+
+		self.print_status(f"Assignment of {self.addon_name} complete")
+
+class TILA_Config_Keymaps_atomic_data_manager(TILA_Config_Keymaps):
+	addon_name = "atomic_data_manager"
+
+	def __init__(self):
+		super(TILA_Config_Keymaps, self).__init__()
+
+	def set_keymaps(self):
+		self.print_status(f"Assigning {self.addon_name} Keymaps")
+
+		if self.kmi_init(name='Window', space_type='EMPTY', region_type='WINDOW', addon=True, restore_to_default=False):
+			self.kmi_set_replace('atomic.invoke_pie_menu_ui', 'DEL', "PRESS", ctrl=True, shift=True, disable_double=True)
+
+		self.print_status(f"Assignment of {self.addon_name} complete")
+
+class TILA_Config_Keymaps_kekit(TILA_Config_Keymaps):
+	addon_name = "kekit"
+
+	def __init__(self):
+		super(TILA_Config_Keymaps, self).__init__()
+
+	def set_keymaps(self):
+		self.print_status(f"Assigning {self.addon_name} Keymaps")
+
+		if self.kmi_init(name='3D View', space_type='VIEW_3D', region_type='WINDOW', addon=True, restore_to_default=False):
+			self.kmi_set_replace('view3d.ke_get_set_material', 'M', 'PRESS', shift=True)
+
+		if self.kmi_init(name='Mesh', space_type='EMPTY', region_type='WINDOW', addon=True, restore_to_default=False):
+			kmi = self.kmi_find(idname='wm.call_menu', type='C', ctrl=True)
+			if kmi is not None:
+				kmi.shift = True
+
+			kmi = self.kmi_find(idname='wm.call_menu', type='V', ctrl=True)
+			if kmi is not None:
+				kmi.shift = True
+
+			self.kmi_set_replace('view3d.ke_copyplus', 'C', "PRESS", ctrl=True, properties={'mode': 'COPY'}, disable_double=True)
+			self.kmi_set_replace('view3d.ke_copyplus', 'X', "PRESS", ctrl=True, properties={'mode': 'CUT'}, disable_double=True)
+			self.kmi_set_replace('view3d.ke_copyplus', 'V', "PRESS", ctrl=True, properties={'mode': 'PASTE'}, disable_double=True)
+
+			self.kmi_set_replace('mesh.ke_direct_loop_cut', 'C', "PRESS", alt=True, shift=True, properties={'mode': 'SLIDE'}, disable_double=True)
+
+		self.print_status(f"Assignment of {self.addon_name} complete")
+		
+class TILA_Config_Keymaps_rotate_an_hdri(TILA_Config_Keymaps):
+	addon_name = "rotate_an_hdri"
+
+	def __init__(self):
+		super(TILA_Config_Keymaps, self).__init__()
+
+	def set_keymaps(self):
+		self.print_status(f"Assigning {self.addon_name} Keymaps")
+
+		if self.kmi_init(name='3D View', space_type='VIEW_3D', region_type='WINDOW', addon=True, restore_to_default=False):
+			self.kmi_set_replace('rotate.hdri', self.k_context, 'PRESS', ctrl=True, alt=True, shift=False,  disable_double=True)
+			self.kmi_set_active(enable=True, idname='rotate.hdri')
+
+		self.print_status(f"Assignment of {self.addon_name} complete")
+		
+class TILA_Config_Keymaps_Poly_Source(TILA_Config_Keymaps):
+	addon_name = "Poly_Source"
+
+	def __init__(self):
+		super(TILA_Config_Keymaps, self).__init__()
+
+	def set_keymaps(self):
+		self.print_status(f"Assigning {self.addon_name} Keymaps")
+
+		if self.kmi_init(name='3D View', space_type='VIEW_3D', region_type='WINDOW', addon=True, restore_to_default=False):
+			self.kmi_set_active(enable=False, idname='wm.call_menu_pie', type=self.k_menu, value='PRESS', properties={'name': 'PS_MT_tk_menu'})
+
+		self.print_status(f"Assignment of {self.addon_name} complete")
+		
+class TILA_Config_Keymaps_uv_toolkit(TILA_Config_Keymaps):
+	addon_name = "uv_toolkit"
+
+	def __init__(self):
+		super(TILA_Config_Keymaps, self).__init__()
+
+	def set_keymaps(self):
+		self.print_status(f"Assigning {self.addon_name} Keymaps")
+
+		if self.kmi_init(name='UV Editor', space_type='EMPTY', region_type='WINDOW', addon=True, restore_to_default=False):
+			self.kmi_set_replace('uv.toolkit_orient_to_edge', 'D', "PRESS", ctrl=True, alt=True, shift=True, disable_double=True)
+
+		self.print_status(f"Assignment of {self.addon_name} complete")
+		
+class TILA_Config_Keymaps_EdgeFlow(TILA_Config_Keymaps):
+	addon_name = "EdgeFlow"
+
+	def __init__(self):
+		super(TILA_Config_Keymaps, self).__init__()
+
+	def set_keymaps(self):
+		self.print_status(f"Assigning {self.addon_name} Keymaps")
+
+		if self.kmi_init(name='Mesh', space_type='EMPTY', region_type='WINDOW', addon=True, restore_to_default=False):
+			self.kmi_set_replace('mesh.set_edge_flow', 'F', 'PRESS', alt=True, properties={'tension': 180, 'iterations': 1, 'min_angle': 120}, disable_double=True)
+
+		self.print_status(f"Assignment of {self.addon_name} complete")
+
+		

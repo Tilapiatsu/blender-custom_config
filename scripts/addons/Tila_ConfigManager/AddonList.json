@@ -234,7 +234,7 @@
             "destination_path": "#\\scripts\\addons\\kekit"
         }
     ],
-    "keymaps": false
+    "keymaps": true
 },
 "lazy_shapekeys": {
     "sync": false,
@@ -314,7 +314,7 @@
             "destination_path": "#\\scripts\\addons\\Poly_Source"
         }
     ],
-    "keymaps": false
+    "keymaps": true
 },
 "Pro_Aligner": {
     "sync": false,
@@ -394,7 +394,7 @@
             "destination_path": "#\\scripts\\addons\\rotate_an_hdri"
         }
     ],
-    "keymaps": false
+    "keymaps": true
 },
 "sj_selection_set": {
     "sync": false,
@@ -779,7 +779,7 @@
             "destination_path": "#\\scripts\\addons\\uv_toolkit"
         }
     ],
-    "keymaps": false
+    "keymaps": true
 },
 "BakeWrangler": {
     "sync": false,
@@ -2280,7 +2280,7 @@
             "destination_path": "#\\scripts\\addons\\EdgeFlow"
         }
     ],
-    "keymaps": false
+    "keymaps": true
 },
 "mesh_tools": {
     "sync": false,
@@ -2379,7 +2379,7 @@
             "destination_path": "#\\scripts\\addons\\atomic_data_manager"
         }
     ],
-    "keymaps": false
+    "keymaps": true
 },
 "ImagePaste": {
     "sync": false,
