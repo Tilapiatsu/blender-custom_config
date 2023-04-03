@@ -1087,18 +1087,18 @@ class TILA_Config_Keymaps_Global(TILA_Config_Keymaps):
 
 		###### Node Tool: Tweak
 		self.kmi_init(name='Node Tool: Tweak', space_type='NODE_EDITOR', region_type='WINDOW')
-		self.selection_keys(select_tool='node.select')
+		# self.selection_keys(select_tool='node.select')
 
 		###### Node Tool: Select Box
 		self.kmi_init(name='Node Tool: Select Box', space_type='NODE_EDITOR', region_type='WINDOW')
-		self.selection_keys(select_tool='node.select')
+		# self.selection_keys(select_tool='node.select')
 
 		###### Node Editor
 		self.kmi_init(name='Node Editor', space_type='NODE_EDITOR', region_type='WINDOW')
 		self.global_keys()
 		self.right_mouse()
 
-		self.selection_keys(select_tool='node.select')
+		# self.selection_keys(select_tool='node.select')
 		self.duplicate(duplicate='node.duplicate_move_keep_inputs')
 		self.snap(snapping='wm.context_menu_enum', snapping_prop={'data_path': 'tool_settings.snap_node_element'})
 		self.kmi_set_replace('node.view_selected', 'A', 'PRESS', ctrl=True, shift=True)
