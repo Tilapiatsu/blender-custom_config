@@ -862,7 +862,7 @@
     ],
     "keymaps": false
 },
-"BakeMyScan:": {
+"BakeMyScan": {
     "sync": false,
     "enable": false,
     "online_url": "https://github.com/norgeotloic/BakeMyScan.git",

@@ -28,7 +28,15 @@ class TILA_Config_AddonList(bpy.types.UIList):
 
 		row = col.row(align=True)
 		row.alignment = 'LEFT'
-		row.label(text=f'{item.name}')
+		# row.alignment = 'RIGHT'
+		if item.enable:
+			icon = 'CHECKBOX_HLT'
+		else:
+			icon = 'CHECKBOX_DEHLT'
+		
+		row.prop(item, 'enable', text=item.name)
+		# row.label(text=f'{item.name}', icon=icon)
+		# row.label(text='{}'.format(item.render_camera), icon='CAMERA_DATA')
 		
 		# if context.scene.lm_asset_in_preview == item.name:
 		# 	eye_icon = 'HIDE_ON'
