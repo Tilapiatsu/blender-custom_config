@@ -74,7 +74,12 @@ class TILA_Config_Preferences(bpy.types.AddonPreferences):
 		split = box.split()
 
 		b = split.box()
-		# b.label(text="Tools")
+		row = b.row()
+		rows = 20 if len(wm.tila_config_addon_list) > 10 else len(wm.tila_config_addon_list) * 2 + 1
+		
+		row.template_list('TILA_Config_addon_list', '', wm, 'tila_config_addon_list', wm, 'tila_config_addon_list_idx', rows=rows)
+		c = row.column(align=True)
+		c.operator('tila.config_update_addon_list', text='', icon='FILE_REFRESH')
 
 	def draw_about(self, box):
 		column = box.column(align=True)

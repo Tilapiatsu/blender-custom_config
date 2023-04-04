@@ -1450,8 +1450,8 @@
     "sync": true,
     "enable": false,
     "online_url": "https://github.com/Tilapiatsu/blender-Universal_Multi_Importer.git",
-    "branch" : null,
-    "submodule" : "main",
+    "branch" : "main",
+    "submodule" : false,
     "local_path": "#\\scripts\\addon_library\\GIT_Submodules\\tila_universal_multi_importer",
     "paths": [
         {
@@ -1862,16 +1862,6 @@
     "keymaps": false
 },
 "keentools_facebuilder": {
-    "sync": false,
-    "enable": false,
-    "online_url": null,
-    "branch" : null,
-    "submodule" : false,
-    "local_path": null,
-    "paths": null,
-    "keymaps": false
-},
-"ZWeightTools-1_0_1": {
     "sync": false,
     "enable": false,
     "online_url": null,

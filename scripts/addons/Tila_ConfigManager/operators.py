@@ -373,3 +373,41 @@ class TILA_Config_SetSettings(Operator):
 		self.wm.tila_setup_blender_progress = "SET_SETTINGS_DONE"
 		self.report({'INFO'}, 'TilaConfig : Start Set Done')
 		return {"FINISHED"}
+
+
+class TILA_Config_UpdateAddonList(Operator):
+	bl_idname = "tila.config_update_addon_list"
+	bl_label = "Tila Config : Update Addon List"
+	bl_options = {'REGISTER'}
+
+	def execute(self, context):
+		wm = bpy.context.window_manager
+
+		AM = AddonManager.AddonManager(AL)
+
+		wm.tila_config_addon_list.clear()
+		for e in AM.elements.values():
+			self.update_element(e, wm)
+
+		self.report({'INFO'}, 'TilaConfig : Addon List Updated')
+		return {"FINISHED"}
+	
+	def update_element(self, element, window_manager):
+		if element.name not in window_manager.tila_config_addon_list:
+			addon_element = window_manager.tila_config_addon_list.add()
+		else:
+			addon_element = window_manager.tila_config_addon_list[element.name]
+		addon_element.name = element.name
+		addon_element.enable = element.is_enable
+		addon_element.sync = element.is_sync
+		addon_element.online_url = '' if element.online_url is None else element.online_url
+		addon_element.branch = '' if element.branch is None else element.branch
+		addon_element.submodule = element.submodule
+		addon_element.local_path = '' if element.local_path.path is None else element.local_path.path
+		addon_element.keymaps = element.keymaps
+		addon_element.paths.clear()
+		for p in element.paths:
+			path = addon_element.paths.add()
+			path.enable = p.is_enable
+			path.local_subpath = '' if p.local_subpath.path is None else p.local_subpath.path
+			path.destination_path = '' if p.destination_path.path is None else p.destination_path.path
