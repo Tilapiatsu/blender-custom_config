@@ -1,4 +1,5 @@
 import bpy
+from os import path
 
 class TILA_Config_PathElement(bpy.types.PropertyGroup):
 	enable: bpy.props.BoolProperty(default=False)
@@ -24,18 +25,51 @@ class TILA_Config_AddonList(bpy.types.UIList):
 		
 		scn = context.scene
 
-		col = layout.column_flow(columns=3, align=True)
-
-		row = col.row(align=True)
-		row.alignment = 'LEFT'
+		grid = layout.grid_flow(row_major=False, columns=0, even_columns=True, even_rows=True, align=True)
 		# row.alignment = 'RIGHT'
-		if item.enable:
-			icon = 'CHECKBOX_HLT'
-		else:
-			icon = 'CHECKBOX_DEHLT'
+		# if item.enable:
+		# 	icon = 'CHECKBOX_HLT'
+		# else:
+		# 	icon = 'CHECKBOX_DEHLT'
 		
-		row.prop(item, 'enable', text=item.name)
-		# row.label(text=f'{item.name}', icon=icon)
+		col = grid.column()
+		col.label(text=f'{item.name}')
+		col = grid.column()
+		row = col.row(align=True)
+		row.operator('tila.config_sync_addon_list', text='', icon='FILE_REFRESH').addon_name = item.name
+		row.prop(item, 'sync', text='sync')
+		# row = col.row(align=True)
+
+		col = grid.column()
+		row = col.row(align=True)
+		if len(item.paths):
+			row.operator('tila.config_link_addon_list', text='', icon='LINK_BLEND').addon_name = item.name
+		
+			for i in range(len(item.paths)):
+				if i == 0:
+					row.prop(item.paths[i], 'enable', text=path.basename(item.paths[i].local_subpath))
+				if i > 0:
+					row = col.row(align=True)
+					row.label(text='', icon='BLANK1')
+					row.prop(item.paths[i], 'enable', text=path.basename(item.paths[i].local_subpath))
+
+		col = grid.column()
+		row = col.row(align=True)
+		row.operator('tila.config_enable_addon_list', text='', icon='CHECKBOX_HLT').addon_name = item.name
+		row.prop(item, 'enable', text='enable')
+		# row = col.row(align=True)
+
+		col = grid.column()
+		row = col.row(align=True)
+		row.operator('tila.config_sync_addon_list', text='', icon='KEYINGSET').addon_name = item.name
+		row.prop(item, 'keymaps', text='keymaps')
+		# row = col.row(align=True)
+
+		col = grid.column()
+		row = col.row(align=True)
+		row.prop(item, 'submodule', text='submodule')
+		# row = col.row(align=True)
+		
 		# row.label(text='{}'.format(item.render_camera), icon='CAMERA_DATA')
 		
 		# if context.scene.lm_asset_in_preview == item.name:
@@ -45,7 +79,6 @@ class TILA_Config_AddonList(bpy.types.UIList):
 		# 	eye_icon = 'HIDE_OFF'
 		# 	asset = item.name
 			
-		# row.operator('scene.lm_show_asset', text='', icon=eye_icon).asset_name = asset
 		
 		# row.label(text='{}'.format(item.name))
 		# row = col.row(align=True)

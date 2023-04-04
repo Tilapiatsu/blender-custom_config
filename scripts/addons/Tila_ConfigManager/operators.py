@@ -138,7 +138,8 @@ class TILA_Config_CleanAddonList(Operator):
 	bl_idname = "tila.config_clean_addon_list"
 	bl_label = "Tila Config : clean Addon List"
 	bl_options = {'REGISTER'}
-
+	
+	addon_name : bpy.props.StringProperty(name="Addon Name", default="", description='Name of the addon to Clean')
 	force: bpy.props.BoolProperty(name="Force Clean", default=False, description='remove all config for a fresh start')
 
 	def execute(self, context):
@@ -147,7 +148,10 @@ class TILA_Config_CleanAddonList(Operator):
 		self.AM = AddonManager.AddonManager(AL)
 
 		self.AM.flush_queue()
-		self.AM.queue_clean(force=self.force)
+		if self.addon_name == '':
+			self.AM.queuqueue_cleane_sync(force=self.force)
+		else:
+			self.AM.queue_clean(self.addon_name, force=self.force)
 
 		self._timer = bpy.context.window_manager.event_timer_add(
 			0.1, window=context.window)
@@ -178,6 +182,8 @@ class TILA_Config_SyncAddonList(Operator):
 	bl_idname = "tila.config_sync_addon_list"
 	bl_label = "Tila Config : Sync Addon List"
 	bl_options = {'REGISTER'}
+
+	addon_name : bpy.props.StringProperty(name="Addon Name", default="", description='Name of the addon to Sync')
 	
 	_timer = None
 
@@ -187,7 +193,11 @@ class TILA_Config_SyncAddonList(Operator):
 		self.AM = AddonManager.AddonManager(AL)
 
 		self.AM.flush_queue()
-		self.AM.queue_sync()
+		if self.addon_name == '':
+			self.AM.queue_sync()
+		else:
+			self.AM.queue_sync(self.addon_name)
+
 
 		self._timer = bpy.context.window_manager.event_timer_add(0.1, window=context.window)
 		bpy.context.window_manager.modal_handler_add(self)
@@ -215,6 +225,8 @@ class TILA_Config_LinkAddonList(Operator):
 	bl_label = "Tila Config : Link Addon List"
 	bl_options = {'REGISTER'}
 
+	addon_name : bpy.props.StringProperty(name="Addon Name", default="", description='Name of the addon to Sync')
+
 	def execute(self, context):
 		self.wm = bpy.context.window_manager
 		self.wm.tila_setup_blender_progress = "NONE"
@@ -222,8 +234,12 @@ class TILA_Config_LinkAddonList(Operator):
 
 		self.wm.tila_setup_blender_progress = "LINK_STARTED"
 		self.report({'INFO'}, 'TilaConfig : Start Link')
-		
-		self.AM.link()
+
+		if self.addon_name == '':
+			self.AM.link()
+		else:
+			self.AM.link(self.addon_name)
+
 		time.sleep(1)
 		
 		bpy.ops.preferences.addon_refresh('EXEC_DEFAULT')
@@ -240,13 +256,18 @@ class TILA_Config_EnableAddonList(Operator):
 	bl_label = "Tila Config : Enable Addon List"
 	bl_options = {'REGISTER'}
 
+	addon_name : bpy.props.StringProperty(name="Addon Name", default="", description='Name of the addon to enable')
+
 	def execute(self, context):
 		self.wm = bpy.context.window_manager
 		self.wm.tila_setup_blender_progress = "NONE"
 		self.AM = AddonManager.AddonManager(AL)
 
 		self.AM.flush_queue()
-		self.AM.queue_enable()
+		if self.addon_name == '':
+			self.AM.queue_enable()
+		else:
+			self.AM.queue_enable(self.addon_name)
 
 		self._timer = bpy.context.window_manager.event_timer_add(0.1, window=context.window)
 		bpy.context.window_manager.modal_handler_add(self)
@@ -273,7 +294,8 @@ class TILA_Config_DisableAddonList(Operator):
 	bl_idname = "tila.config_disable_addon_list"
 	bl_label = "Tila Config : Disable Addon List"
 	bl_options = {'REGISTER'}
-
+	
+	addon_name : bpy.props.StringProperty(name="Addon Name", default="", description='Name of the addon to enable')
 	force: bpy.props.BoolProperty(
 		name="Force Disable", default=False, description='Disable all addons listed in the list regardless if it is set as enable or not')
 
@@ -283,7 +305,10 @@ class TILA_Config_DisableAddonList(Operator):
 		self.AM = AddonManager.AddonManager(AL)
 
 		self.AM.flush_queue()
-		self.AM.queue_disable(force=self.force)
+		if self.addon_name == '':
+			self.AM.queue_disable(force=self.force)
+		else:
+			self.AM.queue_disable(self.addon_name, force=self.force)
 
 		self._timer = bpy.context.window_manager.event_timer_add(
 			0.1, window=context.window)
@@ -393,6 +418,9 @@ class TILA_Config_UpdateAddonList(Operator):
 		return {"FINISHED"}
 	
 	def update_element(self, element, window_manager):
+		if element.name in ['Global']:
+			return
+		
 		if element.name not in window_manager.tila_config_addon_list:
 			addon_element = window_manager.tila_config_addon_list.add()
 		else:

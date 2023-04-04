@@ -1451,7 +1451,7 @@
     "enable": false,
     "online_url": "https://github.com/Tilapiatsu/blender-Universal_Multi_Importer.git",
     "branch" : "main",
-    "submodule" : false,
+    "submodule" : true,
     "local_path": "#\\scripts\\addon_library\\GIT_Submodules\\tila_universal_multi_importer",
     "paths": [
         {
@@ -1970,7 +1970,7 @@
     "paths": null,
     "keymaps": false
 },
-"TexTools:": {
+"TexTools": {
     "sync": true,
     "enable": true,
     "online_url": "https://github.com/SavMartin/TexTools-Blender.git",
