@@ -334,6 +334,10 @@ class ElementAM():
 		return self._element_dict['enable']
 	
 	@property
+	def is_repository(self):
+		return self.repository_url is not None
+	
+	@property
 	def branch(self):
 		return self._element_dict['branch']
 	
@@ -344,6 +348,10 @@ class ElementAM():
 	@property
 	def online_url(self):
 		return self._element_dict['online_url']
+	
+	@property
+	def repository_url(self):
+		return self._element_dict['repository_url']
 	
 	@property
 	def local_path(self):
@@ -378,7 +386,7 @@ class ElementAM():
 	def sync(self, overwrite=False):
 		if not self.is_sync:
 			return
-		if self.online_url is None or self.local_path.path is None:
+		if self.repository_url is None or self.local_path.path is None:
 			return
 		
 		if self.local_path.exists and not self.submodule:
@@ -398,7 +406,7 @@ class ElementAM():
 		else:
 			kwargs = {'branch': self.branch} if self.branch is not None else {}
 			# if self.branch is not None:
-			git.Repo.clone_from(self.online_url, self.local_path.path, **kwargs)
+			git.Repo.clone_from(self.repository_url, self.local_path.path, **kwargs)
 		
 		print(f'Syncing Done!')
 
