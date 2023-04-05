@@ -182,6 +182,14 @@ class Json(File):
 			json_data = data
 
 		return json_data
+	
+	def save(self, json_dict):
+		# Serializing json
+		json_object = json.dumps(json_dict, indent=4)
+		
+		# Writing to output file
+		with open(self.path, "w") as outfile:
+			outfile.write(json_object)
 
 class PathAM():
 	def __init__(self, path):
@@ -308,8 +316,9 @@ class PathElementAM():
 			
 class ElementAM():
 	def __init__(self, element_dict, name):
-		self._element_dict = element_dict
+		self.element_dict = element_dict
 		self.name = name
+		self.root_folder = root_folder
 	
 	def __str__(self):
 		s = ''
@@ -327,11 +336,11 @@ class ElementAM():
 
 	@property
 	def is_sync(self):
-		return self._element_dict['sync']
+		return self.element_dict['sync']
 
 	@property
 	def is_enable(self):
-		return self._element_dict['enable']
+		return self.element_dict['enable']
 	
 	@property
 	def is_repository(self):
@@ -339,34 +348,34 @@ class ElementAM():
 	
 	@property
 	def branch(self):
-		return self._element_dict['branch']
+		return self.element_dict['branch']
 	
 	@property
 	def submodule(self):
-		return self._element_dict['submodule']
+		return self.element_dict['submodule']
 
 	@property
 	def online_url(self):
-		return self._element_dict['online_url']
+		return self.element_dict['online_url']
 	
 	@property
 	def repository_url(self):
-		return self._element_dict['repository_url']
+		return self.element_dict['repository_url']
 	
 	@property
 	def local_path(self):
-		return PathAM(self._element_dict['local_path'])
+		return PathAM(self.element_dict['local_path'])
 	
 	@property
 	def keymaps(self):
-		return self._element_dict['keymaps']
+		return self.element_dict['keymaps']
 	
 	@property
 	def paths(self):
-		if self._element_dict['paths'] is None:
+		if self.element_dict['paths'] is None:
 			return []
 		else:
-			return [PathElementAM(x, self.local_path) for x in self._element_dict['paths']]
+			return [PathElementAM(x, self.local_path) for x in self.element_dict['paths']]
 	
 	def ensure_repo_init(self):
 		subdir = os.listdir(self.local_path.path)
@@ -464,6 +473,9 @@ class AddonManager():
 	@property
 	def elements(self):
 		return {k: ElementAM(v, k) for k,v in self.json.json_data.items() if k[0] != '_'}
+	
+	def save_json(self, json_dict):
+		self.json.save(json_dict)
 	
 	def queue_clean(self, element_name=None, force=False):
 		if element_name is None:

@@ -79,7 +79,9 @@ class TILA_Config_Preferences(bpy.types.AddonPreferences):
 		
 		row.template_list('TILA_Config_addon_list', '', wm, 'tila_config_addon_list', wm, 'tila_config_addon_list_idx', rows=rows)
 		c = row.column(align=True)
-		c.operator('tila.config_update_addon_list', text='', icon='FILE_REFRESH')
+		c.operator('tila.config_import_addon_list', text='', icon='FILE_REFRESH')
+		c.operator('tila.config_save_addon_list', text='', icon='CURRENT_FILE')
+		
 
 	def draw_about(self, box):
 		column = box.column(align=True)

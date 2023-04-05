@@ -400,9 +400,9 @@ class TILA_Config_SetSettings(Operator):
 		return {"FINISHED"}
 
 
-class TILA_Config_UpdateAddonList(Operator):
-	bl_idname = "tila.config_update_addon_list"
-	bl_label = "Tila Config : Update Addon List"
+class TILA_Config_ImportAddonList(Operator):
+	bl_idname = "tila.config_import_addon_list"
+	bl_label = "Tila Config : Import Addon List"
 	bl_options = {'REGISTER'}
 
 	def execute(self, context):
@@ -414,13 +414,10 @@ class TILA_Config_UpdateAddonList(Operator):
 		for e in AM.elements.values():
 			self.update_element(e, wm)
 
-		self.report({'INFO'}, 'TilaConfig : Addon List Updated')
+		self.report({'INFO'}, 'TilaConfig : Addon List Imported')
 		return {"FINISHED"}
 	
-	def update_element(self, element, window_manager):
-		if element.name in ['Global']:
-			return
-		
+	def update_element(self, element, window_manager):		
 		if element.name not in window_manager.tila_config_addon_list:
 			addon_element = window_manager.tila_config_addon_list.add()
 		else:
@@ -430,7 +427,7 @@ class TILA_Config_UpdateAddonList(Operator):
 		addon_element.is_repository = element.is_repository
 		addon_element.sync = element.is_sync
 		addon_element.online_url = '' if element.online_url is None else element.online_url
-		addon_element.is_repository = '' if element.is_repository is None else element.is_repository
+		addon_element.repository_url = '' if element.repository_url is None else element.repository_url
 		addon_element.branch = '' if element.branch is None else element.branch
 		addon_element.submodule = element.submodule
 		addon_element.local_path = '' if element.local_path.path is None else element.local_path.path
@@ -441,3 +438,53 @@ class TILA_Config_UpdateAddonList(Operator):
 			path.enable = p.is_enable
 			path.local_subpath = '' if p.local_subpath.path is None else p.local_subpath.path
 			path.destination_path = '' if p.destination_path.path is None else p.destination_path.path
+
+
+class TILA_Config_SaveAddonList(Operator):
+	bl_idname = "tila.config_save_addon_list"
+	bl_label = "Tila Config : Save Addon List"
+	bl_options = {'REGISTER'}
+
+	def execute(self, context):
+		wm = bpy.context.window_manager
+
+		AM = AddonManager.AddonManager(AL)
+
+		# wm.tila_config_addon_list.clear()
+		json_dict = {}
+		for e in AM.elements.values():
+			json_dict[e.name] = self.update_element(e, wm)
+
+		AM.save_json(json_dict=json_dict)
+		self.report({'INFO'}, 'TilaConfig : Addon List Saved')
+		return {"FINISHED"}
+	
+	def update_element(self, element, window_manager):
+		if element.name not in window_manager.tila_config_addon_list:
+			return element.element_dict
+
+		new_element = window_manager.tila_config_addon_list[element.name]
+
+		addon_element = {}
+
+		addon_element['name'] = new_element.name
+		addon_element['enable'] = new_element.enable
+		addon_element['sync'] = new_element.sync
+		addon_element['online_url'] = None if new_element.online_url is '' else new_element.online_url
+		addon_element['repository_url'] = None if new_element.repository_url is '' else new_element.repository_url
+		addon_element['branch'] = None if new_element.branch is '' else new_element.branch
+		addon_element['submodule'] = new_element.submodule
+		addon_element['local_path'] = None if new_element.local_path is '' else new_element.local_path.replace(element.root_folder, '#')
+		addon_element['keymaps'] = new_element.keymaps
+		if not len(new_element.paths):
+			addon_element['paths'] = None
+		else:
+			addon_element['paths'] = []
+			for p in new_element.paths:
+				path = {}
+				path['enable'] = p.enable
+				path['local_subpath'] = None if p.local_subpath is '' else p.local_subpath.replace(element.root_folder, '#')
+				path['destination_path'] = None if p.destination_path is '' else p.destination_path.replace(element.root_folder, '#')
+				addon_element['paths'].append(path)
+
+		return addon_element
