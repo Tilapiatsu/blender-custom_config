@@ -427,8 +427,10 @@ class TILA_Config_UpdateAddonList(Operator):
 			addon_element = window_manager.tila_config_addon_list[element.name]
 		addon_element.name = element.name
 		addon_element.enable = element.is_enable
+		addon_element.is_repository = element.is_repository
 		addon_element.sync = element.is_sync
 		addon_element.online_url = '' if element.online_url is None else element.online_url
+		addon_element.is_repository = '' if element.is_repository is None else element.is_repository
 		addon_element.branch = '' if element.branch is None else element.branch
 		addon_element.submodule = element.submodule
 		addon_element.local_path = '' if element.local_path.path is None else element.local_path.path

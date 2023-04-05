@@ -9,8 +9,10 @@ class TILA_Config_PathElement(bpy.types.PropertyGroup):
 class TILA_Config_AddonElement(bpy.types.PropertyGroup):
 	name : bpy.props.StringProperty(default='')
 	enable : bpy.props.BoolProperty(default=False)
+	is_repository  : bpy.props.BoolProperty(default=False)
 	sync : bpy.props.BoolProperty(default=False)
 	online_url : bpy.props.StringProperty(default='')
+	repository_url : bpy.props.StringProperty(default='')
 	branch : bpy.props.StringProperty(default='')
 	submodule : bpy.props.BoolProperty(default=False)
 	local_path : bpy.props.StringProperty(default='')
@@ -36,9 +38,13 @@ class TILA_Config_AddonList(bpy.types.UIList):
 		col.label(text=f'{item.name}')
 		col = grid.column()
 		row = col.row(align=True)
-		row.operator('tila.config_sync_addon_list', text='', icon='FILE_REFRESH').addon_name = item.name
-		row.prop(item, 'sync', text='sync')
-		# row = col.row(align=True)
+		if item.is_repository:
+			row.operator('tila.config_sync_addon_list', text='', icon='FILE_REFRESH').addon_name = item.name
+			row.prop(item, 'sync', text='sync')
+			# row = col.row(align=True)
+		# else:
+		# 	row.label(text='', icon='BLANK1')
+		# 	row.label(text='', icon='BLANK1')
 
 		col = grid.column()
 		row = col.row(align=True)
@@ -65,9 +71,9 @@ class TILA_Config_AddonList(bpy.types.UIList):
 		row.prop(item, 'keymaps', text='keymaps')
 		# row = col.row(align=True)
 
-		col = grid.column()
-		row = col.row(align=True)
-		row.prop(item, 'submodule', text='submodule')
+		# col = grid.column()
+		# row = col.row(align=True)
+		# row.prop(item, 'submodule', text='submodule')
 		# row = col.row(align=True)
 		
 		# row.label(text='{}'.format(item.render_camera), icon='CAMERA_DATA')
