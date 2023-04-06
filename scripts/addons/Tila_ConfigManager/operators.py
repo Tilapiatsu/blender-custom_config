@@ -400,6 +400,32 @@ class TILA_Config_SetSettings(Operator):
 		self.report({'INFO'}, 'TilaConfig : Start Set Done')
 		return {"FINISHED"}
 
+def import_addon_element(element):
+	def get_valid_url(path, fallback):
+			return fallback if path is None else path
+	
+	wm = bpy.context.window_manager		
+	if element.name not in wm.tila_config_addon_list:
+		addon_element = wm.tila_config_addon_list.add()
+	else:
+		addon_element = wm.tila_config_addon_list[element.name]
+
+	addon_element.name = element.name
+	addon_element.enable = element.is_enable
+	addon_element.is_repository = element.is_repository
+	addon_element.sync = element.is_sync
+	addon_element.online_url = get_valid_url(element.online_url, '')
+	addon_element.repository_url = get_valid_url(element.repository_url, '')
+	addon_element.branch = get_valid_url(element.branch, '')
+	addon_element.submodule = element.submodule
+	addon_element.local_path = get_valid_url(element.local_path._path, '')
+	addon_element.keymaps = element.keymaps
+	addon_element.paths.clear()
+	for p in element.paths:
+		path = addon_element.paths.add()
+		path.enable = p.is_enable
+		path.local_subpath = get_valid_url(p._path_dict['local_subpath'], '')
+		path.destination_path = get_valid_url(p.destination_path._path, '')
 
 class TILA_Config_ImportAddonList(Operator):
 	bl_idname = "tila.config_import_addon_list"
@@ -407,39 +433,44 @@ class TILA_Config_ImportAddonList(Operator):
 	bl_options = {'REGISTER'}
 
 	def execute(self, context):
-		wm = bpy.context.window_manager
+		wm = context.window_manager
 
 		AM = AddonManager.AddonManager(AL)
 
 		wm.tila_config_addon_list.clear()
 		for e in AM.elements.values():
-			self.update_element(e, wm)
+			import_addon_element(e)
 
 		self.report({'INFO'}, 'TilaConfig : Addon List Imported')
 		return {"FINISHED"}
-	
-	def update_element(self, element, window_manager):		
-		if element.name not in window_manager.tila_config_addon_list:
-			addon_element = window_manager.tila_config_addon_list.add()
-		else:
-			addon_element = window_manager.tila_config_addon_list[element.name]
-		addon_element.name = element.name
-		addon_element.enable = element.is_enable
-		addon_element.is_repository = element.is_repository
-		addon_element.sync = element.is_sync
-		addon_element.online_url = '' if element.online_url is None else element.online_url
-		addon_element.repository_url = '' if element.repository_url is None else element.repository_url
-		addon_element.branch = '' if element.branch is None else element.branch
-		addon_element.submodule = element.submodule
-		addon_element.local_path = '' if element.local_path.path is None else element.local_path._path
-		addon_element.keymaps = element.keymaps
-		addon_element.paths.clear()
-		for p in element.paths:
-			path = addon_element.paths.add()
-			path.enable = p.is_enable
-			path.local_subpath = '' if p.local_subpath.path is None else p.local_subpath._path
-			path.destination_path = '' if p.destination_path.path is None else p.destination_path._path
 
+def get_addon_element_dict(element, path_fallback):
+		def get_valid_url(path, fallback):
+			return fallback if path == '' else path
+			
+		addon_element_dict = {}
+
+		addon_element_dict['enable'] = element.enable
+		addon_element_dict['sync'] = element.sync
+		addon_element_dict['online_url'] = get_valid_url(element.online_url, path_fallback)
+		addon_element_dict['repository_url'] = get_valid_url(element.repository_url, path_fallback)
+		addon_element_dict['branch'] = get_valid_url(element.branch, path_fallback)
+		addon_element_dict['submodule'] = element.submodule
+		addon_element_dict['local_path'] = get_valid_url(element.local_path, path_fallback)
+		addon_element_dict['keymaps'] = element.keymaps
+
+		if not len(element.paths):
+			addon_element_dict['paths'] = None
+		else:
+			addon_element_dict['paths'] = []
+			for p in element.paths:
+				path = {}
+				path['enable'] = p.enable
+				path['local_subpath'] = get_valid_url(p.local_subpath, path_fallback)
+				path['destination_path'] = get_valid_url(p.destination_path, path_fallback)
+				addon_element_dict['paths'].append(path)
+
+		return addon_element_dict
 
 class TILA_Config_SaveAddonList(Operator):
 	bl_idname = "tila.config_save_addon_list"
@@ -453,52 +484,20 @@ class TILA_Config_SaveAddonList(Operator):
 
 		# wm.tila_config_addon_list.clear()
 		json_dict = {}
-		for e in AM.elements.values():
-			json_dict[e.name] = self.update_element(e, wm)
+		for e in wm.tila_config_addon_list:
+			json_dict[e.name] = get_addon_element_dict(e, None)
 
 		AM.save_json(json_dict=json_dict)
 		self.report({'INFO'}, 'TilaConfig : Addon List Saved')
 		return {"FINISHED"}
-	
-	def update_element(self, element, window_manager):
-		if element.name not in window_manager.tila_config_addon_list:
-			return element.element_dict
-
-		new_element = window_manager.tila_config_addon_list[element.name]
-
-		addon_element = {}
-
-		addon_element['name'] = new_element.name
-		addon_element['enable'] = new_element.enable
-		addon_element['sync'] = new_element.sync
-		addon_element['online_url'] = None if new_element.online_url == '' else new_element.online_url
-		addon_element['repository_url'] = None if new_element.repository_url == '' else new_element.repository_url
-		addon_element['branch'] = None if new_element.branch == '' else new_element.branch
-		addon_element['submodule'] = new_element.submodule
-		addon_element['local_path'] = None if new_element.local_path == '' else new_element.local_path
-		addon_element['keymaps'] = new_element.keymaps
-		if not len(new_element.paths):
-			addon_element['paths'] = None
-		else:
-			addon_element['paths'] = []
-			for p in new_element.paths:
-				path = {}
-				path['enable'] = p.enable
-				path['local_subpath'] = None if p.local_subpath == '' else p.local_subpath
-				path['destination_path'] = None if p.destination_path == '' else p.destination_path
-				addon_element['paths'].append(path)
-
-		return addon_element
-
 
 def update_path_count(self, context):
-	print(self.path_count)
 	if  self.path_count > context.window_manager.tila_path_count :
 		self.paths.add()
-		context.window_manager.tila_path_count = len(self.path)
+		context.window_manager.tila_path_count = len(self.paths)
 	elif self.path_count < context.window_manager.tila_path_count :
-		self.paths.remove(len(self.path) - 1)
-		context.window_manager.tila_path_count = len(self.path)
+		self.paths.remove(len(self.paths) - 1)
+		context.window_manager.tila_path_count = len(self.paths)
 
 class TILA_Config_AddAddon(bpy.types.Operator):
 	bl_idname = "tila.config_add_addon"
@@ -531,7 +530,21 @@ class TILA_Config_AddAddon(bpy.types.Operator):
 		return wm.invoke_props_dialog(self, width=800)
 
 	def execute(self, context):
+		wm = context.window_manager
+		json_dict = {}
 		
+		for e in wm.tila_config_addon_list:
+			json_dict[e.name] = get_addon_element_dict(wm.tila_config_addon_list[e.name], None)
+
+		json_dict[self.addon_name] = self.get_addon_element_dict()
+
+		AM = AddonManager.AddonManager(AL)
+
+		AM.save_json(json_dict=json_dict)
+
+		import_addon_element(AM.elements[self.addon_name])
+
+		self.report({'INFO'}, f'TilaConfig : Addon {self.addon_name} added')
 		return {'FINISHED'}
 
 	def draw(self, context):
@@ -563,3 +576,30 @@ class TILA_Config_AddAddon(bpy.types.Operator):
 		col.prop(path, 'local_subpath', text=f'local subpath')
 		col.prop(path, 'destination_path', text=f'destination path')
 
+
+	def get_addon_element_dict(self):
+		def get_valid_url(path, fallback):
+			return fallback if path == '' else path
+			
+		addon_element_dict = {}
+
+		addon_element_dict['enable'] = self.enable
+		addon_element_dict['sync'] = self.sync
+		addon_element_dict['online_url'] = get_valid_url(self.online_url, None)
+		addon_element_dict['repository_url'] = get_valid_url(self.repository_url, None)
+		addon_element_dict['branch'] = get_valid_url(self.branch, None)
+		addon_element_dict['submodule'] = self.submodule
+		addon_element_dict['local_path'] = get_valid_url(self.local_path, None)
+		addon_element_dict['keymaps'] = self.keymaps
+		if not len(self.paths):
+			addon_element_dict['paths'] = None
+		else:
+			addon_element_dict['paths'] = []
+			for p in self.paths:
+				path = {}
+				path['enable'] = p.enable
+				path['local_subpath'] = p._path_dict['local_subpath']
+				path['destination_path'] = get_valid_url(p.destination_path, None)
+				addon_element_dict['paths'].append(path)
+
+		return addon_element_dict

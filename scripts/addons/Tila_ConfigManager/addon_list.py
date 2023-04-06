@@ -52,12 +52,13 @@ class TILA_Config_AddonList(bpy.types.UIList):
 			row.operator('tila.config_link_addon_list', text='', icon='LINK_BLEND').addon_name = item.name
 		
 			for i in range(len(item.paths)):
+				item_path = path.join(item.local_path, item.paths[i].local_subpath)
 				if i == 0:
-					row.prop(item.paths[i], 'enable', text=path.basename(item.paths[i].local_subpath))
+					row.prop(item.paths[i], 'enable', text=path.basename(item_path))
 				if i > 0:
 					row = col.row(align=True)
 					row.label(text='', icon='BLANK1')
-					row.prop(item.paths[i], 'enable', text=path.basename(item.paths[i].local_subpath))
+					row.prop(item.paths[i], 'enable', text=path.basename(item_path))
 
 		col = grid.column()
 		row = col.row(align=True)
