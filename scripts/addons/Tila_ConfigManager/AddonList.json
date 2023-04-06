@@ -1835,7 +1835,7 @@
     "paths": [
         {
             "enable": false,
-            "local_subpath": null,
+            "local_subpath": "mesh_align_plus",
             "destination_path": "#\\scripts\\addons\\mesh_align_plus"
         }
     ],
