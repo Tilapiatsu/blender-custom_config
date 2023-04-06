@@ -81,6 +81,7 @@ class TILA_Config_Preferences(bpy.types.AddonPreferences):
 		c = row.column(align=True)
 		c.operator('tila.config_import_addon_list', text='', icon='FILE_REFRESH')
 		c.operator('tila.config_save_addon_list', text='', icon='CURRENT_FILE')
+		c.operator('tila.config_add_addon', text='', icon='ADD')
 		
 
 	def draw_about(self, box):

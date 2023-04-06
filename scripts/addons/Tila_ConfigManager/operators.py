@@ -6,6 +6,7 @@ from bpy.types import (Operator)
 from .AddonManager.keymaps import TILA_Config_Keymaps_Global as KM
 from . settings import TILA_Config_Settings as S
 from .AddonManager import AddonManager
+from . addon_list import TILA_Config_PathElement
 
 
 def get_path():
@@ -430,14 +431,14 @@ class TILA_Config_ImportAddonList(Operator):
 		addon_element.repository_url = '' if element.repository_url is None else element.repository_url
 		addon_element.branch = '' if element.branch is None else element.branch
 		addon_element.submodule = element.submodule
-		addon_element.local_path = '' if element.local_path.path is None else element.local_path.path
+		addon_element.local_path = '' if element.local_path.path is None else element.local_path._path
 		addon_element.keymaps = element.keymaps
 		addon_element.paths.clear()
 		for p in element.paths:
 			path = addon_element.paths.add()
 			path.enable = p.is_enable
-			path.local_subpath = '' if p.local_subpath.path is None else p.local_subpath.path
-			path.destination_path = '' if p.destination_path.path is None else p.destination_path.path
+			path.local_subpath = '' if p.local_subpath.path is None else p.local_subpath._path
+			path.destination_path = '' if p.destination_path.path is None else p.destination_path._path
 
 
 class TILA_Config_SaveAddonList(Operator):
@@ -446,7 +447,7 @@ class TILA_Config_SaveAddonList(Operator):
 	bl_options = {'REGISTER'}
 
 	def execute(self, context):
-		wm = bpy.context.window_manager
+		wm = context.window_manager
 
 		AM = AddonManager.AddonManager(AL)
 
@@ -470,11 +471,11 @@ class TILA_Config_SaveAddonList(Operator):
 		addon_element['name'] = new_element.name
 		addon_element['enable'] = new_element.enable
 		addon_element['sync'] = new_element.sync
-		addon_element['online_url'] = None if new_element.online_url is '' else new_element.online_url
-		addon_element['repository_url'] = None if new_element.repository_url is '' else new_element.repository_url
-		addon_element['branch'] = None if new_element.branch is '' else new_element.branch
+		addon_element['online_url'] = None if new_element.online_url == '' else new_element.online_url
+		addon_element['repository_url'] = None if new_element.repository_url == '' else new_element.repository_url
+		addon_element['branch'] = None if new_element.branch == '' else new_element.branch
 		addon_element['submodule'] = new_element.submodule
-		addon_element['local_path'] = None if new_element.local_path is '' else new_element.local_path.replace(element.root_folder, '#')
+		addon_element['local_path'] = None if new_element.local_path == '' else new_element.local_path
 		addon_element['keymaps'] = new_element.keymaps
 		if not len(new_element.paths):
 			addon_element['paths'] = None
@@ -483,8 +484,82 @@ class TILA_Config_SaveAddonList(Operator):
 			for p in new_element.paths:
 				path = {}
 				path['enable'] = p.enable
-				path['local_subpath'] = None if p.local_subpath is '' else p.local_subpath.replace(element.root_folder, '#')
-				path['destination_path'] = None if p.destination_path is '' else p.destination_path.replace(element.root_folder, '#')
+				path['local_subpath'] = None if p.local_subpath == '' else p.local_subpath
+				path['destination_path'] = None if p.destination_path == '' else p.destination_path
 				addon_element['paths'].append(path)
 
 		return addon_element
+
+
+def update_path_count(self, context):
+	print(self.path_count)
+	if  self.path_count > context.window_manager.tila_path_count :
+		self.paths.add()
+		context.window_manager.tila_path_count = len(self.path)
+	elif self.path_count < context.window_manager.tila_path_count :
+		self.paths.remove(len(self.path) - 1)
+		context.window_manager.tila_path_count = len(self.path)
+
+class TILA_Config_AddAddon(bpy.types.Operator):
+	bl_idname = "tila.config_add_addon"
+	bl_label = "Tila Config : Add Addon"
+	bl_options = {'REGISTER'}
+
+	addon_name: bpy.props.StringProperty(name="Addon Name", default="", description='name of the addon')
+	sync: bpy.props.BoolProperty(default=False)
+	enable: bpy.props.BoolProperty(default=False)
+	online_url: bpy.props.StringProperty(
+		name="Online URL", default="", description='Path to the website to download the addon')
+	repository_url: bpy.props.StringProperty(
+		name="Repository URL", default="", description='Path to the git repository of the addon')
+	branch: bpy.props.StringProperty(
+            name="Branch", default="", description='Name of the branch to sync')
+	submodule: bpy.props.BoolProperty(default=False)
+	local_path: bpy.props.StringProperty(
+            name="Local Path", default="", description='Path to the addon on the Addon. The blender Preference setting can be noted as # for relative path')
+	keymaps: bpy.props.BoolProperty(default=False)
+	path_count: bpy.props.IntProperty(default=1, update=update_path_count)
+	paths: bpy.props.CollectionProperty(type=TILA_Config_PathElement)
+	
+	def invoke(self, context, event):
+		for p in range(self.path_count):
+			self.paths.add()
+
+		wm = context.window_manager
+		wm.tila_path_count = self.path_count
+
+		return wm.invoke_props_dialog(self, width=800)
+
+	def execute(self, context):
+		
+		return {'FINISHED'}
+
+	def draw(self, context):
+		layout = self.layout
+		col = layout.column()
+		col.label(text='New Addon')
+		col.separator()
+		
+		col.prop(self, 'addon_name', text='Addon Name')
+		col.prop(self, 'sync', text=f'sync')
+		col.prop(self, 'enable', text=f'enable')
+		col.prop(self, 'online_url', text=f'online url')
+		col.prop(self, 'repository_url', text=f'repository url')
+		col.prop(self, 'branch', text=f'branch')
+		col.prop(self, 'submodule', text=f'submodule')
+		col.prop(self, 'local_path', text=f'local path')
+		col.prop(self, 'keymaps', text=f'keymaps')
+		col.separator()
+
+		col.label(text='Paths:')
+		col.prop(self, 'path_count', text=f'Path Count')
+		for p in range(self.path_count):
+			col.label(text=f'Path {p+1}')
+			self.draw_path(col, self.paths[p])
+
+
+	def draw_path(self, col,  path):
+		col.prop(path, 'enable', text=f'enable')
+		col.prop(path, 'local_subpath', text=f'local subpath')
+		col.prop(path, 'destination_path', text=f'destination path')
+
