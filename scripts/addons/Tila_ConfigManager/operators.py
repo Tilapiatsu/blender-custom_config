@@ -598,7 +598,7 @@ class TILA_Config_AddAddon(bpy.types.Operator):
 			for p in self.paths:
 				path = {}
 				path['enable'] = p.enable
-				path['local_subpath'] = p._path_dict['local_subpath']
+				path['local_subpath'] = get_valid_url(p.local_subpath, None)
 				path['destination_path'] = get_valid_url(p.destination_path, None)
 				addon_element_dict['paths'].append(path)
 
