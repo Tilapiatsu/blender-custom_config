@@ -427,22 +427,6 @@ def import_addon_element(element):
 		path.local_subpath = get_valid_url(p._path_dict['local_subpath'], '')
 		path.destination_path = get_valid_url(p.destination_path._path, '')
 
-class TILA_Config_ImportAddonList(Operator):
-	bl_idname = "tila.config_import_addon_list"
-	bl_label = "Tila Config : Import Addon List"
-	bl_options = {'REGISTER'}
-
-	def execute(self, context):
-		wm = context.window_manager
-
-		AM = AddonManager.AddonManager(AL)
-
-		wm.tila_config_addon_list.clear()
-		for e in AM.elements.values():
-			import_addon_element(e)
-
-		self.report({'INFO'}, 'TilaConfig : Addon List Imported')
-		return {"FINISHED"}
 
 def get_addon_element_dict(element, path_fallback):
 		def get_valid_url(path, fallback):
@@ -471,6 +455,24 @@ def get_addon_element_dict(element, path_fallback):
 				addon_element_dict['paths'].append(path)
 
 		return addon_element_dict
+
+class TILA_Config_ImportAddonList(Operator):
+	bl_idname = "tila.config_import_addon_list"
+	bl_label = "Tila Config : Import Addon List"
+	bl_options = {'REGISTER'}
+
+	def execute(self, context):
+		wm = context.window_manager
+
+		AM = AddonManager.AddonManager(AL)
+
+		wm.tila_config_addon_list.clear()
+		for e in AM.elements.values():
+			import_addon_element(e)
+
+		self.report({'INFO'}, 'TilaConfig : Addon List Imported')
+		return {"FINISHED"}
+
 
 class TILA_Config_SaveAddonList(Operator):
 	bl_idname = "tila.config_save_addon_list"
@@ -512,10 +514,10 @@ class TILA_Config_AddAddon(bpy.types.Operator):
 	repository_url: bpy.props.StringProperty(
 		name="Repository URL", default="", description='Path to the git repository of the addon')
 	branch: bpy.props.StringProperty(
-            name="Branch", default="", description='Name of the branch to sync')
+			name="Branch", default="", description='Name of the branch to sync')
 	submodule: bpy.props.BoolProperty(default=False)
 	local_path: bpy.props.StringProperty(
-            name="Local Path", default="", description='Path to the addon on the Addon. The blender Preference setting can be noted as # for relative path')
+			name="Local Path", default="", description='Path to the addon on the Addon. The blender Preference setting can be noted as # for relative path')
 	keymaps: bpy.props.BoolProperty(default=False)
 	path_count: bpy.props.IntProperty(default=1, update=update_path_count)
 	paths: bpy.props.CollectionProperty(type=TILA_Config_PathElement)
@@ -536,7 +538,7 @@ class TILA_Config_AddAddon(bpy.types.Operator):
 		for e in wm.tila_config_addon_list:
 			json_dict[e.name] = get_addon_element_dict(wm.tila_config_addon_list[e.name], None)
 
-		json_dict[self.addon_name] = self.get_addon_element_dict()
+		json_dict[self.addon_name] = get_addon_element_dict(self, None)
 
 		AM = AddonManager.AddonManager(AL)
 
@@ -577,29 +579,35 @@ class TILA_Config_AddAddon(bpy.types.Operator):
 		col.prop(path, 'destination_path', text=f'destination path')
 
 
-	def get_addon_element_dict(self):
-		def get_valid_url(path, fallback):
-			return fallback if path == '' else path
-			
-		addon_element_dict = {}
+class TILA_Config_RemoveAddon(bpy.types.Operator):
+	bl_idname = "tila.config_remove_addon"
+	bl_label = "Remove Addon ?"
+	bl_options = {'REGISTER'}
 
-		addon_element_dict['enable'] = self.enable
-		addon_element_dict['sync'] = self.sync
-		addon_element_dict['online_url'] = get_valid_url(self.online_url, None)
-		addon_element_dict['repository_url'] = get_valid_url(self.repository_url, None)
-		addon_element_dict['branch'] = get_valid_url(self.branch, None)
-		addon_element_dict['submodule'] = self.submodule
-		addon_element_dict['local_path'] = get_valid_url(self.local_path, None)
-		addon_element_dict['keymaps'] = self.keymaps
-		if not len(self.paths):
-			addon_element_dict['paths'] = None
-		else:
-			addon_element_dict['paths'] = []
-			for p in self.paths:
-				path = {}
-				path['enable'] = p.enable
-				path['local_subpath'] = get_valid_url(p.local_subpath, None)
-				path['destination_path'] = get_valid_url(p.destination_path, None)
-				addon_element_dict['paths'].append(path)
+	addon_name: bpy.props.StringProperty(name="Addon Name", default="", description='name of the addon')
 
-		return addon_element_dict
+	def invoke(self, context, event):
+		wm = context.window_manager
+		if self.addon_name not in wm.tila_config_addon_list:
+			self.report({'CANCELLED'}, f'TilaConfig : {self.addon_name} not in the list')
+		return wm.invoke_confirm(self, event)
+
+	def execute(self, context):
+		wm = context.window_manager
+		json_dict = {}
+		index = None
+		for i in range(len(wm.tila_config_addon_list)):
+			e = wm.tila_config_addon_list[i]
+			if e.name == self.addon_name:
+				index = i
+				continue
+			json_dict[e.name] = get_addon_element_dict(wm.tila_config_addon_list[e.name], None)
+
+		AM = AddonManager.AddonManager(AL)
+		AM.save_json(json_dict=json_dict)
+
+		wm.tila_config_addon_list.remove(index)
+
+		self.report({'INFO'}, f'TilaConfig : Addon {self.addon_name} removed')
+
+		return {'FINISHED'}

@@ -35,7 +35,10 @@ class TILA_Config_AddonList(bpy.types.UIList):
 		# 	icon = 'CHECKBOX_DEHLT'
 		
 		col = grid.column()
-		col.label(text=f'{item.name}')
+		row = col.row(align=True)
+		row.operator('tila.config_remove_addon', text='',icon='TRASH').addon_name = item.name
+		row.label(text=f'{item.name}')
+		
 		col = grid.column()
 		row = col.row(align=True)
 		if item.is_repository:
