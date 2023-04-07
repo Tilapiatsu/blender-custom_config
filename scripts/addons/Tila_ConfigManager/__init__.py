@@ -29,7 +29,8 @@ from . operators import (	TILA_Config_RegisterKeymaps,
 							TILA_Config_ImportAddonList,
 							TILA_Config_SaveAddonList,
                             TILA_Config_RemoveAddon,
-							TILA_Config_AddAddon)
+							TILA_Config_AddAddon,
+                            TILA_Config_EditAddon)
 
 from . addon_list import ( 	TILA_Config_PathElement,
 			  				TILA_Config_AddonElement,
@@ -62,6 +63,7 @@ classes = (	TILA_Config_PathElement,
 			TILA_Config_SaveAddonList,
             TILA_Config_RemoveAddon,
 			TILA_Config_AddAddon,
+            TILA_Config_EditAddon,
 		   	TILA_Config_Preferences,
 			TILA_Config_SetSettings,
 			TILA_Config_SetupBlender,

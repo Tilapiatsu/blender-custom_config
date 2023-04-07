@@ -2,19 +2,19 @@ import bpy
 from os import path
 
 class TILA_Config_PathElement(bpy.types.PropertyGroup):
-	enable: bpy.props.BoolProperty(default=False)
+	is_enable: bpy.props.BoolProperty(default=False)
 	local_subpath: bpy.props.StringProperty(default='')
 	destination_path: bpy.props.StringProperty(default='')
 
 class TILA_Config_AddonElement(bpy.types.PropertyGroup):
 	name : bpy.props.StringProperty(default='')
-	enable : bpy.props.BoolProperty(default=False)
+	is_enable : bpy.props.BoolProperty(default=False)
 	is_repository  : bpy.props.BoolProperty(default=False)
-	sync : bpy.props.BoolProperty(default=False)
+	is_sync : bpy.props.BoolProperty(default=False)
 	online_url : bpy.props.StringProperty(default='')
 	repository_url : bpy.props.StringProperty(default='')
 	branch : bpy.props.StringProperty(default='')
-	submodule : bpy.props.BoolProperty(default=False)
+	is_submodule : bpy.props.BoolProperty(default=False)
 	local_path : bpy.props.StringProperty(default='')
 	keymaps : bpy.props.BoolProperty(default=False)
 	paths : bpy.props.CollectionProperty(type=TILA_Config_PathElement)
@@ -36,14 +36,16 @@ class TILA_Config_AddonList(bpy.types.UIList):
 		
 		col = grid.column()
 		row = col.row(align=True)
-		row.operator('tila.config_remove_addon', text='',icon='TRASH').addon_name = item.name
+		row.operator('tila.config_remove_addon', text='', icon='TRASH').name = item.name
+		row.operator('tila.config_edit_addon', text='', icon='CURRENT_FILE').name = item.name
+		
 		row.label(text=f'{item.name}')
 		
 		col = grid.column()
 		row = col.row(align=True)
 		if item.is_repository:
-			row.operator('tila.config_sync_addon_list', text='', icon='FILE_REFRESH').addon_name = item.name
-			row.prop(item, 'sync', text='sync')
+			row.operator('tila.config_sync_addon_list', text='', icon='FILE_REFRESH').name = item.name
+			row.prop(item, 'is_sync', text='sync')
 			# row = col.row(align=True)
 		# else:
 		# 	row.label(text='', icon='BLANK1')
@@ -52,26 +54,26 @@ class TILA_Config_AddonList(bpy.types.UIList):
 		col = grid.column()
 		row = col.row(align=True)
 		if len(item.paths):
-			row.operator('tila.config_link_addon_list', text='', icon='LINK_BLEND').addon_name = item.name
+			row.operator('tila.config_link_addon_list', text='', icon='LINK_BLEND').name = item.name
 		
 			for i in range(len(item.paths)):
 				item_path = path.join(item.local_path, item.paths[i].local_subpath)
 				if i == 0:
-					row.prop(item.paths[i], 'enable', text=path.basename(item_path))
+					row.prop(item.paths[i], 'is_enable', text=path.basename(item_path))
 				if i > 0:
 					row = col.row(align=True)
 					row.label(text='', icon='BLANK1')
-					row.prop(item.paths[i], 'enable', text=path.basename(item_path))
+					row.prop(item.paths[i], 'is_enable', text=path.basename(item_path))
 
 		col = grid.column()
 		row = col.row(align=True)
-		row.operator('tila.config_enable_addon_list', text='', icon='CHECKBOX_HLT').addon_name = item.name
-		row.prop(item, 'enable', text='enable')
+		row.operator('tila.config_enable_addon_list', text='', icon='CHECKBOX_HLT').name = item.name
+		row.prop(item, 'is_enable', text='enable')
 		# row = col.row(align=True)
 
 		col = grid.column()
 		row = col.row(align=True)
-		row.operator('tila.config_sync_addon_list', text='', icon='KEYINGSET').addon_name = item.name
+		row.operator('tila.config_sync_addon_list', text='', icon='KEYINGSET').name = item.name
 		row.prop(item, 'keymaps', text='keymaps')
 		# row = col.row(align=True)
 

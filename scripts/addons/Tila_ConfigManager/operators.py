@@ -3,7 +3,6 @@ import os
 import time
 from os import path
 from bpy.types import (Operator)
-from .AddonManager.keymaps import TILA_Config_Keymaps_Global as KM
 from . settings import TILA_Config_Settings as S
 from .AddonManager import AddonManager
 from . addon_list import TILA_Config_PathElement
@@ -140,7 +139,7 @@ class TILA_Config_CleanAddonList(Operator):
 	bl_label = "Tila Config : clean Addon List"
 	bl_options = {'REGISTER'}
 	
-	addon_name : bpy.props.StringProperty(name="Addon Name", default="", description='Name of the addon to Clean')
+	name : bpy.props.StringProperty(name="Addon Name", default="", description='Name of the addon to Clean')
 	force: bpy.props.BoolProperty(name="Force Clean", default=False, description='remove all config for a fresh start')
 
 	def execute(self, context):
@@ -149,10 +148,10 @@ class TILA_Config_CleanAddonList(Operator):
 		self.AM = AddonManager.AddonManager(AL)
 
 		self.AM.flush_queue()
-		if self.addon_name == '':
+		if self.name == '':
 			self.AM.queuqueue_cleane_sync(force=self.force)
 		else:
-			self.AM.queue_clean(self.addon_name, force=self.force)
+			self.AM.queue_clean(self.name, force=self.force)
 
 		self._timer = bpy.context.window_manager.event_timer_add(
 			0.1, window=context.window)
@@ -184,7 +183,7 @@ class TILA_Config_SyncAddonList(Operator):
 	bl_label = "Tila Config : Sync Addon List"
 	bl_options = {'REGISTER'}
 
-	addon_name : bpy.props.StringProperty(name="Addon Name", default="", description='Name of the addon to Sync')
+	name : bpy.props.StringProperty(name="Addon Name", default="", description='Name of the addon to Sync')
 	
 	_timer = None
 
@@ -194,10 +193,10 @@ class TILA_Config_SyncAddonList(Operator):
 		self.AM = AddonManager.AddonManager(AL)
 
 		self.AM.flush_queue()
-		if self.addon_name == '':
+		if self.name == '':
 			self.AM.queue_sync()
 		else:
-			self.AM.queue_sync(self.addon_name)
+			self.AM.queue_sync(self.name)
 
 
 		self._timer = bpy.context.window_manager.event_timer_add(0.1, window=context.window)
@@ -226,7 +225,7 @@ class TILA_Config_LinkAddonList(Operator):
 	bl_label = "Tila Config : Link Addon List"
 	bl_options = {'REGISTER'}
 
-	addon_name : bpy.props.StringProperty(name="Addon Name", default="", description='Name of the addon to Sync')
+	name : bpy.props.StringProperty(name="Addon Name", default="", description='Name of the addon to Sync')
 
 	def execute(self, context):
 		self.wm = bpy.context.window_manager
@@ -236,10 +235,10 @@ class TILA_Config_LinkAddonList(Operator):
 		self.wm.tila_setup_blender_progress = "LINK_STARTED"
 		self.report({'INFO'}, 'TilaConfig : Start Link')
 
-		if self.addon_name == '':
+		if self.name == '':
 			self.AM.link()
 		else:
-			self.AM.link(self.addon_name)
+			self.AM.link(self.name)
 
 		time.sleep(1)
 		
@@ -257,7 +256,7 @@ class TILA_Config_EnableAddonList(Operator):
 	bl_label = "Tila Config : Enable Addon List"
 	bl_options = {'REGISTER'}
 
-	addon_name : bpy.props.StringProperty(name="Addon Name", default="", description='Name of the addon to enable')
+	name : bpy.props.StringProperty(name="Addon Name", default="", description='Name of the addon to enable')
 
 	def execute(self, context):
 		self.wm = bpy.context.window_manager
@@ -265,10 +264,10 @@ class TILA_Config_EnableAddonList(Operator):
 		self.AM = AddonManager.AddonManager(AL)
 
 		self.AM.flush_queue()
-		if self.addon_name == '':
+		if self.name == '':
 			self.AM.queue_enable()
 		else:
-			self.AM.queue_enable(self.addon_name)
+			self.AM.queue_enable(self.name)
 
 		self._timer = bpy.context.window_manager.event_timer_add(0.1, window=context.window)
 		bpy.context.window_manager.modal_handler_add(self)
@@ -296,7 +295,7 @@ class TILA_Config_DisableAddonList(Operator):
 	bl_label = "Tila Config : Disable Addon List"
 	bl_options = {'REGISTER'}
 	
-	addon_name : bpy.props.StringProperty(name="Addon Name", default="", description='Name of the addon to enable')
+	name : bpy.props.StringProperty(name="Addon Name", default="", description='Name of the addon to enable')
 	force: bpy.props.BoolProperty(
 		name="Force Disable", default=False, description='Disable all addons listed in the list regardless if it is set as enable or not')
 
@@ -306,10 +305,10 @@ class TILA_Config_DisableAddonList(Operator):
 		self.AM = AddonManager.AddonManager(AL)
 
 		self.AM.flush_queue()
-		if self.addon_name == '':
+		if self.name == '':
 			self.AM.queue_disable(force=self.force)
 		else:
-			self.AM.queue_disable(self.addon_name, force=self.force)
+			self.AM.queue_disable(self.name, force=self.force)
 
 		self._timer = bpy.context.window_manager.event_timer_add(
 			0.1, window=context.window)
@@ -337,7 +336,7 @@ class TILA_Config_RegisterKeymaps(Operator):
 	bl_label = "Tila Config : Register Keymaps"
 	bl_options = {'REGISTER'}
 
-	addon_name : bpy.props.StringProperty(name="Addon Name", default="", description='Name of the addon to register Keymaps for')
+	name : bpy.props.StringProperty(name="Addon Name", default="", description='Name of the addon to register Keymaps for')
 	
 	def execute(self, context):
 		self.wm = bpy.context.window_manager
@@ -345,10 +344,10 @@ class TILA_Config_RegisterKeymaps(Operator):
 		self.AM = AddonManager.AddonManager(AL)
 
 		self.AM.flush_queue()
-		if self.addon_name == '':
+		if self.name == '':
 			self.AM.queue_set_keymaps()
 		else:
-			self.AM.queue_set_keymaps(self.addon_name)
+			self.AM.queue_set_keymaps(self.name)
 
 		self._timer = bpy.context.window_manager.event_timer_add(
 			0.1, window=context.window)
@@ -400,61 +399,55 @@ class TILA_Config_SetSettings(Operator):
 		self.report({'INFO'}, 'TilaConfig : Start Set Done')
 		return {"FINISHED"}
 
-def import_addon_element(element):
+def import_addon_element(source_element, target_element):
 	def get_valid_url(path, fallback):
-			return fallback if path is None else path
+		return fallback if path is None else path
 	
-	wm = bpy.context.window_manager		
-	if element.name not in wm.tila_config_addon_list:
-		addon_element = wm.tila_config_addon_list.add()
-	else:
-		addon_element = wm.tila_config_addon_list[element.name]
-
-	addon_element.name = element.name
-	addon_element.enable = element.is_enable
-	addon_element.is_repository = element.is_repository
-	addon_element.sync = element.is_sync
-	addon_element.online_url = get_valid_url(element.online_url, '')
-	addon_element.repository_url = get_valid_url(element.repository_url, '')
-	addon_element.branch = get_valid_url(element.branch, '')
-	addon_element.submodule = element.submodule
-	addon_element.local_path = get_valid_url(element.local_path._path, '')
-	addon_element.keymaps = element.keymaps
-	addon_element.paths.clear()
-	for p in element.paths:
-		path = addon_element.paths.add()
-		path.enable = p.is_enable
-		path.local_subpath = get_valid_url(p._path_dict['local_subpath'], '')
-		path.destination_path = get_valid_url(p.destination_path._path, '')
+	target_element.name = source_element.name
+	target_element.is_enable = source_element.is_enable
+	target_element.is_repository = source_element.is_repository
+	target_element.is_sync = source_element.is_sync
+	target_element.online_url = get_valid_url(source_element.online_url, '')
+	target_element.repository_url = get_valid_url(source_element.repository_url, '')
+	target_element.branch = get_valid_url(source_element.branch, '')
+	target_element.is_submodule = source_element.is_submodule
+	target_element.local_path = get_valid_url(str(source_element.local_path), '')
+	target_element.keymaps = source_element.keymaps
+	target_element.paths.clear()
+	for p in source_element.paths:
+		path = target_element.paths.add()
+		path.is_enable = p.is_enable
+		path.local_subpath = get_valid_url(str(p.local_subpath), '')
+		path.destination_path = get_valid_url(str(p.destination_path), '')
 
 
 def get_addon_element_dict(element, path_fallback):
-		def get_valid_url(path, fallback):
-			return fallback if path == '' else path
-			
-		addon_element_dict = {}
+	def get_valid_url(path, fallback):
+		return fallback if path == '' else path
+		
+	addon_element_dict = {}
 
-		addon_element_dict['enable'] = element.enable
-		addon_element_dict['sync'] = element.sync
-		addon_element_dict['online_url'] = get_valid_url(element.online_url, path_fallback)
-		addon_element_dict['repository_url'] = get_valid_url(element.repository_url, path_fallback)
-		addon_element_dict['branch'] = get_valid_url(element.branch, path_fallback)
-		addon_element_dict['submodule'] = element.submodule
-		addon_element_dict['local_path'] = get_valid_url(element.local_path, path_fallback)
-		addon_element_dict['keymaps'] = element.keymaps
+	addon_element_dict['is_enable'] = element.is_enable
+	addon_element_dict['is_sync'] = element.is_sync
+	addon_element_dict['online_url'] = get_valid_url(element.online_url, path_fallback)
+	addon_element_dict['repository_url'] = get_valid_url(element.repository_url, path_fallback)
+	addon_element_dict['branch'] = get_valid_url(element.branch, path_fallback)
+	addon_element_dict['is_submodule'] = element.is_submodule
+	addon_element_dict['local_path'] = get_valid_url(element.local_path, path_fallback)
+	addon_element_dict['keymaps'] = element.keymaps
 
-		if not len(element.paths):
-			addon_element_dict['paths'] = None
-		else:
-			addon_element_dict['paths'] = []
-			for p in element.paths:
-				path = {}
-				path['enable'] = p.enable
-				path['local_subpath'] = get_valid_url(p.local_subpath, path_fallback)
-				path['destination_path'] = get_valid_url(p.destination_path, path_fallback)
-				addon_element_dict['paths'].append(path)
+	if not len(element.paths):
+		addon_element_dict['paths'] = None
+	else:
+		addon_element_dict['paths'] = []
+		for p in element.paths:
+			path = {}
+			path['is_enable'] = p.is_enable
+			path['local_subpath'] = get_valid_url(p.local_subpath, path_fallback)
+			path['destination_path'] = get_valid_url(p.destination_path, path_fallback)
+			addon_element_dict['paths'].append(path)
 
-		return addon_element_dict
+	return addon_element_dict
 
 class TILA_Config_ImportAddonList(Operator):
 	bl_idname = "tila.config_import_addon_list"
@@ -468,7 +461,12 @@ class TILA_Config_ImportAddonList(Operator):
 
 		wm.tila_config_addon_list.clear()
 		for e in AM.elements.values():
-			import_addon_element(e)
+			if e.name not in wm.tila_config_addon_list:
+				addon_element = wm.tila_config_addon_list.add()
+			else:
+				addon_element = wm.tila_config_addon_list[e.name]
+
+			import_addon_element(e, addon_element)
 
 		self.report({'INFO'}, 'TilaConfig : Addon List Imported')
 		return {"FINISHED"}
@@ -506,16 +504,16 @@ class TILA_Config_AddAddon(bpy.types.Operator):
 	bl_label = "Tila Config : Add Addon"
 	bl_options = {'REGISTER'}
 
-	addon_name: bpy.props.StringProperty(name="Addon Name", default="", description='name of the addon')
-	sync: bpy.props.BoolProperty(default=False)
-	enable: bpy.props.BoolProperty(default=False)
+	name: bpy.props.StringProperty(name="Addon Name", default="", description='name of the addon')
+	is_sync: bpy.props.BoolProperty(default=False)
+	is_enable: bpy.props.BoolProperty(default=False)
 	online_url: bpy.props.StringProperty(
 		name="Online URL", default="", description='Path to the website to download the addon')
 	repository_url: bpy.props.StringProperty(
 		name="Repository URL", default="", description='Path to the git repository of the addon')
 	branch: bpy.props.StringProperty(
 			name="Branch", default="", description='Name of the branch to sync')
-	submodule: bpy.props.BoolProperty(default=False)
+	is_submodule: bpy.props.BoolProperty(default=False)
 	local_path: bpy.props.StringProperty(
 			name="Local Path", default="", description='Path to the addon on the Addon. The blender Preference setting can be noted as # for relative path')
 	keymaps: bpy.props.BoolProperty(default=False)
@@ -538,15 +536,20 @@ class TILA_Config_AddAddon(bpy.types.Operator):
 		for e in wm.tila_config_addon_list:
 			json_dict[e.name] = get_addon_element_dict(wm.tila_config_addon_list[e.name], None)
 
-		json_dict[self.addon_name] = get_addon_element_dict(self, None)
+		json_dict[self.name] = get_addon_element_dict(self, None)
 
 		AM = AddonManager.AddonManager(AL)
 
 		AM.save_json(json_dict=json_dict)
 
-		import_addon_element(AM.elements[self.addon_name])
+		if self.name not in wm.tila_config_addon_list:
+			addon_element = wm.tila_config_addon_list.add()
+		else:
+			addon_element = wm.tila_config_addon_list[self.name]
+		
+		import_addon_element(AM.elements[self.name], addon_element)
 
-		self.report({'INFO'}, f'TilaConfig : Addon {self.addon_name} added')
+		self.report({'INFO'}, f'TilaConfig : Addon {self.name} added')
 		return {'FINISHED'}
 
 	def draw(self, context):
@@ -555,13 +558,13 @@ class TILA_Config_AddAddon(bpy.types.Operator):
 		col.label(text='New Addon')
 		col.separator()
 		
-		col.prop(self, 'addon_name', text='Addon Name')
-		col.prop(self, 'sync', text=f'sync')
-		col.prop(self, 'enable', text=f'enable')
+		col.prop(self, 'name', text='Addon Name')
+		col.prop(self, 'is_sync', text=f'sync')
+		col.prop(self, 'is_enable', text=f'enable')
 		col.prop(self, 'online_url', text=f'online url')
 		col.prop(self, 'repository_url', text=f'repository url')
 		col.prop(self, 'branch', text=f'branch')
-		col.prop(self, 'submodule', text=f'submodule')
+		col.prop(self, 'is_submodule', text=f'submodule')
 		col.prop(self, 'local_path', text=f'local path')
 		col.prop(self, 'keymaps', text=f'keymaps')
 		col.separator()
@@ -574,7 +577,92 @@ class TILA_Config_AddAddon(bpy.types.Operator):
 
 
 	def draw_path(self, col,  path):
-		col.prop(path, 'enable', text=f'enable')
+		col.prop(path, 'is_enable', text=f'ienable')
+		col.prop(path, 'local_subpath', text=f'local subpath')
+		col.prop(path, 'destination_path', text=f'destination path')
+
+
+class TILA_Config_EditAddon(bpy.types.Operator):
+	bl_idname = "tila.config_edit_addon"
+	bl_label = "Tila Config : Edit Addon"
+	bl_options = {'REGISTER'}
+
+	name: bpy.props.StringProperty(name="Addon Name", default="", description='name of the addon')
+	is_sync: bpy.props.BoolProperty(default=False)
+	is_enable: bpy.props.BoolProperty(default=False)
+	online_url: bpy.props.StringProperty(
+		name="Online URL", default="", description='Path to the website to download the addon')
+	repository_url: bpy.props.StringProperty(
+		name="Repository URL", default="", description='Path to the git repository of the addon')
+	branch: bpy.props.StringProperty(
+            name="Branch", default="", description='Name of the branch to sync')
+	is_submodule: bpy.props.BoolProperty(default=False)
+	local_path: bpy.props.StringProperty(
+            name="Local Path", default="", description='Path to the addon on the Addon. The blender Preference setting can be noted as # for relative path')
+	keymaps: bpy.props.BoolProperty(default=False)
+	path_count: bpy.props.IntProperty(default=1, update=update_path_count)
+	paths: bpy.props.CollectionProperty(type=TILA_Config_PathElement)
+
+	def invoke(self, context, event):
+		wm = context.window_manager
+		if self.name not in wm.tila_config_addon_list:
+			self.report({'CANCELLED'}, f'TilaConfig : {self.name} not in the list')
+		
+		self.previous_name = self.name
+		self.element = wm.tila_config_addon_list[self.name]
+		self.path_count = len(self.element.paths)
+
+		wm.tila_path_count = self.path_count
+
+		import_addon_element(self.element, self)
+
+		return wm.invoke_props_dialog(self, width=800)
+
+	def execute(self, context):
+		wm = context.window_manager
+		json_dict = {}
+
+		for e in wm.tila_config_addon_list:
+			if e.name == self.previous_name:
+				continue
+			json_dict[e.name] = get_addon_element_dict(wm.tila_config_addon_list[e.name], None)
+
+		json_dict[self.name] = get_addon_element_dict(self, None)
+
+		AM = AddonManager.AddonManager(AL)
+
+		AM.save_json(json_dict=json_dict)
+
+		import_addon_element(AM.elements[self.name], wm.tila_config_addon_list[self.previous_name])
+
+		self.report({'INFO'}, f'TilaConfig : Addon {self.name} edited')
+		return {'FINISHED'}
+
+	def draw(self, context):
+		layout = self.layout
+		col = layout.column()
+		col.label(text='New Addon')
+		col.separator()
+
+		col.prop(self, 'name', text='Addon Name')
+		col.prop(self, 'is_sync', text=f'sync')
+		col.prop(self, 'is_enable', text=f'enable')
+		col.prop(self, 'online_url', text=f'online url')
+		col.prop(self, 'repository_url', text=f'repository url')
+		col.prop(self, 'branch', text=f'branch')
+		col.prop(self, 'is_submodule', text=f'submodule')
+		col.prop(self, 'local_path', text=f'local path')
+		col.prop(self, 'keymaps', text=f'keymaps')
+		col.separator()
+
+		col.label(text='Paths:')
+		col.prop(self, 'path_count', text=f'Path Count')
+		for p in range(self.path_count):
+			col.label(text=f'Path {p+1}')
+			self.draw_path(col, self.paths[p])
+
+	def draw_path(self, col,  path):
+		col.prop(path, 'is_enable', text=f'enable')
 		col.prop(path, 'local_subpath', text=f'local subpath')
 		col.prop(path, 'destination_path', text=f'destination path')
 
@@ -584,12 +672,12 @@ class TILA_Config_RemoveAddon(bpy.types.Operator):
 	bl_label = "Remove Addon ?"
 	bl_options = {'REGISTER'}
 
-	addon_name: bpy.props.StringProperty(name="Addon Name", default="", description='name of the addon')
+	name: bpy.props.StringProperty(name="Addon Name", default="", description='name of the addon')
 
 	def invoke(self, context, event):
 		wm = context.window_manager
-		if self.addon_name not in wm.tila_config_addon_list:
-			self.report({'CANCELLED'}, f'TilaConfig : {self.addon_name} not in the list')
+		if self.name not in wm.tila_config_addon_list:
+			self.report({'CANCELLED'}, f'TilaConfig : {self.name} not in the list')
 		return wm.invoke_confirm(self, event)
 
 	def execute(self, context):
@@ -598,7 +686,7 @@ class TILA_Config_RemoveAddon(bpy.types.Operator):
 		index = None
 		for i in range(len(wm.tila_config_addon_list)):
 			e = wm.tila_config_addon_list[i]
-			if e.name == self.addon_name:
+			if e.name == self.name:
 				index = i
 				continue
 			json_dict[e.name] = get_addon_element_dict(wm.tila_config_addon_list[e.name], None)
@@ -608,6 +696,6 @@ class TILA_Config_RemoveAddon(bpy.types.Operator):
 
 		wm.tila_config_addon_list.remove(index)
 
-		self.report({'INFO'}, f'TilaConfig : Addon {self.addon_name} removed')
+		self.report({'INFO'}, f'TilaConfig : Addon {self.name} removed')
 
 		return {'FINISHED'}

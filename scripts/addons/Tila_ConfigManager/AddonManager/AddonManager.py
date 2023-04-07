@@ -194,7 +194,10 @@ class Json(File):
 class PathAM():
 	def __init__(self, path):
 		self._path = path
-		
+	
+	def __str__(self):
+		return self._path if self._path is not None else ''
+	
 	@property
 	def is_set(self):
 		return self._path is not None
@@ -248,7 +251,7 @@ class PathElementAM():
 
 	@property
 	def is_enable(self):
-		return self._path_dict['enable']
+		return self._path_dict['is_enable']
 
 	@property
 	def local_subpath(self):
@@ -321,26 +324,35 @@ class ElementAM():
 		self.root_folder = root_folder
 	
 	def __str__(self):
+		print(self.name)
 		s = ''
 		s += f'----------------------------------------{self.name}----------------------------------------\n'
 		s += f'is_enable = {self.is_enable}\n'
 		s += f'is_sync = {self.is_sync}\n'
+		s += f'is_submodule = {self.is_submodule}\n'
 		s += f'local_path = {self.local_path.path}\n'
 		s += f'online_url = {self.online_url}\n'
-		for p in self.paths:
+		s += f'repository_url = {self.repository_url}\n'
+		for i in range(len(self.paths)):
+			p = self.paths[i]
+			s += f'--------------------------------------------------------------------------------\n'
+			s += f'path{i}\n'
+			s += f'--------------------------------------------------------------------------------\n'
 			s += f'paths.is_enable = {p.is_enable}\n'
 			s += f'paths.local_subpath = {p.local_subpath.path}\n'
 			s += f'paths.destination_path = {p.destination_path.path}\n'
+			s += ''
+			
 
 		return s
 
 	@property
 	def is_sync(self):
-		return self.element_dict['sync']
+		return self.element_dict['is_sync']
 
 	@property
 	def is_enable(self):
-		return self.element_dict['enable']
+		return self.element_dict['is_enable']
 	
 	@property
 	def is_repository(self):
@@ -351,8 +363,8 @@ class ElementAM():
 		return self.element_dict['branch']
 	
 	@property
-	def submodule(self):
-		return self.element_dict['submodule']
+	def is_submodule(self):
+		return self.element_dict['is_submodule']
 
 	@property
 	def online_url(self):
@@ -388,7 +400,7 @@ class ElementAM():
 		for p in self.paths:
 			p.clean(force=force)
 
-		if force and self.is_sync and self.submodule is None:
+		if force and self.is_sync and self.is_submodule is None:
 			if self.local_path.exists:
 				self.local_path.remove()
 			
@@ -398,7 +410,7 @@ class ElementAM():
 		if self.repository_url is None or self.local_path.path is None:
 			return
 		
-		if self.local_path.exists and not self.submodule:
+		if self.local_path.exists and not self.is_submodule:
 			if overwrite:
 				self.local_path.remove()
 			else:
@@ -406,7 +418,7 @@ class ElementAM():
 				return
 		
 		print(f'Syncing {self.name} to {self.local_path.path}')
-		if self.submodule:
+		if self.is_submodule:
 			self.ensure_repo_init()
 			repo = git.Repo(self.local_path.path)
 			repo.git.submodule('update', '--init')
