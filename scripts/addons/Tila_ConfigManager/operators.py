@@ -549,7 +549,7 @@ class TILA_Config_AddAddon(bpy.types.Operator):
 		
 		import_addon_element(AM.elements[self.name], addon_element)
 
-		self.report({'INFO'}, f'TilaConfig : Addon {self.name} added')
+		self.report({'INFO'}, f'TilaConfig : {self.name} addon added')
 		return {'FINISHED'}
 
 	def draw(self, context):
@@ -635,7 +635,7 @@ class TILA_Config_EditAddon(bpy.types.Operator):
 
 		import_addon_element(AM.elements[self.name], wm.tila_config_addon_list[self.previous_name])
 
-		self.report({'INFO'}, f'TilaConfig : Addon {self.name} edited')
+		self.report({'INFO'}, f'TilaConfig : {self.name} addon edited')
 		return {'FINISHED'}
 
 	def draw(self, context):
@@ -668,6 +668,7 @@ class TILA_Config_EditAddon(bpy.types.Operator):
 
 
 class TILA_Config_RemoveAddon(bpy.types.Operator):
+	"""Remove addon from addon list"""
 	bl_idname = "tila.config_remove_addon"
 	bl_label = "Remove Addon ?"
 	bl_options = {'REGISTER'}
@@ -696,6 +697,6 @@ class TILA_Config_RemoveAddon(bpy.types.Operator):
 
 		wm.tila_config_addon_list.remove(index)
 
-		self.report({'INFO'}, f'TilaConfig : Addon {self.name} removed')
+		self.report({'INFO'}, f'TilaConfig : {self.name} addon removed')
 
 		return {'FINISHED'}

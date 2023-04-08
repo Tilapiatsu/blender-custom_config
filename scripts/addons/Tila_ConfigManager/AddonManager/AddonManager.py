@@ -255,6 +255,10 @@ class PathElementAM():
 
 	@property
 	def local_subpath(self):
+		return '' if self._path_dict['local_subpath'] is None else self._path_dict['local_subpath']
+
+	@property
+	def local_subpath_resolved(self):
 		if self._path_dict['local_subpath'] is None:
 			return self.local_path
 		else:
@@ -278,7 +282,7 @@ class PathElementAM():
 		if not self.is_enable:
 			return None
 		
-		if self.local_subpath.path is None or self.destination_path.path is None:
+		if self.local_subpath_resolved.path is None or self.destination_path.path is None:
 			return None
 		
 		if self.destination_path.exists:
@@ -288,8 +292,8 @@ class PathElementAM():
 				# print(f'Path Already Exists : Skipping {self.destination_path.path}')
 				return None
 
-		print(f'Linking {self.local_subpath.path} -> {self.destination_path.path} {self.local_subpath.is_dir}')
-		return str([self.local_subpath.path, self.destination_path.path, self.local_subpath.is_dir])
+		print(f'Linking {self.local_subpath_resolved.path} -> {self.destination_path.path} {self.local_subpath_resolved.is_dir}')
+		return str([self.local_subpath_resolved.path, self.destination_path.path, self.local_subpath_resolved.is_dir])
 	
 	def enable(self):
 		if not self.is_enable:
@@ -339,7 +343,7 @@ class ElementAM():
 			s += f'path{i}\n'
 			s += f'--------------------------------------------------------------------------------\n'
 			s += f'paths.is_enable = {p.is_enable}\n'
-			s += f'paths.local_subpath = {p.local_subpath.path}\n'
+			s += f'paths.local_subpath_resolved = {p.local_subpath_resolved.path}\n'
 			s += f'paths.destination_path = {p.destination_path.path}\n'
 			s += ''
 			

@@ -57,7 +57,7 @@ class TILA_Config_AddonList(bpy.types.UIList):
 			row.operator('tila.config_link_addon_list', text='', icon='LINK_BLEND').name = item.name
 		
 			for i in range(len(item.paths)):
-				item_path = path.join(item.local_path, item.paths[i].local_subpath)
+				item_path = path.join(item.local_path, item.paths[i].local_subpath) if len(item.paths[i].local_subpath) else item.local_path
 				if i == 0:
 					row.prop(item.paths[i], 'is_enable', text=path.basename(item_path))
 				if i > 0:
