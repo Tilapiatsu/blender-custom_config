@@ -1504,18 +1504,18 @@ class TILA_Config_Keymaps_uv_toolkit(TILA_Config_Keymaps):
 
 		self.print_status(f"Assignment of {self.addon_name} complete")
 		
-class TILA_Config_Keymaps_EdgeFlow(TILA_Config_Keymaps):
-	addon_name = "EdgeFlow"
+# class TILA_Config_Keymaps_EdgeFlow(TILA_Config_Keymaps):
+# 	addon_name = "EdgeFlow"
 
-	def __init__(self):
-		super(TILA_Config_Keymaps_EdgeFlow, self).__init__()
+# 	def __init__(self):
+# 		super(TILA_Config_Keymaps_EdgeFlow, self).__init__()
 
-	def set_keymaps(self):
-		self.print_status(f"Assigning {self.addon_name} Keymaps")
+# 	def set_keymaps(self):
+# 		self.print_status(f"Assigning {self.addon_name} Keymaps")
 
-		if self.kmi_init(name='Mesh', space_type='EMPTY', region_type='WINDOW', addon=True, restore_to_default=False):
-			self.kmi_set_replace('mesh.set_edge_flow', 'F', 'PRESS', alt=True, properties={'tension': 180, 'iterations': 1, 'min_angle': 120}, disable_double=True)
+# 		if self.kmi_init(name='Mesh', space_type='EMPTY', region_type='WINDOW', addon=True, restore_to_default=False):
+# 			self.kmi_set_replace('mesh.set_edge_flow', 'F', 'PRESS', alt=True, properties={'tension': 180, 'iterations': 1, 'min_angle': 120}, disable_double=True)
 
-		self.print_status(f"Assignment of {self.addon_name} complete", start=False)
+# 		self.print_status(f"Assignment of {self.addon_name} complete", start=False)
 
 		

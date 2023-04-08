@@ -35,10 +35,16 @@ class TILA_Config_AddonList(bpy.types.UIList):
 			row.operator("wm.url_open", text='', icon='URL').url = item.online_url
 		else:
 			self.blank_space(row)
+
 		if len(item.repository_url):
 			row.operator("wm.url_open", text='', icon='PACKAGE').url = item.repository_url
 		else:
 			self.blank_space(row)
+
+		if item.name in context.preferences.addons:
+			row.operator('tila.config_force_disable_addon', text='', icon='CHECKBOX_HLT').name = item.name
+		else:
+			row.operator('tila.config_force_enable_addon', text='', icon='CHECKBOX_DEHLT').name = item.name
 		
 		row.label(text=f'{item.name}')
 		
@@ -67,10 +73,10 @@ class TILA_Config_AddonList(bpy.types.UIList):
 		row.operator('tila.config_enable_addon_list', text='', icon='CHECKBOX_HLT').name = item.name
 		row.prop(item, 'is_enable', text='enable')
 
-		col = grid.column()
-		row = col.row(align=True)
-		row.operator('tila.config_sync_addon_list', text='', icon='KEYINGSET').name = item.name
-		row.prop(item, 'keymaps', text='keymaps')
+		# col = grid.column()
+		# row = col.row(align=True)
+		# row.operator('tila.config_sync_addon_list', text='', icon='KEYINGSET').name = item.name
+		# row.prop(item, 'keymaps', text='keymaps')
 
 		
 	def separator_iter(self, ui, iter) :

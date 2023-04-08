@@ -30,6 +30,8 @@ from . operators import (	TILA_Config_RegisterKeymaps,
 							TILA_Config_DisableAddonList, 
 							TILA_Config_SetSettings,
 							TILA_Config_SetupBlender,
+							TILA_Config_ForceEnableAddon,
+							TILA_Config_ForceDisableAddon,
 							TILA_Config_ImportAddonList,
 							TILA_Config_SaveAddonList,
 							TILA_Config_RemoveAddon,
@@ -79,6 +81,8 @@ classes = (
 		   	TILA_Config_Preferences,
 			TILA_Config_SetSettings,
 			TILA_Config_SetupBlender,
+			TILA_Config_ForceEnableAddon,
+			TILA_Config_ForceDisableAddon,
 			TILA_Config_UpdateSetupBlender)
 
 def register():

@@ -53,19 +53,19 @@ class TILA_Config_Preferences(bpy.types.AddonPreferences):
 		column = b.column(align=True)
 		row = column.row()
 		row.scale_y = 3
-		row.operator("tila.config_setup_blender", text="Setup Blender")
-		row.operator("tila.config_update_setup_blender", text="Update Blender Setup")
+		row.operator("tila.config_setup_blender", text="Setup Blender", icon='SHADERFX')
+		row.operator("tila.config_update_setup_blender", text="Update Blender Setup", icon='FILE_REFRESH')
 		column.separator()
-		column.operator("tila.config_print_addon_list", text="Print Addon List")
+		column.operator("tila.config_print_addon_list", text="Print Addon List", icon='ALIGN_JUSTIFY')
 		column.separator()
-		column.operator("tila.config_remove", text="Remove Config")
-		column.operator("tila.config_disable_addon_list", text="Disable All Addons").force=True
-		column.operator("tila.config_clean_addon_list", text="Clean Addon List").force=False
-		column.operator("tila.config_sync_addon_list", text="Sync Addon List")
-		column.operator("tila.config_link_addon_list", text="Link Addon List")
-		column.operator("tila.config_enable_addon_list", text="Enable Addon List")
-		column.operator("tila.config_set_settings", text="Set Settings")
-		column.operator("tila.config_register_keymaps", text="Register Keymaps")
+		column.operator("tila.config_remove", text="Remove Config", icon='TRASH')
+		column.operator("tila.config_disable_addon_list", text="Disable All Addons", icon='CHECKBOX_DEHLT').force=True
+		column.operator("tila.config_clean_addon_list", text="Clean Addon List", icon='BRUSH_DATA').force=False
+		column.operator("tila.config_sync_addon_list", text="Sync Addon List", icon='URL')
+		column.operator("tila.config_link_addon_list", text="Link Addon List", icon='LINKED')
+		column.operator("tila.config_enable_addon_list", text="Enable Addon List", icon='CHECKBOX_HLT')
+		column.operator("tila.config_set_settings", text="Set Settings", icon='TOOL_SETTINGS')
+		column.operator("tila.config_register_keymaps", text="Register Keymaps", icon='KEYINGSET')
 		
 
 	def draw_addons(self, box, wm):

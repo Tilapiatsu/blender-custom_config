@@ -50,6 +50,8 @@ def enable_addon(addon_name):
 	log_progress = Log(bpy.context.window_manager.tila_config_log_list,
 	                   'tila_config_log_list_idx')
 	if addon_name in bpy.context.preferences.addons:
+		print(f'Addon already Enabled : {addon_name}')
+		log_progress.start(f'Addon already Enabled : {addon_name}')
 		return False
 	
 	print(f'Enabling Addon : {addon_name}')
@@ -66,6 +68,8 @@ def disable_addon(addon_name):
 	log_progress = Log(bpy.context.window_manager.tila_config_log_list,
 	                   'tila_config_log_list_idx')
 	if addon_name not in bpy.context.preferences.addons:
+		print(f'Addon already Disabled : {addon_name}')
+		log_progress.start(f'Addon already Disabled : {addon_name}')
 		return False
 	
 	print(f'Disabling Addon : {addon_name}')
@@ -293,8 +297,8 @@ class PathElementAM():
 				print(f'Clean Done!')
 				self.log_progress.done(f'Clean Done!')
 
-	def link(self, overwrite=False):
-		if not self.is_enable:
+	def link(self, overwrite=False, force=False):
+		if not force and not self.is_enable:
 			return None
 		
 		if self.local_subpath_resolved.path is None or self.destination_path.path is None:
@@ -307,12 +311,12 @@ class PathElementAM():
 				# print(f'Path Already Exists : Skipping {self.destination_path.path}')
 				return None
 
-		print(f'Linking {self.local_subpath_resolved.path} -> {self.destination_path.path} {self.local_subpath_resolved.is_dir}')
+		print(f'Linking {self.local_subpath_resolved.path} -> {self.destination_path.path}')
 		self.log_progress.start(f'Linking {self.local_subpath_resolved.path} -> {self.destination_path.path}')
 		return str([self.local_subpath_resolved.path, self.destination_path.path, self.local_subpath_resolved.is_dir])
 	
-	def enable(self):
-		if not self.is_enable:
+	def enable(self, force=False):
+		if not force and not self.is_enable:
 			return
 		if not self.destination_path.is_set:
 			return
@@ -426,8 +430,8 @@ class ElementAM():
 			if self.local_path.exists:
 				self.local_path.remove()
 			
-	def sync(self, overwrite=False):
-		if not self.is_sync:
+	def sync(self, overwrite=False, force=False):
+		if not force and not self.is_sync:
 			return
 		if self.repository_url is None or self.local_path.path is None:
 			return
@@ -456,33 +460,32 @@ class ElementAM():
 		print(f'Syncing Done!')
 		self.log_progress.done(f'Syncing Done!')
 
-	def link(self, overwrite=False):
+	def link(self, overwrite=False, force=False):
 		if self.local_path.path is None:
 			return []
 		
 		link_commands = []
 		for p in self.paths:
-			command = p.link(overwrite=overwrite)
+			command = p.link(overwrite=overwrite, force=force)
 			if command is None:
 				continue
 			link_commands.append(command)
 		
 		return link_commands
 	
-	def enable(self):
-		if not self.is_enable:
+	def enable(self, force=False):
+		if not force and not self.is_enable:
 			return
 		
 		if not len(self.paths):
 			enable_addon(self.name)
 		else:
 			for p in self.paths:
-				p.enable()
+				p.enable(force=force)
 
 	def disable(self, force=False):
-		if not force:
-			if self.is_enable:
-				return
+		if not force and self.is_enable:
+			return
 
 		if not len(self.paths):
 			disable_addon(self.name)
@@ -536,22 +539,22 @@ class AddonManager():
 
 		self.processing = False
 	
-	def queue_sync(self, element_name=None, overwrite=False):
+	def queue_sync(self, element_name=None, overwrite=False, force=False):
 		if element_name is None:
 			for e in self.elements.values():
-				self.queue([self.sync, {'element_name': e.name, 'overwrite': overwrite}])
+				self.queue([self.sync, {'element_name': e.name, 'overwrite': overwrite, 'force': force}])
 		elif element_name in self.elements.keys():
 			self.queue(
-				[self.sync, {'element_name': element_name, 'overwrite': overwrite}])
+				[self.sync, {'element_name': element_name, 'overwrite': overwrite, 'force': force}])
 
-	def sync(self, element_name=None, overwrite=False):
+	def sync(self, element_name=None, overwrite=False, force=False):
 		self.processing = True
 
 		if element_name is None:
 			for e in self.elements.values():
-				e.sync(overwrite=overwrite)
+				e.sync(overwrite=overwrite, force=force)
 		elif element_name in self.elements.keys():
-			self.elements[element_name].sync(overwrite=overwrite)
+			self.elements[element_name].sync(overwrite=overwrite, force=force)
 		
 		self.processing = False
 
@@ -562,18 +565,18 @@ class AddonManager():
 		elif element_name in self.elements.keys():
 			self.queue([self.link, {'element_name': element_name, 'overwrite': overwrite}])
 
-	def link(self, element_name=None, overwrite=False):
+	def link(self, element_name=None, overwrite=False, force=False):
 		self.processing = True
 
 		link_command = []
 		if element_name is None:
 			for e in self.elements.values():
-				command = e.link(overwrite=overwrite)
+				command = e.link(overwrite=overwrite, force=force)
 				if not len(command):
 					continue
 				link_command += command
 		elif element_name in self.elements.keys():
-			command = self.elements[element_name].link(overwrite=overwrite)
+			command = self.elements[element_name].link(overwrite=overwrite, force=force)
 			if not len(command):
 				return
 			link_command = command
@@ -582,21 +585,21 @@ class AddonManager():
 
 		self.processing = False
 
-	def queue_enable(self, element_name=None):
+	def queue_enable(self, element_name=None, force=False):
 		if element_name is None:
 			for e in self.elements.values():
-				self.queue([self.enable, {'element_name': e.name}])
+				self.queue([self.enable, {'element_name': e.name, 'force':force}])
 		elif element_name in self.elements.keys():
-			self.queue([self.enable, {'element_name': element_name}])
+			self.queue([self.enable, {'element_name': element_name, 'force':force}])
 
-	def enable(self, element_name=None):
+	def enable(self, element_name=None, force=False):
 		self.processing = True
 
 		if element_name is None:
 			for e in self.elements.values():
-				e.enable()
+				e.enable(force=force)
 		elif element_name in self.elements.keys():
-			self.elements[element_name].enable()
+			self.elements[element_name].enable(force=force)
 
 		self.processing = False
 	
