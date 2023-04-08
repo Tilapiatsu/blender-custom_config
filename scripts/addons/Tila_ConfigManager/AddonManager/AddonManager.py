@@ -499,6 +499,7 @@ class ElementAM():
 			except AttributeError as e:
 				self.log_progress.warning(f'{self.name} Addon have no keymaps Set')
 				print(f'{self.name} Addon have no keymaps Set')
+				print(f'{e}')
 
 class AddonManager():
 	def __init__(self, json_path):

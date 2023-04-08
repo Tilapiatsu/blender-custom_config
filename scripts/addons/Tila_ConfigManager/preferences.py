@@ -72,7 +72,7 @@ class TILA_Config_Preferences(bpy.types.AddonPreferences):
 		split = box.split()
 
 		row = split.row()
-		rows = 20 if len(wm.tila_config_addon_list) > 10 else len(wm.tila_config_addon_list) * 2 + 1
+		rows = 11 if len(wm.tila_config_addon_list) > 10 else len(wm.tila_config_addon_list) + 1
 		
 		row.template_list('TILA_Config_addon_list', '', wm, 'tila_config_addon_list', wm, 'tila_config_addon_list_idx', rows=rows)
 		c = row.column(align=True)

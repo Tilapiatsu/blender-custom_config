@@ -2,6 +2,7 @@ import bpy
 from abc import ABC, abstractmethod
 from .KeymapManager import KeymapManager
 from .blender_version import bversion
+from . log_list import TILA_Config_Log as Log
 
 
 # TODO  
@@ -54,23 +55,27 @@ class TILA_Config_Keymaps(ABC, KeymapManager.KeymapManager):
 
 	def __init__(self):
 		super(TILA_Config_Keymaps, self).__init__()
+		self.log_progress = Log(bpy.context.window_manager.tila_config_log_list, 'tila_config_log_list_idx')
 
 	@abstractmethod
 	def set_keymaps(self):
 		pass
 
-	def print_status(self, message):
+	def print_status(self, message, start=True):
 		print("----------------------------------------------------------------")
 		print(f"{message}")
 		print("----------------------------------------------------------------")
 		print("")
+		if start:
+			self.log_progress.start(f"{message}")
+		else:
+			self.log_progress.done(f"{message}")
 
 class TILA_Config_Keymaps_Global(TILA_Config_Keymaps):
 	addon_name = "Global"
 
 	def __init__(self):
-
-		super(TILA_Config_Keymaps, self).__init__()
+		super(TILA_Config_Keymaps_Global, self).__init__()
 
 	# Global Keymap Functions
 	def global_keys(self):
@@ -1325,24 +1330,24 @@ class TILA_Config_Keymaps_Global(TILA_Config_Keymaps):
 		self.kmi_init(name='Gesture Box', space_type='EMPTY', region_type='WINDOW')
 		self.modal_set_replace('SELECT', self.k_cursor, 'RELEASE', any=True)
 		
-		self.print_status(f"Assignment of {self.addon_name} complete")
+		self.print_status(f"Assignment of {self.addon_name} complete", start=False)
 
 class TILA_Config_Keymaps_Empty(TILA_Config_Keymaps):
 	addon_name = "Empty"
 
 	def __init__(self):
-		super(TILA_Config_Keymaps, self).__init__()
+		super(TILA_Config_Keymaps_Empty, self).__init__()
 
 	def set_keymaps(self):
 		self.print_status(f"Assigning {self.addon_name} Keymaps")
 
-		self.print_status(f"Assignment of {self.addon_name} complete")
+		self.print_status(f"Assignment of {self.addon_name} complete", start=False)
 
 class TILA_Config_Keymaps_PolyQuilt(TILA_Config_Keymaps):
 	addon_name = "PolyQuilt"
 
 	def __init__(self):
-		super(TILA_Config_Keymaps, self).__init__()
+		super(TILA_Config_Keymaps_PolyQuilt, self).__init__()
 
 	def set_keymaps(self):
 		self.print_status(f"Assigning {self.addon_name} Keymaps")
@@ -1364,13 +1369,13 @@ class TILA_Config_Keymaps_PolyQuilt(TILA_Config_Keymaps):
 			self.kmi_set_replace('mesh.poly_quilt', self.k_context, 'PRESS', ctrl=True, shift=True, properties={'tool_mode': 'LOOPCUT'}, disable_double=True)
 			self.kmi_set_replace('mesh.poly_quilt', self.k_manip, 'PRESS', ctrl=True, alt=True, shift=True, properties={'tool_mode': 'DELETE'}, disable_double=True)
 
-		self.print_status(f"Assignment of {self.addon_name} complete")
+		self.print_status(f"Assignment of {self.addon_name} complete", start=False)
 
 class TILA_Config_Keymaps_MACHIN3tools(TILA_Config_Keymaps):
 	addon_name = "MACHIN3tools"
 
 	def __init__(self):
-		super(TILA_Config_Keymaps, self).__init__()
+		super(TILA_Config_Keymaps_MACHIN3tools, self).__init__()
 
 	def set_keymaps(self):
 		self.print_status(f"Assigning {self.addon_name} Keymaps")
@@ -1393,13 +1398,13 @@ class TILA_Config_Keymaps_MACHIN3tools(TILA_Config_Keymaps):
 		if self.kmi_init(name='Pose', space_type='EMPTY', region_type='WINDOW', addon=True, restore_to_default=False):
 			self.kmi_set_replace('machin3.align', 'A', "PRESS", alt=True, disable_double=True)
 			
-		self.print_status(f"Assignment of {self.addon_name} complete")
+		self.print_status(f"Assignment of {self.addon_name} complete", start=False)
 
 class TILA_Config_Keymaps_noodler(TILA_Config_Keymaps):
 	addon_name = "noodler"
 
 	def __init__(self):
-		super(TILA_Config_Keymaps, self).__init__()
+		super(TILA_Config_Keymaps_noodler, self).__init__()
 
 	def set_keymaps(self):
 		self.print_status(f"Assigning {self.addon_name} Keymaps")
@@ -1411,13 +1416,13 @@ class TILA_Config_Keymaps_noodler(TILA_Config_Keymaps):
 			self.kmi_set_replace('noodler.dependency_select', self.k_manip, 'DOUBLE_CLICK', shift=True, properties={'mode': "downstream", 'repsel': True}, disable_double=True)
 			self.kmi_set_replace('noodler.dependency_select', self.k_manip, 'DOUBLE_CLICK', ctrl=True, properties={'mode': "upstream", 'repsel': True}, disable_double=True)
 
-		self.print_status(f"Assignment of {self.addon_name} complete")
+		self.print_status(f"Assignment of {self.addon_name} complete", start=False)
 
 class TILA_Config_Keymaps_atomic_data_manager(TILA_Config_Keymaps):
 	addon_name = "atomic_data_manager"
 
 	def __init__(self):
-		super(TILA_Config_Keymaps, self).__init__()
+		super(TILA_Config_Keymaps_atomic_data_manager, self).__init__()
 
 	def set_keymaps(self):
 		self.print_status(f"Assigning {self.addon_name} Keymaps")
@@ -1425,13 +1430,13 @@ class TILA_Config_Keymaps_atomic_data_manager(TILA_Config_Keymaps):
 		if self.kmi_init(name='Window', space_type='EMPTY', region_type='WINDOW', addon=True, restore_to_default=False):
 			self.kmi_set_replace('atomic.invoke_pie_menu_ui', 'DEL', "PRESS", ctrl=True, shift=True, disable_double=True)
 
-		self.print_status(f"Assignment of {self.addon_name} complete")
+		self.print_status(f"Assignment of {self.addon_name} complete", start=False)
 
 class TILA_Config_Keymaps_kekit(TILA_Config_Keymaps):
 	addon_name = "kekit"
 
 	def __init__(self):
-		super(TILA_Config_Keymaps, self).__init__()
+		super(TILA_Config_Keymaps_kekit, self).__init__()
 
 	def set_keymaps(self):
 		self.print_status(f"Assigning {self.addon_name} Keymaps")
@@ -1454,13 +1459,13 @@ class TILA_Config_Keymaps_kekit(TILA_Config_Keymaps):
 
 			self.kmi_set_replace('mesh.ke_direct_loop_cut', 'C', "PRESS", alt=True, shift=True, properties={'mode': 'SLIDE'}, disable_double=True)
 
-		self.print_status(f"Assignment of {self.addon_name} complete")
+		self.print_status(f"Assignment of {self.addon_name} complete", start=False)
 		
 class TILA_Config_Keymaps_rotate_an_hdri(TILA_Config_Keymaps):
 	addon_name = "rotate_an_hdri"
 
 	def __init__(self):
-		super(TILA_Config_Keymaps, self).__init__()
+		super(TILA_Config_Keymaps_rotate_an_hdri, self).__init__()
 
 	def set_keymaps(self):
 		self.print_status(f"Assigning {self.addon_name} Keymaps")
@@ -1469,13 +1474,13 @@ class TILA_Config_Keymaps_rotate_an_hdri(TILA_Config_Keymaps):
 			self.kmi_set_replace('rotate.hdri', self.k_context, 'PRESS', ctrl=True, alt=True, shift=False,  disable_double=True)
 			self.kmi_set_active(enable=True, idname='rotate.hdri')
 
-		self.print_status(f"Assignment of {self.addon_name} complete")
+		self.print_status(f"Assignment of {self.addon_name} complete", start=False)
 		
 class TILA_Config_Keymaps_Poly_Source(TILA_Config_Keymaps):
 	addon_name = "Poly_Source"
 
 	def __init__(self):
-		super(TILA_Config_Keymaps, self).__init__()
+		super(TILA_Config_Keymaps_Poly_Source, self).__init__()
 
 	def set_keymaps(self):
 		self.print_status(f"Assigning {self.addon_name} Keymaps")
@@ -1483,13 +1488,13 @@ class TILA_Config_Keymaps_Poly_Source(TILA_Config_Keymaps):
 		if self.kmi_init(name='3D View', space_type='VIEW_3D', region_type='WINDOW', addon=True, restore_to_default=False):
 			self.kmi_set_active(enable=False, idname='wm.call_menu_pie', type=self.k_menu, value='PRESS', properties={'name': 'PS_MT_tk_menu'})
 
-		self.print_status(f"Assignment of {self.addon_name} complete")
+		self.print_status(f"Assignment of {self.addon_name} complete", start=False)
 		
 class TILA_Config_Keymaps_uv_toolkit(TILA_Config_Keymaps):
 	addon_name = "uv_toolkit"
 
 	def __init__(self):
-		super(TILA_Config_Keymaps, self).__init__()
+		super(TILA_Config_Keymaps_uv_toolkit, self).__init__()
 
 	def set_keymaps(self):
 		self.print_status(f"Assigning {self.addon_name} Keymaps")
@@ -1503,7 +1508,7 @@ class TILA_Config_Keymaps_EdgeFlow(TILA_Config_Keymaps):
 	addon_name = "EdgeFlow"
 
 	def __init__(self):
-		super(TILA_Config_Keymaps, self).__init__()
+		super(TILA_Config_Keymaps_EdgeFlow, self).__init__()
 
 	def set_keymaps(self):
 		self.print_status(f"Assigning {self.addon_name} Keymaps")
@@ -1511,6 +1516,6 @@ class TILA_Config_Keymaps_EdgeFlow(TILA_Config_Keymaps):
 		if self.kmi_init(name='Mesh', space_type='EMPTY', region_type='WINDOW', addon=True, restore_to_default=False):
 			self.kmi_set_replace('mesh.set_edge_flow', 'F', 'PRESS', alt=True, properties={'tension': 180, 'iterations': 1, 'min_angle': 120}, disable_double=True)
 
-		self.print_status(f"Assignment of {self.addon_name} complete")
+		self.print_status(f"Assignment of {self.addon_name} complete", start=False)
 
 		
