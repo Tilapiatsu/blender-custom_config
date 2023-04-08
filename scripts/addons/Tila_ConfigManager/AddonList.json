@@ -1012,7 +1012,7 @@
     "paths": [
         {
             "is_enable": false,
-            "local_subpath": null,
+            "local_subpath": "Capsule",
             "destination_path": "#\\scripts\\addons\\Capsule"
         }
     ],
