@@ -730,32 +730,57 @@ class TILA_Config_AddAddon(bpy.types.Operator):
 
 	def draw(self, context):
 		layout = self.layout
-		col = layout.column()
-		col.label(text='New Addon')
+		row = layout.split(align=True, factor=0.2)
+		row.alignment='LEFT'
+		col = row.column(align=True)
+		col.alignment='RIGHT'
+
+		col.label(text=f'Name :  ')
+		col.label(text=f'Sync :  ')
+		col.label(text=f'Enable :  ')
+		col.label(text=f'Online URL :  ')
+		col.label(text=f'Repository URL :  ')
+		col.label(text=f'Branch :  ')
+		col.label(text=f'Submodule :  ')
+		col.label(text=f'Local Path :  ')
+		col.label(text=f'Keymaps :  ')
+		col.separator()
+		col.label(text='Paths :   ')
+
+		col = row.column(align=True)
+		col.alignment='LEFT'
+
+		col.prop(self, 'name', text='')
+		col.prop(self, 'is_sync', text=f'')
+		col.prop(self, 'is_enable', text=f'')
+		col.prop(self, 'online_url', text=f'')
+		col.prop(self, 'repository_url', text=f'')
+		col.prop(self, 'branch', text=f'')
+		col.prop(self, 'is_submodule', text=f'')
+		col.prop(self, 'local_path', text=f'')
+		col.prop(self, 'keymaps', text=f'')
 		col.separator()
 		
-		col.prop(self, 'name', text='Addon Name')
-		col.prop(self, 'is_sync', text=f'sync')
-		col.prop(self, 'is_enable', text=f'enable')
-		col.prop(self, 'online_url', text=f'online url')
-		col.prop(self, 'repository_url', text=f'repository url')
-		col.prop(self, 'branch', text=f'branch')
-		col.prop(self, 'is_submodule', text=f'submodule')
-		col.prop(self, 'local_path', text=f'local path')
-		col.prop(self, 'keymaps', text=f'keymaps')
-		col.separator()
-
-		col.label(text='Paths:')
-		col.prop(self, 'path_count', text=f'Path Count')
+		col.prop(self, 'path_count', text=f'')
 		for p in range(self.path_count):
 			col.label(text=f'Path {p+1}')
-			self.draw_path(col, self.paths[p])
+			row = col.split(align=True, factor=0.2)
+			self.draw_path(row, self.paths[p])
+			col.separator()
+			
 
+	def draw_path(self, row,  path):
+		col = row.column(align=True)
+		col.alignment='RIGHT'
+		col.label(text=f'Enable :  ')
+		col.label(text=f'Local Subpath :  ')
+		col.label(text=f'Destination Path :  ')
 
-	def draw_path(self, col,  path):
-		col.prop(path, 'is_enable', text=f'ienable')
-		col.prop(path, 'local_subpath', text=f'local subpath')
-		col.prop(path, 'destination_path', text=f'destination path')
+		col = row.column(align=True)
+		col.alignment='LEFT'
+		col.prop(path, 'is_enable', text=f'')
+		col.prop(path, 'local_subpath', text=f'')
+		col.prop(path, 'destination_path', text=f'')
 
 
 class TILA_Config_EditAddon(bpy.types.Operator):
@@ -794,7 +819,7 @@ class TILA_Config_EditAddon(bpy.types.Operator):
 
 		import_addon_element(self.element, self)
 
-		return wm.invoke_props_dialog(self, width=800)
+		return wm.invoke_props_dialog(self, width=700)
 
 	def execute(self, context):
 		self.log_status = Log(bpy.context.window_manager.tila_config_status_list, 'tila_config_status_list_idx')
@@ -820,31 +845,58 @@ class TILA_Config_EditAddon(bpy.types.Operator):
 
 	def draw(self, context):
 		layout = self.layout
-		col = layout.column()
-		col.label(text='New Addon')
-		col.separator()
+		row = layout.split(align=True, factor=0.2)
+		row.alignment='LEFT'
+		col = row.column(align=True)
+		col.alignment='RIGHT'
 
-		col.prop(self, 'name', text='Addon Name')
-		col.prop(self, 'is_sync', text=f'sync')
-		col.prop(self, 'is_enable', text=f'enable')
-		col.prop(self, 'online_url', text=f'online url')
-		col.prop(self, 'repository_url', text=f'repository url')
-		col.prop(self, 'branch', text=f'branch')
-		col.prop(self, 'is_submodule', text=f'submodule')
-		col.prop(self, 'local_path', text=f'local path')
-		col.prop(self, 'keymaps', text=f'keymaps')
+		col.label(text=f'Name :  ')
+		col.label(text=f'Sync :  ')
+		col.label(text=f'Enable :  ')
+		col.label(text=f'Online URL :  ')
+		col.label(text=f'Repository URL :  ')
+		col.label(text=f'Branch :  ')
+		col.label(text=f'Submodule :  ')
+		col.label(text=f'Local Path :  ')
+		col.label(text=f'Keymaps :  ')
 		col.separator()
+		col.label(text='Paths :   ')
 
-		col.label(text='Paths:')
-		col.prop(self, 'path_count', text=f'Path Count')
+		col = row.column(align=True)
+		col.alignment='LEFT'
+
+		col.prop(self, 'name', text='')
+		col.prop(self, 'is_sync', text=f'')
+		col.prop(self, 'is_enable', text=f'')
+		col.prop(self, 'online_url', text=f'')
+		col.prop(self, 'repository_url', text=f'')
+		col.prop(self, 'branch', text=f'')
+		col.prop(self, 'is_submodule', text=f'')
+		col.prop(self, 'local_path', text=f'')
+		col.prop(self, 'keymaps', text=f'')
+		col.separator()
+		
+		col.prop(self, 'path_count', text=f'')
 		for p in range(self.path_count):
 			col.label(text=f'Path {p+1}')
-			self.draw_path(col, self.paths[p])
+			row = col.split(align=True, factor=0.2)
+			self.draw_path(row, self.paths[p])
+			col.separator()
+			
 
-	def draw_path(self, col,  path):
-		col.prop(path, 'is_enable', text=f'enable')
-		col.prop(path, 'local_subpath', text=f'local subpath')
-		col.prop(path, 'destination_path', text=f'destination path')
+	def draw_path(self, row,  path):
+		col = row.column(align=True)
+		col.alignment='RIGHT'
+		col.label(text=f'Enable :  ')
+		col.label(text=f'Local Subpath :  ')
+		col.label(text=f'Destination Path :  ')
+
+		col = row.column(align=True)
+		col.alignment='LEFT'
+		col.prop(path, 'is_enable', text=f'')
+		col.prop(path, 'local_subpath', text=f'')
+		col.prop(path, 'destination_path', text=f'')
+
 
 
 class TILA_Config_RemoveAddon(bpy.types.Operator):
