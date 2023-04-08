@@ -24,8 +24,6 @@ class TILA_Config_AddonList(bpy.types.UIList):
 
 	def draw_item(self, context, layout, data, item, icon, active_data, active_propname, index):
 		self.use_filter_sort_alpha = True
-		
-		scn = context.scene
 
 		grid = layout.grid_flow(row_major=False, columns=0, even_columns=True, even_rows=True, align=True)
 		# row.alignment = 'RIGHT'

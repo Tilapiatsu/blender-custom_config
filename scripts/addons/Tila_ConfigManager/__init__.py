@@ -14,6 +14,9 @@
 import bpy
 from . preferences import TILA_Config_Preferences
 from . items import setup_blender_progress
+from .AddonManager.log_list import (TILA_Config_LogElement,
+                        			TILA_Config_LogList)
+
 from . operators import (	TILA_Config_RegisterKeymaps,
 							TILA_Config_UpdateSetupBlender,
 							TILA_Config_UnregisterKeymaps,
@@ -28,9 +31,11 @@ from . operators import (	TILA_Config_RegisterKeymaps,
 							TILA_Config_SetupBlender,
 							TILA_Config_ImportAddonList,
 							TILA_Config_SaveAddonList,
-                            TILA_Config_RemoveAddon,
+							TILA_Config_RemoveAddon,
 							TILA_Config_AddAddon,
-                            TILA_Config_EditAddon)
+							TILA_Config_EditAddon,
+                          	TILA_Config_ClearStatusList,
+                         	TILA_Config_ClearLogList)
 
 from . addon_list import ( 	TILA_Config_PathElement,
 			  				TILA_Config_AddonElement,
@@ -47,9 +52,14 @@ bl_info = {
 	"category" : "Preferences"
 }
 		
-classes = (	TILA_Config_PathElement,
+classes = (	
+			TILA_Config_LogElement,
+            TILA_Config_LogList,
+            TILA_Config_PathElement,
 	   		TILA_Config_AddonElement,
 			TILA_Config_AddonList,
+            TILA_Config_ClearStatusList,
+            TILA_Config_ClearLogList,
 			TILA_Config_PrintAddonList,
 			TILA_Config_CleanAddonList,
 			TILA_Config_RemoveConfig,
@@ -61,9 +71,9 @@ classes = (	TILA_Config_PathElement,
 		   	TILA_Config_UnregisterKeymaps,
 			TILA_Config_ImportAddonList,
 			TILA_Config_SaveAddonList,
-            TILA_Config_RemoveAddon,
+			TILA_Config_RemoveAddon,
 			TILA_Config_AddAddon,
-            TILA_Config_EditAddon,
+			TILA_Config_EditAddon,
 		   	TILA_Config_Preferences,
 			TILA_Config_SetSettings,
 			TILA_Config_SetupBlender,
@@ -72,20 +82,30 @@ classes = (	TILA_Config_PathElement,
 def register():
 	bpy.types.WindowManager.tila_setup_blender_progress = bpy.props.EnumProperty(default="NONE", items=setup_blender_progress)
 	bpy.types.WindowManager.tila_path_count = bpy.props.IntProperty(default=1)
+	
 	for cls in classes:
 		bpy.utils.register_class(cls)
 
 	bpy.types.WindowManager.tila_config_addon_list_idx = bpy.props.IntProperty()
 	bpy.types.WindowManager.tila_config_addon_list = bpy.props.CollectionProperty(type=TILA_Config_AddonElement)
+	bpy.types.WindowManager.tila_config_log_list_idx = bpy.props.IntProperty()
+	bpy.types.WindowManager.tila_config_log_list = bpy.props.CollectionProperty(type=TILA_Config_LogElement)
+	bpy.types.WindowManager.tila_config_status_list_idx = bpy.props.IntProperty()
+	bpy.types.WindowManager.tila_config_status_list = bpy.props.CollectionProperty(type=TILA_Config_LogElement)
 
 def unregister():
-	del bpy.types.WindowManager.tila_config_addon_list_idx
 	del bpy.types.WindowManager.tila_setup_blender_progress
+	del bpy.types.WindowManager.tila_config_log_list
+	del bpy.types.WindowManager.tila_config_log_list_idx
+	del bpy.types.WindowManager.tila_config_status_list
+	del bpy.types.WindowManager.tila_config_status_list_idx
+
 	for cls in reversed(classes):
 		bpy.utils.unregister_class(cls)
 	
 	del bpy.types.WindowManager.tila_path_count
 	del bpy.types.WindowManager.tila_config_addon_list
+	del bpy.types.WindowManager.tila_config_addon_list_idx
 	
 if __name__ == "__main__":
 	register()

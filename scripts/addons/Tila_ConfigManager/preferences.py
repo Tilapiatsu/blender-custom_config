@@ -26,6 +26,7 @@ class TILA_Config_Preferences(bpy.types.AddonPreferences):
 	def draw(self, context):
 		layout = self.layout
 		column = layout.column(align=True)
+		wm = bpy.context.window_manager
 		row = column.row()
 		row.prop(self, "tabs", expand=True)
 
@@ -35,14 +36,14 @@ class TILA_Config_Preferences(bpy.types.AddonPreferences):
 			self.draw_general(box)
 
 		elif self.tabs == "ADDONS":
-			self.draw_addons(box)
+			self.draw_addons(box, wm)
 
 		elif self.tabs == "ABOUT":
 			self.draw_about(box)
 
 		box = column.box()
 
-		self.draw_progress(box)
+		self.draw_progress(box, wm)
 
 	def draw_general(self, box):
 		split = box.split()
@@ -67,14 +68,11 @@ class TILA_Config_Preferences(bpy.types.AddonPreferences):
 		column.operator("tila.config_register_keymaps", text="Register Keymaps")
 		
 
-	def draw_addons(self, box):
-		wm = bpy.context.window_manager
-		kc = wm.keyconfigs.user
-
+	def draw_addons(self, box, wm):
 		split = box.split()
 
-		b = split.box()
-		row = b.row()
+		# b = split.box()
+		row = split.row()
 		rows = 20 if len(wm.tila_config_addon_list) > 10 else len(wm.tila_config_addon_list) * 2 + 1
 		
 		row.template_list('TILA_Config_addon_list', '', wm, 'tila_config_addon_list', wm, 'tila_config_addon_list_idx', rows=rows)
@@ -93,13 +91,26 @@ class TILA_Config_Preferences(bpy.types.AddonPreferences):
 		# row.operator("wm.url_open", text='MACHIN3tools',
 		# 			icon='INFO').url = 'https://machin3.io/MACHIN3tools/'
 
-	def draw_progress(self, box):
-		row = box.row(align=True)
-		b1 = row.box()
+	def draw_progress(self, box, wm):
+		status = box.row(align=True)
+		b1 = status.box()
 		b1.label(text="Status")
-		b2 = row.box()
+		row = b1.row()
+		rows = 11 if len(wm.tila_config_status_list) > 10 else len(wm.tila_config_status_list) + 1
+
+		row.template_list('TILA_Config_log_list', '', wm, 'tila_config_status_list', wm, 'tila_config_status_list_idx', rows=rows)
+		row.operator('tila.config_clear_status_list', text='', icon='TRASH')
+		# c = row.column(align=True)
+		# c.operator('tila.config_import_addon_list', text='', icon='FILE_REFRESH')
+
+		b2 = status.box()
 		b2.label(text="Progress")
+		row = b2.row()
+		rows = 11 if len(wm.tila_config_log_list) > 10 else len(wm.tila_config_log_list) + 1
+
+		row.template_list('TILA_Config_log_list', '', wm, 'tila_config_log_list', wm, 'tila_config_log_list_idx', rows=rows)
 		
+		row.operator('tila.config_clear_log_list', text='', icon='TRASH')
 		# progress = get_progress()
 		# b2.label(text=progress)
 

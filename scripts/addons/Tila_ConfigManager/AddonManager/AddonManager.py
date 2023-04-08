@@ -9,13 +9,13 @@ from . import keymaps
 from os import path
 from . import admin
 from . Logger import Logger
+from .log_list import TILA_Config_Log as Log
 
 root_folder = path.dirname(bpy.utils.script_path_user())
 
 dependencies = ['gitpython']
 
 create_symbolic_link_file = path.join(path.dirname(path.realpath(__file__)), 'create_symbolic_link.py')
-
 
 def install_dependencies():
 	current_dir = path.dirname(path.realpath(__file__))
@@ -47,25 +47,33 @@ def install_dependencies():
 						  *dependencies, '--target', dependencies_path])
 
 def enable_addon(addon_name):
+	log_progress = Log(bpy.context.window_manager.tila_config_log_list,
+	                   'tila_config_log_list_idx')
 	if addon_name in bpy.context.preferences.addons:
 		return False
 	
 	print(f'Enabling Addon : {addon_name}')
+	log_progress.start(f'Enabling Addon : {addon_name}')
 	bpy.ops.preferences.addon_enable(module=addon_name)
 	bpy.context.window_manager.keyconfigs.update()	
 	print(f'Enable Done!')
+	log_progress.done(f'Enable Done!')
 
 	return True
 
 
 def disable_addon(addon_name):
+	log_progress = Log(bpy.context.window_manager.tila_config_log_list,
+	                   'tila_config_log_list_idx')
 	if addon_name not in bpy.context.preferences.addons:
 		return False
 	
 	print(f'Disabling Addon : {addon_name}')
+	log_progress.start(f'Disabling Addon : {addon_name}')
 	bpy.ops.preferences.addon_disable(module=addon_name)
 	bpy.context.window_manager.keyconfigs.update()
 	print(f'Disable Done!')
+	log_progress.done(f'Disable Done!')
 
 	return True
 	
@@ -194,6 +202,8 @@ class Json(File):
 class PathAM():
 	def __init__(self, path):
 		self._path = path
+		self.log_progress = Log(bpy.context.window_manager.tila_config_log_list,
+		                        'tila_config_log_list_idx')
 	
 	def __str__(self):
 		return self._path if self._path is not None else ''
@@ -235,9 +245,11 @@ class PathAM():
 
 		if path.islink(self.path):
 			print(f'Unlink {target} {self.path}')
+			self.log_progress.start(f'Unlink {target} {self.path}')
 			os.unlink(self.path)
 		else:
 			print(f'Remove {target} {self.path}')
+			self.log_progress.start(f'Remove {target} {self.path}')
 			if self.is_file:
 				os.remove(self.path)
 			elif self.is_dir:
@@ -248,6 +260,8 @@ class PathElementAM():
 	def __init__(self, path_dict, local_path):
 		self._path_dict = path_dict
 		self.local_path = local_path
+		self.log_progress = Log(bpy.context.window_manager.tila_config_log_list,
+		                        'tila_config_log_list_idx')
 
 	@property
 	def is_enable(self):
@@ -277,6 +291,7 @@ class PathElementAM():
 			if not self.is_enable:
 				self.destination_path.remove()
 				print(f'Clean Done!')
+				self.log_progress.done(f'Clean Done!')
 
 	def link(self, overwrite=False):
 		if not self.is_enable:
@@ -293,6 +308,7 @@ class PathElementAM():
 				return None
 
 		print(f'Linking {self.local_subpath_resolved.path} -> {self.destination_path.path} {self.local_subpath_resolved.is_dir}')
+		self.log_progress.start(f'Linking {self.local_subpath_resolved.path} -> {self.destination_path.path} {self.local_subpath_resolved.is_dir}')
 		return str([self.local_subpath_resolved.path, self.destination_path.path, self.local_subpath_resolved.is_dir])
 	
 	def enable(self):
@@ -326,6 +342,8 @@ class ElementAM():
 		self.element_dict = element_dict
 		self.name = name
 		self.root_folder = root_folder
+		self.log_progress = Log(bpy.context.window_manager.tila_config_log_list,
+		                        'tila_config_log_list_idx')
 	
 	def __str__(self):
 		print(self.name)
@@ -422,6 +440,7 @@ class ElementAM():
 				return
 		
 		print(f'Syncing {self.name} to {self.local_path.path}')
+		self.log_progress.start(f'Syncing {self.name} to {self.local_path.path}')
 		if self.is_submodule:
 			self.ensure_repo_init()
 			repo = git.Repo(self.local_path.path)
@@ -434,6 +453,7 @@ class ElementAM():
 			git.Repo.clone_from(self.repository_url, self.local_path.path, **kwargs)
 		
 		print(f'Syncing Done!')
+		self.log_progress.done(f'Syncing Done!')
 
 	def link(self, overwrite=False):
 		if self.local_path.path is None:
@@ -476,6 +496,7 @@ class ElementAM():
 				keymap_instance = km()
 				keymap_instance.set_keymaps()
 			except AttributeError as e:
+				self.log_progress.warning(f'{self.name} Addon have no keymaps Set')
 				print(f'{self.name} Addon have no keymaps Set')
 
 class AddonManager():
@@ -485,6 +506,8 @@ class AddonManager():
 		self.processing = False
 		self.queue_list = []
 		self.log = Logger('AddonManager')
+		self.log_progress = Log(bpy.context.window_manager.tila_config_log_list,
+		                        'tila_config_log_list_idx')
 
 	@property
 	def elements(self):
@@ -627,6 +650,7 @@ class AddonManager():
 	def next_action(self):
 		if len(self.queue_list) == 0:
 			print('Queue Done !')
+			self.log_progress.done('Queue Done !')
 			return
 		
 		action = self.queue_list.pop(0)
