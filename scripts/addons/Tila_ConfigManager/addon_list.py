@@ -31,6 +31,14 @@ class TILA_Config_AddonList(bpy.types.UIList):
 		row = col.row(align=True)
 		row.operator('tila.config_remove_addon', text='', icon='TRASH').name = item.name
 		row.operator('tila.config_edit_addon', text='', icon='GREASEPENCIL').name = item.name
+		if len(item.online_url):
+			row.operator("wm.url_open", text='', icon='URL').url = item.online_url
+		else:
+			self.blank_space(row)
+		if len(item.repository_url):
+			row.operator("wm.url_open", text='', icon='PACKAGE').url = item.repository_url
+		else:
+			self.blank_space(row)
 		
 		row.label(text=f'{item.name}')
 		
@@ -68,3 +76,6 @@ class TILA_Config_AddonList(bpy.types.UIList):
 	def separator_iter(self, ui, iter) :
 		for i in range(iter):
 			ui.separator()
+	
+	def blank_space(self, ui):
+		ui.label(text='', icon='BLANK1')

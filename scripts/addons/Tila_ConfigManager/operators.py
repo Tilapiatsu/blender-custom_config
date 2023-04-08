@@ -786,7 +786,6 @@ class TILA_Config_RemoveAddon(bpy.types.Operator):
 		self.log_status.done(f'{self.name} addon removed')
 
 		return {'FINISHED'}
-	
 
 class TILA_Config_ClearStatusList(Operator):
 	"""Clar Status List"""

@@ -87,8 +87,7 @@ class TILA_Config_Preferences(bpy.types.AddonPreferences):
 		row = column.row(align=True)
 
 		row.scale_y = 1.5
-		# row.operator("wm.url_open", text='MACHIN3tools',
-		# 			icon='INFO').url = 'https://machin3.io/MACHIN3tools/'
+		# row.operator("wm.url_open", text='MACHIN3tools', icon='INFO').url = 'https://machin3.io/MACHIN3tools/'
 
 	def draw_progress(self, box, wm):
 		status = box.row(align=True)
