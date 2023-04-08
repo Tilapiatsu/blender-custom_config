@@ -2419,7 +2419,7 @@
             "destination_path": "#\\scripts\\addons\\EdgeFlow"
         }
     ],
-    "keymaps": true
+    "keymaps": false
 },
 "mesh_tools": {
     "is_sync": false,
