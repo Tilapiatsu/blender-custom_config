@@ -1004,8 +1004,8 @@
 "Capsule": {
     "is_sync": false,
     "is_enable": false,
-    "online_url": "https://github.com/Takanu/Capsule.git",
-    "repository_url": null,
+    "online_url": null,
+    "repository_url": "https://github.com/Takanu/Capsule.git",
     "branch" : null,
     "is_submodule" : false,
     "local_path": "#\\scripts\\addon_library\\GIT_Clones\\Capsule",
