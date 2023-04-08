@@ -12,6 +12,13 @@ class TILA_Config_LogList(bpy.types.UIList):
 		row = layout.row(align=True)
 		row.label(text=item.name, icon=item.icon)
 
+class TILA_Config_SatusList(bpy.types.UIList):
+	bl_idname = "TILA_Config_status_list"
+	
+	def draw_item(self, context, layout, data, item, icon, active_data, active_propname, index):
+		row = layout.row(align=True)
+		row.label(text=item.name, icon=item.icon)
+
 class TILA_Config_Log():
 	def __init__(self, log, index_name):
 		self.log = log

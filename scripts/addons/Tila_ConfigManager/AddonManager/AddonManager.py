@@ -308,7 +308,7 @@ class PathElementAM():
 				return None
 
 		print(f'Linking {self.local_subpath_resolved.path} -> {self.destination_path.path} {self.local_subpath_resolved.is_dir}')
-		self.log_progress.start(f'Linking {self.local_subpath_resolved.path} -> {self.destination_path.path} {self.local_subpath_resolved.is_dir}')
+		self.log_progress.start(f'Linking {self.local_subpath_resolved.path} -> {self.destination_path.path}')
 		return str([self.local_subpath_resolved.path, self.destination_path.path, self.local_subpath_resolved.is_dir])
 	
 	def enable(self):
@@ -441,6 +441,7 @@ class ElementAM():
 		
 		print(f'Syncing {self.name} to {self.local_path.path}')
 		self.log_progress.start(f'Syncing {self.name} to {self.local_path.path}')
+		
 		if self.is_submodule:
 			self.ensure_repo_init()
 			repo = git.Repo(self.local_path.path)

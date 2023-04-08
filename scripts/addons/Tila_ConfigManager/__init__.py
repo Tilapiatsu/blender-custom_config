@@ -15,7 +15,8 @@ import bpy
 from . preferences import TILA_Config_Preferences
 from . items import setup_blender_progress
 from .AddonManager.log_list import (TILA_Config_LogElement,
-                        			TILA_Config_LogList)
+                        			TILA_Config_LogList,
+									TILA_Config_SatusList)
 
 from . operators import (	TILA_Config_RegisterKeymaps,
 							TILA_Config_UpdateSetupBlender,
@@ -55,6 +56,7 @@ bl_info = {
 classes = (	
 			TILA_Config_LogElement,
             TILA_Config_LogList,
+	    	TILA_Config_SatusList,
             TILA_Config_PathElement,
 	   		TILA_Config_AddonElement,
 			TILA_Config_AddonList,

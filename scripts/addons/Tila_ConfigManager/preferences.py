@@ -71,7 +71,6 @@ class TILA_Config_Preferences(bpy.types.AddonPreferences):
 	def draw_addons(self, box, wm):
 		split = box.split()
 
-		# b = split.box()
 		row = split.row()
 		rows = 20 if len(wm.tila_config_addon_list) > 10 else len(wm.tila_config_addon_list) * 2 + 1
 		
@@ -98,10 +97,8 @@ class TILA_Config_Preferences(bpy.types.AddonPreferences):
 		row = b1.row()
 		rows = 11 if len(wm.tila_config_status_list) > 10 else len(wm.tila_config_status_list) + 1
 
-		row.template_list('TILA_Config_log_list', '', wm, 'tila_config_status_list', wm, 'tila_config_status_list_idx', rows=rows)
+		row.template_list('TILA_Config_status_list', '', wm, 'tila_config_status_list', wm, 'tila_config_status_list_idx', rows=rows)
 		row.operator('tila.config_clear_status_list', text='', icon='TRASH')
-		# c = row.column(align=True)
-		# c.operator('tila.config_import_addon_list', text='', icon='FILE_REFRESH')
 
 		b2 = status.box()
 		b2.label(text="Progress")
@@ -111,6 +108,4 @@ class TILA_Config_Preferences(bpy.types.AddonPreferences):
 		row.template_list('TILA_Config_log_list', '', wm, 'tila_config_log_list', wm, 'tila_config_log_list_idx', rows=rows)
 		
 		row.operator('tila.config_clear_log_list', text='', icon='TRASH')
-		# progress = get_progress()
-		# b2.label(text=progress)
 
