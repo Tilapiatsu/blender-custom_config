@@ -37,7 +37,7 @@ class TILA_Config_AddonList(bpy.types.UIList):
 		col = grid.column()
 		row = col.row(align=True)
 		row.operator('tila.config_remove_addon', text='', icon='TRASH').name = item.name
-		row.operator('tila.config_edit_addon', text='', icon='CURRENT_FILE').name = item.name
+		row.operator('tila.config_edit_addon', text='', icon='GREASEPENCIL').name = item.name
 		
 		row.label(text=f'{item.name}')
 		

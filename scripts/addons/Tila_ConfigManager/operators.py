@@ -15,6 +15,10 @@ def get_path():
 AL = path.join(get_path(), 'AddonList.json')
 
 class TILA_Config_SetupBlender(Operator):
+	"""One click blender setup. Based on the Json file It will :
+    - sync and enable the addons that are are set as enable
+    - apply the settings and keymaps
+    - save config file"""
 	bl_idname = "tila.config_setup_blender"
 	bl_label = "Tila Config : Setup Blender"
 	bl_options = {'REGISTER'}
@@ -52,6 +56,11 @@ class TILA_Config_SetupBlender(Operator):
 		return {"PASS_THROUGH"}
 	
 class TILA_Config_UpdateSetupBlender(Operator):
+	"""Update Blender setup, to match the changes made in the Json file. It will :
+    - disable and unlink the addons that are not enable anymore
+    - sync and enable the addons that are are not disabled anymore
+    - reapply the settings and keymaps
+    - save config file"""
 	bl_idname = "tila.config_update_setup_blender"
 	bl_label = "Tila Config : Update Setup Blender"
 	bl_options = {'REGISTER'}
@@ -93,6 +102,7 @@ class TILA_Config_UpdateSetupBlender(Operator):
 		return {"PASS_THROUGH"}
 
 class TILA_Config_PrintAddonList(Operator):
+	"""Print all addons list and all its settings and paths"""
 	bl_idname = "tila.config_print_addon_list"
 	bl_label = "Tila Config : Print Addon List"
 	bl_options = {'REGISTER'}
@@ -104,6 +114,7 @@ class TILA_Config_PrintAddonList(Operator):
 
 
 class TILA_Config_RemoveConfig(Operator):
+	"""Remove all custom config and revert to default Blender factory settings."""
 	bl_idname = "tila.config_remove"
 	bl_label = "Tila Config : Remove Config"
 	bl_options = {'REGISTER'}
@@ -135,6 +146,9 @@ class TILA_Config_RemoveConfig(Operator):
 		return {"PASS_THROUGH"}
 
 class TILA_Config_CleanAddonList(Operator):
+	"""Clean Addons that have already been linked and are disabled or not set to linked anymore.
+    name : if not set, all addons in the list will be processed. only the named addon will be cleaned
+    force : if enabled, all addon in the list will be cleaned"""
 	bl_idname = "tila.config_clean_addon_list"
 	bl_label = "Tila Config : clean Addon List"
 	bl_options = {'REGISTER'}
@@ -179,6 +193,8 @@ class TILA_Config_CleanAddonList(Operator):
 
 
 class TILA_Config_SyncAddonList(Operator):
+	"""Sync Addons that are set as sync.
+    name : if not set, all addons in the list will be processed. only the named addon will be Synced"""
 	bl_idname = "tila.config_sync_addon_list"
 	bl_label = "Tila Config : Sync Addon List"
 	bl_options = {'REGISTER'}
@@ -221,6 +237,8 @@ class TILA_Config_SyncAddonList(Operator):
 
 
 class TILA_Config_LinkAddonList(Operator):
+	"""Link Addons that are set as link.
+    name : if not set, all addons in the list will be processed. only the named addon will be linked"""
 	bl_idname = "tila.config_link_addon_list"
 	bl_label = "Tila Config : Link Addon List"
 	bl_options = {'REGISTER'}
@@ -252,6 +270,9 @@ class TILA_Config_LinkAddonList(Operator):
 
 
 class TILA_Config_EnableAddonList(Operator):
+	"""Enable Addons that are set as enable.
+    name : if not set, all addons in the list will be processed. only the named addon will be Enable
+    force : if enabled, all addon in the list will be enabled"""
 	bl_idname = "tila.config_enable_addon_list"
 	bl_label = "Tila Config : Enable Addon List"
 	bl_options = {'REGISTER'}
@@ -291,6 +312,9 @@ class TILA_Config_EnableAddonList(Operator):
 	
 
 class TILA_Config_DisableAddonList(Operator):
+	"""Disable Addons that are not set as enable.
+    name : if not set, all addons in the list will be processed. only the named addon will be disable
+    force : if enabled,  all addon in the list will be disabled"""
 	bl_idname = "tila.config_disable_addon_list"
 	bl_label = "Tila Config : Disable Addon List"
 	bl_options = {'REGISTER'}
@@ -332,6 +356,8 @@ class TILA_Config_DisableAddonList(Operator):
 		return {"PASS_THROUGH"}
 
 class TILA_Config_RegisterKeymaps(Operator):
+	"""Register keymaps to Blender
+    name : register only the named Addon"""
 	bl_idname = "tila.config_register_keymaps"
 	bl_label = "Tila Config : Register Keymaps"
 	bl_options = {'REGISTER'}
@@ -383,6 +409,7 @@ class TILA_Config_UnregisterKeymaps(Operator):
 		return {'FINISHED'}
 	
 class TILA_Config_SetSettings(Operator):
+	"""Apply Custom Settings to blender"""
 	bl_idname = "tila.config_set_settings"
 	bl_label = "Tila Config : Set Settings"
 	bl_options = {'REGISTER'}
@@ -450,6 +477,7 @@ def get_addon_element_dict(element, path_fallback):
 	return addon_element_dict
 
 class TILA_Config_ImportAddonList(Operator):
+	"""Import Addon List from Json file. It will revert any changes that Havent been saved yet"""
 	bl_idname = "tila.config_import_addon_list"
 	bl_label = "Tila Config : Import Addon List"
 	bl_options = {'REGISTER'}
@@ -473,6 +501,7 @@ class TILA_Config_ImportAddonList(Operator):
 
 
 class TILA_Config_SaveAddonList(Operator):
+	"""Save entire addon list to Json"""
 	bl_idname = "tila.config_save_addon_list"
 	bl_label = "Tila Config : Save Addon List"
 	bl_options = {'REGISTER'}
@@ -500,6 +529,7 @@ def update_path_count(self, context):
 		context.window_manager.tila_path_count = len(self.paths)
 
 class TILA_Config_AddAddon(bpy.types.Operator):
+	"""Add addon to addon list. Changes will be added to Json"""
 	bl_idname = "tila.config_add_addon"
 	bl_label = "Tila Config : Add Addon"
 	bl_options = {'REGISTER'}
@@ -583,6 +613,7 @@ class TILA_Config_AddAddon(bpy.types.Operator):
 
 
 class TILA_Config_EditAddon(bpy.types.Operator):
+	"""Edit addon from addon list. Changes will be added to Json"""
 	bl_idname = "tila.config_edit_addon"
 	bl_label = "Tila Config : Edit Addon"
 	bl_options = {'REGISTER'}
@@ -668,7 +699,7 @@ class TILA_Config_EditAddon(bpy.types.Operator):
 
 
 class TILA_Config_RemoveAddon(bpy.types.Operator):
-	"""Remove addon from addon list"""
+	"""Remove addon from addon list. Addon will be removed from Json too"""
 	bl_idname = "tila.config_remove_addon"
 	bl_label = "Remove Addon ?"
 	bl_options = {'REGISTER'}
