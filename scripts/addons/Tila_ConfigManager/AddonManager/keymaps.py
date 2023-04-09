@@ -1470,10 +1470,9 @@ class TILA_Config_Keymaps_rotate_an_hdri(TILA_Config_Keymaps):
 	def set_keymaps(self):
 		self.print_status(f"Assigning {self.addon_name} Keymaps")
 
-		if self.kmi_init(name='3D View', space_type='VIEW_3D', region_type='WINDOW', addon=True, restore_to_default=False):
-			self.kmi_set_replace('rotate.hdri', self.k_context, 'CLICK_DRAG',
-			                     ctrl=True, alt=True, shift=False,  disable_double=True)
-			# self.kmi_set_active(enable=True, idname='rotate.hdri')
+		if self.kmi_init(name='3D View', space_type='VIEW_3D', region_type='WINDOW', addon=False, restore_to_default=False):
+			# self.kmi_set_active(enable=False, idname='rotate.hdri')
+			self.kmi_set_replace('rotate.hdri', self.k_context, 'CLICK_DRAG', ctrl=True, alt=True, shift=False,  disable_double=True)
 
 		self.print_status(f"Assignment of {self.addon_name} complete", start=False)
 		
