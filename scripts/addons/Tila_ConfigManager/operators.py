@@ -615,7 +615,7 @@ def get_addon_element_dict(element, path_fallback):
 	return addon_element_dict
 
 class TILA_Config_ImportAddonList(Operator):
-	"""Import Addon List from Json file. It will revert any changes that Havent been saved yet"""
+	"""Import Addon List from Json file. It will revert any changes that haven't been saved yet"""
 	bl_idname = "tila.config_import_addon_list"
 	bl_label = "Tila Config : Import Addon List"
 	bl_options = {'REGISTER'}
@@ -648,7 +648,8 @@ class TILA_Config_SaveAddonList(Operator):
 	bl_options = {'REGISTER'}
 
 	def execute(self, context):
-		self.log_status = Log(bpy.context.window_manager.tila_config_status_list)
+		self.log_status = Log(
+			bpy.context.window_manager.tila_config_status_list, 'tila_config_status_list_idx')
 		wm = context.window_manager
 
 		AM = AddonManager.AddonManager(AL)
