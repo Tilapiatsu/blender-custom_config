@@ -11,7 +11,7 @@ def get_log_file():
 	except AttributeError:
 		filepath = ''
 	if path.exists(filepath):
-		log_file = path.join(path.dirname(filepath), '{}.log'.format(
+		log_file = path.join(path.dirname(path.dirname(path.dirname(path.dirname(filepath)))), '{}.log'.format(
 			path.splitext(path.basename(filepath))[0]))
 	else:
 		tempf = tempfile.TemporaryFile().name

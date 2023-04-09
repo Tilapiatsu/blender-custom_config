@@ -266,6 +266,7 @@ class PathElementAM():
 		self.local_path = local_path
 		self.log_progress = Log(bpy.context.window_manager.tila_config_log_list,
 								'tila_config_log_list_idx')
+		self.logger = Logger('PathElementAM')
 
 	@property
 	def is_enable(self):
@@ -287,7 +288,7 @@ class PathElementAM():
 		return PathAM(self._path_dict['destination_path'])
 	
 	def clean(self, force=False):
-		
+		self.logger.info(f'Cleaning {self.destination_path}')
 		if self.destination_path.exists:
 			if not force and self.is_enable:
 				return
