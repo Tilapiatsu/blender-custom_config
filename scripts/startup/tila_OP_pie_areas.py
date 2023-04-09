@@ -23,29 +23,45 @@ class TILA_MT_pie_areas(Menu):
 		layout = self.layout
 		pie = layout.menu_pie()
 
-		prop = pie.operator("wm.shader_view", text="Shader Editor").ui_type = 'ShaderNodeTree'
+		# Left
+		prop = pie.operator("wm.area_split", text="Spreadsheet").ui_type = 'SPREADSHEET'
 		
+		# Right
 		pie.operator("wm.3dview", text="3D View")
 
-		pie.operator("wm.uv_view", text="UV Editor")
+		# Bottom
+		pie.operator('screen.area_close', text='Close')
+		# pie.operator("wm.uv_view", text="UV Editor")
 
-		pie.operator("screen.screen_full_area", text="Maximize")
+		# Top
+		prop = pie.operator("wm.area_split", text="Geometry Node").ui_type = 'GeometryNodeTree'
 
-		prop = pie.operator("wm.context_set_enum", text="Python Console")
-		prop.data_path = "area.type"
-		prop.value = 'CONSOLE'
+		# Top Left
+		prop = pie.operator("wm.area_split", text="Split").ui_type = 'VIEW_3D'
 
-		prop = pie.operator("wm.context_set_enum", text="Timeline")
-		prop.data_path = "area.type"
-		prop.value = 'DOPESHEET_EDITOR'
-  
-		prop = pie.operator("wm.context_set_enum", text="Outliner")
-		prop.data_path = "area.type"
-		prop.value = 'OUTLINER'  	
-   
-		prop = pie.operator("wm.context_set_enum", text="Properties")
-		prop.data_path = "area.type"
-		prop.value = 'PROPERTIES'
+		# prop = pie.operator("wm.context_set_enum", text="Python Console")
+		# prop.data_path = "area.type"
+		# prop.value = 'CONSOLE'
+
+		# Top Right
+		prop = pie.operator("wm.area_split", text="Shader Editor").ui_type = 'ShaderNodeTree'
+		# prop = pie.operator("wm.context_set_enum", text="Timeline")
+		# prop.data_path = "area.type"
+		# prop.value = 'DOPESHEET_EDITOR'
+
+		# Bottom Left
+		prop = pie.operator("wm.area_split", text="Asset Browser")
+		prop.ui_type = 'ASSETS'
+		# prop.direction = 'HORIZONTAL'
+		# prop = pie.operator("wm.context_set_enum", text="Outliner")
+		# prop.data_path = "area.type"
+		# prop.value = 'OUTLINER'  	
+
+		# Bottom Right
+		prop = pie.operator("wm.area_split", text="UV Editor").ui_type = 'UV'
+		# prop = pie.operator("wm.context_set_enum", text="Properties")
+		# prop.data_path = "area.type"
+		# prop.value = 'PROPERTIES'
 
 class TILA_OT_areas_uv_view(bpy.types.Operator):
 	bl_idname = 'wm.uv_view'
@@ -64,10 +80,45 @@ class TILA_OT_areas_shader_view(bpy.types.Operator):
 		bpy.context.area.ui_type = self.ui_type
 		return {'FINISHED'}
 
+class TILA_OT_area_split(bpy.types.Operator):
+	bl_idname = 'wm.area_split'
+	bl_label = 'Area Split'
+
+	ui_type : bpy.props.EnumProperty(items=[("ShaderNodeTree", "Shader", ""),
+					 						("TextureNodeTree", "Texture", ""),
+											("GeometryNodeTree", "Geometry", ""),
+											("BakeWrangler_Tree", "Bake", ""),
+											("CompositorNodeTree", "Compositor", ""),
+											("UV", "Uv", ""),
+											("VIEW_3D", 'View 3D', ''),
+											("ASSETS", 'Asset Browser', ''),
+											("SPREADSHEET", 'SpreadSheet', '')])
+
+	direction : bpy.props.EnumProperty(items=[("VERTICAL", "Vertical", ""), ("HORIZONTAL", "Horizontal", "")])
+	factor : bpy.props.FloatProperty(name='Factor', default=0.5)
+	def execute(self, context):
+		window = context.window_manager.windows[0]
+		bpy.ops.screen.area_split(direction=self.direction, factor=self.factor, cursor=(0, 0))
+
+		editor_type = 'VIEW_3D'
+		if self.ui_type in ['ShaderNodeTree', 'TextureNodeTree', 'GeometryNodeTree', 'BakeWrangler_Tree', 'CompositorNodeTree']:
+			editor_type = 'NODE_EDITOR'
+		elif self.ui_type in ['UV']:
+			editor_type = 'IMAGE_EDITOR'
+		elif self.ui_type in ['ASSETS']:
+			editor_type = 'FILE_BROWSER'
+		elif self.ui_type in ['SPREADSHEET']:
+			editor_type = 'SPREADSHEET'
+
+		bpy.ops.wm.context_set_enum(data_path='area.type', value=editor_type)
+		bpy.context.area.ui_type = self.ui_type
+		return {'FINISHED'}
+
 classes = (
 	TILA_MT_pie_areas,
  	TILA_OT_areas_uv_view,
-	TILA_OT_areas_shader_view
+	TILA_OT_areas_shader_view,
+	TILA_OT_area_split
 )
 register, unregister = bpy.utils.register_classes_factory(classes)
 

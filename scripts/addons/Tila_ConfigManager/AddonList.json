@@ -2589,7 +2589,7 @@
         "keymaps": false,
         "paths": [
             {
-                "is_enable": true,
+                "is_enable": false,
                 "local_subpath": "bgen.py",
                 "destination_path": "#\\scripts\\addons\\bgen.py"
             }
