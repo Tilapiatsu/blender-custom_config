@@ -1,2592 +1,2598 @@
 {
-"_global_keymaps": " ..................................Global Keymaps..................................",
-"Global":{
-    "is_sync": false,
-    "is_enable": false,
-    "online_url": null,
-    "repository_url": null,
-    "branch" : null,
-    "is_submodule" : false,
-    "local_path": null,
-    "paths": null,
-    "keymaps": true
-},
-"_misc": " ..................................Misc..................................",
-"ProTheme": {
-    "is_sync": true,
-    "is_enable": false,
-    "online_url": null,
-    "repository_url": "https://github.com/paulcoops/blender_pro-theme.git",
-    "branch" : null,
-    "is_submodule" : false,
-    "local_path": "#\\scripts\\addon_library\\GIT_Clones\\ProTheme",
-    "paths": [
-        {
-            "is_enable": true,
-            "local_subpath": "blender_pro.xml",
-            "destination_path": "#\\scripts\\presets\\interface_theme\\blender_pro.xml"
-        }
-    ],
-    "keymaps": false
-},
-"matcap": {
-    "is_sync": true,
-    "is_enable": false,
-    "online_url": null,
-    "repository_url": "https://github.com/Tilapiatsu/matcap-selection.git",
-    "branch" : "master",
-    "is_submodule" : true,
-    "local_path": "#\\scripts\\addon_library\\GIT_Submodules\\tila_matcap",
-    "paths": [
-        {
-            "is_enable": true,
-            "local_subpath": null,
-            "destination_path": "#\\datafiles\\studiolights\\matcap"
-        }
-    ],
-    "keymaps": false
-},
-"HDRI": {
-    "is_sync": false,
-    "is_enable": false,
-    "online_url": null,
-    "repository_url": null,
-    "branch": null,
-    "is_submodule" : false,
-    "local_path": "R:\\Mon Drive\\00_Blender_Asset_Library\\Hdri",
-    "paths": [
-        {
-            "is_enable": true,
-            "local_subpath": null,
-            "destination_path": "#\\datafiles\\studiolights\\world"
-        }
-    ],
-    "keymaps": false
-},
-"AgX": {
-    "is_sync": true,
-    "is_enable": false,
-    "online_url": null,
-    "repository_url": "https://github.com/sobotka/AgX.git",
-    "branch": null,
-    "is_submodule" : false,
-    "local_path": "#\\scripts\\addon_library\\GIT_Clones\\AgX",
-    "paths": [
-        {
-            "is_enable": true,
-            "local_subpath": null,
-            "destination_path": "#\\datafiles\\colormanagement"
-        }
-    ],
-    "keymaps": false
-},
-"OpenColorIO-Config-ACES": {
-    "is_sync": false,
-    "is_enable": false,
-    "online_url": null,
-    "repository_url": "https://github.com/AcademySoftwareFoundation/OpenColorIO-Config-ACES.git",
-    "branch": null,
-    "is_submodule" : false,
-    "local_path": "#\\scripts\\addon_library\\GIT_Clones\\OpenColorIO-Config-ACES",
-    "paths": [
-        {
-            "is_enable": false,
-            "local_subpath": null,
-            "destination_path": "#\\datafiles\\colormanagement"
-        }
-    ],
-    "keymaps": false
-},
-"_addon_library_local": " ..................................Addon Library Local..................................",
-"BulkAsset": {
-    "is_sync": false,
-    "is_enable": false,
-    "online_url": "https://johnnygizmo.gumroad.com/l/bulk-asset-tools",
-    "repository_url": null,
-    "branch": null,
-    "is_submodule": false,
-    "local_path": "#\\scripts\\addon_library\\local\\BulkAsset",
-    "paths": [
-        {
-            "is_enable": false,
-            "local_subpath": null,
-            "destination_path": "#\\scripts\\addons\\BulkAsset"
-        }
-    ],
-    "keymaps": false
-},
-"BystedtsBlenderBaker": {
-    "is_sync": false,
-    "is_enable": false,
-    "online_url": "https://3dbystedt.gumroad.com/l/JAqLT",
-    "repository_url": null,
-    "branch": null,
-    "is_submodule": false,
-    "local_path": "#\\scripts\\addon_library\\local\\BystedtsBlenderBaker",
-    "paths": [
-        {
-            "is_enable": false,
-            "local_subpath": null,
-            "destination_path": "#\\scripts\\addons\\BystedtsBlenderBaker"
-        }
-    ],
-    "keymaps": false
-},
-"CheckToolBox": {
-    "is_sync": false,
-    "is_enable": false,
-    "online_url": "https://vfxgrace.gumroad.com/l/apny",
-    "repository_url": null,
-    "branch": null,
-    "is_submodule": false,
-    "local_path": "#\\scripts\\addon_library\\local\\CheckToolBox",
-    "paths": [
-        {
-            "is_enable": false,
-            "local_subpath": null,
-            "destination_path": "#\\scripts\\addons\\CheckToolBox"
-        }
-    ],
-    "keymaps": false
-},
-"context_browser": {
-    "is_sync": false,
-    "is_enable": false,
-    "online_url": "https://roaoao.gumroad.com/l/context_browser",
-    "repository_url": null,
-    "branch": null,
-    "is_submodule": false,
-    "local_path": "#\\scripts\\addon_library\\local\\context_browser",
-    "paths": [
-        {
-            "is_enable": false,
-            "local_subpath": null,
-            "destination_path": "#\\scripts\\addons\\context_browser"
-        }
-    ],
-    "keymaps": false
-},
-"drop_it": {
-    "is_sync": false,
-    "is_enable": false,
-    "online_url": "https://andreasaust.gumroad.com/l/drop_it",
-    "repository_url": null,
-    "branch": null,
-    "is_submodule": false,
-    "local_path": "#\\scripts\\addon_library\\local\\drop_it",
-    "paths": [
-        {
-            "is_enable": false,
-            "local_subpath": null,
-            "destination_path": "#\\scripts\\addons\\drop_it"
-        }
-    ],
-    "keymaps": false
-},
-"EasyHDRI": {
-    "is_sync": false,
-    "is_enable": false,
-    "online_url": "https://codeofart.gumroad.com/l/EasyHDRI",
-    "repository_url": null,
-    "branch": null,
-    "is_submodule": false,
-    "local_path": "#\\scripts\\addon_library\\local",
-    "paths": [
-        {
-            "is_enable": false,
-            "local_subpath": "EasyHDRI.py",
-            "destination_path": "#\\scripts\\addons\\EasyHDRI.py"
-        }
-    ],
-    "keymaps": false
-},
-"flow_map_painter": {
-    "is_sync": false,
-    "is_enable": false,
-    "online_url": "https://clemensbeute.gumroad.com/l/heZDT",
-    "repository_url": null,
-    "branch": null,
-    "is_submodule": false,
-    "local_path": "#\\scripts\\addon_library\\local\\flow_map_painter",
-    "paths": [
-        {
-            "is_enable": false,
-            "local_subpath": null,
-            "destination_path": "#\\scripts\\addons\\flow_map_painter"
-        }
-    ],
-    "keymaps": false
-},
-"keentools": {
-    "is_sync": false,
-    "is_enable": false,
-    "online_url": "https://keentools.io/download/facebuilder-for-blender",
-    "repository_url": null,
-    "branch": null,
-    "is_submodule": false,
-    "local_path": "#\\scripts\\addon_library\\local\\keentools",
-    "paths": [
-        {
-            "is_enable": false,
-            "local_subpath": null,
-            "destination_path": "#\\scripts\\addons\\keentools"
-        }
-    ],
-    "keymaps": false
-},
-"kekit": {
-    "is_sync": false,
-    "is_enable": true,
-    "online_url": "https://kjell.gumroad.com/l/kekit_blender",
-    "repository_url": null,
-    "branch": null,
-    "is_submodule": false,
-    "local_path": "#\\scripts\\addon_library\\local\\kekit",
-    "paths": [
-        {
-            "is_enable": true,
-            "local_subpath": null,
-            "destination_path": "#\\scripts\\addons\\kekit"
-        }
-    ],
-    "keymaps": true
-},
-"lazy_shapekeys": {
-    "is_sync": false,
-    "is_enable": false,
-    "online_url": "https://bookyakuno.gumroad.com/l/lazy-shapekeys",
-    "repository_url": null,
-    "branch": null,
-    "is_submodule": false,
-    "local_path": "#\\scripts\\addon_library\\local\\lazy_shapekeys",
-    "paths": [
-        {
-            "is_enable": false,
-            "local_subpath": null,
-            "destination_path": "#\\scripts\\addons\\lazy_shapekeys"
-        }
-    ],
-    "keymaps": false
-},
-"MeshDataTransfer": {
-    "is_sync": false,
-    "is_enable": true,
-    "online_url": "https://mmemoli.gumroad.com/l/tOKEh",
-    "repository_url": null,
-    "branch": null,
-    "is_submodule": false,
-    "local_path": "#\\scripts\\addon_library\\local\\MeshDataTransfer",
-    "paths": [
-        {
-            "is_enable": true,
-            "local_subpath": null,
-            "destination_path": "#\\scripts\\addons\\MeshDataTransfer"
-        }
-    ],
-    "keymaps": false
-},
-"mouselook_navigation": {
-    "is_sync": false,
-    "is_enable": false,
-    "online_url": "https://moth3r.gumroad.com/l/mouselook",
-    "repository_url": null,
-    "branch": null,
-    "is_submodule": false,
-    "local_path": "#\\scripts\\addon_library\\local\\mouselook_navigation",
-    "paths": [
-        {
-            "is_enable": false,
-            "local_subpath": null,
-            "destination_path": "#\\scripts\\addons\\mouselook_navigation"
-        }
-    ],
-    "keymaps": false
-},
-"NGon Loop Select": {
-    "is_sync": false,
-    "is_enable": true,
-    "online_url": "https://amanbairwal.gumroad.com/l/NGonLoopSelect",
-    "repository_url": null,
-    "branch": null,
-    "is_submodule": false,
-    "local_path": "#\\scripts\\addon_library\\local\\NGon Loop Select",
-    "paths": [
-        {
-            "is_enable": true,
-            "local_subpath": null,
-            "destination_path": "#\\scripts\\addons\\NGon Loop Select"
-        }
-    ],
-    "keymaps": false
-},
-"Poly_Source": {
-    "is_sync": false,
-    "is_enable": true,
-    "online_url": "https://derksen.gumroad.com/l/polysource",
-    "repository_url": null,
-    "branch": null,
-    "is_submodule": false,
-    "local_path": "#\\scripts\\addon_library\\local\\Poly_Source",
-    "paths": [
-        {
-            "is_enable": true,
-            "local_subpath": null,
-            "destination_path": "#\\scripts\\addons\\Poly_Source"
-        }
-    ],
-    "keymaps": true
-},
-"Pro_Aligner": {
-    "is_sync": false,
-    "is_enable": true,
-    "online_url": "https://cggalaxy.gumroad.com/l/proaligner",
-    "repository_url": null,
-    "branch": null,
-    "is_submodule": false,
-    "local_path": "#\\scripts\\addon_library\\local\\Pro_Aligner",
-    "paths": [
-        {
-            "is_enable": true,
-            "local_subpath": null,
-            "destination_path": "#\\scripts\\addons\\Pro_Aligner"
-        }
-    ],
-    "keymaps": false
-},
-"QBlocker": {
-    "is_sync": false,
-    "is_enable": false,
-    "online_url": "https://sanislovart.gumroad.com/l/gOEV",
-    "repository_url": null,
-    "branch": null,
-    "is_submodule": false,
-    "local_path": "#\\scripts\\addon_library\\local\\QBlocker",
-    "paths": [
-        {
-            "is_enable": false,
-            "local_subpath": null,
-            "destination_path": "#\\scripts\\addons\\QBlocker"
-        }
-    ],
-    "keymaps": false
-},
-"render_task_list": {
-    "is_sync": false,
-    "is_enable": false,
-    "online_url": "https://bookyakuno.gumroad.com/l/render-task-list",
-    "repository_url": null,
-    "branch": null,
-    "is_submodule": false,
-    "local_path": "#\\scripts\\addon_library\\local\\render_task_list",
-    "paths": [
-        {
-            "is_enable": false,
-            "local_subpath": null,
-            "destination_path": "#\\scripts\\addons\\render_task_list"
-        }
-    ],
-    "keymaps": false
-},
-"RetopoFlow": {
-    "is_sync": false,
-    "is_enable": false,
-    "online_url": null,
-    "repository_url": "https://github.com/CGCookie/retopoflow.git",
-    "branch": null,
-    "is_submodule": false,
-    "local_path": "#\\scripts\\addon_library\\local\\RetopoFlow",
-    "paths": [
-        {
-            "is_enable": false,
-            "local_subpath": null,
-            "destination_path": "#\\scripts\\addons\\RetopoFlow"
-        }
-    ],
-    "keymaps": false
-},
-"rotate_an_hdri": {
-    "is_sync": false,
-    "is_enable": true,
-    "online_url": "https://alexbel.gumroad.com/l/XQYEl",
-    "repository_url": null,
-    "branch": null,
-    "is_submodule": false,
-    "local_path": "#\\scripts\\addon_library\\local\\rotate_an_hdri",
-    "paths": [
-        {
-            "is_enable": true,
-            "local_subpath": null,
-            "destination_path": "#\\scripts\\addons\\rotate_an_hdri"
-        }
-    ],
-    "keymaps": true
-},
-"sj_selection_set": {
-    "is_sync": false,
-    "is_enable": false,
-    "online_url": "https://captainhansode.gumroad.com/l/wqaMJ",
-    "repository_url": null,
-    "branch": null,
-    "is_submodule": false,
-    "local_path": "#\\scripts\\addon_library\\local\\sj_selection_set",
-    "paths": [
-        {
-            "is_enable": false,
-            "local_subpath": null,
-            "destination_path": "#\\scripts\\addons\\sj_selection_set"
-        }
-    ],
-    "keymaps": false
-},
-"slcad_transform": {
-    "is_sync": false,
-    "is_enable": true,
-    "online_url": "https://blender-archipack.gumroad.com/l/nQVcS",
-    "repository_url": null,
-    "branch": null,
-    "is_submodule": false,
-    "local_path": "#\\scripts\\addon_library\\local\\slcad_transform",
-    "paths": [
-        {
-            "is_enable": true,
-            "local_subpath": null,
-            "destination_path": "#\\scripts\\addons\\slcad_transform"
-        }
-    ],
-    "keymaps": false
-},
-"softMod": {
-    "is_sync": false,
-    "is_enable": false,
-    "online_url": "https://mmemoli.gumroad.com/l/softmod",
-    "repository_url": null,
-    "branch": null,
-    "is_submodule": false,
-    "local_path": "#\\scripts\\addon_library\\local\\softMod",
-    "paths": [
-        {
-            "is_enable": false,
-            "local_subpath": null,
-            "destination_path": "#\\scripts\\addons\\softMod"
-        }
-    ],
-    "keymaps": false
-},
-"SSGI": {
-    "is_sync": false,
-    "is_enable": false,
-    "online_url": "https://n0451.gumroad.com/l/PgyXc",
-    "repository_url": null,
-    "branch": null,
-    "is_submodule": false,
-    "local_path": "#\\scripts\\addon_library\\local\\SSGI",
-    "paths": [
-        {
-            "is_enable": false,
-            "local_subpath": null,
-            "destination_path": "#\\scripts\\addons\\SSGI"
-        }
-    ],
-    "keymaps": false
-},
-"surface_inflate": {
-    "is_sync": false,
-    "is_enable": true,
-    "online_url": "https://kushiro.gumroad.com/l/inmas",
-    "repository_url": null,
-    "branch": null,
-    "is_submodule": false,
-    "local_path": "#\\scripts\\addon_library\\local\\surface_inflate",
-    "paths": [
-        {
-            "is_enable": true,
-            "local_subpath": null,
-            "destination_path": "#\\scripts\\addons\\surface_inflate"
-        }
-    ],
-    "keymaps": false
-},
-"Is_Synchronize Workspace": {
-    "is_sync": false,
-    "is_enable": false,
-    "online_url": "https://m-soluyanov.gumroad.com/l/afoty",
-    "repository_url": null,
-    "branch": null,
-    "is_submodule": false,
-    "local_path": "#\\scripts\\addon_library\\local\\Is_Synchronize Workspace",
-    "paths": [
-        {
-            "is_enable": false,
-            "local_subpath": null,
-            "destination_path": "#\\scripts\\addons\\Is_Synchronize Workspace"
-        }
-    ],
-    "keymaps": false
-},
-"UnwrapMe": {
-    "is_sync": false,
-    "is_enable": true,
-    "online_url": null,
-    "repository_url": "https://github.com/3e33/UnwrapMe.git",
-    "branch": null,
-    "is_submodule": false,
-    "local_path": "#\\scripts\\addon_library\\local\\UnwrapMe",
-    "paths": [
-        {
-            "is_enable": true,
-            "local_subpath": null,
-            "destination_path": "#\\scripts\\addons\\UnwrapMe"
-        }
-    ],
-    "keymaps": false
-},
-"weight_layers": {
-    "is_sync": false,
-    "is_enable": false,
-    "online_url": "https://strike-digital.gumroad.com/l/weight_layers",
-    "repository_url": null,
-    "branch": null,
-    "is_submodule": false,
-    "local_path": "#\\scripts\\addon_library\\local\\weight_layers",
-    "paths": [
-        {
-            "is_enable": false,
-            "local_subpath": null,
-            "destination_path": "#\\scripts\\addons\\weight_layers"
-        }
-    ],
-    "keymaps": false
-},
-"auto_mirror_ex": {
-    "is_sync": false,
-    "is_enable": false,
-    "online_url": "https://bookyakuno.gumroad.com/l/vgRSB",
-    "repository_url": null,
-    "branch": null,
-    "is_submodule": false,
-    "local_path": "#\\scripts\\addon_library\\local\\auto_mirror_ex",
-    "paths": [
-        {
-            "is_enable": false,
-            "local_subpath": null,
-            "destination_path": "#\\scripts\\addons\\auto_mirror_ex"
-        }
-    ],
-    "keymaps": false
-},
-"bakeToVertexColor": {
-    "is_sync": false,
-    "is_enable": false,
-    "online_url": "https://3dbystedt.gumroad.com/l/zdgxg",
-    "repository_url": null,
-    "branch": null,
-    "is_submodule": false,
-    "local_path": "#\\scripts\\addon_library\\local",
-    "paths": [
-        {
-            "is_enable": false,
-            "local_subpath": "bakeToVertexColor.py",
-            "destination_path": "#\\scripts\\addons\\bakeToVertexColor.py"
-        }
-    ],
-    "keymaps": false
-},
-"Blender_light_manager": {
-    "is_sync": false,
-    "is_enable": true,
-    "online_url": "https://engelik.gumroad.com/l/DQNYI",
-    "repository_url": null,
-    "branch": null,
-    "is_submodule": false,
-    "local_path": "#\\scripts\\addon_library\\local",
-    "paths": [
-        {
-            "is_enable": true,
-            "local_subpath": "Blender_light_manager.py",
-            "destination_path": "#\\scripts\\addons\\Blender_light_manager.py"
-        }
-    ],
-    "keymaps": false
-},
-"boundary_alinged_remesh": {
-    "is_sync": false,
-    "is_enable": false,
-    "online_url": "https://bookyakuno.gumroad.com/l/NEMDA",
-    "repository_url": null,
-    "branch": null,
-    "is_submodule": false,
-    "local_path": "#\\scripts\\addon_library\\local",
-    "paths": [
-        {
-            "is_enable": false,
-            "local_subpath": "boundary_alinged_remesh.py",
-            "destination_path": "#\\scripts\\addons\\boundary_alinged_remesh.py"
-        }
-    ],
-    "keymaps": false
-},
-"hide_only_vertex": {
-    "is_sync": false,
-    "is_enable": false,
-    "online_url": "https://bookyakuno.gumroad.com/l/NEMDA",
-    "repository_url": null,
-    "branch": null,
-    "is_submodule": false,
-    "local_path": "#\\scripts\\addon_library\\local",
-    "paths": [
-        {
-            "is_enable": false,
-            "local_subpath": "hide_only_vertex.py",
-            "destination_path": "#\\scripts\\addons\\hide_only_vertex.py"
-        }
-    ],
-    "keymaps": false
-},
-"ke_i2m": {
-    "is_sync": false,
-    "is_enable": false,
-    "online_url": "https://kjell.gumroad.com/l/i2m",
-    "repository_url": null,
-    "branch": null,
-    "is_submodule": false,
-    "local_path": "#\\scripts\\addon_library\\local",
-    "paths": [
-        {
-            "is_enable": false,
-            "local_subpath": "ke_i2m.py",
-            "destination_path": "#\\scripts\\addons\\ke_i2m.py"
-        }
-    ],
-    "keymaps": false
-},
-"thumbMate": {
-    "is_sync": false,
-    "is_enable": false,
-    "online_url": "https://www.braverabbit.com/braverabbit/tools/thumbmate/",
-    "repository_url": null,
-    "branch": null,
-    "is_submodule": false,
-    "local_path": "#\\scripts\\addon_library\\local",
-    "paths": [
-        {
-            "is_enable": false,
-            "local_subpath": "thumbMate.py",
-            "destination_path": "#\\scripts\\addons\\thumbMate.py"
-        }
-    ],
-    "keymaps": false
-},
-"transfer_vertex_order": {
-    "is_sync": false,
-    "is_enable": false,
-    "online_url": "https://bartoszstyperek.gumroad.com/l/copy_verts_ids",
-    "repository_url": null,
-    "branch": null,
-    "is_submodule": false,
-    "local_path": "#\\scripts\\addon_library\\local",
-    "paths": [
-        {
-            "is_enable": false,
-            "local_subpath": "transfer_vertex_order.py",
-            "destination_path": "#\\scripts\\addons\\transfer_vertex_order.py"
-        }
-    ],
-    "keymaps": false
-},
-"ZWeightTools": {
-    "is_sync": false,
-    "is_enable": false,
-    "online_url": "https://zacheastin.gumroad.com/l/tukDb",
-    "repository_url": null,
-    "branch": null,
-    "is_submodule": false,
-    "local_path": "#\\scripts\\addon_library\\local",
-    "paths": [
-        {
-            "is_enable": false,
-            "local_subpath": "ZWeightTools.py",
-            "destination_path": "#\\scripts\\addons\\ZWeightTools.py"
-        }
-    ],
-    "keymaps": false
-},
-"_software_data": " ..................................Software Data addons..................................",
-"uvpackmaster3": {
-    "is_sync": false,
-    "is_enable": true,
-    "online_url": "https://glukoz.gumroad.com/l/uvpackmaster3",
-    "repository_url": null,
-    "branch": null,
-    "is_submodule": false,
-    "local_path": "S:\\Mon Drive\\15_Blender\\00_INSTALLED_ADDONS\\uvpackmaster3",
-    "paths": [
-        {
-            "is_enable": true,
-            "local_subpath": null,
-            "destination_path": "#\\scripts\\addons\\uvpackmaster3"
-        }
-    ],
-    "keymaps": false
-},
-"beta_quad": {
-    "is_sync": false,
-    "is_enable": true,
-    "online_url": null,
-    "repository_url": null,
-    "branch": null,
-    "is_submodule": false,
-    "local_path": "S:\\Mon Drive\\15_Blender\\00_INSTALLED_ADDONS\\beta_quad",
-    "paths": [
-        {
-            "is_enable": true,
-            "local_subpath": null,
-            "destination_path": "#\\scripts\\addons\\beta_quad"
-        }
-    ],
-    "keymaps": false
-},
-"MACHIN3tools": {
-    "is_sync": false,
-    "is_enable": true,
-    "online_url": null,
-    "repository_url": null,
-    "branch": null,
-    "is_submodule": false,
-    "local_path": "S:\\Mon Drive\\15_Blender\\00_INSTALLED_ADDONS\\MACHIN3tools",
-    "paths": [
-        {
-            "is_enable": true,
-            "local_subpath": null,
-            "destination_path": "#\\scripts\\addons\\MACHIN3tools"
-        }
-    ],
-    "keymaps": true
-},
-"MESHmachine": {
-    "is_sync": false,
-    "is_enable": true,
-    "online_url": null,
-    "repository_url": null,
-    "branch": null,
-    "is_submodule": false,
-    "local_path": "S:\\Mon Drive\\15_Blender\\00_INSTALLED_ADDONS\\MESHmachine",
-    "paths": [
-        {
-            "is_enable": true,
-            "local_subpath": null,
-            "destination_path": "#\\scripts\\addons\\MESHmachine"
-        }
-    ],
-    "keymaps": false
-},
-"physical-starlight-atmosphere": {
-    "is_sync": false,
-    "is_enable": true,
-    "online_url": null,
-    "repository_url": null,
-    "branch": null,
-    "is_submodule": false,
-    "local_path": "S:\\Mon Drive\\15_Blender\\00_INSTALLED_ADDONS\\physical-starlight-atmosphere",
-    "paths": [
-        {
-            "is_enable": true,
-            "local_subpath": null,
-            "destination_path": "#\\scripts\\addons\\physical-starlight-atmosphere"
-        }
-    ],
-    "keymaps": false
-},
-"SculptLayers": {
-    "is_sync": false,
-    "is_enable": true,
-    "online_url": null,
-    "repository_url": null,
-    "branch": null,
-    "is_submodule": false,
-    "local_path": "S:\\Mon Drive\\15_Blender\\00_INSTALLED_ADDONS\\SculptLayers",
-    "paths": [
-        {
-            "is_enable": true,
-            "local_subpath": null,
-            "destination_path": "#\\scripts\\addons\\SculptLayers"
-        }
-    ],
-    "keymaps": false
-},
-"uv_toolkit": {
-    "is_sync": false,
-    "is_enable": true,
-    "online_url": null,
-    "repository_url": null,
-    "branch": null,
-    "is_submodule": false,
-    "local_path": "S:\\Mon Drive\\15_Blender\\00_INSTALLED_ADDONS\\uv_toolkit",
-    "paths": [
-        {
-            "is_enable": true,
-            "local_subpath": null,
-            "destination_path": "#\\scripts\\addons\\uv_toolkit"
-        }
-    ],
-    "keymaps": true
-},
-"BakeWrangler": {
-    "is_sync": false,
-    "is_enable": true,
-    "online_url": null,
-    "repository_url": null,
-    "branch": null,
-    "is_submodule": false,
-    "local_path": "S:\\Mon Drive\\15_Blender\\00_INSTALLED_ADDONS\\BakeWrangler",
-    "paths": [
-        {
-            "is_enable": true,
-            "local_subpath": null,
-            "destination_path": "#\\scripts\\addons\\BakeWrangler"
-        }
-    ],
-    "keymaps": false
-},
-"quad_remesher": {
-    "is_sync": false,
-    "is_enable": true,
-    "online_url": "https://exoside.com/quadremesher/quadremesher-download/",
-    "repository_url": null,
-    "branch": null,
-    "is_submodule": false,
-    "local_path": "S:\\Mon Drive\\15_Blender\\00_INSTALLED_ADDONS\\quad_remesher",
-    "paths": [
-        {
-            "is_enable": true,
-            "local_subpath": null,
-            "destination_path": "#\\scripts\\addons\\quad_remesher"
-        }
-    ],
-    "keymaps": false
-},
-"_disabled": " ..................................Disabled addons..................................",
-"noodler": {
-    "is_sync": true,
-    "is_enable": true,
-    "online_url": null,
-    "repository_url": "https://github.com/DB3D/Noodler.git",
-    "branch": null,
-    "is_submodule": false,
-    "local_path": "#\\scripts\\addon_library\\GIT_Clones\\noodler",
-    "paths": [
-        {
-            "is_enable": true,
-            "local_subpath": "noodler.py",
-            "destination_path": "#\\scripts\\addons\\noodler.py"
-        }
-    ],
-    "keymaps": true
-},
-"keymesh": {
-    "is_sync": false,
-    "is_enable": false,
-    "online_url": null,
-    "repository_url": "https://github.com/pablodp606/keymesh-addon.git",
-    "branch": null,
-    "is_submodule": false,
-    "local_path": "#\\scripts\\addon_library\\GIT_Clones\\keymesh",
-    "paths": [
-        {
-            "is_enable": false,
-            "local_subpath": "keymesh.py",
-            "destination_path": "#\\scripts\\addons\\keymesh.py"
-        }
-    ],
-    "keymaps": false
-},
-"leomoon-lightstudio": {
-    "is_sync": false,
-    "is_enable": false,
-    "online_url": "https://github.com/leomoon-studios/leomoon-lightstudio.git",
-    "repository_url": null,
-    "branch": null,
-    "is_submodule": false,
-    "local_path": "#\\scripts\\addon_library\\GIT_Clones\\leomoon-lightstudio",
-    "paths": [
-        {
-            "is_enable": false,
-            "local_subpath": null,
-            "destination_path": "#\\scripts\\addons\\leomoon-lightstudio"
-        }
-    ],
-    "keymaps": false
-},
-"BakeMyScan": {
-    "is_sync": false,
-    "is_enable": false,
-    "online_url": null,
-    "repository_url": "https://github.com/norgeotloic/BakeMyScan.git",
-    "branch" : null,
-    "is_submodule" : false,
-    "local_path": "#\\scripts\\addon_library\\GIT_Clones\\BakeMyScan",
-    "paths": [
-        {
-            "is_enable": false,
-            "local_subpath": null,
-            "destination_path": "#\\scripts\\addons\\BakeMyScan"
-        }
-    ],
-    "keymaps": false
-},
-"curve_cad": {
-    "is_sync": false,
-    "is_enable": false,
-    "online_url": "https://github.com/Lichtso/curve_cad.git",
-    "repository_url": null,
-    "branch" : null,
-    "is_submodule" : false,
-    "local_path": "#\\scripts\\addon_library\\GIT_Clones\\curve_cad",
-    "paths": [
-        {
-            "is_enable": false,
-            "local_subpath": null,
-            "destination_path": "#\\scripts\\addons\\curve_cad"
-        }
-    ],
-    "keymaps": false
-},
-"GoB": {
-    "is_sync": false,
-    "is_enable": false,
-    "online_url": null,
-    "repository_url": "https://github.com/JoseConseco/GoB.git",
-    "branch" : null,
-    "is_submodule" : false,
-    "local_path": "#\\scripts\\addon_library\\GIT_Clones\\GoB",
-    "paths": [
-        {
-            "is_enable": false,
-            "local_subpath": null,
-            "destination_path": "#\\scripts\\addons\\GoB"
-        }
-    ],
-    "keymaps": false
-},
-"animation_nodes": {
-    "is_sync": false,
-    "is_enable": false,
-    "online_url": "https://github.com/JacquesLucke/animation_nodes.git",
-    "repository_url": null,
-    "branch" : null,
-    "is_submodule" : false,
-    "local_path": "#\\scripts\\addon_library\\GIT_Clones\\animation_nodes",
-    "paths": [
-        {
-            "is_enable": false,
-            "local_subpath": null,
-            "destination_path": "#\\scripts\\addons\\animation_nodes"
-        }
-    ],
-    "keymaps": false
-},
-"fSpy-Blender": {
-    "is_sync": false,
-    "is_enable": false,
-    "online_url": null,
-    "repository_url": "https://github.com/stuffmatic/fSpy-Blender.git",
-    "branch" : null,
-    "is_submodule" : false,
-    "local_path": "#\\scripts\\addon_library\\GIT_Clones\\fSpy_Blender",
-    "paths": [
-        {
-            "is_enable": false,
-            "local_subpath": null,
-            "destination_path": "#\\scripts\\addons\\fSpy_Blender"
-        }
-    ],
-    "keymaps": false
-},
-"Capsule": {
-    "is_sync": false,
-    "is_enable": false,
-    "online_url": null,
-    "repository_url": "https://github.com/Takanu/Capsule.git",
-    "branch" : null,
-    "is_submodule" : false,
-    "local_path": "#\\scripts\\addon_library\\GIT_Clones\\Capsule",
-    "paths": [
-        {
-            "is_enable": false,
-            "local_subpath": "Capsule",
-            "destination_path": "#\\scripts\\addons\\Capsule"
-        }
-    ],
-    "keymaps": false
-},
-"ScreenCast_Keys": {
-    "is_sync": false,
-    "is_enable": false,
-    "online_url": null,
-    "repository_url": "https://github.com/nutti/Screencast-Keys.git",
-    "branch" : null,
-    "is_submodule" : false,
-    "local_path": "#\\scripts\\addon_library\\GIT_Clones\\ScreenCast_Keys",
-    "paths": [
-        {
-            "is_enable": false,
-            "local_subpath": null,
-            "destination_path": "#\\scripts\\addons\\ScreenCast_Keys"
-        }
-    ],
-    "keymaps": false
-},
-"bpy_photogrametry": {
-    "is_sync": false,
-    "is_enable": false,
-    "online_url": null,
-    "repository_url": "https://github.com/uhlik/bpy.git",
-    "branch" : null,
-    "is_submodule" : false,
-    "local_path": "#\\scripts\\addon_library\\GIT_Clones\\bpy_photogrametry",
-    "paths": [
-        {
-            "is_enable": false,
-            "local_subpath": "carbon_tools.py",
-            "destination_path": "#\\scripts\\addons\\carbon_tools.py"
-        },
-        {
-            "is_enable": false,
-            "local_subpath": "io_import_photoscan_cameras.py",
-            "destination_path": "#\\scripts\\addons\\io_import_photoscan_cameras.py"
-        },
-        {
-            "is_enable": false,
-            "local_subpath": "system_time_tracker.py",
-            "destination_path": "#\\scripts\\addons\\system_time_tracker.py"
-        },
-        {
-            "is_enable": false,
-            "local_subpath": "space_view3d_point_cloud_visualizer.py",
-            "destination_path": "#\\scripts\\addons\\space_view3d_point_cloud_visualizer.py"
-        }
-    ],
-    "keymaps": false
-},
-"yavne": {
-    "is_sync": false,
-    "is_enable": false,
-    "online_url": null,
-    "repository_url": "https://github.com/fedackb/yavne.git",
-    "branch" : null,
-    "is_submodule" : false,
-    "local_path": "#\\scripts\\addon_library\\GIT_Clones\\yavne",
-    "paths": [
-        {
-            "is_enable": false,
-            "local_subpath": null,
-            "destination_path": "#\\scripts\\addons\\yavne"
-        }
-    ],
-    "keymaps": false
-},
-"FontSelector": {
-    "is_sync": false,
-    "is_enable": false,
-    "online_url": null,
-    "repository_url": "https://github.com/samytichadou/FontSelector_blender_addon.git",
-    "branch" : null,
-    "is_submodule" : false,
-    "local_path": "#\\scripts\\addon_library\\GIT_Clones\\FontSelector",
-    "paths": [
-        {
-            "is_enable": false,
-            "local_subpath": null,
-            "destination_path": "#\\scripts\\addons\\FontSelector"
-        }
-    ],
-    "keymaps": false
-},
-"MapsModelsImporter": {
-    "is_sync": false,
-    "is_enable": false,
-    "online_url": null,
-    "repository_url": "https://github.com/eliemichel/MapsModelsImporter.git",
-    "branch" : null,
-    "is_submodule" : false,
-    "local_path": "#\\scripts\\addon_library\\GIT_Clones\\MapsModelsImporter",
-    "paths": [
-        {
-            "is_enable": false,
-            "local_subpath": "blender\\MapsModelsImporter",
-            "destination_path": "#\\scripts\\addons\\MapsModelsImporter"
-        }
-    ],
-    "keymaps": false
-},
-"BlendShell": {
-    "is_sync": false,
-    "is_enable": false,
-    "online_url": null,
-    "repository_url": "https://github.com/oormicreations/BlendShell.git",
-    "branch" : null,
-    "is_submodule" : false,
-    "local_path": "#\\scripts\\addon_library\\GIT_Clones\\BlendShell",
-    "paths": [
-        {
-            "is_enable": false,
-            "local_subpath": "blendshell.py",
-            "destination_path": "#\\scripts\\addons\\BlendShell.py"
-        }
-    ],
-    "keymaps": false
-},
-"Neltulz_Edge_Curve_Plus": {
-    "is_sync": false,
-    "is_enable": false,
-    "online_url": null,
-    "repository_url": "https://github.com/Neltulz/Neltulz_Edge_Curve_Plus.git",
-    "branch" : null,
-    "is_submodule" : false,
-    "local_path": "#\\scripts\\addon_library\\GIT_Clones\\Neltulz_Edge_Curve_Plus",
-    "paths": [
-        {
-            "is_enable": false,
-            "local_subpath": null,
-            "destination_path": "#\\scripts\\addons\\Neltulz_Edge_Curve_Plus"
-        }
-    ],
-    "keymaps": false
-},
-"BlenderGIS": {
-    "is_sync": false,
-    "is_enable": false,
-    "online_url": null,
-    "repository_url": "https://github.com/domlysz/BlenderGIS.git",
-    "branch" : null,
-    "is_submodule" : false,
-    "local_path": "#\\scripts\\addon_library\\GIT_Clones\\BlenderGIS",
-    "paths": [
-        {
-            "is_enable": false,
-            "local_subpath": null,
-            "destination_path": "#\\scripts\\addons\\BlenderGIS"
-        }
-    ],
-    "keymaps": false
-},
-"LuxeCore": {
-    "is_sync": false,
-    "is_enable": false,
-    "online_url": null,
-    "repository_url": "https://github.com/LuxCoreRender/BlendLuxCore.git",
-    "branch" : null,
-    "is_submodule" : false,
-    "local_path": "#\\scripts\\addon_library\\GIT_Clones\\LuxeCore",
-    "paths": [
-        {
-            "is_enable": false,
-            "local_subpath": null,
-            "destination_path": "#\\scripts\\addons\\LuxeCore"
-        }
-    ],
-    "keymaps": false
-},
-"Export_Paper_Model": {
-    "is_sync": false,
-    "is_enable": false,
-    "online_url": null,
-    "repository_url": "https://github.com/addam/Export-Paper-Model-from-Blender.git",
-    "branch" : null,
-    "is_submodule" : false,
-    "local_path": "#\\scripts\\addon_library\\GIT_Clones\\Export_Paper_Model",
-    "paths": [
-        {
-            "is_enable": false,
-            "local_subpath": null,
-            "destination_path": "#\\scripts\\addons\\Export_Paper_Model"
-        }
-    ],
-    "keymaps": false
-},
-"glsl_texture": {
-    "is_sync": false,
-    "is_enable": false,
-    "online_url": null,
-    "repository_url": "https://github.com/patriciogonzalezvivo/glslTexture.git",
-    "branch" : null,
-    "is_submodule" : false,
-    "local_path": "#\\scripts\\addon_library\\GIT_Clones\\glsl_texture",
-    "paths": [
-        {
-            "is_enable": false,
-            "local_subpath": null,
-            "destination_path": "#\\scripts\\addons\\glsl_texture"
-        }
-    ],
-    "keymaps": false
-},
-"modifier_list": {
-    "is_sync": false,
-    "is_enable": false,
-    "online_url": null,
-    "repository_url": "https://github.com/Symstract/modifier_list.git",
-    "branch" : null,
-    "is_submodule" : false,
-    "local_path": "#\\scripts\\addon_library\\GIT_Clones\\modifier_list",
-    "paths": [
-        {
-            "is_enable": false,
-            "local_subpath": null,
-            "destination_path": "#\\scripts\\addons\\modifier_list"
-        }
-    ],
-    "keymaps": false
-},
-"seams_to_sewing_pattern": {
-    "is_sync": false,
-    "is_enable": false,
-    "online_url": null,
-    "repository_url": "https://gitlab.com/thomaskole/blender-seams-to-sewing-pattern.git",
-    "branch" : null,
-    "is_submodule" : false,
-    "local_path": "#\\scripts\\addon_library\\GIT_Clones\\seams_to_sewing_pattern",
-    "paths": [
-        {
-            "is_enable": false,
-            "local_subpath": null,
-            "destination_path": "#\\scripts\\addons\\seams_to_sewing_pattern"
-        }
-    ],
-    "keymaps": false
-},
-"BMax_Connector": {
-    "is_sync": false,
-    "is_enable": false,
-    "online_url": null,
-    "repository_url": "https://github.com/TitusLVR/BMAX_Connector.git",
-    "branch" : null,
-    "is_submodule" : false,
-    "local_path": "#\\scripts\\addon_library\\GIT_Clones\\BMax_Connector",
-    "paths": [
-        {
-            "is_enable": false,
-            "local_subpath": null,
-            "destination_path": "#\\scripts\\addons\\BMax_Connector"
-        }
-    ],
-    "keymaps": false
-},
-"modular_tree": {
-    "is_sync": false,
-    "is_enable": false,
-    "online_url": null,
-    "repository_url": "https://github.com/MaximeHerpin/modular_tree.git",
-    "branch" : null,
-    "is_submodule" : false,
-    "local_path": "#\\scripts\\addon_library\\GIT_Clones\\modular_tree",
-    "paths": [
-        {
-            "is_enable": false,
-            "local_subpath": null,
-            "destination_path": "#\\scripts\\addons\\modular_tree"
-        }
-    ],
-    "keymaps": false
-},
-"Abnormal": {
-    "is_sync": false,
-    "is_enable": false,
-    "online_url": null,
-    "repository_url": "https://github.com/bnpr/Abnormal.git",
-    "branch" : null,
-    "is_submodule" : false,
-    "local_path": "#\\scripts\\addon_library\\GIT_Clones\\Abnormal",
-    "paths": [
-        {
-            "is_enable": false,
-            "local_subpath": null,
-            "destination_path": "#\\scripts\\addons\\Abnormal"
-        }
-    ],
-    "keymaps": false
-},
-"Shader_to_OpenVDB": {
-    "is_sync": false,
-    "is_enable": false,
-    "online_url": null,
-    "repository_url": "https://github.com/joshuabloemer/Shader-to-OpenVDB.git",
-    "branch" : null,
-    "is_submodule" : false,
-    "local_path": "#\\scripts\\addon_library\\GIT_Clones\\Shader_to_OpenVDB",
-    "paths": [
-        {
-            "is_enable": false,
-            "local_subpath": null,
-            "destination_path": "#\\scripts\\addons\\Shader_to_OpenVDB"
-        }
-    ],
-    "keymaps": false
-},
-"HEAVYPOLY": {
-    "is_sync": true,
-    "is_enable": false,
-    "online_url": null,
-    "repository_url": "https://github.com/HEAVYPOLY/HEAVYPOLY_Blender.git",
-    "branch" : null,
-    "is_submodule" : false,
-    "local_path": "#\\scripts\\addon_library\\GIT_Clones\\HEAVYPOLY",
-    "paths": [
-        {
-            "is_enable": true,
-            "local_subpath": "scripts\\startup\\HEAVYPOLY_OPERATORS.py",
-            "destination_path": "#\\scripts\\startup\\HEAVYPOLY_OPERATORS.py"
-        },
-        {
-            "is_enable": true,
-            "local_subpath": "scripts\\startup\\HEAVYPOLY_pie_rotate_90.py",
-            "destination_path": "#\\scripts\\startup\\HEAVYPOLY_pie_rotate_90.py"
-        },
-        {
-            "is_enable": true,
-            "local_subpath": "scripts\\startup\\HEAVYPOLY_pie_areas.py",
-            "destination_path": "#\\scripts\\startup\\HEAVYPOLY_pie_areas.py"
-        },
-        {
-            "is_enable": true,
-            "local_subpath": "scripts\\startup\\HEAVYPOLY_pie_symmetry.py",
-            "destination_path": "#\\scripts\\startup\\HEAVYPOLY_pie_symmetry.py"
-        },
-        {
-            "is_enable": true,
-            "local_subpath": "scripts\\startup\\HEAVYPOLY_pie_add.py",
-            "destination_path": "#\\scripts\\startup\\HEAVYPOLY_pie_add.py"
-        },
-        {
-            "is_enable": true,
-            "local_subpath": "scripts\\startup\\HEAVYPOLY_pie_boolean.py",
-            "destination_path": "#\\scripts\\startup\\HEAVYPOLY_pie_boolean.py"
-        }
-    ],
-    "keymaps": false
-},
-"Character_Pipeline_Assistant": {
-    "is_sync": false,
-    "is_enable": false,
-    "online_url": null,
-    "repository_url": "https://gitlab.com/blender/character-pipeline-assistant.git",
-    "branch" : null,
-    "is_submodule" : false,
-    "local_path": "#\\scripts\\addon_library\\GIT_Clones\\Character_Pipeline_Assistant",
-    "paths": [
-        {
-            "is_enable": false,
-            "local_subpath": null,
-            "destination_path": "#\\scripts\\addons\\Character_Pipeline_Assistant"
-        }
-    ],
-    "keymaps": false
-},
-"Lattice_Magic": {
-    "is_sync": false,
-    "is_enable": false,
-    "online_url": null,
-    "repository_url": "https://gitlab.com/blender/lattice_magic.git",
-    "branch" : null,
-    "is_submodule" : false,
-    "local_path": "#\\scripts\\addon_library\\GIT_Clones\\Lattice_Magic",
-    "paths": [
-        {
-            "is_enable": false,
-            "local_subpath": null,
-            "destination_path": "#\\scripts\\addons\\Lattice_Magic"
-        }
-    ],
-    "keymaps": false
-},
-"uvpacker": {
-    "is_sync": false,
-    "is_enable": false,
-    "online_url": null,
-    "repository_url": "https://github.com/3d-io/uvpacker-blender-addon.git",
-    "branch" : null,
-    "is_submodule" : false,
-    "local_path": "#\\scripts\\addon_library\\GIT_Clones\\uvpacker",
-    "paths": [
-        {
-            "is_enable": false,
-            "local_subpath": null,
-            "destination_path": "#\\scripts\\addons\\uvpacker"
-        }
-    ],
-    "keymaps": false
-},
-"MeshSlicer": {
-    "is_sync": false,
-    "is_enable": false,
-    "online_url": null,
-    "repository_url": "https://github.com/TomekSc/MeshSlicer.git",
-    "branch" : null,
-    "is_submodule" : false,
-    "local_path": "#\\scripts\\addon_library\\GIT_Clones\\MeshSlicer",
-    "paths": [
-        {
-            "is_enable": false,
-            "local_subpath": null,
-            "destination_path": "#\\scripts\\addons\\MeshSlicer"
-        }
-    ],
-    "keymaps": false
-},
-"NodeRelax": {
-    "is_sync": false,
-    "is_enable": false,
-    "online_url": null,
-    "repository_url": "https://github.com/Shahzod114/NodeRelax-Blender-Addon.git",
-    "branch" : null,
-    "is_submodule" : false,
-    "local_path": "#\\scripts\\addon_library\\GIT_Clones\\NodeRelax",
-    "paths": [
-        {
-            "is_enable": false,
-            "local_subpath": null,
-            "destination_path": "#\\scripts\\addons\\NodeRelax"
-        }
-    ],
-    "keymaps": false
-},
-"TheLightmapper": {
-    "is_sync": false,
-    "is_enable": false,
-    "online_url": null,
-    "repository_url": "https://github.com/Naxela/The_Lightmapper.git",
-    "branch" : null,
-    "is_submodule" : false,
-    "local_path": "#\\scripts\\addon_library\\GIT_Clones\\TheLightmapper",
-    "paths": [
-        {
-            "is_enable": false,
-            "local_subpath": null,
-            "destination_path": "#\\scripts\\addons\\TheLightmapper"
-        }
-    ],
-    "keymaps": false
-},
-"gret": {
-    "is_sync": false,
-    "is_enable": false,
-    "online_url": null,
-    "repository_url": "https://github.com/greisane/gret.git",
-    "branch" : null,
-    "is_submodule" : false,
-    "local_path": "#\\scripts\\addon_library\\GIT_Clones\\gret",
-    "paths": [
-        {
-            "is_enable": false,
-            "local_subpath": null,
-            "destination_path": "#\\scripts\\addons\\gret"
-        }
-    ],
-    "keymaps": false
-},
-"PrintNode": {
-    "is_sync": false,
-    "is_enable": false,
-    "online_url": null,
-    "repository_url": "https://github.com/Yeetus3141/PrintNodes.git",
-    "branch" : null,
-    "is_submodule" : false,
-    "local_path": "#\\scripts\\addon_library\\GIT_Clones\\PrintNode",
-    "paths": [
-        {
-            "is_enable": false,
-            "local_subpath": null,
-            "destination_path": "#\\scripts\\addons\\PrintNode"
-        }
-    ],
-    "keymaps": false
-},
-"ez_baker": {
-    "is_sync": false,
-    "is_enable": false,
-    "online_url": null,
-    "repository_url": "https://gitlab.com/AquaticNightmare/ez_baker.git",
-    "branch" : null,
-    "is_submodule" : false,
-    "local_path": "#\\scripts\\addon_library\\GIT_Clones\\ez_baker",
-    "paths": [
-        {
-            "is_enable": false,
-            "local_subpath": null,
-            "destination_path": "#\\scripts\\addons\\ez_baker"
-        }
-    ],
-    "keymaps": false
-},
-"photogrammetry_importer": {
-    "is_sync": false,
-    "is_enable": false,
-    "online_url": null,
-    "repository_url": "https://github.com/SBCV/Blender-Addon-Photogrammetry-Importer.git",
-    "branch" : null,
-    "is_submodule" : false,
-    "local_path": "#\\scripts\\addon_library\\GIT_Clones\\photogrametry_importer",
-    "paths": [
-        {
-            "is_enable": false,
-            "local_subpath": "photogrammetry_importer",
-            "destination_path": "#\\scripts\\addons\\photogrammetry_importer"
-        }
-    ],
-    "keymaps": false
-},
-"universal_multi_importer": {
-    "is_sync": true,
-    "is_enable": false,
-    "online_url": null,
-    "repository_url": "https://github.com/Tilapiatsu/blender-Universal_Multi_Importer.git",
-    "branch" : "main",
-    "is_submodule" : true,
-    "local_path": "#\\scripts\\addon_library\\GIT_Submodules\\tila_universal_multi_importer",
-    "paths": [
-        {
-            "is_enable": false,
-            "local_subpath": null,
-            "destination_path": "#\\scripts\\addons\\universal_multi_importer"
-        }
-    ],
-    "keymaps": false
-},
-"export_as_blend": {
-    "is_sync": true,
-    "is_enable": false,
-    "online_url": null,
-    "repository_url": "https://github.com/Tilapiatsu/blender-export_as_blend.git",
-    "branch" : "main",
-    "is_submodule" : true,
-    "local_path": "#\\scripts\\addon_library\\GIT_Submodules\\tila_export_as_blend",
-    "paths": [
-        {
-            "is_enable": false,
-            "local_subpath": null,
-            "destination_path": "#\\scripts\\addons\\export_as_blend"
-        }
-    ],
-    "keymaps": false
-},
-"MaterialUtilities": {
-    "is_sync": false,
-    "is_enable": false,
-    "online_url": null,
-    "repository_url": "https://github.com/ChrisHinde/MaterialUtilities.git",
-    "branch" : null,
-    "is_submodule" : false,
-    "local_path": "#\\scripts\\addon_library\\GIT_Clones\\MaterialUtilities",
-    "paths": [
-        {
-            "is_enable": false,
-            "local_subpath": null,
-            "destination_path": "#\\scripts\\addons\\MaterialUtilities"
-        }
-    ],
-    "keymaps": false
-},
-"RiggingNodes": {
-    "is_sync": false,
-    "is_enable": false,
-    "online_url": null,
-    "repository_url": "https://gitlab.com/AquaticNightmare/rigging_nodes.git",
-    "branch" : null,
-    "is_submodule" : false,
-    "local_path": "#\\scripts\\addon_library\\GIT_Clones\\RiggingNodes",
-    "paths": [
-        {
-            "is_enable": false,
-            "local_subpath": null,
-            "destination_path": "#\\scripts\\addons\\RiggingNodes"
-        }
-    ],
-    "keymaps": false
-},
-"Renderman": {
-    "is_sync": false,
-    "is_enable": false,
-    "online_url": null,
-    "repository_url": "https://github.com/prman-pixar/RenderManForBlender.git",
-    "branch" : null,
-    "is_submodule" : false,
-    "local_path": "#\\scripts\\addon_library\\GIT_Clones\\Renderman",
-    "paths": [
-        {
-            "is_enable": false,
-            "local_subpath": null,
-            "destination_path": "#\\scripts\\addons\\Renderman"
-        }
-    ],
-    "keymaps": false
-},
-"GrabDoc": {
-    "is_sync": true,
-    "is_enable": false,
-    "online_url": null,
-    "repository_url": "https://github.com/oRazeD/GrabDoc.git",
-    "branch" : null,
-    "is_submodule" : false,
-    "local_path": "#\\scripts\\addon_library\\GIT_Clones\\GrabDoc",
-    "paths": [
-        {
-            "is_enable": false,
-            "local_subpath": null,
-            "destination_path": "#\\scripts\\addons\\GrabDoc"
-        }
-    ],
-    "keymaps": false
-},
-"eyek": {
-    "is_sync": false,
-    "is_enable": false,
-    "online_url": null,
-    "repository_url": "https://github.com/p4ymak/eyek.git",
-    "branch" : null,
-    "is_submodule" : false,
-    "local_path": "#\\scripts\\addon_library\\GIT_Clones\\eyek",
-    "paths": [
-        {
-            "is_enable": false,
-            "local_subpath": null,
-            "destination_path": "#\\scripts\\addons\\eyek"
-        }
-    ],
-    "keymaps": false
-},
-"b3dsdf": {
-    "is_sync": false,
-    "is_enable": false,
-    "online_url": null,
-    "repository_url": "https://github.com/williamchange/b3dsdf.git",
-    "branch" : null,
-    "is_submodule" : false,
-    "local_path": "#\\scripts\\addon_library\\GIT_Clones\\b3dsdf",
-    "paths": [
-        {
-            "is_enable": false,
-            "local_subpath": null,
-            "destination_path": "#\\scripts\\addons\\b3dsdf"
-        }
-    ],
-    "keymaps": false
-},
-"CAD_Sketcher": {
-    "is_sync": false,
-    "is_enable": false,
-    "online_url": null,
-    "repository_url": "https://github.com/hlorus/CAD_Sketcher.git",
-    "branch" : null,
-    "is_submodule" : false,
-    "local_path": "#\\scripts\\addon_library\\GIT_Clones\\CAD_Sketcher",
-    "paths": [
-        {
-            "is_enable": false,
-            "local_subpath": null,
-            "destination_path": "#\\scripts\\addons\\CAD_Sketcher"
-        }
-    ],
-    "keymaps": false
-},
-"RenderNode": {
-    "is_sync": false,
-    "is_enable": false,
-    "online_url": null,
-    "repository_url": "https://github.com/atticus-lv/RenderNode.git",
-    "branch" : null,
-    "is_submodule" : false,
-    "local_path": "#\\scripts\\addon_library\\GIT_Clones\\RenderNode",
-    "paths": [
-        {
-            "is_enable": false,
-            "local_subpath": null,
-            "destination_path": "#\\scripts\\addons\\RenderNode"
-        }
-    ],
-    "keymaps": false
-},
-"asset_snapshot": {
-    "is_sync": true,
-    "is_enable": false,
-    "online_url": null,
-    "repository_url": "https://github.com/johnnygizmo/asset_snapshot.git",
-    "branch" : null,
-    "is_submodule" : false,
-    "local_path": "#\\scripts\\addon_library\\GIT_Clones\\asset_snapshot",
-    "paths": [
-        {
-            "is_enable": false,
-            "local_subpath": null,
-            "destination_path": "#\\scripts\\addons\\asset_snapshot"
-        }
-    ],
-    "keymaps": false
-},
-"shotmanager": {
-    "is_sync": false,
-    "is_enable": false,
-    "online_url": null,
-    "repository_url": "https://github.com/ubisoft/shotmanager.git",
-    "branch" : null,
-    "is_submodule" : false,
-    "local_path": "#\\scripts\\addon_library\\GIT_Clones\\shotmanager",
-    "paths": [
-        {
-            "is_enable": false,
-            "local_subpath": null,
-            "destination_path": "#\\scripts\\addons\\shotmanager"
-        }
-    ],
-    "keymaps": false
-},
-"asset_bridge": {
-    "is_sync": false,
-    "is_enable": false,
-    "online_url": null,
-    "repository_url": "https://github.com/strike-digital/asset_bridge.git",
-    "branch" : null,
-    "is_submodule" : false,
-    "local_path": "#\\scripts\\addon_library\\GIT_Clones\\asset_bridge",
-    "paths": [
-        {
-            "is_enable": false,
-            "local_subpath": null,
-            "destination_path": "#\\scripts\\addons\\asset_bridge"
-        }
-    ],
-    "keymaps": false
-},
-"io_export_blend": {
-    "is_sync": false,
-    "is_enable": false,
-    "online_url": null,
-    "repository_url": "https://github.com/CGCookie/io_export_blend.git",
-    "branch" : null,
-    "is_submodule" : false,
-    "local_path": "#\\scripts\\addon_library\\GIT_Clones\\io_export_blend",
-    "paths": [
-        {
-            "is_enable": false,
-            "local_subpath": null,
-            "destination_path": "#\\scripts\\addons\\io_export_blend"
-        }
-    ],
-    "keymaps": false
-},
-"gp_triangulation": {
-    "is_sync": false,
-    "is_enable": false,
-    "online_url": null,
-    "repository_url": "https://gitlab.com/lfs.coop/blender/gp-triangulation.git",
-    "branch" : null,
-    "is_submodule" : false,
-    "local_path": "#\\scripts\\addon_library\\GIT_Clones\\gp_triangulation",
-    "paths": [
-        {
-            "is_enable": false,
-            "local_subpath": null,
-            "destination_path": "#\\scripts\\addons\\gp_triangulation"
-        }
-    ],
-    "keymaps": false
-},
-"miter_box": {
-    "is_sync": false,
-    "is_enable": false,
-    "online_url": null,
-    "repository_url": "https://github.com/JohnKazucki/JD-Miter-Box.git",
-    "branch" : null,
-    "is_submodule" : false,
-    "local_path": "#\\scripts\\addon_library\\GIT_Clones\\miter_box",
-    "paths": [
-        {
-            "is_enable": false,
-            "local_subpath": null,
-            "destination_path": "#\\scripts\\addons\\miter_box"
-        }
-    ],
-    "keymaps": false
-},
-"wiggle": {
-    "is_sync": false,
-    "is_enable": false,
-    "online_url": null,
-    "repository_url": "https://github.com/shteeve3d/blender-wiggle-2.git",
-    "branch" : null,
-    "is_submodule" : false,
-    "local_path": "#\\scripts\\addon_library\\GIT_Clones\\wiggle",
-    "paths": [
-        {
-            "is_enable": false,
-            "local_subpath": "wiggle_2.py",
-            "destination_path": "#\\scripts\\addons\\wiggle.py"
-        }
-    ],
-    "keymaps": false
-},
-
-"mesh_align_plus": {
-    "is_sync": false,
-    "is_enable": false,
-    "online_url": null,
-    "repository_url": "https://github.com/egtwobits/mesh_mesh_align_plus.git",
-    "branch" : null,
-    "is_submodule" : false,
-    "local_path": "#\\scripts\\addon_library\\GIT_Clones\\mesh_align_plus",
-    "paths": [
-        {
-            "is_enable": false,
-            "local_subpath": "mesh_align_plus",
-            "destination_path": "#\\scripts\\addons\\mesh_align_plus"
-        }
-    ],
-    "keymaps": false
-},
-"mesh_snap_utilities_line": {
-    "is_sync": false,
-    "is_enable": false,
-    "online_url": null,
-    "repository_url": null,
-    "branch" : null,
-    "is_submodule" : false,
-    "local_path": null,
-    "paths": null,
-    "keymaps": false
-},
-"Principled_Baker": {
-    "is_sync": false,
-    "is_enable": false,
-    "online_url": null,
-    "repository_url": "https://github.com/danielenger/Principled-Baker.git",
-    "branch" : null,
-    "is_submodule" : false,
-    "local_path": "#\\scripts\\addon_library\\GIT_Clones\\Principled_Baker",
-    "paths": [
-        {
-            "is_enable": false,
-            "local_subpath": null,
-            "destination_path": "#\\scripts\\addons\\Principled_Baker"
-        }
-    ],
-    "keymaps": false
-},
-"MeasureIt_ARCH": {
-    "is_sync": false,
-    "is_enable": false,
-    "online_url": null,
-    "repository_url": "https://github.com/kevancress/MeasureIt-ARCH.git",
-    "branch" : null,
-    "is_submodule" : false,
-    "local_path": "#\\scripts\\addon_library\\GIT_Clones\\MeasureIt_ARCH",
-    "paths": [
-        {
-            "is_enable": false,
-            "local_subpath": null,
-            "destination_path": "#\\scripts\\addons\\MeasureIt_ARCH"
-        }
-    ],
-    "keymaps": false
-},
-"space_view3d_copy_attributes": {
-    "is_sync": false,
-    "is_enable": false,
-    "online_url": null,
-    "repository_url": null,
-    "branch" : null,
-    "is_submodule" : false,
-    "local_path": null,
-    "paths": null,
-    "keymaps": false
-},
-"space_view3d_align_tools": {
-    "is_sync": false,
-    "is_enable": false,
-    "online_url": null,
-    "repository_url": null,
-    "branch" : null,
-    "is_submodule" : false,
-    "local_path": null,
-    "paths": null,
-    "keymaps": false
-},
-"Polycount": {
-    "is_sync": false,
-    "is_enable": false,
-    "online_url": null,
-    "repository_url": "https://github.com/Vinc3r/Polycount.git",
-    "branch" : null,
-    "is_submodule" : false,
-    "local_path": "#\\scripts\\addon_library\\GIT_Clones\\PolyCount",
-    "paths": [
-        {
-            "is_enable": false,
-            "local_subpath": "polycount",
-            "destination_path": "#\\scripts\\addons\\PolyCount"
-        }
-    ],
-    "keymaps": false
-},
-"mira_tools": {
-    "is_sync": false,
-    "is_enable": false,
-    "online_url": null,
-    "repository_url": "https://github.com/mifth/mifthtools.git",
-    "branch" : null,
-    "is_submodule" : false,
-    "local_path": "#\\scripts\\addon_library\\GIT_Clones\\mifthtools",
-    "paths": [
-        {
-            "is_enable": false,
-            "local_subpath": "blender\\addons\\2.8\\mira_tools",
-            "destination_path": "#\\scripts\\addons\\mifthtools"
-        }
-    ],
-    "keymaps": false
-},
-"Neltulz_Smart_Sharpen": {
-    "is_sync": false,
-    "is_enable": false,
-    "online_url": null,
-    "repository_url": "https://github.com/Neltulz/Neltulz_Smart_Sharpen.git",
-    "branch" : null,
-    "is_submodule" : false,
-    "local_path": "#\\scripts\\addon_library\\GIT_Clones\\Neltulz_Smart_Sharpen",
-    "paths": [
-        {
-            "is_enable": false,
-            "local_subpath": null,
-            "destination_path": "#\\scripts\\addons\\Neltulz_Smart_Sharpen"
-        }
-    ],
-    "keymaps": false
-},
-"Neltulz_Symmetry": {
-    "is_sync": false,
-    "is_enable": false,
-    "online_url": null,
-    "repository_url": "https://github.com/Neltulz/Neltulz_Symmetry.git",
-    "branch" : null,
-    "is_submodule" : false,
-    "local_path": "#\\scripts\\addon_library\\GIT_Clones\\Neltulz_Symmetry",
-    "paths": [
-        {
-            "is_enable": false,
-            "local_subpath": null,
-            "destination_path": "#\\scripts\\addons\\Neltulz_Symmetry"
-        }
-    ],
-    "keymaps": false
-},
-"keentools_facebuilder": {
-    "is_sync": false,
-    "is_enable": false,
-    "online_url": null,
-    "repository_url": null,
-    "branch" : null,
-    "is_submodule" : false,
-    "local_path": null,
-    "paths": null,
-    "keymaps": false
-},
-"W_Mesh": {
-    "is_sync": false,
-    "is_enable": false,
-    "online_url": null,
-    "repository_url": null,
-    "branch" : null,
-    "is_submodule" : false,
-    "local_path": null,
-    "paths": null,
-    "keymaps": false
-},
-"fspy": {
-    "is_sync": false,
-    "is_enable": false,
-    "online_url": null,
-    "repository_url": null,
-    "branch" : null,
-    "is_submodule" : false,
-    "local_path": null,
-    "paths": null,
-    "keymaps": false
-},
-"lineup_maker": {
-    "is_sync": true,
-    "is_enable": false,
-    "online_url": null,
-    "repository_url": "https://github.com/Tilapiatsu/blender-lineup_maker.git",
-    "branch" : "blender-format-assets",
-    "is_submodule" : true,
-    "local_path": "#\\scripts\\addon_library\\GIT_Submodules\\tila_lineup_maker",
-    "paths": [
-        {
-            "is_enable": false,
-            "local_subpath": null,
-            "destination_path": "#\\scripts\\addons\\lineup_maker"
-        }
-    ],
-    "keymaps": false
-},
-"io_sketchfab": {
-    "is_sync": false,
-    "is_enable": false,
-    "online_url": null,
-    "repository_url": "https://github.com/sketchfab/blender-plugin.git",
-    "branch": null,
-    "is_submodule": false,
-    "local_path": "#\\scripts\\addon_library\\GIT_Clones\\io_sketchfab",
-    "paths": [
-        {
-            "is_enable": false,
-            "local_subpath": "addons\\io_sketchfab_plugin",
-            "destination_path": "#\\scripts\\addons\\io_sketchfab"
-        }
-    ],
-    "keymaps": false
-},
-
-
-
-"_enabled_addon" : " ..................................Enabled addons..................................",
-
-"easy_weight": {
-    "is_sync": true,
-    "is_enable": true,
-    "online_url": null,
-    "repository_url": "https://gitlab.com/blender/easy_weight.git",
-    "branch" : null,
-    "is_submodule" : false,
-    "local_path": "#\\scripts\\addon_library\\GIT_Clones\\easy_weight",
-    "paths": [
-        {
-            "is_enable": true,
-            "local_subpath": null,
-            "destination_path": "#\\scripts\\addons\\easy_weight"
-        }
-    ],
-    "keymaps": false
-},
-"simple_renaming_panel": {
-    "is_sync": true,
-    "is_enable": true,
-    "online_url": null,
-    "repository_url": "https://github.com/Weisl/simple_renaming_panel.git",
-    "branch" : null,
-    "is_submodule" : false,
-    "local_path": "#\\scripts\\addon_library\\GIT_Clones\\simple_renaming_panel",
-    "paths": [
-        {
-            "is_enable": true,
-            "local_subpath": null,
-            "destination_path": "#\\scripts\\addons\\simple_renaming_panel"
-        }
-    ],
-    "keymaps": false
-},
-"mesh_f2":{
-    "is_sync": false,
-    "is_enable": true,
-    "online_url": null,
-    "repository_url": null,
-    "branch" : null,
-    "is_submodule" : false,
-    "local_path": null,
-    "paths": null,
-    "keymaps": false
-},
-"TexTools": {
-    "is_sync": true,
-    "is_enable": true,
-    "online_url": null,
-    "repository_url": "https://github.com/SavMartin/TexTools-Blender.git",
-    "branch" : null,
-    "is_submodule" : false,
-    "local_path": "#\\scripts\\addon_library\\GIT_Clones\\TextTools",
-    "paths": [
-        {
-            "is_enable":true,
-            "local_subpath": null,
-            "destination_path": "#\\scripts\\addons\\TextTools"
-        }
-    ],
-    "keymaps": false
-},
-"io_import_images_as_planes":{
-    "is_sync": true,
-    "is_enable": true,
-    "online_url": null,
-    "repository_url": null,
-    "branch" : null,
-    "is_submodule" : false,
-    "local_path": null,
-    "paths": null,
-    "keymaps": false
-},
-"object_print3d_utils":{
-    "is_sync": true,
-    "is_enable": true,
-    "online_url": null,
-    "repository_url": null,
-    "branch" : null,
-    "is_submodule" : false,
-    "local_path": null,
-    "paths": null,
-    "keymaps": false
-},
-"mesh_looptools":{
-    "is_sync": true,
-    "is_enable": true,
-    "online_url": null,
-    "repository_url": null,
-    "branch" : null,
-    "is_submodule" : false,
-    "local_path": null,
-    "paths": null,
-    "keymaps": false
-},
-"UvSquares": {
-    "is_sync": true,
-    "is_enable": true,
-    "online_url": null,
-    "repository_url": "https://github.com/Radivarig/UvSquares.git",
-    "branch" : null,
-    "is_submodule" : false,
-    "local_path": "#\\scripts\\addon_library\\GIT_Clones\\UvSquares",
-    "paths": [
-        {
-            "is_enable": true,
-            "local_subpath": null,
-            "destination_path": "#\\scripts\\addons\\UvSquares"
-        }
-    ],
-    "keymaps": false
-},
-"Auto_Reload": {
-    "is_sync": true,
-    "is_enable": true,
-    "online_url": null,
-    "repository_url": "https://github.com/samytichadou/Auto_Reload-Blender_addon.git",
-    "branch" : null,
-    "is_submodule" : false,
-    "local_path": "#\\scripts\\addon_library\\GIT_Clones\\Auto_Reload",
-    "paths": [
-        {
-            "is_enable": true,
-            "local_subpath": null,
-            "destination_path": "#\\scripts\\addons\\Auto_Reload"
-        }
-    ],
-    "keymaps": false
-},
-"node_wrangler": {
-    "is_sync": true,
-    "is_enable": true,
-    "online_url": null,
-    "repository_url": null,
-    "branch" : null,
-    "is_submodule" : false,
-    "local_path": null,
-    "paths": null,
-    "keymaps": false
-},
-"node_presets": {
-    "is_sync": true,
-    "is_enable": true,
-    "online_url": null,
-    "repository_url": null,
-    "branch" : null,
-    "is_submodule" : false,
-    "local_path": null,
-    "paths": null,
-    "keymaps": false
-},
-"object_boolean_tools": {
-    "is_sync": true,
-    "is_enable": true,
-    "online_url": null,
-    "repository_url": null,
-    "branch" : null,
-    "is_submodule" : false,
-    "local_path": null,
-    "paths": null,
-    "keymaps": false
-},
-"optiloops": {
-    "is_sync": true,
-    "is_enable": true,
-    "online_url": null,
-    "repository_url": "https://github.com/1C0D/optiloops.git",
-    "branch" : null,
-    "is_submodule" : false,
-    "local_path": "#\\scripts\\addon_library\\GIT_Clones\\optiloops",
-    "paths": [
-        {
-            "is_enable": true,
-            "local_subpath": "optiloops_v1_3_2.py",
-            "destination_path": "#\\scripts\\addons\\optiloops.py"
-        }
-    ],
-    "keymaps": false
-},
-"magic_uv": {
-    "is_sync": true,
-    "is_enable": true,
-    "online_url": null,
-    "repository_url": null,
-    "branch" : null,
-    "is_submodule" : false,
-    "local_path": null,
-    "paths": null,
-    "keymaps": false
-},
-"PolyQuilt": {
-    "is_sync": true,
-    "is_enable": true,
-    "online_url": null,
-    "repository_url": "https://github.com/sakana3/PolyQuilt.git",
-    "branch" : "Future",
-    "is_submodule" : false,
-    "local_path": "#\\scripts\\addon_library\\GIT_Clones\\PolyQuilt",
-    "paths": [
-        {
-            "is_enable": true,
-            "local_subpath": "addons\\PolyQuilt",
-            "destination_path": "#\\scripts\\addons\\PolyQuilt"
-        }
-    ],
-    "keymaps": true
-},
-"Lodify": {
-    "is_sync": true,
-    "is_enable": true,
-    "online_url": null,
-    "repository_url": "https://github.com/DB3D/Lodify.git",
-    "branch" : null,
-    "is_submodule" : false,
-    "local_path": "#\\scripts\\addon_library\\GIT_Clones\\Lodify",
-    "paths": [
-        {
-            "is_enable": true,
-            "local_subpath": null,
-            "destination_path": "#\\scripts\\addons\\Lodify"
-        }
-    ],
-    "keymaps": false
-},
-"add_curve_extra_objects": {
-    "is_sync": true,
-    "is_enable": true,
-    "online_url": null,
-    "repository_url": null,
-    "branch" : null,
-    "is_submodule" : false,
-    "local_path": null,
-    "paths": null,
-    "keymaps": false
-},
-"add_mesh_extra_objects": {
-    "is_sync": true,
-    "is_enable": true,
-    "online_url": null,
-    "repository_url": null,
-    "branch" : null,
-    "is_submodule" : false,
-    "local_path": null,
-    "paths": null,
-    "keymaps": false
-},
-"io_scene_fbx": {
-    "is_sync": true,
-    "is_enable": true,
-    "online_url": null,
-    "repository_url": null,
-    "branch" : null,
-    "is_submodule" : false,
-    "local_path": null,
-    "paths": null,
-    "keymaps": false
-},
-"io_scene_obj": {
-    "is_sync": true,
-    "is_enable": true,
-    "online_url": null,
-    "repository_url": null,
-    "branch" : null,
-    "is_submodule" : false,
-    "local_path": null,
-    "paths": null,
-    "keymaps": false
-},
-"io_scene_x3d": {
-    "is_sync": true,
-    "is_enable": true,
-    "online_url": null,
-    "repository_url": null,
-    "branch" : null,
-    "is_submodule" : false,
-    "local_path": null,
-    "paths": null,
-    "keymaps": false
-},
-"io_scene_gltf2": {
-    "is_sync": true,
-    "is_enable": true,
-    "online_url": null,
-    "repository_url": null,
-    "branch" : null,
-    "is_submodule" : false,
-    "local_path": null,
-    "paths": null,
-    "keymaps": false
-},
-"io_mesh_stl": {
-    "is_sync": true,
-    "is_enable": true,
-    "online_url": null,
-    "repository_url": null,
-    "branch" : null,
-    "is_submodule" : false,
-    "local_path": null,
-    "paths": null,
-    "keymaps": false
-},
-"io_curve_svg": {
-    "is_sync": true,
-    "is_enable": true,
-    "online_url": null,
-    "repository_url": null,
-    "branch" : null,
-    "is_submodule" : false,
-    "local_path": null,
-    "paths": null,
-    "keymaps": false
-},
-"io_mesh_ply": {
-    "is_sync": true,
-    "is_enable": true,
-    "online_url": null,
-    "repository_url": null,
-    "branch" : null,
-    "is_submodule" : false,
-    "local_path": null,
-    "paths": null,
-    "keymaps": false
-},
-"io_mesh_uv_layout": {
-    "is_sync": true,
-    "is_enable": true,
-    "online_url": null,
-    "repository_url": null,
-    "branch" : null,
-    "is_submodule" : false,
-    "local_path": null,
-    "paths": null,
-    "keymaps": false
-},
-"object_collection_manager": {
-    "is_sync": true,
-    "is_enable": true,
-    "online_url": null,
-    "repository_url": null,
-    "branch" : null,
-    "is_submodule" : false,
-    "local_path": null,
-    "paths": null,
-    "keymaps": false
-},
-"space_view3d_modifier_tools": {
-    "is_sync": true,
-    "is_enable": true,
-    "online_url": null,
-    "repository_url": null,
-    "branch" : null,
-    "is_submodule" : false,
-    "local_path": null,
-    "paths": null,
-    "keymaps": false
-},
-"EdgeFlow": {
-    "is_sync": true,
-    "is_enable": true,
-    "online_url": null,
-    "repository_url": "https://github.com/BenjaminSauder/EdgeFlow.git",
-    "branch" : null,
-    "is_submodule" : false,
-    "local_path": "#\\scripts\\addon_library\\GIT_Clones\\EdgeFlow",
-    "paths": [
-        {
-            "is_enable": true,
-            "local_subpath": null,
-            "destination_path": "#\\scripts\\addons\\EdgeFlow"
-        }
-    ],
-    "keymaps": false
-},
-"mesh_tools": {
-    "is_sync": false,
-    "is_enable": true,
-    "online_url": null,
-    "repository_url": null,
-    "branch" : null,
-    "is_submodule" : false,
-    "local_path": null,
-    "paths": null,
-    "keymaps": false
-},
-"cycles": {
-    "is_sync": false,
-    "is_enable": true,
-    "online_url": null,
-    "repository_url": null,
-    "branch" : null,
-    "is_submodule" : false,
-    "local_path": null,
-    "paths": null,
-    "keymaps": false
-},
-"maxivz_tools": {
-    "is_sync": false,
-    "is_enable": false,
-    "online_url": null,
-    "repository_url": null,
-    "branch" : null,
-    "is_submodule" : false,
-    "local_path": null,
-    "paths": null,
-    "keymaps": false
-},
-"bezierutils": {
-    "is_sync": true,
-    "is_enable": true,
-    "online_url": null,
-    "repository_url": "https://github.com/Shriinivas/blenderbezierutils.git",
-    "branch" : null,
-    "is_submodule" : false,
-    "local_path": "#\\scripts\\addon_library\\GIT_Clones\\bezierutils",
-    "paths": [
-        {   
-            "is_enable": true,
-            "local_subpath": "blenderbezierutils.py",
-            "destination_path": "#\\scripts\\addons\\bezierutils.py"
-        }
-    ],
-    "keymaps": false
-},
-"oscurart_edit_split_normals": {
-    "is_sync": true,
-    "is_enable": true,
-    "online_url": null,
-    "repository_url": "https://github.com/oscurart/Blender-28-Addons.git",
-    "branch" : null,
-    "is_submodule" : false,
-    "local_path": "#\\scripts\\addon_library\\GIT_Clones\\oscuart",
-    "paths" : [
-        {
-            "is_enable": true,
-            "local_subpath": "oscurart_edit_split_normals.py",
-            "destination_path": "#\\scripts\\addons\\oscurart_edit_split_normals.py"
-        },
-        {
-            "is_enable": true,
-            "local_subpath": "oscurart_bake_pbr.py",
-            "destination_path": "#\\scripts\\addons\\oscurart_bake_pbr.py"
-        }
-    ],
-    "keymaps": false
-},
-"vertex_color_master": {
-    "is_sync": true,
-    "is_enable": true,
-    "online_url": null,
-    "repository_url": "https://github.com/andyp123/blender_vertex_color_master.git",
-    "branch" : null,
-    "is_submodule" : false,
-    "local_path": "#\\scripts\\addon_library\\GIT_Clones\\vertex_color_master",
-    "paths": [
-        {
-            "is_enable": true,
-            "local_subpath": null,
-            "destination_path": "#\\scripts\\addons\\vertex_color_master"
-        }
-    ],
-    "keymaps": false
-},
-"atomic_data_manager": {
-    "is_sync": true,
-    "is_enable": true,
-    "online_url": null,
-    "repository_url": "https://github.com/grantwilk/atomic-data-manager.git",
-    "branch" : null,
-    "is_submodule" : false,
-    "local_path": "#\\scripts\\addon_library\\GIT_Clones\\atomic_data_manager",
-    "paths": [
-        {
-            "is_enable": true,
-            "local_subpath": null,
-            "destination_path": "#\\scripts\\addons\\atomic_data_manager"
-        }
-    ],
-    "keymaps": true
-},
-"ImagePaste": {
-    "is_sync": false,
-    "is_enable": true,
-    "online_url": "https://yeetusblenditus.gumroad.com/l/ImPaste",
-    "repository_url": null,
-    "branch" : null,
-    "is_submodule" : false,
-    "local_path": "#\\scripts\\addon_library\\local\\ImagePaste",
-    "paths": [
-        {
-            "is_enable": true,
-            "local_subpath": null,
-            "destination_path": "#\\scripts\\addons\\ImagePaste"
-        }
-    ],
-    "keymaps": false
-},
-"greasepencil_tools": {
-    "is_sync": false,
-    "is_enable": true,
-    "online_url": null,
-    "repository_url": null,
-    "branch" : null,
-    "is_submodule" : false,
-    "local_path": null,
-    "paths": null,
-    "keymaps": false
-},
-"Texel_Density": {
-    "is_sync": true,
-    "is_enable": true,
-    "online_url": null,
-    "repository_url": "https://github.com/mrven/Blender-Texel-Density-Checker.git",
-    "branch" : null,
-    "is_submodule" : false,
-    "local_path": "#\\scripts\\addon_library\\GIT_Clones\\Texel_Density",
-    "paths": [
-        {
-            "is_enable": true,
-            "local_subpath": "Texel_Density_3_4_341",
-            "destination_path": "#\\scripts\\addons\\Texel_Density"
-        }
-    ],
-    "keymaps": false
-},
-"RestoreSymmetry": {
-    "is_sync": true,
-    "is_enable": true,
-    "online_url": null,
-    "repository_url": "https://github.com/n-taka/BlenderAddons.git",
-    "branch" : null,
-    "is_submodule" : false,
-    "local_path": "#\\scripts\\addon_library\\GIT_Clones\\RestoreSymmetry",
-    "paths": [
-        {
-            "is_enable": true,
-            "local_subpath": "RestoreSymmetry\\mesh_restoresymmetry.py",
-            "destination_path": "#\\scripts\\addons\\RestoreSymmetry.py"
-        }
-    ],
-    "keymaps": false
-}
+    "Global": {
+        "is_enable": false,
+        "is_sync": false,
+        "online_url": null,
+        "repository_url": null,
+        "branch": null,
+        "is_submodule": false,
+        "local_path": null,
+        "keymaps": true,
+        "paths": null
+    },
+    "ProTheme": {
+        "is_enable": false,
+        "is_sync": true,
+        "online_url": null,
+        "repository_url": "https://github.com/paulcoops/blender_pro-theme.git",
+        "branch": null,
+        "is_submodule": false,
+        "local_path": "#\\scripts\\addon_library\\GIT_Clones\\ProTheme",
+        "keymaps": false,
+        "paths": [
+            {
+                "is_enable": true,
+                "local_subpath": "blender_pro.xml",
+                "destination_path": "#\\scripts\\presets\\interface_theme\\blender_pro.xml"
+            }
+        ]
+    },
+    "matcap": {
+        "is_enable": false,
+        "is_sync": true,
+        "online_url": null,
+        "repository_url": "https://github.com/Tilapiatsu/matcap-selection.git",
+        "branch": "master",
+        "is_submodule": true,
+        "local_path": "#\\scripts\\addon_library\\GIT_Submodules\\tila_matcap",
+        "keymaps": false,
+        "paths": [
+            {
+                "is_enable": true,
+                "local_subpath": null,
+                "destination_path": "#\\datafiles\\studiolights\\matcap"
+            }
+        ]
+    },
+    "HDRI": {
+        "is_enable": false,
+        "is_sync": false,
+        "online_url": null,
+        "repository_url": null,
+        "branch": null,
+        "is_submodule": false,
+        "local_path": "R:\\Mon Drive\\00_Blender_Asset_Library\\Hdri",
+        "keymaps": false,
+        "paths": [
+            {
+                "is_enable": true,
+                "local_subpath": null,
+                "destination_path": "#\\datafiles\\studiolights\\world"
+            }
+        ]
+    },
+    "AgX": {
+        "is_enable": false,
+        "is_sync": true,
+        "online_url": null,
+        "repository_url": "https://github.com/sobotka/AgX.git",
+        "branch": null,
+        "is_submodule": false,
+        "local_path": "#\\scripts\\addon_library\\GIT_Clones\\AgX",
+        "keymaps": false,
+        "paths": [
+            {
+                "is_enable": true,
+                "local_subpath": null,
+                "destination_path": "#\\datafiles\\colormanagement"
+            }
+        ]
+    },
+    "OpenColorIO-Config-ACES": {
+        "is_enable": false,
+        "is_sync": false,
+        "online_url": null,
+        "repository_url": "https://github.com/AcademySoftwareFoundation/OpenColorIO-Config-ACES.git",
+        "branch": null,
+        "is_submodule": false,
+        "local_path": "#\\scripts\\addon_library\\GIT_Clones\\OpenColorIO-Config-ACES",
+        "keymaps": false,
+        "paths": [
+            {
+                "is_enable": false,
+                "local_subpath": null,
+                "destination_path": "#\\datafiles\\colormanagement"
+            }
+        ]
+    },
+    "BulkAsset": {
+        "is_enable": false,
+        "is_sync": false,
+        "online_url": "https://johnnygizmo.gumroad.com/l/bulk-asset-tools",
+        "repository_url": null,
+        "branch": null,
+        "is_submodule": false,
+        "local_path": "#\\scripts\\addon_library\\local\\BulkAsset",
+        "keymaps": false,
+        "paths": [
+            {
+                "is_enable": false,
+                "local_subpath": null,
+                "destination_path": "#\\scripts\\addons\\BulkAsset"
+            }
+        ]
+    },
+    "BystedtsBlenderBaker": {
+        "is_enable": false,
+        "is_sync": false,
+        "online_url": "https://3dbystedt.gumroad.com/l/JAqLT",
+        "repository_url": null,
+        "branch": null,
+        "is_submodule": false,
+        "local_path": "#\\scripts\\addon_library\\local\\BystedtsBlenderBaker",
+        "keymaps": false,
+        "paths": [
+            {
+                "is_enable": false,
+                "local_subpath": null,
+                "destination_path": "#\\scripts\\addons\\BystedtsBlenderBaker"
+            }
+        ]
+    },
+    "CheckToolBox": {
+        "is_enable": false,
+        "is_sync": false,
+        "online_url": "https://vfxgrace.gumroad.com/l/apny",
+        "repository_url": null,
+        "branch": null,
+        "is_submodule": false,
+        "local_path": "#\\scripts\\addon_library\\local\\CheckToolBox",
+        "keymaps": false,
+        "paths": [
+            {
+                "is_enable": false,
+                "local_subpath": null,
+                "destination_path": "#\\scripts\\addons\\CheckToolBox"
+            }
+        ]
+    },
+    "context_browser": {
+        "is_enable": false,
+        "is_sync": false,
+        "online_url": "https://roaoao.gumroad.com/l/context_browser",
+        "repository_url": null,
+        "branch": null,
+        "is_submodule": false,
+        "local_path": "#\\scripts\\addon_library\\local\\context_browser",
+        "keymaps": false,
+        "paths": [
+            {
+                "is_enable": false,
+                "local_subpath": null,
+                "destination_path": "#\\scripts\\addons\\context_browser"
+            }
+        ]
+    },
+    "drop_it": {
+        "is_enable": false,
+        "is_sync": false,
+        "online_url": "https://andreasaust.gumroad.com/l/drop_it",
+        "repository_url": null,
+        "branch": null,
+        "is_submodule": false,
+        "local_path": "#\\scripts\\addon_library\\local\\drop_it",
+        "keymaps": false,
+        "paths": [
+            {
+                "is_enable": false,
+                "local_subpath": null,
+                "destination_path": "#\\scripts\\addons\\drop_it"
+            }
+        ]
+    },
+    "EasyHDRI": {
+        "is_enable": false,
+        "is_sync": false,
+        "online_url": "https://codeofart.gumroad.com/l/EasyHDRI",
+        "repository_url": null,
+        "branch": null,
+        "is_submodule": false,
+        "local_path": "#\\scripts\\addon_library\\local",
+        "keymaps": false,
+        "paths": [
+            {
+                "is_enable": false,
+                "local_subpath": "EasyHDRI.py",
+                "destination_path": "#\\scripts\\addons\\EasyHDRI.py"
+            }
+        ]
+    },
+    "flow_map_painter": {
+        "is_enable": false,
+        "is_sync": false,
+        "online_url": "https://clemensbeute.gumroad.com/l/heZDT",
+        "repository_url": null,
+        "branch": null,
+        "is_submodule": false,
+        "local_path": "#\\scripts\\addon_library\\local\\flow_map_painter",
+        "keymaps": false,
+        "paths": [
+            {
+                "is_enable": false,
+                "local_subpath": null,
+                "destination_path": "#\\scripts\\addons\\flow_map_painter"
+            }
+        ]
+    },
+    "keentools": {
+        "is_enable": false,
+        "is_sync": false,
+        "online_url": "https://keentools.io/download/facebuilder-for-blender",
+        "repository_url": null,
+        "branch": null,
+        "is_submodule": false,
+        "local_path": "#\\scripts\\addon_library\\local\\keentools",
+        "keymaps": false,
+        "paths": [
+            {
+                "is_enable": false,
+                "local_subpath": null,
+                "destination_path": "#\\scripts\\addons\\keentools"
+            }
+        ]
+    },
+    "kekit": {
+        "is_enable": true,
+        "is_sync": false,
+        "online_url": "https://kjell.gumroad.com/l/kekit_blender",
+        "repository_url": null,
+        "branch": null,
+        "is_submodule": false,
+        "local_path": "#\\scripts\\addon_library\\local\\kekit",
+        "keymaps": true,
+        "paths": [
+            {
+                "is_enable": true,
+                "local_subpath": null,
+                "destination_path": "#\\scripts\\addons\\kekit"
+            }
+        ]
+    },
+    "lazy_shapekeys": {
+        "is_enable": false,
+        "is_sync": false,
+        "online_url": "https://bookyakuno.gumroad.com/l/lazy-shapekeys",
+        "repository_url": null,
+        "branch": null,
+        "is_submodule": false,
+        "local_path": "#\\scripts\\addon_library\\local\\lazy_shapekeys",
+        "keymaps": false,
+        "paths": [
+            {
+                "is_enable": false,
+                "local_subpath": null,
+                "destination_path": "#\\scripts\\addons\\lazy_shapekeys"
+            }
+        ]
+    },
+    "MeshDataTransfer": {
+        "is_enable": true,
+        "is_sync": false,
+        "online_url": "https://mmemoli.gumroad.com/l/tOKEh",
+        "repository_url": null,
+        "branch": null,
+        "is_submodule": false,
+        "local_path": "#\\scripts\\addon_library\\local\\MeshDataTransfer",
+        "keymaps": false,
+        "paths": [
+            {
+                "is_enable": true,
+                "local_subpath": null,
+                "destination_path": "#\\scripts\\addons\\MeshDataTransfer"
+            }
+        ]
+    },
+    "mouselook_navigation": {
+        "is_enable": false,
+        "is_sync": false,
+        "online_url": "https://moth3r.gumroad.com/l/mouselook",
+        "repository_url": null,
+        "branch": null,
+        "is_submodule": false,
+        "local_path": "#\\scripts\\addon_library\\local\\mouselook_navigation",
+        "keymaps": false,
+        "paths": [
+            {
+                "is_enable": false,
+                "local_subpath": null,
+                "destination_path": "#\\scripts\\addons\\mouselook_navigation"
+            }
+        ]
+    },
+    "NGon Loop Select": {
+        "is_enable": true,
+        "is_sync": false,
+        "online_url": "https://amanbairwal.gumroad.com/l/NGonLoopSelect",
+        "repository_url": null,
+        "branch": null,
+        "is_submodule": false,
+        "local_path": "#\\scripts\\addon_library\\local\\NGon Loop Select",
+        "keymaps": false,
+        "paths": [
+            {
+                "is_enable": true,
+                "local_subpath": null,
+                "destination_path": "#\\scripts\\addons\\NGon Loop Select"
+            }
+        ]
+    },
+    "Poly_Source": {
+        "is_enable": true,
+        "is_sync": false,
+        "online_url": "https://derksen.gumroad.com/l/polysource",
+        "repository_url": null,
+        "branch": null,
+        "is_submodule": false,
+        "local_path": "#\\scripts\\addon_library\\local\\Poly_Source",
+        "keymaps": true,
+        "paths": [
+            {
+                "is_enable": true,
+                "local_subpath": null,
+                "destination_path": "#\\scripts\\addons\\Poly_Source"
+            }
+        ]
+    },
+    "Pro_Aligner": {
+        "is_enable": true,
+        "is_sync": false,
+        "online_url": "https://cggalaxy.gumroad.com/l/proaligner",
+        "repository_url": null,
+        "branch": null,
+        "is_submodule": false,
+        "local_path": "#\\scripts\\addon_library\\local\\Pro_Aligner",
+        "keymaps": false,
+        "paths": [
+            {
+                "is_enable": true,
+                "local_subpath": null,
+                "destination_path": "#\\scripts\\addons\\Pro_Aligner"
+            }
+        ]
+    },
+    "QBlocker": {
+        "is_enable": false,
+        "is_sync": false,
+        "online_url": "https://sanislovart.gumroad.com/l/gOEV",
+        "repository_url": null,
+        "branch": null,
+        "is_submodule": false,
+        "local_path": "#\\scripts\\addon_library\\local\\QBlocker",
+        "keymaps": false,
+        "paths": [
+            {
+                "is_enable": false,
+                "local_subpath": null,
+                "destination_path": "#\\scripts\\addons\\QBlocker"
+            }
+        ]
+    },
+    "render_task_list": {
+        "is_enable": false,
+        "is_sync": false,
+        "online_url": "https://bookyakuno.gumroad.com/l/render-task-list",
+        "repository_url": null,
+        "branch": null,
+        "is_submodule": false,
+        "local_path": "#\\scripts\\addon_library\\local\\render_task_list",
+        "keymaps": false,
+        "paths": [
+            {
+                "is_enable": false,
+                "local_subpath": null,
+                "destination_path": "#\\scripts\\addons\\render_task_list"
+            }
+        ]
+    },
+    "RetopoFlow": {
+        "is_enable": false,
+        "is_sync": false,
+        "online_url": null,
+        "repository_url": "https://github.com/CGCookie/retopoflow.git",
+        "branch": null,
+        "is_submodule": false,
+        "local_path": "#\\scripts\\addon_library\\local\\RetopoFlow",
+        "keymaps": false,
+        "paths": [
+            {
+                "is_enable": false,
+                "local_subpath": null,
+                "destination_path": "#\\scripts\\addons\\RetopoFlow"
+            }
+        ]
+    },
+    "rotate_an_hdri": {
+        "is_enable": true,
+        "is_sync": false,
+        "online_url": "https://alexbel.gumroad.com/l/XQYEl",
+        "repository_url": null,
+        "branch": null,
+        "is_submodule": false,
+        "local_path": "#\\scripts\\addon_library\\local\\rotate_an_hdri",
+        "keymaps": true,
+        "paths": [
+            {
+                "is_enable": true,
+                "local_subpath": null,
+                "destination_path": "#\\scripts\\addons\\rotate_an_hdri"
+            }
+        ]
+    },
+    "sj_selection_set": {
+        "is_enable": false,
+        "is_sync": false,
+        "online_url": "https://captainhansode.gumroad.com/l/wqaMJ",
+        "repository_url": null,
+        "branch": null,
+        "is_submodule": false,
+        "local_path": "#\\scripts\\addon_library\\local\\sj_selection_set",
+        "keymaps": false,
+        "paths": [
+            {
+                "is_enable": false,
+                "local_subpath": null,
+                "destination_path": "#\\scripts\\addons\\sj_selection_set"
+            }
+        ]
+    },
+    "slcad_transform": {
+        "is_enable": true,
+        "is_sync": false,
+        "online_url": "https://blender-archipack.gumroad.com/l/nQVcS",
+        "repository_url": null,
+        "branch": null,
+        "is_submodule": false,
+        "local_path": "#\\scripts\\addon_library\\local\\slcad_transform",
+        "keymaps": false,
+        "paths": [
+            {
+                "is_enable": true,
+                "local_subpath": null,
+                "destination_path": "#\\scripts\\addons\\slcad_transform"
+            }
+        ]
+    },
+    "softMod": {
+        "is_enable": false,
+        "is_sync": false,
+        "online_url": "https://mmemoli.gumroad.com/l/softmod",
+        "repository_url": null,
+        "branch": null,
+        "is_submodule": false,
+        "local_path": "#\\scripts\\addon_library\\local\\softMod",
+        "keymaps": false,
+        "paths": [
+            {
+                "is_enable": false,
+                "local_subpath": null,
+                "destination_path": "#\\scripts\\addons\\softMod"
+            }
+        ]
+    },
+    "SSGI": {
+        "is_enable": false,
+        "is_sync": false,
+        "online_url": "https://n0451.gumroad.com/l/PgyXc",
+        "repository_url": null,
+        "branch": null,
+        "is_submodule": false,
+        "local_path": "#\\scripts\\addon_library\\local\\SSGI",
+        "keymaps": false,
+        "paths": [
+            {
+                "is_enable": false,
+                "local_subpath": null,
+                "destination_path": "#\\scripts\\addons\\SSGI"
+            }
+        ]
+    },
+    "surface_inflate": {
+        "is_enable": true,
+        "is_sync": false,
+        "online_url": "https://kushiro.gumroad.com/l/inmas",
+        "repository_url": null,
+        "branch": null,
+        "is_submodule": false,
+        "local_path": "#\\scripts\\addon_library\\local\\surface_inflate",
+        "keymaps": false,
+        "paths": [
+            {
+                "is_enable": true,
+                "local_subpath": null,
+                "destination_path": "#\\scripts\\addons\\surface_inflate"
+            }
+        ]
+    },
+    "Is_Synchronize Workspace": {
+        "is_enable": false,
+        "is_sync": false,
+        "online_url": "https://m-soluyanov.gumroad.com/l/afoty",
+        "repository_url": null,
+        "branch": null,
+        "is_submodule": false,
+        "local_path": "#\\scripts\\addon_library\\local\\Is_Synchronize Workspace",
+        "keymaps": false,
+        "paths": [
+            {
+                "is_enable": false,
+                "local_subpath": null,
+                "destination_path": "#\\scripts\\addons\\Is_Synchronize Workspace"
+            }
+        ]
+    },
+    "UnwrapMe": {
+        "is_enable": true,
+        "is_sync": false,
+        "online_url": null,
+        "repository_url": "https://github.com/3e33/UnwrapMe.git",
+        "branch": null,
+        "is_submodule": false,
+        "local_path": "#\\scripts\\addon_library\\local\\UnwrapMe",
+        "keymaps": false,
+        "paths": [
+            {
+                "is_enable": true,
+                "local_subpath": null,
+                "destination_path": "#\\scripts\\addons\\UnwrapMe"
+            }
+        ]
+    },
+    "weight_layers": {
+        "is_enable": false,
+        "is_sync": false,
+        "online_url": "https://strike-digital.gumroad.com/l/weight_layers",
+        "repository_url": null,
+        "branch": null,
+        "is_submodule": false,
+        "local_path": "#\\scripts\\addon_library\\local\\weight_layers",
+        "keymaps": false,
+        "paths": [
+            {
+                "is_enable": false,
+                "local_subpath": null,
+                "destination_path": "#\\scripts\\addons\\weight_layers"
+            }
+        ]
+    },
+    "auto_mirror_ex": {
+        "is_enable": false,
+        "is_sync": false,
+        "online_url": "https://bookyakuno.gumroad.com/l/vgRSB",
+        "repository_url": null,
+        "branch": null,
+        "is_submodule": false,
+        "local_path": "#\\scripts\\addon_library\\local\\auto_mirror_ex",
+        "keymaps": false,
+        "paths": [
+            {
+                "is_enable": false,
+                "local_subpath": null,
+                "destination_path": "#\\scripts\\addons\\auto_mirror_ex"
+            }
+        ]
+    },
+    "bakeToVertexColor": {
+        "is_enable": false,
+        "is_sync": false,
+        "online_url": "https://3dbystedt.gumroad.com/l/zdgxg",
+        "repository_url": null,
+        "branch": null,
+        "is_submodule": false,
+        "local_path": "#\\scripts\\addon_library\\local",
+        "keymaps": false,
+        "paths": [
+            {
+                "is_enable": false,
+                "local_subpath": "bakeToVertexColor.py",
+                "destination_path": "#\\scripts\\addons\\bakeToVertexColor.py"
+            }
+        ]
+    },
+    "Blender_light_manager": {
+        "is_enable": true,
+        "is_sync": false,
+        "online_url": "https://engelik.gumroad.com/l/DQNYI",
+        "repository_url": null,
+        "branch": null,
+        "is_submodule": false,
+        "local_path": "#\\scripts\\addon_library\\local",
+        "keymaps": false,
+        "paths": [
+            {
+                "is_enable": true,
+                "local_subpath": "Blender_light_manager.py",
+                "destination_path": "#\\scripts\\addons\\Blender_light_manager.py"
+            }
+        ]
+    },
+    "boundary_alinged_remesh": {
+        "is_enable": false,
+        "is_sync": false,
+        "online_url": "https://bookyakuno.gumroad.com/l/NEMDA",
+        "repository_url": null,
+        "branch": null,
+        "is_submodule": false,
+        "local_path": "#\\scripts\\addon_library\\local",
+        "keymaps": false,
+        "paths": [
+            {
+                "is_enable": false,
+                "local_subpath": "boundary_alinged_remesh.py",
+                "destination_path": "#\\scripts\\addons\\boundary_alinged_remesh.py"
+            }
+        ]
+    },
+    "hide_only_vertex": {
+        "is_enable": false,
+        "is_sync": false,
+        "online_url": "https://bookyakuno.gumroad.com/l/NEMDA",
+        "repository_url": null,
+        "branch": null,
+        "is_submodule": false,
+        "local_path": "#\\scripts\\addon_library\\local",
+        "keymaps": false,
+        "paths": [
+            {
+                "is_enable": false,
+                "local_subpath": "hide_only_vertex.py",
+                "destination_path": "#\\scripts\\addons\\hide_only_vertex.py"
+            }
+        ]
+    },
+    "ke_i2m": {
+        "is_enable": false,
+        "is_sync": false,
+        "online_url": "https://kjell.gumroad.com/l/i2m",
+        "repository_url": null,
+        "branch": null,
+        "is_submodule": false,
+        "local_path": "#\\scripts\\addon_library\\local",
+        "keymaps": false,
+        "paths": [
+            {
+                "is_enable": false,
+                "local_subpath": "ke_i2m.py",
+                "destination_path": "#\\scripts\\addons\\ke_i2m.py"
+            }
+        ]
+    },
+    "thumbMate": {
+        "is_enable": false,
+        "is_sync": false,
+        "online_url": "https://www.braverabbit.com/braverabbit/tools/thumbmate/",
+        "repository_url": null,
+        "branch": null,
+        "is_submodule": false,
+        "local_path": "#\\scripts\\addon_library\\local",
+        "keymaps": false,
+        "paths": [
+            {
+                "is_enable": false,
+                "local_subpath": "thumbMate.py",
+                "destination_path": "#\\scripts\\addons\\thumbMate.py"
+            }
+        ]
+    },
+    "transfer_vertex_order": {
+        "is_enable": false,
+        "is_sync": false,
+        "online_url": "https://bartoszstyperek.gumroad.com/l/copy_verts_ids",
+        "repository_url": null,
+        "branch": null,
+        "is_submodule": false,
+        "local_path": "#\\scripts\\addon_library\\local",
+        "keymaps": false,
+        "paths": [
+            {
+                "is_enable": false,
+                "local_subpath": "transfer_vertex_order.py",
+                "destination_path": "#\\scripts\\addons\\transfer_vertex_order.py"
+            }
+        ]
+    },
+    "ZWeightTools": {
+        "is_enable": false,
+        "is_sync": false,
+        "online_url": "https://zacheastin.gumroad.com/l/tukDb",
+        "repository_url": null,
+        "branch": null,
+        "is_submodule": false,
+        "local_path": "#\\scripts\\addon_library\\local",
+        "keymaps": false,
+        "paths": [
+            {
+                "is_enable": false,
+                "local_subpath": "ZWeightTools.py",
+                "destination_path": "#\\scripts\\addons\\ZWeightTools.py"
+            }
+        ]
+    },
+    "uvpackmaster3": {
+        "is_enable": true,
+        "is_sync": false,
+        "online_url": "https://glukoz.gumroad.com/l/uvpackmaster3",
+        "repository_url": null,
+        "branch": null,
+        "is_submodule": false,
+        "local_path": "S:\\Mon Drive\\15_Blender\\00_INSTALLED_ADDONS\\uvpackmaster3",
+        "keymaps": false,
+        "paths": [
+            {
+                "is_enable": true,
+                "local_subpath": null,
+                "destination_path": "#\\scripts\\addons\\uvpackmaster3"
+            }
+        ]
+    },
+    "beta_quad": {
+        "is_enable": true,
+        "is_sync": false,
+        "online_url": null,
+        "repository_url": null,
+        "branch": null,
+        "is_submodule": false,
+        "local_path": "S:\\Mon Drive\\15_Blender\\00_INSTALLED_ADDONS\\beta_quad",
+        "keymaps": false,
+        "paths": [
+            {
+                "is_enable": true,
+                "local_subpath": null,
+                "destination_path": "#\\scripts\\addons\\beta_quad"
+            }
+        ]
+    },
+    "MACHIN3tools": {
+        "is_enable": true,
+        "is_sync": false,
+        "online_url": null,
+        "repository_url": null,
+        "branch": null,
+        "is_submodule": false,
+        "local_path": "S:\\Mon Drive\\15_Blender\\00_INSTALLED_ADDONS\\MACHIN3tools",
+        "keymaps": true,
+        "paths": [
+            {
+                "is_enable": true,
+                "local_subpath": null,
+                "destination_path": "#\\scripts\\addons\\MACHIN3tools"
+            }
+        ]
+    },
+    "MESHmachine": {
+        "is_enable": true,
+        "is_sync": false,
+        "online_url": null,
+        "repository_url": null,
+        "branch": null,
+        "is_submodule": false,
+        "local_path": "S:\\Mon Drive\\15_Blender\\00_INSTALLED_ADDONS\\MESHmachine",
+        "keymaps": false,
+        "paths": [
+            {
+                "is_enable": true,
+                "local_subpath": null,
+                "destination_path": "#\\scripts\\addons\\MESHmachine"
+            }
+        ]
+    },
+    "physical-starlight-atmosphere": {
+        "is_enable": true,
+        "is_sync": false,
+        "online_url": null,
+        "repository_url": null,
+        "branch": null,
+        "is_submodule": false,
+        "local_path": "S:\\Mon Drive\\15_Blender\\00_INSTALLED_ADDONS\\physical-starlight-atmosphere",
+        "keymaps": false,
+        "paths": [
+            {
+                "is_enable": true,
+                "local_subpath": null,
+                "destination_path": "#\\scripts\\addons\\physical-starlight-atmosphere"
+            }
+        ]
+    },
+    "SculptLayers": {
+        "is_enable": true,
+        "is_sync": false,
+        "online_url": null,
+        "repository_url": null,
+        "branch": null,
+        "is_submodule": false,
+        "local_path": "S:\\Mon Drive\\15_Blender\\00_INSTALLED_ADDONS\\SculptLayers",
+        "keymaps": false,
+        "paths": [
+            {
+                "is_enable": true,
+                "local_subpath": null,
+                "destination_path": "#\\scripts\\addons\\SculptLayers"
+            }
+        ]
+    },
+    "uv_toolkit": {
+        "is_enable": true,
+        "is_sync": false,
+        "online_url": null,
+        "repository_url": null,
+        "branch": null,
+        "is_submodule": false,
+        "local_path": "S:\\Mon Drive\\15_Blender\\00_INSTALLED_ADDONS\\uv_toolkit",
+        "keymaps": true,
+        "paths": [
+            {
+                "is_enable": true,
+                "local_subpath": null,
+                "destination_path": "#\\scripts\\addons\\uv_toolkit"
+            }
+        ]
+    },
+    "BakeWrangler": {
+        "is_enable": true,
+        "is_sync": false,
+        "online_url": null,
+        "repository_url": null,
+        "branch": null,
+        "is_submodule": false,
+        "local_path": "S:\\Mon Drive\\15_Blender\\00_INSTALLED_ADDONS\\BakeWrangler",
+        "keymaps": false,
+        "paths": [
+            {
+                "is_enable": true,
+                "local_subpath": null,
+                "destination_path": "#\\scripts\\addons\\BakeWrangler"
+            }
+        ]
+    },
+    "quad_remesher": {
+        "is_enable": true,
+        "is_sync": false,
+        "online_url": "https://exoside.com/quadremesher/quadremesher-download/",
+        "repository_url": null,
+        "branch": null,
+        "is_submodule": false,
+        "local_path": "S:\\Mon Drive\\15_Blender\\00_INSTALLED_ADDONS\\quad_remesher",
+        "keymaps": false,
+        "paths": [
+            {
+                "is_enable": true,
+                "local_subpath": null,
+                "destination_path": "#\\scripts\\addons\\quad_remesher"
+            }
+        ]
+    },
+    "noodler": {
+        "is_enable": true,
+        "is_sync": true,
+        "online_url": null,
+        "repository_url": "https://github.com/DB3D/Noodler.git",
+        "branch": null,
+        "is_submodule": false,
+        "local_path": "#\\scripts\\addon_library\\GIT_Clones\\noodler",
+        "keymaps": true,
+        "paths": [
+            {
+                "is_enable": true,
+                "local_subpath": "noodler.py",
+                "destination_path": "#\\scripts\\addons\\noodler.py"
+            }
+        ]
+    },
+    "keymesh": {
+        "is_enable": false,
+        "is_sync": false,
+        "online_url": null,
+        "repository_url": "https://github.com/pablodp606/keymesh-addon.git",
+        "branch": null,
+        "is_submodule": false,
+        "local_path": "#\\scripts\\addon_library\\GIT_Clones\\keymesh",
+        "keymaps": false,
+        "paths": [
+            {
+                "is_enable": false,
+                "local_subpath": "keymesh.py",
+                "destination_path": "#\\scripts\\addons\\keymesh.py"
+            }
+        ]
+    },
+    "leomoon-lightstudio": {
+        "is_enable": false,
+        "is_sync": false,
+        "online_url": "https://github.com/leomoon-studios/leomoon-lightstudio.git",
+        "repository_url": null,
+        "branch": null,
+        "is_submodule": false,
+        "local_path": "#\\scripts\\addon_library\\GIT_Clones\\leomoon-lightstudio",
+        "keymaps": false,
+        "paths": [
+            {
+                "is_enable": false,
+                "local_subpath": null,
+                "destination_path": "#\\scripts\\addons\\leomoon-lightstudio"
+            }
+        ]
+    },
+    "BakeMyScan": {
+        "is_enable": false,
+        "is_sync": false,
+        "online_url": null,
+        "repository_url": "https://github.com/norgeotloic/BakeMyScan.git",
+        "branch": null,
+        "is_submodule": false,
+        "local_path": "#\\scripts\\addon_library\\GIT_Clones\\BakeMyScan",
+        "keymaps": false,
+        "paths": [
+            {
+                "is_enable": false,
+                "local_subpath": null,
+                "destination_path": "#\\scripts\\addons\\BakeMyScan"
+            }
+        ]
+    },
+    "curve_cad": {
+        "is_enable": false,
+        "is_sync": false,
+        "online_url": "https://github.com/Lichtso/curve_cad.git",
+        "repository_url": null,
+        "branch": null,
+        "is_submodule": false,
+        "local_path": "#\\scripts\\addon_library\\GIT_Clones\\curve_cad",
+        "keymaps": false,
+        "paths": [
+            {
+                "is_enable": false,
+                "local_subpath": null,
+                "destination_path": "#\\scripts\\addons\\curve_cad"
+            }
+        ]
+    },
+    "GoB": {
+        "is_enable": false,
+        "is_sync": false,
+        "online_url": null,
+        "repository_url": "https://github.com/JoseConseco/GoB.git",
+        "branch": null,
+        "is_submodule": false,
+        "local_path": "#\\scripts\\addon_library\\GIT_Clones\\GoB",
+        "keymaps": false,
+        "paths": [
+            {
+                "is_enable": false,
+                "local_subpath": null,
+                "destination_path": "#\\scripts\\addons\\GoB"
+            }
+        ]
+    },
+    "animation_nodes": {
+        "is_enable": false,
+        "is_sync": false,
+        "online_url": "https://github.com/JacquesLucke/animation_nodes.git",
+        "repository_url": null,
+        "branch": null,
+        "is_submodule": false,
+        "local_path": "#\\scripts\\addon_library\\GIT_Clones\\animation_nodes",
+        "keymaps": false,
+        "paths": [
+            {
+                "is_enable": false,
+                "local_subpath": null,
+                "destination_path": "#\\scripts\\addons\\animation_nodes"
+            }
+        ]
+    },
+    "fSpy-Blender": {
+        "is_enable": false,
+        "is_sync": false,
+        "online_url": null,
+        "repository_url": "https://github.com/stuffmatic/fSpy-Blender.git",
+        "branch": null,
+        "is_submodule": false,
+        "local_path": "#\\scripts\\addon_library\\GIT_Clones\\fSpy_Blender",
+        "keymaps": false,
+        "paths": [
+            {
+                "is_enable": false,
+                "local_subpath": null,
+                "destination_path": "#\\scripts\\addons\\fSpy_Blender"
+            }
+        ]
+    },
+    "Capsule": {
+        "is_enable": false,
+        "is_sync": false,
+        "online_url": null,
+        "repository_url": "https://github.com/Takanu/Capsule.git",
+        "branch": null,
+        "is_submodule": false,
+        "local_path": "#\\scripts\\addon_library\\GIT_Clones\\Capsule",
+        "keymaps": false,
+        "paths": [
+            {
+                "is_enable": false,
+                "local_subpath": "Capsule",
+                "destination_path": "#\\scripts\\addons\\Capsule"
+            }
+        ]
+    },
+    "ScreenCast_Keys": {
+        "is_enable": false,
+        "is_sync": false,
+        "online_url": null,
+        "repository_url": "https://github.com/nutti/Screencast-Keys.git",
+        "branch": null,
+        "is_submodule": false,
+        "local_path": "#\\scripts\\addon_library\\GIT_Clones\\ScreenCast_Keys",
+        "keymaps": false,
+        "paths": [
+            {
+                "is_enable": false,
+                "local_subpath": null,
+                "destination_path": "#\\scripts\\addons\\ScreenCast_Keys"
+            }
+        ]
+    },
+    "bpy_photogrametry": {
+        "is_enable": false,
+        "is_sync": false,
+        "online_url": null,
+        "repository_url": "https://github.com/uhlik/bpy.git",
+        "branch": null,
+        "is_submodule": false,
+        "local_path": "#\\scripts\\addon_library\\GIT_Clones\\bpy_photogrametry",
+        "keymaps": false,
+        "paths": [
+            {
+                "is_enable": false,
+                "local_subpath": "carbon_tools.py",
+                "destination_path": "#\\scripts\\addons\\carbon_tools.py"
+            },
+            {
+                "is_enable": false,
+                "local_subpath": "io_import_photoscan_cameras.py",
+                "destination_path": "#\\scripts\\addons\\io_import_photoscan_cameras.py"
+            },
+            {
+                "is_enable": false,
+                "local_subpath": "system_time_tracker.py",
+                "destination_path": "#\\scripts\\addons\\system_time_tracker.py"
+            },
+            {
+                "is_enable": false,
+                "local_subpath": "space_view3d_point_cloud_visualizer.py",
+                "destination_path": "#\\scripts\\addons\\space_view3d_point_cloud_visualizer.py"
+            }
+        ]
+    },
+    "yavne": {
+        "is_enable": false,
+        "is_sync": false,
+        "online_url": null,
+        "repository_url": "https://github.com/fedackb/yavne.git",
+        "branch": null,
+        "is_submodule": false,
+        "local_path": "#\\scripts\\addon_library\\GIT_Clones\\yavne",
+        "keymaps": false,
+        "paths": [
+            {
+                "is_enable": false,
+                "local_subpath": null,
+                "destination_path": "#\\scripts\\addons\\yavne"
+            }
+        ]
+    },
+    "FontSelector": {
+        "is_enable": false,
+        "is_sync": false,
+        "online_url": null,
+        "repository_url": "https://github.com/samytichadou/FontSelector_blender_addon.git",
+        "branch": null,
+        "is_submodule": false,
+        "local_path": "#\\scripts\\addon_library\\GIT_Clones\\FontSelector",
+        "keymaps": false,
+        "paths": [
+            {
+                "is_enable": false,
+                "local_subpath": null,
+                "destination_path": "#\\scripts\\addons\\FontSelector"
+            }
+        ]
+    },
+    "MapsModelsImporter": {
+        "is_enable": false,
+        "is_sync": false,
+        "online_url": null,
+        "repository_url": "https://github.com/eliemichel/MapsModelsImporter.git",
+        "branch": null,
+        "is_submodule": false,
+        "local_path": "#\\scripts\\addon_library\\GIT_Clones\\MapsModelsImporter",
+        "keymaps": false,
+        "paths": [
+            {
+                "is_enable": false,
+                "local_subpath": "blender\\MapsModelsImporter",
+                "destination_path": "#\\scripts\\addons\\MapsModelsImporter"
+            }
+        ]
+    },
+    "BlendShell": {
+        "is_enable": false,
+        "is_sync": false,
+        "online_url": null,
+        "repository_url": "https://github.com/oormicreations/BlendShell.git",
+        "branch": null,
+        "is_submodule": false,
+        "local_path": "#\\scripts\\addon_library\\GIT_Clones\\BlendShell",
+        "keymaps": false,
+        "paths": [
+            {
+                "is_enable": false,
+                "local_subpath": "blendshell.py",
+                "destination_path": "#\\scripts\\addons\\BlendShell.py"
+            }
+        ]
+    },
+    "Neltulz_Edge_Curve_Plus": {
+        "is_enable": false,
+        "is_sync": false,
+        "online_url": null,
+        "repository_url": "https://github.com/Neltulz/Neltulz_Edge_Curve_Plus.git",
+        "branch": null,
+        "is_submodule": false,
+        "local_path": "#\\scripts\\addon_library\\GIT_Clones\\Neltulz_Edge_Curve_Plus",
+        "keymaps": false,
+        "paths": [
+            {
+                "is_enable": false,
+                "local_subpath": null,
+                "destination_path": "#\\scripts\\addons\\Neltulz_Edge_Curve_Plus"
+            }
+        ]
+    },
+    "BlenderGIS": {
+        "is_enable": false,
+        "is_sync": false,
+        "online_url": null,
+        "repository_url": "https://github.com/domlysz/BlenderGIS.git",
+        "branch": null,
+        "is_submodule": false,
+        "local_path": "#\\scripts\\addon_library\\GIT_Clones\\BlenderGIS",
+        "keymaps": false,
+        "paths": [
+            {
+                "is_enable": false,
+                "local_subpath": null,
+                "destination_path": "#\\scripts\\addons\\BlenderGIS"
+            }
+        ]
+    },
+    "LuxeCore": {
+        "is_enable": false,
+        "is_sync": false,
+        "online_url": null,
+        "repository_url": "https://github.com/LuxCoreRender/BlendLuxCore.git",
+        "branch": null,
+        "is_submodule": false,
+        "local_path": "#\\scripts\\addon_library\\GIT_Clones\\LuxeCore",
+        "keymaps": false,
+        "paths": [
+            {
+                "is_enable": false,
+                "local_subpath": null,
+                "destination_path": "#\\scripts\\addons\\LuxeCore"
+            }
+        ]
+    },
+    "Export_Paper_Model": {
+        "is_enable": false,
+        "is_sync": false,
+        "online_url": null,
+        "repository_url": "https://github.com/addam/Export-Paper-Model-from-Blender.git",
+        "branch": null,
+        "is_submodule": false,
+        "local_path": "#\\scripts\\addon_library\\GIT_Clones\\Export_Paper_Model",
+        "keymaps": false,
+        "paths": [
+            {
+                "is_enable": false,
+                "local_subpath": null,
+                "destination_path": "#\\scripts\\addons\\Export_Paper_Model"
+            }
+        ]
+    },
+    "glsl_texture": {
+        "is_enable": false,
+        "is_sync": false,
+        "online_url": null,
+        "repository_url": "https://github.com/patriciogonzalezvivo/glslTexture.git",
+        "branch": null,
+        "is_submodule": false,
+        "local_path": "#\\scripts\\addon_library\\GIT_Clones\\glsl_texture",
+        "keymaps": false,
+        "paths": [
+            {
+                "is_enable": false,
+                "local_subpath": null,
+                "destination_path": "#\\scripts\\addons\\glsl_texture"
+            }
+        ]
+    },
+    "modifier_list": {
+        "is_enable": false,
+        "is_sync": false,
+        "online_url": null,
+        "repository_url": "https://github.com/Symstract/modifier_list.git",
+        "branch": null,
+        "is_submodule": false,
+        "local_path": "#\\scripts\\addon_library\\GIT_Clones\\modifier_list",
+        "keymaps": false,
+        "paths": [
+            {
+                "is_enable": false,
+                "local_subpath": null,
+                "destination_path": "#\\scripts\\addons\\modifier_list"
+            }
+        ]
+    },
+    "seams_to_sewing_pattern": {
+        "is_enable": false,
+        "is_sync": false,
+        "online_url": null,
+        "repository_url": "https://gitlab.com/thomaskole/blender-seams-to-sewing-pattern.git",
+        "branch": null,
+        "is_submodule": false,
+        "local_path": "#\\scripts\\addon_library\\GIT_Clones\\seams_to_sewing_pattern",
+        "keymaps": false,
+        "paths": [
+            {
+                "is_enable": false,
+                "local_subpath": null,
+                "destination_path": "#\\scripts\\addons\\seams_to_sewing_pattern"
+            }
+        ]
+    },
+    "BMax_Connector": {
+        "is_enable": false,
+        "is_sync": false,
+        "online_url": null,
+        "repository_url": "https://github.com/TitusLVR/BMAX_Connector.git",
+        "branch": null,
+        "is_submodule": false,
+        "local_path": "#\\scripts\\addon_library\\GIT_Clones\\BMax_Connector",
+        "keymaps": false,
+        "paths": [
+            {
+                "is_enable": false,
+                "local_subpath": null,
+                "destination_path": "#\\scripts\\addons\\BMax_Connector"
+            }
+        ]
+    },
+    "modular_tree": {
+        "is_enable": false,
+        "is_sync": false,
+        "online_url": null,
+        "repository_url": "https://github.com/MaximeHerpin/modular_tree.git",
+        "branch": null,
+        "is_submodule": false,
+        "local_path": "#\\scripts\\addon_library\\GIT_Clones\\modular_tree",
+        "keymaps": false,
+        "paths": [
+            {
+                "is_enable": false,
+                "local_subpath": null,
+                "destination_path": "#\\scripts\\addons\\modular_tree"
+            }
+        ]
+    },
+    "Abnormal": {
+        "is_enable": false,
+        "is_sync": false,
+        "online_url": null,
+        "repository_url": "https://github.com/bnpr/Abnormal.git",
+        "branch": null,
+        "is_submodule": false,
+        "local_path": "#\\scripts\\addon_library\\GIT_Clones\\Abnormal",
+        "keymaps": false,
+        "paths": [
+            {
+                "is_enable": false,
+                "local_subpath": null,
+                "destination_path": "#\\scripts\\addons\\Abnormal"
+            }
+        ]
+    },
+    "Shader_to_OpenVDB": {
+        "is_enable": false,
+        "is_sync": false,
+        "online_url": null,
+        "repository_url": "https://github.com/joshuabloemer/Shader-to-OpenVDB.git",
+        "branch": null,
+        "is_submodule": false,
+        "local_path": "#\\scripts\\addon_library\\GIT_Clones\\Shader_to_OpenVDB",
+        "keymaps": false,
+        "paths": [
+            {
+                "is_enable": false,
+                "local_subpath": null,
+                "destination_path": "#\\scripts\\addons\\Shader_to_OpenVDB"
+            }
+        ]
+    },
+    "HEAVYPOLY": {
+        "is_enable": false,
+        "is_sync": true,
+        "online_url": null,
+        "repository_url": "https://github.com/HEAVYPOLY/HEAVYPOLY_Blender.git",
+        "branch": null,
+        "is_submodule": false,
+        "local_path": "#\\scripts\\addon_library\\GIT_Clones\\HEAVYPOLY",
+        "keymaps": false,
+        "paths": [
+            {
+                "is_enable": true,
+                "local_subpath": "scripts\\startup\\HEAVYPOLY_OPERATORS.py",
+                "destination_path": "#\\scripts\\startup\\HEAVYPOLY_OPERATORS.py"
+            },
+            {
+                "is_enable": true,
+                "local_subpath": "scripts\\startup\\HEAVYPOLY_pie_rotate_90.py",
+                "destination_path": "#\\scripts\\startup\\HEAVYPOLY_pie_rotate_90.py"
+            },
+            {
+                "is_enable": true,
+                "local_subpath": "scripts\\startup\\HEAVYPOLY_pie_areas.py",
+                "destination_path": "#\\scripts\\startup\\HEAVYPOLY_pie_areas.py"
+            },
+            {
+                "is_enable": true,
+                "local_subpath": "scripts\\startup\\HEAVYPOLY_pie_symmetry.py",
+                "destination_path": "#\\scripts\\startup\\HEAVYPOLY_pie_symmetry.py"
+            },
+            {
+                "is_enable": true,
+                "local_subpath": "scripts\\startup\\HEAVYPOLY_pie_add.py",
+                "destination_path": "#\\scripts\\startup\\HEAVYPOLY_pie_add.py"
+            },
+            {
+                "is_enable": true,
+                "local_subpath": "scripts\\startup\\HEAVYPOLY_pie_boolean.py",
+                "destination_path": "#\\scripts\\startup\\HEAVYPOLY_pie_boolean.py"
+            }
+        ]
+    },
+    "Character_Pipeline_Assistant": {
+        "is_enable": false,
+        "is_sync": false,
+        "online_url": null,
+        "repository_url": "https://gitlab.com/blender/character-pipeline-assistant.git",
+        "branch": null,
+        "is_submodule": false,
+        "local_path": "#\\scripts\\addon_library\\GIT_Clones\\Character_Pipeline_Assistant",
+        "keymaps": false,
+        "paths": [
+            {
+                "is_enable": false,
+                "local_subpath": null,
+                "destination_path": "#\\scripts\\addons\\Character_Pipeline_Assistant"
+            }
+        ]
+    },
+    "Lattice_Magic": {
+        "is_enable": false,
+        "is_sync": false,
+        "online_url": null,
+        "repository_url": "https://gitlab.com/blender/lattice_magic.git",
+        "branch": null,
+        "is_submodule": false,
+        "local_path": "#\\scripts\\addon_library\\GIT_Clones\\Lattice_Magic",
+        "keymaps": false,
+        "paths": [
+            {
+                "is_enable": false,
+                "local_subpath": null,
+                "destination_path": "#\\scripts\\addons\\Lattice_Magic"
+            }
+        ]
+    },
+    "uvpacker": {
+        "is_enable": false,
+        "is_sync": false,
+        "online_url": null,
+        "repository_url": "https://github.com/3d-io/uvpacker-blender-addon.git",
+        "branch": null,
+        "is_submodule": false,
+        "local_path": "#\\scripts\\addon_library\\GIT_Clones\\uvpacker",
+        "keymaps": false,
+        "paths": [
+            {
+                "is_enable": false,
+                "local_subpath": null,
+                "destination_path": "#\\scripts\\addons\\uvpacker"
+            }
+        ]
+    },
+    "MeshSlicer": {
+        "is_enable": false,
+        "is_sync": false,
+        "online_url": null,
+        "repository_url": "https://github.com/TomekSc/MeshSlicer.git",
+        "branch": null,
+        "is_submodule": false,
+        "local_path": "#\\scripts\\addon_library\\GIT_Clones\\MeshSlicer",
+        "keymaps": false,
+        "paths": [
+            {
+                "is_enable": false,
+                "local_subpath": null,
+                "destination_path": "#\\scripts\\addons\\MeshSlicer"
+            }
+        ]
+    },
+    "NodeRelax": {
+        "is_enable": false,
+        "is_sync": false,
+        "online_url": null,
+        "repository_url": "https://github.com/Shahzod114/NodeRelax-Blender-Addon.git",
+        "branch": null,
+        "is_submodule": false,
+        "local_path": "#\\scripts\\addon_library\\GIT_Clones\\NodeRelax",
+        "keymaps": false,
+        "paths": [
+            {
+                "is_enable": false,
+                "local_subpath": null,
+                "destination_path": "#\\scripts\\addons\\NodeRelax"
+            }
+        ]
+    },
+    "TheLightmapper": {
+        "is_enable": false,
+        "is_sync": false,
+        "online_url": null,
+        "repository_url": "https://github.com/Naxela/The_Lightmapper.git",
+        "branch": null,
+        "is_submodule": false,
+        "local_path": "#\\scripts\\addon_library\\GIT_Clones\\TheLightmapper",
+        "keymaps": false,
+        "paths": [
+            {
+                "is_enable": false,
+                "local_subpath": null,
+                "destination_path": "#\\scripts\\addons\\TheLightmapper"
+            }
+        ]
+    },
+    "gret": {
+        "is_enable": false,
+        "is_sync": false,
+        "online_url": null,
+        "repository_url": "https://github.com/greisane/gret.git",
+        "branch": null,
+        "is_submodule": false,
+        "local_path": "#\\scripts\\addon_library\\GIT_Clones\\gret",
+        "keymaps": false,
+        "paths": [
+            {
+                "is_enable": false,
+                "local_subpath": null,
+                "destination_path": "#\\scripts\\addons\\gret"
+            }
+        ]
+    },
+    "PrintNode": {
+        "is_enable": false,
+        "is_sync": false,
+        "online_url": null,
+        "repository_url": "https://github.com/Yeetus3141/PrintNodes.git",
+        "branch": null,
+        "is_submodule": false,
+        "local_path": "#\\scripts\\addon_library\\GIT_Clones\\PrintNode",
+        "keymaps": false,
+        "paths": [
+            {
+                "is_enable": false,
+                "local_subpath": null,
+                "destination_path": "#\\scripts\\addons\\PrintNode"
+            }
+        ]
+    },
+    "ez_baker": {
+        "is_enable": false,
+        "is_sync": false,
+        "online_url": null,
+        "repository_url": "https://gitlab.com/AquaticNightmare/ez_baker.git",
+        "branch": null,
+        "is_submodule": false,
+        "local_path": "#\\scripts\\addon_library\\GIT_Clones\\ez_baker",
+        "keymaps": false,
+        "paths": [
+            {
+                "is_enable": false,
+                "local_subpath": null,
+                "destination_path": "#\\scripts\\addons\\ez_baker"
+            }
+        ]
+    },
+    "photogrammetry_importer": {
+        "is_enable": false,
+        "is_sync": false,
+        "online_url": null,
+        "repository_url": "https://github.com/SBCV/Blender-Addon-Photogrammetry-Importer.git",
+        "branch": null,
+        "is_submodule": false,
+        "local_path": "#\\scripts\\addon_library\\GIT_Clones\\photogrametry_importer",
+        "keymaps": false,
+        "paths": [
+            {
+                "is_enable": false,
+                "local_subpath": "photogrammetry_importer",
+                "destination_path": "#\\scripts\\addons\\photogrammetry_importer"
+            }
+        ]
+    },
+    "universal_multi_importer": {
+        "is_enable": false,
+        "is_sync": true,
+        "online_url": null,
+        "repository_url": "https://github.com/Tilapiatsu/blender-Universal_Multi_Importer.git",
+        "branch": "main",
+        "is_submodule": true,
+        "local_path": "#\\scripts\\addon_library\\GIT_Submodules\\tila_universal_multi_importer",
+        "keymaps": false,
+        "paths": [
+            {
+                "is_enable": false,
+                "local_subpath": null,
+                "destination_path": "#\\scripts\\addons\\universal_multi_importer"
+            }
+        ]
+    },
+    "export_as_blend": {
+        "is_enable": false,
+        "is_sync": true,
+        "online_url": null,
+        "repository_url": "https://github.com/Tilapiatsu/blender-export_as_blend.git",
+        "branch": "main",
+        "is_submodule": true,
+        "local_path": "#\\scripts\\addon_library\\GIT_Submodules\\tila_export_as_blend",
+        "keymaps": false,
+        "paths": [
+            {
+                "is_enable": false,
+                "local_subpath": null,
+                "destination_path": "#\\scripts\\addons\\export_as_blend"
+            }
+        ]
+    },
+    "MaterialUtilities": {
+        "is_enable": false,
+        "is_sync": false,
+        "online_url": null,
+        "repository_url": "https://github.com/ChrisHinde/MaterialUtilities.git",
+        "branch": null,
+        "is_submodule": false,
+        "local_path": "#\\scripts\\addon_library\\GIT_Clones\\MaterialUtilities",
+        "keymaps": false,
+        "paths": [
+            {
+                "is_enable": false,
+                "local_subpath": null,
+                "destination_path": "#\\scripts\\addons\\MaterialUtilities"
+            }
+        ]
+    },
+    "RiggingNodes": {
+        "is_enable": false,
+        "is_sync": false,
+        "online_url": null,
+        "repository_url": "https://gitlab.com/AquaticNightmare/rigging_nodes.git",
+        "branch": null,
+        "is_submodule": false,
+        "local_path": "#\\scripts\\addon_library\\GIT_Clones\\RiggingNodes",
+        "keymaps": false,
+        "paths": [
+            {
+                "is_enable": false,
+                "local_subpath": null,
+                "destination_path": "#\\scripts\\addons\\RiggingNodes"
+            }
+        ]
+    },
+    "Renderman": {
+        "is_enable": false,
+        "is_sync": false,
+        "online_url": null,
+        "repository_url": "https://github.com/prman-pixar/RenderManForBlender.git",
+        "branch": null,
+        "is_submodule": false,
+        "local_path": "#\\scripts\\addon_library\\GIT_Clones\\Renderman",
+        "keymaps": false,
+        "paths": [
+            {
+                "is_enable": false,
+                "local_subpath": null,
+                "destination_path": "#\\scripts\\addons\\Renderman"
+            }
+        ]
+    },
+    "GrabDoc": {
+        "is_enable": false,
+        "is_sync": true,
+        "online_url": null,
+        "repository_url": "https://github.com/oRazeD/GrabDoc.git",
+        "branch": null,
+        "is_submodule": false,
+        "local_path": "#\\scripts\\addon_library\\GIT_Clones\\GrabDoc",
+        "keymaps": false,
+        "paths": [
+            {
+                "is_enable": false,
+                "local_subpath": null,
+                "destination_path": "#\\scripts\\addons\\GrabDoc"
+            }
+        ]
+    },
+    "eyek": {
+        "is_enable": false,
+        "is_sync": false,
+        "online_url": null,
+        "repository_url": "https://github.com/p4ymak/eyek.git",
+        "branch": null,
+        "is_submodule": false,
+        "local_path": "#\\scripts\\addon_library\\GIT_Clones\\eyek",
+        "keymaps": false,
+        "paths": [
+            {
+                "is_enable": false,
+                "local_subpath": null,
+                "destination_path": "#\\scripts\\addons\\eyek"
+            }
+        ]
+    },
+    "b3dsdf": {
+        "is_enable": false,
+        "is_sync": false,
+        "online_url": null,
+        "repository_url": "https://github.com/williamchange/b3dsdf.git",
+        "branch": null,
+        "is_submodule": false,
+        "local_path": "#\\scripts\\addon_library\\GIT_Clones\\b3dsdf",
+        "keymaps": false,
+        "paths": [
+            {
+                "is_enable": false,
+                "local_subpath": null,
+                "destination_path": "#\\scripts\\addons\\b3dsdf"
+            }
+        ]
+    },
+    "CAD_Sketcher": {
+        "is_enable": false,
+        "is_sync": false,
+        "online_url": null,
+        "repository_url": "https://github.com/hlorus/CAD_Sketcher.git",
+        "branch": null,
+        "is_submodule": false,
+        "local_path": "#\\scripts\\addon_library\\GIT_Clones\\CAD_Sketcher",
+        "keymaps": false,
+        "paths": [
+            {
+                "is_enable": false,
+                "local_subpath": null,
+                "destination_path": "#\\scripts\\addons\\CAD_Sketcher"
+            }
+        ]
+    },
+    "RenderNode": {
+        "is_enable": false,
+        "is_sync": false,
+        "online_url": null,
+        "repository_url": "https://github.com/atticus-lv/RenderNode.git",
+        "branch": null,
+        "is_submodule": false,
+        "local_path": "#\\scripts\\addon_library\\GIT_Clones\\RenderNode",
+        "keymaps": false,
+        "paths": [
+            {
+                "is_enable": false,
+                "local_subpath": null,
+                "destination_path": "#\\scripts\\addons\\RenderNode"
+            }
+        ]
+    },
+    "asset_snapshot": {
+        "is_enable": false,
+        "is_sync": true,
+        "online_url": null,
+        "repository_url": "https://github.com/johnnygizmo/asset_snapshot.git",
+        "branch": null,
+        "is_submodule": false,
+        "local_path": "#\\scripts\\addon_library\\GIT_Clones\\asset_snapshot",
+        "keymaps": false,
+        "paths": [
+            {
+                "is_enable": false,
+                "local_subpath": null,
+                "destination_path": "#\\scripts\\addons\\asset_snapshot"
+            }
+        ]
+    },
+    "shotmanager": {
+        "is_enable": false,
+        "is_sync": false,
+        "online_url": null,
+        "repository_url": "https://github.com/ubisoft/shotmanager.git",
+        "branch": null,
+        "is_submodule": false,
+        "local_path": "#\\scripts\\addon_library\\GIT_Clones\\shotmanager",
+        "keymaps": false,
+        "paths": [
+            {
+                "is_enable": false,
+                "local_subpath": null,
+                "destination_path": "#\\scripts\\addons\\shotmanager"
+            }
+        ]
+    },
+    "asset_bridge": {
+        "is_enable": false,
+        "is_sync": false,
+        "online_url": null,
+        "repository_url": "https://github.com/strike-digital/asset_bridge.git",
+        "branch": null,
+        "is_submodule": false,
+        "local_path": "#\\scripts\\addon_library\\GIT_Clones\\asset_bridge",
+        "keymaps": false,
+        "paths": [
+            {
+                "is_enable": false,
+                "local_subpath": null,
+                "destination_path": "#\\scripts\\addons\\asset_bridge"
+            }
+        ]
+    },
+    "io_export_blend": {
+        "is_enable": false,
+        "is_sync": false,
+        "online_url": null,
+        "repository_url": "https://github.com/CGCookie/io_export_blend.git",
+        "branch": null,
+        "is_submodule": false,
+        "local_path": "#\\scripts\\addon_library\\GIT_Clones\\io_export_blend",
+        "keymaps": false,
+        "paths": [
+            {
+                "is_enable": false,
+                "local_subpath": null,
+                "destination_path": "#\\scripts\\addons\\io_export_blend"
+            }
+        ]
+    },
+    "gp_triangulation": {
+        "is_enable": false,
+        "is_sync": false,
+        "online_url": null,
+        "repository_url": "https://gitlab.com/lfs.coop/blender/gp-triangulation.git",
+        "branch": null,
+        "is_submodule": false,
+        "local_path": "#\\scripts\\addon_library\\GIT_Clones\\gp_triangulation",
+        "keymaps": false,
+        "paths": [
+            {
+                "is_enable": false,
+                "local_subpath": null,
+                "destination_path": "#\\scripts\\addons\\gp_triangulation"
+            }
+        ]
+    },
+    "miter_box": {
+        "is_enable": false,
+        "is_sync": false,
+        "online_url": null,
+        "repository_url": "https://github.com/JohnKazucki/JD-Miter-Box.git",
+        "branch": null,
+        "is_submodule": false,
+        "local_path": "#\\scripts\\addon_library\\GIT_Clones\\miter_box",
+        "keymaps": false,
+        "paths": [
+            {
+                "is_enable": false,
+                "local_subpath": null,
+                "destination_path": "#\\scripts\\addons\\miter_box"
+            }
+        ]
+    },
+    "wiggle": {
+        "is_enable": false,
+        "is_sync": false,
+        "online_url": null,
+        "repository_url": "https://github.com/shteeve3d/blender-wiggle-2.git",
+        "branch": null,
+        "is_submodule": false,
+        "local_path": "#\\scripts\\addon_library\\GIT_Clones\\wiggle",
+        "keymaps": false,
+        "paths": [
+            {
+                "is_enable": false,
+                "local_subpath": "wiggle_2.py",
+                "destination_path": "#\\scripts\\addons\\wiggle.py"
+            }
+        ]
+    },
+    "mesh_align_plus": {
+        "is_enable": false,
+        "is_sync": false,
+        "online_url": null,
+        "repository_url": "https://github.com/egtwobits/mesh_mesh_align_plus.git",
+        "branch": null,
+        "is_submodule": false,
+        "local_path": "#\\scripts\\addon_library\\GIT_Clones\\mesh_align_plus",
+        "keymaps": false,
+        "paths": [
+            {
+                "is_enable": false,
+                "local_subpath": "mesh_align_plus",
+                "destination_path": "#\\scripts\\addons\\mesh_align_plus"
+            }
+        ]
+    },
+    "mesh_snap_utilities_line": {
+        "is_enable": false,
+        "is_sync": false,
+        "online_url": null,
+        "repository_url": null,
+        "branch": null,
+        "is_submodule": false,
+        "local_path": null,
+        "keymaps": false,
+        "paths": null
+    },
+    "Principled_Baker": {
+        "is_enable": false,
+        "is_sync": false,
+        "online_url": null,
+        "repository_url": "https://github.com/danielenger/Principled-Baker.git",
+        "branch": null,
+        "is_submodule": false,
+        "local_path": "#\\scripts\\addon_library\\GIT_Clones\\Principled_Baker",
+        "keymaps": false,
+        "paths": [
+            {
+                "is_enable": false,
+                "local_subpath": null,
+                "destination_path": "#\\scripts\\addons\\Principled_Baker"
+            }
+        ]
+    },
+    "MeasureIt_ARCH": {
+        "is_enable": false,
+        "is_sync": false,
+        "online_url": null,
+        "repository_url": "https://github.com/kevancress/MeasureIt-ARCH.git",
+        "branch": null,
+        "is_submodule": false,
+        "local_path": "#\\scripts\\addon_library\\GIT_Clones\\MeasureIt_ARCH",
+        "keymaps": false,
+        "paths": [
+            {
+                "is_enable": false,
+                "local_subpath": null,
+                "destination_path": "#\\scripts\\addons\\MeasureIt_ARCH"
+            }
+        ]
+    },
+    "space_view3d_copy_attributes": {
+        "is_enable": false,
+        "is_sync": false,
+        "online_url": null,
+        "repository_url": null,
+        "branch": null,
+        "is_submodule": false,
+        "local_path": null,
+        "keymaps": false,
+        "paths": null
+    },
+    "space_view3d_align_tools": {
+        "is_enable": false,
+        "is_sync": false,
+        "online_url": null,
+        "repository_url": null,
+        "branch": null,
+        "is_submodule": false,
+        "local_path": null,
+        "keymaps": false,
+        "paths": null
+    },
+    "Polycount": {
+        "is_enable": false,
+        "is_sync": false,
+        "online_url": null,
+        "repository_url": "https://github.com/Vinc3r/Polycount.git",
+        "branch": null,
+        "is_submodule": false,
+        "local_path": "#\\scripts\\addon_library\\GIT_Clones\\PolyCount",
+        "keymaps": false,
+        "paths": [
+            {
+                "is_enable": false,
+                "local_subpath": "polycount",
+                "destination_path": "#\\scripts\\addons\\PolyCount"
+            }
+        ]
+    },
+    "mira_tools": {
+        "is_enable": false,
+        "is_sync": false,
+        "online_url": null,
+        "repository_url": "https://github.com/mifth/mifthtools.git",
+        "branch": null,
+        "is_submodule": false,
+        "local_path": "#\\scripts\\addon_library\\GIT_Clones\\mifthtools",
+        "keymaps": false,
+        "paths": [
+            {
+                "is_enable": false,
+                "local_subpath": "blender\\addons\\2.8\\mira_tools",
+                "destination_path": "#\\scripts\\addons\\mifthtools"
+            }
+        ]
+    },
+    "Neltulz_Smart_Sharpen": {
+        "is_enable": false,
+        "is_sync": false,
+        "online_url": null,
+        "repository_url": "https://github.com/Neltulz/Neltulz_Smart_Sharpen.git",
+        "branch": null,
+        "is_submodule": false,
+        "local_path": "#\\scripts\\addon_library\\GIT_Clones\\Neltulz_Smart_Sharpen",
+        "keymaps": false,
+        "paths": [
+            {
+                "is_enable": false,
+                "local_subpath": null,
+                "destination_path": "#\\scripts\\addons\\Neltulz_Smart_Sharpen"
+            }
+        ]
+    },
+    "Neltulz_Symmetry": {
+        "is_enable": false,
+        "is_sync": false,
+        "online_url": null,
+        "repository_url": "https://github.com/Neltulz/Neltulz_Symmetry.git",
+        "branch": null,
+        "is_submodule": false,
+        "local_path": "#\\scripts\\addon_library\\GIT_Clones\\Neltulz_Symmetry",
+        "keymaps": false,
+        "paths": [
+            {
+                "is_enable": false,
+                "local_subpath": null,
+                "destination_path": "#\\scripts\\addons\\Neltulz_Symmetry"
+            }
+        ]
+    },
+    "keentools_facebuilder": {
+        "is_enable": false,
+        "is_sync": false,
+        "online_url": null,
+        "repository_url": null,
+        "branch": null,
+        "is_submodule": false,
+        "local_path": null,
+        "keymaps": false,
+        "paths": null
+    },
+    "W_Mesh": {
+        "is_enable": false,
+        "is_sync": false,
+        "online_url": null,
+        "repository_url": null,
+        "branch": null,
+        "is_submodule": false,
+        "local_path": null,
+        "keymaps": false,
+        "paths": null
+    },
+    "fspy": {
+        "is_enable": false,
+        "is_sync": false,
+        "online_url": null,
+        "repository_url": null,
+        "branch": null,
+        "is_submodule": false,
+        "local_path": null,
+        "keymaps": false,
+        "paths": null
+    },
+    "lineup_maker": {
+        "is_enable": false,
+        "is_sync": true,
+        "online_url": null,
+        "repository_url": "https://github.com/Tilapiatsu/blender-lineup_maker.git",
+        "branch": "blender-format-assets",
+        "is_submodule": true,
+        "local_path": "#\\scripts\\addon_library\\GIT_Submodules\\tila_lineup_maker",
+        "keymaps": false,
+        "paths": [
+            {
+                "is_enable": false,
+                "local_subpath": null,
+                "destination_path": "#\\scripts\\addons\\lineup_maker"
+            }
+        ]
+    },
+    "io_sketchfab": {
+        "is_enable": false,
+        "is_sync": false,
+        "online_url": null,
+        "repository_url": "https://github.com/sketchfab/blender-plugin.git",
+        "branch": null,
+        "is_submodule": false,
+        "local_path": "#\\scripts\\addon_library\\GIT_Clones\\io_sketchfab",
+        "keymaps": false,
+        "paths": [
+            {
+                "is_enable": false,
+                "local_subpath": "addons\\io_sketchfab_plugin",
+                "destination_path": "#\\scripts\\addons\\io_sketchfab"
+            }
+        ]
+    },
+    "easy_weight": {
+        "is_enable": true,
+        "is_sync": true,
+        "online_url": null,
+        "repository_url": "https://gitlab.com/blender/easy_weight.git",
+        "branch": null,
+        "is_submodule": false,
+        "local_path": "#\\scripts\\addon_library\\GIT_Clones\\easy_weight",
+        "keymaps": false,
+        "paths": [
+            {
+                "is_enable": true,
+                "local_subpath": null,
+                "destination_path": "#\\scripts\\addons\\easy_weight"
+            }
+        ]
+    },
+    "simple_renaming_panel": {
+        "is_enable": true,
+        "is_sync": true,
+        "online_url": null,
+        "repository_url": "https://github.com/Weisl/simple_renaming_panel.git",
+        "branch": null,
+        "is_submodule": false,
+        "local_path": "#\\scripts\\addon_library\\GIT_Clones\\simple_renaming_panel",
+        "keymaps": false,
+        "paths": [
+            {
+                "is_enable": true,
+                "local_subpath": null,
+                "destination_path": "#\\scripts\\addons\\simple_renaming_panel"
+            }
+        ]
+    },
+    "mesh_f2": {
+        "is_enable": true,
+        "is_sync": false,
+        "online_url": null,
+        "repository_url": null,
+        "branch": null,
+        "is_submodule": false,
+        "local_path": null,
+        "keymaps": false,
+        "paths": null
+    },
+    "TexTools": {
+        "is_enable": true,
+        "is_sync": true,
+        "online_url": null,
+        "repository_url": "https://github.com/SavMartin/TexTools-Blender.git",
+        "branch": null,
+        "is_submodule": false,
+        "local_path": "#\\scripts\\addon_library\\GIT_Clones\\TextTools",
+        "keymaps": false,
+        "paths": [
+            {
+                "is_enable": true,
+                "local_subpath": null,
+                "destination_path": "#\\scripts\\addons\\TextTools"
+            }
+        ]
+    },
+    "io_import_images_as_planes": {
+        "is_enable": true,
+        "is_sync": true,
+        "online_url": null,
+        "repository_url": null,
+        "branch": null,
+        "is_submodule": false,
+        "local_path": null,
+        "keymaps": false,
+        "paths": null
+    },
+    "object_print3d_utils": {
+        "is_enable": true,
+        "is_sync": true,
+        "online_url": null,
+        "repository_url": null,
+        "branch": null,
+        "is_submodule": false,
+        "local_path": null,
+        "keymaps": false,
+        "paths": null
+    },
+    "mesh_looptools": {
+        "is_enable": true,
+        "is_sync": true,
+        "online_url": null,
+        "repository_url": null,
+        "branch": null,
+        "is_submodule": false,
+        "local_path": null,
+        "keymaps": false,
+        "paths": null
+    },
+    "UvSquares": {
+        "is_enable": true,
+        "is_sync": true,
+        "online_url": null,
+        "repository_url": "https://github.com/Radivarig/UvSquares.git",
+        "branch": null,
+        "is_submodule": false,
+        "local_path": "#\\scripts\\addon_library\\GIT_Clones\\UvSquares",
+        "keymaps": false,
+        "paths": [
+            {
+                "is_enable": true,
+                "local_subpath": null,
+                "destination_path": "#\\scripts\\addons\\UvSquares"
+            }
+        ]
+    },
+    "Auto_Reload": {
+        "is_enable": true,
+        "is_sync": true,
+        "online_url": null,
+        "repository_url": "https://github.com/samytichadou/Auto_Reload-Blender_addon.git",
+        "branch": null,
+        "is_submodule": false,
+        "local_path": "#\\scripts\\addon_library\\GIT_Clones\\Auto_Reload",
+        "keymaps": false,
+        "paths": [
+            {
+                "is_enable": true,
+                "local_subpath": null,
+                "destination_path": "#\\scripts\\addons\\Auto_Reload"
+            }
+        ]
+    },
+    "node_wrangler": {
+        "is_enable": true,
+        "is_sync": true,
+        "online_url": null,
+        "repository_url": null,
+        "branch": null,
+        "is_submodule": false,
+        "local_path": null,
+        "keymaps": false,
+        "paths": null
+    },
+    "node_presets": {
+        "is_enable": true,
+        "is_sync": true,
+        "online_url": null,
+        "repository_url": null,
+        "branch": null,
+        "is_submodule": false,
+        "local_path": null,
+        "keymaps": false,
+        "paths": null
+    },
+    "object_boolean_tools": {
+        "is_enable": true,
+        "is_sync": true,
+        "online_url": null,
+        "repository_url": null,
+        "branch": null,
+        "is_submodule": false,
+        "local_path": null,
+        "keymaps": false,
+        "paths": null
+    },
+    "optiloops": {
+        "is_enable": true,
+        "is_sync": true,
+        "online_url": null,
+        "repository_url": "https://github.com/1C0D/optiloops.git",
+        "branch": null,
+        "is_submodule": false,
+        "local_path": "#\\scripts\\addon_library\\GIT_Clones\\optiloops",
+        "keymaps": false,
+        "paths": [
+            {
+                "is_enable": true,
+                "local_subpath": "optiloops_v1_3_2.py",
+                "destination_path": "#\\scripts\\addons\\optiloops.py"
+            }
+        ]
+    },
+    "magic_uv": {
+        "is_enable": true,
+        "is_sync": true,
+        "online_url": null,
+        "repository_url": null,
+        "branch": null,
+        "is_submodule": false,
+        "local_path": null,
+        "keymaps": false,
+        "paths": null
+    },
+    "PolyQuilt": {
+        "is_enable": true,
+        "is_sync": true,
+        "online_url": null,
+        "repository_url": "https://github.com/sakana3/PolyQuilt.git",
+        "branch": "Future",
+        "is_submodule": false,
+        "local_path": "#\\scripts\\addon_library\\GIT_Clones\\PolyQuilt",
+        "keymaps": true,
+        "paths": [
+            {
+                "is_enable": true,
+                "local_subpath": "addons\\PolyQuilt",
+                "destination_path": "#\\scripts\\addons\\PolyQuilt"
+            }
+        ]
+    },
+    "Lodify": {
+        "is_enable": true,
+        "is_sync": true,
+        "online_url": null,
+        "repository_url": "https://github.com/DB3D/Lodify.git",
+        "branch": null,
+        "is_submodule": false,
+        "local_path": "#\\scripts\\addon_library\\GIT_Clones\\Lodify",
+        "keymaps": false,
+        "paths": [
+            {
+                "is_enable": true,
+                "local_subpath": null,
+                "destination_path": "#\\scripts\\addons\\Lodify"
+            }
+        ]
+    },
+    "add_curve_extra_objects": {
+        "is_enable": true,
+        "is_sync": true,
+        "online_url": null,
+        "repository_url": null,
+        "branch": null,
+        "is_submodule": false,
+        "local_path": null,
+        "keymaps": false,
+        "paths": null
+    },
+    "add_mesh_extra_objects": {
+        "is_enable": true,
+        "is_sync": true,
+        "online_url": null,
+        "repository_url": null,
+        "branch": null,
+        "is_submodule": false,
+        "local_path": null,
+        "keymaps": false,
+        "paths": null
+    },
+    "io_scene_fbx": {
+        "is_enable": true,
+        "is_sync": true,
+        "online_url": null,
+        "repository_url": null,
+        "branch": null,
+        "is_submodule": false,
+        "local_path": null,
+        "keymaps": false,
+        "paths": null
+    },
+    "io_scene_obj": {
+        "is_enable": true,
+        "is_sync": true,
+        "online_url": null,
+        "repository_url": null,
+        "branch": null,
+        "is_submodule": false,
+        "local_path": null,
+        "keymaps": false,
+        "paths": null
+    },
+    "io_scene_x3d": {
+        "is_enable": true,
+        "is_sync": true,
+        "online_url": null,
+        "repository_url": null,
+        "branch": null,
+        "is_submodule": false,
+        "local_path": null,
+        "keymaps": false,
+        "paths": null
+    },
+    "io_scene_gltf2": {
+        "is_enable": true,
+        "is_sync": true,
+        "online_url": null,
+        "repository_url": null,
+        "branch": null,
+        "is_submodule": false,
+        "local_path": null,
+        "keymaps": false,
+        "paths": null
+    },
+    "io_mesh_stl": {
+        "is_enable": true,
+        "is_sync": true,
+        "online_url": null,
+        "repository_url": null,
+        "branch": null,
+        "is_submodule": false,
+        "local_path": null,
+        "keymaps": false,
+        "paths": null
+    },
+    "io_curve_svg": {
+        "is_enable": true,
+        "is_sync": true,
+        "online_url": null,
+        "repository_url": null,
+        "branch": null,
+        "is_submodule": false,
+        "local_path": null,
+        "keymaps": false,
+        "paths": null
+    },
+    "io_mesh_ply": {
+        "is_enable": true,
+        "is_sync": true,
+        "online_url": null,
+        "repository_url": null,
+        "branch": null,
+        "is_submodule": false,
+        "local_path": null,
+        "keymaps": false,
+        "paths": null
+    },
+    "io_mesh_uv_layout": {
+        "is_enable": true,
+        "is_sync": true,
+        "online_url": null,
+        "repository_url": null,
+        "branch": null,
+        "is_submodule": false,
+        "local_path": null,
+        "keymaps": false,
+        "paths": null
+    },
+    "object_collection_manager": {
+        "is_enable": true,
+        "is_sync": true,
+        "online_url": null,
+        "repository_url": null,
+        "branch": null,
+        "is_submodule": false,
+        "local_path": null,
+        "keymaps": false,
+        "paths": null
+    },
+    "space_view3d_modifier_tools": {
+        "is_enable": true,
+        "is_sync": true,
+        "online_url": null,
+        "repository_url": null,
+        "branch": null,
+        "is_submodule": false,
+        "local_path": null,
+        "keymaps": false,
+        "paths": null
+    },
+    "EdgeFlow": {
+        "is_enable": true,
+        "is_sync": true,
+        "online_url": null,
+        "repository_url": "https://github.com/BenjaminSauder/EdgeFlow.git",
+        "branch": null,
+        "is_submodule": false,
+        "local_path": "#\\scripts\\addon_library\\GIT_Clones\\EdgeFlow",
+        "keymaps": false,
+        "paths": [
+            {
+                "is_enable": true,
+                "local_subpath": null,
+                "destination_path": "#\\scripts\\addons\\EdgeFlow"
+            }
+        ]
+    },
+    "mesh_tools": {
+        "is_enable": true,
+        "is_sync": false,
+        "online_url": null,
+        "repository_url": null,
+        "branch": null,
+        "is_submodule": false,
+        "local_path": null,
+        "keymaps": false,
+        "paths": null
+    },
+    "cycles": {
+        "is_enable": true,
+        "is_sync": false,
+        "online_url": null,
+        "repository_url": null,
+        "branch": null,
+        "is_submodule": false,
+        "local_path": null,
+        "keymaps": false,
+        "paths": null
+    },
+    "maxivz_tools": {
+        "is_enable": false,
+        "is_sync": false,
+        "online_url": null,
+        "repository_url": null,
+        "branch": null,
+        "is_submodule": false,
+        "local_path": null,
+        "keymaps": false,
+        "paths": null
+    },
+    "bezierutils": {
+        "is_enable": true,
+        "is_sync": true,
+        "online_url": null,
+        "repository_url": "https://github.com/Shriinivas/blenderbezierutils.git",
+        "branch": null,
+        "is_submodule": false,
+        "local_path": "#\\scripts\\addon_library\\GIT_Clones\\bezierutils",
+        "keymaps": false,
+        "paths": [
+            {
+                "is_enable": true,
+                "local_subpath": "blenderbezierutils.py",
+                "destination_path": "#\\scripts\\addons\\bezierutils.py"
+            }
+        ]
+    },
+    "oscurart_edit_split_normals": {
+        "is_enable": true,
+        "is_sync": true,
+        "online_url": null,
+        "repository_url": "https://github.com/oscurart/Blender-28-Addons.git",
+        "branch": null,
+        "is_submodule": false,
+        "local_path": "#\\scripts\\addon_library\\GIT_Clones\\oscuart",
+        "keymaps": false,
+        "paths": [
+            {
+                "is_enable": true,
+                "local_subpath": "oscurart_edit_split_normals.py",
+                "destination_path": "#\\scripts\\addons\\oscurart_edit_split_normals.py"
+            },
+            {
+                "is_enable": true,
+                "local_subpath": "oscurart_bake_pbr.py",
+                "destination_path": "#\\scripts\\addons\\oscurart_bake_pbr.py"
+            }
+        ]
+    },
+    "vertex_color_master": {
+        "is_enable": true,
+        "is_sync": true,
+        "online_url": null,
+        "repository_url": "https://github.com/andyp123/blender_vertex_color_master.git",
+        "branch": null,
+        "is_submodule": false,
+        "local_path": "#\\scripts\\addon_library\\GIT_Clones\\vertex_color_master",
+        "keymaps": false,
+        "paths": [
+            {
+                "is_enable": true,
+                "local_subpath": null,
+                "destination_path": "#\\scripts\\addons\\vertex_color_master"
+            }
+        ]
+    },
+    "atomic_data_manager": {
+        "is_enable": true,
+        "is_sync": true,
+        "online_url": null,
+        "repository_url": "https://github.com/grantwilk/atomic-data-manager.git",
+        "branch": null,
+        "is_submodule": false,
+        "local_path": "#\\scripts\\addon_library\\GIT_Clones\\atomic_data_manager",
+        "keymaps": true,
+        "paths": [
+            {
+                "is_enable": true,
+                "local_subpath": null,
+                "destination_path": "#\\scripts\\addons\\atomic_data_manager"
+            }
+        ]
+    },
+    "ImagePaste": {
+        "is_enable": true,
+        "is_sync": false,
+        "online_url": "https://yeetusblenditus.gumroad.com/l/ImPaste",
+        "repository_url": null,
+        "branch": null,
+        "is_submodule": false,
+        "local_path": "#\\scripts\\addon_library\\local\\ImagePaste",
+        "keymaps": false,
+        "paths": [
+            {
+                "is_enable": true,
+                "local_subpath": null,
+                "destination_path": "#\\scripts\\addons\\ImagePaste"
+            }
+        ]
+    },
+    "greasepencil_tools": {
+        "is_enable": true,
+        "is_sync": false,
+        "online_url": null,
+        "repository_url": null,
+        "branch": null,
+        "is_submodule": false,
+        "local_path": null,
+        "keymaps": false,
+        "paths": null
+    },
+    "Texel_Density": {
+        "is_enable": true,
+        "is_sync": true,
+        "online_url": null,
+        "repository_url": "https://github.com/mrven/Blender-Texel-Density-Checker.git",
+        "branch": null,
+        "is_submodule": false,
+        "local_path": "#\\scripts\\addon_library\\GIT_Clones\\Texel_Density",
+        "keymaps": false,
+        "paths": [
+            {
+                "is_enable": true,
+                "local_subpath": "Texel_Density_3_4_341",
+                "destination_path": "#\\scripts\\addons\\Texel_Density"
+            }
+        ]
+    },
+    "RestoreSymmetry": {
+        "is_enable": true,
+        "is_sync": true,
+        "online_url": null,
+        "repository_url": "https://github.com/n-taka/BlenderAddons.git",
+        "branch": null,
+        "is_submodule": false,
+        "local_path": "#\\scripts\\addon_library\\GIT_Clones\\RestoreSymmetry",
+        "keymaps": false,
+        "paths": [
+            {
+                "is_enable": true,
+                "local_subpath": "RestoreSymmetry\\mesh_restoresymmetry.py",
+                "destination_path": "#\\scripts\\addons\\RestoreSymmetry.py"
+            }
+        ]
+    },
+    "B-GEN": {
+        "is_enable": false,
+        "is_sync": false,
+        "online_url": "https://munorr.gumroad.com/l/bgen",
+        "repository_url": null,
+        "branch": null,
+        "is_submodule": false,
+        "local_path": "#\\scripts\\addon_library\\local\\B-GEN",
+        "keymaps": false,
+        "paths": [
+            {
+                "is_enable": true,
+                "local_subpath": "bgen.py",
+                "destination_path": "#\\scripts\\addons"
+            }
+        ]
+    }
 }

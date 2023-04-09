@@ -29,7 +29,7 @@ class TILA_Config_SetupBlender(Operator):
 
 		self.wm = bpy.context.window_manager
 		self.log_status = Log(self.wm.tila_config_status_list,
-		                      'tila_config_status_list_idx')
+							  'tila_config_status_list_idx')
 		self.wm.tila_setup_blender_progress = "NONE"
 
 		self._timer = bpy.context.window_manager.event_timer_add(
@@ -73,7 +73,7 @@ class TILA_Config_UpdateSetupBlender(Operator):
 
 	def execute(self, context):
 		self.log_status = Log(bpy.context.window_manager.tila_config_status_list,
-                       'tila_config_status_list_idx')
+					   'tila_config_status_list_idx')
 		self.AM = AddonManager.AddonManager(AL)
 
 		self.wm = bpy.context.window_manager
@@ -127,7 +127,7 @@ class TILA_Config_ForceEnableAddon(Operator):
 
 		self.wm = bpy.context.window_manager
 		self.log_status = Log(self.wm.tila_config_status_list,
-		                      'tila_config_status_list_idx')
+							  'tila_config_status_list_idx')
 		self.wm.tila_setup_blender_progress = "NONE"
 
 		self._timer = bpy.context.window_manager.event_timer_add(
@@ -171,7 +171,7 @@ class TILA_Config_ForceDisableAddon(Operator):
 
 		self.wm = bpy.context.window_manager
 		self.log_status = Log(self.wm.tila_config_status_list,
-		                      'tila_config_status_list_idx')
+							  'tila_config_status_list_idx')
 		self.wm.tila_setup_blender_progress = "NONE"
 
 		self._timer = bpy.context.window_manager.event_timer_add(
@@ -828,10 +828,9 @@ class TILA_Config_EditAddon(bpy.types.Operator):
 
 		for e in wm.tila_config_addon_list:
 			if e.name == self.previous_name:
-				continue
-			json_dict[e.name] = get_addon_element_dict(wm.tila_config_addon_list[e.name], None)
-
-		json_dict[self.name] = get_addon_element_dict(self, None)
+				json_dict[self.name] = get_addon_element_dict(self, None)
+			else:
+				json_dict[e.name] = get_addon_element_dict(wm.tila_config_addon_list[e.name], None)
 
 		AM = AddonManager.AddonManager(AL)
 
