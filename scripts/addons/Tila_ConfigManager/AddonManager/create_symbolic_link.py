@@ -5,7 +5,7 @@ from Logger import Logger
 
 class CreateSymbolicLink():
 	def __init__(self, argv=''):
-		self.log = Logger()
+		self.log = Logger('Create Symbolic Link')
 		self.parse_argsv(argv[argv.index("--") + 1:])
 	
 	def parse_argsv(self, argv):

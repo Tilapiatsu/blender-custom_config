@@ -345,6 +345,7 @@ class ElementAM():
 		self.element_dict = element_dict
 		self.name = name
 		self.root_folder = root_folder
+		self.logger = Logger('ElementAM')
 		self.log_progress = Log(bpy.context.window_manager.tila_config_log_list,
 								'tila_config_log_list_idx')
 	
@@ -422,6 +423,7 @@ class ElementAM():
 			repo.git.submodule('update', '--init')
 	
 	def clean(self, force=False):
+		self.logger.info(f'Cleaning {self.name}')
 		for p in self.paths:
 			p.clean(force=force)
 
