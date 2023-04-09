@@ -48,7 +48,7 @@ def install_dependencies():
 
 def enable_addon(addon_name):
 	log_progress = Log(bpy.context.window_manager.tila_config_log_list,
-	                   'tila_config_log_list_idx')
+					   'tila_config_log_list_idx')
 	if addon_name in bpy.context.preferences.addons:
 		print(f'Addon already Enabled : {addon_name}')
 		log_progress.start(f'Addon already Enabled : {addon_name}')
@@ -66,7 +66,7 @@ def enable_addon(addon_name):
 
 def disable_addon(addon_name):
 	log_progress = Log(bpy.context.window_manager.tila_config_log_list,
-	                   'tila_config_log_list_idx')
+					   'tila_config_log_list_idx')
 	if addon_name not in bpy.context.preferences.addons:
 		print(f'Addon already Disabled : {addon_name}')
 		log_progress.start(f'Addon already Disabled : {addon_name}')
@@ -207,7 +207,7 @@ class PathAM():
 	def __init__(self, path):
 		self._path = path
 		self.log_progress = Log(bpy.context.window_manager.tila_config_log_list,
-		                        'tila_config_log_list_idx')
+								'tila_config_log_list_idx')
 	
 	def __str__(self):
 		return self._path if self._path is not None else ''
@@ -265,7 +265,7 @@ class PathElementAM():
 		self._path_dict = path_dict
 		self.local_path = local_path
 		self.log_progress = Log(bpy.context.window_manager.tila_config_log_list,
-		                        'tila_config_log_list_idx')
+								'tila_config_log_list_idx')
 
 	@property
 	def is_enable(self):
@@ -287,17 +287,14 @@ class PathElementAM():
 		return PathAM(self._path_dict['destination_path'])
 	
 	def clean(self, force=False):
-		if force:
-			if self.destination_path.exists:
-				self.destination_path.remove()
-				print(f'Clean Done!')
-				self.log_progress.done(f'Clean Done!')
+		
+		if self.destination_path.exists:
+			if not force and self.is_enable:
+				return
 
-		elif self.destination_path.exists:
-			if not self.is_enable:
-				self.destination_path.remove()
-				print(f'Clean Done!')
-				self.log_progress.done(f'Clean Done!')
+			self.destination_path.remove()
+			print(f'Clean Done!')
+			self.log_progress.done(f'Clean Done!')
 
 	def link(self, overwrite=False, force=False):
 		if not force and not self.is_enable:
@@ -349,7 +346,7 @@ class ElementAM():
 		self.name = name
 		self.root_folder = root_folder
 		self.log_progress = Log(bpy.context.window_manager.tila_config_log_list,
-		                        'tila_config_log_list_idx')
+								'tila_config_log_list_idx')
 	
 	def __str__(self):
 		print(self.name)
@@ -516,7 +513,7 @@ class AddonManager():
 		self.queue_list = []
 		self.log = Logger('AddonManager')
 		self.log_progress = Log(bpy.context.window_manager.tila_config_log_list,
-		                        'tila_config_log_list_idx')
+								'tila_config_log_list_idx')
 
 	@property
 	def elements(self):
