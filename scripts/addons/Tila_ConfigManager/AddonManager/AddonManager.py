@@ -290,6 +290,8 @@ class PathElementAM():
 		if force:
 			if self.destination_path.exists:
 				self.destination_path.remove()
+				print(f'Clean Done!')
+				self.log_progress.done(f'Clean Done!')
 
 		elif self.destination_path.exists:
 			if not self.is_enable:
@@ -426,9 +428,11 @@ class ElementAM():
 		for p in self.paths:
 			p.clean(force=force)
 
-		if force and self.is_sync and self.is_submodule is None:
+		if force and self.is_sync and not self.is_submodule:
 			if self.local_path.exists:
 				self.local_path.remove()
+				print(f'Clean Done!')
+				self.log_progress.done(f'Clean Done!')
 			
 	def sync(self, overwrite=False, force=False):
 		if not force and not self.is_sync:
