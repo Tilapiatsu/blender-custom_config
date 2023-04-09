@@ -2591,7 +2591,7 @@
             {
                 "is_enable": true,
                 "local_subpath": "bgen.py",
-                "destination_path": "#\\scripts\\addons"
+                "destination_path": "#\\scripts\\addons\\bgen.py"
             }
         ]
     }
