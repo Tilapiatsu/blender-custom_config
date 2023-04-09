@@ -266,7 +266,6 @@ class PathElementAM():
 		self.local_path = local_path
 		self.log_progress = Log(bpy.context.window_manager.tila_config_log_list,
 								'tila_config_log_list_idx')
-		self.logger = Logger('PathElementAM')
 
 	@property
 	def is_enable(self):
@@ -288,7 +287,6 @@ class PathElementAM():
 		return PathAM(self._path_dict['destination_path'])
 	
 	def clean(self, force=False):
-		self.logger.info(f'Cleaning {self.destination_path}')
 		if self.destination_path.exists:
 			if not force and self.is_enable:
 				return
@@ -346,7 +344,6 @@ class ElementAM():
 		self.element_dict = element_dict
 		self.name = name
 		self.root_folder = root_folder
-		self.logger = Logger('ElementAM')
 		self.log_progress = Log(bpy.context.window_manager.tila_config_log_list,
 								'tila_config_log_list_idx')
 	
@@ -424,7 +421,6 @@ class ElementAM():
 			repo.git.submodule('update', '--init')
 	
 	def clean(self, force=False):
-		self.logger.info(f'Cleaning {self.name}')
 		for p in self.paths:
 			p.clean(force=force)
 
@@ -514,7 +510,6 @@ class AddonManager():
 		self.json = Json(json_path)
 		self.processing = False
 		self.queue_list = []
-		self.log = Logger('AddonManager')
 		self.log_progress = Log(bpy.context.window_manager.tila_config_log_list,
 								'tila_config_log_list_idx')
 
