@@ -24,7 +24,8 @@ class TILA_MT_pie_areas(Menu):
 		pie = layout.menu_pie()
 
 		# Left
-		prop = pie.operator("wm.area_split", text="Spreadsheet").ui_type = 'SPREADSHEET'
+		prop = pie.operator("wm.area_split", text="Split").ui_type = 'VIEW_3D'
+		
 		
 		# Right
 		pie.operator("wm.3dview", text="3D View")
@@ -37,7 +38,7 @@ class TILA_MT_pie_areas(Menu):
 		prop = pie.operator("wm.area_split", text="Geometry Node").ui_type = 'GeometryNodeTree'
 
 		# Top Left
-		prop = pie.operator("wm.area_split", text="Split").ui_type = 'VIEW_3D'
+		prop = pie.operator("wm.area_split", text="Spreadsheet").ui_type = 'SPREADSHEET'
 
 		# prop = pie.operator("wm.context_set_enum", text="Python Console")
 		# prop.data_path = "area.type"
@@ -96,9 +97,12 @@ class TILA_OT_area_split(bpy.types.Operator):
 
 	direction : bpy.props.EnumProperty(items=[("VERTICAL", "Vertical", ""), ("HORIZONTAL", "Horizontal", "")])
 	factor : bpy.props.FloatProperty(name='Factor', default=0.5)
+
 	def execute(self, context):
 		window = context.window_manager.windows[0]
 		bpy.ops.screen.area_split(direction=self.direction, factor=self.factor, cursor=(0, 0))
+
+		
 
 		editor_type = 'VIEW_3D'
 		if self.ui_type in ['ShaderNodeTree', 'TextureNodeTree', 'GeometryNodeTree', 'BakeWrangler_Tree', 'CompositorNodeTree']:
@@ -110,9 +114,25 @@ class TILA_OT_area_split(bpy.types.Operator):
 		elif self.ui_type in ['SPREADSHEET']:
 			editor_type = 'SPREADSHEET'
 
+
 		bpy.ops.wm.context_set_enum(data_path='area.type', value=editor_type)
 		bpy.context.area.ui_type = self.ui_type
 		return {'FINISHED'}
+	
+	@property
+	def view3d_area(self):
+		if bpy.context.window_manager.tila_area_3d_view is None:
+			for area in bpy.context.screen.areas:
+				if area.type == 'VIEW_3D':
+					bpy.context.window_manager.tila_area_3d_view = area
+		
+		if bpy.context.window_manager.tila_area_3d_view is None:
+			print(f'No 3D Area in the current windows')
+		return bpy.context.window_manager.tila_area_3d_view
+	
+	def split_area(self, area, direction='VERTICAL', factor=0.5):
+		with bpy.context.temp_override(area=area):
+			bpy.ops.screen.area_split('EXEC_DEFAULT', direction=direction, factor=factor)
 
 classes = (
 	TILA_MT_pie_areas,
@@ -120,7 +140,26 @@ classes = (
 	TILA_OT_areas_shader_view,
 	TILA_OT_area_split
 )
-register, unregister = bpy.utils.register_classes_factory(classes)
+
+def register():
+
+	bpy.types.WindowManager.tila_area_3d_view = bpy.props.PointerProperty(name='View3D Area', type=bpy.types.Area)
+	bpy.types.WindowManager.tila_area_editor = bpy.props.PointerProperty(name='Editor Area', type=bpy.types.Area)
+	bpy.types.WindowManager.tila_area_property = bpy.props.PointerProperty(name='Property Area', type=bpy.types.Area)
+	bpy.types.WindowManager.tila_area_asset_browser = bpy.props.PointerProperty(name='Asset Browser Area', type=bpy.types.Area)
+
+	for cls in classes:
+		bpy.utils.register_class(cls)
+
+def unregister():
+
+	for cls in reversed(classes):
+		bpy.utils.unregister_class(cls)
+
+	del bpy.types.WindowManager.tila_area_asset_browser
+	del bpy.types.WindowManager.tila_area_property
+	del bpy.types.WindowManager.tila_area_editor
+	del bpy.types.WindowManager.tila_area_3d_view
 
 if __name__ == "__main__":
 	register()
