@@ -80,7 +80,7 @@ class TILA_OT_areas_shader_view(bpy.types.Operator):
 		bpy.ops.wm.context_set_enum(data_path='area.type', value='NODE_EDITOR')
 		bpy.context.area.ui_type = self.ui_type
 		return {'FINISHED'}
-
+	
 class TILA_OT_area_split(bpy.types.Operator):
 	bl_idname = 'wm.area_split'
 	bl_label = 'Area Split'
@@ -98,44 +98,108 @@ class TILA_OT_area_split(bpy.types.Operator):
 	direction : bpy.props.EnumProperty(items=[("VERTICAL", "Vertical", ""), ("HORIZONTAL", "Horizontal", "")])
 	factor : bpy.props.FloatProperty(name='Factor', default=0.5)
 
+	editor_areas = ['NODE_EDITOR', 'IMAGE_EDITOR']
+	property_areas = ['SPREADSHEET']
+	asset_areas = ['FILE_BROWSER']
+
 	def execute(self, context):
-		window = context.window_manager.windows[0]
-		bpy.ops.screen.area_split(direction=self.direction, factor=self.factor, cursor=(0, 0))
-
-		
-
-		editor_type = 'VIEW_3D'
+		self.editor_type = 'VIEW_3D'
 		if self.ui_type in ['ShaderNodeTree', 'TextureNodeTree', 'GeometryNodeTree', 'BakeWrangler_Tree', 'CompositorNodeTree']:
-			editor_type = 'NODE_EDITOR'
+			self.editor_type = 'NODE_EDITOR'
 		elif self.ui_type in ['UV']:
-			editor_type = 'IMAGE_EDITOR'
+			self.editor_type = 'IMAGE_EDITOR'
 		elif self.ui_type in ['ASSETS']:
-			editor_type = 'FILE_BROWSER'
+			self.editor_type = 'FILE_BROWSER'
 		elif self.ui_type in ['SPREADSHEET']:
-			editor_type = 'SPREADSHEET'
+			self.editor_type = 'SPREADSHEET'
 
+		if self.editor_type in self.editor_areas:
+			if self.editor_area is None:
+				self.switch_area(self.view3d_area, split=True)
+			else:
+				self.switch_area(self.editor_area, split=False)
 
-		bpy.ops.wm.context_set_enum(data_path='area.type', value=editor_type)
-		bpy.context.area.ui_type = self.ui_type
+		elif self.editor_type in self.property_areas:
+			if self.property_area is None:
+				self.switch_area(self.view3d_area, split=True)
+			else:
+				self.switch_area(self.property_area, split=False)
+
+		elif self.editor_type in self.asset_areas:
+			if self.asset_area is None:
+				self.switch_area(self.view3d_area, split=True, factor=0.51)
+			else:
+				self.switch_area(self.asset_area, split=False)
+		else:
+			self.switch_area(self.view3d_area, split=True)
+
+		# self.switch_area(self.view3d_area)
+
 		return {'FINISHED'}
 	
 	@property
 	def view3d_area(self):
-		if bpy.context.window_manager.tila_area_3d_view is None:
-			for area in bpy.context.screen.areas:
-				if area.type == 'VIEW_3D':
-					bpy.context.window_manager.tila_area_3d_view = area
-		
-		if bpy.context.window_manager.tila_area_3d_view is None:
+		for i in range(len(bpy.context.screen.areas)):
+			area = bpy.context.screen.areas[i]
+			if area.type == 'VIEW_3D':
+				print(f'Storing {area.type} index {i}')
+				bpy.context.window_manager.tila_area_3d_view = i
+				break
+		else:
 			print(f'No 3D Area in the current windows')
-		return bpy.context.window_manager.tila_area_3d_view
+			
+		return bpy.context.screen.areas[bpy.context.window_manager.tila_area_3d_view]
 	
-	def split_area(self, area, direction='VERTICAL', factor=0.5):
+	@property
+	def editor_area(self):
+		for i in range(len(bpy.context.screen.areas)):
+			area = bpy.context.screen.areas[i]
+			if area.type in self.editor_areas:
+				print(f'Storing {area.type} index {i}')
+				bpy.context.window_manager.tila_area_editor = i
+				break
+		else:
+			return None
+		return bpy.context.screen.areas[bpy.context.window_manager.tila_area_editor]
+	
+	@property
+	def property_area(self):
+		for i in range(len(bpy.context.screen.areas)):
+			area = bpy.context.screen.areas[i]
+			if area.type in self.property_areas:
+				print(f'Storing {area.type} index {i}')
+				bpy.context.window_manager.tila_area_property = i
+				break
+		else:
+			return None
+		return bpy.context.screen.areas[bpy.context.window_manager.tila_area_property]
+	
+	@property
+	def asset_area(self):
+		for i in range(len(bpy.context.screen.areas)):
+			area = bpy.context.screen.areas[i]
+			if area.type in self.asset_areas:
+				print(f'Storing {area.type} index {i}')
+				bpy.context.window_manager.tila_area_asset_browser = i
+				break
+		else:
+			return None
+		return bpy.context.screen.areas[bpy.context.window_manager.tila_area_asset_browser]
+	
+	def switch_area(self, area:bpy.types.Area, direction='VERTICAL', factor=0.5, split=False):
 		with bpy.context.temp_override(area=area):
-			bpy.ops.screen.area_split('EXEC_DEFAULT', direction=direction, factor=factor)
+			if split:
+				print(f'Splitting Area {area.type}')
+				bpy.ops.screen.area_split('EXEC_DEFAULT', direction=direction, factor=factor)
+			bpy.context.area.ui_type = self.ui_type
+			bpy.ops.wm.context_set_enum(data_path='area.type', value=self.editor_type)
+
+
+	def area_in_range(self, area_index):
+		return area_index >= 0 and area_index < len(bpy.context.screen.areas)
 
 classes = (
-	TILA_MT_pie_areas,
+    TILA_MT_pie_areas,
  	TILA_OT_areas_uv_view,
 	TILA_OT_areas_shader_view,
 	TILA_OT_area_split
@@ -143,10 +207,10 @@ classes = (
 
 def register():
 
-	bpy.types.WindowManager.tila_area_3d_view = bpy.props.PointerProperty(name='View3D Area', type=bpy.types.Area)
-	bpy.types.WindowManager.tila_area_editor = bpy.props.PointerProperty(name='Editor Area', type=bpy.types.Area)
-	bpy.types.WindowManager.tila_area_property = bpy.props.PointerProperty(name='Property Area', type=bpy.types.Area)
-	bpy.types.WindowManager.tila_area_asset_browser = bpy.props.PointerProperty(name='Asset Browser Area', type=bpy.types.Area)
+	bpy.types.WindowManager.tila_area_3d_view = bpy.props.IntProperty(name='View3D Area', default=-1)
+	bpy.types.WindowManager.tila_area_editor = bpy.props.IntProperty(name='Editor Area', default=-1)
+	bpy.types.WindowManager.tila_area_property = bpy.props.IntProperty(name='Property Area', default=-1)
+	bpy.types.WindowManager.tila_area_asset_browser = bpy.props.IntProperty(name='Asset Browser Area', default=-1)
 
 	for cls in classes:
 		bpy.utils.register_class(cls)
