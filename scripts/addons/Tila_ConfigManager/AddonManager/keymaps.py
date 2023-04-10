@@ -1380,7 +1380,7 @@ class TILA_Config_Keymaps_MACHIN3tools(TILA_Config_Keymaps):
 	def set_keymaps(self):
 		self.print_status(f"Assigning {self.addon_name} Keymaps")
 
-		if self.kmi_init(name='Window', space_type='EMPTY', region_type='WINDOW', addon=True, restore_to_default=False):
+		if self.kmi_init(name='Window', space_type='EMPTY', region_type='WINDOW', addon=False, restore_to_default=False):
 			self.kmi_set_replace('wm.call_menu_pie', 'S', "PRESS", ctrl=True, shift=True, properties={'name': 'MACHIN3_MT_save_pie'}, disable_double=True)
 
 		if self.kmi_init(name='UV Editor', space_type='EMPTY', region_type='WINDOW', addon=True, restore_to_default=False):
