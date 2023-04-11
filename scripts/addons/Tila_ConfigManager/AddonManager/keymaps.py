@@ -1104,7 +1104,9 @@ class TILA_Config_Keymaps_Global(TILA_Config_Keymaps):
 		self.right_mouse()
 
 		# self.selection_keys(select_tool='node.select')
-		self.duplicate(duplicate='node.duplicate_move_keep_inputs', duplicate_prop={'keep_inputs': True, 'linked': True})
+		# self.duplicate(duplicate='node.duplicate_move_keep_inputs', duplicate_prop={'keep_inputs': True, 'linked': True})
+		self.kmi_set('node.duplicate_move_keep_inputs', type='D', value='PRESS', ctrl=True,
+		             alt=False, shift=False, properties={'keep_inputs': True, 'linked': True})
 		self.snap(snapping='wm.context_menu_enum', snapping_prop={'data_path': 'tool_settings.snap_node_element'})
 		self.kmi_set_replace('node.view_selected', 'A', 'PRESS', ctrl=True, shift=True)
 		self.kmi_set_replace('node.add_search', self.k_menu, 'PRESS')
