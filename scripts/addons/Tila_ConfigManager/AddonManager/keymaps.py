@@ -949,7 +949,7 @@ class TILA_Config_Keymaps_Global(TILA_Config_Keymaps):
 		self.kmi_init(name='Dopesheet', space_type='DOPESHEET_EDITOR', region_type='WINDOW')
 		self.global_keys()
 		self.right_mouse()
-		self.duplicate(duplicate='node.duplicate_move_keep_inputs')
+		self.duplicate(duplicate='action.duplicate_move')
 
 		###### Mask Editing
 		self.kmi_init(name='Mask Editing', space_type='EMPTY', region_type='WINDOW')
@@ -1104,7 +1104,7 @@ class TILA_Config_Keymaps_Global(TILA_Config_Keymaps):
 		self.right_mouse()
 
 		# self.selection_keys(select_tool='node.select')
-		self.duplicate(duplicate='node.duplicate_move_keep_inputs')
+		self.duplicate(duplicate='node.duplicate_move_keep_inputs', duplicate_prop={'keep_inputs': True, 'linked': True})
 		self.snap(snapping='wm.context_menu_enum', snapping_prop={'data_path': 'tool_settings.snap_node_element'})
 		self.kmi_set_replace('node.view_selected', 'A', 'PRESS', ctrl=True, shift=True)
 		self.kmi_set_replace('node.add_search', self.k_menu, 'PRESS')
@@ -1409,12 +1409,12 @@ class TILA_Config_Keymaps_noodler(TILA_Config_Keymaps):
 	def set_keymaps(self):
 		self.print_status(f"Assigning {self.addon_name} Keymaps")
 
-		if self.kmi_init(name='Node Editor', space_type='NODE_EDITOR', region_type='WINDOW', addon=False, restore_to_default=False):
-			self.kmi_set_replace('noodler.draw_route', 'E', 'PRESS', disable_double=True)
-			self.kmi_set_replace('noodler.chamfer', 'B', 'PRESS', disable_double=True)
-			self.kmi_set_replace('noodler.draw_frame', 'J', 'PRESS', ctrl=True, disable_double=True)
-			self.kmi_set_replace('noodler.dependency_select', self.k_manip, 'DOUBLE_CLICK', shift=True, properties={'mode': "downstream", 'repsel': True}, disable_double=True)
-			self.kmi_set_replace('noodler.dependency_select', self.k_manip, 'DOUBLE_CLICK', ctrl=True, properties={'mode': "upstream", 'repsel': True}, disable_double=True)
+		self.kmi_init(name='Node Editor', space_type='NODE_EDITOR', region_type='WINDOW', addon=False, restore_to_default=False)
+		self.kmi_set_replace('noodler.draw_route', 'E', 'PRESS', disable_double=True)
+		self.kmi_set_replace('noodler.chamfer', 'B', 'PRESS', disable_double=True)
+		self.kmi_set_replace('noodler.draw_frame', 'J', 'PRESS', ctrl=True, disable_double=True)
+		self.kmi_set_replace('noodler.dependency_select', self.k_manip, 'DOUBLE_CLICK', shift=True, properties={'mode': "downstream", 'repsel': True}, disable_double=True)
+		self.kmi_set_replace('noodler.dependency_select', self.k_manip, 'DOUBLE_CLICK', ctrl=True, properties={'mode': "upstream", 'repsel': True}, disable_double=True)
 
 		self.print_status(f"Assignment of {self.addon_name} complete", start=False)
 
