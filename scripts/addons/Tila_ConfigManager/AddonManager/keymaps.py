@@ -1352,7 +1352,7 @@ class TILA_Config_Keymaps_PolyQuilt(TILA_Config_Keymaps):
 	def set_keymaps(self):
 		self.print_status(f"Assigning {self.addon_name} Keymaps")
 
-		if self.kmi_init(name='Mesh', space_type='EMPTY', region_type='WINDOW', addon=True, restore_to_default=False):
+		if self.kmi_init(name='Mesh', space_type='EMPTY', region_type='WINDOW', addon=False, restore_to_default=False):
 			self.kmi_set_replace('wm.tool_set_by_id', 'F', 'PRESS', shift=True, properties={'name': 'mesh_tool.poly_quilt'}, disable_double=True)
 
 		###### 3D View Tool: Edit Mesh, PolyQuilt
@@ -1409,7 +1409,7 @@ class TILA_Config_Keymaps_noodler(TILA_Config_Keymaps):
 	def set_keymaps(self):
 		self.print_status(f"Assigning {self.addon_name} Keymaps")
 
-		if self.kmi_init(name='Node Editor', space_type='NODE_EDITOR', region_type='WINDOW', addon=True, restore_to_default=False):
+		if self.kmi_init(name='Node Editor', space_type='NODE_EDITOR', region_type='WINDOW', addon=False, restore_to_default=False):
 			self.kmi_set_replace('noodler.draw_route', 'E', 'PRESS', disable_double=True)
 			self.kmi_set_replace('noodler.chamfer', 'B', 'PRESS', disable_double=True)
 			self.kmi_set_replace('noodler.draw_frame', 'J', 'PRESS', ctrl=True, disable_double=True)
@@ -1427,7 +1427,7 @@ class TILA_Config_Keymaps_atomic_data_manager(TILA_Config_Keymaps):
 	def set_keymaps(self):
 		self.print_status(f"Assigning {self.addon_name} Keymaps")
 
-		if self.kmi_init(name='Window', space_type='EMPTY', region_type='WINDOW', addon=True, restore_to_default=False):
+		if self.kmi_init(name='Window', space_type='EMPTY', region_type='WINDOW', addon=False, restore_to_default=False):
 			self.kmi_set_replace('atomic.invoke_pie_menu_ui', 'DEL', "PRESS", ctrl=True, shift=True, disable_double=True)
 
 		self.print_status(f"Assignment of {self.addon_name} complete", start=False)
@@ -1441,7 +1441,7 @@ class TILA_Config_Keymaps_kekit(TILA_Config_Keymaps):
 	def set_keymaps(self):
 		self.print_status(f"Assigning {self.addon_name} Keymaps")
 
-		if self.kmi_init(name='3D View', space_type='VIEW_3D', region_type='WINDOW', addon=True, restore_to_default=False):
+		if self.kmi_init(name='3D View', space_type='VIEW_3D', region_type='WINDOW', addon=False, restore_to_default=False):
 			self.kmi_set_replace('view3d.ke_get_set_material', 'M', 'PRESS', shift=True)
 
 		if self.kmi_init(name='Mesh', space_type='EMPTY', region_type='WINDOW', addon=True, restore_to_default=False):
@@ -1485,7 +1485,7 @@ class TILA_Config_Keymaps_Poly_Source(TILA_Config_Keymaps):
 	def set_keymaps(self):
 		self.print_status(f"Assigning {self.addon_name} Keymaps")
 
-		if self.kmi_init(name='3D View', space_type='VIEW_3D', region_type='WINDOW', addon=True, restore_to_default=False):
+		if self.kmi_init(name='3D View', space_type='VIEW_3D', region_type='WINDOW', addon=False, restore_to_default=False):
 			self.kmi_set_active(enable=False, idname='wm.call_menu_pie', type=self.k_menu, value='PRESS', properties={'name': 'PS_MT_tk_menu'})
 
 		self.print_status(f"Assignment of {self.addon_name} complete", start=False)
@@ -1499,7 +1499,7 @@ class TILA_Config_Keymaps_uv_toolkit(TILA_Config_Keymaps):
 	def set_keymaps(self):
 		self.print_status(f"Assigning {self.addon_name} Keymaps")
 
-		if self.kmi_init(name='UV Editor', space_type='EMPTY', region_type='WINDOW', addon=True, restore_to_default=False):
+		if self.kmi_init(name='UV Editor', space_type='EMPTY', region_type='WINDOW', addon=False, restore_to_default=False):
 			self.kmi_set_replace('uv.toolkit_orient_to_edge', 'D', "PRESS", ctrl=True, alt=True, shift=True, disable_double=True)
 
 		self.print_status(f"Assignment of {self.addon_name} complete", start=False)
