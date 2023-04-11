@@ -2594,5 +2594,22 @@
                 "destination_path": "#\\scripts\\addons\\bgen.py"
             }
         ]
+    },
+    "where_am_i": {
+        "is_enable": false,
+        "is_sync": false,
+        "online_url": "https://github.com/Nezumi72/join_areas",
+        "repository_url": null,
+        "branch": null,
+        "is_submodule": false,
+        "local_path": "#\\scripts\\addon_library\\local",
+        "keymaps": false,
+        "paths": [
+            {
+                "is_enable": false,
+                "local_subpath": "where_am_i.py",
+                "destination_path": "#\\scripts\\addons\\where_am_i.py"
+            }
+        ]
     }
 }
