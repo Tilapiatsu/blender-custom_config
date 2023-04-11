@@ -1356,7 +1356,7 @@ class TILA_Config_Keymaps_PolyQuilt(TILA_Config_Keymaps):
 			self.kmi_set_replace('wm.tool_set_by_id', 'F', 'PRESS', shift=True, properties={'name': 'mesh_tool.poly_quilt'}, disable_double=True)
 
 		###### 3D View Tool: Edit Mesh, PolyQuilt
-		if self.kmi_init(name='3D View Tool: Edit Mesh, PolyQuilt', space_type='VIEW_3D', region_type='WINDOW', addon=True, restore_to_default=False):
+		if self.kmi_init(name='3D View Tool: Edit Mesh, PolyQuilt', space_type='VIEW_3D', region_type='WINDOW', addon=False, restore_to_default=False):
 			self.kmi_set_active(False, idname='mesh.poly_quilt', type='LEFTMOUSE', value='PRESS', ctrl=False, shift=False, alt=False, oskey=False)
 			self.kmi_set_active(False, idname='mesh.poly_quilt', type='LEFTMOUSE', value='PRESS', ctrl=True, shift=True, alt=False, oskey=False)
 			self.kmi_set_active(False, idname='mesh.poly_quilt', type='LEFTMOUSE', value='PRESS', ctrl=True, shift=False, alt=False, oskey=False)
@@ -1383,19 +1383,19 @@ class TILA_Config_Keymaps_MACHIN3tools(TILA_Config_Keymaps):
 		if self.kmi_init(name='Window', space_type='EMPTY', region_type='WINDOW', addon=False, restore_to_default=False):
 			self.kmi_set_replace('wm.call_menu_pie', 'S', "PRESS", ctrl=True, shift=True, properties={'name': 'MACHIN3_MT_save_pie'}, disable_double=True)
 
-		if self.kmi_init(name='UV Editor', space_type='EMPTY', region_type='WINDOW', addon=True, restore_to_default=False):
+		if self.kmi_init(name='UV Editor', space_type='EMPTY', region_type='WINDOW', addon=False, restore_to_default=False):
 			self.kmi_set_replace('wm.call_menu_pie', 'D', "PRESS", alt=True, shift=True, properties={'name': 'MACHIN3_MT_uv_align_pie'}, disable_double=True)
 
-		if self.kmi_init(name='Mesh', space_type='EMPTY', region_type='WINDOW', addon=True, restore_to_default=False):
+		if self.kmi_init(name='Mesh', space_type='EMPTY', region_type='WINDOW', addon=False, restore_to_default=False):
 			kmi = self.kmi_set_replace('machin3.clean_up', 'ZERO', "PRESS", ctrl=True, alt=True, shift=True)
 			self.kmi_set_replace('wm.call_menu_pie', 'D', "PRESS", alt=True, shift=True, properties={'name': 'MACHIN3_MT_align_pie'}, disable_double=True)
 			self.kmi_set_active(False, 'machin3.select')
 
-		if self.kmi_init(name='Object Mode', space_type='EMPTY', region_type='WINDOW', addon=True, restore_to_default=False):
+		if self.kmi_init(name='Object Mode', space_type='EMPTY', region_type='WINDOW', addon=False, restore_to_default=False):
 			self.kmi_set_replace('machin3.align', 'A', "PRESS", alt=True, disable_double=True)
 			self.kmi_set_replace('machin3.mirror', 'X', "PRESS", alt=True, shift=True, properties={'flick':True, 'remove':False}, disable_double=True)
 
-		if self.kmi_init(name='Pose', space_type='EMPTY', region_type='WINDOW', addon=True, restore_to_default=False):
+		if self.kmi_init(name='Pose', space_type='EMPTY', region_type='WINDOW', addon=False, restore_to_default=False):
 			self.kmi_set_replace('machin3.align', 'A', "PRESS", alt=True, disable_double=True)
 			
 		self.print_status(f"Assignment of {self.addon_name} complete", start=False)
@@ -1444,7 +1444,7 @@ class TILA_Config_Keymaps_kekit(TILA_Config_Keymaps):
 		if self.kmi_init(name='3D View', space_type='VIEW_3D', region_type='WINDOW', addon=False, restore_to_default=False):
 			self.kmi_set_replace('view3d.ke_get_set_material', 'M', 'PRESS', shift=True)
 
-		if self.kmi_init(name='Mesh', space_type='EMPTY', region_type='WINDOW', addon=True, restore_to_default=False):
+		if self.kmi_init(name='Mesh', space_type='EMPTY', region_type='WINDOW', addon=False, restore_to_default=False):
 			kmi = self.kmi_find(idname='wm.call_menu', type='C', ctrl=True)
 			if kmi is not None:
 				kmi.shift = True
