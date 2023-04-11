@@ -312,8 +312,6 @@ class KeKitPropertiesTemp(PropertyGroup):
     viewslot6: FloatVectorProperty(size=9)
     viewtoggle: FloatVectorProperty(size=9)
     viewcycle: IntProperty(default=0, min=0, max=5)
-    focus: BoolVectorProperty(size=16)
-    focus_stats: BoolProperty()
     kcm_axis: EnumProperty(items=[
         ("X", "X", "", 1),
         ("Y", "Y", "", 2),
@@ -714,6 +712,10 @@ class KeKitAddonPreferences(AddonPreferences):
                                    description="Context Select - Select All Objects in selected object's Collection\n"
                                                "(in OBJECT MODE)",
                                    default=False)
+    # Auto-Apply Scale
+    apply_scale: BoolProperty(name="A",
+                                   description="Auto Apply Scale before operation. (Shared setting for multiple ops)",
+                                   default=True)
 
     # TT header icons prefs
     tt_icon_pos: EnumProperty(

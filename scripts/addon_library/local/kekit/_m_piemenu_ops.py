@@ -545,7 +545,8 @@ class KeOverlays(Operator):
                ("STATS", "Show Stats", "", 23),
                ("GRID_ORTHO", "Show Ortho Grid", "", 24),
                ("GRID_BOTH", "Show Floor & Ortho Grid", "", 25),
-               ("LENGTHS", "Show Lengths", "", 26)
+               ("LENGTHS", "Show Lengths", "", 26),
+               ("LINES", "Relationship Lines", "", 27),
                ],
         name="Overlay Type",
         default="WIRE")
@@ -601,6 +602,9 @@ class KeOverlays(Operator):
 
         elif self.overlay == "STATS":
             o.show_stats = not o.show_stats
+
+        elif self.overlay == "LINES":
+            o.show_relationship_lines = not o.show_relationship_lines
 
         # Mode contextual
         if context.mode == "EDIT_MESH":
@@ -678,98 +682,6 @@ def get_og_overlay_ui(c):
     return [og_gizmo, og_floor, og_x, og_y, og_z, og_text, og_extras, og_ui, og_tb]
 
 
-class KeFocusMode(Operator):
-    bl_idname = "view3d.ke_focusmode"
-    bl_label = "Focus Mode"
-    bl_description = "Fullscreen+. Restores original settings when toggled back."
-    bl_space_type = 'VIEW_3D'
-    bl_region_type = 'UI'
-    bl_options = {'REGISTER'}
-
-    supermode: bpy.props.BoolProperty(default=False, options={"HIDDEN"})
-
-    @classmethod
-    def poll(cls, context):
-        return context.space_data.type == "VIEW_3D"
-
-    def execute(self, context):
-
-        k = context.scene.kekit_temp
-        o = context.space_data.overlay
-
-        set_focus = k.focus[0]
-        set_super_focus = k.focus[10]
-
-        if not set_focus:
-            og = get_og_overlay_ui(context)
-
-            k.focus_stats = o.show_stats
-            o.show_stats = False
-
-            context.space_data.show_gizmo_navigate = False
-            o.show_floor = False
-            o.show_axis_x = False
-            o.show_axis_y = False
-            o.show_axis_z = False
-            o.show_text = False
-            o.show_extras = False
-
-            k.focus[1] = og[0]
-            k.focus[2] = og[1]
-            k.focus[3] = og[2]
-            k.focus[4] = og[3]
-            k.focus[5] = og[4]
-            k.focus[6] = og[5]
-            k.focus[7] = og[6]
-            k.focus[8] = og[7]
-            k.focus[9] = og[8]
-
-            k.focus[0] = True
-            if self.supermode:
-                k.focus[10] = True
-
-            bpy.ops.screen.screen_full_area(use_hide_panels=self.supermode)
-
-            for area in context.screen.areas:
-                if area.type == 'VIEW_3D':
-                    for space in area.spaces:
-                        if space.type == 'VIEW_3D':
-                            space.show_region_ui = False
-                            space.show_region_toolbar = False
-
-        else:
-            og = k.focus[1:]
-            ogs = k.focus_stats
-
-            context.space_data.show_gizmo_navigate = og[0]
-            o.show_floor = og[1]
-            o.show_axis_x = og[2]
-            o.show_axis_y = og[3]
-            o.show_axis_z = og[4]
-            o.show_text = og[5]
-            o.show_extras = og[6]
-            o.show_stats = ogs
-
-            k.focus[0] = False
-            k.focus[10] = False
-
-            if not self.supermode and set_super_focus:
-                bpy.ops.screen.screen_full_area(use_hide_panels=True)
-            elif self.supermode and not set_super_focus:
-                bpy.ops.screen.screen_full_area(use_hide_panels=False)
-            else:
-                bpy.ops.screen.screen_full_area(use_hide_panels=self.supermode)
-
-            for area in context.screen.areas:
-                if area.type == 'VIEW_3D':
-                    for space in area.spaces:
-                        if space.type == 'VIEW_3D':
-                            space.show_region_ui = og[7]
-                            space.show_region_toolbar = og[8]
-
-        return {'FINISHED'}
-
-
 class KeObjectOp(Operator):
     bl_idname = "object.ke_object_op"
     bl_label = "Object Control"
@@ -837,7 +749,6 @@ classes = (
     KeSnapElement,
     KePieOps,
     KeOverlays,
-    KeFocusMode,
     KeObjectOp,
 )
 

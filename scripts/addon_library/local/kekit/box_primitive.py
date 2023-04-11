@@ -56,19 +56,19 @@ class PrimitiveBoxAdd(Operator):
     width: FloatProperty(
         name="Width",
         description="Box Width",
-        min=0.01, max=1000.0,
+        min=0.0001, max=10000.0,
         default=1.0,
     )
     height: FloatProperty(
         name="Height",
         description="Box Height",
-        min=0.01, max=1000.0,
+        min=0.0001, max=10000.0,
         default=1.0,
     )
     depth: FloatProperty(
         name="Depth",
         description="Box Depth",
-        min=0.01, max=1000.0,
+        min=0.0001, max=10000.0,
         default=1.0,
     )
     layers: BoolVectorProperty(

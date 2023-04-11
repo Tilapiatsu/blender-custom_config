@@ -11,7 +11,8 @@ class KeRadialArray(bpy.types.Operator):
     bl_idname = "view3d.ke_radialarray"
     bl_label = "RadialArray"
     bl_description = "[Legacy] Modal circular setup for the Array Modifier\n" \
-                     "Place CURSOR as array center (Cursor-Z = hub-axis) and select an OBJECT to use"
+                     "Place CURSOR as array center (Cursor-Z = hub-axis) and select an OBJECT to use\n" \
+                     "Auto-Arrange option ca be toggled in the Shortcut Editor"
     bl_options = {'REGISTER', 'UNDO'}
 
     auto_arrange: BoolProperty(

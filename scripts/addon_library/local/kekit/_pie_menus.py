@@ -922,7 +922,6 @@ class KePieOverlays(Menu):
     def draw(self, context):
         o = context.space_data.overlay
         s = context.space_data.shading
-        k = context.scene.kekit_temp.focus
 
         layout = self.layout
         pie = layout.menu_pie()
@@ -953,6 +952,8 @@ class KePieOverlays(Menu):
 
         row.operator("view3d.ke_overlays", text="Both").overlay = "GRID_BOTH"
 
+        cbox.separator(factor=1)
+
         if o.show_extras:
             cbox.operator("view3d.ke_overlays", text="Extras", icon="LIGHT_SUN", depress=True).overlay = "EXTRAS"
         else:
@@ -973,7 +974,14 @@ class KePieOverlays(Menu):
         else:
             cbox.operator("view3d.ke_overlays", text="Bones", icon="BONE_DATA", depress=False).overlay = "BONES"
 
-        cbox.separator(factor=0.25)
+        if o.show_relationship_lines:
+            cbox.operator("view3d.ke_overlays", text="Relationship Lines", icon="CON_TRACKTO",
+                          depress=True).overlay = "LINES"
+        else:
+            cbox.operator("view3d.ke_overlays", text="Relationship Lines", icon="CON_TRACKTO",
+                          depress=False).overlay = "LINES"
+
+        cbox.separator(factor=1)
 
         if o.show_wireframes:
             cbox.operator("view3d.ke_overlays", text="Object Wireframes", icon="MOD_WIREFRAME",
@@ -995,22 +1003,6 @@ class KePieOverlays(Menu):
         else:
             cbox.operator("view3d.ke_overlays", text="Object Outline", icon="MESH_CIRCLE",
                           depress=False).overlay = "OBJ_OUTLINE"
-
-        cbox.separator(factor=0.25)
-
-        if not k[0] and not k[10]:
-            cbox.operator("view3d.ke_focusmode", text="Focus Mode", icon="FULLSCREEN_ENTER",
-                          depress=False).supermode = False
-            cbox.operator("view3d.ke_focusmode", text="Super Focus Mode", icon="FULLSCREEN_ENTER",
-                          depress=False).supermode = True
-
-        elif k[0] and not k[10]:
-            cbox.operator("view3d.ke_focusmode", text="Focus Mode", icon="FULLSCREEN_EXIT",
-                          depress=True).supermode = False
-
-        elif k[10]:
-            cbox.operator("view3d.ke_focusmode", text="Super Focus Mode", icon="FULLSCREEN_EXIT",
-                          depress=True).supermode = True
 
         c = pie.column()
         cbox = c.box().column()

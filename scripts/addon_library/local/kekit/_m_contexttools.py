@@ -20,9 +20,10 @@ class UIContextToolsModule(Panel):
         col = layout.column(align=True)
 
         row = col.row(align=True)
-        row.operator('mesh.ke_contextbevel')
-        row2 = row.row(align=True)
-        row2.alignment = "RIGHT"
+        split = row.split(factor=.6, align=True)
+        split.operator('mesh.ke_contextbevel')
+        row2 = split.row(align=True)
+        row2.prop(k, "apply_scale", toggle=True)
         row2.prop(k, "korean", text="K/F", toggle=True)
 
         row = col.row(align=True)
@@ -71,11 +72,16 @@ class KeContextBevel(Operator):
                 context.object.data.is_editmode)
 
     def execute(self, context):
+        k = context.preferences.addons[__package__].preferences
         sel_mode = context.tool_settings.mesh_select_mode[:]
+        if k.apply_scale and context.object.library is None and context.object.data.users == 1:
+            bpy.ops.object.editmode_toggle()
+            bpy.ops.object.transform_apply(location=False, rotation=False, scale=True)
+            bpy.ops.object.editmode_toggle()
         if sel_mode[0]:
             bpy.ops.mesh.bevel('INVOKE_DEFAULT', affect='VERTICES')
         elif sel_mode[1]:
-            if context.preferences.addons[__package__].preferences.korean:
+            if k.korean:
                 bpy.ops.mesh.bevel('INVOKE_DEFAULT', segments=2, profile=1, affect='EDGES')
             else:
                 bpy.ops.mesh.bevel('INVOKE_DEFAULT', affect='EDGES')

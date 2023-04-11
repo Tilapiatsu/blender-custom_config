@@ -3,7 +3,7 @@ import bmesh
 from mathutils import Vector, Matrix
 from bpy.types import Operator
 from bpy_extras.view3d_utils import region_2d_to_location_3d
-from ._utils import average_vector, getset_transform, restore_transform, get_selected
+from ._utils import average_vector, getset_transform, restore_transform
 
 
 def bbox_minmax(coords):
@@ -43,7 +43,7 @@ class KeMouseMirrorFlip(Operator):
         layout = self.layout
         col = layout.column()
         row = col.row()
-        row.enabled = not context.object.data.is_editmode and self.mode == "MIRROR"
+        row.enabled = context.mode == "OBJECT" and self.mode == "MIRROR"
         row.use_property_split = True
         row.prop(self, "linked", expand=True)
         layout.separator(factor=1)
@@ -88,7 +88,8 @@ class KeMouseMirrorFlip(Operator):
             elif not em:
                 bpy.ops.object.duplicate()
 
-        active_obj = get_selected(context, use_cat=True)
+        # active_obj = get_selected(context, use_cat=True)
+        active_obj = context.object
 
         # Mouse vec start
         if og[0] == "CURSOR":

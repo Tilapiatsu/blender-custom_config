@@ -19,6 +19,10 @@ class KeExtractAndEdit(Operator):
         default=True,
         name="Itemize",
         description="Active Face or Active Edge(+2 connected edges) is used for rotation/position (the new 'bottom')")
+    datacopy: BoolProperty(
+        default=True,
+        name="Itemize Data Copy",
+        description="Also copies original object's data: Normal settings & other attributes")
     objmode : BoolProperty(default=False, name="Set Object Mode",
                            description="Set Object Mode after operation\n"
                                        "Note: Will disable redo-panel")
@@ -145,7 +149,11 @@ class KeExtractAndEdit(Operator):
                 rot.z = round(rot.z, 4)
 
                 # Create new mesh and apply settings
-                new_mesh = bpy.data.meshes.new(obj.name + '_itemized_mesh')
+                if self.datacopy:
+                    new_mesh = obj.data.copy()
+                    new_mesh.clear_geometry()
+                else:
+                    new_mesh = bpy.data.meshes.new(obj.name + '_itemized_mesh')
                 new_obj = bpy.data.objects.new(obj.name + '_itemized', new_mesh)
                 coll.objects.link(new_obj)
 
