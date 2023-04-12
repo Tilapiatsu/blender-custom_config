@@ -2612,7 +2612,7 @@
             }
         ]
     },
-    "filters": {
+    "Filters": {
         "is_enable": false,
         "is_sync": false,
         "online_url": null,
@@ -2625,7 +2625,7 @@
             {
                 "is_enable": false,
                 "local_subpath": "filters.py",
-                "destination_path": "#\\scripts\\addons\\filters"
+                "destination_path": "#\\scripts\\addons\\filters.py"
             }
         ]
     }
