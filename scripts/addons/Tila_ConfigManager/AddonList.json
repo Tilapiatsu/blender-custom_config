@@ -2611,5 +2611,22 @@
                 "destination_path": "#\\scripts\\addons\\where_am_i.py"
             }
         ]
+    },
+    "filters": {
+        "is_enable": false,
+        "is_sync": false,
+        "online_url": null,
+        "repository_url": null,
+        "branch": null,
+        "is_submodule": false,
+        "local_path": "#\\scripts\\addon_library\\local",
+        "keymaps": false,
+        "paths": [
+            {
+                "is_enable": false,
+                "local_subpath": "filters.py",
+                "destination_path": "#\\scripts\\addons\\filters"
+            }
+        ]
     }
 }
