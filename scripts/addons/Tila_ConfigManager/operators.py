@@ -254,6 +254,7 @@ class TILA_Config_CleanAddonList(Operator):
 	
 	name : bpy.props.StringProperty(name="Addon Name", default="", description='Name of the addon to Clean')
 	force: bpy.props.BoolProperty(name="Force Clean", default=False, description='remove all addons from destination folder')
+	clean_cloned = bpy.props.BoolProperty(name="Clean Cloned", default=False, description='remove all Cloned addon from repository')
 	revert_to_factory: bpy.props.BoolProperty(name="Revert to Factory Settings", default=False, description='Revert to factory Settings')
 
 	def execute(self, context):
@@ -265,12 +266,11 @@ class TILA_Config_CleanAddonList(Operator):
 
 		self.AM.flush_queue()
 		if self.name == '':
-			self.AM.queue_clean(force=self.force)
+			self.AM.queue_clean(force=self.force, clean_cloned=self.clean_cloned)
 		else:
-			self.AM.queue_clean(element_name=self.name, force=self.force)
+			self.AM.queue_clean(element_name=self.name, force=self.force, clean_cloned=self.clean_cloned)
 
-		self._timer = bpy.context.window_manager.event_timer_add(
-			0.1, window=context.window)
+		self._timer = bpy.context.window_manager.event_timer_add(0.1, window=context.window)
 		bpy.context.window_manager.modal_handler_add(self)
 		return {'RUNNING_MODAL'}
 

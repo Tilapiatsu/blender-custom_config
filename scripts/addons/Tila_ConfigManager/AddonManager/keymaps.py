@@ -661,7 +661,7 @@ class TILA_Config_Keymaps_Global(TILA_Config_Keymaps):
 		self.mode_selection()
 		self.tool_transform(cage_scale='builtin.scale_cage')
 
-		self.kmi_set_replace('wm.call_menu_pie', 'X', 'PRESS', alt=True, shift=True, properties={'name': 'HP_MT_pie_symmetry'}, disable_double=True)
+		self.kmi_set_replace('wm.call_menu_pie', 'X', 'PRESS', alt=True, shift=True, properties={'name': 'HP_MT_pie_symmetry'}, disable_double=False)
 		self.kmi_set_replace('wm.call_menu_pie', 'Q', 'PRESS', alt=True, shift=True, properties={'name': 'TILA_MT_pie_distribute'}, disable_double=True)
 
 		self.selection_keys(shortestpath_tool='mesh.shortest_path_pick',
@@ -1389,16 +1389,18 @@ class TILA_Config_Keymaps_MACHIN3tools(TILA_Config_Keymaps):
 			self.kmi_set_replace('wm.call_menu_pie', 'D', "PRESS", alt=True, shift=True, properties={'name': 'MACHIN3_MT_uv_align_pie'}, disable_double=True)
 
 		if self.kmi_init(name='Mesh', space_type='EMPTY', region_type='WINDOW', addon=False, restore_to_default=False):
-			kmi = self.kmi_set_replace('machin3.clean_up', 'ZERO', "PRESS", ctrl=True, alt=True, shift=True)
+			self.kmi_set_replace('machin3.clean_up', 'ZERO', "PRESS", ctrl=True, alt=True, shift=True)
+			self.kmi_set_active(True, 'machin3.clean_up', 'ZERO', "PRESS", ctrl=True, alt=True, shift=True)
 			self.kmi_set_replace('wm.call_menu_pie', 'D', "PRESS", alt=True, shift=True, properties={'name': 'MACHIN3_MT_align_pie'}, disable_double=True)
 			self.kmi_set_active(False, 'machin3.select')
 
 		if self.kmi_init(name='Object Mode', space_type='EMPTY', region_type='WINDOW', addon=False, restore_to_default=False):
-			self.kmi_set_replace('machin3.align', 'A', "PRESS", alt=True, disable_double=True)
-			self.kmi_set_replace('machin3.mirror', 'X', "PRESS", alt=True, shift=True, properties={'flick':True, 'remove':False}, disable_double=True)
+			self.kmi_set_replace('machin3.align', 'A', "PRESS", alt=True, disable_double=False)
+			# self.kmi_set_replace('machin3.mirror', 'X', "PRESS", alt=True, shift=True, properties={'flick': True, 'remove': False}, disable_double=False)
+			self.kmi_set_active(True, 'machin3.mirror', 'X', "PRESS", alt=True, shift=True, properties={'flick': True, 'remove': False})
 
 		if self.kmi_init(name='Pose', space_type='EMPTY', region_type='WINDOW', addon=False, restore_to_default=False):
-			self.kmi_set_replace('machin3.align', 'A', "PRESS", alt=True, disable_double=True)
+			self.kmi_set_replace('machin3.align', 'A', "PRESS", alt=True, disable_double=False)
 			
 		self.print_status(f"Assignment of {self.addon_name} complete", start=False)
 

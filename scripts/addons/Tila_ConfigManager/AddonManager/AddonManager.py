@@ -420,10 +420,13 @@ class ElementAM():
 			repo = git.Repo(root_folder)
 			repo.git.submodule('update', '--init')
 	
-	def clean(self, force=False):
+	def clean(self, force=False, clean_cloned=False):
 		for p in self.paths:
 			p.clean(force=force)
 
+		if not clean_cloned:
+			return
+		
 		if force and self.is_sync and not self.is_submodule:
 			if self.local_path.exists:
 				self.local_path.remove()
@@ -520,21 +523,23 @@ class AddonManager():
 	def save_json(self, json_dict):
 		self.json.save(json_dict)
 	
-	def queue_clean(self, element_name=None, force=False):
+	def queue_clean(self, element_name=None, force=False, clean_cloned=False):
 		if element_name is None:
 			for e in self.elements.values():
-				self.queue([self.clean, {'element_name': e.name, 'force':force}])
+				self.queue([self.clean, {'element_name': e.name,
+				           'force': force, 'clean_cloned': clean_cloned}])
 		elif element_name in self.elements.keys():
-			self.queue([self.clean, {'element_name': element_name, 'force': force}])
+			self.queue([self.clean, {'element_name': element_name,
+			           'force': force, 'clean_cloned': clean_cloned}])
 			
-	def clean(self, element_name=None, force=False):
+	def clean(self, element_name=None, force=False, clean_cloned=False):
 		self.processing = True
 
 		if element_name is None:
 			for e in self.elements.values():
-				e.clean(force=force)
+				e.clean(force=force, clean_cloned=clean_cloned)
 		elif element_name in self.elements.keys():
-			self.elements[element_name].clean(force=force)
+			self.elements[element_name].clean(force=force, clean_cloned=clean_cloned)
 
 		self.processing = False
 	
