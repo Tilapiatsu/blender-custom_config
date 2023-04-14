@@ -31,11 +31,11 @@ class TILA_SmartDeleteOperator(bpy.types.Operator):
                     if current_mesh_mode[0]:
                         bpy.ops.mesh.dissolve_verts()
 
-                    # if vertex mode on
+                    # if edge mode on
                     if current_mesh_mode[1]:
                         bpy.ops.mesh.dissolve_edges(use_verts=True)
 
-                    # if vertex mode on
+                    # if face mode on
                     if current_mesh_mode[2]:
                         bpy.ops.mesh.delete(type='FACE')
                 elif context.mode == 'EDIT_CURVE':
