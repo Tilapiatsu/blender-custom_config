@@ -92,6 +92,10 @@ class TILA_smart_loopselect(bpy.types.Operator):
 		self.data = selection.data
 		self.bmesh = bmesh.from_edit_mesh(selection.data)
 
+	def deinit_bmesh(self):
+		bmesh.update_edit_mesh(mesh=self.data, loop_triangles=True)
+		self.bmesh.free()
+
 	def print_debug(self, message):
 		if self.debug:
 			print('Smart LoopSelect :', message)
@@ -227,8 +231,7 @@ class TILA_smart_loopselect(bpy.types.Operator):
 		# else:
 		# 	pass
 
-		bmesh.update_edit_mesh(mesh=self.data, loop_triangles=True)
-		self.bmesh.free()
+		self.deinit_bmesh()
 		return {'FINISHED'}
 
 
