@@ -74,7 +74,7 @@ class TILA_Config_Preferences(bpy.types.AddonPreferences):
 		row = split.row()
 		rows = 11 if len(wm.tila_config_addon_list) > 10 else len(wm.tila_config_addon_list) + 1
 		
-		row.template_list('TILA_Config_addon_list', '', wm, 'tila_config_addon_list', wm, 'tila_config_addon_list_idx', rows=rows)
+		row.template_list('TILA_UL_Config_addon_list', '', wm, 'tila_config_addon_list', wm, 'tila_config_addon_list_idx', rows=rows)
 		c = row.column(align=True)
 		c.operator('tila.config_import_addon_list', text='', icon='FILE_REFRESH')
 		c.operator('tila.config_save_addon_list', text='', icon='CURRENT_FILE')
@@ -96,7 +96,7 @@ class TILA_Config_Preferences(bpy.types.AddonPreferences):
 		row = b1.row()
 		rows = 11 if len(wm.tila_config_status_list) > 10 else len(wm.tila_config_status_list) + 1
 
-		row.template_list('TILA_Config_status_list', '', wm, 'tila_config_status_list', wm, 'tila_config_status_list_idx', rows=rows)
+		row.template_list('TILA_UL_Config_status_list', '', wm, 'tila_config_status_list', wm, 'tila_config_status_list_idx', rows=rows)
 		row.operator('tila.config_clear_status_list', text='', icon='TRASH')
 
 		b2 = status.box()
@@ -104,7 +104,7 @@ class TILA_Config_Preferences(bpy.types.AddonPreferences):
 		row = b2.row()
 		rows = 11 if len(wm.tila_config_log_list) > 10 else len(wm.tila_config_log_list) + 1
 
-		row.template_list('TILA_Config_log_list', '', wm, 'tila_config_log_list', wm, 'tila_config_log_list_idx', rows=rows)
+		row.template_list('TILA_UL_Config_log_list', '', wm, 'tila_config_log_list', wm, 'tila_config_log_list_idx', rows=rows)
 		
 		row.operator('tila.config_clear_log_list', text='', icon='TRASH')
 

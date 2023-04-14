@@ -6,14 +6,14 @@ class TILA_Config_LogElement(bpy.types.PropertyGroup):
 	icon: bpy.props.StringProperty(default='BLANK1')
 
 class TILA_Config_LogList(bpy.types.UIList):
-	bl_idname = "TILA_Config_log_list"
+	bl_idname = "TILA_UL_Config_log_list"
 	
 	def draw_item(self, context, layout, data, item, icon, active_data, active_propname, index):
 		row = layout.row(align=True)
 		row.label(text=item.name, icon=item.icon)
 
 class TILA_Config_SatusList(bpy.types.UIList):
-	bl_idname = "TILA_Config_status_list"
+	bl_idname = "TILA_UL_Config_status_list"
 	
 	def draw_item(self, context, layout, data, item, icon, active_data, active_propname, index):
 		row = layout.row(align=True)

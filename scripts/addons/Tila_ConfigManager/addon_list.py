@@ -20,7 +20,7 @@ class TILA_Config_AddonElement(bpy.types.PropertyGroup):
 	paths : bpy.props.CollectionProperty(type=TILA_Config_PathElement)
 
 class TILA_Config_AddonList(bpy.types.UIList):
-	bl_idname = "TILA_Config_addon_list"
+	bl_idname = "TILA_UL_Config_addon_list"
 
 	def draw_item(self, context, layout, data, item, icon, active_data, active_propname, index):
 		self.use_filter_sort_alpha = True
