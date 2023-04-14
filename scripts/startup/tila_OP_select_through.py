@@ -1,8 +1,6 @@
+import bpy
+from blender_version import bversion
 
-from bpy.props import IntProperty, BoolProperty, EnumProperty
-from mathutils import Vector
-import bgl
-import bpy, re
 bl_info = {
     "name": "Tila : Select Through",
     "description": "Select through a mesh",
@@ -15,9 +13,6 @@ bl_info = {
     "category": "3D View"
 }
 
-bversion_string = bpy.app.version_string
-bversion_reg = re.match("^(\d\.\d?\d)", bversion_string)
-bversion = float(bversion_reg.group(0))
 
 class TILA_select_through(bpy.types.Operator):
     bl_idname = "view3d.tila_select_through"

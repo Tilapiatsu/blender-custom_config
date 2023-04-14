@@ -1,4 +1,5 @@
 import bpy
+from blender_version import bversion
 
 bl_info = {
 	"name": "Tila : Brush Select and Paint",
@@ -22,9 +23,23 @@ class TILA_brush_select_and_paint(bpy.types.Operator):
 
     initial_brush = None
 
+    press = False
+
     @property
     def compatible_brushes(self):
         return [b.name for b in bpy.data.brushes]
+    
+    def get_release_condition(self, event):
+        if bversion < 3.2:
+            return event.type == 'MOUSEMOVE' and event.value == 'RELEASE'
+        else:
+            return event.type in ['MOUSEMOVE', 'LEFTMOUSE', 'RIGHTMOUSE', 'WINDOW_DEACTIVATE'] and event.value in ['RELEASE', 'NOTHING'] and self.press
+    
+    def get_run_condition(self, event) :
+        if bversion < 3.2:
+            return event.type == 'MOUSEMOVE' and event.value == 'PRESS'
+        else:
+            return event.type == 'MOUSEMOVE' and event.value == 'NOTHING' and not self.press
 
     def set_initial_brush(self):
         if self.tool == 'SCULPT':
@@ -46,49 +61,52 @@ class TILA_brush_select_and_paint(bpy.types.Operator):
         try:
             if self.tool not in self.compatible_tools:
                 return {'CANCELLED'}
-            else:
-                if self.tool == 'SCULPT':
-                    bpy.ops.paint.brush_select('INVOKE_DEFAULT', sculpt_tool=mode, toggle=False)
-                    bpy.context.tool_settings.sculpt.brush = bpy.data.brushes[brush]
-                    bpy.context.tool_settings.sculpt.brush.weight = self.initial_brush['weight']
-                    if mode != self.default_mode or brush != self.initial_brush['name']:
-                        bpy.ops.sculpt.brush_stroke('INVOKE_DEFAULT')
-                if self.tool == 'VERTEX':
-                    bpy.ops.paint.brush_select('INVOKE_DEFAULT', vertex_tool=mode, toggle=False)
-                    bpy.context.tool_settings.vertex_paint.brush = bpy.data.brushes[brush]
-                    bpy.context.tool_settings.vertex_paint.brush.weight = self.initial_brush['weight']
-                    if mode != self.default_mode or brush != self.initial_brush['name']:
-                        bpy.ops.paint.vertex_paint('INVOKE_DEFAULT')
-                if self.tool == 'WEIGHT':
-                    bpy.ops.paint.brush_select('INVOKE_DEFAULT', weight_tool=mode, toggle=False)
-                    bpy.context.tool_settings.weight_paint.brush = bpy.data.brushes[brush]
-                    bpy.context.tool_settings.weight_paint.brush.weight = self.initial_brush['weight']
-                    if mode != self.default_mode or brush != self.initial_brush['name']:
-                        bpy.ops.paint.weight_paint('INVOKE_DEFAULT')
-                if self.tool == 'IMAGE':
-                    bpy.ops.paint.brush_select('INVOKE_DEFAULT', image_tool=mode, toggle=False)
-                    bpy.context.tool_settings.image_paint.brush = bpy.data.brushes[brush]
-                    bpy.context.tool_settings.image_paint.brush.weight = self.initial_brush['weight']
-                    if mode != self.default_mode or brush != self.initial_brush['name']:
-                        bpy.ops.paint.image_paint('INVOKE_DEFAULT')
-                if self.tool == 'GPENCIL':
-                    bpy.ops.paint.brush_select('INVOKE_DEFAULT', gpencil_tool=mode, toggle=False)
-                    if mode != self.default_mode or brush != self.initial_brush['name']:
-                        bpy.ops.gpencil.draw('INVOKE_DEFAULT')
+            
+            if self.tool == 'SCULPT':
+                bpy.ops.paint.brush_select('INVOKE_DEFAULT', sculpt_tool=mode, toggle=False)
+                bpy.context.tool_settings.sculpt.brush = bpy.data.brushes[brush]
+                bpy.context.tool_settings.sculpt.brush.weight = self.initial_brush['weight']
+                if mode != self.default_mode or brush != self.initial_brush['name']:
+                    bpy.ops.sculpt.brush_stroke('INVOKE_DEFAULT')
+            if self.tool == 'VERTEX':
+                bpy.ops.paint.brush_select('INVOKE_DEFAULT', vertex_tool=mode, toggle=False)
+                bpy.context.tool_settings.vertex_paint.brush = bpy.data.brushes[brush]
+                bpy.context.tool_settings.vertex_paint.brush.weight = self.initial_brush['weight']
+                if mode != self.default_mode or brush != self.initial_brush['name']:
+                    bpy.ops.paint.vertex_paint('INVOKE_DEFAULT')
+            if self.tool == 'WEIGHT':
+                bpy.ops.paint.brush_select('INVOKE_DEFAULT', weight_tool=mode, toggle=False)
+                bpy.context.tool_settings.weight_paint.brush = bpy.data.brushes[brush]
+                bpy.context.tool_settings.weight_paint.brush.weight = self.initial_brush['weight']
+                if mode != self.default_mode or brush != self.initial_brush['name']:
+                    bpy.ops.paint.weight_paint('INVOKE_DEFAULT')
+            if self.tool == 'IMAGE':
+                bpy.ops.paint.brush_select('INVOKE_DEFAULT', image_tool=mode, toggle=False)
+                bpy.context.tool_settings.image_paint.brush = bpy.data.brushes[brush]
+                bpy.context.tool_settings.image_paint.brush.weight = self.initial_brush['weight']
+                if mode != self.default_mode or brush != self.initial_brush['name']:
+                    bpy.ops.paint.image_paint('INVOKE_DEFAULT')
+            if self.tool == 'GPENCIL':
+                bpy.ops.paint.brush_select('INVOKE_DEFAULT', gpencil_tool=mode, toggle=False)
+                if mode != self.default_mode or brush != self.initial_brush['name']:
+                    bpy.ops.gpencil.draw('INVOKE_DEFAULT')
 
         except RuntimeError as e:
             print('Runtime Error :\n{}'.format(e))
 
     def modal(self, context, event):
-        if event.type == 'MOUSEMOVE' and event.value == 'PRESS':
-            self.run_tool(self.mode, self.brush)
-            return {'RUNNING_MODAL'}
         if event.type in {'ESC'}:  # Cancel
             self.run_tool(self.default_mode, self.initial_brush['name'])
             return {'CANCELLED'}
-        elif event.type == 'MOUSEMOVE' and event.value == 'RELEASE':
+        elif self.get_release_condition(event=event):
+            print('release')
+            self.press = False
             self.run_tool(self.default_mode, self.initial_brush['name'])
             return{'FINISHED'}
+        elif self.get_run_condition(event=event):
+            print('press')
+            self.press = True
+            self.run_tool(self.mode, self.brush)
         return {'RUNNING_MODAL'}
 
     def invoke(self, context, event):
