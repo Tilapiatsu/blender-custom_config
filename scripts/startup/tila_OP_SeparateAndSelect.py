@@ -16,13 +16,24 @@ class TILA_SeparateAndSelect(bpy.types.Operator):
 
     def execute(self, context):
 
-        base = bpy.context.active_object
         bpy.ops.mesh.separate(type='SELECTED')
+
+        extracted_objects = []
+        for p in context.selected_objects:
+            if p.mode != 'EDIT':
+                extracted_objects.append(p)
+
         bpy.ops.object.editmode_toggle()
-        base.select_set(state=False)
-        selected = bpy.context.selected_objects
-        for sel in selected:
-            bpy.context.view_layer.objects.active = sel
+
+        bpy.ops.object.select_all(action='DESELECT')
+        i=0
+        for o in extracted_objects:
+            o.select_set(True)
+            if i == 0:
+                context.view_layer.objects.active = o
+                i += 1
+
+
         bpy.ops.object.editmode_toggle()
         bpy.ops.mesh.select_all(action='SELECT')
         return {'FINISHED'}
