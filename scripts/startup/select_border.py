@@ -128,7 +128,7 @@ class VIEW3D_MT_edit_mesh_selectborder(bpy.types.Operator):
 			# Show the updates in the viewport
 			# and recalculate n-gon tessellation.
 			bmesh.update_edit_mesh(mesh=self.data, loop_triangles=True)
-			
+			self.bmesh.free()
 		
 		return {'FINISHED'}
 	

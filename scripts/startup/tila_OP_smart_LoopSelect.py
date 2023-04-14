@@ -199,7 +199,7 @@ class TILA_smart_loopselect(bpy.types.Operator):
 		loc = event.mouse_region_x, event.mouse_region_y
 		bpy.ops.view3d.select(extend=True, location=loc)
 		# Store selected Edge in List
-		self.selected_elements = [e for e in self.get_mesh_element_selection(self.mode)]
+		self.selected_elements = self.get_mesh_element_selection(self.mode)
 		# if not self.extend and not self.deselect:
 		# 	self.bmesh.select_flush(True)
 
@@ -228,7 +228,7 @@ class TILA_smart_loopselect(bpy.types.Operator):
 		# 	pass
 
 		bmesh.update_edit_mesh(mesh=self.data, loop_triangles=True)
-
+		self.bmesh.free()
 		return {'FINISHED'}
 
 

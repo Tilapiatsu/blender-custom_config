@@ -305,6 +305,7 @@ class TILA_OT_normalflatten(bpy.types.Operator):
             # bm.select_flush(True)
             bmesh.update_edit_mesh(mesh)
             mesh.update()
+            bm.free()
             # bpy.ops.mesh.normals_make_consistent()
 
     def execute(self, context):

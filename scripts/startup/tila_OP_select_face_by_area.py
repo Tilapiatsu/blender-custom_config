@@ -65,7 +65,8 @@ class TILA_SelectFaceByAreaOperator(bpy.types.Operator):
                         face.select = False
         
         # Update the mesh with the selected faces
-        bmesh.update_edit_mesh(mesh)        
+        bmesh.update_edit_mesh(mesh)   
+        bm.free()  
         return {'FINISHED'}
     
 classes = (
