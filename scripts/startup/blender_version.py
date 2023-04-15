@@ -7,5 +7,7 @@ def get_bversion():
     bversion_reg = re.match("^(\d\.\d?\d)", bversion_string)
     return float(bversion_reg.group(0))
 
+def register():
+    pass
 
 bversion = get_bversion()
