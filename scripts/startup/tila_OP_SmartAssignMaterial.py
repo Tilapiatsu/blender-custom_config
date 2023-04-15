@@ -26,7 +26,7 @@ class TILA_SmartMaterialAssignOperator(bpy.types.Operator):
                 if f.select:
                     selected = selected + (o,)
                     break
-
+            bm.free()
         return selected
 
     def execute(self, context):
