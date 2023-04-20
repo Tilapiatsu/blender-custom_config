@@ -235,7 +235,7 @@ class TILA_Config_RemoveConfig(Operator):
 				case 'NONE':
 					bpy.ops.tila.config_disable_addon_list('EXEC_DEFAULT', force=True)
 				case 'DISABLE_DONE':
-					bpy.ops.tila.config_clean_addon_list('EXEC_DEFAULT', force=True, revert_to_factory=True)
+					bpy.ops.tila.config_clean_addon_list('EXEC_DEFAULT', force=True, clean_cloned=False, revert_to_factory=True)
 				case 'CLEAN_DONE':
 					context.window_manager.tila_setup_blender_progress = "NONE"
 					self.report({'INFO'}, 'TilaConfig : Remove Config Done !')
@@ -254,7 +254,7 @@ class TILA_Config_CleanAddonList(Operator):
 	
 	name : bpy.props.StringProperty(name="Addon Name", default="", description='Name of the addon to Clean')
 	force: bpy.props.BoolProperty(name="Force Clean", default=False, description='remove all addons from destination folder')
-	clean_cloned = bpy.props.BoolProperty(name="Clean Cloned", default=False, description='remove all Cloned addon from repository')
+	clean_cloned : bpy.props.BoolProperty(name="Clean Cloned", default=False, description='remove all Cloned addon from repository')
 	revert_to_factory: bpy.props.BoolProperty(name="Revert to Factory Settings", default=False, description='Revert to factory Settings')
 
 	def execute(self, context):

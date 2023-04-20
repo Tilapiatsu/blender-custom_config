@@ -93,9 +93,10 @@ class KeymapManager():
 
                         # Store keymap in class variable
                         self.keymap_List["replaced"].append(keymlap_List)
-
+                        
+                        self.kmi_set_active(True, type=type, value=value, direction=direction, alt=alt, any=any, ctrl=ctrl, shift=shift,oskey=oskey, key_modifier=key_modifier, properties=properties)
+                        
                         return k
-
                 return new_kmi
         return func_wrapper
 

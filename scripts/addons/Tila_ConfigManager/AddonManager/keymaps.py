@@ -1116,6 +1116,8 @@ class TILA_Config_Keymaps_Global(TILA_Config_Keymaps):
 		self.kmi_set_replace('node.backimage_zoom', self.k_lasso_through, 'CLICK_DRAG', direction='WEST', alt=True, properties={'factor': 0.8}, disable_double=True)
 
 		self.kmi_set_replace('node.node_copy_color', 'C', 'PRESS', ctrl=True, shift=True, disable_double=True)
+		# self.kmi_set_replace('node.join', 'J', 'PRESS', ctrl=True, disable_double=True)
+		self.kmi_set_replace('node.detach', 'J', 'PRESS', alt=True, disable_double=True)
 		
 		# Noodler
 		# self.kmi_set_replace('noodler.draw_route', 'E', 'PRESS', disable_double=True)
