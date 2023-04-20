@@ -1418,7 +1418,7 @@ class TILA_Config_Keymaps_noodler(TILA_Config_Keymaps):
 		self.kmi_init(name='Node Editor', space_type='NODE_EDITOR', region_type='WINDOW', addon=False, restore_to_default=False)
 		self.kmi_set_replace('noodler.draw_route', 'E', 'PRESS', disable_double=True)
 		self.kmi_set_replace('noodler.chamfer', 'B', 'PRESS', disable_double=True)
-		self.kmi_set_replace('noodler.draw_frame', 'J', 'PRESS', ctrl=True, disable_double=True)
+		self.kmi_set_replace('noodler.draw_frame', 'J', 'PRESS')
 		self.kmi_set_replace('noodler.dependency_select', self.k_manip, 'DOUBLE_CLICK', shift=True, properties={'mode': "downstream", 'repsel': True}, disable_double=True)
 		self.kmi_set_replace('noodler.dependency_select', self.k_manip, 'DOUBLE_CLICK', ctrl=True, properties={'mode': "upstream", 'repsel': True}, disable_double=True)
 
