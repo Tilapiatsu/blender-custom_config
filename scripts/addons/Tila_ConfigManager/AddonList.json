@@ -2436,7 +2436,7 @@
         "is_enable": false,
         "is_sync": false,
         "online_url": null,
-        "repository_url": null,
+        "repository_url": "https://github.com/maxivz/interactivetoolsblender.git",
         "branch": null,
         "is_submodule": false,
         "local_path": null,
@@ -2677,6 +2677,23 @@
                 "is_enable": false,
                 "local_subpath": null,
                 "destination_path": "#\\scripts\\addons\\mrKit"
+            }
+        ]
+    },
+    "QuickSnap": {
+        "is_enable": false,
+        "is_sync": false,
+        "online_url": null,
+        "repository_url": "https://github.com/JulienHeijmans/quicksnap.git",
+        "branch": null,
+        "is_submodule": false,
+        "local_path": "#\\scripts\\addon_library\\GIT_Clones\\QuickSnap",
+        "keymaps": false,
+        "paths": [
+            {
+                "is_enable": false,
+                "local_subpath": null,
+                "destination_path": "#\\scripts\\addons\\QuickSnap"
             }
         ]
     }
