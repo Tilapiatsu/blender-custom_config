@@ -37,13 +37,17 @@ class TILA_smart_pivot(bpy.types.Operator):
 
 		if not selection:
 			return {'CANCELLED'}
-		avg_loc = sum([v.co for v in selection], Vector()) / len(selection)
+		mat = obj.matrix_world
+		avg_loc = sum([mat@v.co for v in selection], Vector()) / len(selection)
 
-		bpy.ops.object.mode_set(mode='OBJECT')
-		bpy.context.scene.tool_settings.use_transform_data_origin = True
-		bpy.ops.transform.translate(value=avg_loc)
-		bpy.context.scene.tool_settings.use_transform_data_origin = False
-		bpy.ops.object.mode_set(mode='EDIT')
+		cl = context.scene.cursor.location
+		pos2 = (cl[0], cl[1], cl[2])
+		context.scene.cursor.location = (avg_loc[0], avg_loc[1], avg_loc[2])
+		bpy.ops.object.editmode_toggle()
+		bpy.ops.object.origin_set(type='ORIGIN_CURSOR')
+		bpy.ops.object.editmode_toggle()
+		context.scene.cursor.location = (pos2[0], pos2[1], pos2[2])
+
 
 		return {'FINISHED'}
 
