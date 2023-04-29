@@ -78,6 +78,17 @@ class EvenTriangulationOperator(bpy.types.Operator):
         max=0.999
     )    
 
+    prop_random: FloatProperty(
+        name="Randomness",
+        description="Randomness",
+        default=0,
+        step=0.1,
+        max=0.2
+
+    )        
+
+
+
 
 
     def get_bm(self):
@@ -135,11 +146,39 @@ class EvenTriangulationOperator(bpy.types.Operator):
             v1.co = vmap[k]                    
 
 
+    def random_dissolve(self, bm, fs, plen):       
+        ra = self.prop_random
+        fs2 = set(bm.faces) - set(fs)
+        es = set()
+        d1 = math.radians(1)
+        for f1 in fs:
+            for e1 in f1.edges:
+                if len(e1.link_faces) != 2:
+                    continue
+                if e1.is_boundary:
+                    continue
+                if e1.calc_face_angle() > d1:
+                    continue
+                if random.random() < ra:
+                    es.add(e1)
+        es = list(es)
+        # dissolve edges
+        bmesh.ops.dissolve_edges(bm, edges=es, use_verts=False, use_face_split=False)
+        fs = set(bm.faces) - fs2
+        return list(fs)
+        
+
 
     def solve_face(self, bm, sel, plen):
+        random.seed(0)
         fs = sel
-        # for i in range(3):
+        # for i in range(100):
+        count = 0
         while True:
+            count += 1
+            if self.prop_random > 0:
+                if count < 50:
+                    fs = self.random_dissolve(bm, fs, plen)
             res = bmesh.ops.triangulate(bm, faces=fs)
             fs = res['faces']                   
             self.smooth(bm, fs, plen) 

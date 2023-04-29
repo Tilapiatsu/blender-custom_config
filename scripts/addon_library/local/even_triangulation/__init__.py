@@ -35,7 +35,7 @@ bl_info = {
     "name": "Even Triangulation",
     "description": "Even Triangulation",
     "author": "Kushiro",
-    "version": (1, 0, 0),
+    "version": (1, 1, 0),
     "blender": (2, 83, 0),
     "location": "View3D > Edit > Context Menu (right click)",
     "category": "Mesh",
