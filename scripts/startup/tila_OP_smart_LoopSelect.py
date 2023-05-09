@@ -174,7 +174,7 @@ class TILA_smart_loopselect(bpy.types.Operator):
 			self.print_debug('Angle Based Select Loop')
 			bpy.ops.ls.select('INVOKE_DEFAULT', deselect=self.deselect)
     
-	def contextual_select(self):
+	def contextual_select(self, event):
         # select Border edgeloop
 		if self.border_edge_selected() is not None:
 			bpy.ops.mesh.select_border('INVOKE_DEFAULT', extend=self.extend, deselect=self.deselect)
@@ -188,6 +188,7 @@ class TILA_smart_loopselect(bpy.types.Operator):
 			# 	self.select_elements(False, self.selected_elements)
 			# re select element under cursor
 			if self.deselect:
+				loc = event.mouse_region_x, event.mouse_region_y
 				bpy.ops.view3d.select(deselect=True,  location=loc)
 		
 		#  Fallback : select edge loop
@@ -214,7 +215,7 @@ class TILA_smart_loopselect(bpy.types.Operator):
 			
    			# Edge selection mode
 			elif bpy.context.scene.tool_settings.mesh_select_mode[1]:
-				self.contextual_select()
+				self.contextual_select(event)
 		
 			# Face selection mode
 			elif bpy.context.scene.tool_settings.mesh_select_mode[2]:

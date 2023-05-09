@@ -76,6 +76,7 @@ class LS_OT_Select(bpy.types.Operator):
     bl_options = {"REGISTER", "UNDO"}
     edge_threshold:bpy.props.FloatProperty(default=math.radians(100),name="Edge Threshold",subtype ='ANGLE')
     face_threshold:bpy.props.FloatProperty(default=math.radians(60),name="Face Threshold",subtype ='ANGLE')
+    deselect:bpy.props.BoolProperty(default=False, name='Deselect')
     @classmethod
     def poll(cls, context):
         return context.mode == 'EDIT_MESH'
@@ -121,7 +122,7 @@ class LS_OT_Select(bpy.types.Operator):
                             if e!=active_edge and len(e.link_faces)==2:
                                 
                                 if abs(e.calc_face_angle_signed()-angle)<self.face_threshold:
-                                    e.select=True
+                                    e.select= not self.deselect
                                     active_edge=e
                                     vert=[v for v in e.verts if v!=vert and v not in used]
                                     if vert:
@@ -139,7 +140,7 @@ class LS_OT_Select(bpy.types.Operator):
                         for e in l:
                             if e!=active_edge  and len(e.link_faces)==2:
                                 if abs(e.calc_face_angle_signed()-angle)<self.face_threshold:
-                                    e.select=True
+                                    e.select=not self.deselect
                                     active_edge=e
                                     vert=[v for v in e.verts if v!=vert and v not in used]
                                     if vert:
@@ -218,7 +219,7 @@ class LS_OT_Select(bpy.types.Operator):
                             for e in l:
                                 if e!=active_edge :
                                     if len(e.link_faces)==linked_faces:
-                                        e.select=True
+                                        e.select=not self.deselect
                                         active_edge=e
                                         vert=[v for v in e.verts if v!=vert and v not in used]
                                         if vert:
@@ -236,7 +237,7 @@ class LS_OT_Select(bpy.types.Operator):
                             for e in l:
                                 if e!=active_edge :
                                     if len(e.link_faces)==linked_faces:
-                                        e.select=True
+                                        e.select=not self.deselect
                                         active_edge=e
                                         vert=[v for v in e.verts if v!=vert and v not in used]
                                         if vert:
