@@ -2704,13 +2704,30 @@
         "repository_url": "https://github.com/noio/Pixel-Unwrapper.git",
         "branch": null,
         "is_submodule": false,
-        "local_path": "#\\scripts\\addon_library\\GIT_Clone\\Pixel-Unwrapper",
+        "local_path": "#\\scripts\\addon_library\\GIT_Clones\\Pixel-Unwrapper",
         "keymaps": false,
         "paths": [
             {
                 "is_enable": false,
                 "local_subpath": null,
                 "destination_path": "#\\scripts\\addons\\Pixel-Unwrapper"
+            }
+        ]
+    },
+    "drag_and_drop": {
+        "is_enable": false,
+        "is_sync": false,
+        "online_url": null,
+        "repository_url": "https://github.com/mika-f/blender-drag-and-drop.git",
+        "branch": null,
+        "is_submodule": false,
+        "local_path": "#\\scripts\\addon_library\\GIT_Clones\\drag_and_drop",
+        "keymaps": false,
+        "paths": [
+            {
+                "is_enable": false,
+                "local_subpath": null,
+                "destination_path": "#\\scripts\\addons\\drag_and_drop"
             }
         ]
     }
