@@ -2494,7 +2494,7 @@
         "paths": [
             {
                 "is_enable": true,
-                "local_subpath": null,
+                "local_subpath": "vertex_color_master",
                 "destination_path": "#\\scripts\\addons\\vertex_color_master"
             }
         ]
