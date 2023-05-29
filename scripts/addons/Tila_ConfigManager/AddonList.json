@@ -2730,5 +2730,44 @@
                 "destination_path": "#\\scripts\\addons\\drag_and_drop"
             }
         ]
+    },
+    "face_regulator": {
+        "is_enable": false,
+        "is_sync": false,
+        "online_url": "https://kushiro.gumroad.com/l/wfwfx",
+        "repository_url": null,
+        "branch": null,
+        "is_submodule": false,
+        "local_path": "#\\scripts\\adon_library\\face_regulator",
+        "keymaps": false,
+        "paths": [
+            {
+                "is_enable": false,
+                "local_subpath": null,
+                "destination_path": "#\\scripts\\addond\\face_regulator"
+            }
+        ]
+    },
+    "quad_swords": {
+        "is_enable": false,
+        "is_sync": false,
+        "online_url": "https://kushiro.gumroad.com/l/VNhcN",
+        "repository_url": null,
+        "branch": null,
+        "is_submodule": false,
+        "local_path": "#\\scripts\\adon_library\\quad_swords",
+        "keymaps": false,
+        "paths": [
+            {
+                "is_enable": false,
+                "local_subpath": null,
+                "destination_path": "#\\scripts\\addond\\quad_swords"
+            },
+            {
+                "is_enable": false,
+                "local_subpath": null,
+                "destination_path": null
+            }
+        ]
     }
 }

@@ -28,14 +28,14 @@ from bpy.props import (
 
 
 #from . import helper
-from . import even_triangulation
-from . import even_np
+from . import face_regulator
+
 
 bl_info = {
-    "name": "Even Triangulation",
-    "description": "Even Triangulation",
+    "name": "Face Regulator",
+    "description": "Face Regulator",
     "author": "Kushiro",
-    "version": (1, 2, 1),
+    "version": (2, 0, 0),
     "blender": (2, 83, 0),
     "location": "View3D > Edit > Context Menu (right click)",
     "category": "Mesh",
@@ -45,24 +45,21 @@ bl_info = {
 
 def menu_func(self, context):
     self.layout.operator_context = "INVOKE_DEFAULT";    
-    self.layout.operator(even_triangulation.EvenTriangulationOperator.bl_idname)
+    self.layout.operator(face_regulator.FaceRegulatorOperator.bl_idname)
 
 def register():    
-    importlib.reload(even_triangulation)
-    importlib.reload(even_np)
+    importlib.reload(face_regulator)
 
     
-    bpy.utils.register_class(even_triangulation.EvenTriangulationOperator)
+    bpy.utils.register_class(face_regulator.FaceRegulatorOperator)
     bpy.types.VIEW3D_MT_edit_mesh_context_menu.append(menu_func)
     #bpy.types.VIEW3D_MT_object_context_menu.append(menu_func)    
-    bpy.utils.register_class(even_triangulation.InstallScipyOperator)
 
 
 def unregister():
     #bpy.types.VIEW3D_MT_object_context_menu.remove(menu_func)
     bpy.types.VIEW3D_MT_edit_mesh_context_menu.remove(menu_func)
-    bpy.utils.unregister_class(even_triangulation.EvenTriangulationOperator)
-    bpy.utils.unregister_class(even_triangulation.InstallScipyOperator)
+    bpy.utils.unregister_class(face_regulator.FaceRegulatorOperator)
 
 
 

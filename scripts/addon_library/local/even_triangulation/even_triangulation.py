@@ -51,6 +51,15 @@ from pprint import pprint
 # import numpy as np
 
 
+import importlib
+
+def is_package_installed(package_name):
+    try:
+        importlib.import_module(package_name)
+        return True
+    except ImportError:
+        return False
+
 
 class EvenTriangulationOperator(bpy.types.Operator):
     """Tooltip"""
@@ -61,8 +70,8 @@ class EvenTriangulationOperator(bpy.types.Operator):
 
 
     prop_plen: FloatProperty(
-        name="Expand size",
-        description="Expand size",
+        name="Size",
+        description="Size",
         default=0.5,
         step=0.1,
         min=0.05
@@ -78,15 +87,37 @@ class EvenTriangulationOperator(bpy.types.Operator):
         max=0.999
     )    
 
-    prop_random: FloatProperty(
-        name="Randomness",
-        description="Randomness",
-        default=0,
-        step=0.1,
-        max=0.2
+    prop_random: BoolProperty(
+        name="Randomize (slower)",
+        description="Randomize",
+        default=False,
 
     )        
 
+
+    prop_seed: IntProperty(
+        name="Random Seed",
+        description="Random Seed",
+        default=0,        
+    )    
+
+
+    prop_use_scipy: BoolProperty(
+        name="Use Scipy",
+        description="Use Scipy",
+        default=False,
+
+    )        
+
+
+
+    prop_plen2: FloatProperty(
+        name="Size",
+        description="Size",
+        default=0.1,
+        step=0.01,
+        min=0.001
+    )    
 
 
 
@@ -147,7 +178,7 @@ class EvenTriangulationOperator(bpy.types.Operator):
 
 
     def random_dissolve(self, bm, fs, plen):       
-        ra = self.prop_random
+        ra = 0.15
         fs2 = set(bm.faces) - set(fs)
         es = set()
         d1 = math.radians(1)
@@ -159,6 +190,8 @@ class EvenTriangulationOperator(bpy.types.Operator):
                     continue
                 if e1.calc_face_angle() > d1:
                     continue
+                if e1.select:
+                    continue
                 if random.random() < ra:
                     es.add(e1)
         es = list(es)
@@ -166,19 +199,22 @@ class EvenTriangulationOperator(bpy.types.Operator):
         bmesh.ops.dissolve_edges(bm, edges=es, use_verts=False, use_face_split=False)
         fs = set(bm.faces) - fs2
         return list(fs)
+    
+
         
 
 
     def solve_face(self, bm, sel, plen):
-        random.seed(0)
+        random.seed(self.prop_seed)
         fs = sel
         # for i in range(100):
         count = 0
         while True:
             count += 1
-            if self.prop_random > 0:
-                if count < 50:
+            if self.prop_random:
+                if count < 100:
                     fs = self.random_dissolve(bm, fs, plen)
+
             res = bmesh.ops.triangulate(bm, faces=fs)
             fs = res['faces']                   
             self.smooth(bm, fs, plen) 
@@ -204,6 +240,10 @@ class EvenTriangulationOperator(bpy.types.Operator):
 
 
     def process(self, context):
+        if self.prop_use_scipy:
+            self.process_scipy(context)
+            return
+        
         bm = self.get_bm() 
         sel = [f1 for f1 in bm.faces if f1.select]
         plen = self.prop_plen
@@ -237,4 +277,89 @@ class EvenTriangulationOperator(bpy.types.Operator):
             return {'FINISHED'} 
         else:
             return {'CANCELLED'}
+        
+
+    def draw(self, context):
+        installed_scipy = is_package_installed('scipy')
+        layout = self.layout
+
+        col2 = layout.column(align=True)          
+        col2.prop(self, 'prop_plen')
+        col2.prop(self, 'prop_boundary')
+        col2.prop(self, 'prop_random')
+        col2.prop(self, 'prop_seed')  
+        # separator
+        col2.separator() 
+        col2.separator()                
+
+        col3 = layout.column(align=True)  
+
+        col3.operator("piptool.install_scipy_operator", text="Install Scipy library")
+
+        col3.prop(self, 'prop_use_scipy')
+        col3.separator()  
+        col3.separator()  
+        
+        col = layout.column(align=True)          
+        col.label(text='Use scipy')
+        col.prop(self, 'prop_plen2')   
+
+        if self.prop_use_scipy and installed_scipy:
+            col.enabled = True
+            col2.enabled = False
+        else:
+            col.enabled = False
+            col2.enabled = True
+        
+        
+
+
+    def process_scipy(self, context):
+        if is_package_installed('scipy') == False:
+            return        
+
+        import numpy as np
+        from scipy.spatial import Delaunay
+        from . import even_np
+
+        bm = self.get_bm() 
+        sel = [f1 for f1 in bm.faces if f1.select]
+        even_np.get_points(bm, sel, self.prop_plen2)
+    
+        obj = bpy.context.active_object                
+        me = bpy.context.active_object.data
+        bmesh.update_edit_mesh(me)          
+
+
+
+
+class InstallScipyOperator(bpy.types.Operator):
+    """Install Scipy"""
+    bl_idname = "piptool.install_scipy_operator"
+    bl_label = "Install Scipy"
+
+    def execute(self, context):
+        # Code to install Scipy goes here
+        try:
+            from . import piptool
+            piptool.install_package('scipy')            
+            import scipy
+        except ImportError:
+            return {'CANCELLED'}
+        
+        self.report({'INFO'}, "Scipy installed successfully.")
+        return {'FINISHED'}
+
+
+
+
+
+
+
+
+
+
+
+
+
 
