@@ -1249,7 +1249,7 @@
             }
         ]
     },
-    "BMax_Connector": {
+    "BMAX_Connector": {
         "is_enable": false,
         "is_sync": false,
         "online_url": null,
@@ -1262,7 +1262,7 @@
             {
                 "is_enable": false,
                 "local_subpath": null,
-                "destination_path": "#\\scripts\\addons\\BMax_Connector"
+                "destination_path": "#\\scripts\\addons\\BMAX_Connector"
             }
         ]
     },
