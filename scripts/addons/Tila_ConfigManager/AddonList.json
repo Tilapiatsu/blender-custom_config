@@ -1546,7 +1546,7 @@
             }
         ]
     },
-    "export_as_blend": {
+    "tila_export_as_blend": {
         "is_enable": false,
         "is_sync": true,
         "online_url": null,
@@ -1557,9 +1557,9 @@
         "keymaps": false,
         "paths": [
             {
-                "is_enable": false,
+                "is_enable": true,
                 "local_subpath": null,
-                "destination_path": "#\\scripts\\addons\\export_as_blend"
+                "destination_path": "#\\scripts\\addons\\tila_export_as_blend"
             }
         ]
     },
