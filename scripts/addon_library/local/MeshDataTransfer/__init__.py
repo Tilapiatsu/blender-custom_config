@@ -1,8 +1,20 @@
 
 import bpy
+import os
+script_dir = os.path.dirname(os.path.realpath(__file__))
+# import sys
+# sys.path.append(script_dir)
+# print("*****RELOADED*****")
+# from importlib import reload
+# import mesh_data_transfer as md
+# reload(md)
+# import operators as op
+# reload(op)
+# print("****************RELOADED MODULES**************")
+
 from bpy.types import (PropertyGroup)
 from bpy.props import (PointerProperty)
-from .operators import ( TransferShapeKeyDrivers, TransferMeshData)
+from .operators import ( TransferShapeKeyDrivers, TransferMeshData, MapTopology)
 
 bl_info = {
     "name" : "MeshDataTransfer",
@@ -10,7 +22,7 @@ bl_info = {
     "description" : "This add on will transfer geometry data from one mesh to another based on 3 different spaces:"
                     " 'world, object, uv' also will tranfer UVs based on topology",
     "blender" : (2, 93, 0),
-    "version" : (2, 0, 0,),
+    "version" : (2, 0, 2,),
     "location" : "(Object Mode) Mesh > ObjectData > Mesh Data Transfer ",
     "warning" : "",
     "wiki_url": "",
@@ -244,6 +256,12 @@ class DATA_PT_mesh_data_transfer(bpy.types.Panel):
         transfer_layout.operator("object.transfer_mesh_data", text="Transfer Mesh Data",
                                                 icon="MOD_DATA_TRANSFER")
 
+
+        # # transfer_layout.prop(ob_prop, "transfer_edit_selection", text="", toggle =True, icon = restrict_icon)
+        # transfer_layout.operator("object.map_topology", text="Map Topology",
+        #                                         icon="MOD_DATA_TRANSFER")
+        #
+
         # Rigging utilities
         utility_box_layout = main_box_layout.box()
         utility_label = utility_box_layout.row(align=True)
@@ -266,7 +284,7 @@ class DATA_PT_mesh_data_transfer(bpy.types.Panel):
 #=================================================================================================================
 
 classes = (DATA_PT_mesh_data_transfer, MeshDataSettings,
-           TransferShapeKeyDrivers, TransferMeshData)
+           TransferShapeKeyDrivers, TransferMeshData, MapTopology)
 
 def register():
     global classes

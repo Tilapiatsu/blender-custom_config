@@ -1,5 +1,8 @@
 import bpy
-from .mesh_data_transfer import MeshDataTransfer
+
+from .mesh_data_transfer import MeshDataTransfer, TopologyData
+import os
+
 
 class TransferShapeKeyDrivers(bpy.types.Operator):
     """Tooltip"""
@@ -135,6 +138,45 @@ class TransferMeshData(bpy.types.Operator):
 
         return {'FINISHED'}
 
+
+class MapTopology(bpy.types.Operator):
+    """Tooltip"""
+    bl_idname = "object.map_topology"
+    bl_label = "Simple Object Operator"
+    bl_options = {'REGISTER','UNDO'}
+
+    # @classmethod
+    # def poll(cls, context):
+    #     attributes_to_transfer = context.object.mesh_data_transfer_object.attributes_to_transfer
+    #     search_method = context.object.mesh_data_transfer_object.search_method
+    #     enabled = True
+    #     if search_method == "UVS" and attributes_to_transfer == "UVS":
+    #         enabled = False
+    #     return context.active_object is not None \
+    #            and context.active_object.mesh_data_transfer_object.mesh_source is not None and enabled
+    #
+    def execute(self, context):
+
+        active = context.active_object
+        topo = TopologyData(active)
+
+        print(topo.active_edge)
+        print("Selected Face",topo.selected_face[0])
+        print(__file__)
+        face_id = topo.selected_face[0]
+        active_edge = topo.edges[topo.active_edge]
+        print("Active Edge", active_edge)
+        print("====EDGES====")
+        print(topo.edges)
+        print("====FACE VERTICES====")
+        print(topo.get_face_vertices(face_id))
+        print("====FACE EDGES====")
+        print(topo.get_face_edges(face_id))
+        print("====FACE FACES====")
+        print(topo.face_edge_loops)
+        print("====ROLLED FACE===")
+        print(topo.roll_to_edge(face_id, active_edge))
+        return {'FINISHED'}
 
 # class TransferShapeData(bpy.types.Operator):
 #     """Tooltip"""
