@@ -1,3 +1,21 @@
+# ##### BEGIN GPL LICENSE BLOCK #####
+#
+#  This program is free software; you can redistribute it and/or
+#  modify it under the terms of the GNU General Public License
+#  as published by the Free Software Foundation; either version 2
+#  of the License, or (at your option) any later version.
+#
+#  This program is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU General Public License for more details.
+#
+#  You should have received a copy of the GNU General Public License
+#  along with this program; if not, write to the Free Software Foundation,
+#  Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+#
+# ##### END GPL LICENSE BLOCK #####
+
 import bpy
 import bmesh
 import sys
@@ -21,22 +39,30 @@ bl_info = {
     "name": "kei2m",
     "author": "Kjell Emanuelsson",
     "category": "Import-Export",
-    "version": (1, 2, 0, 0),
+    "version": (1, 3, 0, 2),
     "blender": (2, 80, 0),
     "location": "Viewport / N-Panel / kei2m",
     "warning": "",
     "description": "Image(s) To Mesh Generator",
-    "doc_url": "https://kjell.gumroad.com/l/i2m",
+    "doc_url": "https://ke-code.xyz",
 }
 
 
-kei2m_version = 1.2
+kei2m_version = 1.302
 
 
 def make_entry(h, width, w, pixels):
     idx = (h * width) + w
     px_index = idx * 4
     return pixels[px_index:px_index + 4]
+
+
+def alpha_check(images, rgb=False, c2m=False):
+    has_alpha = True
+    for img in images:
+        if img.depth != 32 and not rgb and not c2m:
+            has_alpha = False
+    return has_alpha
 
 
 def reduce_colors(pixelmap, threshold=0.51, cap=None):
@@ -74,6 +100,7 @@ class KeI2M(Operator):
     bl_options = {'REGISTER', 'UNDO'}
 
     opacity: IntProperty(min=1, max=100, default=50, name="Opacity Tolerance", subtype="PERCENTAGE",
+                         soft_min=50, soft_max=50,
                          description="100% = Will only allow completely opaque image pixels\n"
                                      "Do not use as slider - Use keyboard input!")
     workres: EnumProperty(
@@ -89,18 +116,8 @@ class KeI2M(Operator):
                     "1k or more can be VERY slow. (The complexity of the alpha will also matter)\n")
 
     custom_workres: IntProperty(min=0, max=65536, default=0, name="Custom Resolution",
+                                soft_min=0, soft_max=0,
                                 description="Non-zero value will override Work Resolution X & Y sizes")
-
-    geo: EnumProperty(
-        items=[("PLANE", "Plane", "", "", 1),
-               ("SCREW", "Screw", "", "", 2),
-               ("BOOLEAN", "Boolean", "", "", 3),
-               ],
-        name="Geo Type", default="PLANE",
-        description="Which type of geo conversion to use:\n"
-                    "Plane: Uses front image\n"
-                    "Screw: Modifier revolves one side of a (symmetrical) image to a cylindrical shape\n"
-                    "Boolean: Uses 2-3 images (front + right/top) to carve out a rough 3d shape using Intersect\n")
 
     screw_flip: BoolProperty(default=False, name="Flip Screw Source-Side",
                              description="Flips the side used in a Screw geo conversion")
@@ -141,10 +158,8 @@ class KeI2M(Operator):
                                description="Tolerance for color separation / reduction (anti-aliasing removal)\n"
                                            "Do not use as slider! Use keyboard input!")
 
-    c2m: BoolProperty(default=False, name="Color Split Materials",
-                      description="Split colors to materials")
-
     c2m_smooth: IntProperty(min=0, max=100, default=100, name="Mesh Smoothing", subtype="PERCENTAGE",
+                            soft_min=100, soft_max=100,
                             description="Smooths vertices below the pixel edge length threshold\n"
                                         "(Avoiding long straight edges)\n"
                                         "Do not use as slider! Use keyboard input!")
@@ -161,7 +176,8 @@ class KeI2M(Operator):
                              description="Boolean Geo Mode: leaves Solidify & Boolean Modifiers active\n"
                                          "For debugging & troubleshooting mostly")
 
-    angle: FloatProperty(min=0, max=.9, default=.5, name="UV Angle Tolerance",
+    angle: FloatProperty(min=0, max=0.9, default=0.5, name="UV Angle Tolerance",
+                         soft_min=0.5, soft_max=0.5,
                          description="0 to 0.9 Angle tolerance for axis-switching (from one axis to the other)")
 
     reset: BoolProperty(default=False, name="Reset", description="Reset i2m to default values",
@@ -170,26 +186,32 @@ class KeI2M(Operator):
     batch: BoolProperty(default=False, name="Batch", description="Batch process all images in a folder with i2m",
                         options={"SKIP_SAVE", "HIDDEN"})
 
-    vcolor: BoolProperty(default=False, name="Vertex Color Mode",
-                         description="or, 'Retro Pixel Graphics Mode'\n"
-                                     "Each Pixel makes up one face, using Vertex Color instead of texture(s)")
+    vcolor: BoolProperty(default=False, name="Vertex Color",
+                         description="aka 'Retro Pixel Graphics'\n"
+                                     "Each Pixel makes up one face, "
+                                     "using Vertex Color instead of the Image Texture.\n"
+                                     "Calculated from the Image Texture")
 
     vcthreshold: FloatProperty(min=0, max=1, default=0, name="Color Threshold",
+                               soft_min=0, soft_max=0,
                                description="Tolerance for color separation / reduction (anti-aliasing removal)\n"
                                            "0 = No limit (full rgb) in Vertex Color Mode (Also Faster)\n"
                                            "Sensitive: Increase by steps of 0.05 (Also, very slow!)\n"
                                            "Do not use as slider! Use keyboard input!")
 
     dilation: IntProperty(min=0, max=99, default=0, name="Expand Border",
-                          description="Using a simple brute force dilation on the alpha,\n"
+                          soft_min=0, soft_max=0,
+                          description="Using a simple brute force dilation on the alpha (in pixels, roughly),\n"
                                       "expanding it beyond the original image alpha borders. Zero to disable.\n"
                                       "Tip: Tweak Tolerance value 1st - only use EB if necessary")
 
     pixel_width: FloatProperty(min=0, max=1, default=0, name="Pixel Width", precision=5,
+                               soft_min=0, soft_max=0,
                                description="Set pixel size in BU (meter)\n"
                                            "Mesh Width is calculated with Pixel Width * Work Res")
 
     width: FloatProperty(min=0, default=1, name="Mesh Width", precision=3,
+                         soft_min=1, soft_max=1,
                          description="Set Custom width/size in BU (meter)")
 
     size: EnumProperty(
@@ -215,16 +237,21 @@ class KeI2M(Operator):
     cmats = []
     has_alpha = True
     color_cap = 16
+    geo = "PLANE"
+    c2m = False
 
     @classmethod
     def poll(cls, context):
         return context.mode == "OBJECT"
 
     def draw(self, context):
-        p = self.properties
+        k = context.scene.kei2m
+        c2m_mode = True if k.geo == "C2M" else False
+
         layout = self.layout
         layout.use_property_split = True
-        if self.c2m:
+
+        if c2m_mode:
             row = layout.row().split(factor=0.33)
             row.enabled = False
             row.separator()
@@ -233,7 +260,7 @@ class KeI2M(Operator):
             row = layout.row().split(factor=0.33)
             row.separator()
             row.enabled = False
-            row.label(text="Vertex Color Mode")
+            row.label(text="Vertex Color")
 
         if self.has_alpha:
             layout.prop(self, "opacity")
@@ -242,9 +269,10 @@ class KeI2M(Operator):
 
         if self.custom_workres == 0:
             layout.prop(self, "workres")
-        layout.prop(self, "custom_workres")
-        layout.separator(factor=0.5)
 
+        layout.prop(self, "custom_workres")
+        # if self.geo != "BOOLEAN":
+        layout.separator(factor=0.5)
         layout.prop(self, "size", expand=True)
         if self.size == "WIDTH":
             layout.prop(self, "width")
@@ -252,34 +280,34 @@ class KeI2M(Operator):
             layout.prop(self, "pixel_width")
         layout.separator(factor=0.5)
 
-        if not self.c2m:
-            row = layout.row(align=True)
-            row.prop(self, "geo", expand=True)
-            if p.geo == "SCREW":
-                layout.prop(self, "screw_xcomp", toggle=True)
-                layout.prop(self, "screw_flip", toggle=True)
-            if p.geo == "BOOLEAN":
-                layout.prop(self, "angle")
-                layout.prop(self, "front_only", toggle=True)
+        if not self.vcolor:
+            layout.prop(self, "reduce", expand=True)
             layout.separator(factor=0.5)
 
-            layout.prop(self, "vcolor", toggle=True)
-            if self.vcolor:
-                layout.prop(self, "vcthreshold", expand=True)
-            else:
-                layout.prop(self, "reduce", expand=True)
-        else:
+        # mode specifics
+        if c2m_mode:
             layout.prop(self, "c2threshold", expand=True)
             layout.prop(self, "c2m_reduce", expand=True)
             if self.c2m_reduce != "NONE":
                 layout.prop(self, "c2m_smooth", expand=True)
+            layout.separator(factor=0.5)
+        elif k.geo == "SCREW":
+            layout.prop(self, "screw_xcomp", toggle=True)
+            layout.prop(self, "screw_flip", toggle=True)
+            layout.separator(factor=0.5)
+        elif k.geo == "BOOLEAN":
+            layout.prop(self, "angle")
+            layout.prop(self, "front_only", toggle=True)
+            layout.separator(factor=0.5)
 
-        layout.separator(factor=0.5)
+        layout.prop(self, "vcolor", toggle=True)
+        if self.vcolor:
+            layout.prop(self, "vcthreshold", expand=True)
         layout.prop(self, "shade_smooth", toggle=True)
-        if not self.c2m:
+        if not c2m_mode:
             if not self.vcolor:
                 layout.prop(self, "qnd_mat", toggle=True)
-            if not self.apply and self.geo == "BOOLEAN":
+            if not self.apply and k.geo == "BOOLEAN":
                 layout.prop(self, "apply_none", toggle=True)
             if not self.apply_none:
                 layout.prop(self, "apply", toggle=True)
@@ -350,7 +378,6 @@ class KeI2M(Operator):
                     rgba = make_entry(h, width, w, pixels)
                     if rgba[3] >= tolerance:
                         pixel_map.append([w * scl, h * scl, rgba])
-
         # Limit colors
         if self.c2m:
             pixel_map, self.cmats = reduce_colors(pixelmap=pixel_map, threshold=self.c2threshold, cap=self.color_cap)
@@ -431,11 +458,8 @@ class KeI2M(Operator):
                                 smoothverts.append(e.verts[1])
                             smedges.append(e)
                     smoothverts = list(set(smoothverts))
-                    # smedges = list(set(smedges))
                     bmesh.ops.smooth_vert(bm, verts=smoothverts, factor=(self.c2m_smooth / 100) * 0.5,
                                           use_axis_x=True, use_axis_y=True, use_axis_z=True)
-                    # bmesh.ops.dissolve_limit(bm, angle_limit=0.17455, verts=smoothverts, edges=smedges,
-                    #                          delimit={"MATERIAL"})
             else:
                 for f in bm.faces:
                     es = []
@@ -497,15 +521,15 @@ class KeI2M(Operator):
         projector.hide_viewport = True
         projector.empty_display_type = 'SINGLE_ARROW'
         if axis == "Right":
-            projector.rotation_euler = (-1.5707963, 3.1415926, -1.5707963)
+            projector.rotation_euler = [-1.5707963, 3.1415926, -1.5707963]
         elif axis == "Top":
             projector.rotation_euler[2] = 1.5707963
         elif axis == "Back":
-            projector.rotation_euler = (-1.5707963, 3.1415926, 0)
+            projector.rotation_euler = [-1.5707963, 3.1415926, 0]
         elif axis == "Left":
-            projector.rotation_euler = (1.5707963, 0, -1.5707963)
+            projector.rotation_euler = [1.5707963, 0, -1.5707963]
         elif axis == "Bottom":
-            projector.rotation_euler = (-3.1415926, 0, 1.5707963)
+            projector.rotation_euler = [-3.1415926, 0, 1.5707963]
         else:  # Front
             projector.rotation_euler[0] = 1.5707963
         projector.location[2] = w
@@ -648,15 +672,14 @@ class KeI2M(Operator):
         if self.use_rgb:
             self.rgb = kap.user_rgb
 
-        self.c2m = bool(k.c2m)
-        if self.vcolor and self.c2m:
-            self.c2m = False
+        self.geo = k.geo
 
-        if self.c2m:
-            # Forced just in case
+        # Forced Overrides
+        if self.geo == "C2M":
             self.geo = "PLANE"
             self.qnd_mat = False
             self.reduce = self.c2m_reduce
+            self.c2m = True
 
         # Mouse progress meter: Fake! just to show something is happening...
         # Actual (cheap+simple) progress tracking in console window std print out
@@ -718,8 +741,6 @@ class KeI2M(Operator):
             replace_top = True
         if k.BACK:
             back_img = bpy.data.images.get(k.BACK)
-        else:
-            replace_back = True
         if k.LEFT:
             left_img = bpy.data.images.get(k.LEFT)
         else:
@@ -733,18 +754,13 @@ class KeI2M(Operator):
 
         count_images = [i for i in images if i is not None]
         if not count_images:
-            self.report({"INFO"}, "Images not found (in blend file) - Cancelled")
+            self.report({"WARNING"}, "Aborted: Images not loaded in blend file")
             return {"CANCELLED"}
 
         # Missing Alpha Check
-        for img in count_images:
-            if img.depth != 32 and not self.use_rgb and not self.c2m:
-                print("kei2m Aborted - File(s) does not have an Alpha Channel: %s" % img.name)
-                self.report({"INFO"}, "Aborted - File(s) does not have an Alpha Channel: %s" % img.name)
-                return {"CANCELLED"}
-
-        if count_images[0].depth != 32 and not self.use_rgb and self.c2m:
-            self.has_alpha = False
+        if not alpha_check(count_images, self.use_rgb, self.c2m):
+            self.report({"ERROR"}, "Aborted: Alpha channel missing!")
+            return {"CANCELLED"}
 
         self.img_count = len(count_images)
         if self.img_count == 1 and self.geo == "BOOLEAN":
@@ -824,10 +840,12 @@ class KeI2M(Operator):
         if self.size == "PIXEL":
             scl = self.pixel_width
             self.width = self.pixel_width * work_res
-
         elif self.size == "WIDTH":
             scl = self.width / work_res
             self.pixel_width = scl
+        else:
+            self.width = 1
+            self.pixel_width = 0
 
         w = (work_res * scl) * 0.5
 
@@ -953,9 +971,9 @@ class KeI2M(Operator):
             for obj in solidify_objects:
                 context.view_layer.objects.active = obj
                 solidify = obj.modifiers.new(name="I2M Solidify", type="SOLIDIFY")
-                solidify.thickness = scl * 100
+                solidify.thickness = self.width
                 solidify.offset = 0.0
-                solidify.use_quality_normals = True
+                solidify.use_quality_normals = False
                 if not self.apply_none:
                     bpy.ops.object.modifier_apply(modifier="I2M Solidify")
 
@@ -1012,6 +1030,8 @@ class KeI2M(Operator):
         if self.apply:
             for m in final_object.modifiers:
                 bpy.ops.object.modifier_apply(modifier=m.name)
+            for p in projectors:
+                bpy.data.objects.remove(p)
 
         if not res_check and not self.geo == "SCREW":
             final_object.scale.x = non_square_x
@@ -1059,7 +1079,7 @@ class KeI2M(Operator):
 class KeI2Mreload(Operator):
     bl_idname = "ke.i2m_reload"
     bl_label = "I2M Reload"
-    bl_description = "Reload all kei2m images currently loaded"
+    bl_description = "Reload I2M image(s)"
 
     def execute(self, context):
         k = context.scene.kei2m
@@ -1087,7 +1107,7 @@ class KeI2Mreload(Operator):
 
 class KeI2Mfilebrowser(Operator, ImportHelper):
     bl_idname = "ke.i2m_filebrowser"
-    bl_label = "I2M FileBrowser"
+    bl_label = "Load Image(s)"
     bl_description = "Open filebrowser to load image(s)"
 
     filter_glob: StringProperty(
@@ -1099,6 +1119,8 @@ class KeI2Mfilebrowser(Operator, ImportHelper):
     def execute(self, context):
         print("\n[------------- keI2M Image Loader -------------]")
         k = context.scene.kei2m
+        kap = context.preferences.addons["ke_i2m"].preferences
+
         loaded = bpy.path.basename(self.filepath).split(".")
         loaded_name = loaded[0]
         ext = "." + loaded[-1]
@@ -1107,7 +1129,7 @@ class KeI2Mfilebrowser(Operator, ImportHelper):
         paths = [self.filepath]
         slots = [self.axis]
 
-        if k.autofill:
+        if k.autofill and k.geo == "BOOLEAN":
             suffix = ["_front", "_right", "_top", "_back", "_left", "_bottom"]
             suffix_check = False
 
@@ -1131,14 +1153,25 @@ class KeI2Mfilebrowser(Operator, ImportHelper):
             else:
                 print("kei2m: Autoload failed - Invalid suffix")
 
+        alpha_missing = []
+        c2m = True if k.geo == "C2M" else False
+
         for f, slot in zip(paths, slots):
             filename = bpy.path.basename(f)
             img = load_slot(f)
-
             if img is not None:
                 k[slot] = filename
                 context.area.tag_redraw()
-                print("kei2m: Loaded %s" % filename)
+                if filename:
+                    if alpha_check([img], kap.use_rgb, c2m):
+                        print("kei2m: Loaded %s" % filename)
+                    else:
+                        print("kei2m: %s NOT Loaded" % filename)
+                        alpha_missing.append(filename)
+                else:
+                    self.report({"WARNING"}, "kei2m: File Not Loaded")
+        if alpha_missing:
+            self.report({"WARNING"}, "Missing Alpha Channel: %s" % alpha_missing)
 
         return {'FINISHED'}
 
@@ -1161,7 +1194,7 @@ class KeI2Mbatchbrowser(Operator, ImportHelper):
         img_count = 0
 
         for file in os.listdir(self.filepath):
-            if file.endswith(filter_glob):
+            if file.lower().endswith(filter_glob):
                 path = os.path.join(self.filepath, file)
                 img = load_slot(path)
                 if img is not None:
@@ -1223,42 +1256,43 @@ def load_slot(path):
 # UI
 # ------------------------------------------------------------------------------------------------------------
 class VIEW3D_PT_i2m(Panel):
-    bl_label = 'keI2M v%.1f' % kei2m_version
+    bl_label = 'keI2M v%s' % str(kei2m_version)
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'UI'
     bl_category = 'kei2m'
+
+    def draw_header_preset(self, context):
+        layout = self.layout
+        layout.emboss = 'NONE'
+        row = layout.row(align=False)
+        row.prop(context.scene.kei2m, 'info', text="", icon="QUESTION", icon_only=True, emboss=False)
+        row.separator(factor=0.5)
 
     def draw(self, context):
         k = context.scene.kei2m
         has_front = bool(k.FRONT)
         has_2 = any([bool(k.RIGHT), bool(k.TOP)])
-        is_c2m = bool(k.c2m)
 
         layout = self.layout
-        col = layout.column().split(factor=0.86)
+        col = layout.column(align=True)
         row = col.row(align=True)
-        row.alignment = "LEFT"
-        row.prop(k, "c2m")
-        row = col.row(align=True)
-        row.alignment = "RIGHT"
-        row.prop(k, 'info', text="", icon="QUESTION", icon_only=True, emboss=False)
-        row = layout.row(align=True)
-        row.scale_y = 0.5
         row.enabled = False
         row.alignment = "LEFT"
-        row.label(text="Create Mesh & Texture:")
+        row.label(text="Select Mode")
+        row = col.row(align=True)
+        row.prop(k, "geo", text="", expand=False)
+        row = col.row(align=True)
+        row.enabled = False
+        row.alignment = "LEFT"
 
-        if not is_c2m:
+        if k.geo == "BOOLEAN":
+            row.label(text="Load Images")
             row = layout.row(align=True)
             row.prop(k, "autofill")
-
-        row = layout.row(align=True)
-        row.scale_y = 1
-        row.operator("ke.i2m_filebrowser", text="Front   ", icon="FILEBROWSER").axis = "FRONT"
-        row.prop(k, "FRONT", text="")
-        row.operator("ke.i2m_clearslot", text="", icon="X").axis = "FRONT"
-
-        if not is_c2m:
+            row = layout.row(align=True)
+            row.operator("ke.i2m_filebrowser", text="Front   ", icon="FILEBROWSER").axis = "FRONT"
+            row.prop(k, "FRONT", text="")
+            row.operator("ke.i2m_clearslot", text="", icon="X").axis = "FRONT"
             row = layout.row(align=True)
             if not has_front:
                 row.enabled = False
@@ -1296,24 +1330,33 @@ class VIEW3D_PT_i2m(Panel):
             row.operator("ke.i2m_filebrowser", text="Bottom", icon="FILEBROWSER").axis = "BOTTOM"
             row.prop(k, "BOTTOM", text="")
             row.operator("ke.i2m_clearslot", text="", icon="X").axis = "BOTTOM"
+            row = layout.row(align=True)
+            if not has_front:
+                row.enabled = False
+            row.operator("ke.i2m_clearslot", text="Clear All", icon="CANCEL").axis = "ALL"
+        else:
+            row.label(text="Load Image")
+            row = col.row(align=True)
+            row.operator("ke.i2m_filebrowser", text="", icon="FILEBROWSER").axis = "FRONT"
+            row.prop(k, "FRONT", text="")
+            row.operator("ke.i2m_clearslot", text="", icon="X").axis = "FRONT"
 
-        layout.separator(factor=0.2)
         row = layout.row(align=False)
         if not has_front:
             row.enabled = False
-        row.operator("ke.i2m_reload", text="Reload All", icon="LOOP_FORWARDS")
-        row.operator("ke.i2m_clearslot", text="Clear All", icon="CANCEL").axis = "ALL"
-
+        row.operator("ke.i2m_reload", text="Reload Image(s)", icon="LOOP_BACK")
         box = layout.box()
         box.operator("ke.i2m", text="Reset To Defaults").reset = True
-        box.operator("ke.i2m_batchbrowser")
+        box.operator("ke.i2m_batchbrowser", icon="FILE_FOLDER")
 
         row = box.row()
+        row.scale_y = 1.8
         if not has_front:
             row.enabled = False
-        row.scale_y = 1.8
-        if has_2:
-            row.operator("ke.i2m", text="Image To Mesh").geo = "BOOLEAN"
+        if k.geo == "BOOLEAN" and not has_2:
+            row.enabled = False
+        if k.geo == "BOOLEAN":
+            row.operator("ke.i2m", text="Image To Mesh").reduce = "DISSOLVE"
         else:
             row.operator("ke.i2m", text="Image To Mesh")
 
@@ -1379,21 +1422,31 @@ class KeI2Mprops(PropertyGroup):
     LEFT: StringProperty(default="", name="Left Image", description="-X Axis Image")
     BOTTOM: StringProperty(default="", name="Bottom Image", description="-Z Axis Image")
     autofill: BoolProperty(name="Autofill", default=False,
-                           description="Auto-Fill slots by suffixes when loading.\n "
+                           description="Auto-Fill other slots by suffixes when loading an image.\n "
                                        "Valid suffixes:\n"
                                        "_front, _right, _top\n"
                                        "_back,  _left,  _bottom")
     info: BoolProperty(name="kei2m General Info", default=False,
                        description="Load Alpha Images to convert into mesh (in Object Mode).\n"
-                                   "Front Image is required for PLANE & SCREW (& C2M) modes.\n"
-                                   "Front + Right or Top are required for BOOLEAN mode.\n"
-                                   "Change Modes & Options in Redo Panel.\n"
+                                   "A single image is required for PLANE & SCREW (& C2M) modes.\n"
+                                   "2 or more images are required for BOOLEAN mode.\n"
+                                   "Adjust result in Redo Panel.\n"
                                    "Non-alpha color option in Addon Preferences.\n"
-                                   "Color 2 Material works with or without Alpha.\n"
-                                   "See progress in Console Window")
+                                   "See progress output in Console Window.")
     opacity: IntProperty(default=95)
     workres: StringProperty(default="128")
-    geo: StringProperty(default="PLANE")
+    # geo: StringProperty(default="PLANE")
+    geo: EnumProperty(
+        items=[("PLANE", "Plane", "Converts into a Plane Mesh", "", 1),
+               ("SCREW", "Screw", "A Screw Modifier revolves one side of a (symmetrical) image to a cylindrical shape",
+                "", 2),
+               ("BOOLEAN", "Boolean",
+                "Uses 2-3 images (front + right/top) to carve out a rough 3d shape using Intersect", "", 3),
+               ("C2M", "Color 2 Material", "Splits along color borders and assigns color materials on an mesh plane",
+                "", 4),
+               ],
+        name="Geo Type", default="PLANE",
+        description="Which type of geo conversion to use")
     screw_flip: BoolProperty(default=False)
     screw_xcomp: IntProperty(default=15)
     reduce: StringProperty(default="SIMPLE")
@@ -1405,9 +1458,9 @@ class KeI2Mprops(PropertyGroup):
     angle: FloatProperty(default=0.5)
     custom_workres: IntProperty(default=0)
     vcolor: BoolProperty(default=False)
-    c2m: BoolProperty(name="Color 2 Material Mode", default=False,
-                      description="Splits the mesh along color borders, assigning a material to each color.\n"
-                                  "With or without Alpha (or RGB-as-Alpha)")
+    # c2m: BoolProperty(name="Color 2 Material Mode", default=False,
+    #                   description="Splits the mesh along color borders, assigning a material to each color.\n"
+    #                               "With or without Alpha (or RGB-as-Alpha)")
 
 
 # ------------------------------------------------------------------------------------------------------------
