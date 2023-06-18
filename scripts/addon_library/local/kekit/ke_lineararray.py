@@ -55,6 +55,7 @@ class KeLinearArray(bpy.types.Operator):
     is_gpencil = False
     offset = (0, 0, 0)
     grless_hack = False
+    modal_title = ""
 
     numbers = ('ZERO', 'ONE', 'TWO', 'THREE', 'FOUR', 'FIVE', 'SIX', 'SEVEN', 'EIGHT', 'NINE')
 
@@ -108,7 +109,7 @@ class KeLinearArray(bpy.types.Operator):
             blf.size(font_id, self.fs[4], 72)
             blf.shadow(font_id, 5, 0, 0, 0, 1)
             blf.shadow_offset(font_id, 1, -1)
-            blf.draw(font_id, "Linear Array: " + str(self.count))
+            blf.draw(font_id, self.modal_title + str(self.count))
             blf.size(font_id, self.fs[5], 72)
             blf.color(font_id, self.hcol[0], self.hcol[1], self.hcol[2], self.hcol[3])
             blf.position(font_id, hpos, vpos + self.fs[6], 0)
@@ -211,6 +212,11 @@ class KeLinearArray(bpy.types.Operator):
         self.screen_x = int(self.region.width * 0.5)
         self.mouse_pos[0] = int(event.mouse_region_x)
         self.mouse_pos[1] = int(event.mouse_region_y)
+
+        if self.convert:
+            self.modal_title = "Linear Instances: "
+        else:
+            self.modal_title = "Linear Array: "
 
         return self.execute(context)
 

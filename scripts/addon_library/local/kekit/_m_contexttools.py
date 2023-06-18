@@ -231,11 +231,11 @@ class KeContextDissolve(Operator):
         if context.object.type == 'MESH':
             sel_mode = context.tool_settings.mesh_select_mode[:]
             if sel_mode[0]:
-                bpy.ops.mesh.dissolve_verts()
+                bpy.ops.mesh.dissolve_verts('INVOKE_DEFAULT', True)
             elif sel_mode[1]:
-                bpy.ops.mesh.dissolve_edges(use_verts=True)
+                bpy.ops.mesh.dissolve_edges('INVOKE_DEFAULT', True)
             elif sel_mode[2]:
-                bpy.ops.mesh.dissolve_faces()
+                bpy.ops.mesh.dissolve_faces('INVOKE_DEFAULT', True)
 
         elif context.object.type == 'GPENCIL':
             bpy.ops.gpencil.dissolve(type='POINTS')
@@ -482,20 +482,21 @@ class KeTripleConnectSpin(Operator):
 
     connect_mode: bpy.props.EnumProperty(
         items=[("PATH", "Vertex Path", "", 1),
-               ("PAIR", "Vertex Pair", "", 2)],
-        name="Vertex Connect Mode",
+               ("PAIR", "Vertex Pair", "", 2),
+               ("ACTIVE", "Selected To Active", "", 3)],
+        name="Vertex Connect",
         default="PATH")
 
     spin_mode: bpy.props.EnumProperty(
         items=[("CW", "Clockwise", "", 1),
                ("CCW", "Counter Clockwise", "", 2)],
-        name="Edge Spin Mode",
+        name="Edge Spin",
         default="CW")
 
     triple_mode: bpy.props.EnumProperty(
         items=[("BEAUTY", "Beauty Method", "", 1),
                ("FIXED", "Fixed/Clip Method", "", 2)],
-        name="Face Triangulation Mode",
+        name="Face Triangulation",
         default="BEAUTY")
 
     @classmethod
@@ -524,8 +525,31 @@ class KeTripleConnectSpin(Operator):
                     except Exception as e:
                         print("Connect Path fail: Using Vert Connect instead", e)
                         bpy.ops.mesh.vert_connect('INVOKE_DEFAULT')
+
                 elif self.connect_mode == 'PAIR':
                     bpy.ops.mesh.vert_connect('INVOKE_DEFAULT')
+
+                elif self.connect_mode == 'ACTIVE':
+                    # (Modified) contribution by: Wahyu Nugraha
+                    obj = context.object
+                    me = obj.data
+                    bm = bmesh.from_edit_mesh(me)
+                    sel_verts = [v for v in bm.verts if v.select]
+                    active = bm.select_history.active
+
+                    if len(sel_verts) < 2 or not active:
+                        self.report({"INFO"}, "Invalid selection")
+                        return {'CANCELLED'}
+
+                    for v in sel_verts:
+                        v.select_set(False)
+
+                    sel_verts = [v for v in sel_verts if v != active]
+                    for v in sel_verts:
+                        pair = [v, active]
+                        bmesh.ops.connect_verts(bm, verts=pair)
+
+                    bmesh.update_edit_mesh(me)
 
             elif sel_mode[1]:
                 try:

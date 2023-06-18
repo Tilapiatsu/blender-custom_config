@@ -922,6 +922,7 @@ class KePieOverlays(Menu):
     def draw(self, context):
         o = context.space_data.overlay
         s = context.space_data.shading
+        cm = context.mode
 
         layout = self.layout
         pie = layout.menu_pie()
@@ -952,7 +953,7 @@ class KePieOverlays(Menu):
 
         row.operator("view3d.ke_overlays", text="Both").overlay = "GRID_BOTH"
 
-        cbox.separator(factor=1)
+        cbox.separator(factor=0.25)
 
         if o.show_extras:
             cbox.operator("view3d.ke_overlays", text="Extras", icon="LIGHT_SUN", depress=True).overlay = "EXTRAS"
@@ -981,7 +982,7 @@ class KePieOverlays(Menu):
             cbox.operator("view3d.ke_overlays", text="Relationship Lines", icon="CON_TRACKTO",
                           depress=False).overlay = "LINES"
 
-        cbox.separator(factor=1)
+        cbox.separator(factor=0.25)
 
         if o.show_wireframes:
             cbox.operator("view3d.ke_overlays", text="Object Wireframes", icon="MOD_WIREFRAME",
@@ -1008,6 +1009,8 @@ class KePieOverlays(Menu):
         cbox = c.box().column()
         cbox.scale_y = 1.15
         cbox.ui_units_x = 7
+        if cm == "OBJECT":
+            cbox.enabled = False
 
         if o.show_edge_seams:
             cbox.operator("view3d.ke_overlays", text="Edge Seams", icon="UV_ISLANDSEL", depress=True).overlay = "SEAMS"
@@ -1085,11 +1088,6 @@ class KePieOverlays(Menu):
             row.operator("view3d.ke_overlays", text="Edge Lengths",
                          depress=False).overlay = "LENGTHS"
 
-        if o.show_stats:
-            cbox.operator("view3d.ke_overlays", text="Stats", icon="LINENUMBERS_ON", depress=True).overlay = "STATS"
-        else:
-            cbox.operator("view3d.ke_overlays", text="Stats", icon="LINENUMBERS_ON", depress=False).overlay = "STATS"
-
         c = pie.column()
         c.separator(factor=4)
         cbox = c.box().column()
@@ -1106,6 +1104,11 @@ class KePieOverlays(Menu):
             is_dupli = (obj.instance_type != 'NONE')
 
             col = cbox.column(align=True)
+            row = col.row()
+            if o.show_stats:
+                row.operator("view3d.ke_overlays", text="Stats", icon="LINENUMBERS_ON", depress=True).overlay = "STATS"
+            else:
+                row.operator("view3d.ke_overlays", text="Stats", icon="LINENUMBERS_ON", depress=False).overlay = "STATS"
             row = col.row()
             row.scale_y = 0.8
             row.enabled = False

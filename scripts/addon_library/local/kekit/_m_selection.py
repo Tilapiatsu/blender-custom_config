@@ -943,7 +943,7 @@ class KeStepRotate(Operator):
 
         if tos == "LOCAL":
             ot = "LOCAL"
-            tm = obj.matrix_world.to_3x3()
+            tm = obj.matrix_world.to_3x3().normalized()
         elif tos == "VIEW":
             ot = "VIEW"
             tm = context.space_data.region_3d.view_matrix.inverted().to_3x3()

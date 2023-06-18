@@ -117,7 +117,7 @@ def sel_check(self, context, sel_save_check=False):
             obj.update_from_editmode()
             self.vpos.extend([obj.matrix_world @ obj.data.vertices[v].co for v in indices])
 
-    if context.mode == "EDIT_MESH" and self.vpos:
+    if not self.obj_mode and self.vpos:
         convert_stats = False
         if self.edit_mode[0] and sel_verts:
 
@@ -468,6 +468,15 @@ class KeQuickMeasure(bpy.types.Operator):
         scale_factor = context.preferences.view.ui_scale * k.ui_scale
         self.ui = [int(round(n * scale_factor)) for n in self.ui]
         self.auto_update = k.quickmeasure
+
+        # "clear history"
+        self.sel_save = []
+        self.sel_save_obj = []
+        self.vert_history = []
+        self.vpos = None
+        self.vpairs = None
+        self.lines = None
+        self.bb_lines = None
 
         bpy.ops.wm.tool_set_by_id(name="builtin.select")
         active_obj = context.active_object

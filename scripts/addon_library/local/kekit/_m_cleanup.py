@@ -93,17 +93,13 @@ class KeClean(Operator):
         interior = k.clean_interior
         degenerate = k.clean_degenerate
         collinear = k.clean_collinear
-        tinyedges = k.clean_tinyedge_val
+        tinyedges = k.clean_tinyedge
         tinyedges_val = k.clean_tinyedge_val
 
         # PRESELECTION
         sel_obj = [o for o in context.selected_objects if o.type == "MESH"]
         if not sel_obj:
             return {"CANCELLED"}
-
-        # og_mode = str(context.mode)
-        # if og_mode == "EDIT_MESH":
-        #     og_mode = "EDIT"
 
         report = {}
         mes_found = ""
@@ -127,6 +123,7 @@ class KeClean(Operator):
             bm_select = []
             bm_dissolve = []
             bm_delete = []
+            mes = []
 
             if interior:
                 bpy.ops.mesh.select_non_manifold(extend=True, use_wire=True, use_multi_face=True,

@@ -101,9 +101,19 @@ class KeUnhideOrLocal(Operator):
 
     @classmethod
     def poll(cls, context):
-        return context.space_data.type == "VIEW_3D" and context.object
+        return context.space_data.type == "VIEW_3D"
 
     def execute(self, context):
+        # fallback for deleting visible context object when hidden objects in scene
+        if not context.object:
+            hidden = []
+            for o in context.scene.objects:
+                if o.hide_viewport:
+                    hidden.append(o)
+            if hidden:
+                for o in hidden:
+                    o.select_set(True)
+
         if context.space_data.local_view:
             if "ZeroLocal" in context.object.keys():
                 bpy.ops.view3d.ke_zerolocal()

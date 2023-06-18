@@ -94,7 +94,11 @@ class KeNiceProject(Operator):
                 temp_obj.select_set(True)
 
             # KNIFE!
-            bpy.ops.mesh.knife_project(cut_through=self.through)
+            try:
+                bpy.ops.mesh.knife_project(cut_through=self.through)
+            except Exception as e:
+                print(e)
+                self.report({"INFO"}, "Invalid Selection")
             bpy.data.objects.remove(temp_obj, do_unlink=True)
             if self.wire:
                 bpy.data.meshes.remove(t_me)
@@ -160,6 +164,7 @@ class KeNiceProject(Operator):
             return {"CANCELLED"}
 
         return {"FINISHED"}
+
 
 #
 # CLASS REGISTRATION

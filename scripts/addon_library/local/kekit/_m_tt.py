@@ -348,7 +348,7 @@ class KeVPTransform(bpy.types.Operator):
         elif og_transform == "LOCAL" or og_transform == "NORMAL":
             if og_transform == "NORMAL":
                 og_transform = "LOCAL"
-            self.tm = self.obj.matrix_world.to_3x3()
+            self.tm = self.obj.matrix_world.to_3x3().normalized()
 
         elif og_transform == "VIEW":
             self.tm = context.space_data.region_3d.view_matrix.inverted().to_3x3()
@@ -588,7 +588,7 @@ class KeMouseAxisMove(bpy.types.Operator):
                 self.tm = context.scene.cursor.matrix.to_3x3()
 
             elif og[0] == "LOCAL" or og[0] == "NORMAL" and not em:
-                self.tm = self.obj.matrix_world.to_3x3()
+                self.tm = self.obj.matrix_world.to_3x3().normalized()
                 self.ot = "LOCAL"
 
             elif og[0] == "VIEW":

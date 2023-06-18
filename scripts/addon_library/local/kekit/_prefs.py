@@ -281,10 +281,11 @@ class UIKeKitMain(Panel):
     def draw_header_preset(self, context):
         layout = self.layout
         layout.emboss = 'NONE'
-        row = layout.row()
+        row = layout.row(align=False)
         row.label(text="%s" % bpy.context.preferences.addons[__package__].preferences.version)
         row.operator("wm.url_open", text="", icon="URL").url = "https://ke-code.xyz/scripts/kekit.html"
-        row.separator(factor=0.5)
+        # row.operator("wm.url_open", text="", icon="CURRENT_FILE").url = "https://ke-code.xyz/support/support.html"
+        # row.separator(factor=0.1)
 
     def draw(self, context):
         layout = self.layout

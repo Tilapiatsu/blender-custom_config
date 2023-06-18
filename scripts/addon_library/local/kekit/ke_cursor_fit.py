@@ -192,7 +192,7 @@ class KeCursorFitAlign(bpy.types.Operator):
                     vert_mode = False
 
                 if not using_default:
-                    # todo: clean up redudant code
+                    # todo: clean up redundant code
                     if e_count == 1:
                         ev = sel_edges[0].verts[:]
                         n = Vector((ev[0].normal + ev[1].normal) * .5).normalized()
@@ -351,12 +351,19 @@ class KeCursorFitAlign(bpy.types.Operator):
             hit_obj, hit_wloc, hit_normal, hit_face = mouse_raycast(context, self.mouse_pos)
             nohitsel = True if hit_obj not in sel_obj else False
 
+            # excluding if any modifier that deform/ change the mesh's location to avoid any None type error
+            # contrib: Wahyu Nugraha
+            m_deform = ['ARMATURE', 'CAST', 'CURVE', 'DISPLACE', 'HOOK', 'LAPLACIANDEFORM', 'LATTICE', 'MESH_DEFORM',
+                        'SHRINKWRAP',
+                        'SIMPLE_DEFORM', 'SMOOTH', 'CORRECTIVE_SMOOTH', 'LAPLACIANSMOOTH', 'SURFACE_DEFORM', 'WARP',
+                        'WAVE']
+
             if hit_normal and hit_obj:
                 mfs = []
                 # Terrible workaround for raycast index issue
                 if len(hit_obj.modifiers) > 0:
                     for m in hit_obj.modifiers:
-                        if m.show_viewport:
+                        if m.show_viewport and m.type not in m_deform:
                             mfs.append(m)
                             m.show_viewport = False
                     # casting again for unevaluated index (the "proper way" is bugged?)

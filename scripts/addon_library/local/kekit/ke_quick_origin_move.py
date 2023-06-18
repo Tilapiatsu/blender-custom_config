@@ -76,7 +76,7 @@ class KeQuickOriginMove(bpy.types.Operator):
 
         if self.mode == "AUTOAXIS":
             v = self.tm.inverted() @ Vector(context.object.location - newpos).normalized()
-            start_v = Vector((0.5,0.5,0.5))
+            start_v = Vector((0.5, 0.5, 0.5))
             if abs(v.dot(start_v)) > 0.3:
                 x, y, z = abs(v[0]), abs(v[1]), abs(v[2])
                 if x > y and x > z:
