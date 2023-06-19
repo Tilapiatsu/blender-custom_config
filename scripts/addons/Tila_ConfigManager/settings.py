@@ -198,6 +198,14 @@ class TILA_Config_Settings():
 		if addon_name in bpy.context.preferences.addons:
 			addon = context.preferences.addons.get(addon_name)
 			addon.preferences.update_check_launch = False
+			
+		# # pin_verts
+		addon_name = 'pin_verts'
+		if addon_name in bpy.context.preferences.addons:
+			addon.preferences.sna_auto_enabledisable_falloff = False
+			addon.preferences.sna_show_header_button_editmode = False
+
+
 
 		print("Loading Addon Preferences Done !")
 

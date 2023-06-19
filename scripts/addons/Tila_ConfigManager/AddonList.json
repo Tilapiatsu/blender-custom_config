@@ -2769,5 +2769,22 @@
                 "destination_path": null
             }
         ]
+    },
+    "pin_verts": {
+        "is_enable": true,
+        "is_sync": false,
+        "online_url": "https://coreycorza.gumroad.com/l/pinvertsaddon",
+        "repository_url": null,
+        "branch": null,
+        "is_submodule": false,
+        "local_path": "#\\scripts\\addon_library\\local\\pin_verts",
+        "keymaps": true,
+        "paths": [
+            {
+                "is_enable": true,
+                "local_subpath": null,
+                "destination_path": "#\\scripts\\addons\\pin_verts"
+            }
+        ]
     }
 }
