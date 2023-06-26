@@ -13,7 +13,7 @@ bl_info = {
 class TILA_ToggleWireframe(bpy.types.Operator):
     bl_idname = "view3d.toggle_wireframe"
     bl_label = "TILA: Toggle Wireframe"
-    bl_options = {'REGISTER', 'UNDO'}
+    bl_options = {'REGISTER'}
 
     mode: bpy.props.EnumProperty(items=[("SET", "Set", ""), ("OVERLAY", "Overlay", ""), ("RETOPO", "Retopology", "")])
     selected : bpy.props.BoolProperty(name='selected', default=False)
