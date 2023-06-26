@@ -299,9 +299,11 @@ class MeshData (object):
             group_names.append(group.name)
         if ignore_locked:
             filter_array = self.get_locked_vertex_groups_array()
+            filtered_group_names = list()
             for i in range(len(filter_array)):
-                if not filter_array[i]:
-                    group_names.pop(i)
+                if filter_array[i]:
+                    filtered_group_names.append(group_names[i])
+            return filtered_group_names
         return group_names
 
     @property
