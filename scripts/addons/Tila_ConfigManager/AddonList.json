@@ -2037,23 +2037,6 @@
             }
         ]
     },
-    "easy_weight": {
-        "is_enable": true,
-        "is_sync": true,
-        "online_url": null,
-        "repository_url": "https://gitlab.com/blender/easy_weight.git",
-        "branch": null,
-        "is_submodule": false,
-        "local_path": "#\\scripts\\addon_library\\GIT_Clones\\easy_weight",
-        "keymaps": false,
-        "paths": [
-            {
-                "is_enable": true,
-                "local_subpath": null,
-                "destination_path": "#\\scripts\\addons\\easy_weight"
-            }
-        ]
-    },
     "simple_renaming_panel": {
         "is_enable": true,
         "is_sync": true,
@@ -2784,6 +2767,23 @@
                 "is_enable": true,
                 "local_subpath": null,
                 "destination_path": "#\\scripts\\addons\\pin_verts"
+            }
+        ]
+    },
+    "blender-studio-pipeline": {
+        "is_enable": false,
+        "is_sync": true,
+        "online_url": "https://projects.blender.org/studio/blender-studio-pipeline/src/branch/main",
+        "repository_url": "https://projects.blender.org/studio/blender-studio-pipeline.git",
+        "branch": null,
+        "is_submodule": false,
+        "local_path": "#\\scripts\\addon_library\\GIT_Clones",
+        "keymaps": false,
+        "paths": [
+            {
+                "is_enable": true,
+                "local_subpath": "scripts-blender\\addons\\easy_weights",
+                "destination_path": "#\\scripts\\addons\\easy_weights"
             }
         ]
     }
