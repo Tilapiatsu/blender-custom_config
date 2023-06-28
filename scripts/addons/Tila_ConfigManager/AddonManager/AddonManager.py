@@ -333,6 +333,8 @@ class PathElementAM():
 		if not force:
 			if self.is_enable:
 				return
+		if not self.destination_path.is_set:
+			return
 		
 		addon_name = path.splitext(path.basename(self.destination_path.path))[0]
 		
