@@ -40,27 +40,20 @@ class TILA_ToggleWireframe(bpy.types.Operator):
                 bpy.ops.view3d.toggle_shading(type='WIREFRAME')
         
         elif self.mode == "RETOPO":
-            retopo_mode = bpy.context.scene.ps_set_
-            prefs = context.preferences.addons['Poly_Source'].preferences
             if self.selected:
                 pass
             else:
-                if retopo_mode.PS_retopology:
-                    retopo_mode.PS_retopology = False
-                    context.space_data.overlay.show_occlude_wire = False
-                    bpy.context.space_data.overlay.show_fade_inactive = False
+                if context.space_data.overlay.show_retopology:
+                    context.space_data.overlay.show_retopology = False
+                    # context.space_data.overlay.show_occlude_wire = False
+                    context.space_data.overlay.show_fade_inactive = False
 
 
                 else:
-                    retopo_mode.PS_retopology = True
-                    context.space_data.overlay.show_occlude_wire = True
-                    bpy.context.space_data.overlay.show_fade_inactive = True
-                    bpy.context.space_data.overlay.fade_inactive_alpha = 0.5
-
-                prefs.z_bias = 0.02
-                prefs.opacity = 0.15
-                prefs.verts_size = 1
-                prefs.edge_width = 1
+                    context.space_data.overlay.show_retopology = True
+                    # context.space_data.overlay.show_occlude_wire = True
+                    context.space_data.overlay.show_fade_inactive = True
+                    context.space_data.overlay.fade_inactive_alpha = 0.5
 
         return {'FINISHED'}
 
