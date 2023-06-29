@@ -317,7 +317,7 @@
         ]
     },
     "Poly_Source": {
-        "is_enable": true,
+        "is_enable": false,
         "is_sync": false,
         "online_url": "https://derksen.gumroad.com/l/polysource",
         "repository_url": null,
@@ -327,7 +327,7 @@
         "keymaps": true,
         "paths": [
             {
-                "is_enable": true,
+                "is_enable": false,
                 "local_subpath": null,
                 "destination_path": "#\\scripts\\addons\\Poly_Source"
             }
