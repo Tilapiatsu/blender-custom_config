@@ -180,15 +180,12 @@ class TILA_action_center_3d(bpy.types.Operator):
 
 			if self.action_center == 'PARENT':
 				self.report({'INFO'}, 'Parent Action Center')
-				self.set_transform_orientation(context, 'CURSOR')
+				self.set_transform_orientation(context, 'PARENT')
 				context.scene.tool_settings.transform_pivot_point = 'CURSOR'
 				parent = context.object if context.object.parent is None else context.object.parent
-				context.scene.cursor.location[0] = parent.location[0]
-				context.scene.cursor.location[1] = parent.location[1]
-				context.scene.cursor.location[2] = parent.location[2]
-				context.scene.cursor.rotation_euler[0] = parent.rotation_euler[0]
-				context.scene.cursor.rotation_euler[1] = parent.rotation_euler[1]
-				context.scene.cursor.rotation_euler[2] = parent.rotation_euler[2]
+				context.scene.cursor.location[0] = parent.matrix_world.translation[0]
+				context.scene.cursor.location[1] = parent.matrix_world.translation[1]
+				context.scene.cursor.location[2] = parent.matrix_world.translation[2]
 
 			if self.action_center == 'GLOBAL':
 				self.report({'INFO'}, 'Global Action Center')
@@ -212,23 +209,17 @@ class TILA_action_center_3d(bpy.types.Operator):
 
 			if self.action_center == 'PIVOT_CENTER_PARENT_AXIS':
 				self.report({'INFO'}, 'Pivot Center Parent Axis Action Center')
-				self.set_transform_orientation(context, 'CURSOR')
-				context.scene.tool_settings.transform_pivot_point = 'CURSOR'
+				self.set_transform_orientation(context, 'PARENT')
+				context.scene.tool_settings.transform_pivot_point = 'MEDIAN_POINT'
 				parent = context.object if context.object.parent is None else context.object.parent
-				context.scene.cursor.location[0] = context.object.location[0]
-				context.scene.cursor.location[1] = context.object.location[1]
-				context.scene.cursor.location[2] = context.object.location[2]
-				context.scene.cursor.rotation_euler[0] = parent.rotation_euler[0]
-				context.scene.cursor.rotation_euler[1] = parent.rotation_euler[1]
-				context.scene.cursor.rotation_euler[2] = parent.rotation_euler[2]
 
 			if self.action_center == 'PIVOT_WORLD_AXIS':
 				self.report({'INFO'}, 'Pivot Wold Axis Action Center')
 				self.set_transform_orientation(context, 'GLOBAL')
 				context.scene.tool_settings.transform_pivot_point = 'CURSOR'
-				context.scene.cursor.location[0] = context.object.location[0]
-				context.scene.cursor.location[1] = context.object.location[1]
-				context.scene.cursor.location[2] = context.object.location[2]
+				context.scene.cursor.location[0] = context.object.matrix_world.translation[0]
+				context.scene.cursor.location[1] = context.object.matrix_world.translation[1]
+				context.scene.cursor.location[2] = context.object.matrix_world.translation[2]
 
 			if self.action_center == 'CURSOR':
 				self.report({'INFO'}, 'Cursor Action Center')
