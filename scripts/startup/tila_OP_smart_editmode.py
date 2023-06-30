@@ -30,6 +30,7 @@ class TILA_smart_editmode(bpy.types.Operator):
     toggle_mode : bpy.props.BoolProperty(name='toggle_mode', default=False)
 
     mesh_mode = ['VERT', 'EDGE', 'FACE']
+    curves_mode = ['POINT', 'CURVE']
     gpencil_mode = ['POINT', 'STROKE', 'SEGMENT']
     uv_mode = ['VERTEX', 'EDGE', 'FACE', 'ISLAND']
     particle_mode = ['PATH', 'POINT', 'TIP']
@@ -86,15 +87,25 @@ class TILA_smart_editmode(bpy.types.Operator):
                 bpy.ops.object.editmode_toggle()
                 bpy.ops.mesh.select_mode(use_extend=self.use_extend, use_expand=self.use_expand, type=self.mesh_mode[self.mode])
 
+            elif bpy.context.active_object.type == 'CURVE':
+                bpy.ops.object.editmode_toggle()
+            
+            elif bpy.context.active_object.type == 'CURVES':
+                bpy.ops.object.editmode_toggle()
+                bpy.ops.curves.set_selection_domain(domain=self.curves_mode[min(self.mode, 1)])
+
             elif bpy.context.active_object.type == 'GPENCIL':
                 if self.alt_mode:
                     bpy.ops.object.mode_set(mode='EDIT_GPENCIL')
                 else:
                     bpy.ops.gpencil.editmode_toggle()
                     bpy.context.scene.tool_settings.gpencil_selectmode_edit = self.gpencil_mode[self.mode]
-            
-            else:
+
+            elif bpy.context.active_object.type == 'FONT':
                 bpy.ops.object.editmode_toggle()
+
+            else:
+                self.report({'ERROR'}, f'Object Type not Valid : {bpy.context.active_object.type}')
 
         elif bpy.context.mode == 'EDIT_CURVE':
             if self.alt_mode:
@@ -160,6 +171,9 @@ class TILA_smart_editmode(bpy.types.Operator):
                 bpy.ops.object.mode_set(mode='OBJECT')
             else:
                 switch_particle_mode(self)
+            
+        elif bpy.context.mode in ['CURVES']:
+            pass
 
         else:
             bpy.ops.object.mode_set(mode='OBJECT')
