@@ -28,7 +28,7 @@ class TILA_MT_pie_areas(Menu):
 		
 		
 		# Right
-		pie.operator("wm.3dview", text="3D View")
+		pie.operator("wm.3d_view", text="3D View")
 
 		# Bottom
 		pie.operator('screen.area_close', text='Close')
@@ -64,6 +64,15 @@ class TILA_MT_pie_areas(Menu):
 		# prop.data_path = "area.type"
 		# prop.value = 'PROPERTIES'
 
+class TILA_OT_areas_3d_view(bpy.types.Operator):
+	bl_idname = 'wm.3d_view'
+	bl_label = 'UV View'
+	def execute(self, context):
+		bpy.ops.wm.context_set_enum(data_path='area.type', value='VIEW_3D')
+
+		bpy.context.area.ui_type = 'VIEW_3D'
+		return {'FINISHED'}
+	
 class TILA_OT_areas_uv_view(bpy.types.Operator):
 	bl_idname = 'wm.uv_view'
 	bl_label = 'UV View'
@@ -202,7 +211,8 @@ classes = (
     TILA_MT_pie_areas,
  	TILA_OT_areas_uv_view,
 	TILA_OT_areas_shader_view,
-	TILA_OT_area_split
+	TILA_OT_area_split,
+   	TILA_OT_areas_3d_view
 )
 
 def register():
