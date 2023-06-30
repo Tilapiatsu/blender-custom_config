@@ -1325,23 +1325,6 @@ class TILA_Config_Keymaps_Global(TILA_Config_Keymaps):
 		# Paint Face Mask (Weight, Vertex, Texture)
 		self.kmi_init(name='Paint Face Mask (Weight, Vertex, Texture)',
 		              space_type='EMPTY', region_type='WINDOW')
-		self.tool_radial_control(radius={'data_path_primary': 'tool_settings.gpencil_sculpt_paint.brush.size',
-                                   'release_confirm': True},
-                           opacity={'data_path_primary': 'tool_settings.gpencil_sculpt_paint.brush.strength',
-                                    'release_confirm': True},
-                           eraser_radius={'data_path_primary': 'tool_settings.gpencil_sculpt_paint.brush.texture_slot.angle',
-                                          'rotation_path': 'tool_settings.gpencil_sculpt_paint.brush.texture_slot.angle',
-                                          'color_path': 'tool_settings.gpencil_sculpt_paint.brush.cursor_color_add',
-                                          'image_id': 'tool_settings.gpencil_sculpt_paint.brush',
-                                          'fill_color_path': 'tool_settings.gpencil_sculpt_paint.brush.color',
-                                          'fill_color_override_path': 'tool_settings.unified_paint_settings.color',
-                                          'fill_color_override_test_path': 'tool_settings.unified_paint_settings.use_unified_color',
-                                          'release_confirm': True},
-                           fill_color={'fill_color_path': 'tool_settings.gpencil_sculpt_paint.brush.color',
-                                       'fill_color_override_path': 'tool_settings.unified_paint_settings.color',
-                                       'fill_color_override_test_path': 'tool_settings.unified_paint_settings.use_unified_color',
-                                       'zoom_path': 'space_data.zoom', 'secondary_tex': True,
-                                       'release_confirm': True})
 
 		self.selection_keys(more_tool='paint.face_select_more',
 		                    less_tool='paint.face_select_less')
@@ -1349,23 +1332,6 @@ class TILA_Config_Keymaps_Global(TILA_Config_Keymaps):
 		# Paint Vertex Selection (Weight, Vertex)
 		self.kmi_init(name='Paint Vertex Selection (Weight, Vertex)',
 		              space_type='EMPTY', region_type='WINDOW')
-		self.tool_radial_control(radius={'data_path_primary': 'tool_settings.gpencil_sculpt_paint.brush.size',
-                                   'release_confirm': True},
-                           opacity={'data_path_primary': 'tool_settings.gpencil_sculpt_paint.brush.strength',
-                                    'release_confirm': True},
-                           eraser_radius={'data_path_primary': 'tool_settings.gpencil_sculpt_paint.brush.texture_slot.angle',
-                                          'rotation_path': 'tool_settings.gpencil_sculpt_paint.brush.texture_slot.angle',
-                                          'color_path': 'tool_settings.gpencil_sculpt_paint.brush.cursor_color_add',
-                                          'image_id': 'tool_settings.gpencil_sculpt_paint.brush',
-                                          'fill_color_path': 'tool_settings.gpencil_sculpt_paint.brush.color',
-                                          'fill_color_override_path': 'tool_settings.unified_paint_settings.color',
-                                          'fill_color_override_test_path': 'tool_settings.unified_paint_settings.use_unified_color',
-                                          'release_confirm': True},
-                           fill_color={'fill_color_path': 'tool_settings.gpencil_sculpt_paint.brush.color',
-                                       'fill_color_override_path': 'tool_settings.unified_paint_settings.color',
-                                       'fill_color_override_test_path': 'tool_settings.unified_paint_settings.use_unified_color',
-                                       'zoom_path': 'space_data.zoom', 'secondary_tex': True,
-                                       'release_confirm': True})
 
 		self.selection_keys(more_tool='paint.vert_select_more',
 		                    less_tool='paint.vert_select_less')
