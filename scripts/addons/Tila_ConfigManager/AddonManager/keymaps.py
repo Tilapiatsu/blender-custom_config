@@ -205,8 +205,14 @@ class TILA_Config_Keymaps_Global(TILA_Config_Keymaps):
 		
 		# Circle
 		if circle_tool:
-			self.kmi_set_replace(circle_tool, self.k_select, 'CLICK_DRAG', shift=True, properties={'wait_for_input': False, 'mode': 'ADD', 'radius': 5}, disable_double=True)
-			self.kmi_set_replace(circle_tool, self.k_select, 'CLICK_DRAG', ctrl=True, properties={'wait_for_input': False, 'mode': 'SUB', 'radius': 5}, disable_double=True)
+			if self.km.name in ['Weight Paint', 'Vertex Paint', 'Texture Paint']:
+				self.kmi_set_replace(circle_tool, self.k_cursor, 'CLICK_DRAG', shift=True, properties={'wait_for_input': False, 'mode': 'ADD', 'radius': 5}, disable_double=True)
+				self.kmi_set_replace(circle_tool, self.k_cursor, 'CLICK_DRAG', ctrl=True, properties={
+				                     'wait_for_input': False, 'mode': 'SUB', 'radius': 5}, disable_double=True)
+
+			else:
+				self.kmi_set_replace(circle_tool, self.k_select, 'CLICK_DRAG', shift=True, properties={'wait_for_input': False, 'mode': 'ADD', 'radius': 5}, disable_double=True)
+				self.kmi_set_replace(circle_tool, self.k_select, 'CLICK_DRAG', ctrl=True, properties={'wait_for_input': False, 'mode': 'SUB', 'radius': 5}, disable_double=True)
 
 		if gp_circle_tool:
 			self.kmi_set_replace(gp_circle_tool, self.k_select, 'CLICK_DRAG', shift=True, properties={'wait_for_input': False, 'mode': 'ADD', 'radius': 5}, disable_double=True)
@@ -264,7 +270,9 @@ class TILA_Config_Keymaps_Global(TILA_Config_Keymaps):
 			if self.km.name in ['Curve', 'Lattice', 'Grease Pencil', 'Particle', 'UV Editor']:
 				self.kmi_set_replace(linked_pick_tool, self.k_linked, 'PRESS', ctrl=False, properties={'deselect': False, 'extend': True}, disable_double=True)
 				self.kmi_set_replace(linked_pick_tool, self.k_linked, 'PRESS', ctrl=True, properties={'deselect': True, 'extend': True}, disable_double=True)
-
+			elif self.km.name in ['Weight Paint', 'Vertex Paint', 'Texture Paint', 'Paint Face Mask (Weight, Vertex, Texture)']:
+				self.kmi_set_replace(linked_pick_tool, self.k_linked, 'PRESS', ctrl=False, alt=False, shift=False, properties={'deselect': False},  disable_double=True)
+				self.kmi_set_replace(linked_pick_tool, self.k_linked, 'PRESS', ctrl=True, alt=False, shift=False, properties={'deselect': True},  disable_double=True)
 			else:
 				self.kmi_set_replace(linked_pick_tool, self.k_linked, 'PRESS', ctrl=False, alt=False, shift=False, properties={'deselect': False, 'delimit': {'SEAM'}}, disable_double=True)
 				self.kmi_set_replace(linked_pick_tool, self.k_linked, 'PRESS', ctrl=True, properties={'deselect': True, 'delimit': {'SEAM'}}, disable_double=True)
@@ -965,7 +973,8 @@ class TILA_Config_Keymaps_Global(TILA_Config_Keymaps):
 		self.global_keys()
 		self.right_mouse()
 		self.kmi_set_replace('mask.duplicate_move', 'D', 'PRESS', ctrl=True)
-		self.selection_keys(more_tool='mask.select_more', less_tool='mask.select_less')
+		self.selection_keys(more_tool='mask.select_more',
+		                    less_tool='mask.select_less', linked_tool='mask.select_linked_pick')
 
 		# Sequencer
 		self.kmi_init(name='Sequencer', space_type='EMPTY', region_type='WINDOW')
@@ -1014,7 +1023,8 @@ class TILA_Config_Keymaps_Global(TILA_Config_Keymaps):
 
 		self.tool_sample_color('paint.sample_color')
 		self.kmi_set_replace('view3D.toggle_symetry', 'X', 'PRESS', shift=True)
-		self.selection_keys(more_tool='paint.vert_select_more', less_tool='paint.vert_select_less')
+		self.selection_keys(more_tool='paint.vert_select_more', less_tool='paint.vert_select_less',
+		                    lasso_tool='view3d.select_lasso', circle_tool='view3d.select_circle')
 
 		# self.kmi_set_replace('paint.weight_gradient', self.k_manip, 'PRESS', ctrl=True, shift=True, properties={'type': 'LINEAR'})
 		# self.kmi_set_replace('paint.weight_gradient', self.k_manip, 'PRESS', ctrl=True, shift=True, alt=True, properties={'type': 'RADIAL'})
@@ -1048,12 +1058,20 @@ class TILA_Config_Keymaps_Global(TILA_Config_Keymaps):
 		'color_path': 'tool_settings.weight_paint.brush.cursor_color_add', 
 		'image_id': 'tool_settings.weight_paint.brush',
 		'release_confirm': True})
+		
+		self.kmi_set_active(enable=False, idname='paint.weight_set')
 
+		self.selection_keys(more_tool='paint.vert_select_more', less_tool='paint.vert_select_less',
+		                    lasso_tool='view3d.select_lasso', circle_tool='view3d.select_circle')
+	
 		self.tool_sample_color('paint.weight_sample')
+
 
 		self.kmi_set_replace('paint.weight_gradient', self.k_manip, 'PRESS', ctrl=True, shift=True, properties={'type': 'LINEAR'})
 		self.kmi_set_replace('paint.weight_gradient', self.k_manip, 'PRESS', ctrl=True, shift=True, alt=True, properties={'type': 'RADIAL'})
 
+		self.kmi_set_replace('paint.weight_sample_group', self.k_context, 'RELEASE', disable_double=True)
+		
 		self.kmi_set_replace('wm.tool_set_by_id', self.k_manip, 'PRESS', ctrl=True, shift=True, alt=True, properties={'name': 'builtin_brush.Draw'})
 		self.kmi_set_replace('paint.tila_brush_select_and_paint', self.k_manip, 'PRESS', shift=True, properties={'tool': 'WEIGHT', 'mode': 'AVERAGE', 'brush': 'Average'})
 		self.kmi_set_replace('paint.tila_brush_select_and_paint', self.k_manip, 'PRESS', ctrl=True, properties={'tool': 'WEIGHT', 'mode': 'DRAW', 'brush': 'Subtract'})
@@ -1105,6 +1123,9 @@ class TILA_Config_Keymaps_Global(TILA_Config_Keymaps):
 		'fill_color_override_test_path': 'tool_settings.unified_paint_settings.use_unified_color',
 		'zoom_path': 'space_data.zoom', 'secondary_tex': True,
 		'release_confirm': True})
+
+		self.selection_keys(more_tool='paint.vert_select_more', less_tool='paint.vert_select_less',
+		                    lasso_tool='view3d.select_lasso', circle_tool='view3d.select_circle')
 
 		self.tool_sample_color('paint.sample_color')
 
@@ -1196,7 +1217,7 @@ class TILA_Config_Keymaps_Global(TILA_Config_Keymaps):
 					  		circle_tool='view3d.select_circle',
 							invert_tool='lattice.select_all',
 							more_tool='lattice.select_more', 
-                      		less_tool='lattice.select_less')
+					  		less_tool='lattice.select_less')
 
 		###### Grease Pencil
 		self.kmi_init(name='Grease Pencil', space_type='EMPTY', region_type='WINDOW')
@@ -1280,61 +1301,61 @@ class TILA_Config_Keymaps_Global(TILA_Config_Keymaps):
 		self.kmi_set_replace('wm.tool_set_by_id', 'G', 'PRESS', properties={'name': 'builtin_brush.Grab'})
 
 		self.tool_radial_control(radius={'data_path_primary': 'tool_settings.gpencil_sculpt_paint.brush.size',
-                                   'release_confirm': True},
-                           opacity={'data_path_primary': 'tool_settings.gpencil_sculpt_paint.brush.strength',
-                                    'release_confirm': True},
-                           eraser_radius={'data_path_primary': 'tool_settings.gpencil_sculpt_paint.brush.texture_slot.angle',
-                                          'rotation_path': 'tool_settings.gpencil_sculpt_paint.brush.texture_slot.angle',
-                                          'color_path': 'tool_settings.gpencil_sculpt_paint.brush.cursor_color_add',
-                                          'image_id': 'tool_settings.gpencil_sculpt_paint.brush',
-                                          'fill_color_path': 'tool_settings.gpencil_sculpt_paint.brush.color',
-                                          'fill_color_override_path': 'tool_settings.unified_paint_settings.color',
-                                          'fill_color_override_test_path': 'tool_settings.unified_paint_settings.use_unified_color',
-                                          'release_confirm': True},
-                           fill_color={'fill_color_path': 'tool_settings.gpencil_sculpt_paint.brush.color',
-                                       'fill_color_override_path': 'tool_settings.unified_paint_settings.color',
-                                       'fill_color_override_test_path': 'tool_settings.unified_paint_settings.use_unified_color',
-                                       'zoom_path': 'space_data.zoom', 'secondary_tex': True,
-                                       'release_confirm': True})
+								   'release_confirm': True},
+						   opacity={'data_path_primary': 'tool_settings.gpencil_sculpt_paint.brush.strength',
+									'release_confirm': True},
+						   eraser_radius={'data_path_primary': 'tool_settings.gpencil_sculpt_paint.brush.texture_slot.angle',
+										  'rotation_path': 'tool_settings.gpencil_sculpt_paint.brush.texture_slot.angle',
+										  'color_path': 'tool_settings.gpencil_sculpt_paint.brush.cursor_color_add',
+										  'image_id': 'tool_settings.gpencil_sculpt_paint.brush',
+										  'fill_color_path': 'tool_settings.gpencil_sculpt_paint.brush.color',
+										  'fill_color_override_path': 'tool_settings.unified_paint_settings.color',
+										  'fill_color_override_test_path': 'tool_settings.unified_paint_settings.use_unified_color',
+										  'release_confirm': True},
+						   fill_color={'fill_color_path': 'tool_settings.gpencil_sculpt_paint.brush.color',
+									   'fill_color_override_path': 'tool_settings.unified_paint_settings.color',
+									   'fill_color_override_test_path': 'tool_settings.unified_paint_settings.use_unified_color',
+									   'zoom_path': 'space_data.zoom', 'secondary_tex': True,
+									   'release_confirm': True})
 		
 		self.selection_keys(more_tool='gpencil.select_more', less_tool='gpencil.select_less')
 		
 		# Grease Pencil Stroke Vertex Mode
 		self.kmi_init(name='Grease Pencil Stroke Vertex Mode', space_type='EMPTY', region_type='WINDOW')
 		self.tool_radial_control(radius={'data_path_primary': 'tool_settings.gpencil_sculpt_paint.brush.size',
-                                   'release_confirm': True},
-                           opacity={'data_path_primary': 'tool_settings.gpencil_sculpt_paint.brush.strength',
-                                    'release_confirm': True},
-                           eraser_radius={'data_path_primary': 'tool_settings.gpencil_sculpt_paint.brush.texture_slot.angle',
-                                          'rotation_path': 'tool_settings.gpencil_sculpt_paint.brush.texture_slot.angle',
-                                          'color_path': 'tool_settings.gpencil_sculpt_paint.brush.cursor_color_add',
-                                          'image_id': 'tool_settings.gpencil_sculpt_paint.brush',
-                                          'fill_color_path': 'tool_settings.gpencil_sculpt_paint.brush.color',
-                                          'fill_color_override_path': 'tool_settings.unified_paint_settings.color',
-                                          'fill_color_override_test_path': 'tool_settings.unified_paint_settings.use_unified_color',
-                                          'release_confirm': True},
-                           fill_color={'fill_color_path': 'tool_settings.gpencil_sculpt_paint.brush.color',
-                                       'fill_color_override_path': 'tool_settings.unified_paint_settings.color',
-                                       'fill_color_override_test_path': 'tool_settings.unified_paint_settings.use_unified_color',
-                                       'zoom_path': 'space_data.zoom', 'secondary_tex': True,
-                                       'release_confirm': True})
+								   'release_confirm': True},
+						   opacity={'data_path_primary': 'tool_settings.gpencil_sculpt_paint.brush.strength',
+									'release_confirm': True},
+						   eraser_radius={'data_path_primary': 'tool_settings.gpencil_sculpt_paint.brush.texture_slot.angle',
+										  'rotation_path': 'tool_settings.gpencil_sculpt_paint.brush.texture_slot.angle',
+										  'color_path': 'tool_settings.gpencil_sculpt_paint.brush.cursor_color_add',
+										  'image_id': 'tool_settings.gpencil_sculpt_paint.brush',
+										  'fill_color_path': 'tool_settings.gpencil_sculpt_paint.brush.color',
+										  'fill_color_override_path': 'tool_settings.unified_paint_settings.color',
+										  'fill_color_override_test_path': 'tool_settings.unified_paint_settings.use_unified_color',
+										  'release_confirm': True},
+						   fill_color={'fill_color_path': 'tool_settings.gpencil_sculpt_paint.brush.color',
+									   'fill_color_override_path': 'tool_settings.unified_paint_settings.color',
+									   'fill_color_override_test_path': 'tool_settings.unified_paint_settings.use_unified_color',
+									   'zoom_path': 'space_data.zoom', 'secondary_tex': True,
+									   'release_confirm': True})
 		
 		self.selection_keys(more_tool='gpencil.select_more',
-		                    less_tool='gpencil.select_less')
+							less_tool='gpencil.select_less')
 		
 		# Paint Face Mask (Weight, Vertex, Texture)
 		self.kmi_init(name='Paint Face Mask (Weight, Vertex, Texture)',
-		              space_type='EMPTY', region_type='WINDOW')
+					  space_type='EMPTY', region_type='WINDOW')
 
 		self.selection_keys(more_tool='paint.face_select_more',
-		                    less_tool='paint.face_select_less')
+                      less_tool='paint.face_select_less', linked_pick_tool='paint.face_select_linked_pick')
 		
 		# Paint Vertex Selection (Weight, Vertex)
 		self.kmi_init(name='Paint Vertex Selection (Weight, Vertex)',
-		              space_type='EMPTY', region_type='WINDOW')
+					  space_type='EMPTY', region_type='WINDOW')
 
 		self.selection_keys(more_tool='paint.vert_select_more',
-		                    less_tool='paint.vert_select_less')
+							less_tool='paint.vert_select_less')
 		
 		###### Frames
 		self.kmi_init(name='Frames', space_type='EMPTY', region_type='WINDOW')
