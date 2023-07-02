@@ -47,6 +47,9 @@ def install_dependencies():
 						  *dependencies, '--target', dependencies_path])
 
 def enable_addon(addon_name):
+	if addon_name is None:
+		return False
+	
 	log_progress = Log(bpy.context.window_manager.tila_config_log_list,
 					   'tila_config_log_list_idx')
 	if addon_name in bpy.context.preferences.addons:
