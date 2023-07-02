@@ -24,18 +24,22 @@ class TILA_MT_pie_areas(Menu):
 		pie = layout.menu_pie()
 
 		# Left
-		prop = pie.operator("wm.area_split", text="Split").ui_type = 'VIEW_3D'
+		prop = pie.operator("wm.area_split", text="Asset Browser")
+		prop.ui_type = 'ASSETS'
+		# prop = pie.operator("wm.area_split", text="Split").ui_type = 'VIEW_3D'
 		
 		
 		# Right
-		pie.operator("wm.3d_view", text="3D View")
+		prop = pie.operator("wm.area_split", text="UV Editor").ui_type = 'UV'
+		
 
 		# Bottom
-		pie.operator('screen.area_close', text='Close')
-		# pie.operator("wm.uv_view", text="UV Editor")
+		prop = pie.operator("wm.area_split", text="Console")
+		prop.ui_type = 'CONSOLE'
 
 		# Top
-		prop = pie.operator("wm.area_split", text="Geometry Node").ui_type = 'GeometryNodeTree'
+		pie.operator('screen.area_close', text='Close')
+		
 
 		# Top Left
 		prop = pie.operator("wm.area_split", text="Spreadsheet").ui_type = 'SPREADSHEET'
@@ -51,15 +55,15 @@ class TILA_MT_pie_areas(Menu):
 		# prop.value = 'DOPESHEET_EDITOR'
 
 		# Bottom Left
-		prop = pie.operator("wm.area_split", text="Asset Browser")
-		prop.ui_type = 'ASSETS'
+		pie.operator("wm.3d_view", text="3D View")
+		
 		# prop.direction = 'HORIZONTAL'
 		# prop = pie.operator("wm.context_set_enum", text="Outliner")
 		# prop.data_path = "area.type"
 		# prop.value = 'OUTLINER'  	
 
 		# Bottom Right
-		prop = pie.operator("wm.area_split", text="UV Editor").ui_type = 'UV'
+		prop = pie.operator("wm.area_split", text="Geometry Node").ui_type = 'GeometryNodeTree'
 		# prop = pie.operator("wm.context_set_enum", text="Properties")
 		# prop.data_path = "area.type"
 		# prop.value = 'PROPERTIES'
@@ -80,6 +84,7 @@ class TILA_OT_areas_uv_view(bpy.types.Operator):
 		bpy.ops.wm.context_set_enum(data_path='area.type', value='IMAGE_EDITOR')
 		bpy.context.area.ui_type = 'UV'
 		return {'FINISHED'}
+	
 
 class TILA_OT_areas_shader_view(bpy.types.Operator):
 	bl_idname = 'wm.shader_view'
@@ -102,7 +107,8 @@ class TILA_OT_area_split(bpy.types.Operator):
 											("UV", "Uv", ""),
 											("VIEW_3D", 'View 3D', ''),
 											("ASSETS", 'Asset Browser', ''),
-											("SPREADSHEET", 'SpreadSheet', '')])
+											("SPREADSHEET", 'SpreadSheet', ''),
+											("CONSOLE", 'Console', '')])
 
 	direction : bpy.props.EnumProperty(items=[("VERTICAL", "Vertical", ""), ("HORIZONTAL", "Horizontal", "")])
 	factor : bpy.props.FloatProperty(name='Factor', default=0.5)
@@ -110,6 +116,7 @@ class TILA_OT_area_split(bpy.types.Operator):
 	editor_areas = ['NODE_EDITOR', 'IMAGE_EDITOR']
 	property_areas = ['SPREADSHEET']
 	asset_areas = ['FILE_BROWSER']
+	console_areas = ['CONSOLE']
 
 	def execute(self, context):
 		self.editor_type = 'VIEW_3D'
@@ -121,6 +128,8 @@ class TILA_OT_area_split(bpy.types.Operator):
 			self.editor_type = 'FILE_BROWSER'
 		elif self.ui_type in ['SPREADSHEET']:
 			self.editor_type = 'SPREADSHEET'
+		elif self.ui_type in ['CONSOLE']:
+			self.editor_type = 'CONSOLE'
 
 		if self.editor_type in self.editor_areas:
 			if self.editor_area is None:
@@ -137,6 +146,12 @@ class TILA_OT_area_split(bpy.types.Operator):
 		elif self.editor_type in self.asset_areas:
 			if self.asset_area is None:
 				self.switch_area(self.view3d_area, split=True, factor=0.51)
+			else:
+				self.switch_area(self.asset_area, split=False)
+			
+		elif self.editor_type in self.console_areas:
+			if self.asset_area is None:
+				self.switch_area(self.view3d_area, direction='HORIZONTAL', split=True, factor=0.51)
 			else:
 				self.switch_area(self.asset_area, split=False)
 		else:
@@ -208,7 +223,7 @@ class TILA_OT_area_split(bpy.types.Operator):
 		return area_index >= 0 and area_index < len(bpy.context.screen.areas)
 
 classes = (
-    TILA_MT_pie_areas,
+	TILA_MT_pie_areas,
  	TILA_OT_areas_uv_view,
 	TILA_OT_areas_shader_view,
 	TILA_OT_area_split,
