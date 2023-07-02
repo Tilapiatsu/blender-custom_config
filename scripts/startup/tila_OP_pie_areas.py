@@ -151,7 +151,7 @@ class TILA_OT_area_split(bpy.types.Operator):
 			
 		elif self.editor_type in self.console_areas:
 			if self.asset_area is None:
-				self.switch_area(self.view3d_area, direction='HORIZONTAL', split=True, factor=0.51)
+				self.switch_area(self.view3d_area, direction='HORIZONTAL', split=True, factor=0.51, offset=(0,-100))
 			else:
 				self.switch_area(self.asset_area, split=False)
 		else:
@@ -210,11 +210,12 @@ class TILA_OT_area_split(bpy.types.Operator):
 			return None
 		return bpy.context.screen.areas[bpy.context.window_manager.tila_area_asset_browser]
 	
-	def switch_area(self, area:bpy.types.Area, direction='VERTICAL', factor=0.5, split=False):
+	def switch_area(self, area:bpy.types.Area, direction='VERTICAL', factor=0.5, split=False, offset=(0, 0)):
 		with bpy.context.temp_override(area=area):
 			if split:
 				print(f'Splitting Area {area.type}')
 				bpy.ops.screen.area_split('EXEC_DEFAULT', direction=direction, factor=factor)
+			# bpy.ops.screen.area_move('INVOKE_REGION_WIN', x=offset[0], y=offset[1])
 			bpy.context.area.ui_type = self.ui_type
 			bpy.ops.wm.context_set_enum(data_path='area.type', value=self.editor_type)
 

@@ -146,11 +146,27 @@ class TILA_smart_editmode(bpy.types.Operator):
                         elif bpy.context.scene.tool_settings.mesh_select_mode[2]:
                             method(self, 'FACE')
 
-        elif bpy.context.mode in ['EDIT_GPENCIL', 'PAINT_GPENCIL', 'SCULPT_GPENCIL', 'WEIGHT_GPENCIL']:
+        elif bpy.context.mode in ['EDIT_GPENCIL']:
             if self.alt_mode:
                 bpy.ops.object.mode_set(mode='OBJECT')
             else:
                 switch_gpencil_mode(self, bpy.context.scene.tool_settings.gpencil_selectmode_edit)
+
+
+        elif bpy.context.mode in ['PAINT_GPENCIL', 'SCULPT_GPENCIL', 'VERTEX_GPENCIL']:
+            if self.alt_mode:
+                bpy.ops.object.mode_set(mode='OBJECT')
+            else:
+                if self.mode == 0 and not bpy.context.scene.tool_settings.use_gpencil_vertex_select_mask_point:                   
+                    bpy.context.scene.tool_settings.use_gpencil_vertex_select_mask_point = True
+                elif self.mode == 1 and not bpy.context.scene.tool_settings.use_gpencil_vertex_select_mask_stroke:
+                    bpy.context.scene.tool_settings.use_gpencil_vertex_select_mask_stroke = True
+                elif self.mode == 2 and not bpy.context.scene.tool_settings.use_gpencil_vertex_select_mask_segment:
+                    bpy.context.scene.tool_settings.use_gpencil_vertex_select_mask_segment = True
+                else:
+                    bpy.context.scene.tool_settings.use_paint_mask_vertex = False
+                    bpy.context.scene.tool_settings.use_paint_mask = False
+
 
         elif bpy.context.mode in ['PAINT_WEIGHT', 'PAINT_VERTEX']:
             if self.alt_mode:
