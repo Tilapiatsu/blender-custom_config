@@ -1280,8 +1280,8 @@ class TILA_Config_Keymaps_Global(TILA_Config_Keymaps):
 		self.collection_visibility('object.hide_collection')
 		self.mode_selection()
 		self.selection_tool(tool='builtin_brush.Draw')
-		self.tool_radial_control(radius={'data_path_primary': 'tool_settings.gpencil_vertex_paint.brush.size', 'release_confirm': True},
-								opacity={'data_path_primary': 'tool_settings.gpencil_vertex_paint.brush.gpencil_settings.pen_strength', 'release_confirm': True},
+		self.tool_radial_control(radius={'data_path_primary': 'tool_settings.gpencil_paint.brush.size', 'release_confirm': True},
+								opacity={'data_path_primary': 'tool_settings.gpencil_paint.brush.gpencil_settings.pen_strength', 'release_confirm': True},
 								eraser_radius={'data_path_primary': 'q.edit.grease_pencil_eraser_radius', 'release_confirm': True})
 		
 		self.selection_keys(circle_tool='gpencil.select_circle',
