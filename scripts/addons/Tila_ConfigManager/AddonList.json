@@ -2786,5 +2786,22 @@
                 "destination_path": "#\\scripts\\addons\\easy_weights"
             }
         ]
+    },
+    "checkpoint": {
+        "is_enable": false,
+        "is_sync": false,
+        "online_url": "https://flowerboystudio.gumroad.com/l/blender-checkpoint",
+        "repository_url": null,
+        "branch": null,
+        "is_submodule": false,
+        "local_path": "#\\scripts\\addon_library\\local\\checkpoint",
+        "keymaps": false,
+        "paths": [
+            {
+                "is_enable": false,
+                "local_subpath": null,
+                "destination_path": "#\\scripts\\addons\\checkpoint"
+            }
+        ]
     }
 }
