@@ -23,7 +23,10 @@ class TILA_smart_join(bpy.types.Operator):
 
 	compatible_type = ['MESH', 'CURVE']
 
-
+	@classmethod
+	def poll(cls, context):
+		return context.mode == 'OBJECT'
+		
 	def invoke(self, context, event):
 
 		self.object_to_process = [o for o in bpy.context.selected_objects if o.type in self.compatible_type]
@@ -57,4 +60,4 @@ classes = (
 register, unregister = bpy.utils.register_classes_factory(classes)
 
 if __name__ == "__main__":
-    register()
+	register()
