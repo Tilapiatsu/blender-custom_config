@@ -856,8 +856,8 @@ class TILA_Config_Keymaps_Global(TILA_Config_Keymaps):
 		self.kmi_set_replace('paint.hide_show', self.k_nav, 'CLICK_DRAG', ctrl=True,  properties={'action': 'HIDE', 'wait_for_input': False, 'area': 'INSIDE'}, disable_double=True)
 		self.kmi_set_replace('paint.hide_show', self.k_nav, 'CLICK_DRAG', shift=True, properties={'action': 'HIDE', 'wait_for_input': False, 'area': 'OUTSIDE'}, disable_double=True)
 		self.kmi_set_replace('paint.hide_show', self.k_nav, 'PRESS', ctrl=True, alt=True, shift=True, properties={'action': 'SHOW', 'wait_for_input': False, 'area': 'ALL'}, disable_double=True)
-		self.kmi_set_replace('sculpt.face_set_change_visibility', self.k_nav, 'PRESS', properties={'mode': 'TOGGLE'}, disable_double=True)
-		self.kmi_set_replace('sculpt.face_set_change_visibility', self.k_nav, 'RELEASE', ctrl=True, properties={'mode': 'HIDE_ACTIVE'}, disable_double=True)
+		self.kmi_set_replace('sculpt.face_set_change_visibility', self.k_nav, 'PRESS', ctrl=False, shift=False, alt=False, properties={'mode': 'TOGGLE'}, disable_double=True)
+		self.kmi_set_replace('sculpt.face_set_change_visibility', self.k_nav, 'RELEASE', ctrl=True, shift=False, alt=False, properties={'mode': 'HIDE_ACTIVE'}, disable_double=True)
 		
 
 		self.kmi_set_replace('sculpt.face_sets_create', 'W', 'PRESS', properties={'mode': 'MASKED'}, disable_double=True)
@@ -870,7 +870,7 @@ class TILA_Config_Keymaps_Global(TILA_Config_Keymaps):
 		self.kmi_set_replace('wm.context_toggle', 'F', 'PRESS', shift=True, properties={'data_path': 'space_data.overlay.show_sculpt_face_sets'}, disable_double=True)
 
 		# self.kmi_set_replace('view3d.tila_inverse_visibility', self.k_nav, 'PRESS', ctrl=True, shift=True)
-		self.kmi_set_replace('sculpt.face_set_change_visibility', self.k_nav, 'PRESS', ctrl=True, alt=True, shift=True, properties={'mode': 'INVERT'}, disable_double=True)
+		self.kmi_set_replace('sculpt.face_set_invert_visibility', self.k_nav, 'PRESS', ctrl=True, alt=True, shift=True, properties={'mode': 'INVERT'}, disable_double=True)
 		self.kmi_set_replace('sculpt.sculpt.sample_color', 'S', 'PRESS', disable_double=True)
 
 		if bversion >= 3.2: 
