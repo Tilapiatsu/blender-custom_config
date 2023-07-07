@@ -145,6 +145,7 @@ class KeymapManager():
                 if kmi_src_props[i] in prop_list:
                     src_prop = self.kmi_prop_getattr(kmi_src.properties, kmi_src_props[i])
                     self.kmi_prop_setattr(kmi_dest.properties, kmi_src_props[i], src_prop)
+                    print('{} : replacing property : {} to {}'.format(self.km.name, src_prop, kmi_dest.properties))
 
     def tool_compare(self, kmi1, kmi2):
         kmi1_props = self.kmi_prop_list(kmi1.properties)
@@ -350,7 +351,9 @@ class KeymapManager():
             print("Warning: %r" % e)
 
     def kmi_prop_list(self, kmi_props):
-        if not isinstance(kmi_props, list):
+        if isinstance(kmi_props, dict):
+            prop = kmi_props.keys()
+        elif not isinstance(kmi_props, list):
             prop = dir(kmi_props)[3:]
         else:
             prop = []

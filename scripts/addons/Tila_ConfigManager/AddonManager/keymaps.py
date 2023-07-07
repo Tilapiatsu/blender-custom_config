@@ -846,8 +846,8 @@ class TILA_Config_Keymaps_Global(TILA_Config_Keymaps):
 		
 		self.kmi_set_replace('paint.brush_select', self.k_menu, 'PRESS', ctrl=True, properties={'sculpt_tool': 'CLAY_STRIPS', 'toggle': True})
 		self.kmi_set_replace('paint.brush_select', self.k_menu, 'PRESS', alt=True, properties={'sculpt_tool': 'SNAKE_HOOK', 'toggle': True})
-		self.kmi_set_replace('paint.mask_lasso_gesture', self.k_context, 'CLICK_DRAG', ctrl=True, properties={'value': 1.0, 'mode': 'VALUE'}, disable_double=True)
-		self.kmi_set_replace('paint.mask_lasso_gesture', self.k_context, 'CLICK_DRAG', shift=True, properties={'value': 0.0, 'mode': 'VALUE'}, disable_double=True)
+		self.kmi_set_replace('paint.mask_lasso_gesture', self.k_context, 'CLICK_DRAG', ctrl=True, alt=False, shift=False, properties={'value': 1.0, 'mode': 'VALUE'}, disable_double=True)
+		self.kmi_set_replace('paint.mask_lasso_gesture', self.k_context, 'CLICK_DRAG', ctrl=False, alt=False, shift=True, properties={'value': 0.0, 'mode': 'VALUE'}, disable_double=True)
 		self.kmi_set_replace('paint.mask_flood_fill', self.k_context, 'PRESS', ctrl=True, alt=True, shift=True, properties={'mode': 'INVERT'})
 		self.kmi_set_replace('paint.mask_flood_fill', self.k_context, 'PRESS', ctrl=True, shift=True, properties={'mode': 'VALUE', 'value': 0})
 		self.kmi_set_replace('sculpt.tila_mask_faceset', self.k_context, 'CLICK', ctrl=True, properties={'mode': 'MASK'})
