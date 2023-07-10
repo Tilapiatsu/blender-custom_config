@@ -817,6 +817,9 @@ class TILA_Config_Keymaps_Global(TILA_Config_Keymaps):
 
 		self.kmi_set_active(False, idname='object.switch_object')
 
+		self.kmi_set_replace('object.voxel_size_edit', 'R', 'PRESS', shift=True, disable_double=True)
+		self.kmi_set_replace('object.quadriflow_remesh', 'R', 'PRESS', ctrl=True, disable_double=True)
+
 		self.kmi_set_replace('object.tila_duplicate', self.k_manip, 'CLICK_DRAG', ctrl=True, alt=True, shift=True, properties={'linked': False, 'move': True})
 
 		self.tool_radial_control(radius={'data_path_primary': 'tool_settings.sculpt.brush.size', 
