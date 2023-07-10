@@ -512,11 +512,8 @@ class TILA_Config_Keymaps_Global(TILA_Config_Keymaps):
 		self.kmi_set_replace('view3d.toggle_wireframe', 'F5', 'PRESS', ctrl=True, alt=True, shift=True, properties={'mode': 'RETOPO', 'selected': False}, disable_double=True)
 
 		self.kmi_set_replace('wm.call_menu_pie', 'F', 'PRESS', alt=True, shift=True, properties={'name': 'UVTOOLKIT_MT_pie_3dview'})
-
-		kmi = self.kmi_find(idname='view3d.toggle_shading', type='Z', shift=True)
-		if kmi is not None:
-			kmi.active = False
-			
+		
+		self.kmi_set_active(False, 'wm.call_menu_pie', type='Z')
 		self.kmi_set_replace('wm.call_menu_pie', 'Z', 'PRESS', properties={'name':'TILA_MT_pie_render_mode'}, disable_double=True)
 
 		self.kmi_set_replace('object.transfer_mode', self.k_cursor, 'CLICK', alt=True, disable_double=True)
