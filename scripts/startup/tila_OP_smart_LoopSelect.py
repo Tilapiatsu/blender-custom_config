@@ -20,7 +20,7 @@ bl_info = {
 
 class TILA_smart_loopselect(bpy.types.Operator):
 	bl_idname = "view3d.tila_smart_loopselect"
-	bl_label = "Smart Edit Mode"
+	bl_label = "Smart Loop Select"
 	bl_options = {'REGISTER', 'UNDO'}
 
 	
