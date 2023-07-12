@@ -472,7 +472,7 @@ class TILA_Config_Keymaps_Global(TILA_Config_Keymaps):
 		self.kmi_set_active(False, idname='view3d.rotate', type="MIDDLEMOUSE")
 		self.kmi_set_active(False, idname='view3d.dolly', type="MIDDLEMOUSE")
 		self.kmi_set_active(False, idname='wm.tool_set_by_id', type="W")
-		
+		self.kmi_set_replace('view3d.navigate', 'NUMPAD_SLASH', 'PRESS', ctrl=True, alt=True, shift=True, disable_double=True)
 
 		self.navigation_keys(pan='view3d.move',
 							orbit='view3d.rotate',
@@ -545,6 +545,26 @@ class TILA_Config_Keymaps_Global(TILA_Config_Keymaps):
 
 		# Polysource
 		# self.kmi_set_active(enable=False, idname='wm.call_menu_pie', type=self.k_menu, value='PRESS', properties={'name': 'PS_MT_tk_menu'})
+
+        ##### View3D Walk Modal
+		self.kmi_init(name='View3D Walk Modal', space_type='VIEW_3D', region_type='WINDOW', modal=True)
+		self.kmi_set_active(False, propvalue='FORWARD')
+		self.kmi_set_active(False, propvalue='FORWARD_STOP')
+		self.kmi_set_active(False, propvalue='LEFT')
+		self.kmi_set_active(False, propvalue='LEFT_STOP')
+		self.kmi_set_active(False, propvalue='DOWN')
+		self.kmi_set_active(False, propvalue='DOWN_STOP')
+		self.kmi_set_active(False, propvalue='SLOW_ENABLE')
+		self.kmi_set_active(False, propvalue='SLOW_DISABLE')
+		self.modal_set_replace('FORWARD', 'Z', 'PRESS', disable_double=True)
+		self.modal_set_replace('FORWARD_STOP', 'Z', 'RELEASE', disable_double=True)
+		self.modal_set_replace('LEFT', 'Q', 'PRESS', disable_double=True)
+		self.modal_set_replace('LEFT_STOP', 'Q', 'RELEASE', disable_double=True)
+		self.modal_set_replace('DOWN', 'A', 'PRESS', disable_double=True)
+		self.modal_set_replace('DOWN_STOP', 'A', 'RELEASE', disable_double=True)
+		self.modal_set_replace('SLOW_ENABLE', 'LEFT_CTRL', 'PRESS', disable_double=True)
+		self.modal_set_replace('SLOW_DISABLE', 'LEFT_CTRL', 'RELEASE', disable_double=True)
+		self.modal_set_replace('AXIS_LOCK_Z', 'W', 'PRESS', disable_double=True)
 
 		##### 3D View Generic
 		self.kmi_init(name='3D View Generic', space_type='VIEW_3D', region_type='WINDOW')
