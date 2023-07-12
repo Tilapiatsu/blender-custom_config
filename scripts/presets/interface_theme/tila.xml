@@ -739,7 +739,7 @@
     <image_editor>
       <ThemeImageEditor
         grid="#505050ff"
-        vertex="#000000"
+        vertex="#242424"
         vertex_select="#62dfff"
         vertex_active="#000000"
         vertex_size="2"
