@@ -1,18 +1,21 @@
 from PIL import Image
 import os
+import math
 
-
-source_folder = r'D:\path'
+### Parameters
+source_folder = r'D:\p4ws_helix\lbo_077465_helix\source\helix\art\characters\characters\chr_body\chr_body_1_gold_asara_deyn\workfiles\blender\WIP\002_MarvellousClean\Render'
 source_image_format = '.png'
 destination_resolution = (2048, 4096)
+background_color = (0,0,0,0)
 use_contains = False
-contains = 'filename'
+contains = 'chr_body_1_gold_asara_deyn_marvelous_clean_render'
 max_row_size = 4
 crop_overscan = 0.02
 
 
 def get_max_row_height(images_to_process, max_row_size):
 	original_crops = [i[1] for i in images_to_process]
+	max_crops = []
 	for i in range(len(original_crops)):
 		if i % max_row_size == 0:
 			top = 0
@@ -30,44 +33,95 @@ def get_max_row_height(images_to_process, max_row_size):
 					bottom_command += ')'
 			top = eval(top_command)
 			bottom = eval(bottom_command)
+			max_crops.append((top, bottom))
 
-	return [top, bottom]
-
-
-def get_max_collumn_height(images_to_process, max_row_size):
-	pass
+	return max_crops
 
 
-images_to_process = []
-for i in os.listdir(source_folder):
-	filename, extension = os.path.splitext(i)
-	if extension != source_image_format:
-		print(f'Skipping {i}')
-		continue
-	if use_contains:
-		if contains not in filename:
-			print(filename)
+def get_max_collumn_width(images_to_process, max_row_size):
+	original_crops = [i[1] for i in images_to_process]
+	max_crops = []
+	row_count = math.ceil(len(original_crops) / max_row_size)
+	for i in range(max_row_size):
+		left_command = r'min('
+		right_command = r'min('
+		left = 0
+		right = 0
+		for j in range(row_count):
+			if i + max_row_size >= len(original_crops):
+				continue
+			
+			left_command += f'original_crops[{i + max_row_size}][0]'
+			right_command += f'original_crops[{i + max_row_size}][2]'
+			if j < row_count-1:
+				left_command += ', '
+				right_command += ', '
+			else:
+				left_command += ')'
+				right_command += ')'
+
+		left = eval(left_command)
+		right = eval(right_command)
+
+		max_crops.append((left, right))
+
+	return max_crops
+
+
+def get_images_to_process(source_folder):
+	images_to_process = []
+
+	for i in os.listdir(source_folder):
+		filename, extension = os.path.splitext(i)
+		if extension != source_image_format:
 			print(f'Skipping {i}')
 			continue
+		if use_contains:
+			if contains not in filename:
+				print(filename)
+				print(f'Skipping {i}')
+				continue
 
-	image_path = os.path.join(source_folder, i)
+		image_path = os.path.join(source_folder, i)
+		with Image.open(image_path) as image:
+			bbox = image.getbbox()
+			# Store Image Path and BBox to crop later
+			images_to_process.append((image_path, bbox))
+	
+	return images_to_process
+
+
+def get_image_size(images_to_process, max_row_size):
+	image_path = images_to_process[0][0]
+	image_size = ()
+	row_count = math.ceil(len(images_to_process) / max_row_size)
 	with Image.open(image_path) as image:
-		bbox = image.getbbox()
-		# Store Image Path and BBox to crop later
-		images_to_process.append((image_path, bbox))
+		image_size = (image.size[0] * max_row_size, image.size[0] * row_count)
+	
+	return image_size
 
-print(get_max_row_height(images_to_process, max_row_size))
+
+images_to_process = get_images_to_process(source_folder)
+max_row_height = get_max_row_height(images_to_process, max_row_size)
+max_collumn_width = get_max_collumn_width(images_to_process, max_row_size)
+image_size = get_image_size(images_to_process, max_row_size)
+
 row_number = 0
 image_number = 0
-print(images_to_process)
-print(get_max_row_height(images_to_process, max_row_size))
+image_pathes = [i[0] for i in images_to_process]
+final_image = Image.new('RGBA', image_size, background_color)
 
-for image in images_to_process:
+for image_path in image_pathes:
+
+	with Image.open(image_path) as image:
+		pass
+
 	image_number += 1
 
 	if image_number % max_row_size == 0:
 		row_number += 1
 	
+
 	
 	# print(f'Resizing file {i} to {destination_resolution}')
 	# resized_image = image.resize(destination_resolution, resample = Image.Resampling.LANCZOS)
