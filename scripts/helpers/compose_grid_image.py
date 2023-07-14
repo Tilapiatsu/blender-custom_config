@@ -3,12 +3,12 @@ import os
 import math
 
 ### Parameters
-source_folder = r'D:\p4ws_helix\lbo_077465_helix\source\helix\art\characters\characters\chr_body\chr_body_1_gold_asara_deyn\workfiles\blender\WIP\002_MarvellousClean\Render'
+source_folder = r'C:\Users\lhlau\Documents\Tilapiatsu\Projects\RND\GridImage'
 source_image_format = '.png'
 destination_resolution = (2048, 4096)
 background_color = (0,0,0,0)
 use_contains = False
-contains = 'chr_body_1_gold_asara_deyn_marvelous_clean_render'
+contains = 'filename'
 max_row_size = 4
 crop_overscan = 0.02
 
@@ -96,10 +96,9 @@ def get_image_size(images_to_process, max_row_size):
 	image_size = ()
 	row_count = math.ceil(len(images_to_process) / max_row_size)
 	with Image.open(image_path) as image:
-		image_size = (image.size[0] * max_row_size, image.size[0] * row_count)
+		image_size = (image.size[0] * max_row_size, image.size[1] * row_count)
 	
 	return image_size
-
 
 images_to_process = get_images_to_process(source_folder)
 max_row_height = get_max_row_height(images_to_process, max_row_size)
@@ -114,13 +113,24 @@ final_image = Image.new('RGBA', image_size, background_color)
 for image_path in image_pathes:
 
 	with Image.open(image_path) as image:
-		pass
+		height_crop = max_row_height[math.floor(image_number / max_row_size)]
+		width_crop =  max_collumn_width[image_number % max_row_size]
+		# print(height_crop, width_crop)
+
+		image.crop((width_crop[0], height_crop[0], width_crop[1], height_crop[1]))
+		
+		paste_position = (	image.size[0] * (image_number % max_row_size),
+							image.size[1] * math.floor(image_number / max_row_size),
+							image.size[0] * (image_number % max_row_size) + image.size[0],
+							image.size[1] * math.floor(image_number / max_row_size) + image.size[1])
+		
+		# print(image_number, paste_position)
+
+		final_image.paste(image, paste_position)
 
 	image_number += 1
 
-	if image_number % max_row_size == 0:
-		row_number += 1
-	
+final_image.save(os.path.join(source_folder, 'composite.png'))
 
 	
 	# print(f'Resizing file {i} to {destination_resolution}')
