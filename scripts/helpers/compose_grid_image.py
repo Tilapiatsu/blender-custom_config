@@ -91,20 +91,32 @@ def get_images_to_process(source_folder):
 	return images_to_process
 
 
-def get_image_size(images_to_process, max_row_size):
+def get_image_size(images_to_process, max_row_size, max_row_height, max_collumn_width):
 	image_path = images_to_process[0][0]
-	image_size = ()
-	row_count = math.ceil(len(images_to_process) / max_row_size)
+	image_size = (0, 0)
+	uncroped_image_size = (0, 0)
+
 	with Image.open(image_path) as image:
-		image_size = (image.size[0] * max_row_size, image.size[1] * row_count)
-	
+		uncroped_image_size = (image.size[0], image.size[1])
+	print('uncroped', uncroped_image_size)
+	for i in range(len(images_to_process)):
+		height_crop = max_row_height[math.floor(i / max_row_size)]
+		width_crop =  max_collumn_width[i % max_row_size]
+		image_size = (	image_size[0] - width_crop[0] + width_crop[1] ,
+						image_size[1] - height_crop[0] + height_crop[1]  )
+		print(image_size)
+
 	return image_size
+
 
 images_to_process = get_images_to_process(source_folder)
 max_row_height = get_max_row_height(images_to_process, max_row_size)
 max_collumn_width = get_max_collumn_width(images_to_process, max_row_size)
-image_size = get_image_size(images_to_process, max_row_size)
+image_size = get_image_size(images_to_process, max_row_size, max_row_height, max_collumn_width)
 
+print(image_size)
+print(max_row_height)
+print(max_collumn_width)
 row_number = 0
 image_number = 0
 image_pathes = [i[0] for i in images_to_process]
@@ -122,7 +134,7 @@ for image_path in image_pathes:
 		paste_position = (	image.size[0] * (image_number % max_row_size),
 							image.size[1] * math.floor(image_number / max_row_size),
 							image.size[0] * (image_number % max_row_size) + image.size[0],
-							image.size[1] * math.floor(image_number / max_row_size) + image.size[1])
+							image.size[1] * math.floor(image_number / max_row_size) + image.size[1] )
 		
 		# print(image_number, paste_position)
 
