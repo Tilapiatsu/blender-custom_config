@@ -706,6 +706,8 @@ class TILA_Config_Keymaps_Global(TILA_Config_Keymaps):
 
 		self.kmi_set_active(True, idname='mesh.select_linked_pick', type=self.k_linked)
 		self.kmi_set_active(False, idname='object.switch_object')
+		self.kmi_set_active(False, idname='ls.select', type=self.k_select, value='DOUBLE_CLICK')
+		self.kmi_set_active(False, idname='ls.select', type=self.k_select, value='DOUBLE_CLICK', shift=False)
 
 		self.duplicate(duplicate='mesh.duplicate_move')
 		self.hide_reveal(hide='mesh.hide', unhide='mesh.reveal', inverse='view3d.inverse_visibility')
