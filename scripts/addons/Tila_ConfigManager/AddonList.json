@@ -2834,7 +2834,7 @@
             {
                 "is_enable": false,
                 "local_subpath": "exporter.py",
-                "destination_path": "\\scripts\\addons\\Exporter.py"
+                "destination_path": "#\\scripts\\addons\\Exporter.py"
             }
         ]
     }
