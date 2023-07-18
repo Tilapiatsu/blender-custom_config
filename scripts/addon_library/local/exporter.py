@@ -1,7 +1,7 @@
 bl_info = {
     "name": "Exporter",
     "author": "Simon Geoffriau",
-    "version": (2, 1, 1),
+    "version": (2, 1, 2),
     "blender": (2, 80, 0),
     "category": "Scene",
     "location": "3D viewport",
@@ -34,9 +34,8 @@ PR_ANN_0185_A (empty)
 
 
 TO DO     
-    3 . UIList with props select+export or select an object
-    4 . Auto remove duplicates
     5 . Multi select Add
+    6. if no Origin = 0,0,0
 '''
 
 import bpy
@@ -99,7 +98,7 @@ class CUSTOM_OT_actions(bpy.types.Operator):
                 info = '"%s" added to list' % (item.name)
                 self.report({'INFO'}, info)
             else:
-                self.report({'INFO'}, "Nothing selected in the Viewport")
+                self.report({'INFO'}, "Nothing selected in the Viewport or prop already in the list")
         return {"FINISHED"}
 
 
@@ -111,134 +110,128 @@ class CUSTOM_OT_export(bpy.types.Operator):
     # CONVERT FROM COLLECTIONS TO EMPTIES STRUCTURE AND EXPORT FBX
     def HExport(self, context):
 
-        # Variables
-        parentCol = dict()
-        empties = dict()
-        props = bpy.context.scene.collection.children
-
-        # List selected props
-        # selectedProps = []
-        # selectedObjects = bpy.context.selected_objects
-        # for p in selectedObjects:
-        #     prop = findProp(p)
-        #     if prop not in selectedProps:
-        #         selectedProps.append(prop)
-        selectedProps = bpy.context.scene.custom.keys()
-
-        # For each props
-        for p in props:
+        # Check scene structure
+        if bool(bpy.context.scene.collection):
             # Variables
-            topCol = p
-            # topCol = bpy.data.collections[0]
-            propL = p.name.split('_')[-1]
-            loneCol = []
-            rootObjects = []
-            parentCol.clear()
-            empties.clear()
+            parentCol = dict()
+            empties = dict()
+            props = bpy.context.scene.collection.children
+            selectedProps = bpy.context.scene.custom.keys()
 
-            # Clear Selection
-            bpy.ops.object.select_all(action='DESELECT')    
+            # Convert each props
+            for p in props:
+                # Variables
+                topCol = p
+                loneCol = []
+                rootObjects = []
+                parentCol.clear()
+                empties.clear()
 
-            # Get Origin location
-            # Check if Origin is present / if not 0 0 0 
-            originPos = context.scene.objects['Origin_'+propL].location
+                # Naming convention
+                propL = p.name.split('_')[-1]
 
-            # CREATE AN EMPTIES HIERARCHY BASED ON COLLECTIONS HIERARCHY
-            # Top empty
-            newEmpty = addEmpty(p.name, originPos)
-            empties[p.name] = newEmpty
-            for c in p.children:       
-                parentCol[c.name] = None
-                # EXCEPTIONS HANDLING
-                exceptions = ['_COL', '_SCOL', '_MCOL']
-                found = False
-                for ex in exceptions:
-                    if (c.name).find(ex) != -1:
-                        found = True
-                if found:
-                    loneCol.append(c)
-                    colObjs = c.objects.values()
-                    for o in colObjs:
-                        rootObjects.append(o)
+                # Clear Selection
+                bpy.ops.object.select_all(action='DESELECT')    
 
-                # Create empties
+                # Get Origin location
+                # Check if Origin is present / if not 0 0 0 
+                if bpy.context.scene.objects.get('Origin_'+propL):
+                    originPos = context.scene.objects['Origin_'+propL].location
                 else:
-                    newName = c.name+'_LOD'
-                    newEmpty = addEmpty(newName, originPos)
-                    empties[c.name] = newEmpty
+                    originPos = (0,0,0)
 
-            # Deal with exceptions objects
-            for o in rootObjects:
-                o.select_set(True)
-                # Parent to top empty
-                bpy.context.view_layer.objects.active = empties[topCol.name]
-                bpy.ops.object.parent_set(keep_transform=True)
-                # Unlink from collections
-                bpy.context.scene.collection.objects.link(o)
-                for c in linkedCollections(o):
-                    c.objects.unlink(o)      
-                o.select_set(False)      
+                # CREATE AN EMPTIES HIERARCHY BASED ON COLLECTIONS HIERARCHY
+                # Top empty
+                newEmpty = addEmpty(p.name, originPos)
+                empties[p.name] = newEmpty
+                for c in p.children:       
+                    parentCol[c.name] = None
+                    # EXCEPTIONS HANDLING
+                    exceptions = ['_COL', '_SCOL', '_MCOL']
+                    found = False
+                    for ex in exceptions:
+                        if (c.name).find(ex) != -1:
+                            found = True
+                    if found:
+                        loneCol.append(c)
+                        colObjs = c.objects.values()
+                        for o in colObjs:
+                            rootObjects.append(o)
 
-                # o.parent = empties[topCol.name]
-                # o.matrix_parent_inverse = empties[topCol.name].matrix_world.inverted()
-                # bpy.context.scene.collection.objects.link(o)
-                # for c in linkedCollections(o):
-                #     c.objects.unlink(o)
+                    # Create empties
+                    else:
+                        newName = c.name+'_LOD'
+                        newEmpty = addEmpty(newName, originPos)
+                        empties[c.name] = newEmpty
 
-            # EXPORT CONFIGURATION
-            for c in p.children:
-                if c not in loneCol:
-                    parentCol[c.name] = c.name
-                    
-                    # Parent empties
-                    keepTransform = empties[c.name].matrix_world
-                    empties[c.name].parent = empties[p.name]
-                    empties[c.name].matrix_world = keepTransform
-                    
-                    # MERGE OBJECTS INTO LOD0 AND RE-PARENT TO EMPTIES (!_COL, _MCOL, _SCOL)
-                    # DUPLICATE FIRST
-                    colObjs = c.objects.values() 
-                    for o in colObjs:
-                        o.select_set(True)
-                        # Unlink from collection
-                        bpy.context.scene.collection.objects.link(o)
-                        bpy.data.collections[c.name].objects.unlink(o)
-                    # Parent to corresponding empty
-                    bpy.context.view_layer.objects.active = empties[c.name]
+                # Deal with exceptions objects
+                for o in rootObjects:
+                    o.select_set(True)
+                    # Parent to top empty
+                    bpy.context.view_layer.objects.active = empties[topCol.name]
                     bpy.ops.object.parent_set(keep_transform=True)
-                    # RUN CHECKS BEFORE JOIN (more than one?, ...)
-                    bpy.context.view_layer.objects.active = colObjs[0]
-                    bpy.ops.object.join() 
-                    bpy.context.active_object.name = (c.name+'_LOD0')
-                    bpy.ops.object.select_all(action='DESELECT')
+                    # Unlink from collections
+                    bpy.context.scene.collection.objects.link(o)
+                    for c in linkedCollections(o):
+                        c.objects.unlink(o)      
+                    o.select_set(False)      
 
-        # REMOVE COLLECTIONS
-        for c in bpy.data.collections:
-            bpy.data.collections.remove(c)
+                # EXPORT CONFIGURATION
+                for c in p.children:
+                    if c not in loneCol:
+                        parentCol[c.name] = c.name
+                        
+                        # Parent empties
+                        keepTransform = empties[c.name].matrix_world
+                        empties[c.name].parent = empties[p.name]
+                        empties[c.name].matrix_world = keepTransform
+                        
+                        # MERGE OBJECTS INTO LOD0 AND RE-PARENT TO EMPTIES (!_COL, _MCOL, _SCOL)
+                        # DUPLICATE FIRST
+                        colObjs = c.objects.values() 
+                        for o in colObjs:
+                            o.select_set(True)
+                            # Unlink from collection
+                            bpy.context.scene.collection.objects.link(o)
+                            bpy.data.collections[c.name].objects.unlink(o)
+                        # Parent to corresponding empty
+                        bpy.context.view_layer.objects.active = empties[c.name]
+                        bpy.ops.object.parent_set(keep_transform=True)
+                        # RUN CHECKS BEFORE JOIN (more than one?, ...)
+                        bpy.context.view_layer.objects.active = colObjs[0]
+                        bpy.ops.object.join() 
+                        bpy.context.active_object.name = (c.name+'_LOD0')
+                        bpy.ops.object.select_all(action='DESELECT')
 
-        # SAVE FILE
-        for p in selectedProps:
-            bpy.data.objects[p].select_set(True)
-            for o in bpy.data.objects[p].children_recursive:
-                o.select_set(True)
+            # REMOVE COLLECTIONS
+            for c in bpy.data.collections:
+                bpy.data.collections.remove(c)
 
-            # Create filepath
-            bfilepath = bpy.data.filepath
-            directory = os.path.dirname(bfilepath)
+            # SAVE FILE
+            for p in selectedProps:
+                bpy.data.objects[p].select_set(True)
+                for o in bpy.data.objects[p].children_recursive:
+                    o.select_set(True)
 
-            # Export Popup with list of exported props yes or no
+                # Create filepath
+                bfilepath = bpy.data.filepath
+                directory = os.path.dirname(bfilepath)
 
-            # Creates the path for the exported fbx.
-            filepath = os.path.join(directory, p + "." + "fbx")
-            bpy.ops.export_scene.fbx(filepath=filepath, use_selection=True)
+                # Export Popup with list of exported props yes or no
 
-        # Back to normal
-        bpy.ops.object.select_all(action='DESELECT')           
-        bpy.ops.ed.undo_push()
-        bpy.ops.ed.undo()
+                # Creates the path for the exported fbx.
+                filepath = os.path.join(directory, p + "." + "fbx")
+                bpy.ops.export_scene.fbx(filepath=filepath, use_selection=True)
 
-        # Return exported prop list
-        return(selectedProps)
+            # Back to normal
+            bpy.ops.object.select_all(action='DESELECT')           
+            bpy.ops.ed.undo_push()
+            bpy.ops.ed.undo()
+
+            # Return exported prop list
+            return(selectedProps)
+        else:
+            print("Info: Export not possible, wrong scene structure.")
 
     @classmethod
     def poll(cls, context):
@@ -459,12 +452,10 @@ class CUSTOM_PT_objectList(bpy.types.Panel):
         # row.operator("custom.remove_duplicates", icon="GHOST_ENABLED")
         # row = col.row(align=True)
         
-
 class CUSTOM_objectCollection(bpy.types.PropertyGroup):
     #name: StringProperty() -> Instantiated by default
     obj_type: bpy.props.StringProperty()
     obj_id: bpy.props.IntProperty()
-
 
 # CONVERT FROM EMPTIES TO COLLECTIONS STRUCTURE
 def HImport(context):
