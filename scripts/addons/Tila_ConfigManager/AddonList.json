@@ -2607,8 +2607,8 @@
         "paths": [
             {
                 "is_enable": false,
-                "local_subpath": "filters.py",
-                "destination_path": "#\\scripts\\addons\\Filters.py"
+                "local_subpath": "Filters.py",
+                "destination_path": "#\\scripts\\addons\\"
             }
         ]
     },
@@ -2818,6 +2818,23 @@
                 "is_enable": false,
                 "local_subpath": null,
                 "destination_path": "#\\scripts\\addons\\node_pie"
+            }
+        ]
+    },
+    "Exporter": {
+        "is_enable": false,
+        "is_sync": false,
+        "online_url": null,
+        "repository_url": null,
+        "branch": null,
+        "is_submodule": false,
+        "local_path": "#\\scripts\\addon_library\\local\\exporter.py",
+        "keymaps": false,
+        "paths": [
+            {
+                "is_enable": false,
+                "local_subpath": "Exporter.py",
+                "destination_path": "\\scripts\\addons\\"
             }
         ]
     }
