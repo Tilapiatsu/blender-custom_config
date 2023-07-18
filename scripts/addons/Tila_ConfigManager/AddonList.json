@@ -2607,8 +2607,8 @@
         "paths": [
             {
                 "is_enable": false,
-                "local_subpath": "Filters.py",
-                "destination_path": "#\\scripts\\addons\\"
+                "local_subpath": "filters.py",
+                "destination_path": "#\\scripts\\addons\\Filters.py"
             }
         ]
     },
@@ -2770,14 +2770,14 @@
             }
         ]
     },
-    "blender-studio-pipeline": {
+    "easy_weights": {
         "is_enable": false,
         "is_sync": true,
         "online_url": "https://projects.blender.org/studio/blender-studio-pipeline/src/branch/main",
         "repository_url": "https://projects.blender.org/studio/blender-studio-pipeline.git",
         "branch": null,
         "is_submodule": false,
-        "local_path": "#\\scripts\\addon_library\\GIT_Clones",
+        "local_path": "#\\scripts\\addon_library\\GIT_Clones\\blender-studio-easy_weights\\",
         "keymaps": false,
         "paths": [
             {
@@ -2828,13 +2828,13 @@
         "repository_url": null,
         "branch": null,
         "is_submodule": false,
-        "local_path": "#\\scripts\\addon_library\\local\\exporter.py",
+        "local_path": "#\\scripts\\addon_library\\local\\",
         "keymaps": false,
         "paths": [
             {
                 "is_enable": false,
-                "local_subpath": "Exporter.py",
-                "destination_path": "\\scripts\\addons\\"
+                "local_subpath": "exporter.py",
+                "destination_path": "\\scripts\\addons\\Exporter.py"
             }
         ]
     }
