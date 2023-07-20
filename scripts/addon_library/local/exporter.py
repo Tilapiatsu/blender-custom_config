@@ -1,7 +1,7 @@
 bl_info = {
     "name": "Exporter",
     "author": "Simon Geoffriau",
-    "version": (2, 1, 2),
+    "version": (2, 1, 3),
     "blender": (2, 80, 0),
     "category": "Scene",
     "location": "3D viewport",
@@ -122,8 +122,7 @@ class CUSTOM_OT_export(bpy.types.Operator):
             for p in props:
                 # Variables
                 topCol = p
-                loneCol = []
-                rootObjects = []
+                colCol = []
                 parentCol.clear()
                 empties.clear()
 
@@ -141,7 +140,6 @@ class CUSTOM_OT_export(bpy.types.Operator):
                     originPos = (0,0,0)
 
                 # CREATE AN EMPTIES HIERARCHY BASED ON COLLECTIONS HIERARCHY
-                # Top empty
                 newEmpty = addEmpty(p.name, originPos)
                 empties[p.name] = newEmpty
                 for c in p.children:       
@@ -153,10 +151,7 @@ class CUSTOM_OT_export(bpy.types.Operator):
                         if (c.name).find(ex) != -1:
                             found = True
                     if found:
-                        loneCol.append(c)
-                        colObjs = c.objects.values()
-                        for o in colObjs:
-                            rootObjects.append(o)
+                        colCol.append(c)
 
                     # Create empties
                     else:
@@ -164,21 +159,9 @@ class CUSTOM_OT_export(bpy.types.Operator):
                         newEmpty = addEmpty(newName, originPos)
                         empties[c.name] = newEmpty
 
-                # Deal with exceptions objects
-                for o in rootObjects:
-                    o.select_set(True)
-                    # Parent to top empty
-                    bpy.context.view_layer.objects.active = empties[topCol.name]
-                    bpy.ops.object.parent_set(keep_transform=True)
-                    # Unlink from collections
-                    bpy.context.scene.collection.objects.link(o)
-                    for c in linkedCollections(o):
-                        c.objects.unlink(o)      
-                    o.select_set(False)      
-
-                # EXPORT CONFIGURATION
+                # Props objects
                 for c in p.children:
-                    if c not in loneCol:
+                    if c not in colCol:
                         parentCol[c.name] = c.name
                         
                         # Parent empties
@@ -187,7 +170,6 @@ class CUSTOM_OT_export(bpy.types.Operator):
                         empties[c.name].matrix_world = keepTransform
                         
                         # MERGE OBJECTS INTO LOD0 AND RE-PARENT TO EMPTIES (!_COL, _MCOL, _SCOL)
-                        # DUPLICATE FIRST
                         colObjs = c.objects.values() 
                         for o in colObjs:
                             o.select_set(True)
@@ -202,7 +184,25 @@ class CUSTOM_OT_export(bpy.types.Operator):
                         bpy.ops.object.join() 
                         bpy.context.active_object.name = (c.name+'_LOD0')
                         bpy.ops.object.select_all(action='DESELECT')
-
+                    else:
+                        # Deal with exceptions objects
+                        colObjs = c.objects.values() 
+                        for o in colObjs:
+                            o.select_set(True)
+                            # Parent to top empty
+                            bpy.context.view_layer.objects.active = empties[topCol.name]
+                            bpy.ops.object.parent_set(keep_transform=True)
+                            # Unlink from collections
+                            bpy.context.scene.collection.objects.link(o)
+                            for c in linkedCollections(o):
+                                c.objects.unlink(o)      
+                            # o.select_set(False)
+                        # Merge multiple objects  
+                        bpy.context.view_layer.objects.active = colObjs[0]
+                        bpy.ops.object.join()
+                        bpy.context.active_object.name = (c.name)
+                        bpy.ops.object.select_all(action='DESELECT')   
+                     
             # REMOVE COLLECTIONS
             for c in bpy.data.collections:
                 bpy.data.collections.remove(c)
@@ -216,8 +216,6 @@ class CUSTOM_OT_export(bpy.types.Operator):
                 # Create filepath
                 bfilepath = bpy.data.filepath
                 directory = os.path.dirname(bfilepath)
-
-                # Export Popup with list of exported props yes or no
 
                 # Creates the path for the exported fbx.
                 filepath = os.path.join(directory, p + "." + "fbx")
