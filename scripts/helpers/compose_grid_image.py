@@ -21,7 +21,7 @@ def get_max_row_height(images_to_process, max_row_size):
 			top = 0
 			bottom = 0
 			top_command = r'min('
-			bottom_command = r'min('
+			bottom_command = r'max('
 			for j in range(max_row_size):
 				top_command += f'original_crops[{i + j}][1]'
 				bottom_command += f'original_crops[{i + j}][3]'
@@ -44,22 +44,21 @@ def get_max_collumn_width(images_to_process, max_row_size):
 	row_count = math.ceil(len(original_crops) / max_row_size)
 	for i in range(max_row_size):
 		left_command = r'min('
-		right_command = r'min('
+		right_command = r'max('
 		left = 0
 		right = 0
 		for j in range(row_count):
 			if i + max_row_size >= len(original_crops):
 				continue
 			
-			left_command += f'original_crops[{i + max_row_size}][0]'
-			right_command += f'original_crops[{i + max_row_size}][2]'
+			left_command += f'original_crops[{i + max_row_size * j}][0]'
+			right_command += f'original_crops[{i + max_row_size * j}][2]'
 			if j < row_count-1:
 				left_command += ', '
 				right_command += ', '
 			else:
 				left_command += ')'
 				right_command += ')'
-
 		left = eval(left_command)
 		right = eval(right_command)
 
@@ -130,33 +129,36 @@ row_number = 0
 image_number = 0
 image_pathes = [i[0] for i in images_to_process]
 final_image = Image.new('RGBA', image_size, background_color)
+paste_position = (0, 0, 0, 0)
+new_row = 0
 
 for image_path in image_pathes:
+	if image_number != 0:
+		if image_number % max_row_size == 0:
+			row_number +=1
+			paste_position = (0, paste_position[3], 0, 0)
 
 	with Image.open(image_path) as image:
 		height_crop = max_row_height[math.floor(image_number / max_row_size)]
 		width_crop =  max_collumn_width[image_number % max_row_size]
 		# print(height_crop, width_crop)
 
-		croped = image.crop((width_crop[0], height_crop[0], width_crop[1], height_crop[1]))
-		print(f'crop_size_{image_number} =', croped.size)
-		
-		paste_position = (	croped.size[0] * (image_number % max_row_size),
-							croped.size[1] * math.floor(image_number / max_row_size),
-							croped.size[0] * (image_number % max_row_size) + image.size[0],
-							croped.size[1] * math.floor(image_number / max_row_size) + image.size[1] )
-		
-		# print(image_number, paste_position)
-		croped.save(os.path.join(source_folder, f'croped.{image_number}.png'))
-		# final_image.paste(croped, paste_position)
+		cropped = image.crop((width_crop[0], height_crop[0], width_crop[1], height_crop[1]))
+
+		print(f'crop_size_{image_number} =', cropped.size)
+
+		paste_position = (	paste_position[2], # Left 0
+							paste_position[1], # Top 1
+							paste_position[2] + cropped.size[0], # Right 2
+							paste_position[1] + cropped.size[1] ) # Bottom 3
+		print('paste_position =', paste_position)
+		# croped.save(os.path.join(source_folder, f'croped.{image_number}.png'))
+		final_image.paste(cropped, paste_position)
+		# final_image.save(os.path.join(source_folder, 'composite.png'))
 
 	image_number += 1
 
 final_image.save(os.path.join(source_folder, 'composite.png'))
 
-	
-	# print(f'Resizing file {i} to {destination_resolution}')
-	# resized_image = image.resize(destination_resolution, resample = Image.Resampling.LANCZOS)
-
-	# resized_image.save(os.path.join(source_folder, i))
+print('Composite Done !!!')
 
