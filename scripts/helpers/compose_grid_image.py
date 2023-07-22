@@ -152,11 +152,16 @@ for image_path in image_pathes:
 								height_crop[1]))
 
 		print(f'crop_size_{image_number} =', cropped.size)
+		if image_number % max_row_size == 0:
+			paste_position = (	paste_position[0], # Left 0
+								paste_position[1] + math.floor(image_size[1] / max_row_size * crop_overscan ), # Top 1
+								paste_position[2], # Right 2
+								paste_position[1] + cropped.size[1] + math.floor(image_size[1] / max_row_size * crop_overscan )) # Bottom 3
 
 		paste_position = (	paste_position[2] + math.floor(image_size[0] / max_row_size * crop_overscan ), # Left 0
-							paste_position[1] + math.floor(image_size[1] / max_row_size * crop_overscan ), # Top 1
+							paste_position[1], # Top 1
 							paste_position[2] + cropped.size[0] + math.floor(image_size[0] / max_row_size * crop_overscan ), # Right 2
-							paste_position[1] + cropped.size[1] + math.floor(image_size[1] / max_row_size * crop_overscan )) # Bottom 3
+							paste_position[3] ) # Bottom 3
 		
 		print('paste_position =', paste_position)
 		# croped.save(os.path.join(source_folder, f'croped.{image_number}.png'))
