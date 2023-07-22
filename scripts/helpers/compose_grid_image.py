@@ -101,13 +101,17 @@ def get_image_size(images_to_process, max_row_size, max_row_height, max_collumn_
 
 	for i in range(len(images_to_process)):
 		height_crop = (0, 0)
-		width_crop =  max_collumn_width[i % max_row_size]
+		if i < max_row_size:
+			width_crop =  max_collumn_width[i % max_row_size]
 
 		if i % max_row_size == 0: # if new row
 			height_crop = max_row_height[math.floor(i / max_row_size)]
-			width_crop =  (0, 0)
 
-		image_size = (	math.floor((image_size[0] - width_crop[0]*2 + width_crop[1]) * (1 + crop_overscan)),
+		if i < max_row_size :
+			image_size = (	math.floor((image_size[0] - width_crop[0] + width_crop[1]) * (1 + crop_overscan)),
+				 			image_size[1])
+			
+		image_size = (	image_size[0],
 						math.floor((image_size[1] - height_crop[0] + height_crop[1]) * (1 + crop_overscan))  )
 		
 		print('image_size_iter =', image_size)
@@ -162,7 +166,7 @@ for image_path in image_pathes:
 	image_number += 1
 
 destination = os.path.join(source_folder, 'composite.png')
-print('saving Image =', destination)
+print('saving Image : ', destination)
 final_image.save(destination)
 
 print('Composite Done !!!')
