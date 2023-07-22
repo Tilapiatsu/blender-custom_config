@@ -3,15 +3,14 @@ import os
 import math
 
 ### Parameters
-source_folder = r'D:\p4ws_helix\lbo_077465_helix\source\helix\art\characters\characters\chr_body\chr_body_1_gold_asara_deyn\workfiles\blender\WIP\002_MarvellousClean\Render'
+source_folder = r'D:\path'
 source_image_format = '.png'
 destination_resolution = (2048, 4096)
 background_color = (0,0,0,0)
 use_contains = True
-contains = 'chr_body_1_gold_asara_deyn_marvelous_clean_render'
+contains = 'filename'
 max_row_size = 4
 crop_overscan = 0.02
-
 
 def get_max_row_height(images_to_process, max_row_size):
 	original_crops = [i[1] for i in images_to_process]
@@ -104,12 +103,12 @@ def get_image_size(images_to_process, max_row_size, max_row_height, max_collumn_
 		height_crop = (0, 0)
 		width_crop =  max_collumn_width[i % max_row_size]
 
-		if i % max_row_size == 0:
+		if i % max_row_size == 0: # if new row
 			height_crop = max_row_height[math.floor(i / max_row_size)]
 			width_crop =  (0, 0)
 
-		image_size = (	image_size[0] - width_crop[0] + width_crop[1] ,
-						image_size[1] - height_crop[0] + height_crop[1]  )
+		image_size = (	math.floor((image_size[0] - width_crop[0]*2 + width_crop[1]) * (1 + crop_overscan)),
+						math.floor((image_size[1] - height_crop[0] + height_crop[1]) * (1 + crop_overscan))  )
 		
 		print('image_size_iter =', image_size)
 
@@ -143,14 +142,18 @@ for image_path in image_pathes:
 		width_crop =  max_collumn_width[image_number % max_row_size]
 		# print(height_crop, width_crop)
 
-		cropped = image.crop((width_crop[0], height_crop[0], width_crop[1], height_crop[1]))
+		cropped = image.crop((	width_crop[0], 
+								height_crop[0],
+								width_crop[1],
+								height_crop[1]))
 
 		print(f'crop_size_{image_number} =', cropped.size)
 
-		paste_position = (	paste_position[2], # Left 0
-							paste_position[1], # Top 1
-							paste_position[2] + cropped.size[0], # Right 2
-							paste_position[1] + cropped.size[1] ) # Bottom 3
+		paste_position = (	paste_position[2] + math.floor(image_size[0] / max_row_size * crop_overscan ), # Left 0
+							paste_position[1] + math.floor(image_size[1] / max_row_size * crop_overscan ), # Top 1
+							paste_position[2] + cropped.size[0] + math.floor(image_size[0] / max_row_size * crop_overscan ), # Right 2
+							paste_position[1] + cropped.size[1] + math.floor(image_size[1] / max_row_size * crop_overscan )) # Bottom 3
+		
 		print('paste_position =', paste_position)
 		# croped.save(os.path.join(source_folder, f'croped.{image_number}.png'))
 		final_image.paste(cropped, paste_position)
@@ -158,7 +161,9 @@ for image_path in image_pathes:
 
 	image_number += 1
 
-final_image.save(os.path.join(source_folder, 'composite.png'))
+destination = os.path.join(source_folder, 'composite.png')
+print('saving Image =', destination)
+final_image.save(destination)
 
 print('Composite Done !!!')
 
