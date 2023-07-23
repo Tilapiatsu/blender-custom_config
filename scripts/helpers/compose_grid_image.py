@@ -22,9 +22,13 @@ def get_max_row_height(images_to_process, max_row_size):
 			top_command = r'min('
 			bottom_command = r'max('
 			for j in range(max_row_size):
-				top_command += f'original_crops[{i + j}][1]'
-				bottom_command += f'original_crops[{i + j}][3]'
-				if j < max_row_size-1:
+				index = min(i+j, len(original_crops)-1)
+				top_command += f'original_crops[{index}][1]'
+				bottom_command += f'original_crops[{index}][3]'
+				if index < i+j:
+					top_command += ')'
+					bottom_command += ')'
+				elif j < max_row_size-1:
 					top_command += ', '
 					bottom_command += ', '
 				else:
@@ -47,12 +51,13 @@ def get_max_collumn_width(images_to_process, max_row_size):
 		left = 0
 		right = 0
 		for j in range(row_count):
-			if i + max_row_size >= len(original_crops):
-				continue
-			
-			left_command += f'original_crops[{i + max_row_size * j}][0]'
-			right_command += f'original_crops[{i + max_row_size * j}][2]'
-			if j < row_count-1:
+			index = min(i + max_row_size * j, len(original_crops)-1)
+			left_command += f'original_crops[{index}][0]'
+			right_command += f'original_crops[{index}][2]'
+			if index < i + max_row_size * j -1:
+				left_command += ')'
+				right_command += ')'
+			elif j < row_count-1:
 				left_command += ', '
 				right_command += ', '
 			else:
@@ -119,6 +124,11 @@ def get_image_size(images_to_process, max_row_size, max_row_height, max_collumn_
 	return image_size
 
 images_to_process = get_images_to_process(source_folder)
+
+for i in range(len(images_to_process)):
+	print(f'images_to_process_{i} =', images_to_process[i][0])
+	print(f'bbox_{i} = ', images_to_process[i][1])
+
 max_row_height = get_max_row_height(images_to_process, max_row_size)
 max_collumn_width = get_max_collumn_width(images_to_process, max_row_size)
 
