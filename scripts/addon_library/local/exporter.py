@@ -1,7 +1,7 @@
 bl_info = {
     "name": "Exporter",
     "author": "Simon Geoffriau",
-    "version": (2, 1, 3),
+    "version": (2, 1, 4),
     "blender": (2, 80, 0),
     "category": "Scene",
     "location": "3D viewport",
@@ -34,8 +34,7 @@ PR_ANN_0185_A (empty)
 
 
 TO DO     
-    5 . Multi select Add
-    6. if no Origin = 0,0,0
+    5 . Multi select Add    //done
 '''
 
 import bpy
@@ -89,16 +88,17 @@ class CUSTOM_OT_actions(bpy.types.Operator):
                 self.report({'INFO'}, info)
 
         if self.action == 'ADD':
-            if context.object and findProp(context.object) not in scn.custom.keys():
-                item = scn.custom.add()
-                item.name = findProp(context.object)
-                item.obj_type = context.object.type
-                item.obj_id = len(scn.custom)
-                scn.custom_index = len(scn.custom)-1
-                info = '"%s" added to list' % (item.name)
-                self.report({'INFO'}, info)
-            else:
-                self.report({'INFO'}, "Nothing selected in the Viewport or prop already in the list")
+            for o in context.selected_objects:
+                if o and findProp(o) not in scn.custom.keys():
+                    item = scn.custom.add()
+                    item.name = findProp(o)
+                    item.obj_type = o.type
+                    item.obj_id = len(scn.custom)
+                    scn.custom_index = len(scn.custom)-1
+                    info = '"%s" added to list' % (item.name)
+                    self.report({'INFO'}, info)
+                else:
+                    self.report({'INFO'}, "Nothing selected in the Viewport or prop already in the list")
         return {"FINISHED"}
 
 
