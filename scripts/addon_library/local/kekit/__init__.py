@@ -36,18 +36,19 @@ from . import _m_contexttools
 from . import _m_piemenu_ops
 from . import ke_cursormenu
 
-
 bl_info = {
     "name": "keKit",
     "author": "Kjell Emanuelsson",
     "category": "",
     "blender": (2, 80, 0),
-    "version": (2, 2, 4),
+    "version": (2, 2, 5),
     "location": "View3D > Sidebar",
     "warning": "",
     "description": "Extensive Script Collection",
     "doc_url": "https://ke-code.xyz/scripts/wiki.html",
 }
+
+kit_cat = ""
 
 modules = (
     _prefs,
@@ -74,6 +75,7 @@ modules = (
 
 def register():
     _prefs.kekit_version = bl_info['version']
+    _prefs.kit_cat = kit_cat
     for m in modules:
         m.register()
 

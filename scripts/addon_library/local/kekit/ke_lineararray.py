@@ -229,7 +229,8 @@ class KeLinearArray(bpy.types.Operator):
 
         # SETUP
         bpy.ops.wm.tool_set_by_id(name="builtin.select")
-        bpy.ops.object.transform_apply(location=False, rotation=False, scale=True)
+        if self.obj.library is None and self.obj.data.users == 1:
+            bpy.ops.object.transform_apply(location=False, rotation=False, scale=True)
 
         self.set_pos = self.obj.location.copy()
         self.tm = self.obj.matrix_world.copy()

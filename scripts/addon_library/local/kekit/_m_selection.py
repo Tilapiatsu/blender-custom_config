@@ -27,13 +27,15 @@ class UISelectionModule(Panel):
         col = layout.column(align=True)
 
         row = col.row(align=True)
-        row.operator("view3d.cursor_fit_selected_and_orient", text="Cursor Fit & Align")
-        split = row.row(align=True)
-        split.alignment = "RIGHT"
+        split = row.split(factor=0.78, align=True)
+        # subrow1 = split.row(align=True)
+        split.operator("view3d.cursor_fit_selected_and_orient", text="Cursor Fit & Align")
+        # subrow2 = split.row(align=True)
         if k.cursorfit:
             split.prop(k, "cursorfit", text="", icon="CHECKMARK", toggle=True)
         else:
             split.prop(k, "cursorfit", text="", icon_value=pcoll['kekit']['ke_uncheck'].icon_id, toggle=True)
+
         row = col.row(align=True)
         row.operator("view3d.ke_vp_step_rotate", text="StepRotate 90").rot = 90
         row.operator("view3d.ke_vp_step_rotate", text="StepRotate -90").rot = -90
@@ -312,14 +314,15 @@ class KeOriginToSelected(Operator):
         rot = cursor.rotation_quaternion.copy()
         loc = cursor.location.copy()
         ogmode = str(cursor.rotation_mode)
-
+        editmode = False if context.mode != "EDIT_MESH" else True
+        print(editmode)
         for area in context.screen.areas:
             if area.type == 'VIEW_3D':
                 context = context.copy()
                 context['area'] = area
                 context['region'] = area.regions[-1]
 
-            if context.mode != "EDIT_MESH":
+            if not editmode:
                 bpy.ops.object.origin_set(type='ORIGIN_GEOMETRY', center='MEDIAN')
             else:
                 bpy.ops.view3d.snap_cursor_to_center()
@@ -783,6 +786,7 @@ class KeSelectInvertLinked(Operator):
                 objmode = "OBJECT"
 
         if objmode == 'OBJECT':
+            inv_objects = []
             # BASE LIST
             if self.invert_type == "ALL":
                 inv_objects = [o for o in context.scene.objects]

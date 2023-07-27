@@ -1,5 +1,6 @@
 import bpy
 from bpy_types import Panel, Operator
+import addon_utils
 import bmesh
 from ._utils import vertloops, find_parents
 from . import ke_contextconnect
@@ -68,8 +69,7 @@ class KeContextBevel(Operator):
     @classmethod
     def poll(cls, context):
         return (context.object is not None and
-                context.object.type == 'MESH' and
-                context.object.data.is_editmode)
+                context.object.type == 'MESH' and context.object.data.is_editmode)
 
     def execute(self, context):
         k = context.preferences.addons[__package__].preferences
@@ -87,7 +87,6 @@ class KeContextBevel(Operator):
                 bpy.ops.mesh.bevel('INVOKE_DEFAULT', affect='EDGES')
         elif sel_mode[2]:
             bpy.ops.mesh.inset('INVOKE_DEFAULT', use_outset=False)
-
         return {'FINISHED'}
 
 

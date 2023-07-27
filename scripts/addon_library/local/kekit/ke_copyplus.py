@@ -139,7 +139,7 @@ class KeCopyPlus(bpy.types.Operator):
 
                 # BUFFER
                 bpy.ops.view3d.copybuffer()
-                if self.mode == "CUT":
+                if self.mode in {"CUT", "COPY"}:
                     bpy.ops.object.delete()
 
                 # RESTORE EDIT MODE

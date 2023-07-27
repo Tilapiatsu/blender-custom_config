@@ -98,6 +98,7 @@ def sel_check(self, context, sel_save_check=False):
                             verts.extend([v for v in e.vertices])
                 else:
                     verts = [v.index for v in obj.data.vertices if v.select]
+
                 sel_verts.append(verts)
 
     if sel_save_check:
@@ -115,7 +116,8 @@ def sel_check(self, context, sel_save_check=False):
     if sel_verts and not obj_precalc:
         for indices, obj in zip(sel_verts, sel_obj):
             obj.update_from_editmode()
-            self.vpos.extend([obj.matrix_world @ obj.data.vertices[v].co for v in indices])
+            new = [obj.matrix_world @ obj.data.vertices[v].co for v in indices]
+            self.vpos.extend(new)
 
     if not self.obj_mode and self.vpos:
         convert_stats = False
@@ -138,7 +140,6 @@ def sel_check(self, context, sel_save_check=False):
 
                 if self.vertmode == "Distance" and len(self.vert_history) > 1:
                     vl = self.vert_history
-
                     if len(vl) % 2 != 0:
                         exv = vl[-2]
                         vl.insert(-2, exv)
@@ -316,6 +317,8 @@ def draw_callback_px(self, context):
         blf.size(font_id, self.ui[2], 72)
         blf.position(font_id, hpos, vpos + self.ui[3] - hoff, 0)
         blf.draw(font_id, "[ Invalid Selection ] %s" % vmode)
+        if not self.sel_save_mode:
+            self.vert_history = []
     else:
         if self.sel_save_mode:
             blf.color(font_id, self.scol[0], self.scol[1], self.scol[2], self.scol[3])
@@ -536,6 +539,8 @@ class KeQuickMeasure(bpy.types.Operator):
     def modal(self, context, event):
         if event.type in {'ONE', 'TWO', 'THREE'} and event.value == 'RELEASE':
             if context.mode == "OBJECT":
+                if self.sel_save_mode:
+                    self.sel_save_mode = False
                 bpy.ops.object.editmode_toggle()
             if event.type == "ONE":
                 bpy.ops.mesh.select_mode(use_extend=False, use_expand=False, type='VERT')
@@ -549,6 +554,8 @@ class KeQuickMeasure(bpy.types.Operator):
             context.area.tag_redraw()
 
         elif event.type in {'FOUR', 'TAB'} and event.value == 'RELEASE':
+            if self.sel_save_mode:
+                self.sel_save_mode = False
             bpy.ops.object.editmode_toggle()
             sel_check(self, context)
             context.area.tag_redraw()
@@ -568,10 +575,10 @@ class KeQuickMeasure(bpy.types.Operator):
             sel_check(self, context)
 
         if context.area and self.sel_upd:
-            if self.auto_update:
-                sel_check(self, context)
-            elif context.mode == "OBJECT":
-                sel_check(self, context)
+            # if self.auto_update:
+            #     sel_check(self, context)
+            # elif context.mode == "OBJECT":
+            sel_check(self, context)
             if not self.sel_save_mode:
                 self.sel_upd = False
             context.area.tag_redraw()

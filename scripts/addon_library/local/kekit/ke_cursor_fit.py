@@ -273,6 +273,7 @@ class KeCursorFitAlign(bpy.types.Operator):
             # VERT (& GENERAL AVERAGE) MODE
             #
             if sel_mode[0] or vert_mode:
+
                 if sel_count == 2:
                     n = Vector(sel_verts[0].co - sel_verts[1].co).normalized()
                     v_n = [v.normal for v in sel_verts]

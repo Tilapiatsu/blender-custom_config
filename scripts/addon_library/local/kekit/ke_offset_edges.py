@@ -56,7 +56,7 @@ class KeOffsetEdges(bpy.types.Operator):
         name="Offset Only", description="Offset duplicate edges without creating faces", default=False)
 
     flip_normal: bpy.props.BoolProperty(
-        name="Flip Normals", description="Invert the normals of new faces", default=False)
+        name="Flip Face Normals", description="Invert the normals of new faces", default=False)
 
     auto_ortho: bpy.props.BoolProperty(
         name="Auto-Ortho",

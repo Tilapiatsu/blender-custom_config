@@ -2,7 +2,7 @@ import bpy
 from bpy.types import Panel, Operator
 from mathutils import Vector, Matrix
 from bpy_extras.view3d_utils import region_2d_to_location_3d
-from ._utils import average_vector, getset_transform, restore_transform
+from ._utils import average_vector, getset_transform, restore_transform, mouse_raycast
 
 
 #
@@ -37,11 +37,11 @@ class UITTModule(Panel):
         srow = scol.row(align=True)
         srow.operator('view3d.ke_tt', text="TT Dupe").mode = "DUPE"
         srow.operator('view3d.ke_tt', text="TT Cycle").mode = "TOGGLE_CYCLE"
+        scol.separator(factor=0.6)
         srow = scol.row(align=True)
-        srow.prop(k, "tt_handles", text="Handle")
-        srow.prop(k, "tt_select", text="SelTool")
+        srow.prop(k, "tt_handles", text="Giz")
+        srow.prop(k, "tt_select", text="Sel")
         srow.prop(k, "mam_scl", text="MAS")
-        scol.separator()
         if tt_link:
             scol.operator("view3d.ke_tt", text="Dupe Linked Toggle", icon="LINKED",
                           depress=tt_link).mode = "TOGGLE_DUPE"
@@ -57,9 +57,13 @@ class UITTModule(Panel):
         srow = scol.row(align=True)
         srow.label(text="Mouse Axis", icon="EMPTY_AXIS")
         srow = scol.row(align=True)
-        srow.operator('view3d.ke_mouse_axis_move', text="Move").mode = "MOVE"
-        srow.operator('view3d.ke_mouse_axis_move', text="Rotate").mode = "ROT"
-        srow.operator('view3d.ke_mouse_axis_move', text="Scale").mode = "SCL"
+        split = srow.split(factor=0.89, align=True)
+        subrow1 = split.row(align=True)
+        subrow1.operator('view3d.ke_mouse_axis_move', text="Move").mode = "MOVE"
+        subrow1.operator('view3d.ke_mouse_axis_move', text="Rotate").mode = "ROT"
+        subrow1.operator('view3d.ke_mouse_axis_move', text="Scale").mode = "SCL"
+        subrow2 = split.row(align=True)
+        subrow2.prop(k, "mam_scale_mode", text="C", toggle=True)
         srow = scol.row(align=True)
         srow.operator('view3d.ke_mouse_axis_move', text="Move Dupe").mode = "DUPE"
         srow.operator('view3d.ke_mouse_axis_move', text="Move Cursor").mode = "CURSOR"
@@ -74,9 +78,10 @@ class UITTModule(Panel):
         row.operator("VIEW3D_OT_ke_vptransform", text="VPGrab").transform = "TRANSLATE"
         row.operator("VIEW3D_OT_ke_vptransform", text="VPRotate").transform = "ROTATE"
         row.operator("VIEW3D_OT_ke_vptransform", text="VPResize").transform = "RESIZE"
-        scol.prop(k, "loc_got")
-        scol.prop(k, "rot_got")
-        scol.prop(k, "scl_got")
+        row = scol.row(align=True)
+        row.prop(k, "loc_got", text="GGoT")
+        row.prop(k, "rot_got", text="RGoT")
+        row.prop(k, "scl_got", text="SGoT")
         scol.prop(k, "vptransform", toggle=True)
 
 
@@ -453,7 +458,8 @@ class KeVPTransform(bpy.types.Operator):
 class KeMouseAxisMove(bpy.types.Operator):
     bl_idname = "view3d.ke_mouse_axis_move"
     bl_label = "Mouse Axis Move"
-    bl_description = "Runs Grab with Axis auto-locked based on your mouse movement (or viewport when rot)\n" \
+    bl_description = "Runs Grab/Rotate or Resize with Axis auto-locked based on your mouse movement\n" \
+                     "(or viewport when rotating)\n" \
                      "using -recalculated- orientation based on the selected Orientation type."
     bl_options = {'REGISTER'}
 
@@ -482,6 +488,7 @@ class KeMouseAxisMove(bpy.types.Operator):
     pe_falloff = "SMOOTH"
     is_editor2d = False
     sculpthack = False
+    scale_mode = False
 
     @classmethod
     def description(cls, context, properties):
@@ -504,6 +511,8 @@ class KeMouseAxisMove(bpy.types.Operator):
 
     def invoke(self, context, event):
         k = context.preferences.addons[__package__].preferences
+        self.scale_mode = k.mam_scale_mode
+
         if context.mode == "SCULPT":
             self.sculpthack = True
             bpy.ops.object.mode_set(mode="OBJECT")
@@ -558,6 +567,28 @@ class KeMouseAxisMove(bpy.types.Operator):
         else:
             if self.obj.type in self.em_types:
                 is_em = bool(self.obj.data.is_editmode)
+
+        if self.mode == "SCL" and self.scale_mode:
+            # Check if mouse is over obj to use unconstrained scale
+            if is_em:
+                bpy.ops.object.mode_set(mode="OBJECT")
+            hit_obj, hit_wloc, hit_normal, hit_face = mouse_raycast(context, self.mouse_pos, evaluated=True)
+            if is_em:
+                bpy.ops.object.mode_set(mode="EDIT")
+
+            if hit_obj is not None:
+                # Check if mouse is over SELECTED ELEMENTS to use unconstrained scale
+                if is_em and hit_obj.name == self.obj.name:
+                    sel_poly = [p.index for p in self.obj.data.polygons if p.select]
+                    if hit_face in sel_poly:
+                        bpy.ops.transform.resize('INVOKE_DEFAULT')
+                        return {'FINISHED'}
+                # Object mode selection check
+                if not is_em:
+                    c = [o.name for o in context.selected_objects]
+                    if hit_obj.name in c:
+                        bpy.ops.transform.resize('INVOKE_DEFAULT')
+                        return {'FINISHED'}
 
         # get rotation vectors
         og = getset_transform(setglobal=False)

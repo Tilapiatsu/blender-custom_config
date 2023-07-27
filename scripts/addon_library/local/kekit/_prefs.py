@@ -24,6 +24,7 @@ from ._m_tt import KeTTHeader
 from ._utils import refresh_ui
 
 kekit_version = (0, 0, 0)  # is set from __init__
+kit_cat = ""  # is set from __init__
 m_tooltip = "Toggles Module On/Off. Read Docs/Wiki for Module information"
 path = bpy.utils.user_resource('CONFIG')
 pcoll = {}
@@ -282,7 +283,7 @@ class UIKeKitMain(Panel):
         layout = self.layout
         layout.emboss = 'NONE'
         row = layout.row(align=False)
-        row.label(text="%s" % bpy.context.preferences.addons[__package__].preferences.version)
+        row.label(text="%s %s" % (bpy.context.preferences.addons[__package__].preferences.version, kit_cat))
         row.operator("wm.url_open", text="", icon="URL").url = "https://ke-code.xyz/scripts/kekit.html"
         # row.operator("wm.url_open", text="", icon="CURRENT_FILE").url = "https://ke-code.xyz/support/support.html"
         # row.separator(factor=0.1)
@@ -337,6 +338,9 @@ class KeKitAddonPreferences(AddonPreferences):
     outliner_extras: BoolProperty(name="Outliner Buttons", default=False,
                                   description="Adds extra buttons in Outliner header for:\n'Show Active', "
                                               "'Show One Level' and 'Hide One Level'\n Use 'Reload Addons' to apply")
+    material_extras: BoolProperty(name="Material Buttons", default=False,
+                                  description="Adds extra buttons in Material Properties Surface for:\n"
+                                              "'Sync Viewport Display'. Use 'Reload Addons' to apply")
     experimental: BoolProperty(name="Experimental", default=False,
                                description="Toggle properties/features that work - but has some quirks\n"
                                            "See keKit Wiki for details.")
@@ -717,6 +721,11 @@ class KeKitAddonPreferences(AddonPreferences):
     apply_scale: BoolProperty(name="A",
                                    description="Auto Apply Scale before operation. (Shared setting for multiple ops)",
                                    default=True)
+    # Mouse Axis Scale Mode
+    mam_scale_mode: BoolProperty(name="Scale Constrain",
+                                 description="When mouse is over selected object(s) use non-constrained scale.\n"
+                                             "Else, use axis constrain relative to mouse (default mouse axis move)",
+                                 default=False)
 
     # TT header icons prefs
     tt_icon_pos: EnumProperty(
@@ -741,14 +750,18 @@ class KeKitAddonPreferences(AddonPreferences):
         row.operator("kekit.prefs_reset", icon="LOOP_BACK")
 
         row = layout.row()
-        row.label(text="Show:")
+        split = row.split(factor=0.075)
+        row1 = split.row()
+        row1.label(text="Show:")
+        row = split.row(align=True)
         row.prop(self, "kcm", toggle=True)
         row.prop(self, "outliner_extras", toggle=True)
+        row.prop(self, "material_extras", toggle=True)
         row.prop(self, "experimental", toggle=True)
 
         if bpy.context.preferences.addons[__package__].preferences.m_tt:
             row = layout.row()
-            row.label(text="Viewport TT Icons:")
+            row.label(text="TT Icons:")
             row.prop(self, "tt_icon_pos", expand=True)
 
         box = layout.box()
