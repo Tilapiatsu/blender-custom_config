@@ -5,10 +5,13 @@ import math
 ### Parameters
 source_folder = r'D:\path'
 source_image_format = '.png'
-destination_resolution = (2048, 4096)
-background_color = (0,0,0,0)
+max_destination_resolution = (6000, 6000)
+background_color = (1, 1, 1, 1)
 use_contains = True
+save_jpeg = True
+save_png = True
 contains = 'filename'
+output_filename = contains
 max_row_size = 4
 crop_overscan = 0.02
 
@@ -84,6 +87,9 @@ def get_images_to_process(source_folder):
 				print(filename)
 				print(f'Skipping {i}')
 				continue
+		if filename == output_filename + '_composite':
+			print(f'Skipping {i}')
+			continue
 
 		image_path = os.path.join(source_folder, i)
 		with Image.open(image_path) as image:
@@ -123,6 +129,24 @@ def get_image_size(images_to_process, max_row_size, max_row_height, max_collumn_
 
 	return image_size
 
+
+def get_resized_dimensions(image_size, max_size):
+	new_width = image_size[0]
+	new_height = image_size[1]
+	if new_width > max_size[0]:
+		print(f'width_too_big = {image_size[0]} / {max_size[0]}')
+		new_width = max_size[0]
+		new_height = math.floor(image_size[1] * max_size[0] / image_size[0])
+
+	if new_height > max_size[1]:
+		print(f'height_too_big = {image_size[1]} / {max_size[1]}')
+		new_width = math.floor(image_size[0] * max_size[1] / image_size[1])
+		new_height = max_size[1]
+
+	print(f'resized_dimensions = ({new_width}, {new_height})')
+	return (new_width, new_height)
+	
+
 images_to_process = get_images_to_process(source_folder)
 
 for i in range(len(images_to_process)):
@@ -144,6 +168,9 @@ image_pathes = [i[0] for i in images_to_process]
 final_image = Image.new('RGBA', image_size, background_color)
 paste_position = (0, 0, 0, 0)
 new_row = 0
+
+if not len(image_pathes):
+	exit()
 
 for image_path in image_pathes:
 	if image_number != 0:
@@ -180,9 +207,21 @@ for image_path in image_pathes:
 
 	image_number += 1
 
-destination = os.path.join(source_folder, 'composite.png')
-print('saving Image : ', destination)
-final_image.save(destination)
+
+resized_dimensions = get_resized_dimensions(image_size, max_destination_resolution)
+if resized_dimensions[0] < image_size[0] and resized_dimensions[1] < image_size[1]:
+	print('Resizing image ...')
+	final_image = final_image.resize((resized_dimensions[0], resized_dimensions[1]), resample=Image.Resampling.LANCZOS)
+
+if save_png:
+	destination = os.path.join(source_folder, output_filename + '_composite.png')
+	print('saving Image : ', destination)
+	final_image.save(destination)
+if save_jpeg:
+	destination = os.path.join(source_folder, output_filename + '_composite.jpg')
+	print('saving Image : ', destination)
+	jpg = final_image.convert('RGB')
+	jpg.save(destination)
 
 print('Composite Done !!!')
 
