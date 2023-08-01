@@ -181,7 +181,6 @@ for image_path in image_pathes:
 	with Image.open(image_path) as image:
 		height_crop = max_row_height[math.floor(image_number / max_row_size)]
 		width_crop =  max_collumn_width[image_number % max_row_size]
-		# print(height_crop, width_crop)
 
 		cropped = image.crop((	width_crop[0], 
 								height_crop[0],
@@ -201,9 +200,7 @@ for image_path in image_pathes:
 							paste_position[3] ) # Bottom 3
 		
 		print('paste_position =', paste_position)
-		# croped.save(os.path.join(source_folder, f'croped.{image_number}.png'))
 		final_image.paste(cropped, paste_position)
-		# final_image.save(os.path.join(source_folder, 'composite.png'))
 
 	image_number += 1
 
