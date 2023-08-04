@@ -2500,7 +2500,7 @@
         ]
     },
     "ImagePaste": {
-        "is_enable": true,
+        "is_enable": false,
         "is_sync": false,
         "online_url": "https://yeetusblenditus.gumroad.com/l/ImPaste",
         "repository_url": null,
@@ -2510,7 +2510,7 @@
         "keymaps": false,
         "paths": [
             {
-                "is_enable": true,
+                "is_enable": false,
                 "local_subpath": null,
                 "destination_path": "#\\scripts\\addons\\ImagePaste"
             }
