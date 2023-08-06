@@ -389,12 +389,15 @@ class TILA_Config_Keymaps_Global(TILA_Config_Keymaps):
 		self.kmi_set_replace('sculpt.tila_multires_subdiv_level', 'NUMPAD_PLUS', 'PRESS', shift=True, properties={'subd': 1, 'mode': 'RELATIVE', 'force_subd': True, 'algorithm': 'CATMULL_CLARK'}, disable_double=True)
 		self.kmi_set_replace('sculpt.tila_multires_subdiv_level', 'NUMPAD_PLUS', 'PRESS', ctrl=True, properties={'subd': 1, 'mode': 'RELATIVE', 'force_subd': False, 'algorithm': 'LINEAR'}, disable_double=True)
 		self.kmi_set_replace('sculpt.tila_multires_subdiv_level', 'NUMPAD_PLUS', 'PRESS', ctrl=True, shift=True, properties={'subd': 1, 'mode': 'RELATIVE', 'force_subd': True, 'algorithm': 'LINEAR'}, disable_double=True)
+		self.kmi_set_replace('sculpt.tila_multires_subdiv_level', 'NUMPAD_PLUS', 'PRESS', ctrl=False, alt=True, shift=True, properties={'mode': 'MAX', 'force_subd': False}, disable_double=True)
 		self.kmi_set_replace('sculpt.tila_multires_delete_subdiv', 'NUMPAD_PLUS', 'PRESS', ctrl=True, alt=True, shift=True, properties={'delete_target': 'HIGHER'}, disable_double=True)
+		
 
 		self.kmi_set_replace('sculpt.tila_multires_subdiv_level', 'NUMPAD_MINUS', 'PRESS', properties={'subd': -1, 'mode': 'RELATIVE', 'force_subd': False, 'algorithm': 'CATMULL_CLARK'}, disable_double=True)
 		self.kmi_set_replace('sculpt.tila_multires_subdiv_level', 'NUMPAD_MINUS', 'PRESS', shift=True, properties={'subd': -1, 'mode': 'RELATIVE', 'force_subd': True, 'algorithm': 'CATMULL_CLARK'}, disable_double=True)
 		self.kmi_set_replace('sculpt.tila_multires_subdiv_level', 'NUMPAD_MINUS', 'PRESS', ctrl=True, properties={'subd': -1, 'mode': 'RELATIVE', 'force_subd': False, 'algorithm': 'LINEAR'}, disable_double=True)
 		self.kmi_set_replace('sculpt.tila_multires_subdiv_level', 'NUMPAD_MINUS', 'PRESS', ctrl=True, shift=True, properties={'subd': -1, 'mode': 'RELATIVE', 'force_subd': True, 'algorithm': 'LINEAR'}, disable_double=True)
+		self.kmi_set_replace('sculpt.tila_multires_subdiv_level', 'NUMPAD_MINUS', 'PRESS', ctrl=False, alt=True, shift=True, properties={'mode': 'MIN', 'force_subd': False}, disable_double=True)
 		self.kmi_set_replace('sculpt.tila_multires_delete_subdiv', 'NUMPAD_MINUS', 'PRESS', ctrl=True, alt=True, shift=True, properties={'delete_target': 'LOWER'}, disable_double=True)
 
 		self.kmi_set_replace('sculpt.tila_multires_rebuild_subdiv', 'NUMPAD_ASTERIX', 'PRESS', ctrl=True, alt=True, shift=True)
