@@ -122,7 +122,7 @@ def draw_hud_prop(self, name, value, offset=0, decimal=2, active=True, prop_offs
 class TILA_multires_subdiv_level(bpy.types.Operator):
 	bl_idname = "sculpt.tila_multires_subdiv_level"
 	bl_label = "TILA : Multires Set Subdivision Level"
-	bl_description = 'This Operator helps to contorl subdivision level from the Multires Modifier.'
+	bl_description = 'This Operator helps to control subdivision level from the Multires Modifier.'
 	bl_options = {'REGISTER', 'UNDO'}
 
 	subd : bpy.props.IntProperty(name='subd', default=0)
