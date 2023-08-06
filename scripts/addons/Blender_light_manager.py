@@ -1,1 +1,0 @@
-C:/Users/tilap/AppData/Roaming/Blender Foundation/Blender/3.6/scripts/addon_library/local/Blender_light_manager.py
