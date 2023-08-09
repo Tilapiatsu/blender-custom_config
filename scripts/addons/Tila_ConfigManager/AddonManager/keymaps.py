@@ -739,7 +739,8 @@ class TILA_Config_Keymaps_Global(TILA_Config_Keymaps):
 		# self.kmi_set_replace('wm.tool_set_by_id', 'F', 'PRESS', shift=True, properties={'name': 'mesh_tool.poly_quilt'}, disable_double=True)
 
 		self.kmi_set_replace('mesh.remove_doubles', 'M', 'PRESS', ctrl=True, shift=True, disable_double=True)
-		kmi = self.kmi_set_replace('mesh.separate_and_select', 'D', 'PRESS', ctrl=True, shift=True)
+		self.kmi_set_replace('mesh.separate_and_select', 'D', 'PRESS', ctrl=True, shift=True, properties={'by_loose_parts': False})
+		self.kmi_set_replace('mesh.separate_and_select', 'D', 'PRESS', ctrl=True, alt=True, shift=True, properties={'by_loose_parts': True})
 
 		self.tool_subdivision()
 
