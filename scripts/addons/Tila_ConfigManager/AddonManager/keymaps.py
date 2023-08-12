@@ -815,6 +815,7 @@ class TILA_Config_Keymaps_Global(TILA_Config_Keymaps):
 		
 		self.kmi_set_replace('object.move_to_collection', 'M', 'PRESS', ctrl=True, alt=True, disable_double=True)
 		self.kmi_set_replace('view3d.collection_manager', 'M', 'PRESS', shift=True, disable_double=True)
+		self.kmi_set_replace('object.apply_all_modifiers', 'PAGE_DOWN', 'PRESS', ctrl=True, alt=True, shift=True, disable_double=True)
 		
 		# Set collection visibility shortcut
 		self.collection_visibility('object.hide_collection')
