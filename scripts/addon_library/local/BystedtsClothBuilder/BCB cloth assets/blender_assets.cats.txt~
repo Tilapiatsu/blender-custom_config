@@ -1,0 +1,12 @@
+# This is an Asset Catalog Definition file for Blender.
+#
+# Empty lines and lines starting with `#` will be ignored.
+# The first non-ignored line should be the version indicator.
+# Other lines are of the format "UUID:catalog/path/for/assets:simple catalog name"
+
+VERSION 1
+
+76cb727f-b64f-47a5-933b-275c3ac5f455:Cloth examples:Cloth examples
+66d32ae9-b299-4bfd-8e28-91f0516ced87:Collision meshes:Collision meshes
+30ae54f0-ae28-4136-95c4-bee67b22cb3c:Garments:Garments
+1da7dff6-fb31-4915-9b8d-9c78788a7247:Geometry nodes:Geometry nodes

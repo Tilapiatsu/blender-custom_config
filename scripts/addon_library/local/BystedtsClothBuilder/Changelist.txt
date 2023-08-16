@@ -1,0 +1,13 @@
+Changelist
+
+======================================
+1.0.0
+- First release
+
+======================================
+1.0.1
+- Fixed bug with reshape multires.
+- Fixed vertex groups not connected in cloth modifiers on assets
+- Fixed bug where the asset browser did not show the correct 
+library the first time.
+

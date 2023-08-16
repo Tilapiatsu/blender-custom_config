@@ -2837,5 +2837,39 @@
                 "destination_path": "#\\scripts\\addons\\Exporter.py"
             }
         ]
+    },
+    "BystedtsClothBuilder": {
+        "is_enable": false,
+        "is_sync": false,
+        "online_url": "https://3dbystedt.gumroad.com/l/bystedtsClothBuilder",
+        "repository_url": null,
+        "branch": null,
+        "is_submodule": false,
+        "local_path": "#\\scripts\\addon_library\\local\\BystedtsClothBuilder\\",
+        "keymaps": false,
+        "paths": [
+            {
+                "is_enable": false,
+                "local_subpath": null,
+                "destination_path": "#\\scripts\\addons\\BystedtsClothBuilder"
+            }
+        ]
+    },
+    "safe_inset": {
+        "is_enable": false,
+        "is_sync": false,
+        "online_url": "https://kushiro.gumroad.com/l/iruis",
+        "repository_url": null,
+        "branch": null,
+        "is_submodule": false,
+        "local_path": "#\\scripts\\addon_library\\local\\safe_inset\\",
+        "keymaps": false,
+        "paths": [
+            {
+                "is_enable": false,
+                "local_subpath": null,
+                "destination_path": "#\\scripts\\addons\\safe_inset\\"
+            }
+        ]
     }
 }

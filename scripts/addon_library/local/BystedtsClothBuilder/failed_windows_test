@@ -1,0 +1,26 @@
+    
+    # Create new window
+    bpy.ops.wm.window_new()
+    win_count = len(context.window_manager.windows)
+    win = context.window_manager.windows[win_count-1]
+
+    # HOW DO I CHANGE WINDOW SIZE?
+    win.screen.areas[0].ui_type = 'ASSETS'
+    #bpy.context.space_data.params.asset_library_ref = 'BCB cloth assets'
+
+    #win.screen.areas[0].header_text_set("testing kewl shiiit")
+
+    # Change asset source
+    for area in win.screen.areas:
+        spaces = area.spaces
+        print("space count = " + str(len(spaces)))
+        for space in spaces:
+            print("space = " + str(space))
+
+            try:
+                space.params.asset_library_ref = asset_folder_name
+            except:
+                #print("space.params == " + str(space.params))
+                pass
+    '''
+    '''

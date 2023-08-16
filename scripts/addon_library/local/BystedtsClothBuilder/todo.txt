@@ -1,0 +1,133 @@
+
+NOTES:
+scene unit scale does not seem to affect simulation at all
+
+TODO:
+    Self collision
+
+    Off/on simulation & collision on specific objects
+
+    pinning group is not added!!!
+
+    Make sure collision is after cloth modifier
+
+    activate/deactivate cloth and collision
+
+    use event when changing sim quality to change all cloth sims
+
+    transforms_to_deltas_on_pin_objects funkar inte. Jag har gjort en TEST operator
+
+    Reset pins when apply base
+
+    Issues when removing pins on multiple objects
+
+    Allow adding cloth sim when locators are selected
+
+    Don't reset end frame for simulation when stopping. User needs to get the final shape of cloth. 
+    Make sure simulation/cache on cloth modifier gets same scene final frame when starting simulation  
+
+    Don't display pins in UI when mode is not edit mode
+
+    Prop for collision distance. Needs to apply to collision modifiers as well. 
+    Make this global per scene. Operator for guessing based on size?
+
+    Apply base and bake subdiv and multires mods
+    Make properties for this
+    If prop is off, turn off modifiers before applying shape    
+
+    Apply base should work with multires. Just apply
+    cloth modifier and add a copy with its setting
+
+    Add pin does not work
+
+    reset pins should work when pins are selected 
+    (need to solve context override in edit mode. Check blender chat #python 230604)
+
+    make get override function for object vs edit mode
+
+    set modifier settings when adding a new modifier 
+    (collision or cloth) so it gets correct settings
+
+    set modifier settings before running simulation 
+    (since default values of props might not have been changed)
+
+fix all functions that had override issues (still issue with reset_hook_modifiers )
+
+    shrink & expand for pillows etc
+    use pressure, shrinking factor
+
+    Option for triangulate modifier after cloth for
+    fixing wrinkles. Use longest diagonal
+
+
+    remove pin should not be availiable unless 
+    a pin is selected
+
+    reshape multires modifier (separate button?)
+
+    Use global settings or not (boolean options in UI)
+
+    fit selected to active (fit pants etc with shrink modifier)
+    
+    Make pillow example
+
+
+    collision distanse should be 0.005 per default
+
+    keep normals on all triangulate modifiers
+
+    restore also scale and rotation on pins when resetting simulation
+
+    add pin puts cloth mod at wrong place
+
+    override normals when adding a collider
+
+    test apply base with subdiv on + geo nodes.
+    I think the cloth mod ends up in wrong place
+
+    Pre made clothes with seams. Use asset browser  
+
+    Document all operators
+
+    bug when removing pins when hook modifier has no object
+
+    Asset browser is still weird the first time you open it
+    The problem might be that the asset library is not loaded 
+    into blender the first time
+
+    global collision quality
+
+    Add default vertex groups when adding a new cloth modifier
+
+    Fill pressure with weight
+
+    Add props for controlling shrinkage etc
+
+    turn off specific geo nodes when painting wheights?
+
+    subdivide in geo nodes (post uv etc)
+
+    uv map in geo nodes
+
+save as shapekey bakes subdivision modifier
+
+show asset browser crashes blender after reload scripts
+
+Remove test operator before releasing addon
+
+Set up low res collision object (join geo nodes, remesh and decimate)
+
+Geo nodes for making holes/tears
+
+Geo node for outputting multiple vtx groups to
+pinning group?
+
+change subdivision in ui. 
+Then always go to frame 1
+I could also recalculate bending etc to keep the behaviour of the cloth
+
+make popup for cloth modifier
+
+Append pre made cloth brushes from file
+Wait until brushes are supported as assets
+
