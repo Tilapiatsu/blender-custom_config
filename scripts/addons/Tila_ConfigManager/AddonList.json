@@ -2871,5 +2871,22 @@
                 "destination_path": "#\\scripts\\addons\\safe_inset\\"
             }
         ]
+    },
+    "padding_inset": {
+        "is_enable": false,
+        "is_sync": false,
+        "online_url": "https://kushiro.gumroad.com/l/ysrdcg",
+        "repository_url": null,
+        "branch": null,
+        "is_submodule": false,
+        "local_path": "#\\scripts\\addon_library\\padding_inset",
+        "keymaps": false,
+        "paths": [
+            {
+                "is_enable": false,
+                "local_subpath": null,
+                "destination_path": "#\\scripts\\addons\\padding_inset"
+            }
+        ]
     }
 }
