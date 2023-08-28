@@ -2539,7 +2539,7 @@
         "paths": [
             {
                 "is_enable": true,
-                "local_subpath": "Texel_Density_3_4_341",
+                "local_subpath": "Texel_Density_2023_1_Bl361",
                 "destination_path": "#\\scripts\\addons\\Texel_Density"
             }
         ]
@@ -2886,6 +2886,23 @@
                 "is_enable": false,
                 "local_subpath": null,
                 "destination_path": "#\\scripts\\addons\\padding_inset"
+            }
+        ]
+    },
+    "uvflow": {
+        "is_enable": false,
+        "is_sync": false,
+        "online_url": "https://blendermarket.com/products/uv-flow",
+        "repository_url": null,
+        "branch": null,
+        "is_submodule": false,
+        "local_path": "S:\\Mon Drive\\15_Blender\\00_INSTALLED_ADDONS\\uvflow",
+        "keymaps": false,
+        "paths": [
+            {
+                "is_enable": false,
+                "local_subpath": null,
+                "destination_path": "#\\scripts\\addons\\uvflow"
             }
         ]
     }
