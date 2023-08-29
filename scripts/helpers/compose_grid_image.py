@@ -208,7 +208,7 @@ for image_path in image_pathes:
 resized_dimensions = get_resized_dimensions(image_size, max_destination_resolution)
 if resized_dimensions[0] < image_size[0] and resized_dimensions[1] < image_size[1]:
 	print('Resizing image ...')
-	final_image = final_image.resize((resized_dimensions[0], resized_dimensions[1]), resample=Image.Resampling.LANCZOS)
+	final_image = final_image.resize((resized_dimensions[0], resized_dimensions[1]))
 
 if save_png:
 	destination = os.path.join(source_folder, output_filename + '_composite.png')
