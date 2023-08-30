@@ -614,7 +614,7 @@ class KeFitPrim(Operator):
 
                 v_1 = Vector(p1 - p2).normalized()
                 v_2 = Vector((0, 0, 1))
-                if abs(v_1.dot(v_2)) == 1 :
+                if round(abs(v_1.dot(v_2)), 4) == 1 :
                     v_2 = Vector((1, 0, 0))
                 n_v = v_1.cross(v_2).normalized()
                 u_v = n_v.cross(v_1).normalized()

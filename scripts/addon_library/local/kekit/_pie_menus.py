@@ -1183,32 +1183,27 @@ class KePieOrientPivot(Menu):
         pie.operator("view3d.ke_opc", text="%s" % name2, icon_value=pcoll['kekit']['ke_opc2'].icon_id).combo = "2"
 
         c = pie.column()
-        c.separator(factor=9)
+        c.separator(factor=13)
         cbox = c.box().column(align=True)
-        cbox.scale_y = 1.1
+        cbox.scale_y = 1.2
         cbox.ui_units_x = 6.25
         cbox.prop(context.scene.transform_orientation_slots[0], "type", expand=True)
 
         c = pie.column()
-        if extmode:
-            c.separator(factor=9)
-        else:
-            c.separator(factor=11.5)
+        c.separator(factor=12.5)
         cbox = c.box().column(align=True)
         cbox.ui_units_x = 6.5
-        if not extmode:
-            cbox.scale_y = 1.325
-        else:
-            cbox.scale_y = 1.1
+        cbox.scale_y = 1.3
         cbox.prop_enum(ct, "transform_pivot_point", value='BOUNDING_BOX_CENTER')
         cbox.prop_enum(ct, "transform_pivot_point", value='CURSOR')
         cbox.prop_enum(ct, "transform_pivot_point", value='INDIVIDUAL_ORIGINS')
         cbox.prop_enum(ct, "transform_pivot_point", value='MEDIAN_POINT')
         cbox.prop_enum(ct, "transform_pivot_point", value='ACTIVE_ELEMENT')
         if extmode:
+            cbox = c.box().column(align=True)
             cbox.prop(ct, "use_transform_pivot_point_align")
         else:
-            c.separator(factor=2)
+            c.separator(factor=3)
 
 
 class KePieMaterials(Menu):
@@ -1276,10 +1271,8 @@ class KePieMaterials(Menu):
             if limit == 0:
                 limit = "Inf."
             mat_count = len(bpy.data.materials)
-            if mat_count < 11:
-                col_count = 1
-            else:
-                col_count = ceil((mat_count / 11))
+            split_count = 32 if mat_count > 64 else 11
+            col_count = ceil((mat_count / split_count))
 
             # ASSIGN MATERIALS BOX - RIGHT -------------------------------------------------
             box = pie.box()
@@ -1292,8 +1285,9 @@ class KePieMaterials(Menu):
 
             # MATERIALS UTILS MAIN BOX - BOTTOM --------------------------------------------
             main = pie.column()
-            main.separator(factor=3)
+            main.separator(factor=4)
             box = main.box()
+            box.ui_units_x = 8
             col = box.column(align=True)
             # col.menu_contents("VIEW3D_MT_materialutilities_main")
             col.menu('VIEW3D_MT_materialutilities_select_by_material',
@@ -1320,6 +1314,7 @@ class KePieMaterials(Menu):
             op.link_to = mu_prefs.link_to
             op.affect = mu_prefs.link_to_affect
             col.separator()
+            col.prop(mu_prefs, "search_show_limit")
             col.menu('VIEW3D_MT_materialutilities_specials',
                      icon='SOLO_ON')
         else:
@@ -1512,10 +1507,17 @@ class KePieMisc(Menu):
         pie = layout.menu_pie()
         f_val = 0.1
 
-        looptools = False
-        c = addon_utils.check("mesh_looptools")
-        if c[0] and c[1]:
+        looptools, quickpipe, meshtools = False, False, False
+        looptools_c = addon_utils.check("mesh_looptools")
+        quickpipe_c = addon_utils.check("quick_pipe")
+        meshtools_c = addon_utils.check("mesh_tools")
+
+        if looptools_c[0] and looptools_c[1]:
             looptools = True
+        if quickpipe_c[0] and quickpipe_c[1]:
+            quickpipe = True
+        if meshtools_c[0] and meshtools_c[1]:
+            meshtools = True
 
         # LÄNSI JA ITÄ
         if looptools and mode != "OBJECT":
@@ -1527,10 +1529,10 @@ class KePieMisc(Menu):
         else:
             box = pie.box()
             box.enabled = False
-            box.label(text="Enable LoopTools Add-On")
+            box.label(text="LoopTools Add-On N/A")
             box = pie.box()
             box.enabled = False
-            box.label(text="Enable LoopTools Add-On")
+            box.label(text="LoopTools Add-On N/A")
 
         # ETELÄ (LAATIKKO)
         col = pie.column()
@@ -1593,22 +1595,66 @@ class KePieMisc(Menu):
 
         # POHJOINEN
         pie.operator('view3d.ke_nice_project', text="Nice Project")
+
         # LUODE
-        pie.operator('view3d.ke_quickmeasure').qm_start = "DEFAULT"
+        if mode != "OBJECT":
+            if quickpipe:
+                pie.operator('object.quickpipe')
+            else:
+                box = pie.box()
+                box.enabled = False
+                box.label(text="QuickPipe Add-On N/A")
+        else:
+            pie.operator('view3d.ke_quickmeasure').qm_start = "DEFAULT"
+
         # KOILINEN
         if mode != "OBJECT":
             pie.operator('mesh.ke_unbevel', text="Unbevel      ")
         else:
             pie.menu("VIEW3D_MT_object_convert")
+
         # LOUNAS
         pie.operator('view3d.ke_quick_origin_move')
+
         # KAAKKO
-        pie.operator('view3d.ke_ground', text="Ground/Center")
+        if mode != "OBJECT":
+            if meshtools:
+                row = pie.row()
+                row.separator(factor=1.5)
+                p = row.column()
+                p.separator(factor=20)
+                p.ui_units_x = 6
+                box = p.box()
+                col = box.column(align=True)
+                col.menu_contents('VIEW3D_MT_ke_edit_mesh')
+                # pie.menu('VIEW3D_MT_ke_edit_mesh')
+            else:
+                box = pie.box()
+                box.enabled = False
+                box.label(text="Edit Mesh Tools Add-On N/A")
+        else:
+            pie.operator('view3d.ke_zerolocal')
 
 
 #
 # Custom Category Pie Menus
 #
+class VIEW3D_MT_ke_edit_mesh(Menu):
+    bl_label = "MeshTools"
+
+    def draw(self, context):
+        layout = self.layout
+        layout.operator('mesh.offset_edges', text="Offset Edges")
+        layout.operator('mesh.vertex_chamfer', text="Vertex Chamfer")
+        layout.operator('mesh.fillet_plus', text="Fillet Edges")
+        layout.operator("mesh.face_inset_fillet", text="Face Inset Fillet")
+        layout.operator("object.mextrude", text="Multi Extrude")
+        layout.operator('mesh.split_solidify', text="Split Solidify")
+        layout.operator("mesh.random_vertices", text="Random Vertices")
+        layout.operator('object.mesh_edge_length_set', text="Set Edge Length")
+        layout.operator('mesh.edges_floor_plan', text="Edges Floor Plan")
+        layout.operator('mesh.edge_roundifier', text="Edge Roundify")
+
 
 class KePieShading(Menu):
     """Extended keKit Shading Pie Menu"""
@@ -1825,6 +1871,7 @@ classes = (
     KePieBookmarks,
     KePieShading,
     KePieMisc,
+    VIEW3D_MT_ke_edit_mesh,
     )
 
 addon_keymaps = []

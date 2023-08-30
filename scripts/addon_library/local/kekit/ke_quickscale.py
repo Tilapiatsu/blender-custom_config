@@ -14,12 +14,11 @@ def calc_bbox(vpos):
 
 
 def scale_mesh(new_dimensions, c_o):
-    bpy.ops.transform.resize(value=new_dimensions, orient_type='GLOBAL', orient_matrix_type='GLOBAL',
-                             center_override=c_o,
-                             constraint_axis=(False, False, False), mirror=False, use_proportional_edit=False,
-                             use_proportional_connected=False, use_proportional_projected=False, snap=False,
-                             gpencil_strokes=False, texture_space=False, remove_on_cancel=False,
-                             release_confirm=False)
+    bpy.ops.transform.resize(
+        value=new_dimensions, orient_type='GLOBAL', orient_matrix_type='GLOBAL', center_override=c_o,
+        constraint_axis=(False, False, False), mirror=False, use_proportional_edit=False,
+        use_proportional_connected=False, use_proportional_projected=False, snap=False,
+        gpencil_strokes=False, texture_space=False, remove_on_cancel=False,release_confirm=False)
 
 
 class KeQuickScale(bpy.types.Operator):
@@ -80,21 +79,21 @@ class KeQuickScale(bpy.types.Operator):
 
     def execute(self, context):
         user_axis = int(self.user_axis)
-        other_axis = [0 ,1 ,2]
+        other_axis = [0, 1, 2]
         other_axis.pop(user_axis)
 
         # Check selections
         sel_obj = [obj for obj in context.selected_objects if obj.type == "MESH"]
 
         if not sel_obj:
+            context.object.select_set(True)
             sel_obj = [context.object]
-            sel_obj.select_set(True)
 
         if len(sel_obj) == 1:
             self.each = "SEPARATE"
 
         tot_bb = []
-        bb = [0,0,0]
+        bb = [0, 0, 0]
 
         for obj in sel_obj:
 

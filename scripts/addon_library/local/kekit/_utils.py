@@ -867,11 +867,11 @@ def get_scene_unit(value, nearest=False):
             unit = 'm'
         elif value >= 1000:
             unit, value = 'km', value * 0.001
-        elif 1000 > value >= 1:
+        elif 999 > value >= 0.9999:
             unit = 'm'
-        elif 1 > value >= 0.01:
+        elif 1 > value >= 0.009999:
             unit, value = 'cm', value * 100
-        elif 0.01 > value >= 0.001:
+        elif 0.01 > value >= 0.0009999:
             unit, value = 'mm', value * 1000
         elif value < 0.001:
             unit, value = '\u00b5' + 'm', value * 1000000
@@ -920,12 +920,10 @@ def get_scene_unit(value, nearest=False):
     return unit, value
 
 
-def shift_list(array, s):
-    """Shifts the elements of a list to the left or right."""
-    s %= len(array)
+def shift_list(a, s):
+    s %= len(a)
     s *= -1
-    shifted_array = array[s:] + array[:s]
-    return shifted_array
+    return a[s:] + a[:s]
 
 
 def traverse_tree(o):

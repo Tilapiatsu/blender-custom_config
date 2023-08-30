@@ -132,10 +132,14 @@ class KeCopyPlus(bpy.types.Operator):
 
                 new_obj = [o for o in context.selected_objects if o.type == "MESH" and o not in sel_obj]
                 obj_to_cache = new_obj[0]
-
                 if len(new_obj) > 1:
                     context.view_layer.objects.active = obj_to_cache
                     bpy.ops.object.join()
+
+                # CLEAR PARENT
+                mtx = obj_to_cache.matrix_world.to_translation()
+                obj_to_cache.parent = None
+                obj_to_cache.matrix_world.translation = mtx
 
                 # BUFFER
                 bpy.ops.view3d.copybuffer()

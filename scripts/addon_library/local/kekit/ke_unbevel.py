@@ -1,7 +1,7 @@
 import bpy
 import bmesh
 from bpy.types import Operator
-from ._utils import vertloops, average_vector, flattened, get_face_islands
+from ._utils import vertloops, flattened, get_face_islands
 from mathutils.geometry import intersect_line_line
 from mathutils import Vector
 
@@ -9,13 +9,14 @@ from mathutils import Vector
 def get_endpoints(vert, exclude_faces, vec_check, se):
     vert_linkfaces = [i for i in vert.link_faces if i not in exclude_faces]
     ce = [None, -9]
-
-    all_ngons = all(len(f.verts) != 4 for f in vert_linkfaces)
-
-    if len(vert_linkfaces) == 1 and len(vert_linkfaces[0].verts) != 4 or all_ngons:
-        # unconnected tri, ngon cyl caps etc
-        if vert_linkfaces:
-            return vert.co, vert_linkfaces[0].calc_center_median_weighted(), True
+    ngon = False
+    # unconnected tri, ngon cyl caps etc
+    if vert_linkfaces:
+        ngon = all(len(f.verts) != 4 for f in vert_linkfaces)
+        if len(vert_linkfaces) == 1 and len(vert_linkfaces[0].verts) != 4:
+            ngon = True
+    if ngon:
+        return vert.co, vert_linkfaces[0].calc_center_median_weighted(), True
     else:
         for f in vert_linkfaces:
             edge_candidates = [e for e in f.edges if e not in se]
@@ -28,7 +29,6 @@ def get_endpoints(vert, exclude_faces, vec_check, se):
                             ce = [e, cv]
         if ce[0] is not None:
             return vert.co, ce[0].other_vert(vert).co, False
-
     return None, None, False
 
 
@@ -163,11 +163,18 @@ class KeUnbevel(Operator):
                 return {"CANCELLED"}
 
             if ngon1_2 and ngon3_4:
-                xpoint = average_vector(linepoints)
+                xpoint = linepoints[0].lerp(linepoints[-1], 0.5)
             elif ngon1_2:
                 xpoint = linepoints[-1]
-            else:
+            elif ngon3_4:
                 xpoint = linepoints[0]
+            else:
+                p1 = vc1.dot(Vector(vloop[0].co - linepoints[0]).normalized())
+                p2 = vc1.dot(Vector(vloop[0].co - linepoints[-1]).normalized())
+                if p1 > p2:
+                    xpoint = linepoints[0]
+                else:
+                    xpoint = linepoints[-1]
 
             if self.rebevel and self.keep_width:
                 merge_verts = vloop[1:-1]
@@ -217,18 +224,9 @@ class KeUnbevel(Operator):
 #
 # CLASS REGISTRATION
 #
-classes = (
-    KeUnbevel,
-)
-
-modules = ()
-
-
 def register():
-    for c in classes:
-        bpy.utils.register_class(c)
+    bpy.utils.register_class(KeUnbevel)
 
 
 def unregister():
-    for c in reversed(classes):
-        bpy.utils.unregister_class(c)
+    bpy.utils.unregister_class(KeUnbevel)

@@ -1,6 +1,6 @@
 import bpy
 from bpy.types import Panel, Operator
-from bpy.props import EnumProperty, StringProperty, FloatVectorProperty
+from bpy.props import EnumProperty, StringProperty, FloatVectorProperty, IntProperty
 from mathutils import Vector, Quaternion
 from ._prefs import pcoll
 
@@ -679,11 +679,11 @@ class UIopc1(Panel):
 
         col = layout.column(align=True)
         col.label(text="OPC1 Object Mode")
-        col.prop(k, 'opc1_obj_o', text="Orient")
-        col.prop(k, 'opc1_obj_p', text="Pivot")
+        col.prop(k, 'opc1_obj_o')
+        col.prop(k, 'opc1_obj_p')
         col.label(text="OPC1 Edit Mode")
-        col.prop(k, 'opc1_edit_o', text="Orientation")
-        col.prop(k, 'opc1_edit_p', text="Pivot")
+        col.prop(k, 'opc1_edit_o')
+        col.prop(k, 'opc1_edit_p')
 
 
 class UIopc2(Panel):
@@ -712,11 +712,11 @@ class UIopc2(Panel):
 
         col = layout.column(align=True)
         col.label(text="OPC2 Object Mode")
-        col.prop(k, 'opc2_obj_o', text="Orient")
-        col.prop(k, 'opc2_obj_p', text="Pivot")
+        col.prop(k, 'opc2_obj_o')
+        col.prop(k, 'opc2_obj_p')
         col.label(text="OPC2 Edit Mode")
-        col.prop(k, 'opc2_edit_o', text="Orientation")
-        col.prop(k, 'opc2_edit_p', text="Pivot")
+        col.prop(k, 'opc2_edit_o')
+        col.prop(k, 'opc2_edit_p')
 
 
 class UIopc3(Panel):
@@ -745,11 +745,11 @@ class UIopc3(Panel):
 
         col = layout.column(align=True)
         col.label(text="OPC3 Object Mode")
-        col.prop(k, 'opc3_obj_o', text="Orient")
-        col.prop(k, 'opc3_obj_p', text="Pivot")
+        col.prop(k, 'opc3_obj_o')
+        col.prop(k, 'opc3_obj_p')
         col.label(text="OPC3 Edit Mode")
-        col.prop(k, 'opc3_edit_o', text="Orientation")
-        col.prop(k, 'opc3_edit_p', text="Pivot")
+        col.prop(k, 'opc3_edit_o')
+        col.prop(k, 'opc3_edit_p')
 
 
 class UIopc4(Panel):
@@ -778,11 +778,11 @@ class UIopc4(Panel):
 
         col = layout.column(align=True)
         col.label(text="OPC4 Object Mode")
-        col.prop(k, 'opc4_obj_o', text="Orient")
-        col.prop(k, 'opc4_obj_p', text="Pivot")
+        col.prop(k, 'opc4_obj_o')
+        col.prop(k, 'opc4_obj_p')
         col.label(text="OPC4 Edit Mode")
-        col.prop(k, 'opc4_edit_o', text="Orientation")
-        col.prop(k, 'opc4_edit_p', text="Pivot")
+        col.prop(k, 'opc4_edit_o')
+        col.prop(k, 'opc4_edit_p')
 
 
 class UIopc5(Panel):
@@ -811,11 +811,11 @@ class UIopc5(Panel):
 
         col = layout.column(align=True)
         col.label(text="OPC5 Object Mode")
-        col.prop(k, 'opc5_obj_o', text="Orient")
-        col.prop(k, 'opc5_obj_p', text="Pivot")
+        col.prop(k, 'opc5_obj_o')
+        col.prop(k, 'opc5_obj_p')
         col.label(text="OPC5 Edit Mode")
-        col.prop(k, 'opc5_edit_o', text="Orientation")
-        col.prop(k, 'opc5_edit_p', text="Pivot")
+        col.prop(k, 'opc5_edit_o')
+        col.prop(k, 'opc5_edit_p')
 
 
 class UIopc6(Panel):
@@ -844,11 +844,11 @@ class UIopc6(Panel):
 
         col = layout.column(align=True)
         col.label(text="OPC6 Object Mode")
-        col.prop(k, 'opc6_obj_o', text="Orient")
-        col.prop(k, 'opc6_obj_p', text="Pivot")
+        col.prop(k, 'opc6_obj_o')
+        col.prop(k, 'opc6_obj_p')
         col.label(text="OPC6 Edit Mode")
-        col.prop(k, 'opc6_edit_o', text="Orientation")
-        col.prop(k, 'opc6_edit_p', text="Pivot")
+        col.prop(k, 'opc6_edit_o')
+        col.prop(k, 'opc6_edit_p')
 
 
 #
@@ -883,43 +883,43 @@ class KeOPC(Operator):
 
         if ctx_mode == "OBJECT":
             if self.combo == "1":
-                orientation = k.opc1_obj_o[1:]
-                pivot = k.opc1_obj_p[1:]
+                orientation = k.opc1_obj_o
+                pivot = k.opc1_obj_p
             elif self.combo == "2":
-                orientation = k.opc2_obj_o[1:]
-                pivot = k.opc2_obj_p[1:]
+                orientation = k.opc2_obj_o
+                pivot = k.opc2_obj_p
             elif self.combo == "3":
-                orientation = k.opc3_obj_o[1:]
-                pivot = k.opc3_obj_p[1:]
+                orientation = k.opc3_obj_o
+                pivot = k.opc3_obj_p
             elif self.combo == "4":
-                orientation = k.opc4_obj_o[1:]
-                pivot = k.opc4_obj_p[1:]
+                orientation = k.opc4_obj_o
+                pivot = k.opc4_obj_p
             elif self.combo == "5":
-                orientation = k.opc5_obj_o[1:]
-                pivot = k.opc5_obj_p[1:]
+                orientation = k.opc5_obj_o
+                pivot = k.opc5_obj_p
             elif self.combo == "6":
-                orientation = k.opc6_obj_o[1:]
-                pivot = k.opc6_obj_p[1:]
+                orientation = k.opc6_obj_o
+                pivot = k.opc6_obj_p
 
         else:
             if self.combo == "1":
-                orientation = k.opc1_edit_o[1:]
-                pivot = k.opc1_edit_p[1:]
+                orientation = k.opc1_edit_o
+                pivot = k.opc1_edit_p
             elif self.combo == "2":
-                orientation = k.opc2_edit_o[1:]
-                pivot = k.opc2_edit_p[1:]
+                orientation = k.opc2_edit_o
+                pivot = k.opc2_edit_p
             elif self.combo == "3":
-                orientation = k.opc3_edit_o[1:]
-                pivot = k.opc3_edit_p[1:]
+                orientation = k.opc3_edit_o
+                pivot = k.opc3_edit_p
             elif self.combo == "4":
-                orientation = k.opc4_edit_o[1:]
-                pivot = k.opc4_edit_p[1:]
+                orientation = k.opc4_edit_o
+                pivot = k.opc4_edit_p
             elif self.combo == "5":
-                orientation = k.opc5_edit_o[1:]
-                pivot = k.opc5_edit_p[1:]
+                orientation = k.opc5_edit_o
+                pivot = k.opc5_edit_p
             elif self.combo == "6":
-                orientation = k.opc6_edit_o[1:]
-                pivot = k.opc6_edit_p[1:]
+                orientation = k.opc6_edit_o
+                pivot = k.opc6_edit_p
 
         bpy.ops.transform.select_orientation(orientation=orientation)
         context.tool_settings.transform_pivot_point = pivot

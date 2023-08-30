@@ -391,94 +391,118 @@ class KeKitAddonPreferences(AddonPreferences):
     unrotator_rndz: BoolProperty(description="Randomize Z-axis rotation when duplicating", default=False)
     # Orientation & Pivot Combo 1
     opc1_obj_o: EnumProperty(
-        items=[("1GLOBAL", "Global", ""), ("2LOCAL", "Local", ""), ("3NORMAL", "Normal", ""), ("4GIMBAL", "Gimbal", ""),
-               ("5VIEW", "View", ""), ("6CURSOR", "Cursor", "")], name="Orientation", default="1GLOBAL")
+        items=[("GLOBAL", "Global", ""), ("LOCAL", "Local", ""), ("NORMAL", "Normal", ""), ("GIMBAL", "Gimbal", ""),
+               ("VIEW", "View", ""), ("CURSOR", "Cursor", ""), ("PARENT", "Parent", "")],
+        name="Orientation", default="GLOBAL")
     opc1_obj_p: EnumProperty(
-        items=[("1MEDIAN_POINT", "Median Point", ""), ("2BOUNDING_BOX_CENTER", "Bounding Box Center", ""),
-               ("3INDIVIDUAL_ORIGINS", "Individual Origins", ""), ("4CURSOR", "Cursor", ""),
-               ("5ACTIVE_ELEMENT", "Active Element", "")], name="Pivot Transform", default="1MEDIAN_POINT")
+        items=[("MEDIAN_POINT", "Median Point", ""), ("BOUNDING_BOX_CENTER", "Bounding Box Center", ""),
+               ("INDIVIDUAL_ORIGINS", "Individual Origins", ""), ("CURSOR", "Cursor", ""),
+               ("ACTIVE_ELEMENT", "Active Element", "")],
+        name="Pivot", default="MEDIAN_POINT")
     opc1_edit_o: EnumProperty(
-        items=[("1GLOBAL", "Global", ""), ("2LOCAL", "Local", ""), ("3NORMAL", "Normal", ""), ("4GIMBAL", "Gimbal", ""),
-               ("5VIEW", "View", ""), ("6CURSOR", "Cursor", "")], name="Orientation", default="1GLOBAL")
+        items=[("GLOBAL", "Global", ""), ("LOCAL", "Local", ""), ("NORMAL", "Normal", ""), ("GIMBAL", "Gimbal", ""),
+               ("VIEW", "View", ""), ("CURSOR", "Cursor", ""), ("PARENT", "Parent", "")],
+        name="Orientation", default="GLOBAL")
     opc1_edit_p: EnumProperty(
-        items=[("1MEDIAN_POINT", "Median Point", ""), ("2BOUNDING_BOX_CENTER", "Bounding Box Center", ""),
-               ("3INDIVIDUAL_ORIGINS", "Individual Origins", ""), ("4CURSOR", "Cursor", ""),
-               ("5ACTIVE_ELEMENT", "Active Element", "")], name="Pivot Transform", default="1MEDIAN_POINT")
+        items=[("MEDIAN_POINT", "Median Point", ""), ("BOUNDING_BOX_CENTER", "Bounding Box Center", ""),
+               ("INDIVIDUAL_ORIGINS", "Individual Origins", ""), ("CURSOR", "Cursor", ""),
+               ("ACTIVE_ELEMENT", "Active Element", "")],
+        name="Pivot", default="MEDIAN_POINT")
     # Orientation & Pivot Combo 2
     opc2_obj_o: EnumProperty(
-        items=[("1GLOBAL", "Global", ""), ("2LOCAL", "Local", ""), ("3NORMAL", "Normal", ""), ("4GIMBAL", "Gimbal", ""),
-               ("5VIEW", "View", ""), ("6CURSOR", "Cursor", "")], name="Orientation", default="2LOCAL")
+        items=[("GLOBAL", "Global", ""), ("LOCAL", "Local", ""), ("NORMAL", "Normal", ""), ("GIMBAL", "Gimbal", ""),
+               ("VIEW", "View", ""), ("CURSOR", "Cursor", ""), ("PARENT", "Parent", "")],
+        name="Orientation", default="LOCAL")
     opc2_obj_p: EnumProperty(
-        items=[("1MEDIAN_POINT", "Median Point", ""), ("2BOUNDING_BOX_CENTER", "Bounding Box Center", ""),
-               ("3INDIVIDUAL_ORIGINS", "Individual Origins", ""), ("4CURSOR", "Cursor", ""),
-               ("5ACTIVE_ELEMENT", "Active Element", "")], name="Pivot Transform", default="3INDIVIDUAL_ORIGINS")
+        items=[("MEDIAN_POINT", "Median Point", ""), ("BOUNDING_BOX_CENTER", "Bounding Box Center", ""),
+               ("INDIVIDUAL_ORIGINS", "Individual Origins", ""), ("CURSOR", "Cursor", ""),
+               ("ACTIVE_ELEMENT", "Active Element", "")],
+        name="Pivot", default="INDIVIDUAL_ORIGINS")
     opc2_edit_o: EnumProperty(
-        items=[("1GLOBAL", "Global", ""), ("2LOCAL", "Local", ""), ("3NORMAL", "Normal", ""), ("4GIMBAL", "Gimbal", ""),
-               ("5VIEW", "View", ""), ("6CURSOR", "Cursor", "")], name="Orientation", default="3NORMAL")
+        items=[("GLOBAL", "Global", ""), ("LOCAL", "Local", ""), ("NORMAL", "Normal", ""), ("GIMBAL", "Gimbal", ""),
+               ("VIEW", "View", ""), ("CURSOR", "Cursor", ""), ("PARENT", "Parent", "")],
+        name="Orientation", default="NORMAL")
     opc2_edit_p: EnumProperty(
-        items=[("1MEDIAN_POINT", "Median Point", ""), ("2BOUNDING_BOX_CENTER", "Bounding Box Center", ""),
-               ("3INDIVIDUAL_ORIGINS", "Individual Origins", ""), ("4CURSOR", "Cursor", ""),
-               ("5ACTIVE_ELEMENT", "Active Element", "")], name="Pivot Transform", default="5ACTIVE_ELEMENT")
+        items=[("MEDIAN_POINT", "Median Point", ""), ("BOUNDING_BOX_CENTER", "Bounding Box Center", ""),
+               ("INDIVIDUAL_ORIGINS", "Individual Origins", ""), ("CURSOR", "Cursor", ""),
+               ("ACTIVE_ELEMENT", "Active Element", "")],
+        name="Pivot", default="ACTIVE_ELEMENT")
     # Orientation & Pivot Combo 3
     opc3_obj_o: EnumProperty(
-        items=[("1GLOBAL", "Global", ""), ("2LOCAL", "Local", ""), ("3NORMAL", "Normal", ""), ("4GIMBAL", "Gimbal", ""),
-               ("5VIEW", "View", ""), ("6CURSOR", "Cursor", "")], name="Orientation", default="1GLOBAL")
+        items=[("GLOBAL", "Global", ""), ("LOCAL", "Local", ""), ("NORMAL", "Normal", ""), ("GIMBAL", "Gimbal", ""),
+               ("VIEW", "View", ""), ("CURSOR", "Cursor", ""), ("PARENT", "Parent", "")],
+        name="Orientation", default="GLOBAL")
     opc3_obj_p: EnumProperty(
-        items=[("1MEDIAN_POINT", "Median Point", ""), ("2BOUNDING_BOX_CENTER", "Bounding Box Center", ""),
-               ("3INDIVIDUAL_ORIGINS", "Individual Origins", ""), ("4CURSOR", "Cursor", ""),
-               ("5ACTIVE_ELEMENT", "Active Element", "")], name="Pivot Transform", default="3INDIVIDUAL_ORIGINS")
+        items=[("MEDIAN_POINT", "Median Point", ""), ("BOUNDING_BOX_CENTER", "Bounding Box Center", ""),
+               ("INDIVIDUAL_ORIGINS", "Individual Origins", ""), ("CURSOR", "Cursor", ""),
+               ("ACTIVE_ELEMENT", "Active Element", "")],
+        name="Pivot", default="INDIVIDUAL_ORIGINS")
     opc3_edit_o: EnumProperty(
-        items=[("1GLOBAL", "Global", ""), ("2LOCAL", "Local", ""), ("3NORMAL", "Normal", ""), ("4GIMBAL", "Gimbal", ""),
-               ("5VIEW", "View", ""), ("6CURSOR", "Cursor", "")], name="Orientation", default="2LOCAL")
+        items=[("GLOBAL", "Global", ""), ("LOCAL", "Local", ""), ("NORMAL", "Normal", ""), ("GIMBAL", "Gimbal", ""),
+               ("VIEW", "View", ""), ("CURSOR", "Cursor", ""), ("PARENT", "Parent", "")],
+        name="Orientation", default="LOCAL")
     opc3_edit_p: EnumProperty(
-        items=[("1MEDIAN_POINT", "Median Point", ""), ("2BOUNDING_BOX_CENTER", "Bounding Box Center", ""),
-               ("3INDIVIDUAL_ORIGINS", "Individual Origins", ""), ("4CURSOR", "Cursor", ""),
-               ("5ACTIVE_ELEMENT", "Active Element", "")], name="Pivot Transform", default="3INDIVIDUAL_ORIGINS")
+        items=[("MEDIAN_POINT", "Median Point", ""), ("BOUNDING_BOX_CENTER", "Bounding Box Center", ""),
+               ("INDIVIDUAL_ORIGINS", "Individual Origins", ""), ("CURSOR", "Cursor", ""),
+               ("ACTIVE_ELEMENT", "Active Element", "")],
+        name="Pivot", default="INDIVIDUAL_ORIGINS")
     # Orientation & Pivot Combo 4
     opc4_obj_o: EnumProperty(
-        items=[("1GLOBAL", "Global", ""), ("2LOCAL", "Local", ""), ("3NORMAL", "Normal", ""), ("4GIMBAL", "Gimbal", ""),
-               ("5VIEW", "View", ""), ("6CURSOR", "Cursor", "")], name="Orientation", default="6CURSOR")
+        items=[("GLOBAL", "Global", ""), ("LOCAL", "Local", ""), ("NORMAL", "Normal", ""), ("GIMBAL", "Gimbal", ""),
+               ("VIEW", "View", ""), ("CURSOR", "Cursor", ""), ("PARENT", "Parent", "")],
+        name="Orientation", default="CURSOR")
     opc4_obj_p: EnumProperty(
-        items=[("1MEDIAN_POINT", "Median Point", ""), ("2BOUNDING_BOX_CENTER", "Bounding Box Center", ""),
-               ("3INDIVIDUAL_ORIGINS", "Individual Origins", ""), ("4CURSOR", "Cursor", ""),
-               ("5ACTIVE_ELEMENT", "Active Element", "")], name="Pivot Transform", default="4CURSOR")
+        items=[("MEDIAN_POINT", "Median Point", ""), ("BOUNDING_BOX_CENTER", "Bounding Box Center", ""),
+               ("INDIVIDUAL_ORIGINS", "Individual Origins", ""), ("CURSOR", "Cursor", ""),
+               ("ACTIVE_ELEMENT", "Active Element", "")],
+        name="Pivot", default="CURSOR")
     opc4_edit_o: EnumProperty(
-        items=[("1GLOBAL", "Global", ""), ("2LOCAL", "Local", ""), ("3NORMAL", "Normal", ""), ("4GIMBAL", "Gimbal", ""),
-               ("5VIEW", "View", ""), ("6CURSOR", "Cursor", "")], name="Orientation", default="6CURSOR")
+        items=[("GLOBAL", "Global", ""), ("LOCAL", "Local", ""), ("NORMAL", "Normal", ""), ("GIMBAL", "Gimbal", ""),
+               ("VIEW", "View", ""), ("CURSOR", "Cursor", ""), ("PARENT", "Parent", "")],
+        name="Orientation", default="CURSOR")
     opc4_edit_p: EnumProperty(
-        items=[("1MEDIAN_POINT", "Median Point", ""), ("2BOUNDING_BOX_CENTER", "Bounding Box Center", ""),
-               ("3INDIVIDUAL_ORIGINS", "Individual Origins", ""), ("4CURSOR", "Cursor", ""),
-               ("5ACTIVE_ELEMENT", "Active Element", "")], name="Pivot Transform", default="4CURSOR")
+        items=[("MEDIAN_POINT", "Median Point", ""), ("BOUNDING_BOX_CENTER", "Bounding Box Center", ""),
+               ("INDIVIDUAL_ORIGINS", "Individual Origins", ""), ("CURSOR", "Cursor", ""),
+               ("ACTIVE_ELEMENT", "Active Element", "")],
+        name="Pivot", default="CURSOR")
     # Orientation & Pivot Combo 5
     opc5_obj_o: EnumProperty(
-        items=[("1GLOBAL", "Global", ""), ("2LOCAL", "Local", ""), ("3NORMAL", "Normal", ""), ("4GIMBAL", "Gimbal", ""),
-               ("5VIEW", "View", ""), ("6CURSOR", "Cursor", "")], name="Orientation", default="1GLOBAL")
+        items=[("GLOBAL", "Global", ""), ("LOCAL", "Local", ""), ("NORMAL", "Normal", ""), ("GIMBAL", "Gimbal", ""),
+               ("VIEW", "View", ""), ("CURSOR", "Cursor", ""), ("PARENT", "Parent", "")],
+        name="Orientation", default="GLOBAL")
     opc5_obj_p: EnumProperty(
-        items=[("1MEDIAN_POINT", "Median Point", ""), ("2BOUNDING_BOX_CENTER", "Bounding Box Center", ""),
-               ("3INDIVIDUAL_ORIGINS", "Individual Origins", ""), ("4CURSOR", "Cursor", ""),
-               ("5ACTIVE_ELEMENT", "Active Element", "")], name="Pivot Transform", default="4CURSOR")
+        items=[("MEDIAN_POINT", "Median Point", ""), ("BOUNDING_BOX_CENTER", "Bounding Box Center", ""),
+               ("INDIVIDUAL_ORIGINS", "Individual Origins", ""), ("CURSOR", "Cursor", ""),
+               ("ACTIVE_ELEMENT", "Active Element", "")],
+        name="Pivot", default="CURSOR")
     opc5_edit_o: EnumProperty(
-        items=[("1GLOBAL", "Global", ""), ("2LOCAL", "Local", ""), ("3NORMAL", "Normal", ""), ("4GIMBAL", "Gimbal", ""),
-               ("5VIEW", "View", ""), ("6CURSOR", "Cursor", "")], name="Orientation", default="1GLOBAL")
+        items=[("GLOBAL", "Global", ""), ("LOCAL", "Local", ""), ("NORMAL", "Normal", ""), ("GIMBAL", "Gimbal", ""),
+               ("VIEW", "View", ""), ("CURSOR", "Cursor", ""), ("PARENT", "Parent", "")],
+        name="Orientation", default="GLOBAL")
     opc5_edit_p: EnumProperty(
-        items=[("1MEDIAN_POINT", "Median Point", ""), ("2BOUNDING_BOX_CENTER", "Bounding Box Center", ""),
-               ("3INDIVIDUAL_ORIGINS", "Individual Origins", ""), ("4CURSOR", "Cursor", ""),
-               ("5ACTIVE_ELEMENT", "Active Element", "")], name="Pivot Transform", default="5ACTIVE_ELEMENT")
+        items=[("MEDIAN_POINT", "Median Point", ""), ("BOUNDING_BOX_CENTER", "Bounding Box Center", ""),
+               ("INDIVIDUAL_ORIGINS", "Individual Origins", ""), ("CURSOR", "Cursor", ""),
+               ("ACTIVE_ELEMENT", "Active Element", "")],
+        name="Pivot", default="ACTIVE_ELEMENT")
     # Orientation & Pivot Combo 6
     opc6_obj_o: EnumProperty(
-        items=[("1GLOBAL", "Global", ""), ("2LOCAL", "Local", ""), ("3NORMAL", "Normal", ""), ("4GIMBAL", "Gimbal", ""),
-               ("5VIEW", "View", ""), ("6CURSOR", "Cursor", "")], name="Orientation", default="5VIEW")
+        items=[("GLOBAL", "Global", ""), ("LOCAL", "Local", ""), ("NORMAL", "Normal", ""), ("GIMBAL", "Gimbal", ""),
+               ("VIEW", "View", ""), ("CURSOR", "Cursor", ""), ("PARENT", "Parent", "")],
+        name="Orientation", default="VIEW")
     opc6_obj_p: EnumProperty(
-        items=[("1MEDIAN_POINT", "Median Point", ""), ("2BOUNDING_BOX_CENTER", "Bounding Box Center", ""),
-               ("3INDIVIDUAL_ORIGINS", "Individual Origins", ""), ("4CURSOR", "Cursor", ""),
-               ("5ACTIVE_ELEMENT", "Active Element", "")], name="Pivot Transform", default="1MEDIAN_POINT")
+        items=[("MEDIAN_POINT", "Median Point", ""), ("BOUNDING_BOX_CENTER", "Bounding Box Center", ""),
+               ("INDIVIDUAL_ORIGINS", "Individual Origins", ""), ("CURSOR", "Cursor", ""),
+               ("ACTIVE_ELEMENT", "Active Element", "")],
+        name="Pivot", default="MEDIAN_POINT")
     opc6_edit_o: EnumProperty(
-        items=[("1GLOBAL", "Global", ""), ("2LOCAL", "Local", ""), ("3NORMAL", "Normal", ""), ("4GIMBAL", "Gimbal", ""),
-               ("5VIEW", "View", ""), ("6CURSOR", "Cursor", "")], name="Orientation", default="5VIEW")
+        items=[("GLOBAL", "Global", ""), ("LOCAL", "Local", ""), ("NORMAL", "Normal", ""), ("GIMBAL", "Gimbal", ""),
+               ("VIEW", "View", ""), ("CURSOR", "Cursor", ""), ("PARENT", "Parent", "")],
+        name="Orientation", default="VIEW")
     opc6_edit_p: EnumProperty(
-        items=[("1MEDIAN_POINT", "Median Point", ""), ("2BOUNDING_BOX_CENTER", "Bounding Box Center", ""),
-               ("3INDIVIDUAL_ORIGINS", "Individual Origins", ""), ("4CURSOR", "Cursor", ""),
-               ("5ACTIVE_ELEMENT", "Active Element", "")], name="Pivot Transform", default="5ACTIVE_ELEMENT")
+        items=[("MEDIAN_POINT", "Median Point", ""), ("BOUNDING_BOX_CENTER", "Bounding Box Center", ""),
+               ("INDIVIDUAL_ORIGINS", "Individual Origins", ""), ("CURSOR", "Cursor", ""),
+               ("ACTIVE_ELEMENT", "Active Element", "")],
+        name="Pivot", default="ACTIVE_ELEMENT")
     # OPC naming
     opc1_name: StringProperty(description="Name OPC1", default="OPC1")
     opc2_name: StringProperty(description="Name OPC2", default="OPC2")

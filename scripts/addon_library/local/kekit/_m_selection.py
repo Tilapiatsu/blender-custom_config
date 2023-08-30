@@ -415,6 +415,9 @@ class KeAlignObjectToActive(Operator):
             elif self.align == "BOTH":
                 o.matrix_world = target_obj.matrix_world
 
+        target_obj.select_set(False)
+        context.view_layer.objects.active = sel_obj[0]
+
         return {"FINISHED"}
 
 

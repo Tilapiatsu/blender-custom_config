@@ -119,7 +119,6 @@ class KeContextExtrude(Operator):
                     bpy.ops.mesh.extrude_vertices_move('INVOKE_DEFAULT', True)
 
             elif sel_mode[1]:
-                # bpy.ops.mesh.ke_offset_edges('EXEC_DEFAULT', True)  # todo: make Modal to completely replace built-in
                 if use_tt:
                     am = bool(context.scene.tool_settings.use_mesh_automerge)
                     if am:

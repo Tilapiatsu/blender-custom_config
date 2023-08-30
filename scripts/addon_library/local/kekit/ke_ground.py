@@ -66,7 +66,7 @@ class KeGround(Operator):
         name="Ground (Z-Pos)", description="Override for custom position on the Global Z axis", default=0)
 
     raycast: bpy.props.BoolProperty(
-        name="Raycast", description="Stops on obstructions on the way down (Nothing: Z Pos)", default=False)
+        name="Raycast", description="Stops on obstructions on the way down (Nothing: Z Pos)", default=True)
 
     ignore_selected: bpy.props.BoolProperty(
         name="Ignore Selected", description="Ignore selected Objects when raycasting", default=False)
@@ -292,9 +292,9 @@ class KeGround(Operator):
                         cos = [o.matrix_world @ Vector(co) for co in o.bound_box]
                         zs = [p[2] for p in cos]
                     else:
-                        cos = [o.location]
-                        zs = [cos[0][2], cos[0][2]]
-
+                        cos = [og.location] * 8
+                        zs = [p[2] for p in cos]
+                        zs.sort()
                     # Process
                     if self.raycast:
                         zs = self.bbcast(points=cos, zs=zs)

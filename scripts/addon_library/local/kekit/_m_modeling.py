@@ -3,7 +3,7 @@ import bmesh
 from math import sqrt
 from bpy.types import Panel, Operator
 from . import ke_solo_cutter, ke_merge_to_mouse, ke_ground, ke_merge_near_selected, ke_unbevel, ke_zeroscale, \
-    ke_quickscale, ke_fit2grid, ke_collision, ke_nice_project, ke_offset_edges
+    ke_quickscale, ke_fit2grid, ke_collision, ke_nice_project
 from ._prefs import pcoll
 
 
@@ -56,7 +56,6 @@ class UIModelingModule(Panel):
         col.operator('view3d.ke_fit2grid')
         col.operator('mesh.ke_zeroscale', text="ZeroScale to Cursor").orient_type = "CURSOR"
         col.operator('mesh.ke_facematch')
-        col.operator('mesh.ke_offset_edges')
 
         row = col.row(align=True)
         row.scale_x = 0.85
@@ -305,7 +304,6 @@ modules = (
     ke_fit2grid,
     ke_collision,
     ke_nice_project,
-    ke_offset_edges,
 )
 
 
