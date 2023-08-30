@@ -1585,6 +1585,9 @@ class TILA_Config_Keymaps_tila_polyquilt(TILA_Config_Keymaps_PolyQuilt):
 
 	def __init__(self):
 		super(TILA_Config_Keymaps_tila_polyquilt, self).__init__()
+	
+	def set_keymaps(self):
+		super(TILA_Config_Keymaps_tila_polyquilt, self).set_keymaps()
 
 class TILA_Config_Keymaps_MACHIN3tools(TILA_Config_Keymaps):
 	addon_name = "MACHIN3tools"
