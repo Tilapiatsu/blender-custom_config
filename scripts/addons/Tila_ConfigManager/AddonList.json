@@ -2211,8 +2211,8 @@
         "paths": null
     },
     "PolyQuilt": {
-        "is_enable": true,
-        "is_sync": true,
+        "is_enable": false,
+        "is_sync": false,
         "online_url": null,
         "repository_url": "https://github.com/sakana3/PolyQuilt.git",
         "branch": "Future",
@@ -2221,7 +2221,7 @@
         "keymaps": true,
         "paths": [
             {
-                "is_enable": true,
+                "is_enable": false,
                 "local_subpath": "addons\\PolyQuilt",
                 "destination_path": "#\\scripts\\addons\\PolyQuilt"
             }
