@@ -62,6 +62,7 @@ class SNA_OT_Modal_Operator_5F468(bpy.types.Operator):
     cursor = "CROSSHAIR"
     _handle = None
     _event = {}
+    unselected = True
 
     @classmethod
     def poll(cls, context):
@@ -92,16 +93,13 @@ class SNA_OT_Modal_Operator_5F468(bpy.types.Operator):
         context.window.cursor_set("DEFAULT")
         bpy.context.scene.tool_settings.use_proportional_edit = False
         bpy.ops.object.mode_set('INVOKE_DEFAULT', mode='OBJECT')
-        bpy.ops.object.origin_set('INVOKE_DEFAULT', type='ORIGIN_GEOMETRY')
         if handler_FD27A:
             bpy.types.SpaceView3D.draw_handler_remove(handler_FD27A[0], 'WINDOW')
             handler_FD27A.pop(0)
             for a in bpy.context.screen.areas: a.tag_redraw()
-        bpy.ops.object.mode_set('INVOKE_DEFAULT', mode='OBJECT')
-        bpy.ops.object.shape_key_remove(all=True, apply_mix=True)
-        for i_B6383 in range(len(bpy.context.active_object.vertex_groups)-1,-1,-1):
-            bpy.context.active_object.vertex_groups.remove(group=bpy.context.active_object.vertex_groups[i_B6383], )
+
         bpy.ops.object.mode_set('INVOKE_DEFAULT', mode='EDIT')
+        bpy.ops.mesh.reveal(select=False)
         for area in context.screen.areas:
             area.tag_redraw()
         return {"FINISHED"}
@@ -148,30 +146,106 @@ class SNA_OT_Modal_Operator_5F468(bpy.types.Operator):
                 out_coords.append(location)
             handler_FD27A.append(bpy.types.SpaceView3D.draw_handler_add(sna_function_execute_F1DF2, (out_coords, ), 'WINDOW', 'POST_VIEW'))
             for a in bpy.context.screen.areas: a.tag_redraw()
-            bpy.ops.object.vertex_group_add('INVOKE_DEFAULT', )
-            bpy.ops.object.vertex_group_assign('INVOKE_DEFAULT', )
-            bpy.ops.object.mode_set('INVOKE_DEFAULT', mode='OBJECT')
-            bpy.ops.object.shape_key_add('INVOKE_DEFAULT', )
-            bpy.ops.object.shape_key_add('INVOKE_DEFAULT', )
-            bpy.context.active_object.active_shape_key.vertex_group = bpy.context.active_object.vertex_groups['Group'].name
-            bpy.context.active_object.active_shape_key.value = 1.0
-            bpy.context.view_layer.objects.active.use_shape_key_edit_mode = True
-            bpy.ops.object.mode_set('INVOKE_DEFAULT', mode='EDIT')
-            bpy.ops.mesh.select_all('INVOKE_DEFAULT', action='DESELECT')
             if bpy.context.scene.sna_auto_enabledisable_falloff:
                 bpy.context.scene.tool_settings.use_proportional_edit = True
+            self.hide_only_verts()
+            bpy.ops.mesh.select_all('INVOKE_DEFAULT', action='DESELECT')
             context.window_manager.modal_handler_add(self)
             _5F468_running = True
             return {'RUNNING_MODAL'}
+        
+    def hide_only_verts(self):
+        act_obj = bpy.context.object
+        old_mode = act_obj.mode
 
+        bpy.ops.object.mode_set(mode="OBJECT")
+
+        sel_l = bpy.context.selected_objects
+        if not act_obj in sel_l:
+            sel_l += act_obj
+
+        for obj in sel_l:
+            me = obj.data
+            if not obj.type == act_obj.type: # 同じオブジェクトタイプのみ
+                continue
+
+            # メッシュ
+            if obj.type == "MESH":
+                for vert in me.vertices:
+                    if self.unselected:
+                        if not vert.select:
+                            vert.hide = True
+                    else:
+                        if vert.select:
+                            vert.hide = True
+
+            # カーブ
+            elif obj.type == "CURVE":
+                for sp in me.splines:
+                    if sp.type == "BEZIER":
+                        for pt in sp.bezier_points:
+                            if self.unselected:
+                                if not pt.select_control_point:
+                                    pt.hide = True
+                            else:
+                                if pt.select_control_point:
+                                    pt.hide = True
+                    else:
+                        for pt in sp.points:
+                            if self.unselected:
+                                if not pt.select:
+                                    pt.hide = True
+                            else:
+                                if pt.select:
+                                    pt.hide = True
+
+            # サーフェス
+            elif obj.type == "SURFACE":
+                for sp in me.splines:
+                    for pt in sp.points:
+                        if pt.select:
+                            pt.hide = True
+
+
+        bpy.ops.object.mode_set(mode=old_mode)
+
+vs_uni = '''
+    uniform mat4 ModelViewProjectionMatrix;
+    uniform float offset;
+    in vec3 pos;
+
+    vec4 project = ModelViewProjectionMatrix * vec4(pos, 1.0);
+    vec4 vecOffset = vec4(0.0,0.0,offset,0.0);
+
+    void main() {
+        gl_Position = project + vecOffset;
+    }
+'''
+
+fs_uni = '''
+    uniform vec4 color;
+    out vec4 fragColor;
+
+    void main()
+    {
+        fragColor = vec4(color.xyz, color.w);
+    }
+
+'''
+
+shader_uni = gpu.types.GPUShader(vs_uni, fs_uni)
 
 def sna_function_execute_F1DF2(Input):
     coords = tuple(Input)
-    shader = gpu.shader.from_builtin('3D_UNIFORM_COLOR')
+    # shader = gpu.shader.from_builtin('3D_UNIFORM_COLOR')
+    shader = shader_uni
     batch = gpu_extras.batch.batch_for_shader(shader, 'POINTS', {"pos": coords})
     shader.bind()
-    shader.uniform_float("color", (1.0, 0.0, 0.0005912857595831156, 0.4283650517463684))
-    gpu.state.point_size_set(18.43000030517578)
+    shader.uniform_float("color", (1.0, 0.0, 0.0, 0.43))
+    retopo_offset = bpy.context.space_data.overlay.retopology_offset * bpy.context.space_data.overlay.show_retopology 
+
+    shader.uniform_float("offset", -0.001 - retopo_offset/10)
+    gpu.state.point_size_set(5.0)
     gpu.state.depth_test_set('LESS')
     gpu.state.depth_mask_set(True)
     gpu.state.blend_set('ALPHA')
