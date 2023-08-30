@@ -2905,5 +2905,22 @@
                 "destination_path": "#\\scripts\\addons\\uvflow"
             }
         ]
+    },
+    "tila_polyquilt": {
+        "is_enable": true,
+        "is_sync": true,
+        "online_url": null,
+        "repository_url": "https://github.com/Tilapiatsu/PolyQuilt.git",
+        "branch": null,
+        "is_submodule": true,
+        "local_path": "#\\scripts\\addon_library\\GIT_Submodules\\tila_polyquilt",
+        "keymaps": true,
+        "paths": [
+            {
+                "is_enable": true,
+                "local_subpath": "addons\\PolyQuilt",
+                "destination_path": "#\\scripts\\addons\\tila_polyquilt"
+            }
+        ]
     }
 }

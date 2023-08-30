@@ -550,7 +550,7 @@ class TILA_Config_Keymaps_Global(TILA_Config_Keymaps):
 		# Polysource
 		# self.kmi_set_active(enable=False, idname='wm.call_menu_pie', type=self.k_menu, value='PRESS', properties={'name': 'PS_MT_tk_menu'})
 
-        ##### View3D Walk Modal
+		##### View3D Walk Modal
 		self.kmi_init(name='View3D Walk Modal', space_type='VIEW_3D', region_type='WINDOW', modal=True)
 		self.kmi_set_active(False, propvalue='FORWARD')
 		self.kmi_set_active(False, propvalue='FORWARD_STOP')
@@ -1579,6 +1579,12 @@ class TILA_Config_Keymaps_PolyQuilt(TILA_Config_Keymaps):
 			self.kmi_set_replace('mesh.poly_quilt', self.k_manip, 'PRESS', ctrl=True, alt=True, shift=True, properties={'tool_mode': 'DELETE'}, disable_double=True)
 
 		self.print_status(f"Assignment of {self.addon_name} complete", start=False)
+
+class TILA_Config_Keymaps_tila_polyquilt(TILA_Config_Keymaps_PolyQuilt):
+	addon_name = "tila_polyquilt"
+
+	def __init__(self):
+		super(TILA_Config_Keymaps_tila_polyquilt, self).__init__()
 
 class TILA_Config_Keymaps_MACHIN3tools(TILA_Config_Keymaps):
 	addon_name = "MACHIN3tools"
