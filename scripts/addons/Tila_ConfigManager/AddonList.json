@@ -2911,7 +2911,7 @@
         "is_sync": true,
         "online_url": null,
         "repository_url": "https://github.com/Tilapiatsu/blender-Universal_Multi_Importer.git",
-        "branch": "main",
+        "branch": "develop",
         "is_submodule": true,
         "local_path": "#\\scripts\\addon_library\\GIT_Submodules\\tila_universal_multi_importer",
         "keymaps": false,
