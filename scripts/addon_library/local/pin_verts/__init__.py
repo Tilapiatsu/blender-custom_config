@@ -57,7 +57,7 @@ def find_user_keyconfig(key):
 
 _5F468_running = False
 class SNA_OT_Modal_Operator_5F468(bpy.types.Operator):
-    bl_idname = "sna.modal_operator_5f468"
+    bl_idname = "mesh.pin_unselected"
     bl_label = "Modal Operator"
     bl_description = ""
     bl_options = {"REGISTER", "UNDO"}
