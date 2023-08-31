@@ -391,7 +391,7 @@
         "repository_url": "https://github.com/CGCookie/retopoflow.git",
         "branch": null,
         "is_submodule": false,
-        "local_path": "#\\scripts\\addon_library\\local\\RetopoFlow",
+        "local_path": "#\\scripts\\addon_library\\GIT_Clones\\RetopoFlow",
         "keymaps": false,
         "paths": [
             {
