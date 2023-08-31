@@ -36,6 +36,8 @@ addon_keymaps = {}
 _icons = None
 handler_FD27A = []
 
+def get_prefs():
+    return bpy.context.preferences.addons['pin_verts'].preferences
 
 def find_user_keyconfig(key):
     km, kmi = addon_keymaps[key]
@@ -59,7 +61,7 @@ class SNA_OT_Modal_Operator_5F468(bpy.types.Operator):
     bl_label = "Modal Operator"
     bl_description = ""
     bl_options = {"REGISTER", "UNDO"}
-    cursor = "CROSSHAIR"
+    # cursor = "CROSSHAIR"
     _handle = None
     _event = {}
     unselected = True
@@ -146,7 +148,8 @@ class SNA_OT_Modal_Operator_5F468(bpy.types.Operator):
                 out_coords.append(location)
             handler_FD27A.append(bpy.types.SpaceView3D.draw_handler_add(sna_function_execute_F1DF2, (out_coords, ), 'WINDOW', 'POST_VIEW'))
             for a in bpy.context.screen.areas: a.tag_redraw()
-            if bpy.context.scene.sna_auto_enabledisable_falloff:
+            self.preferences = get_prefs()
+            if self.preferences.sna_auto_enabledisable_falloff:
                 bpy.context.scene.tool_settings.use_proportional_edit = True
             self.hide_only_verts()
             bpy.ops.mesh.select_all('INVOKE_DEFAULT', action='DESELECT')
@@ -254,19 +257,21 @@ def sna_function_execute_F1DF2(Input):
 
 class SNA_AddonPreferences_B8AF5(bpy.types.AddonPreferences):
     bl_idname = 'pin_verts'
+    sna_auto_enabledisable_falloff : bpy.props.BoolProperty(name='auto_enabledisable_falloff', description='', default=True)
+    sna_show_header_button_editmode : bpy.props.BoolProperty(name='show_header_button_editmode', description='', default=True)
 
     def draw(self, context):
         if not (False):
             layout = self.layout 
             layout.prop(find_user_keyconfig('ED993'), 'type', text='Shortcut', full_event=True)
-            layout.prop(bpy.context.scene, 'sna_auto_enabledisable_falloff', text='Auto Enable/Disable Proportional Editing', icon_value=0, emboss=True)
-            layout.prop(bpy.context.scene, 'sna_show_header_button_editmode', text='Show Buttin in Header (Editmode)', icon_value=0, emboss=True)
+            layout.prop(self, 'sna_auto_enabledisable_falloff', text='Auto Enable/Disable Proportional Editing', icon_value=0, emboss=True)
+            layout.prop(self, 'sna_show_header_button_editmode', text='Show Buttin in Header (Editmode)', icon_value=0, emboss=True)
 
 
 def sna_add_to_view3d_ht_tool_header_8CF9B(self, context):
     if not (False):
         layout = self.layout
-        if bpy.context.scene.sna_show_header_button_editmode:
+        if get_prefs().sna_show_header_button_editmode:
             if 'EDIT_MESH'==bpy.context.mode:
                 op = layout.operator('sna.modal_operator_5f468', text='Pin Unselected Vertices', icon_value=43, emboss=True, depress=False)
 
@@ -274,8 +279,7 @@ def sna_add_to_view3d_ht_tool_header_8CF9B(self, context):
 def register():
     global _icons
     _icons = bpy.utils.previews.new()
-    bpy.types.Scene.sna_auto_enabledisable_falloff = bpy.props.BoolProperty(name='auto_enabledisable_falloff', description='', default=True)
-    bpy.types.Scene.sna_show_header_button_editmode = bpy.props.BoolProperty(name='show_header_button_editmode', description='', default=True)
+    
     bpy.utils.register_class(SNA_OT_Modal_Operator_5F468)
     bpy.utils.register_class(SNA_AddonPreferences_B8AF5)
     bpy.types.VIEW3D_HT_tool_header.append(sna_add_to_view3d_ht_tool_header_8CF9B)
@@ -294,8 +298,6 @@ def unregister():
     for km, kmi in addon_keymaps.values():
         km.keymap_items.remove(kmi)
     addon_keymaps.clear()
-    del bpy.types.Scene.sna_show_header_button_editmode
-    del bpy.types.Scene.sna_auto_enabledisable_falloff
     bpy.utils.unregister_class(SNA_OT_Modal_Operator_5F468)
     if handler_FD27A:
         bpy.types.SpaceView3D.draw_handler_remove(handler_FD27A[0], 'WINDOW')
