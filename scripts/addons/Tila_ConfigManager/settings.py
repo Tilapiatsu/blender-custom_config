@@ -202,6 +202,7 @@ class TILA_Config_Settings():
 		# # pin_verts
 		addon_name = 'pin_verts'
 		if addon_name in bpy.context.preferences.addons:
+			addon = context.preferences.addons.get(addon_name)
 			addon.preferences.sna_auto_enabledisable_falloff = False
 			addon.preferences.sna_show_header_button_editmode = False
 
