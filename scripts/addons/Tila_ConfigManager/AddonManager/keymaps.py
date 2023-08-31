@@ -1580,7 +1580,7 @@ class TILA_Config_Keymaps_PolyQuilt(TILA_Config_Keymaps):
 
 		self.print_status(f"Assignment of {self.addon_name} complete", start=False)
 
-class TILA_Config_Keymaps_tila_polyquilt(TILA_Config_Keymaps_PolyQuilt):
+class TILA_Config_Keymaps_tila_polyquilt(TILA_Config_Keymaps):
 	addon_name = "tila_polyquilt"
 
 	def __init__(self):
