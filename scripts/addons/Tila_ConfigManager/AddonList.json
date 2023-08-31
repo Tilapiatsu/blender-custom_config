@@ -2721,7 +2721,7 @@
         "repository_url": null,
         "branch": null,
         "is_submodule": false,
-        "local_path": "#\\scripts\\adon_library\\face_regulator",
+        "local_path": "#\\scripts\\addon_library\\face_regulator",
         "keymaps": false,
         "paths": [
             {
@@ -2738,7 +2738,7 @@
         "repository_url": null,
         "branch": null,
         "is_submodule": false,
-        "local_path": "#\\scripts\\adon_library\\quad_swords",
+        "local_path": "#\\scripts\\addon_library\\quad_swords",
         "keymaps": false,
         "paths": [
             {
