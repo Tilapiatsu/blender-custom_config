@@ -1752,7 +1752,7 @@ class TILA_Config_Keymaps_pin_verts(TILA_Config_Keymaps):
 	def set_keymaps(self):
 		self.print_status(f"Assigning {self.addon_name} Keymaps")
 
-		if self.kmi_init(name='Mesh', space_type='VIEW_3D', region_type='WINDOW', addon=False, restore_to_default=False):
+		if self.kmi_init(name='Mesh', space_type='EMPTY', region_type='WINDOW', addon=False, restore_to_default=False):
 			self.kmi_set_replace('mesh.pin_unselected', 'P', "PRESS", ctrl=True, alt=True, shift=True, disable_double=True)
 
 		self.print_status(f"Assignment of {self.addon_name} complete", start=False)

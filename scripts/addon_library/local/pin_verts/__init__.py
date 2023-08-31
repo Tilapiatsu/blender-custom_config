@@ -21,7 +21,7 @@ bl_info = {
     "warning" : "",
     "doc_url": "", 
     "tracker_url": "", 
-    "category" : "3D View" 
+    "category" : "Mesh" 
 }
 
 
@@ -263,7 +263,6 @@ class SNA_AddonPreferences_B8AF5(bpy.types.AddonPreferences):
     def draw(self, context):
         if not (False):
             layout = self.layout 
-            layout.prop(find_user_keyconfig('ED993'), 'type', text='Shortcut', full_event=True)
             layout.prop(self, 'sna_auto_enabledisable_falloff', text='Auto Enable/Disable Proportional Editing', icon_value=0, emboss=True)
             layout.prop(self, 'sna_show_header_button_editmode', text='Show Buttin in Header (Editmode)', icon_value=0, emboss=True)
 
@@ -273,7 +272,7 @@ def sna_add_to_view3d_ht_tool_header_8CF9B(self, context):
         layout = self.layout
         if get_prefs().sna_show_header_button_editmode:
             if 'EDIT_MESH'==bpy.context.mode:
-                op = layout.operator('sna.modal_operator_5f468', text='Pin Unselected Vertices', icon_value=43, emboss=True, depress=False)
+                op = layout.operator('mesh.pin_unselected', text='Pin Unselected Vertices', icon_value=43, emboss=True, depress=False)
 
 
 def register():
@@ -283,21 +282,11 @@ def register():
     bpy.utils.register_class(SNA_OT_Modal_Operator_5F468)
     bpy.utils.register_class(SNA_AddonPreferences_B8AF5)
     bpy.types.VIEW3D_HT_tool_header.append(sna_add_to_view3d_ht_tool_header_8CF9B)
-    kc = bpy.context.window_manager.keyconfigs.addon
-    km = kc.keymaps.new(name='Window', space_type='EMPTY')
-    kmi = km.keymap_items.new('sna.modal_operator_5f468', 'P', 'PRESS',
-        ctrl=False, alt=False, shift=True, repeat=False)
-    addon_keymaps['ED993'] = (km, kmi)
 
 
 def unregister():
     global _icons
     bpy.utils.previews.remove(_icons)
-    wm = bpy.context.window_manager
-    kc = wm.keyconfigs.addon
-    for km, kmi in addon_keymaps.values():
-        km.keymap_items.remove(kmi)
-    addon_keymaps.clear()
     bpy.utils.unregister_class(SNA_OT_Modal_Operator_5F468)
     if handler_FD27A:
         bpy.types.SpaceView3D.draw_handler_remove(handler_FD27A[0], 'WINDOW')
