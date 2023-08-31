@@ -1529,23 +1529,6 @@
             }
         ]
     },
-    "universal_multi_importer": {
-        "is_enable": true,
-        "is_sync": true,
-        "online_url": null,
-        "repository_url": "https://github.com/Tilapiatsu/blender-Universal_Multi_Importer.git",
-        "branch": "main",
-        "is_submodule": true,
-        "local_path": "#\\scripts\\addon_library\\GIT_Submodules\\tila_universal_multi_importer",
-        "keymaps": false,
-        "paths": [
-            {
-                "is_enable": true,
-                "local_subpath": null,
-                "destination_path": "#\\scripts\\addons\\universal_multi_importer"
-            }
-        ]
-    },
     "tila_export_as_blend": {
         "is_enable": false,
         "is_sync": true,
@@ -2922,5 +2905,22 @@
                 "destination_path": "#\\scripts\\addons\\tila_polyquilt"
             }
         ]
-    }
+    },
+    "universal_multi_importer": {
+        "is_enable": true,
+        "is_sync": true,
+        "online_url": null,
+        "repository_url": "https://github.com/Tilapiatsu/blender-Universal_Multi_Importer.git",
+        "branch": "main",
+        "is_submodule": true,
+        "local_path": "#\\scripts\\addon_library\\GIT_Submodules\\tila_universal_multi_importer",
+        "keymaps": false,
+        "paths": [
+            {
+                "is_enable": true,
+                "local_subpath": null,
+                "destination_path": "#\\scripts\\addons\\universal_multi_importer"
+            }
+        ]
+    },
 }
