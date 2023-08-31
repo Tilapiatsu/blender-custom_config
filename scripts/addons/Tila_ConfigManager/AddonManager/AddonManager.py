@@ -422,7 +422,7 @@ class ElementAM():
 		subdir = os.listdir(self.local_path.path)
 
 		if '.git' not in [path.dirname(s) for s in subdir]:
-			repo = git.Repo(root_folder)
+			repo = git.Repo(self.local_path.path)
 			repo.git.submodule('update', '--init')
 	
 	def clean(self, force=False, clean_cloned=False):
@@ -455,10 +455,13 @@ class ElementAM():
 		self.log_progress.start(f'Syncing {self.name} to {self.local_path.path}')
 		
 		if self.is_submodule:
-			self.ensure_repo_init()
+			# self.ensure_repo_init()
 			repo = git.Repo(self.local_path.path)
 			repo.git.submodule('update', '--init')
 			if self.branch is not None:
+				message = f'Cheking out branch : {self.branch}'
+				self.log_progress.info(message)
+				print(message)
 				repo.git.checkout(self.branch)
 		else:
 			kwargs = {'branch': self.branch} if self.branch is not None else {}

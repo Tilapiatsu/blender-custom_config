@@ -43,9 +43,9 @@ class TILA_Config_SetupBlender(Operator):
 		if event.type == 'TIMER':
 			match context.window_manager.tila_setup_blender_progress:
 				case 'NONE':
-					bpy.ops.tila.config_sync_addon_list('EXEC_DEFAULT')
+					bpy.ops.tila.config_sync_addon_list('EXEC_DEFAULT', overwrite=True)
 				case 'SYNC_DONE':
-					bpy.ops.tila.config_link_addon_list('EXEC_DEFAULT')
+					bpy.ops.tila.config_link_addon_list('EXEC_DEFAULT', overwrite=True)
 				case 'LINK_DONE':
 					bpy.ops.tila.config_enable_addon_list('EXEC_DEFAULT')
 				case 'ENABLE_DONE':
@@ -90,13 +90,13 @@ class TILA_Config_UpdateSetupBlender(Operator):
 		if event.type == 'TIMER':
 			match context.window_manager.tila_setup_blender_progress:
 				case 'NONE':
-					bpy.ops.tila.config_disable_addon_list('EXEC_DEFAULT')
+					bpy.ops.tila.config_disable_addon_list('EXEC_DEFAULT', force=True)
 				case 'DISABLE_DONE':
-					bpy.ops.tila.config_clean_addon_list('EXEC_DEFAULT')
+					bpy.ops.tila.config_clean_addon_list('EXEC_DEFAULT', force=True, clean_cloned=True)
 				case 'CLEAN_DONE':
-					bpy.ops.tila.config_sync_addon_list('EXEC_DEFAULT', force=True, overwrite=True)
+					bpy.ops.tila.config_sync_addon_list('EXEC_DEFAULT', overwrite=True)
 				case 'SYNC_DONE':
-					bpy.ops.tila.config_link_addon_list('EXEC_DEFAULT', force=True, overwrite=True)
+					bpy.ops.tila.config_link_addon_list('EXEC_DEFAULT', overwrite=True)
 				case 'LINK_DONE':
 					bpy.ops.tila.config_enable_addon_list('EXEC_DEFAULT')
 				case 'ENABLE_DONE':
