@@ -2911,7 +2911,7 @@
         "is_sync": true,
         "online_url": null,
         "repository_url": "https://github.com/Tilapiatsu/PolyQuilt.git",
-        "branch": null,
+        "branch": "master",
         "is_submodule": true,
         "local_path": "#\\scripts\\addon_library\\GIT_Submodules\\tila_polyquilt",
         "keymaps": true,
