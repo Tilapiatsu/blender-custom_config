@@ -473,7 +473,6 @@ class TILA_Config_DisableAddonList(Operator):
 				self.report({'INFO'}, 'TilaConfig : Disable Done !')
 				self.log_status.done('Disable Done !')
 				self.wm.tila_setup_blender_progress = "DISABLE_DONE"
-				bpy.ops.wm.redraw_timer(type='DRAW_WIN_SWAP', iterations=1)
 				bpy.context.window_manager.event_timer_remove(self._timer)
 				return {"FINISHED"}
 
