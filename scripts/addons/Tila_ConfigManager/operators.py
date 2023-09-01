@@ -226,7 +226,7 @@ class TILA_Config_RemoveConfig(Operator):
 			0.1, window=context.window)
 		bpy.context.window_manager.modal_handler_add(self)
 		self.report({'INFO'}, 'TilaConfig : Remove Config Started !')
-		self.log_status.start('Update Blender Setup Started !')
+		self.log_status.start('Remove Blender Setup Started !')
 		return {'RUNNING_MODAL'}
 
 	def modal(self, context, event):
@@ -473,6 +473,7 @@ class TILA_Config_DisableAddonList(Operator):
 				self.report({'INFO'}, 'TilaConfig : Disable Done !')
 				self.log_status.done('Disable Done !')
 				self.wm.tila_setup_blender_progress = "DISABLE_DONE"
+				bpy.ops.wm.redraw_timer(type='DRAW_WIN_SWAP', iterations=1)
 				bpy.context.window_manager.event_timer_remove(self._timer)
 				return {"FINISHED"}
 
