@@ -460,9 +460,14 @@ class ElementAM():
 			repo.git.submodule('update', '--init')
 			if self.branch is not None:
 				message = f'Cheking out branch : {self.branch}'
-				self.log_progress.info(message)
+				self.log_progress.start(message)
 				print(message)
 				repo.git.checkout(self.branch)
+			message = f'Pull from origin'
+			self.log_progress.start(message)
+			print(message)
+			o = repo.remotes.origin
+			o.pull()
 		else:
 			kwargs = {'branch': self.branch} if self.branch is not None else {}
 			# if self.branch is not None:
@@ -535,10 +540,10 @@ class AddonManager():
 		if element_name is None:
 			for e in self.elements.values():
 				self.queue([self.clean, {'element_name': e.name,
-				           'force': force, 'clean_cloned': clean_cloned}])
+						   'force': force, 'clean_cloned': clean_cloned}])
 		elif element_name in self.elements.keys():
 			self.queue([self.clean, {'element_name': element_name,
-			           'force': force, 'clean_cloned': clean_cloned}])
+					   'force': force, 'clean_cloned': clean_cloned}])
 			
 	def clean(self, element_name=None, force=False, clean_cloned=False):
 		self.processing = True
