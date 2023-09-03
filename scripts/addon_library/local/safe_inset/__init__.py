@@ -35,7 +35,7 @@ bl_info = {
     "name": "Safe Inset",
     "description": "Safe Inset",
     "author": "Kushiro",
-    "version": (1, 2, 2),
+    "version": (2, 0, 4),
     "blender": (2, 83, 0),
     "location": "View3D > Edit > Context Menu (right click)",
     "category": "Mesh",

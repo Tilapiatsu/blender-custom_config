@@ -43,9 +43,9 @@ from pprint import pprint
 
 import itertools
 import numpy as np
-
 from mathutils.geometry import intersect_line_line
 
+import random
 
 
 class Vert:
@@ -63,9 +63,12 @@ class Loop:
         self.realvert = None
         self.remain = 0
         self.fix = False
+        self.mid = None
+        self.value = 0
+        self.index = 0
 
 
-
+mat = None
 
 def link_loops(ps):
     for i , p1 in enumerate(ps):
@@ -75,16 +78,51 @@ def link_loops(ps):
 
 
 
-def create_ps(f1):
+def create_ps(f1, mat):
     ps = []
     for p1 in f1.loops:
         p2 = Loop()
-        p2.vert.co = p1.vert.co
+        p2.index = p1.vert.index
+        p2.vert.co = mat @ p1.vert.co
         p2.realvert = p1.vert
         ps.append(p2)
     link_loops(ps)        
     return ps
     
+
+def intersect2d(p1, p2, p3, p4):
+    res = mathutils.geometry.intersect_line_line_2d(p1.xy, p2.xy, p3.xy, p4.xy)
+    if res != None:
+        return Vector((res[0], res[1], 0))
+    return None
+
+
+def get_matrix_face(f1):
+    p1 = f1.loops[0]
+    m1 = Vector()
+    for p2 in f1.loops:
+        p3 = p2.link_loop_next
+        m1 = p3.vert.co - p2.vert.co
+        if m1.length > 0:
+            break
+    if m1.length == 0:
+        return None
+    m2 = f1.normal.cross(m1)
+    mat = get_matrix(m1, m2, f1.normal, p1.vert.co)
+    return mat.inverted()
+
+
+
+def get_matrix(m1, m2, m3, cen):
+    if m1.length == 0 or m2.length == 0 or m3.length == 0:
+        return Matrix.Identity(4)            
+    m = Matrix.Identity(4)        
+    m[0][0:3] = m1.normalized()
+    m[1][0:3] = m2.normalized()
+    m[2][0:3] = m3.normalized()
+    m[3][0:3] = cen.copy()
+    m = m.transposed()
+    return m    
 
 
 
@@ -111,29 +149,6 @@ def angle(p1):
         return 0
     return m1.angle(m2)
 
-
-def is_inside(p1, p2, k):
-    m1 = p2 - p1
-    m2 = k - p1
-    m3 = k - p2
-    if m2.length + m3.length > m1.length + 0.001:
-        return False
-    return True
-
-        
-def intersect(p1, p2, p3, p4):
-    res = intersect_line_line(p1, p2, p3, p4)
-    if res == None:
-        return None
-    a, b = res
-    if a == None or b == None:
-        return None
-    # if (b - a).length < 0.00001:
-    if is_inside(p1, p2, a) and is_inside(p3, p4, b):            
-        return (b + a)/2
-    else:            
-        return None
-    # return None
 
 
 def is_concave(p1, sn):
@@ -167,103 +182,6 @@ def make_mid_loop(ps, sn, mlen):
         ps2.append(p2)
     link_loops(ps2)
     return ps2
-
-
-
-def get_concave_pair(ps, i, mid):
-    p1 = ps[i]
-    ms = []
-    for k in range(len(ps)):
-        k2 = (k + 1) % len(ps)
-        if k == i or k2 == i:
-            continue
-        p3 = ps[k].vert.co
-        p4 = ps[k2].vert.co
-        pin = intersect(p1.vert.co, p1.vert.co + mid.normalized() * 1000, 
-                        p3, p4)
-        if pin == None:
-            continue
-        d1 = (pin - p1.vert.co).length
-        ms.append((d1, k))
-    if len(ms) == 0:
-        return None, None
-    d1, k = min(ms, key=lambda x: x[0])
-    return d1, k
-
-
-def get_concave_pair_reverse(ps, i, i2, sn, ps2):
-    p1 = ps2[i]
-    p2 = ps2[i2]
-    ms = []
-    for k in range(len(ps)):
-        if k == i or k == i2:
-            continue
-        if is_concave(ps[k], sn) == False:
-            continue
-        pk = ps[k]
-        mid = get_ps_mid(ps[k], sn)
-        pin = intersect(p1.vert.co, p2.vert.co,
-                        pk.vert.co - mid * 1000, pk.vert.co + mid * 1000)
-        if pin == None:
-            continue
-        d1 = (pin - ps[k].vert.co).length
-        ms.append((d1, k))
-    if len(ms) == 0:
-        return float('inf'), 0
-    d1, k = min(ms, key=lambda x: x[0])
-    return d1, k
-
-
-def cross_dist(ps, ps2, sn):
-    pokes = {}
-    sides = {}
-    for i in range(len(ps)):
-        if is_concave(ps[i], sn) == False:
-            # pokes[i] = (None, None)
-            continue
-        mid = get_ps_mid(ps[i], sn)
-        dlen, k = get_concave_pair(ps, i, mid)
-        if dlen == None:
-            pass
-        else:
-            dlen2 = max(dlen/2 - 0.01, 0)
-            pokes[i] = (dlen2, k)
-
-    for i in range(len(ps)):
-        i2 = (i + 1) % len(ps)
-        i3 = (i - 1) % len(ps)
-        dlen, k = get_concave_pair_reverse(ps, i, i2, sn, ps2)
-        dlen2, k2 = get_concave_pair_reverse(ps, i, i3, sn, ps2)
-        dlen3 = min(dlen, dlen2)
-        if dlen3 == float('inf'):
-            continue
-        else:
-            dlen4 = max(dlen3/2 - 0.01, 0)
-            sides[i] = (dlen4, k)
-        
-
-    return pokes, sides
-
-
-
-def merge_ps2(ps, ps2, offset):
-    ps3 = []
-    last = None
-    for i in range(len(ps2)):
-        i2 = (i - 1) % len(ps2)
-        v1 = ps2[i]
-        v2 = ps2[i2]
-        m1 = v1.vert.co - v2.vert.co
-        if m1.length < offset * 5:  
-            if last != None:
-                for pk in ps:
-                    if pk.next == v1:
-                        pk.next = last
-                continue
-        ps3.append(v1)
-        last = v1
-    link_loops(ps3)
-    return ps3
 
 
 
@@ -314,105 +232,6 @@ def edge_dist(A, B, P):
     return d1
 
 
-def min_edge_dist(k, ps, pk, offset):
-    ms = []
-    for i in range(len(ps)):
-        i2 = (i + 1) % len(ps)
-        if i == k or i2 == k:
-            continue
-        p1 = ps[i].vert.co
-        p2 = ps[i2].vert.co
-        d1 = edge_dist(p1, p2, pk.vert.co)
-        ms.append((d1, i))
-    if len(ms) == 0:
-        return None, None
-    d1, i = min(ms, key=lambda x: x[0])
-    d2 = d1 / 2 - offset
-    d2 = max(d2, 0)
-    return d2, i
-
-
-def min_edge_dist_rev(k, ps, pk, offset):
-    k2 = (k + 1) % len(ps)
-    k3 = (k - 1) % len(ps)
-    pk2 = ps[k2]
-    pk3 = ps[k3]
-    ms = []
-    for i in range(len(ps)):
-        if i == k or i == k2 or i == k3:
-            continue
-        p1 = ps[i].vert.co
-        d1 = edge_dist(pk.vert.co, pk2.vert.co, p1)
-        d2 = edge_dist(pk.vert.co, pk3.vert.co, p1)
-        d1 = min(d1, d2)
-        ms.append((d1, i))
-    if len(ms) == 0:
-        return None, None
-    d1, i = min(ms, key=lambda x: x[0])
-    d2 = d1 / 2 - offset
-    d2 = max(d2, 0)
-    return d2, i
-
-
-def get_ps_mid_complex(p1, sn, mlen1, mlen2):
-    p2 = p1.link_loop_next
-    p3 = p1.link_loop_prev
-    m1 = (p2.vert.co - p1.vert.co).normalized()
-    m2 = (p3.vert.co - p1.vert.co).normalized()
-    mv1 = m1.cross(sn) * -1
-    mv2 = m2.cross(sn)
-    mv1 = mv1.normalized() * mlen1
-    mv2 = mv2.normalized() * mlen2
-    pro = mv1.project(mv2)
-    h1 = mv1 - pro
-    return (h1 + mv2).normalized()
-
-
-
-def min_edge_dist_rev_simple(ps, k, k2, offset):
-    pk = ps[k]
-    pk2 = ps[k2]
-    ms = []
-    for i in range(len(ps)):
-        if i == k or i == k2:
-            continue
-        p1 = ps[i].vert.co
-        d1 = edge_dist(pk.vert.co, pk2.vert.co, p1)
-        # d1 = min(d1, d2)
-        ms.append((d1, i))
-    d1, i = min(ms, key=lambda x: x[0])
-    d2 = d1 / 2 - offset
-    d2 = max(d2, 0)
-    return d2, i
-
-
-
-# def check_walk(ps, sn, offset):
-#     ps2 = []
-#     for i in range(len(ps)):
-#         mlen = ps[i].remain
-#         p1 = ps[i]
-#         d1, _ = min_edge_dist(i, ps, p1, offset)
-#         d2, _ = min_edge_dist_rev(i, ps, p1, offset)
-#         d1 = min(d1, d2)
-#         deg = angle(p1)
-#         if deg == 0:
-#             dd = 0
-#         else:
-#             real = mlen / math.sin(deg / 2)
-#             dd = min(d1, real)
-#         dd = max(dd, 0)
-#         pk = Loop()
-#         mid = get_ps_mid(p1, sn)
-#         pk.vert.co = p1.vert.co + mid * dd
-#         pk.remain = p1.remain - dd
-#         pk.remain = max(pk.remain, 0)
-#         ps[i].next = pk
-#         ps2.append(pk)
-#     link_loops(ps2)
-#     return ps2
-        
-
 
 def min_value(d1, d2):
     if d1 == None and d2 == None:
@@ -424,48 +243,21 @@ def min_value(d1, d2):
     return min(d1, d2)
 
 
-def check_walk(ps, sn, offset):
-    ms = []
-    for i in range(len(ps)):
-        mlen = ps[i].remain
-        p1 = ps[i]
-        d1, _ = min_edge_dist(i, ps, p1, offset)
-        d2, _ = min_edge_dist_rev(i, ps, p1, offset)
-        d1 = min_value(d1, d2)
-        if d1 == None:
-            continue
-        deg = angle(p1)
-        if deg == 0:
-            continue
-        else:
-            real = mlen / math.sin(deg / 2)
-            dd = min(d1, real)
-        dd = max(dd, 0)
-        if p1.fix == False:
-            ms.append(dd)
-    if len(ms) == 0:
-        dd = 0
+
+def distance_point_to_segment(p, a, b):
+    v = b - a
+    w = p - a
+    t = w.dot(v) / v.dot(v)
+    if t < 0.0:
+        return (p - a).length
+    elif t > 1.0:
+        return (p - b).length
     else:
-        dd = min(ms)
-    ps2 = []
-    for i in range(len(ps)):
-        p1 = ps[i]
-        pk = Loop()
-        mid = get_ps_mid(p1, sn)
-        if p1.fix:
-            dmin2 = 0
-        else:
-            dmin2 = dd
-        pk.vert.co = p1.vert.co + mid * dmin2
-        cost = dmin2 * math.sin(angle(p1)/2)
-        pk.remain = p1.remain - cost
-        pk.remain = max(pk.remain, 0)
-        pk.fix = p1.fix
-        ps[i].next = pk
-        ps2.append(pk)
-    link_loops(ps2)
-    # print(dd, len(ms))
-    return ps2, dd
+        projection = a + t * v
+        return (p - projection).length
+    
+
+
 
 
 
@@ -512,8 +304,9 @@ def merge_ps(ps, ps2, offset):
         p4 = Loop()
         p4.vert.co = cen
         p4.remain = rem
-        if any([p3.fix for p3 in ps3]):
-            p4.fix = True
+        p4.fix = False        
+        # if any([p3.fix for p3 in ps3]):
+        #     p4.fix = True
         ps4.append(p4)
         for pe in ps:
             if pe.next in ps3:
@@ -521,60 +314,344 @@ def merge_ps(ps, ps2, offset):
     link_loops(ps4)
     # print(len(ps4))
     return ps4
-            
 
 
-def solve_face(bm, pso, sn, plen, agg, offset):
-    ps = list(pso)
-    mlen = plen
-    cen = get_ps_center(ps)
-    for p in ps:
-        p.remain = mlen
-    # offset = 0.01
-    for step in range(100):
-        ps2, dmin = check_walk(ps, sn, offset)
-        # pcon = False
-        # for p in ps2:
-        #     if p.remain > offset:
-        #         pcon = True
-        #         break
-        if agg:
-            ps2 = merge_ps(ps, ps2, offset)
-            if len(ps2) == 0:
-                ps = ps2
-                break
-            cen = get_ps_center(ps2)
-        check_skip(ps2, offset)
-        ps = ps2
-        if len(ps) < 2:
-            break
-        # if pcon == False:
-        #     break
-        if dmin < offset:
-            break
-    return ps, cen
 
 
-def check_skip(ps2, offset):
-    for i in range(len(ps2)):
-        p1 = ps2[i]
-        d1, _ = min_edge_dist(i, ps2, p1, offset)
-        d2, _ = min_edge_dist_rev(i, ps2, p1, offset)
-        d2 = min_value(d1, d2)
-        if d2 == None:
+
+def get_intersect_edge(i, ps, sn):
+    mid = get_ps_mid(ps[i], sn)
+    ms = []
+    for k in range(len(ps)):
+        k2 = (k + 1) % len(ps)
+        if k == i or k2 == i:
             continue
-        if d2 <= offset:
-            p1.fix = True
+        p1 = ps[k].vert.co
+        p2 = ps[k2].vert.co
+        pin = intersect2d(ps[i].vert.co, ps[i].vert.co + mid * 1000, 
+                        p1, p2)
+        if pin == None:
+            continue
+        d1 = (pin - ps[i].vert.co).length    
+        ms.append((d1, k))
+    if len(ms) == 0:
+        return None, None
+    d1, k = min(ms, key=lambda x: x[0])
+    return d1, k
+
+
+
+
+
+
+def check_line_hit(p1, mid1, p2, mid2, deg1, deg2):
+    xA = p1.vert.co.x
+    yA = p1.vert.co.y
+    xB = mid1.x
+    yB = mid1.y
+    xC = p2.vert.co.x
+    yC = p2.vert.co.y
+    xD = mid2.x
+    yD = mid2.y
+    if xB - xD == 0:
+        return None
+    if yB - yD == 0:
+        return None
+    t1 = -(deg1*deg2*xA - deg1*deg2*xC)/(deg2*xB - deg1*xD)
+    t2 = -(deg1*deg2*yA - deg1*deg2*yC)/(deg2*yB - deg1*yD)
+    if t1 != t2:
+        return None
+    if t1 < 0 or t2 < 0:
+        return None
+    return t1
+
+
+def get_max_bound(ps):
+    vs = [p1.vert.co for p1 in ps]
+    x_max = max([v1.x for v1 in vs])
+    x_min = min([v1.x for v1 in vs])
+    y_max = max([v1.y for v1 in vs])
+    y_min = min([v1.y for v1 in vs])
+    width = x_max - x_min
+    height = y_max - y_min
+    return max(width, height)
+
+
+
+
+def check_med(ps, offset, bm, plen):  
+    global mat
+    sn = Vector((0,0,1))
+    maxlen = get_max_bound(ps)
+    mids = []
+    for i in range(len(ps)):
+        p1 = ps[i]
+        p1.deg = math.sin(angle(p1)/2)
+        mid = get_ps_mid(p1, sn)
+        mids.append(mid)
+
+    pks = []
+    for i in range(len(ps)):
+        p1 = ps[i]
+        mid = mids[i]
+        # dmin = plen / p1.deg
+        if p1.deg == 0:
+            dmin = maxlen
+        else:
+            dmin = maxlen / p1.deg
+        d1 = mid * dmin
+        pk = Loop()
+        pk.vert.co = p1.vert.co + d1
+        pks.append(pk)
+
+    for i in range(len(pks)):
+        pk = pks[i]        
+        pk.vert.co.z = maxlen
+
+    ps2 = []
+    for i in range(len(ps)):        
+        i2 = (i + 1) % len(ps)
+        i3 = (i - 1) % len(ps)
+        p1 = ps[i]
+        pk = pks[i]
+        ms = []
+        mid1 = mids[i]
+        for k in range(len(pks)):
+            k2 = (k + 1) % len(pks)
+            if k == i or k2 == i:
+                continue
+            p2 = ps[k]
+            p3 = ps[k2]
+            pk2 = pks[k]
+            pk3 = pks[k2] 
+            poly = [p2.vert.co, p3.vert.co, pk3.vert.co, pk2.vert.co]
+            s1 = get_sn(poly)                     
+            pin = line_poly_intersect(p1, pk, poly, s1, offset)            
+            if pin != None:                                
+                pin.z = 0 
+                d1 = (pin - p1.vert.co).length                               
+                ms.append((d1, pin, k, k2))
+
+        sd1 = ps[i2]
+        sd2 = ps[i3]
+        mid2 = mids[i2]
+        mid3 = mids[i3]
+        pin = intersect2d(p1.vert.co, p1.vert.co + mid1 * 1000, sd1.vert.co, sd1.vert.co + mid2 * 1000)
+        if pin != None:
+            d1 = (pin - p1.vert.co).length
+            ms.append((d1, pin, i2, None))
+        pin2 = intersect2d(p1.vert.co, p1.vert.co + mid1 * 1000, sd2.vert.co, sd2.vert.co + mid3 * 1000)
+        if pin2 != None:
+            d1 = (pin2 - p1.vert.co).length
+            ms.append((d1, pin2, i3, None))                     
+
+        if len(ms) == 0:
+            dlen = 0
+            pin = p1.vert.co.copy()
+        else:
+            dlen, pin, k, k2 = min(ms, key=lambda x: x[0])
+        # d1 = dlen * p1.deg
+        if p1.deg == 0:
+            d1 = 0
+        else:
+            d2 = plen / p1.deg
+        d1 = min(dlen, d2)
+        pk = Loop()
+        mid = mids[i]
+        off2 = max(1.0 - offset, 0)
+        pk.vert.co = p1.vert.co + mid * d1 * off2
+        p1.next = pk
+        ps2.append(pk)     
+
+    adds = []  
+    for i in range(len(ps2)):        
+        i2 = (i + 1) % len(ps2)
+        p3 = ps2[i]
+        p4 = ps2[i2]
+        # ms = []
+        for k in range(len(ps2)):
+            if k == i or k == i2:
+                continue
+            p1 = ps[k]
+            p2 = ps2[k]            
+            # pin = intersect2d(p1.vert.co, p2.vert.co, p3.vert.co, p4.vert.co)
+            p3b = ps[i]
+            p4b = ps[i2]
+            pin = is_cross_region(p1.vert.co, p2.vert.co, [p3b.vert.co, p4b.vert.co, p4.vert.co, p3.vert.co])
+            if pin != None:
+                d1 = (pin - p2.vert.co).length
+                arrow = p2.vert.co - p1.vert.co
+                pa = p1.vert.co + (arrow.length + offset) * arrow.normalized()
+                adds.append((p3, pin, pa))
+                # pa = p2.vert.co.copy()
+                # ms.append((d1, pin, pa))
+        # if len(ms) == 0:
+        #     continue
+        # dlen, pin, v1 = max(ms, key=lambda x: x[0])
+        # adds.append((p3, pin, v1))
     
+    for p3, pin, v1 in adds:
+        idx = ps2.index(p3)
+        pk = Loop()
+        pk.vert.co = v1
+        ps2.insert(idx + 1, pk)
+
+    link_loops(ps2)    
+    return ps2
 
 
 
-def local_loop(bm, ps, ps2, cen):
+def is_cross_region(p1, p2, poly):
+    # for i in range(len(poly)):
+    #     i2 = (i + 1) % len(poly)
+    #     k1 = poly[i]
+    #     k2 = poly[i2]
+    #     pin = intersect2d(p1, p2, k1, k2)
+    #     if pin != None:
+    #         return pin
+    v1 = poly[0]
+    v2 = poly[1]
+    pin = intersect2d(p1, p2, v1, v2)
+    if pin != None:
+        return pin    
+    if is_inside(p1, poly):
+        return p2
+    if is_inside(p2, poly):
+        return p2
+    return None
+
+
+
+def get_sn(poly):
+    A = poly[0]
+    B = poly[1]
+    C = poly[2]
+    AB = B - A
+    AC = C - A
+    n = AB.cross(AC)
+    n.normalize()
+    return n
+
+
+
+
+def point_line_near(pin, pe1, pe2, offset):
+    m1 = pe2 - pe1
+    m2 = pin - pe1
+    pro = m1.dot(m2) / m1.dot(m1)
+    # if pro < 0 or pro > 1:
+    #     return False
+    pro_v = pe1 + m1 * pro
+    h1 = pin - pro_v
+
+    if h1.length < offset:
+        return True
+    return False
+
+
+
+def line_poly_intersect(p1, p2, poly, normal, offset):
+    cen = sum(poly, Vector()) / len(poly) 
+    # cen = (poly[0] + poly[1])/2
+    # cen = poly[0]   
+    pin = line_plane_intersection(p1.vert.co, p2.vert.co, cen, normal)
+    if pin == None:
+        return None
+    
+    poly2 = []
+    for p in poly:
+        m1 = p - cen
+        m2 = m1.normalized()
+        p2 = cen + m2 * (m1.length + offset)
+        poly2.append(p2)
+    poly = poly2
+    
+    k1 = poly[0]
+    k2 = poly[1]
+    k3 = poly[2]
+    k4 = poly[3]
+    n1 = point_line_near(pin, k1, k4, offset)
+    n2 = point_line_near(pin, k2, k3, offset)
+             
+    if n1 or n2 or is_point_inside_polygon(pin, poly, normal, cen): 
+        return pin
+    return None
+
+
+def line_plane_intersection(P1, P2, P0, normal):
+    num = normal.dot(P0 - P1)
+    den = normal.dot(P2 - P1)
+    if abs(den) < 1e-6:
+        return None
+    t = num / den
+    intersection = P1 + t * (P2 - P1)
+    if t < 0 or t > 1:
+        return None
+    return intersection
+
+
+def is_point_inside_polygon(point, polygon, sn, cen):
+    mat = get_matrix_vs(polygon, sn, cen)
+    ps2 = [mat @ p for p in polygon]
+    point2 = mat @ point
+    # return is_point_inside_polygon_flat(point2, ps2)
+    return is_inside(point2, ps2)
+
+
+
+def is_left(p0, p1, p2):
+    return (p1[0] - p0[0]) * (p2[1] - p0[1]) - (p2[0] - p0[0]) * (p1[1] - p0[1])
+
+
+def is_inside(point, polygon):
+    wn = 0
+    n = len(polygon)    
+    for i in range(n):
+        if polygon[i][1] <= point[1]:
+            if polygon[(i + 1) % n][1] > point[1]:
+                if is_left(polygon[i], polygon[(i + 1) % n], point) > 0:
+                    wn += 1
+        else:
+            if polygon[(i + 1) % n][1] <= point[1]:
+                if is_left(polygon[i], polygon[(i + 1) % n], point) < 0:
+                    wn -= 1
+    return wn > 0
+
+
+
+def get_matrix_vs(ps, sn, cen):
+    m1 = Vector()
+    for i in range(len(ps)):
+        p2 = ps[i]
+        p3 = ps[(i + 1) % len(ps)]
+        m1 = p3 - p2
+        if m1.length > 0:
+            break
+    if m1.length == 0:
+        return None
+    m2 = sn.cross(m1)
+    mat = get_matrix(m1, m2, sn, cen)
+    return mat.inverted()
+
+
+
+def solve_face(bm, pso, plen, offset):
+    global mat
+    ps = list(pso)
+    ps = check_med(ps, offset, bm, plen)    
+    return ps
+
+
+
+
+def local_loop(bm, ps, ps2):
+    global mat
     fs2 = []
+    cen = get_ps_center(ps)
     if len(ps2) < 2:
         pk = Loop()
         pk.vert.co = cen
-        v1 = bm.verts.new(cen)
+        v1 = bm.verts.new(mat @ cen)
         pk.realvert = v1
         for p1 in ps:
             p1.next = pk     
@@ -583,43 +660,30 @@ def local_loop(bm, ps, ps2, cen):
     elif len(ps2) == 2:       
         vs = []
         for i in range(len(ps2)):
-            v1 = bm.verts.new(ps2[i].vert.co)
+            v1 = bm.verts.new(mat @ ps2[i].vert.co)
             ps2[i].realvert = v1
             vs.append(v1)
         e2 = bm.edges.new(vs) 
         e2.select = True
 
-    elif len(ps2) == 3:       
-        vs = []
-        for i in range(len(ps2)):
-            v1 = bm.verts.new(ps2[i].vert.co)
-            ps2[i].realvert = v1
-            vs.append(v1)
-        f2 = bm.faces.new(vs) 
-        f2.select = True
-        fs2.append(f2)
     else:
         vs = []
         for i in range(len(ps2)):
-            v1 = bm.verts.new(ps2[i].vert.co)
+            v1 = bm.verts.new(mat @ ps2[i].vert.co)
             ps2[i].realvert = v1
             vs.append(v1)
 
         for i in range(len(ps2)):
             i2 = (i + 1) % len(ps2)
-            v1 = vs[i]
-            v2 = vs[i2]
+            # v1 = vs[i]
+            # v2 = vs[i2]
+            v1 = ps2[i].realvert
+            v2 = ps2[i2].realvert
             bm.edges.new([v1, v2])
         f2 = bm.faces.new(vs)    
         f2.select = True
         fs2.append(f2)
 
-    # for p1 in ps2:
-    #     if p1.fix:
-    #         p1.realvert.select = True
-
-        # for p1 in ps:
-        #     print(p1.next)
     return fs2
 
 
@@ -627,7 +691,8 @@ def vertical_loop(bm, ps):
     es = []
     for i in range(len(ps)):
         v1 = ps[i].realvert
-        p2 = get_final_node(ps[i])
+        # p2 = get_final_node(ps[i])
+        p2 = ps[i].next
         v2 = p2.realvert
         if v1 == None or v2 == None:
             continue
@@ -638,11 +703,13 @@ def vertical_loop(bm, ps):
     return es
 
 
-def fan_loop(bm, f1, es):
+
+def fan_loop(bm, f1, es, ps, ps2):
     fs2 = []
     if len(es) == 0:
         return []
     bmesh.ops.delete(bm, geom=[f1], context='FACES_ONLY')
+
     for i in range(len(es)):
         i2 = (i + 1) % len(es)
         e1 = es[i]
@@ -651,7 +718,7 @@ def fan_loop(bm, f1, es):
         c, d = e2
         vs = get_links(a, c)
         vs2 = list(reversed(get_links(b, d)))
-        vsf = vs + [a, c] + vs2 + [d, b]
+        vsf = [c, d] + vs2 + [b, a] + vs
         vsf2 = filter_same(vsf)
         if len(vsf2) < 3:
             continue
@@ -659,16 +726,21 @@ def fan_loop(bm, f1, es):
         f2 = bm.faces.new(vsr)
         fs2.append(f2)
     return fs2
-    
 
 
-def process_face(bm, f1, plen, agg, offset):
-    ps = create_ps(f1)
-    ps2, cen = solve_face(bm, ps, f1.normal, plen, agg, offset)
-    tops = local_loop(bm, ps, ps2, cen)
+
+
+
+def process_face(bm, f1, plen, offset):
+    global mat
+    matp = get_matrix_face(f1)
+    ps = create_ps(f1, matp)
+    mat = matp.inverted()
+    ps2 = solve_face(bm, ps, plen, offset)
+    tops = local_loop(bm, ps, ps2)
     es = vertical_loop(bm, ps)
-    fans = fan_loop(bm, f1, es)
-    return tops
+    fans = fan_loop(bm, f1, es, ps, ps2)
+    return tops, fans
 
     
 def get_connected_es(fs2):
@@ -686,14 +758,23 @@ def get_connected_es(fs2):
     return es2 
     
 
-def solve_fs(bm, fs, plen, merge, mergedist, agg, offset):
+def solve_fs(bm, fs, plen, merge, mergedist, offset):
+    fso = set(bm.faces) - set(fs)
+    nosel = set()
     for f1 in fs:
         f1.select = False
-        tops = process_face(bm, f1, plen, agg, offset)
+        tops, fans = process_face(bm, f1, plen, offset)
+        if len(fans) > 0:
+            for f2 in fans:
+                nosel.add(f2)
         if merge:
             for f1 in tops:
                 bmesh.ops.remove_doubles(bm, 
                         verts=f1.verts, dist=mergedist)
+    bm.normal_update()
+    fs2 = set(bm.faces) - fso - nosel
+    for f1 in fs2:
+        f1.select = True
         
 
 def filter_fs(fss):
@@ -743,7 +824,7 @@ class SafeInsetOperator(bpy.types.Operator):
         description="Inset size",
         default=0.15,
         step=0.2,
-        min=0
+        min=0,
     )    
 
     prop_ths: FloatProperty(
@@ -752,13 +833,7 @@ class SafeInsetOperator(bpy.types.Operator):
         default=0.01,
         step=0.2,
         min=0
-    )        
-
-    prop_agg: BoolProperty(
-        name="Aggressive mode",
-        description="Continue the inset more aggressively (may overlap)",
-        default=True,
-    )        
+    )          
 
 
     prop_merge: BoolProperty(
@@ -778,7 +853,6 @@ class SafeInsetOperator(bpy.types.Operator):
     )    
 
 
-
     def get_bm(self):
         obj = bpy.context.active_object
         me = obj.data
@@ -793,7 +867,7 @@ class SafeInsetOperator(bpy.types.Operator):
         fs1 = sel
         solve_fs(bm, fs1, self.prop_plen, 
                  self.prop_merge, self.prop_mdist, 
-                 self.prop_agg, self.prop_ths)
+                 self.prop_ths)
         bm.normal_update()
 
         obj = bpy.context.active_object                
@@ -816,7 +890,8 @@ class SafeInsetOperator(bpy.types.Operator):
 
 
     def invoke(self, context, event): 
-        self.prop_plen = 0.15                     
+        self.prop_plen = 0.15 
+        self.prop_ths = 0.01                    
                 
         if context.edit_object:
             self.process(context)
