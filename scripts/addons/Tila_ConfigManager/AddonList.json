@@ -2922,5 +2922,22 @@
                 "destination_path": "#\\scripts\\addons\\universal_multi_importer"
             }
         ]
+    },
+    "light-painter": {
+        "is_enable": false,
+        "is_sync": false,
+        "online_url": null,
+        "repository_url": "https://github.com/semagnum/light-painter.git",
+        "branch": null,
+        "is_submodule": false,
+        "local_path": "#\\scripts\\addon_library\\GIT_Clones\\light-painter",
+        "keymaps": false,
+        "paths": [
+            {
+                "is_enable": false,
+                "local_subpath": null,
+                "destination_path": "\\scripts\\addons\\light-painter"
+            }
+        ]
     }
 }
