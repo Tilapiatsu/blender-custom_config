@@ -53,6 +53,8 @@ class TILA_Config_Keymaps(ABC, KeymapManager.KeymapManager):
 	k_rotate = 'R'
 	k_scale = 'S'
 
+	addon_name = ''
+
 	def __init__(self):
 		super(TILA_Config_Keymaps, self).__init__()
 		self.log_progress = Log(bpy.context.window_manager.tila_config_log_list, 'tila_config_log_list_idx')
@@ -70,6 +72,12 @@ class TILA_Config_Keymaps(ABC, KeymapManager.KeymapManager):
 			self.log_progress.start(f"{message}")
 		else:
 			self.log_progress.done(f"{message}")
+
+	def keymap_restore(self, all=True):
+		if all:
+			bpy.ops.preferences.keymap_restore(all=all)
+		else:
+			pass
 
 class TILA_Config_Keymaps_Global(TILA_Config_Keymaps):
 	addon_name = "Global"
@@ -533,22 +541,7 @@ class TILA_Config_Keymaps_Global(TILA_Config_Keymaps):
 		self.kmi_set_active(enable=False, idname='view3d.view_axis', type=self.k_cursor, value='CLICK_DRAG',  alt=True, direction='EAST')
 		self.kmi_set_active(enable=False, idname='view3d.view_axis', type=self.k_cursor, value='CLICK_DRAG',  alt=True, direction='SOUTH')
 		self.kmi_set_active(enable=False, idname='view3d.view_axis', type=self.k_cursor, value='CLICK_DRAG',  alt=True, direction='WEST')
-
-		# kekit
-		# self.kmi_set_replace('view3d.ke_get_set_material', 'M', 'PRESS', shift=True)
-
-		# # MouseLook_Navigation
-		# self.kmi_set_replace('mouselook_navigation.navigate', self.k_cursor, 'CLICK_DRAG', ctrl=False, alt=True, shift=False,  disable_double=True)
-
-		# Rotate an HDRI
-		# self.kmi_set_replace('rotate.hdri', self.k_context, 'PRESS', ctrl=True, alt=True, shift=False,  disable_double=True)
-		# self.kmi_set_active(enable=True, idname='rotate.hdri')
-		
-		# GreasePencil tools
-		# self.kmi_set_replace('view3d.rotate_canvas', self.k_context, 'PRESS', alt=True, disable_double=True)
-
-		# Polysource
-		# self.kmi_set_active(enable=False, idname='wm.call_menu_pie', type=self.k_menu, value='PRESS', properties={'name': 'PS_MT_tk_menu'})
+		self.kmi_set_replace('transform.translate', self.k_cursor, 'CLICK_DRAG', ctrl=True, alt=True, shift=True, properties={'cursor_transform': True, 'release_confirm': True, 'orient_type': 'NORMAL', 'snap': True, 'snap_align': True}, disable_double=True)
 
 		##### View3D Walk Modal
 		self.kmi_init(name='View3D Walk Modal', space_type='VIEW_3D', region_type='WINDOW', modal=True)
@@ -659,8 +652,6 @@ class TILA_Config_Keymaps_Global(TILA_Config_Keymaps):
 			kmi.active = False
 		self.kmi_set_replace('uv.toolkit_distribute', 'D', 'PRESS', disable_double=True, properties={'preserve_edge_length': True})
 		self.kmi_set_replace('uvpackmaster3.pack', 'P', 'PRESS', ctrl=True, disable_double=True)
-
-		# bpy.ops.transform.translate(value=(-1, 0, 0), orient_type='GLOBAL', orient_matrix=((1, 0, 0), (0, 1, 0), (0, 0, 1)), orient_matrix_type='GLOBAL', constraint_axis=(True, True, True), mirror=False, use_proportional_edit=False, proportional_edit_falloff='SMOOTH', proportional_size=1, use_proportional_connected=False, use_proportional_projected=False)
 
 
 		self.kmi_set_replace('transform.translate', 'UP_ARROW', 'PRESS', ctrl=True, alt=True, shift=True, disable_double=True, properties={'value': (0.0,1.0,0.0), 'release_confirm': True, 'orient_matrix': ((1, 0, 0), (0, 1, 0), (0, 0, 1)), 'orient_matrix_type': 'GLOBAL'})
@@ -1541,6 +1532,11 @@ class TILA_Config_Keymaps_Global(TILA_Config_Keymaps):
 		
 		self.print_status(f"Assignment of {self.addon_name} complete", start=False)
 
+		###### 3D View
+		self.kmi_init(name='3D View', space_type='VIEW_3D', region_type='WINDOW')
+		self.kmi_set_active(False, idname='transform.translate', shift=True, ctrl=False, alt=False, type="RIGHTMOUSE")
+
+		
 class TILA_Config_Keymaps_Empty(TILA_Config_Keymaps):
 	addon_name = "Empty"
 
