@@ -493,6 +493,7 @@ class TILA_Config_RegisterKeymaps(Operator):
 	bl_options = {'REGISTER'}
 
 	name : bpy.props.StringProperty(name="Addon Name", default="", description='Name of the addon to register Keymaps for')
+	restore : bpy.props.BoolProperty(name='Restore Keymap', default=False, description='Restore Keymaps to default before reassigning it')
 	
 	def execute(self, context):
 		self.log_status = Log(
@@ -503,9 +504,9 @@ class TILA_Config_RegisterKeymaps(Operator):
 
 		self.AM.flush_queue()
 		if self.name == '':
-			self.AM.queue_set_keymaps()
+			self.AM.queue_set_keymaps(restore=self.restore)
 		else:
-			self.AM.queue_set_keymaps(element_name=self.name)
+			self.AM.queue_set_keymaps(element_name=self.name, restore = self.restore)
 
 		self._timer = bpy.context.window_manager.event_timer_add(
 			0.1, window=context.window)

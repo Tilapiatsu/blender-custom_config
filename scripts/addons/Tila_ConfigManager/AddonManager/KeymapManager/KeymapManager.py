@@ -54,7 +54,6 @@ class KeymapManager():
                    "replaced": []}
 
     def __init__(self):
-
         # Define global variables
         self.wm = bpy.context.window_manager
         self.kca = self.wm.keyconfigs.addon

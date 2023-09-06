@@ -638,27 +638,31 @@ class AddonManager():
 
 		self.processing = False
 
-	def queue_set_keymaps(self, element_name=None):
+	def queue_set_keymaps(self, element_name=None, restore=False):
 		if element_name is None:
 			for e in self.elements.values():
 				if not e.keymaps:
 					continue
 
-				self.queue([self.set_keymaps, {'element_name': e.name}])
+				self.queue([self.set_keymaps, {'element_name': e.name, 'restore':restore}])
 				
 		elif element_name in self.elements.keys():
 			if not self.elements[element_name].keymaps:
 				return
 			
-			self.queue([self.set_keymaps, {'element_name': element_name}])
+			self.queue([self.set_keymaps, {'element_name': element_name, 'restore':restore}])
 
-	def set_keymaps(self, element_name=None):
+	def set_keymaps(self, element_name=None, restore=False):
 		self.processing = True
 
 		if element_name is None:
 			for e in self.elements.values():
+				if restore:
+					e.keymap_restore()
 				e.set_keymaps()
 		elif element_name in self.elements.keys():
+			if restore:
+				self.elements[element_name].keymap_restore()
 			self.elements[element_name].set_keymaps()
 
 		self.processing = False
