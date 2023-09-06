@@ -102,7 +102,7 @@ class TILA_Config_UpdateSetupBlender(Operator):
 				case 'ENABLE_DONE':
 					bpy.ops.tila.config_set_settings('EXEC_DEFAULT')
 				case 'SET_SETTINGS_DONE':
-					bpy.ops.tila.config_register_keymaps('EXEC_DEFAULT')
+					bpy.ops.tila.config_register_keymaps('EXEC_DEFAULT', restore=True)
 				case 'REGISTER_KEYMAP_DONE':
 					context.window_manager.tila_setup_blender_progress = "NONE"
 					self.report({'INFO'}, 'TilaConfig : Update Blender Setup Done !')

@@ -509,11 +509,13 @@ class ElementAM():
 			for p in self.paths:
 				p.disable(force=force)
 
-	def set_keymaps(self):
+	def set_keymaps(self, restore=False, all=False):
 		if self.keymaps:
 			try:
 				km = eval(f'keymaps.TILA_Config_Keymaps_{self.name}')
 				keymap_instance = km()
+				if restore:
+					keymap_instance.keymap_restore(all=False)
 				keymap_instance.set_keymaps()
 			except AttributeError as e:
 				self.log_progress.warning(f'{self.name} Addon have no keymaps Set')
@@ -657,13 +659,9 @@ class AddonManager():
 
 		if element_name is None:
 			for e in self.elements.values():
-				if restore:
-					e.keymap_restore()
-				e.set_keymaps()
+				e.set_keymaps(restore=restore)
 		elif element_name in self.elements.keys():
-			if restore:
-				self.elements[element_name].keymap_restore()
-			self.elements[element_name].set_keymaps()
+			self.elements[element_name].set_keymaps(restore=restore, all=True)
 
 		self.processing = False
 
