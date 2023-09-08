@@ -206,6 +206,9 @@ class TILA_smart_editmode(bpy.types.Operator):
             
         elif bpy.context.mode in ['CURVES']:
             pass
+        
+        elif bpy.context.mode in ['META']:
+            bpy.ops.object.editmode_toggle()
 
         else:
             bpy.ops.object.mode_set(mode='OBJECT')
