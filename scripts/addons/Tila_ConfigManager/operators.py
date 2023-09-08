@@ -33,7 +33,7 @@ class TILA_Config_SetupBlender(Operator):
 		self.wm.tila_setup_blender_progress = "NONE"
 
 		self._timer = bpy.context.window_manager.event_timer_add(
-			0.1, window=context.window)
+			0.01, window=context.window)
 		bpy.context.window_manager.modal_handler_add(self)
 		self.report({'INFO'}, 'TilaConfig : Blender Setup Started !')
 		self.log_status.start('Blender Setup Started !')
@@ -43,7 +43,7 @@ class TILA_Config_SetupBlender(Operator):
 		if event.type == 'TIMER':
 			match context.window_manager.tila_setup_blender_progress:
 				case 'NONE':
-					bpy.ops.tila.config_sync_addon_list('EXEC_DEFAULT', overwrite=True)
+					bpy.ops.tila.config_sync_addon_list('EXEC_DEFAULT', overwrite=False)
 				case 'SYNC_DONE':
 					bpy.ops.tila.config_link_addon_list('EXEC_DEFAULT', overwrite=True)
 				case 'LINK_DONE':
@@ -80,7 +80,7 @@ class TILA_Config_UpdateSetupBlender(Operator):
 		self.wm.tila_setup_blender_progress = "NONE"
 
 		self._timer = bpy.context.window_manager.event_timer_add(
-			0.1, window=context.window)
+			0.01, window=context.window)
 		bpy.context.window_manager.modal_handler_add(self)
 		self.report({'INFO'}, 'TilaConfig : Update Blender Setup Started !')
 		self.log_status.start('Update Blender Setup Started !')
@@ -94,7 +94,7 @@ class TILA_Config_UpdateSetupBlender(Operator):
 				case 'DISABLE_DONE':
 					bpy.ops.tila.config_clean_addon_list('EXEC_DEFAULT', force=True, clean_cloned=True)
 				case 'CLEAN_DONE':
-					bpy.ops.tila.config_sync_addon_list('EXEC_DEFAULT', overwrite=True)
+					bpy.ops.tila.config_sync_addon_list('EXEC_DEFAULT', overwrite=False)
 				case 'SYNC_DONE':
 					bpy.ops.tila.config_link_addon_list('EXEC_DEFAULT', overwrite=True)
 				case 'LINK_DONE':
@@ -131,7 +131,7 @@ class TILA_Config_ForceEnableAddon(Operator):
 		self.wm.tila_setup_blender_progress = "NONE"
 
 		self._timer = bpy.context.window_manager.event_timer_add(
-			0.1, window=context.window)
+			0.01, window=context.window)
 		bpy.context.window_manager.modal_handler_add(self)
 		self.report({'INFO'}, 'TilaConfig : Force Enable Addon Started !')
 		self.log_status.start('Force Enable Addon Started !')
@@ -175,7 +175,7 @@ class TILA_Config_ForceDisableAddon(Operator):
 		self.wm.tila_setup_blender_progress = "NONE"
 
 		self._timer = bpy.context.window_manager.event_timer_add(
-			0.1, window=context.window)
+			0.01, window=context.window)
 		bpy.context.window_manager.modal_handler_add(self)
 		self.report({'INFO'}, 'TilaConfig : Force Disable Addon Started !')
 		self.log_status.start('Force Disable Addon Started !')
@@ -223,7 +223,7 @@ class TILA_Config_RemoveConfig(Operator):
 		self.wm.tila_setup_blender_progress = "NONE"
 
 		self._timer = bpy.context.window_manager.event_timer_add(
-			0.1, window=context.window)
+			0.01, window=context.window)
 		bpy.context.window_manager.modal_handler_add(self)
 		self.report({'INFO'}, 'TilaConfig : Remove Config Started !')
 		self.log_status.start('Remove Blender Setup Started !')
@@ -270,7 +270,7 @@ class TILA_Config_CleanAddonList(Operator):
 		else:
 			self.AM.queue_clean(element_name=self.name, force=self.force, clean_cloned=self.clean_cloned)
 
-		self._timer = bpy.context.window_manager.event_timer_add(0.1, window=context.window)
+		self._timer = bpy.context.window_manager.event_timer_add(0.01, window=context.window)
 		bpy.context.window_manager.modal_handler_add(self)
 		return {'RUNNING_MODAL'}
 
@@ -325,7 +325,7 @@ class TILA_Config_SyncAddonList(Operator):
 			self.AM.queue_sync(element_name=self.name, force=self.force, overwrite=self.overwrite)
 
 
-		self._timer = bpy.context.window_manager.event_timer_add(0.1, window=context.window)
+		self._timer = bpy.context.window_manager.event_timer_add(0.01, window=context.window)
 		bpy.context.window_manager.modal_handler_add(self)
 		return {'RUNNING_MODAL'}
 	
@@ -414,7 +414,7 @@ class TILA_Config_EnableAddonList(Operator):
 		else:
 			self.AM.queue_enable(element_name=self.name, force=self.force)
 
-		self._timer = bpy.context.window_manager.event_timer_add(0.1, window=context.window)
+		self._timer = bpy.context.window_manager.event_timer_add(0.01, window=context.window)
 		bpy.context.window_manager.modal_handler_add(self)
 		return {'RUNNING_MODAL'}
 
@@ -463,7 +463,7 @@ class TILA_Config_DisableAddonList(Operator):
 			self.AM.queue_disable(element_name=self.name, force=self.force)
 
 		self._timer = bpy.context.window_manager.event_timer_add(
-			0.1, window=context.window)
+			0.01, window=context.window)
 		bpy.context.window_manager.modal_handler_add(self)
 		return {'RUNNING_MODAL'}
 
@@ -509,7 +509,7 @@ class TILA_Config_RegisterKeymaps(Operator):
 			self.AM.queue_set_keymaps(element_name=self.name, restore = self.restore)
 
 		self._timer = bpy.context.window_manager.event_timer_add(
-			0.1, window=context.window)
+			0.01, window=context.window)
 		bpy.context.window_manager.modal_handler_add(self)
 		return {'RUNNING_MODAL'}
 
