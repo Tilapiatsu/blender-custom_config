@@ -23,6 +23,7 @@ class TILA_SeparateAndSelect(bpy.types.Operator):
     select_linked : bpy.props.BoolProperty(name='Extend Selection to linked', default=True) 
     apply_modifier : bpy.props.BoolProperty(name='Apply Modifier', default=False) 
 
+    multires_modifier_type = 'MULTIRES'
 
     @classmethod
     def poll(cls, context):
@@ -77,15 +78,21 @@ class TILA_SeparateAndSelect(bpy.types.Operator):
         self.set_active_collection(context, self.current_object_to_proceed.users_collection[0].name)
         self.exploded_collection, _ = self.create_child_collection(context, self.current_object_to_proceed.name + '_exploded')
 
-        group = f"P{self.suffix:03d}"
-        duplicate = self.duplicate_object(self.current_object_to_proceed, data=False, collection=self.exploded_collection, suffix = f'_{group}')
+        group_name = f"P{self.suffix:03d}"
+        duplicate = self.duplicate_object(self.current_object_to_proceed, data=False, collection=self.exploded_collection, suffix = f'_{group_name}')
 
-        self.current_object_to_proceed.vertex_groups.new(name= group)
+        self.current_object_to_proceed.vertex_groups.new(name= group_name)
         # vertex_group.add(self.selected_polygons, 1.0, 'REPLACE')
         bpy.ops.object.vertex_group_assign()
+        
+        modifier = duplicate.modifiers.new(name=group_name, type='MASK')
+        modifier.vertex_group = group_name
 
-        modifier = duplicate.modifiers.new(name=group, type='MASK')
-        modifier.vertex_group = group
+        multires = [m for m in duplicate.modifiers if m.type == self.multires_modifier_type]
+        if len(multires):
+            bpy.ops.object.modifier_move_to_index({'object': duplicate}, modifier=group_name, index=1)
+        else:
+            bpy.ops.object.modifier_move_to_index({'object': duplicate}, modifier=group_name, index=0)
 
     def select_next_polygon_island(self, object):
         poly_to_explode = self.polygons_to_explode[object.name]
@@ -127,7 +134,6 @@ class TILA_SeparateAndSelect(bpy.types.Operator):
                 bpy.context.view_layer.objects.active = self.current_object_to_proceed
                 self.suffix = 0
                 
-            
             bpy.ops.mesh.select_all(action='DESELECT')
             self.suffix += 1
             if self.select_next_polygon_island(self.current_object_to_proceed) :
