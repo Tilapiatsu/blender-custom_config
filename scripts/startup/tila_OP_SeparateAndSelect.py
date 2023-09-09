@@ -79,14 +79,6 @@ class TILA_SeparateAndSelect(bpy.types.Operator):
 
 		return False
 
-	def invoke(self, context, event):
-		if self.by_loose_parts:
-			self.separated = False
-			self.cancelled = False
-			self.finished = False
-		
-		return self.execute(context)
-
 	def modal(self, context, event):
 		if self.finished or self.cancelled:
 			return {'FINISHED'}
@@ -118,6 +110,9 @@ class TILA_SeparateAndSelect(bpy.types.Operator):
 		self.objects_to_proceed = get_selected_objects()
 		self.current_object_to_proceed = self.objects_to_proceed.pop()
 		if self.by_loose_parts:
+			self.separated = False
+			self.cancelled = False
+			self.finished = False
 			wm = context.window_manager
 			self._timer = wm.event_timer_add(0.1, window=context.window)
 			wm.modal_handler_add(self)
