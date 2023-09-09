@@ -122,15 +122,12 @@ class TILA_SeparateAndSelect(bpy.types.Operator):
             self.cancelled = True
 
         if event.type in ['TIMER']:
-            if not len(self.objects_to_proceed):
-                self.finished = True
-                return {'PASS_THROUGH'}
-            
             if self.current_object_to_proceed is None:
                 self.current_object_to_proceed = self.objects_to_proceed.pop()
                 bpy.context.view_layer.objects.active = self.current_object_to_proceed
                 self.suffix = 0
                 
+            
             bpy.ops.mesh.select_all(action='DESELECT')
             self.suffix += 1
             if self.select_next_polygon_island(self.current_object_to_proceed) :
@@ -138,6 +135,10 @@ class TILA_SeparateAndSelect(bpy.types.Operator):
             else:
                 self.current_object_to_proceed = None
 
+            if not len(self.objects_to_proceed) and self.current_object_to_proceed == None:
+                self.finished = True
+                return {'PASS_THROUGH'}
+            
         return {'PASS_THROUGH'}
 
     def execute(self, context):
