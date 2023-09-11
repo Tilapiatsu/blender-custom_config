@@ -1,6 +1,9 @@
 import bpy
+import time
 from . import high_res_objects_manager
 from . import viewport_manager
+from . import debug
+
 
 from bpy.props import (
     IntProperty,
@@ -135,6 +138,7 @@ def get_parent_collections_by_object(context, object, scene = None):
     Returns all parental collection to the object in the scene
     Context scene used if scene == None
     '''
+
     if scene == None:
         scene = context.scene
 
@@ -147,19 +151,47 @@ def get_parent_collections_by_object(context, object, scene = None):
         print("Could not set current_collection for " + str(object))
         return None
     
-    return_collections = object_collections
-    scene_collections = get_all_collections_by_scene(context.scene)
+    
+    
+    scene_collections = get_all_collections_by_scene(scene)
+    # Remove object collections that does not exist in scene
+    for collection in object_collections.copy():
+        if not collection in scene_collections:
+            object_collections.remove(collection)
+    
 
-    for current_collection in object_collections:
-        while (not current_collection in scene.collection.children.values() 
-            and not current_collection == scene.collection):
+    return_collections = object_collections.copy()
 
+    panic = 0
+    for current_collection in object_collections: 
+        all_parent_collections_checked = False
+
+        # Loop until a top hierachy collection is found
+        while (all_parent_collections_checked == False):
+
+            '''
+            panic += 1
+            if panic > 50:
+                break
+            '''
+
+            # If current collection is top hierarchy collection
+            if current_collection in scene.collection.children.values():
+                if not current_collection in return_collections:  
+                    return_collections.append(current_collection)
+                all_parent_collections_checked = True
+                break
+            
+
+            # Check if collection is a parent collection to current_collection
             for collection in scene_collections:
                 if current_collection in collection.children.values():
-                    return_collections.append(collection)
+                    # Add collection if it is not already added
+                    if not collection in return_collections:  
+                        return_collections.append(collection)
                     current_collection = collection
-                    break           
-    
+                    break   
+                    
     return return_collections
 
 def get_bake_collections_by_objects(context, objects, scene = None):
@@ -190,11 +222,13 @@ def get_bake_collections_by_object(context, object, scene = None):
     collections = get_parent_collections_by_object(context, object, scene)
 
     if collections == None:
+        print("no collections found")
         return None
 
     bake_collections = []
 
     for collection in collections:
+
         if collection.get('is_bake_collection') == True:
             bake_collections.append(collection)
             

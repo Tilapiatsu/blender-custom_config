@@ -1,14 +1,54 @@
 import bpy
 from . import custom_properties
 
+import time
 
 def allow_cleanup():
     
     cleanup_flags = {}
     cleanup_flags['objects'] = True
     cleanup_flags['scenes'] = True
-    
+    cleanup_flags['intermediate_bake_image'] = True
+    cleanup_flags['image_nodes'] = True
+    cleanup_flags['shading_nodes'] = True
+    cleanup_flags['render_settings'] = True
     return cleanup_flags
+
+def debug_flags():
+    
+    debug_flags = {}
+    debug_flags['show_vertex_color_in_ui'] = False
+    debug_flags['show_debug_panel_in_ui'] = False
+    return debug_flags
+
+def debug_set(context, value):
+    context.window_manager['debug'] = value
+
+def debug_get(context):
+    return context.window_manager['debug']
+
+def check_panic_timer(context):
+    '''
+    Stops the baking process if the process has run past the second_limit
+    If seconds_limit is negative, the baking process runs until it is done
+    '''
+    wm = context.window_manager
+    seconds_limit = 5
+    
+    if seconds_limit < 0:
+        return
+
+    seconds_passed = time.time() - wm['start_process_time']
+    if seconds_passed > seconds_limit:
+        print("\n======\Ending baking process via check_panic_timer\n======")
+        end_bake_process(context)
+
+
+def end_bake_process(context):
+    # Debug procedure for ending bake process
+    wm = context.window_manager
+    wm['end_process'] = True
+    return None
 
 def print_list(list_to_print, list_name = '', use_info = False):
     for each in list_to_print:
@@ -16,6 +56,20 @@ def print_list(list_to_print, list_name = '', use_info = False):
         if use_info:
             pass
 
+def print_render_settings(context, render_settings, all = False):
+
+    print("\n=====================================")
+    print("Render settings")
+    print("=====================================")
+    
+    for key, value in render_settings.items():
+        if all:
+            print(str(key) + ":" + repr(value))
+        else:
+            if key.find('.') == - 1:
+                print(str(key) + ":" + repr(value))
+
+    print("\n")
 
 def debug_print_dictionary(context, dictionary):
     print("\n============================")

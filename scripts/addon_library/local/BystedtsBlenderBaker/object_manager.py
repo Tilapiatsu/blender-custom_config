@@ -1,5 +1,7 @@
 import bpy
 import mathutils
+from mathutils import Vector
+from mathutils import Matrix
 import copy
 import numpy
 from . import high_res_objects_manager
@@ -79,36 +81,37 @@ def get_hide_render_settings(objects):
     
     return hide_render_settings
 
-def add_materials_to_objects_in_collection(context, collection):
+def add_materials_to_objects_in_collections(context, collections):
     '''
     Adds a material to objects in the collection if they don't have a material
     '''   
     original_selection = context.selected_objects
     active_object = context.active_object
 
-    objects = collection.objects
-    
-    for object in objects:
-        has_material = False
+    for collection in collections:
+        objects = collection.objects
+        
+        for object in objects:
+            has_material = False
 
-        for slot in object.material_slots:
-            if slot.material:
-                has_material = True
+            for slot in object.material_slots:
+                if slot.material:
+                    has_material = True
+                    continue
+
+            if has_material:
                 continue
 
-        if has_material:
-            continue
+            # Create material
+            select_objects(context, 'REPLACE', [object], set_first_as_active = True)
+            
+            if len(object.material_slots) == 0:
+                bpy.ops.object.material_slot_add()
 
-        # Create material
-        select_objects(context, 'REPLACE', [object], set_first_as_active = True)
-        
-        if len(object.material_slots) == 0:
-            bpy.ops.object.material_slot_add()
-
-        material = bpy.data.materials.new(name="Material")
-        material.use_nodes = True
-        object.material_slots[0].material = material
-        
+            material = bpy.data.materials.new(name="Material")
+            material.use_nodes = True
+            object.material_slots[0].material = material
+            
     # Restore selection
     select_objects(context, 'REPLACE', original_selection, active_object = active_object)
 
@@ -488,6 +491,25 @@ def join_objects_for_baking(context, objects, make_duplicate = False):
 
     return joined_object
 
+def get_bounding_box_center(context, object):
+    
+    coord_sum = Vector((0,0,0))
+    for i in range(0,8):
+        coord_sum += Vector(object.bound_box[i])
+    
+    return coord_sum / 8
+
+def offset_object_to_bounding_box_center(context, object):
+
+    bb_move_vector = get_bounding_box_center(context, object) * -1
+
+    m1 = object.matrix_world.copy()
+    m2 = Matrix()
+    m2.translation = bb_move_vector
+    m3 = m1 @ m2
+    object.matrix_world = m3
+
+
 def explode_locations_of_objects_and_highres_objects(context, objects, bake_locations, explode_distance = None):
     # Rename this to handle_positions_of_objects_during_baking
     
@@ -515,7 +537,6 @@ def explode_locations_of_objects_and_highres_objects(context, objects, bake_loca
     rows = sqrt(len(dupli_objects))
     object_count = len(dupli_objects)
     rows = rows + ((object_count - (rows * rows)) * 0.5) 
-    print("Rows = " + str(rows))
     rows = int(numpy.ceil(rows))
 
     # Oversized placement grid because it's simpler to wrap my brain around
@@ -543,6 +564,8 @@ def explode_locations_of_objects_and_highres_objects(context, objects, bake_loca
             low_poly_position_vector = mathutils.Vector(coord) * explode_distance
             low_poly_orig_position_vector = copy.copy(object.matrix_world.translation)
             move_object_to_world_vector(object, low_poly_position_vector)
+            offset_object_to_bounding_box_center(context, object)
+
 
             all_high_res_objects = all_high_res_objects + hi_res_objs
             
@@ -635,6 +658,7 @@ def get_largest_bounding_box_side(objects):
             bb_length = (mathutils.Vector(bb[i]) - mathutils.Vector(bb[i+1])).length
             if bb_length > longest_length: 
                 longest_length = bb_length
+                
 
     return longest_length
 
@@ -737,7 +761,7 @@ def get_object_hide_viewport_state(context, objects):
     '''
     hide_viewport_state = {}
     for object in objects:
-        hide_viewport_state[object.name] = object.hide_viewport
+        hide_viewport_state[object.name] = context.view_layer.objects[object.name].hide_get()
     
     return hide_viewport_state
 
@@ -963,6 +987,79 @@ def get_first_free_grid_placement(grid, ok_axes_placement):
                 if grid[x][y][z] == False:
                     return [x, y, z]
 
-    #print("Could not find an empty grid placement. Returning 0,0,0")
     return [0,0,0]
 
+def transfer_vertex_color(context, source_objects, target_objects, active_only = True, max_dist = 0.2):
+
+
+    # Make sure source objects and target objects are lists
+    if not type(source_objects) == list:
+        a = []
+        a.append(source_objects)
+        source_objects = a # Unclear why I get error with list(source_objects)
+    if not type(target_objects) == list:
+        target_objects = list(target_objects)
+
+    orig_active = context.active_object
+    orig_selected_objects = context.selected_objects
+
+    link_objects_to_active_scene(context, target_objects)
+    
+    #dg = context.evaluated_depsgraph_get()
+    #dg.update()
+
+    print("selected objects")
+    for object in context.selected_objects:
+        print(object.name)    
+    print("objects in scene")
+    for object in context.scene.objects:
+        print(object.name)
+
+    print("\n target objects:")
+    for target_object in target_objects:
+        print(target_object.name)
+
+    for source_object in source_objects:
+        for target_object in target_objects:
+            
+            print("transfer vtx col from " + source_object.name + " to " + target_object.name)
+            select_objects(
+                context, 
+                'REPLACE', 
+                [source_object, target_object]
+                )
+
+            context.view_layer.objects.active = source_object
+
+
+            if active_only:
+                bpy.ops.object.data_transfer(
+                    use_reverse_transfer = False,
+                    data_type='VCOL', 
+                    use_object_transform = False,
+                    loop_mapping='POLYINTERP_NEAREST', 
+                    layers_select_src='ACTIVE', 
+                    layers_select_dst='ACTIVE',
+                    use_max_distance = True, 
+                    max_distance = max_dist, 
+                    )        
+            else:
+                bpy.ops.object.data_transfer(
+                    use_reverse_transfer = False,
+                    data_type='VCOL', 
+                    use_object_transform = False,
+                    loop_mapping='POLYINTERP_NEAREST', 
+                    layers_select_src='ALL', 
+                    layers_select_dst='NAME',
+                    use_max_distance=True, 
+                    max_distance = max_dist, 
+                    )               
+    
+    # Restore selection
+    select_objects(
+        context, 
+        'REPLACE', 
+        orig_selected_objects
+        )
+
+    context.view_layer.objects.active = orig_active

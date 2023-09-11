@@ -1,7 +1,29 @@
 =================================================
+Bystedts Blender Baker 1.3.0
+2021-XX-XX
+
+New features
+- Added support for baking vertex colors
+=================================================
+Bystedts Blender Baker 1.2.5
+2023-09-10
+
+Added bake passes:
+- Thickness
+
+Bug fixes
+- Fixed bug with black baked images with Blender 3.5 and higher versions
+- Fixed bug with bit depth precision that could cause artefacts in the baked normal for instance
+- Fixed crash when baking displacement pass and bake source material was missing displacement
+- Fixed bug with infinite loop that happend on some occations. This would lock blender
+- Fixed bug so that objects hide_viewport state will be restored after baking is completed
+- Fixed bug with exploded bake positions to avoid objects being too close to each other due to non center origin
+
+=================================================
 Bystedts Blender Baker 1.2.0
 2021-09-18
 
+New features
 - Added functionality for saving and loading presets including bake passes.
 - Added object space to normal bake pass 
 - Added fix for skewed normals when baking high res to low res

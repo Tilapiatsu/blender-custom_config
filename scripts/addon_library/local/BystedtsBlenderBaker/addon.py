@@ -164,6 +164,8 @@ class RENDER_OT_bake_with_bake_passes(bpy.types.Operator):
         bake_manager.bake_all_passes_with_timer(context, selected_objects)
 
     def modal(self, context, event):
+
+
         wm = context.window_manager
         
 
@@ -204,7 +206,10 @@ class RENDER_OT_bake_with_bake_passes(bpy.types.Operator):
             object_manager.select_objects(context, 'REPLACE', self.original_selection)
         except:
             print("Could not restore original selection")
-        settings_manager.set_settings(context, self.original_render_settings)
+        
+        if debug.allow_cleanup()['render_settings']:
+            settings_manager.set_settings(context, self.original_render_settings)
+            
         context.scene.BBB_props.progress_percentage = 0
 
     def initialize_properties(self, context):
@@ -262,6 +267,8 @@ class RENDER_OT_bake_with_bake_passes(bpy.types.Operator):
         wm['timer_registered'] = False
 
         wm['end_process'] = False
+
+        wm['debug'] = False
     
         import time
         wm['start_process_time'] = time.time()
@@ -277,10 +284,12 @@ class RENDER_OT_bake_with_bake_passes(bpy.types.Operator):
             
             del wm['bake_collections_count'] 
             del wm['current_bake_collection']
-        
-            del wm['timer_registered']
 
+            del wm['timer_registered']
+            del wm['debug']
             del wm['end_process']
+
+
         except:
             print("Could not delete temporary custom bake properties in window manager ")
 
@@ -289,11 +298,7 @@ class RENDER_OT_bake_with_bake_passes(bpy.types.Operator):
         self.delete_properties(context)
         self.restore_original_values(context)
 
-        debug.print_image_node_image_names_in_objects_materials(context, self.objects)
-     
         material_preview_manager.update_all_bake_preview_materials()
-
-        debug.print_image_node_image_names_in_objects_materials(context, self.objects)
         
         if debug.allow_cleanup()['scenes']:
             scene_manager.remove_temporary_scenes_after_bake(context)
@@ -306,7 +311,8 @@ class RENDER_OT_bake_with_bake_passes(bpy.types.Operator):
                 
 
     def execute(self, context):
-        
+
+
         # Enter object mode
         if not context.mode == 'OBJECT':
             bpy.ops.object.mode_set(mode = 'OBJECT')

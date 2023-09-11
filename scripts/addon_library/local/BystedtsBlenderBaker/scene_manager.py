@@ -3,6 +3,7 @@ import bpy
 def create_scene(context, scene_name = 'new scene', delete_after_bake = True):
     bpy.ops.scene.new(type='EMPTY')
     context.window.scene.name = scene_name
+    #context.scene.name = scene_name
 
     # For some reason, deleting a scene when a function is run within a timer
     # it seems that blender can sometimes crash. I'll solve this by cleaning up after
@@ -41,25 +42,10 @@ def delete_scene(context, scene_name):
         if cam.users < 2:
             bpy.data.cameras.remove(cam.data)
 
-    # DEBUG      
-    print("current scene is " + context.scene.name)
-    print("repr(scene) = " + repr(scene))
-    if scene in bpy.data.scenes.values():
-        print("scene to be deleted exists")
-    else:
-        print("scene to be deleted does not exist")
-    # END DEBUG
-
-    try:
-        # DEBUG
-        if scene in bpy.data.scenes.values():
-            print("scene to be deleted exists")
-        else:
-            print("scene to be deleted does not exist")
-        # END DEBUG
-        
-        # The row below has caused crashes for unknown reasons. Hard to recreate
-        bpy.data.scenes.remove(scene) # temp disabled
+    try:        
+        # The row below has caused crashes for unknown reasons. 
+        # This seems unstable when doing it under modal process
+        bpy.data.scenes.remove(scene) 
     except:
         print("Could not delete scene with name " + scene_name)
 

@@ -48,7 +48,7 @@ def restore_selected_objects(context, selection_data):
 
     bpy.ops.object.mode_set(mode = orig_mode) 
 
-def get_bake_render_settings(context, bake_settings_scene = None, bake_pass = None):
+def get_bake_render_settings(context, bake_settings_scene = None, bake_pass = None, bake_collection = None):
     '''
     Get bake render settings from current scene, if no other scene is specified
     Specify bake pass to get the specific render settings for baking normal, diffuse etc
@@ -62,12 +62,12 @@ def get_bake_render_settings(context, bake_settings_scene = None, bake_pass = No
     props = bake_settings_scene.BBB_props
     render_settings['BBB_props'] = props
 
-    extrusion = props.cage_extrusion
+    render_settings['bake_collection'] = bake_collection
 
     settings = {
         'context.scene.render.engine' : 'CYCLES',
         'context.scene.render.filepath' : props.dir_path,
-        'context.scene.render.bake.cage_extrusion' : extrusion,
+        'context.scene.render.bake.cage_extrusion' : props.cage_extrusion,
         'context.scene.render.bake.use_cage' : props.use_cage,
         'context.scene.render.bake.use_clear' : False,
         'context.scene.render.image_settings.compression': 0,
@@ -75,13 +75,18 @@ def get_bake_render_settings(context, bake_settings_scene = None, bake_pass = No
     }
     render_settings.update(settings)
 
-    # Image format
+    # IMAGE
+    if bake_collection:
+        render_settings['image_name'] = bake_manager.get_bake_image_name(context, bake_pass = bake_pass, bake_collection = bake_collection)
+        render_settings['image_folder'] = bake_collection.name
     image_settings = context.scene.BBB_props.image_settings
     render_settings['image_settings'] = context.scene.BBB_props.image_settings
     render_settings['context.scene.render.image_settings.file_format'] = image_settings.file_format
     render_settings['context.scene.render.image_settings.color_mode'] = image_settings.color_mode
     render_settings['context.scene.render.image_settings.color_depth'] = image_settings.color_depth
     
+
+
     if image_settings.file_format == 'TIFF':
         render_settings['context.scene.render.image_settings.tiff_codec'] = image_settings.tiff_codec
     elif (image_settings.file_format == 'OPEN_EXR' 
@@ -118,7 +123,6 @@ def get_bake_render_settings(context, bake_settings_scene = None, bake_pass = No
     if bake_pass.bake_type == "NORMAL":
         
         render_settings['context.scene.render.bake.normal_space'] = bake_pass.normal_space
-        print("\n render_settings['context.scene.render.bake.normal_space'] == " + render_settings['context.scene.render.bake.normal_space'])
         if bake_pass.normal_space == 'TANGENT':
             if bake_pass.normal_map_type == 'OPEN_GL':
                 render_settings['context.scene.render.bake.normal_g'] = 'POS_Y'
@@ -137,6 +141,10 @@ def get_bake_render_settings(context, bake_settings_scene = None, bake_pass = No
         render_settings['context.scene.render.bake.use_selected_to_active'] = True
     else:
         render_settings['context.scene.render.bake.use_selected_to_active'] = False
+
+    # Target
+    
+    render_settings['context.scene.render.bake.target'] = props.target
 
     # Set emit as bake type when the pass is not an option in cycles bake settings
     if bake_passes.is_non_default_bake_pass(bake_pass.bake_type):
@@ -210,8 +218,15 @@ def get_bake_render_settings(context, bake_settings_scene = None, bake_pass = No
    
     render_settings['base_color'] = bake_passes.get_base_color(bake_pass.bake_type)
     average_resolution = (render_settings['resolution_x'] + render_settings['resolution_y']) * 0.5
-    render_settings['context.scene.render.bake.margin'] = max(average_resolution / 128, 4) * props.margin_multiplier
     
+    # Margin
+    if bake_pass.use_zero_margin:
+        render_settings['context.scene.render.bake.margin'] = 0
+    else:
+        render_settings['context.scene.render.bake.margin'] = max(average_resolution / 128, 4) * props.margin_multiplier
+    
+    
+
     # Bake scene
     if bake_pass.bake_scene == "AUTO":
         if bake_passes.is_temporary_scene_bake_pass(bake_pass):
@@ -323,7 +338,6 @@ def set_settings(context, settings_dictionary):
     Key example:  'context.scene.cycles.samples'
     Key without '.' will be ignored
     '''
-    print("init set_settings")
     for key, value in settings_dictionary.items():
         
         # If key can be used to change property directly (e.g. key contains '.')

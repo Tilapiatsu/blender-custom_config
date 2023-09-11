@@ -11,6 +11,8 @@ from bpy.props import (
 from . import bake_passes
 from . import high_res_objects_manager
 from . import collection_manager
+from . import bake_manager
+from . import debug
 
 view3d_header_draw = lambda s,c: None
 #----#
@@ -56,46 +58,47 @@ class RENDER_PT_bbb_settings(bpy.types.Panel):
 
         col.prop(scene.BBB_props, "guided_ui", text = "Guided UI")
 
+        if scene.BBB_props.target == 'IMAGE_TEXTURES':
+
+            box = layout.box()
+            col = box.column()
+
+            grid = col.grid_flow(row_major = True, columns = 2,)
+
+            col.label(text = "Image settings")
+
+            grid = col.grid_flow(row_major = True, columns = 2,)
+
+            grid.label(text='Path')
+            grid.prop(scene.BBB_props, "dir_path", text = "")
+
+            if scene.BBB_props.guided_ui == True and scene.BBB_props.dir_path == "":
+                return
+            
+            guided_ui_message = handle_guided_UI(context)
+            if guided_ui_message['step']  == 1:
+                return
 
 
-        box = layout.box()
-        col = box.column()
+            # Resolution
+            grid.label(text='Resolution X')
+            grid.prop(scene.BBB_props, "resolution_x", text="")
 
-        grid = col.grid_flow(row_major = True, columns = 2,)
+            grid.label(text='Resolution Y')
+            grid.prop(scene.BBB_props, "resolution_y", text="")
 
-        col.label(text = "Image settings")
-
-        grid = col.grid_flow(row_major = True, columns = 2,)
-
-        grid.label(text='Path')
-        grid.prop(scene.BBB_props, "dir_path", text = "")
-
-        if scene.BBB_props.guided_ui == True and scene.BBB_props.dir_path == "":
-            return
-        
-        guided_ui_message = handle_guided_UI(context)
-        if guided_ui_message['step']  == 1:
-            return
-
-        # Resolution
-        grid.label(text='Resolution X')
-        grid.prop(scene.BBB_props, "resolution_x", text="")
-
-        grid.label(text='Resolution Y')
-        grid.prop(scene.BBB_props, "resolution_y", text="")
-
-        grid.label(text='Resolution %')
-        grid.prop(scene.BBB_props, "resolution_percentage", text="", slider = True)
+            grid.label(text='Resolution %')
+            grid.prop(scene.BBB_props, "resolution_percentage", text="", slider = True)
 
 
-        col.separator(factor = 1.0)
-        grid = col.grid_flow(row_major = True, columns = 2,)
+            col.separator(factor = 1.0)
+            grid = col.grid_flow(row_major = True, columns = 2,)
 
-        grid.label(text='Naming options')
-        grid.prop(scene.BBB_props, "bake_image_naming_option", text="")
+            grid.label(text='Naming options')
+            grid.prop(scene.BBB_props, "bake_image_naming_option", text="")
 
-        grid.label(text='Naming separator')
-        grid.prop(scene.BBB_props, "bake_image_separator", text = "")
+            grid.label(text='Naming separator')
+            grid.prop(scene.BBB_props, "bake_image_separator", text = "")
 
         #=================
         # Bake settings
@@ -112,6 +115,11 @@ class RENDER_PT_bbb_settings(bpy.types.Panel):
         grid.label(text='Bake workflow')
         grid.prop(scene.BBB_props, "bake_workflow", text = "")
 
+        if debug.debug_flags()['show_vertex_color_in_ui']:
+            grid.label(text='Target')
+            grid.prop(scene.BBB_props, "target", text = "")
+
+
         col.separator(factor = 1.0)
         grid = col.grid_flow(row_major = True, columns = 2,)
 
@@ -126,19 +134,20 @@ class RENDER_PT_bbb_settings(bpy.types.Panel):
             col.separator(factor = 1.0)
             grid = col.grid_flow(row_major = True, columns = 2,)
         
-        grid.label(text='Post process anti aliasing')
-        grid.prop(scene.BBB_props, "use_post_process_anti_aliasing", text = "")
+        if scene.BBB_props.target == 'IMAGE_TEXTURES':
+            grid.label(text='Post process anti aliasing')
+            grid.prop(scene.BBB_props, "use_post_process_anti_aliasing", text = "")
 
-        grid.label(text='AA / Sub pixel sampling')
-        grid.prop(scene.BBB_props, "sub_pixel_sample", text = "")
+            grid.label(text='AA / Sub pixel sampling')
+            grid.prop(scene.BBB_props, "sub_pixel_sample", text = "")
 
-        average_resolution = (properties.resolution_x + properties.resolution_y) / 2
-        margin_value = (max(int(average_resolution) / 128, 4)) * properties.margin_multiplier
+            average_resolution = (properties.resolution_x + properties.resolution_y) / 2
+            margin_value = (max(int(average_resolution) / 128, 4)) * properties.margin_multiplier
 
-        margin_value = int(margin_value)
+            margin_value = int(margin_value)
 
-        grid.label(text='Margin multiplier (' + str(margin_value) + " px)")
-        grid.prop(properties, "margin_multiplier", text = "")
+            grid.label(text='Margin multiplier (' + str(margin_value) + " px)")
+            grid.prop(properties, "margin_multiplier", text = "")
 
         col.separator(factor = 1.0)
         grid = col.grid_flow(row_major = True, columns = 2,)
@@ -173,7 +182,15 @@ class RENDER_PT_bbb_image_settings(bpy.types.Panel):
         col = layout.column()
         BBB_props = context.scene.BBB_props.image_settings
 
+
+
         grid = col.grid_flow(row_major = True, columns = 2,)
+
+        
+        if not context.scene.BBB_props.target == 'IMAGE_TEXTURES':
+            grid.label(text='Not available when baking vertex color')
+            return
+
 
         grid.label(text='file format')
         grid.prop(BBB_props, "file_format", text = "")
@@ -315,6 +332,8 @@ class OBJECT_PT_bake_collections(bpy.types.Panel):
         col.operator('render.show_latest_baking_report', icon = 'INFO')
 
         col.operator('image.delete_bake_images', icon = 'EVENT_X')
+        if debug.debug_flags()['show_vertex_color_in_ui']:
+            col.operator('mesh.delete_vertex_colors_by_bake_passes', icon = 'GROUP_VCOL')
 
         props = col.operator('object.create_bake_preview', icon = 'SHADING_TEXTURE')       
         props.preview_type = "PREVIEW_ON_SELECTED"
@@ -569,10 +588,19 @@ class OBJECT_PT_bbb_bake_passes(bpy.types.Panel):
                 grid.label(text = "AOV data type")
                 grid.prop(bake_pass, "aov_data_type", text="")
 
-            # AOV 
+            # POINTINESS 
             if bake_pass.bake_type == "POINTINESS":
                 grid.label(text = "Pointiness contrast")
                 grid.prop(bake_pass, "pointiness_contrast", text="")
+
+            # THICKNESS
+            if bake_pass.bake_type == "THICKNESS":
+                grid.label(text = "Distance")
+                grid.prop(bake_pass, "thickness_distance", text="")
+
+                grid.label(text = "Thickness samples")
+                grid.prop(bake_pass, "thickness_samples", text="")
+
 
             # Channel transfer
             if bake_pass.bake_type == "CHANNEL_TRANSFER":
@@ -662,6 +690,9 @@ class OBJECT_PT_bbb_bake_passes(bpy.types.Panel):
             grid.label(text = "Post process")
             grid.prop(bake_pass, "post_process", text="")
 
+            grid.label(text = "Override margin to zero")
+            grid.prop(bake_pass, "use_zero_margin", text="")            
+
 
 
 
@@ -724,6 +755,9 @@ class OBJECT_PT_bbb_debug_panel(bpy.types.Panel):
 
     def draw(self, context):
 
+        if not debug.debug_flags()['show_debug_panel_in_ui']:
+            return
+        
         layout = self.layout
         scene = context.scene
         title_size = 0.6
@@ -781,20 +815,28 @@ class OBJECT_OT_test_a_function(bpy.types.Operator):
         from . import object_manager
         from . import bake_manager
         from . import settings_manager
+        from . import mesh_manager
+        from . import object_manager
         import mathutils
 
-        print("Init test a function")
+        print("\n Init test a function ===================")
         import time
+        start_time = time.time()
         print(time.asctime())
 
-        source_object = bpy.data.objects['a']
-        target_object = bpy.data.objects['b']
-        bake_manager.fix_skew_normals(
-            context, 
-            [source_object], 
-            [target_object], 
-            )
+        objects = context.selected_objects
 
+        
+        object_manager.explode_locations_of_objects_and_highres_objects(
+            bpy.context, 
+            objects,
+            'EXPLODED')
+        '''
+
+        object_manager.get_largest_bounding_box_side(objects)
+        '''
+        end_time = time.time()
+        print("finished test function in " + str(end_time - start_time) + "seconds")
         return {'FINISHED'}  
 
 #---------------#
@@ -1194,6 +1236,21 @@ class RENDER_PG_bystedts_blender_baker(bpy.types.PropertyGroup):
         items = bake_workflow_items,
         description = "Choose which workflow should be used during baking"
         )    
+
+
+    target_items = [
+        ('IMAGE_TEXTURES', "Image Textures", "Bake to image texture", 0),
+        ('VERTEX_COLORS', "Vertex Colors", "Bake to vertex color layer", 1),
+    ]   
+
+
+
+    target: bpy.props.EnumProperty(
+        name="Target", 
+        default = 'IMAGE_TEXTURES', 
+        items = target_items,
+        description = ""
+        )   
 
     sub_pixel_sample_items = [
         ("1", "X 1", "", 0),

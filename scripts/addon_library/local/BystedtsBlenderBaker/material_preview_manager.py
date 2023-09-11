@@ -193,18 +193,19 @@ def get_preview_material_name(context, object):
 
     return preview_material_name
 
-def get_materials_from_collection(collection):
+def get_materials_from_collections(collections):
     '''
-    returns all materials of all objects in the collection
+    returns all materials of all objects in the collections
     '''
     material_list = []
-    for object in collection.objects:
-        for material_slot in object.material_slots:
-            if material_slot.material == None:
-                continue
-            material = material_slot.material
-            if not material in material_list:
-                material_list.append(material)
+    for collection in collections:
+        for object in collection.objects:
+            for material_slot in object.material_slots:
+                if material_slot.material == None:
+                    continue
+                material = material_slot.material
+                if not material in material_list:
+                    material_list.append(material)
 
     return material_list
 
@@ -290,30 +291,42 @@ def preview_bake_texture(context, bake_pass):
     Loops through all bake preview materials and connect the resulting texture of
     the bake pass to an emissive shader
     '''
-    image_found = False
+    print("\n init preview_bake_texture")
     material_found = False
+    bake_image = None
+    bake_images = []
+    BBB_props = context.scene.BBB_props
 
     bake_pass_type = bake_pass.bake_type
     
-    for image in bpy.data.images:
+    # Find bake image that corresponds to bake_pass
+    if BBB_props.target == 'IMAGE_TEXTURES':
+        for image in bpy.data.images:
+            
+            if not image.get('bake_type') == bake_pass_type:
+                continue
+
+            if image.get('bake_type') == "AOV" and not image.get('aov_name') == bake_pass.aov_name:
+                continue
+
+            bake_images.append(image)
+
+        # Return if no image was found
+        if len(bake_images) == 0: 
+            print("no bake image found")
+            return
+
+
+    collections = collection_manager.get_bake_collections_by_scene(context.scene)
+    for collection in collections:
+
+        object_manager.add_materials_to_objects_in_collections(context, collections)
+        materials = get_materials_from_collections([collection]) 
         
-        if not image.get('bake_type') == bake_pass_type:
-            continue
-
-        if image.get('bake_type') == "AOV" and not image.get('aov_name') == bake_pass.aov_name:
-            continue
-
-        image_found = True
-
-        try:
-            collection = bpy.data.collections[image['image_folder']]
-            object_manager.add_materials_to_objects_in_collection(context, collection)
-        except:
-            continue
-        
-        
-
-        materials = get_materials_from_collection(collection) 
+        # Get image for this bake collection
+        for image in bake_images:
+            if image.get('image_folder') == collection.name:
+                bake_image = image
 
         for material in materials:
             
@@ -328,12 +341,19 @@ def preview_bake_texture(context, bake_pass):
                     pass
                 
             # Add nodes to material
-            image_node = material.node_tree.nodes.new(type = 'ShaderNodeTexImage')
-            image_node.image = image
+            if BBB_props.target == 'IMAGE_TEXTURES':
+                image_node = material.node_tree.nodes.new(type = 'ShaderNodeTexImage')
+                if not bake_image == None:
+                    image_node.image = bake_image
+            elif BBB_props.target == 'VERTEX_COLORS':
+                image_node = material.node_tree.nodes.new(type = 'ShaderNodeVertexColor')
+                image_node.layer_name = bake_pass.name
+
 
             # Create gamma node if image has color space "Non-Color"
             gamma_node = None
-            if image.colorspace_settings.name == 'Non-Color' and context.scene.display_settings.display_device == 'sRGB':
+            if (not bake_passes.is_srgb_bake_pass(bake_pass) and 
+                context.scene.display_settings.display_device == 'sRGB'):
                 
                 gamma_node = material.node_tree.nodes.new(type = 'ShaderNodeGamma')
                 gamma_node['preview_bake_texture'] = True
@@ -361,7 +381,7 @@ def preview_bake_texture(context, bake_pass):
                 material.node_tree.links.new(emission_node.outputs["Emission"], material_output_nodes[0].inputs["Surface"])        
             except:
                 print("Could not connect preview bake texture emission node to " + material_output_nodes[0].name)        
-           
+            
             # Store temprary flags on nodes and material
             image_node['preview_bake_texture'] = True
             emission_node['preview_bake_texture'] = True
@@ -370,10 +390,7 @@ def preview_bake_texture(context, bake_pass):
             
     ensure_viewport_shading_is_not_solid(context)
 
-    message = []        
-    if not image_found:
-        #UI.show_info_window(context, ["No image related to this bake pass found"], "Can't preview bake pass")
-        pass
+
     
 
 def get_socket_connected_to_material_output(material):
@@ -499,9 +516,6 @@ class OBJECT_OT_preview_bake_texture(bpy.types.Operator):
         )
 
     def execute(self, context):   
-        # TODO: go to shaded mode
-
-        # TODO: why loop through all bake passes below??? Coding at night....
 
         # Turn off all preview properties
         for index, bake_pass in enumerate(context.scene.bake_passes):

@@ -149,7 +149,7 @@ def create_bake_image_if_missing(context, image_name, bake_render_settings, forc
 
     # Create bake image if none is found
     if bake_image == None:
-        bpy.ops.image.new(name=image_name, width=image_resolution_x, height=image_resolution_y, color = bake_render_settings['base_color'])
+        bpy.ops.image.new(name=image_name, width=image_resolution_x, height=image_resolution_y, color = bake_render_settings['base_color'], float = True)
         bake_image = bpy.data.images[image_name]
 
     bpy.data.images[image_name]['bake_image'] = True # Add attribute to  mark the image as bake image
@@ -232,6 +232,9 @@ def cleanup_bake_image_nodes_from_objects_materials(context, objects, image = No
     If image is not None, then remove nodes that uses that image
     '''
     
+    if debug.allow_cleanup()['image_nodes'] == False:
+        return
+
     for object in objects:
         for material_slot in object.material_slots:    
             if material_slot.material == None:
@@ -249,18 +252,21 @@ def cleanup_bake_image_nodes_from_objects_materials(context, objects, image = No
                         node_tree.nodes.remove(node)
 
 
-def get_bake_image_name(context, object, bake_pass = None):
+def get_bake_image_name(context, object = None, bake_pass = None, bake_collection = None):
     '''
     Returns the name of the image that should be baked.
     Convenient way of getting the correct image name format.
     The rules for naming are collected from the UI
     '''
 
-    collection_name = get_first_bake_collection_name_from_object(context, object)
+    if bake_collection:
+        collection_name = bake_collection.name
+    else:
+        collection_name = get_first_bake_collection_name_from_object(context, object)
+    
     separator = context.scene.BBB_props.bake_image_separator
 
     naming_option = context.scene.BBB_props.bake_image_naming_option
-
 
     if (bake_pass.bake_type == "CHANNEL_TRANSFER" and 
         bake_pass.image_name_override == True):
@@ -291,6 +297,7 @@ def get_bake_image_name(context, object, bake_pass = None):
         type = ""
 
 
+
     if naming_option == "TYPE_COLLECTION":
         bake_image_name = type + separator + collection_name
     elif naming_option == "NAME_COLLECTION":
@@ -299,6 +306,7 @@ def get_bake_image_name(context, object, bake_pass = None):
         bake_image_name = collection_name + separator + type
     elif naming_option == "COLLECTION_NAME":
         bake_image_name = collection_name + separator + name
+
 
     return bake_image_name
 
@@ -340,7 +348,8 @@ def bake_specific_pass(context, objects = None, bake_collections = None, image_f
     I need to pass on the area as a parameter. Otherwise context.area is None. 
     I don't really know why this is the case
     '''
-    
+
+
 
     wm = context.window_manager
     start_time = time.time()
@@ -374,14 +383,20 @@ def bake_specific_pass(context, objects = None, bake_collections = None, image_f
     
     # CHANNEL TRANSFER or BAKING
     if bake_pass.bake_type == 'CHANNEL_TRANSFER':
-        # Channel transfer
-        bake_result = do_channel_transfer(
-            context = context, 
-            objects = objects, 
-            image_folder = "", 
-            bake_pass = bake_pass, 
-            bake_collection = bake_collection,             
-            )   
+        if context.scene.BBB_props.target == 'IMAGE_TEXTURES':
+            # Channel transfer
+            bake_result = do_channel_transfer(
+                context = context, 
+                objects = objects, 
+                image_folder = "", 
+                bake_pass = bake_pass, 
+                bake_collection = bake_collection,             
+                )   
+        elif context.scene.BBB_props.target == 'VERTEX_COLORS':
+            bake_result = mesh_manager.vertex_color_channel_transfer(
+                context, 
+                objects = objects, 
+                bake_pass = bake_pass)
     else:
         # Do baking here
         bake_result = bake_texture(
@@ -447,6 +462,7 @@ def initialize_bake_report(context, objects = None, bake_passes = None, bake_col
 def handle_selected_objects_visibility(context, bake_render_settings):
     # Hide selected objects in render so that they don't block the joined object
     # which should be baked   
+
     if bake_render_settings['bake_scene'] == 'CURRENT':
         objects_hide_render_settings = object_manager.get_hide_render_settings(context.selected_objects)
         for object in context.selected_objects:
@@ -464,15 +480,12 @@ def handle_bake_scene(context, bake_render_settings):
         bake_render_settings['orig_scene'] = orig_scene
         
         scene_manager.create_scene(context, bake_scene_name, delete_after_bake = True)
-        #object_manager.link_objects_to_active_scene(context, bake_render_settings['hi_res_objs'])
         object_manager.link_objects_to_active_scene(context, [bake_render_settings['combined_bake_object']])
 
     if bake_render_settings['bake_workflow'] == 'HIGHRES_TO_LOWRES':
     
         # Make list of missing bake objects from selected, 
         # link them to the scene if missing and select them
-        #bake_render_settings['missing_bake_objects'] = high_res_objects_manager.get_high_res_objects_missing_in_scene(context, bake_render_settings['objects'])
-        #object_manager.link_objects_to_active_scene(context, bake_render_settings['missing_bake_objects'])
         object_manager.link_objects_to_active_scene(context, bake_render_settings['joined_high_poly_objects'])
         
     return bake_render_settings
@@ -497,21 +510,20 @@ def post_baking_compositing(context, bake_render_settings):
     # Composit bake image with latest image related to this bake pass
     compositing_setup_list.append('MIX')
 
-
-
     composit_manager.create_compositing_tree(
         context, 
-        bake_render_settings['objects'][0], 
-        bake_render_settings['bake_image'], 
-        bake_render_settings['bake_pass'],
-        compositing_setup_list,
-        bake_render_settings['current_bake_pass_image']
+        bake_render_settings,
+        compositing_setup_list
         )   
 
 def delete_intermediate_bake_image(context, bake_render_settings):
     # Delete bake image from blender and also source file
     # delete bake image - important in order to get a new, clean
     # bake image with 0 alpha at each bake
+
+    if debug.allow_cleanup()['intermediate_bake_image'] == False:
+        return
+
     absolute_path = bpy.path.abspath(bake_render_settings['bake_image'].filepath)
     if os.path.exists(absolute_path):
         os.remove(absolute_path)
@@ -583,7 +595,6 @@ def post_baking_cleanup(context, bake_render_settings):
     # Restore scene
     if bake_render_settings['bake_scene'] == 'TEMPORARY': 
         scene_manager.open_scene(context, bake_render_settings['orig_scene'].name)
-        #scene_manager.delete_scene(context, bake_render_settings['bake_scene_name'])
         
 
     # Restore the high res objects original locations
@@ -600,19 +611,12 @@ def post_baking_cleanup(context, bake_render_settings):
     
 def fix_skew_normals(context, source_objects, target_objects):
 
-    #print("skipped fix skew normals")
-    #return
     if context.scene.BBB_props.skew_normals_method == 'NONE':
         return
 
     bevel_method = context.scene.BBB_props.skew_normals_method
-    print("source objects:")
-    print(repr(source_objects))
-    print("target objects:")
-    print(repr(target_objects))
 
     for index, object in enumerate(source_objects):
-        print("source = " + object.name + ", target = " + source_objects[index].name)
         object_manager.set_up_modifers_for_skew_normals(
             context, 
             source_object = object, 
@@ -674,13 +678,15 @@ def bake_texture(context, objects, image_folder = '', bake_pass = None, bake_col
     TODO: check if the area parameter is really needed. I used an override
     solution later when textures needs to be resized.
     '''
+
+
     import copy
     from . import bake_passes as bake_passes_class
     joined_high_poly_objects = []
     
 
     # Get render settings for the bake_pass
-    bake_render_settings = settings_manager.get_bake_render_settings(context, context.scene, bake_pass)
+    bake_render_settings = settings_manager.get_bake_render_settings(context, context.scene, bake_pass, bake_collection)
     bake_render_settings = get_additional_bake_render_settings(context, bake_render_settings, objects, image_folder, bake_collection, bake_pass)
     bake_render_settings['joined_high_poly_objects'] = [] # Empty list, when using lowres baking workflow
 
@@ -688,12 +694,16 @@ def bake_texture(context, objects, image_folder = '', bake_pass = None, bake_col
     # Filter objects with only bakable objects
     objects = bake_render_settings['objects']
 
+    # Add vertex color layer if it doesn't exist and set it as active
+    if bake_render_settings['BBB_props'].target == 'VERTEX_COLORS':
+        mesh_manager.create_vertex_color_if_missing_and_set_to_active(context, objects, bake_pass.name)
+
+
     # If no high res objects are connected to the objects
     if (bake_render_settings.get('connected_high_res_object_count') == 0 
         and context.scene.BBB_props.bake_workflow == 'HIGHRES_TO_LOWRES'):
         return "No high res object(s) connected to objects or is excluded in view layer"
     else:
-
         pass
 
     # Store lowres and highres objects original hide render settings 
@@ -757,29 +767,9 @@ def bake_texture(context, objects, image_folder = '', bake_pass = None, bake_col
     combined_bake_object = object_manager.join_objects_for_baking(context, objects)
     bake_render_settings['combined_bake_object'] = combined_bake_object
 
-    # List high res objects by poly count. We will avoid joining extremely high
-    # res objects to avoid long processing time
-    if bake_render_settings['bake_workflow'] == 'HIGHRES_TO_LOWRES':
-        listed_high_res_objects = object_manager.list_objects_by_poly_count_limit(
-            context, 
-            objects = bake_render_settings['joined_high_poly_objects'], 
-            poly_count_limit = 100000)
 
-    # Join high res objects under vertex count limit to new object 
-    if (bake_render_settings['bake_workflow'] == 'HIGHRES_TO_LOWRES' and
-        bake_render_settings['BBB_props'].allow_high_poly_objects_to_join):
-        print("JOINED high res objects")
-        joined_high_poly_objects = object_manager.join_high_poly_objects(
-            context, 
-            listed_high_res_objects['under_poly_count'])
-        # bake_render_settings['joined_high_poly_objects'] is used later in post_baking_cleanup   
-        bake_render_settings['joined_high_poly_objects'] = (
-            joined_high_poly_objects + 
-            listed_high_res_objects['over_poly_count'])
-    else:
-        print("did NOT join high res objects")
-
-
+    # Handle joining of high poly objects
+    bake_render_settings = handle_joining_of_high_poly_objects(context, bake_render_settings)
         
     create_material_if_missing(context, combined_bake_object)
 
@@ -789,17 +779,18 @@ def bake_texture(context, objects, image_folder = '', bake_pass = None, bake_col
     
     handle_shading_for_non_default_bake_pass(context, bake_render_settings)
     
-    current_bake_pass_image = create_bake_image_if_missing(context, bake_render_settings['image_name_with_pass'], bake_render_settings, force_new_image = False)
-    bake_image = create_bake_image_if_missing(context, "bake_image", bake_render_settings, force_new_image = True)
-    bake_render_settings['current_bake_pass_image'] = current_bake_pass_image
-    bake_render_settings['bake_image'] = bake_image
- 
-    add_bake_image_to_materials(context, bake_image.name, combined_bake_object)
+    # Handle bake image
+    if bake_render_settings['BBB_props'].target == 'IMAGE_TEXTURES':
+        current_bake_pass_image = create_bake_image_if_missing(context, bake_render_settings['image_name_with_pass'], bake_render_settings, force_new_image = False)
+        bake_image = create_bake_image_if_missing(context, "bake_image", bake_render_settings, force_new_image = True)
+        bake_render_settings['current_bake_pass_image'] = current_bake_pass_image
+        bake_render_settings['bake_image'] = bake_image
+    
+        add_bake_image_to_materials(context, bake_image.name, combined_bake_object)
 
-
-    # Resize image if user has changed resolution since last bake 
-    # or scale up if sub pixel sampling > 1 is used
-    resize_image_to_resolution(context, bake_image, bake_render_settings, False)
+        # Resize image if user has changed resolution since last bake 
+        # or scale up if sub pixel sampling > 1 is used
+        resize_image_to_resolution(context, bake_image, bake_render_settings, False)
  
     settings_manager.set_settings(context, bake_render_settings)
 
@@ -812,28 +803,47 @@ def bake_texture(context, objects, image_folder = '', bake_pass = None, bake_col
 
     # Do the baking ==============================
     try:
-        bpy.ops.object.bake(type = bake_render_settings['cycles_bake_type'])
+
+        if bake_render_settings['BBB_props'].target == 'IMAGE_TEXTURES':
+            bpy.ops.object.bake(type = bake_render_settings['cycles_bake_type'])
+
+        elif bake_render_settings['BBB_props'].target == 'VERTEX_COLORS':
+            bpy.ops.object.bake(
+                type = bake_render_settings['cycles_bake_type'],
+                use_cage = False
+                )
     except:
         print("Baking failed")
         pass
 
-    #debug_end_bake_process(context)
-    #return
 
-    # Resize and save image
-    resize_image_to_resolution(context, bake_image, bake_render_settings, True)
+    if bake_render_settings['BBB_props'].target == 'VERTEX_COLORS':
+        
+        # Put original objects at same position as their high poly objects
+
+        # Transfer vertex color data from bake target objects to original objects  
+        object_manager.transfer_vertex_color(
+            context, 
+            combined_bake_object, 
+            orig_objects, 
+            active_only = True, 
+            max_dist = bake_render_settings['BBB_props'].cage_extrusion)
+
+        # Restore original objects positions
+
+    if bake_render_settings['BBB_props'].target == 'IMAGE_TEXTURES':
+        resize_image_to_resolution(context, bake_image, bake_render_settings, True)
+        post_baking_compositing(context, bake_render_settings)
+        delete_intermediate_bake_image(context, bake_render_settings)
+
 
     post_baking_cleanup(context, bake_render_settings)
-
-    post_baking_compositing(context, bake_render_settings)
 
     # Note that scenes are deleted in the modal operator
     # RENDER_OT_bake_with_bake_passes. Specifically the "finish" function.
     # This is to avoid crash when trying to delete scenes in a modal process with timer
 
-    # Temp disabled during debug
-    #delete_intermediate_bake_image(context, bake_render_settings)
-        
+     
     restore_visibility_and_render_settings(
         context,
         bake_render_settings,
@@ -871,7 +881,8 @@ def do_channel_transfer(context, objects, image_folder, bake_pass, bake_collecti
     bake_render_settings = settings_manager.get_bake_render_settings(
         context = context, 
         bake_settings_scene = context.scene, 
-        bake_pass = bake_pass
+        bake_pass = bake_pass,
+        bake_collection = bake_collection
         )   
 
     bake_render_settings = get_additional_bake_render_settings(
@@ -883,6 +894,10 @@ def do_channel_transfer(context, objects, image_folder, bake_pass, bake_collecti
         bake_pass = bake_pass
         )
     
+    bake_render_settings['bake_collection'] = bake_collection
+    print("in do_channel_transfer, bake_render_settings['image_name'] == " + repr(bake_render_settings['image_name']))
+
+
     # Create bake image
     bake_image = create_bake_image_if_missing(context, "bake_image", bake_render_settings, force_new_image = True)
     bake_render_settings['bake_image'] = bake_image
@@ -892,12 +907,8 @@ def do_channel_transfer(context, objects, image_folder, bake_pass, bake_collecti
 
     composit_manager.create_compositing_tree(
         context = context, 
-        object = bake_render_settings['objects'][0], 
-        image = bake_render_settings['bake_image'], 
-        bake_pass = bake_render_settings['bake_pass'],
+        render_settings = bake_render_settings,
         setup_type_list = compositing_setup_list,
-        background_image = None,
-        bake_collection = bake_collection
         )   
     
     cleanup_bake_image_nodes_from_objects_materials(context, objects = bake_render_settings['objects'], image = bake_image)
@@ -978,6 +989,7 @@ def set_up_shading_channel_for_baking_by_objects(context, objects, bake_render_s
 
     for object in objects:
         for material_slot in object.material_slots:
+            print("#===============channel_name == " + str(channel_name))
             if not material_slot.material:
                 continue
             if channel_name == 'DISPLACEMENT':
@@ -997,12 +1009,16 @@ def set_up_shading_channel_for_baking_by_objects(context, objects, bake_render_s
                     context, 
                     material_slot.material, 
                     bake_render_settings['bake_pass'])   
+            elif channel_name == 'THICKNESS':
+                set_up_thickness_for_baking_by_material(
+                    context, 
+                    material_slot.material,
+                    bake_render_settings['bake_pass'])
             else:
                 set_up_shading_channel_for_baking_by_material(context, material_slot.material, channel_name)    
 
 def set_up_material_id_for_baking_by_material(context, material, bake_pass):
     
-    print("init set_up_material_id_for_baking_by_material")
 
     # Get shader connected to material output
     material_output_node = material_manager.get_material_output_node(context, material)
@@ -1026,29 +1042,64 @@ def set_up_material_id_for_baking_by_material(context, material, bake_pass):
 
     emission_node.inputs['Color'].default_value = string_manager.to_color(material.name)
 
-def set_up_pointiness_for_baking_by_material(context, material, bake_pass):
+def set_up_emission_node_for_baking_by_material(context, material):
 
-    print("init set_up_pointiness_for_baking_by_material")
+    '''
+    Set up material for baking by creating an emission shader. 
+    Returns emission node ready for connecting other shading
+    '''
 
     # Get shader connected to material output
     material_output_node = material_manager.get_material_output_node(context, material)
     
     # Return if material node is already set up with having been reset
     if not material_output_node.get('original_surface_input') == None:
-        return 
+        return None
 
     shader_node = material_manager.get_shader_connected_to_material_output(
         context,
         material)
     
     if shader_node == None:
-        return
+        return None
 
     material_output_node['original_surface_input'] = shader_node.name
 
     # Create emission shader and connection to material output node
     emission_node = material_manager.connect_emission_to_material_output(context, material, material_output_node)
     emission_node['temp_PBR_channel_bake'] = True # Property used for deleting node later
+
+    return  emission_node
+
+
+def set_up_thickness_for_baking_by_material(context, material, bake_pass):
+
+
+    emission_node = set_up_emission_node_for_baking_by_material(context, material)
+
+    if emission_node == None:
+        return  
+
+    # Setup up shading for pointiness
+    node_tree = material.node_tree
+
+    ao_node = node_tree.nodes.new(type="ShaderNodeAmbientOcclusion")
+    ao_node.inside = True
+    
+    ao_node.inputs['Distance'].default_value = bake_pass.thickness_distance
+    ao_node.samples = bake_pass.thickness_samples
+
+    node_tree.links.new(ao_node.outputs['Color'], emission_node.inputs['Color'])
+
+
+
+def set_up_pointiness_for_baking_by_material(context, material, bake_pass):
+
+
+    emission_node = set_up_emission_node_for_baking_by_material(context, material)
+
+    if emission_node == None:
+        return  
 
     # Setup up shading for pointiness
     node_tree = material.node_tree
@@ -1059,13 +1110,8 @@ def set_up_pointiness_for_baking_by_material(context, material, bake_pass):
         contrast_node = node_tree.nodes.new(type="ShaderNodeBrightContrast")
         contrast_node.inputs['Contrast'].default_value = bake_pass.pointiness_contrast
         contrast_node['temp_PBR_channel_bake'] = True
-
         node_tree.links.new(geo_node.outputs['Pointiness'], contrast_node.inputs['Color'])
-
         node_tree.links.new(contrast_node.outputs['Color'], emission_node.inputs['Color'])
-
-        print("\n settting up pointiness in material " + material.name)
-        print("Connecting " + repr(geo_node.outputs['Pointiness']) + " to " + repr(emission_node.inputs['Color']))
     except:
         pass
 
@@ -1074,27 +1120,13 @@ def set_up_aov_for_baking_by_material(context, material, bake_pass):
     Find the first AOV node in the material that matches the bake pass.
     Connect its input to an emission shader so it can be baked
     '''
-    # Get shader connected to material output
-    material_output_node = material_manager.get_material_output_node(context, material)
-    
-    # Return if material node is already set up with having been reset
-    if not material_output_node.get('original_surface_input') == None:
-        return 
 
 
-    shader_node = material_manager.get_shader_connected_to_material_output(
-        context,
-        material)
-    
-    if shader_node == None:
-        return
+    emission_node = set_up_emission_node_for_baking_by_material(context, material)
 
-    material_output_node['original_surface_input'] = shader_node.name
+    if emission_node == None:
+        return   
 
-    # Create emission shader and connection to material output node
-    emission_node = material_manager.connect_emission_to_material_output(context, material, material_output_node)
-    emission_node['temp_PBR_channel_bake'] = True # Property used for deleting node later
-   
     # Get AOV node that matches bake pass data
     aov_nodes = material_manager.get_nodes_of_type(context, material, 'OUTPUT_AOV')
 
@@ -1103,9 +1135,13 @@ def set_up_aov_for_baking_by_material(context, material, bake_pass):
         emission_node.inputs['Color'].default_value = (0, 0, 0, 1)
         return
 
+    aov_node = None
     for node in aov_nodes:
         if node.name == bake_pass.aov_name:
             aov_node = node
+
+    if aov_node == None:
+        return
     
     # Get source socket from AOV nodes input
     if bake_pass.aov_data_type == 'COLOR':
@@ -1185,6 +1221,9 @@ def set_up_displacement_for_baking_by_material(material):
 
     node_tree = material.node_tree
     material_output_node = None
+    disp_value_node = None
+    disp_node = None
+
     # Find material output node that is used for shading
     for node in node_tree.nodes:
         if node.type == 'OUTPUT_MATERIAL' and node.is_active_output:
@@ -1197,12 +1236,14 @@ def set_up_displacement_for_baking_by_material(material):
     shader_node = material_output_node.inputs['Surface'].links[0].from_node
     material_output_node['original_surface_input'] = shader_node.name
 
+
     # Find input to displacement node that is connected to material output node
     try:
         disp_node = material_output_node.inputs['Displacement'].links[0].from_node
     except:
         # No displacement node connected to material output displacement
         disp_node = None
+
     
     if not disp_node == None:
         try:
@@ -1277,12 +1318,43 @@ def reset_shading_channel_to_original_shading_by_material(material):
         # Delete temporary property on material output node
         del material_output_node['original_surface_input']
     
-    
+    if not debug.allow_cleanup()['shading_nodes']:
+        return
+
     # Delete all nodes that contain the property 'temp_PBR_channel_bake'
     for node in material.node_tree.nodes:
         if node.get('temp_PBR_channel_bake') == None:
             continue
         material.node_tree.nodes.remove(node)
+
+def handle_joining_of_high_poly_objects(context, bake_render_settings):
+
+    # Checks if high poly objects should be joined and 
+    # performs joining
+
+    if not bake_render_settings['bake_workflow'] == 'HIGHRES_TO_LOWRES':
+        return bake_render_settings
+
+    # List high res objects by poly count. We will avoid joining extremely high
+    # res objects to avoid long processing time
+    listed_high_res_objects = object_manager.list_objects_by_poly_count_limit(
+        context, 
+        objects = bake_render_settings['joined_high_poly_objects'], 
+        poly_count_limit = 100000)
+
+    # Join high res objects under vertex count limit to new object 
+    if bake_render_settings['BBB_props'].allow_high_poly_objects_to_join:
+
+        joined_high_poly_objects = object_manager.join_high_poly_objects(
+            context, 
+            listed_high_res_objects['under_poly_count'])
+
+        bake_render_settings['joined_high_poly_objects'] = (
+            joined_high_poly_objects + 
+            listed_high_res_objects['over_poly_count'])
+
+    return bake_render_settings
+
 
 
 def turn_off_build_modifiers(object):
@@ -1329,7 +1401,9 @@ def get_first_bake_collection_name_from_object(context, object):
     '''
 
     collections = collection_manager.get_bake_collections_by_object(context, object)
+    
     collection_name = collections[0].name
+
 
     return collection_name
 

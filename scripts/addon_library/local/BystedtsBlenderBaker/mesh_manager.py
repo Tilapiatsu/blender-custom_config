@@ -177,3 +177,125 @@ def create_cage_from_objects(context, objects, fatten_amount, cage_name = "cage_
     # Return cage object
     return joined_cage_object
 
+
+def create_vertex_color_if_missing_and_set_to_active(context, objects, vertex_color_name):
+
+    for object in objects:
+        vtx_color_found = False
+        for index, vtx_color in enumerate(object.data.vertex_colors):
+            if vtx_color.name == vertex_color_name:
+                object.data.vertex_colors.active_index = index
+                vtx_color_found = True
+                continue
+        
+        if vtx_color_found:
+            continue
+
+        override = {'active_object': object, 'object': object}
+        bpy.ops.mesh.vertex_color_add(override)
+        
+        # update depsgraph
+        dg = context.evaluated_depsgraph_get()
+        dg.update()
+
+        print("vertex color count after update on " + object.name + " = "  + str(len(object.data.vertex_colors)))
+        index = max(0, len(object.data.vertex_colors) - 1)
+
+        object.data.vertex_colors[index].name = vertex_color_name
+
+
+
+def delete_vertex_color_by_name(context, objects, vertex_color_name):
+
+    for object in objects:
+        if not object.type == 'MESH':
+            continue
+        vtx_color_found = False
+        for index, vtx_color in enumerate(object.data.vertex_colors):
+            if vtx_color.name == vertex_color_name:
+                object.data.vertex_colors.active_index = index
+                vtx_col = object.data.vertex_colors[index]
+                object.data.vertex_colors.remove(vtx_col)
+                break
+
+
+def RGBA_to_0123(channel):
+    channels = "RGBA"
+    return channels.find(channel)
+
+def vertex_color_channel_transfer(context, objects, bake_pass):
+
+    create_vertex_color_if_missing_and_set_to_active(context, objects, bake_pass.name)
+
+    for object in objects:
+      
+        target = object.data.vertex_colors[bake_pass.name].data
+        R_source = object.data.vertex_colors[bake_pass.R_source].data
+        G_source = object.data.vertex_colors[bake_pass.G_source].data
+        B_source = object.data.vertex_colors[bake_pass.B_source].data
+        A_source = object.data.vertex_colors[bake_pass.A_source].data
+
+
+        R_chan = RGBA_to_0123(bake_pass.transfer_source_channelR)
+        G_chan = RGBA_to_0123(bake_pass.transfer_source_channelG)
+        B_chan = RGBA_to_0123(bake_pass.transfer_source_channelB)
+        A_chan = RGBA_to_0123(bake_pass.transfer_source_channelA)
+  
+
+        for i in range(0,len(target)):
+            try:
+                target[i].color[0] = R_source[i].color[R_chan]
+                target[i].color[1] = G_source[i].color[G_chan]
+                target[i].color[2] = B_source[i].color[B_chan]
+                
+                
+                if A_source:
+                    target[i].color[3] = A_source[i].color[A_chan]
+                else:
+                    target[i].color[3] = 1
+                '''
+                '''
+
+            except:
+                pass
+
+    return 'FINISHED'
+
+def delete_vertex_colors_by_bake_passes(context):
+    '''
+    Loop through all objects in the scene. Delete all vertex colors
+    that matches the name of the bake passes
+    '''
+
+    for bake_pass in context.scene.bake_passes:
+        delete_vertex_color_by_name(context, context.scene.objects, bake_pass.name)
+
+    
+
+class MESH_OT_delete_vertex_colors_by_bake_passes(bpy.types.Operator):
+    '''
+    Loop through all objects in the scene. Delete all vertex colors
+    that matches the name of the bake passes
+    '''
+    bl_idname = "mesh.delete_vertex_colors_by_bake_passes"
+    bl_label = "Delete vertex colors"
+    bl_description = "Delete all vertex colors that matches the name of the bake passes"
+    
+
+    def execute(self, context):   
+        for bake_pass in context.scene.bake_passes:
+            delete_vertex_color_by_name(context, context.scene.objects, bake_pass.name)
+
+        return {'FINISHED'}  
+
+classes = (
+    MESH_OT_delete_vertex_colors_by_bake_passes,
+)
+
+def register():
+    for clas in classes:    
+        bpy.utils.register_class(clas)
+
+def unregister():
+    for clas in classes:
+        bpy.utils.unregister_class(clas)

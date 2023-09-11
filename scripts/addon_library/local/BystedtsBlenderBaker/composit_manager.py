@@ -4,6 +4,7 @@ from . import scene_manager
 from . import bake_manager
 from . import settings_manager
 from . import image_manager
+from . import debug
 
 # create scene
 # open scene
@@ -12,6 +13,15 @@ from . import image_manager
 # reload target image
 '''
 '''
+
+def remove_all_compositing_nodes(context):
+    '''
+    Remove all nodes from compositing node tree
+    '''
+    nodes = context.scene.node_tree.nodes
+    for node in nodes:
+        nodes.remove(node)
+
 def my_save_handler(context):
     # This function is used to only save once the compositor is done rendering.
     if context.scene['save_image'] == True:
@@ -50,44 +60,59 @@ def initialize_compositing_scene(context, bake_render_settings):
     context.scene.render.resolution_y = bake_render_settings['resolution_y']
     settings_manager.set_settings(context, bake_render_settings)
 
-    print("before adding a cameera, mode is " + str(context.mode))
-    context_override = {'scene': bpy.data.scenes['comp_scene']}
-    bpy.ops.object.camera_add(context_override)
+    #context_override = {'scene': bpy.data.scenes['comp_scene']}
+    bpy.ops.object.camera_add()
 
     # Assign camera as render camera
     for object in context.scene.objects:
         if object.type == 'CAMERA':
             context.scene.camera = object
 
-
     context.scene.use_nodes = True
     comp_scene = context.window.scene
     node_tree = context.scene.node_tree
-
+    remove_all_compositing_nodes(context)
     return comp_scene
 
-def create_compositing_tree(context, object, image, bake_pass, setup_type_list, background_image = None, bake_collection = None):
+def create_compositing_tree(context, render_settings, setup_type_list):
     '''
     Create a compositing tree and process image
     setup_types = 'CHANNEL_TRANSFER', 'DENOISE', 'MIX', 'ANTI_ALIASING', 'NORMALIZE', 'POINTINESS'
     '''    
-    original_scene = context.window.scene
-    image_name = bake_manager.get_bake_image_name(context, object, bake_pass)
-    image_folder_name = bake_manager.get_bake_image_folder_name(context, object)  
-    file_name = image.name
+    image = render_settings['bake_image']
+    bake_pass = render_settings['bake_pass']
+    background_image = render_settings.get('current_bake_pass_image')
+    image_folder_name = render_settings['image_folder']
+    bake_collection = render_settings['bake_collection']
 
-    render_settings = settings_manager.get_bake_render_settings(context, context.scene, bake_pass)   
+    
+    image_name = render_settings.get('image_name')
+    
+    if image_name == None:
+        image_name = ""
+        
+
+    original_scene = context.window.scene
+
+    file_name = image.name
     
     comp_scene = initialize_compositing_scene(context, render_settings)
     node_tree = comp_scene.node_tree
+
+    # Use full precision if the image is linear
+    if image.colorspace_settings.name == 'Linear':
+        image.use_half_precision = True
 
     if not 'CHANNEL_TRANSFER' in setup_type_list:
         # Set up initial source image
         image_node = node_tree.nodes.new("CompositorNodeImage")
         image_node.image = image
+
+
         latest_node = image_node
 
         for setup_type in setup_type_list:
+
             if (setup_type == 'DENOISE'):
                 latest_node = setup_denoise(context, latest_node, bake_pass)
             
@@ -112,7 +137,7 @@ def create_compositing_tree(context, object, image, bake_pass, setup_type_list, 
                 
         image.name = image_name
         latest_node = setup_channel_transfer(context, bake_pass, bake_collection)
-            
+        
         # Connect compositior node to channel transfer
         compositor_node = setup_node(context, latest_node, "CompositorNodeComposite")
         render_and_save_image(context, render_settings, image_folder_name, image_name)
@@ -127,6 +152,8 @@ def create_compositing_tree(context, object, image, bake_pass, setup_type_list, 
     
 def render_and_save_image(context, render_settings, image_folder_name, file_name):
 
+    print("in render_and_save_image, file_name = " + repr(file_name))
+    print("image_folder_name = " + str(image_folder_name))
 
     # Do render
     bpy.ops.render.render()
@@ -139,7 +166,7 @@ def render_and_save_image(context, render_settings, image_folder_name, file_name
     target_folder = bpy.path.abspath(context.scene.BBB_props.dir_path) + image_folder_name
     absolute_folder_path = bpy.path.abspath(target_folder)
     if not os.path.exists(absolute_folder_path):
-        os.makedirs(absolute_folder_path)    
+        os.makedirs(absolute_folder_path)
 
 
     # Convert path from backslash to frontslash 
@@ -149,6 +176,8 @@ def render_and_save_image(context, render_settings, image_folder_name, file_name
     except:
         pass
     
+    
+
     # Save image - important to have after convert path because of linux
     bpy.data.images["Render Result"].save_render(filepath = full_save_path)
 
@@ -239,6 +268,12 @@ def setup_channel_transfer(context, bake_pass, bake_collection):
     node_tree = context.scene.node_tree
 
     combine_RGBA_node = node_tree.nodes.new("CompositorNodeCombRGBA")
+    print("bake_pass = " + repr(bake_pass))
+    print("bake_collection = " + repr(bake_collection))
+    print("node_tree = " + repr(node_tree))
+    print("combine_RGBA_node = " + repr(combine_RGBA_node))
+
+
 
     # Get image RGB sources
     try:

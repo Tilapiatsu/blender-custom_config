@@ -15,8 +15,8 @@ bl_info = {
     "name" : "Bystedts Blender Baker",
     "author" : "Daniel Bystedt",    
     "description" : "Simplify Blender baking workflow",
-    "blender" : (2, 93, 0),
-    "version" : (1, 2, 0),
+    "blender" : (3, 6, 0),
+    "version" : (1, 2, 5),
     "location" : "View3D > Sidebar",
     "warning" : "",
     "support": "COMMUNITY",
@@ -112,7 +112,7 @@ def register():
     material_preview_manager.register()
     preset_manager.register()
     scene_manager.register()
-
+    mesh_manager.register()
     # Sybren example
     # https://docs.blender.org/api/master/bpy.props.html#collection-example
     # TODO: bpy.types.Scene.bake_passes = bpy.props.CollectionProperty(type=YourPropertyGroupType)
@@ -135,4 +135,5 @@ def unregister():
     collection_manager.unregister()
     preset_manager.unregister()
     scene_manager.unregister()
+    mesh_manager.unregister()
     

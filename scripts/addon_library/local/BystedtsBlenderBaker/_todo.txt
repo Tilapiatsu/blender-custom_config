@@ -1,0 +1,581 @@
+'''
+about UI refresh during a running function for progress bar etc
+https://devtalk.blender.org/t/question-about-ui-lock-ups-when-running-a-python-script/6406/8
+
+To debug:
+bpy.app.debug_wm = True while Blender is running.
+
+To message user
+self.report({'INFO'}, 'Message')
+
+To do:
+    I finally got reloading modules to work. Backup the files. 
+    Link objects to current scene and remove after
+    Get the UI to work. 
+    write bake manager - snatch from bake to vertex color
+    write bake script and also write object_manager
+    test code for baking - likely some bugs
+    add property for folder location for baked images. 
+    handle sRGB or non color på images
+    IT DOES NOT WORK TO BAKE MULTIPLE OBJECTS. IMAGE IS OVERWRITTEN
+    UV layout per collection
+    implement object space or world space for baking 
+    auto calculate extrude (cage size)
+
+    UI for manually linking high res objects 
+    add high res objects to your current scene
+
+
+    figure out margin from resolution when packing UV - nope. Packing at 0.005-0.01 should do it
+
+
+    implement baking in temporary scene to avoid heavy load times
+
+    check that object has high res objects before baking so it does not fail
+
+    reset rotation when baking
+
+    clear_images needs to be finished in bake_manager 
+
+    resolution is not taken into account if image already exists
+
+    dynamic UI for bake passes
+
+    Clean up UI
+
+    when baking - turn off build modifiers
+
+    select objects with no bake objects
+
+    add bakeset object to selected based on bounding box
+
+    Bake in temporary scene if needed for clean AO bakes etc
+
+    better settings for margin - it's always 16
+    
+    object info panel
+    Selected objects (count)
+    High poly objects (count and list)
+
+    bake per pass
+
+    some weirdness when baking AO and denoising and reloading image
+The error seems to come from that the image is not saved properly
+to begin with
+
+clean up create_compositing_tree in composit_manager.py
+make sure it works to render and stuff. 
+I should be able to run denoise separately
+
+better name than 'bake_image_'. Fix this with global settings?
+
+create channel shuffle image via button
+
+! tighten up bake pass ui
+
+delete button like [x] in top right corner of bake pass
+
+Currently the "delete all bake images" uses names to check if an images
+should be deleted
+
+bug: big res images does not rescale at rebake
+
+UI in top needs to be reshuffled. Some props are actually global and some are not
+
+subsample to general setting
+
+Button that bakes from self (i.e. not high res)
+
+remove global settings
+
+Need to change padding when baking
+
+add filter so only mesh objects are included in bake
+
+BUG: bakes all passes when baking just one pass with button.
+The code thinks that bake_passes == NOne
+
+time report for baking? really good for debugging
+
+when baking, the target image node just keeps being added and added in the material
+
+fix bug with baking ambient occlusion
+denoise works when image already exist it seems
+
+fix bug when using denoise
+
+Bake metallic
+
+Bake collection
+Add property on collection to say it's bake collection.   - OK!
+This should fix issue when an object belong to multiple collections
+Check if object is in bake collection or if parent collection is bake
+collection
+
+add icon to all buttons
+
+WHen baking in current scene - make sure high res objects and
+their collections are visible during baking
+
+show latest report
+
+improve high res object matching
+
+original position prop on hi res does not seem to be deleted
+
+clean up code sort of. Rename game prop stuff and the addon itself
+
+Continue to merge the bake_image_per_pass. from row 600
+I need to sort of merge bake_objects and bake_image_per_pass somehow
+check that explode or use Current location makes a difference in code!!!!
+
+how do I handle baking when multiple objects are selected and they belong
+to separate bake collections?
+
+rename that ui option above to object position or so
+
+rename the module high_res_objects to high_res_objects_manager 
+
+have written code for exploding
+write for resetting high res object positions
+implement exploding in bake step
+
+when baking ao for example>
+Baking in same scene, the original low res objects needs to be hidden
+
+clean up code . CURRENT_LOCATION and reset_positions and stuff like that should 
+be renamed to "location" instead of "position"
+
+stored high res objects should probably move to window manager
+
+Issues when trying to write to a folder. Relative does not work very well.
+
+possibly combine objects when baking to save time?
+Yes! Test when baking normal:
+combined low res = 4.5 seconds
+one bake per object = 33 seconds
+Strange. New tests resulted in slower bakes when objects was merged
+combined 2k normal baked = 28 s
+separate objects 2k normal baked = 59 s
+
+report - change to average baking time per object and channel/image
+
+Explode objects with possibility to keep positions
+Exclude moving in specific axis to avoid mirror issues
+bättre default på extrude
+
+Bake knapp bredvid bake collection
+
+some sort of nosy compression issue at each save. Det var dither.ush!
+
+auto update preview materials after all bakes are completed
+
+filter high res objects in UI list
+
+progress bar
+https://blog.michelanders.nl/2017/04/how-to-add-progress-indicator-to-the-info-header-in-blender.html
+
+Bake with message
+
+clean code -  
+bpy.context > context
+Done until object_manager
+
+clean up not needed baking functions
+
+separate bake collection to own panel
+
+guided ui?
+
+add error message when there are no objects in the bake collection
+
+add baking workflow to baking report
+
+currently refactoring bake_texture
+refactor main baking functions
+
+    remove all high poly from selected at the bottom (gustavs comment)
+
+replace item_callback with items for EnumProperty
+
+when adding high res object with picker - only add bakable objects
+
+can't create bake collection when in local view
+
+check all popups for buttons
+
+fixa ful popup när man assigner by bounding box
+
+RENDER_PT_bbb_image_format
+Add file format settings at the bottom:
+compression
+color depth 
+tiff_codec
+color depth
+make tif with lzw as default? Check file sizes
+
+hide explosion options when baking low res
+
+open collection folder. Select collection objects
+
+test bake with all file formats. TGA is called TARGA in code etc
+
+normal map option for open gl or direct x
+
+never use explode when baking workflow is low poly only
+position based shading can get really bad, right?
+I guess ao would be the exception. Setting for explode? Auto etc
+
+add error catches. 
+-objects does not have connected highpoly (when baking against highpoly) - now has warning
+- Objects are hidden, - works ok
+- non selectable etc - work ok
+
+- info regarding non support for mix shaders if base color or metallic
+
+Add functionality for non square textures
+
+only open folder (bake collection) if folder exists
+
+delete bake image after completion
+
+displacement pass
+
+nåt strul med set settings när displacement bakas i current scene
+
+set name of collections
+
+fix class poll for bake when selection is required.
+
+
+when creating bake collections - link objects and don't move them from 
+other collections
+
+there is some error when baking...
+
+error when baking selected.
+
+stuck when baking with empty bake collection
+
+test that harden edges does not use modifiers
+
+Auto genegenerate cage to avoid ugly hard normals
+
+it's enough to activate cage in settings. I don't need to actually create it.
+Disable it for now and rename option "cage"
+
+cage is always on for some reason
+
+do more tests to see if cubes can bake with hard edges, smooth, auto smooth etc
+
+add anti aliasing in comp
+
+hide original objects during baking in order to get correct AO etc
+
+Bakes only one pass
+
+resize image does not work. It seems I need to set up a context.area.
+Perhaps already in bake_specific_pass. Otherwise in resize_image
+I should test an earlier version of the addon and see if it works.
+What has broken etc? Removing all bake images solved the issue
+
+create_compositing_tree - make this use a setup list so that 
+multiple setups can be done in one go. Channel transfer might need 
+to be treated separately
+when baking selected, it does not comp correctly with existing image
+
+
+new channel shuffle solution here
+i.e. check properties of earlier operators
+https://blender.stackexchange.com/questions/65786/python-putting-operator-in-another-operator-draw
+
+expose channel source in channel transfer pass
+
+make sure channel transfer bake passes is processed last!! (done)
+
+finish writing do_channel_transfer
+
+denoising should happen on bake image!!!
+post_baking_compositing
+There should be one single comp tree instead of one save per each thing
+
+create_channel_transfer_image might not be needed later
+
+is channel transfer image linear?? - YES
+
+remove the old channel transfer
+
+compositor still fucks up image when rendering just one object
+
+Channel shuffle has issues. Since I render new images, the index does
+not represent the correct image. I should do the transfer as a separate
+pass with channel source images and target image as some type of other list.
+perhaps custom UI again.
+
+check what happens when baking and no source Is
+set in channel transfer bake pass
+The image is completely black, which is fine
+
+after baking, the high res collection is visible, even 
+though it's hidden at the start
+
+do_channel_transfer should have its own bake render settings
+
+do_channel_transfer produces junk images in blender
+
+
+bake and do_channel_transfer produces junk bake image in folder
+create_bake_image_if_missing saves it to disk directly. 
+is that really needed????
+
+when deleting bake images, the actual files are not deleted.
+should they be in the code??
+use this
+bpy.path.native_pathsep(path)
+
+on channel transfer - use boolean option for override image with name
+instead of another string
+
+in bake_texture it seems that bake_render_settings
+is already storing a lot of object and collection
+visibility settings. Can I remove some code??
+
+
+is area used in bake_texture???? No - removed
+
+testa om namngivning av filer fungerar. Skippa vissa alternativ
+annars
+
+Remove duplicated low poly objects & meshes (purge) after
+created joined mesh
+Hmmm... not sure what I mean. Reading this after writing.
+
+remove camera when removing bake scene
+
+add custom property to images that says they are a bake image and 
+what collection they belong to
+
+set_up_displacement_for_baking_by_material
+make checks to see if input node is of type displacement
+or vector displacement on row 996
+
+Possibly huge time saver to join all high poly meshes before baking
+see object_manager.join_high_poly_objects
+
+bake preview materials don't seem to update when a new texture is baked
+
+image has correct size even when baking one object at a different resolution
+
+addon works now
+
+Remove various print statements
+
+remove printSomething.py
+
+Add panic button for repositioning all object to orig locations (explosion)
+
+joining highres objects of ca 3 million takes 30 sec to render
+Make some limit on which objects to join
+
+add video links
+
+when just baking one object and it does not have high res, blender locks
+
+there is a crash sometimes at line 29 in delete scene. Perhaps do some printing and 
+see if I can replicate
+
+when previewing bake textures (eye button). add material to objects in 
+bake collection if they don't have materials
+
+Bake pass names are weird when they are created. check on_bake_type_update
+
+AOV as bake pass
+
+set up normalize for pointiness in shader
+
+preview material - add disp
+
+------
+Notes from session w Arvid
+
+picker för high poly - ok
+
+colors in uI
+
+Bugg med repro. Testa köra bake selected på saker som är gömda med ögat - ok
+
+Eller om man trycker bake i edit mode är också unhandled - ok
+
+En till bug found. Om man trycker bake på något utan en high poly länkad på sig, t.ex. för AO bake grejen så dör det också - ok
+
+--------
+
+Notes från session med gustav
+
+ - borde stå att det är lowpoly i create 
+
+- Bake type borde vara större och en enda rad - ok
+
+- Base color eller normal som default - ok
+
+- Det blev nån skum bugg när man bakat diffuse och sen bytte passet till base color
+-Det är i compositorn som det är linear per default
+
+- resolution > 128 as default - ok
+
+- Göra preset - ok
+////////////////////////////
+linked high polys in list instead?
+https://sinestesia.co/blog/tutorials/using-uilists-in-blender/
+
+make better baking grid (multi row and columns)
+
+material id does not work correctly with multiple objects
+
+finish code for fixing skew normals. I have written
+set_up_modifers_for_skew_normals in object manager
+finish fix_skew_normals
+
+add alpha to channel transfer
+
+write procedure for allowing cleanup or turn it off. This is easier for debugging
+
+bug when not joining high poly objects. crash!
+
+perhaps turn off skew angle fix by default?
+
+create operator for deleting bake scenes
+
+images does not bake after implementing vertex color
+
+vertex bake don't work first try when no vertex color exists
+yet
+
+preview with eye for vertex colors
+
+working on get_parent_collections_by_object
+check that all collections are collected
+
+vertex color bake stopped working
+remove ui stuff when baking vertex colors
+add thickness pass. Use ao with inner and "only local"
+----------------------------------------------------------------------------------------------------------------
+DONE ABOVE THIS LINE =======
+----------------------------------------------------------------------------------------------------------------
+Write log to console
+https://blender.stackexchange.com/questions/6921/how-to-write-the-output-of-blender-console-out-to-a-file
+
+Save addon preferences
+C:\Users\Daniel\AppData\Roaming\Blender Foundation\Blender\2.93\scripts\addons\BystedtsBlenderBaker
+
+transfer vertex color - coordinates are off, since the duplicated
+objects are merged. Perhaps I can duplicate them before joining 
+and use as transfer buffer?
+
+
+change explosion so it does not move the object if bounding box
+is off centre. Instead, just increase spacing
+
+Add image to current material in shader editor
+
+
+Invert options for all channels in transfer channel bake pass
+
+Margin override on all bake passes (mostly for opacity)
+
+
+
+
+
+think about how to solve the issue of materials using 
+"generated" as texture coordinate
+
+----------
+started working on  OBJECT_OT_popupwin_promp_yes_no(bpy.types.Operator):
+
+
+Vid check eller innan bake
+
+kolla alla material på objekt som är bake source
+
+
+innehåller materialet en input node med generated inkopplat?
+
+
+Tell user: join will happen due to optimization. 
+
+Ask user: do you want to normalize scale on texture space?
+
+if yes: normalize texture space scale
+
+
+
+-----------------------
+
+Option for join objects or not. 
+---------------------------
+
+
+strange crash when baking a bake pass, change image format and rebake
+
+Add packing uv space parameters
+
+sometimes crashes on settings_manager.py", line 321 in set_settings
+
+
+bigger distance on explode grid when baking ao?
+
+
+fix normal skewing
+perhaps add subdivision option to solve skewed normals when baking
+
+refactor TODO:
+- When using operators - use context override as much as possible
+- move debug functions to debug module
+- move image functions to image module
+- try to bundle up functions in long functions 
+- use explicit arguments/parameters in functions 
+(instead of bake_render_settings when possible for instance)
+- Move some functions to more suitable modules. image_manager etc
+
+
+perhaps create preview material via bake collections?
+
+
+set more samples auto when normal map uses bevel normal node. Nah. 1 sample seems ok in the normal pass samples
+perhaps force bevel node samples up as well? at least temporarily. Yes. 4 samples on bevel nodes is pretty low quality
+
+
+To think about:
+Perhaps use hook to explode?
+The issue is high poly sculpted objects (heavy/slow). Can this be solved?
+
+
+Test array + curve deformed object bake. This crashed earlier... or locked blender
+One object (sandals) was locking the baking. Why?? Curves??
+
+
+pack with uv packmaster if activated
+
+
+
+
+
+
+Must be ok to bake with curves etc. Perhaps make a "is bakable"?
+Check that this will work all the way with different baking scenarios
+
+rename object from high res object
+
+
+optimize baking speed by investigating tile size
+
+
+
+
+
+
+extra pass: ID (must use temp vertex color). Why vertex id? It should work with random per island, right?
+- create vertex color from material index
+material ID
+object ID

@@ -32,7 +32,9 @@ class BakeType(Enum):
     ALPHA = 14,
     CHANNEL_TRANSFER = 15,
     AOV = 16,
-    POINTINESS = 17
+    POINTINESS = 17,
+    MATERIAL_ID = 18,
+    THICKNESS = 19
 
 def get_bake_type_string(bake_type, no_underscore = False):
     '''
@@ -61,7 +63,9 @@ def get_bake_type_string(bake_type, no_underscore = False):
     "ALPHA",
     "CHANNEL_TRANSFER",
     "AOV",
-    "POINTINESS"      
+    "POINTINESS" ,
+    "MATERIAL_ID",
+    "THICKNESS"     
     ]
     bake_type = bake_types_list[bake_type].replace("_", " ", 1000)
     return bake_type
@@ -166,6 +170,8 @@ class BakePass(bpy.types.PropertyGroup):
         ("AOV", "AOV", "", 16),
         ("POINTINESS", "Pointiness", "", 17),
         ("MATERIAL_ID", "Material ID", "", 18),
+        ("THICKNESS", "Thickness", "", 19)
+
     ]
 
     bake_type: bpy.props.EnumProperty(
@@ -386,8 +392,26 @@ class BakePass(bpy.types.PropertyGroup):
         default = 20, 
         )
 
-
+    # Opacity
+    use_zero_margin: bpy.props.BoolProperty(
+        name="Override margin to zero", 
+        description = "When baking alpha, it can be useful to have margin == 0", 
+        default = False, 
+        )    
     
+    # Thickness
+    thickness_distance: bpy.props.FloatProperty(
+        name="Distance", 
+        description = "", 
+        default = 1, 
+        )
+
+    thickness_samples: bpy.props.IntProperty(
+        name="Thickness samples", 
+        description = "", 
+        default = 16, 
+        )
+
 
     preview_bake_texture: bpy.props.BoolProperty(
         name = "Preview bake texture", 
@@ -397,16 +421,22 @@ class BakePass(bpy.types.PropertyGroup):
 
 def is_non_default_bake_pass(bake_pass_type):
     bake_pass_type = bake_pass_type.upper()
+
+    
     list = [
-        'METALLIC',
-        'BASE COLOR',
-        'DISPLACEMENT',
-        'ALPHA',
-        'AOV',
-        'POINTINESS',
-        'MATERIAL_ID',
+        'TRANSMISSION',
+        'GLOSSY', 
+        'DIFFUSE',
+        'ENVIRONMENT',
+        'EMIT',
+        'ROUGHNESS',
+        'UV',
+        'NORMAL',
+        'SHADOW',
+        'AO',
+        'COMBINED'
     ]
-    return bake_pass_type in list
+    return not bake_pass_type in list
 
 def is_low_sample_pass(bake_pass):
     bake_pass_type = bake_pass.bake_type.upper()
@@ -424,6 +454,15 @@ def is_temporary_scene_bake_pass(bake_pass):
         'GLOSSY', 'DIFFUSE', 'EMIT', 'ROUGHNESS', 'UV', 'NORMAL',
         'METALLIC', 'BASE COLOR', 'DISPLACEMENT', 'AO', 'SHADOW',
         'ALPHA', 'AOV', "POINTINESS", 'MATERIAL_ID'
+    ]
+    return bake_pass_type in list       
+
+def is_srgb_bake_pass(bake_pass):
+
+    bake_pass_type = bake_pass.bake_type.upper()
+    list = [
+        'DIFFUSE', 'EMIT', 'EMIT', 'BASE COLOR',
+        'COMBINED', 'SUBSURFACE_COLOR'
     ]
     return bake_pass_type in list       
 
