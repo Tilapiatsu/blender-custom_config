@@ -2939,5 +2939,22 @@
                 "destination_path": "\\scripts\\addons\\light-painter"
             }
         ]
+    },
+    "smoothWeight": {
+        "is_enable": false,
+        "is_sync": false,
+        "online_url": "https://www.braverabbit.com/braverabbit/tools/smoothweights/",
+        "repository_url": null,
+        "branch": null,
+        "is_submodule": false,
+        "local_path": "#\\scripts\\addon_library\\local\\smoothWeight",
+        "keymaps": false,
+        "paths": [
+            {
+                "is_enable": false,
+                "local_subpath": null,
+                "destination_path": "#\\scripts\\addons\\smoothWeight"
+            }
+        ]
     }
 }
