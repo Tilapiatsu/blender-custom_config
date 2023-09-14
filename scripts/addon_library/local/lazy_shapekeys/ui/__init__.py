@@ -7,6 +7,12 @@ if "bpy" in locals():
 	"ui_panel",
 	"ui_replace_sk_menu",
 	"ui_list",
+	"ui_folder",
+	"ui_misc",
+	"ui_one_item",
+	"ui_core",
+	"ui_menu",
+	"ui_batch",
 	]
 	for module in reloadable_modules:
 		if module in locals():
@@ -16,6 +22,12 @@ if "bpy" in locals():
 from .ui_panel import *
 from .ui_replace_sk_menu import *
 from .ui_list import *
+from .ui_folder import *
+from .ui_misc import *
+from .ui_one_item import *
+from .ui_core import *
+from .ui_menu import *
+from .ui_batch import *
 
 classes = (
 # LAZYSHAPEKEYS_PT_main,

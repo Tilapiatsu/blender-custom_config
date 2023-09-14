@@ -2,7 +2,8 @@ import bpy
 from bpy.props import *
 from bpy.types import UIList
 from ..utils import *
-from .ui_replace_sk_menu import draw_replace_shapekeys_list
+from .ui_one_item import draw_replace_shapekeys_list
+
 
 # 同期
 class LAZYSHAPEKEYS_UL_sync_list(UIList):
@@ -20,7 +21,8 @@ class LAZYSHAPEKEYS_UL_folder_colle(UIList):
 		obj = active_data
 
 		rows = row.row(align=True)
-		rows.enabled = (not active_data.folder_colle_index == index)
+		if not get_sk_batch_index(item.id_data.lazy_shapekeys):
+			rows.enabled = (not active_data.folder_colle_index == index)
 		op = rows.operator("lazy_shapekeys.folder_move_sk",text="",icon="IMPORT",emboss=False)
 		op.index = -1
 		op.folder_name = item.name

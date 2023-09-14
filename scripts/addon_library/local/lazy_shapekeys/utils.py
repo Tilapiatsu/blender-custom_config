@@ -1,4 +1,4 @@
-import bpy, re
+import bpy, re, ast
 import os, csv, codecs #辞書
 
 # 設定
@@ -63,6 +63,7 @@ def get_affiliation_folder(tgt_sk,index, sk_bl):
 
 	return
 
+
 # 指定名の対象オブジェクトを取得
 def get_target_obj(obj_name):
 	obj = bpy.context.object
@@ -85,6 +86,7 @@ def convert_mini_text_to_dic(text):
 		dic[i.split(":")[0]] = int(i.split(":")[1])
 
 	return dic
+
 
 # 辞書テキストの不要な文字を除去する
 def convert_dic_to_mini_text(dic):
@@ -171,3 +173,12 @@ def get_bind_mesh_obj(pose_obj):
 	]
 
 	return tgt_obj_l
+
+
+# 一括設定用の選択インデックスを取得
+def get_sk_batch_index(sk_pr):
+	select_l = sk_pr.multi_select_data
+	if select_l:
+		select_l = ast.literal_eval(select_l)
+
+	return select_l

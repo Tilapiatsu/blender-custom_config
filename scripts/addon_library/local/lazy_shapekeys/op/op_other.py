@@ -97,12 +97,15 @@ class LAZYSHAPEKEYS_OT_shapekeys_batch_keyframe_insert(Operator):
 	obj_name : StringProperty()
 	is_def_listmenu : BoolProperty()
 	index : IntProperty()
+	is_batch : BoolProperty()
+
 
 	def execute(self, context):
 		sc = bpy.context.scene
 		obj = get_target_obj(self.obj_name)
 
 		sks = obj.data.shape_keys
+		sk_pr = sks.lazy_shapekeys
 		props = obj.lazy_shapekeys
 		sk_bl = obj.data.shape_keys.key_blocks
 		if self.is_def_listmenu:
@@ -113,35 +116,30 @@ class LAZYSHAPEKEYS_OT_shapekeys_batch_keyframe_insert(Operator):
 		folder_innner_l = get_folder_innner_sk_list(folder_index, obj.data.shape_keys)
 
 		name_l = [sk.name for sk in sks.key_blocks if not sk.name == "Basis" and sk.name in folder_innner_l]
-		# use_cur_key_l = []
-		#
-		# re_compile = re.compile('key_blocks\[\"(.+)\"\].value')
-		# if sks.animation_data:
-		# 	if sks.animation_data.action:
-		# 		for fc in sks.animation_data.action.fcurves:
-		# 			matches = re_compile.findall(fc.data_path)
-		# 			if matches:
-		# 				if matches[0] in name_l:
-		# 					# print(fc.data_path)
-		# 					for ky in fc.keyframe_points:
-		# 						if int(ky.co[0]) == sc.frame_current:
-		# 							use_cur_key_l += [fc.data_path]
-		# 							continue
-		#
-		# is_remove = False
-		# if len(name_l) == len(use_cur_key_l):
-		# 	is_remove = True
+
+		if self.is_batch:
+			tgt_index_l = get_sk_batch_index(sk_pr)
+			name_l = [sk.name for i,sk in enumerate(sk_bl) if i in tgt_index_l]
+
+
 		use_cur_key_l, is_remove = check_use_keyframe(sks, name_l)
 
-
-		for sk_name in folder_innner_l:
-			sk = sk_bl[sk_name]
+		for i,sk in enumerate(sk_bl):
 			if sk.name == "Basis":
 				continue
+			if self.is_batch:
+				if not i in tgt_index_l:
+					continue
+			else:
+				if not sk.name in folder_innner_l:
+					continue
+
+
 			if is_remove:
 				sk.keyframe_delete(data_path = "value")
 			else:
 				sk.keyframe_insert(data_path = "value")
+
 
 		for ar in bpy.context.screen.areas:
 			ar.tag_redraw()
@@ -192,22 +190,26 @@ class LAZYSHAPEKEYS_OT_shapekeys_batch_value_reset(Operator):
 	bl_options = {'REGISTER', 'UNDO'}
 
 	obj_name : StringProperty()
-	is_def_listmenu : BoolProperty()
-	index : IntProperty()
+	is_batch : BoolProperty()
 
 	def execute(self, context):
 		sc = bpy.context.scene
 		obj = get_target_obj(self.obj_name)
 		sks = obj.data.shape_keys
+		sk_pr = sks.lazy_shapekeys
 		props = obj.lazy_shapekeys
 		sk_bl = obj.data.shape_keys.key_blocks
 		folder_index = props.folder_colle_index
 		item = sk_bl[folder_index]
 		folder_innner_l = get_folder_innner_sk_list(folder_index, obj.data.shape_keys)
 
-		for sk in sks.key_blocks:
-			if not sk.name == "Basis" and sk.name in folder_innner_l:
-				sk.value = 0
+		for i, sk in enumerate(sks.key_blocks):
+			if self.is_batch:
+				if i in get_sk_batch_index(sk_pr):
+					sk.value = 0
+			else:
+				if not sk.name == "Basis" and sk.name in folder_innner_l:
+					sk.value = 0
 
 		return {'FINISHED'}
 
@@ -369,6 +371,34 @@ class LAZYSHAPEKEYS_OT_shape_keys_act_sk_to_folder(Operator):
 			kb[id].vertex_group = "folder:1,exp:1,mute:0"
 		else:
 			kb[id].vertex_group = ""
+
+		return{'FINISHED'}
+
+class LAZYSHAPEKEYS_OT_shape_keys_apply_active_sk_to_base(Operator):
+	bl_idname = "lazy_shapekeys.shape_keys_apply_active_sk_to_base"
+	bl_label = "shape_keys_apply_active_sk_to_base"
+	bl_description = ""
+	bl_options = {'REGISTER', 'UNDO'}
+
+	tgt_sk_name : StringProperty(default="Adjust")
+
+	@classmethod
+	def poll(cls, context):
+		return bpy.context.object and bpy.context.object.type == "MESH"
+
+
+	def execute(self, context):
+		obj = bpy.context.active_object
+		kb = obj.data.shape_keys.key_blocks
+		old_id = obj.active_shape_key_index
+
+		for i,sk in enumerate(kb):
+			if i == 0: continue
+			if sk.name == self.tgt_sk_name: continue
+
+			obj.active_shape_key_index = i
+
+			bpy.ops.mesh.blend_from_shape(shape=self.tgt_sk_name, blend=1.0, add=True)
 
 		return{'FINISHED'}
 

@@ -49,11 +49,13 @@ class LAZYSHAPEKEYS_OT_folder_move_sk(Operator):
 	sks_name : StringProperty()
 	obj_name : StringProperty()
 
+
 	@classmethod
 	def poll(cls, context):
 		 obj = bpy.context.active_object
 		 if obj and not obj.mode == "EDIT":
 			 return True
+
 
 	def execute(self, context):
 		old_act = bpy.context.view_layer.objects.active
@@ -62,48 +64,70 @@ class LAZYSHAPEKEYS_OT_folder_move_sk(Operator):
 			bpy.context.view_layer.objects.active = obj
 
 		sks = obj.data.shape_keys
+		sk_pr = sks.lazy_shapekeys
 		sk_bl = sks.key_blocks
 		old_index = obj.active_shape_key_index
 		old_folder_index = obj.lazy_shapekeys.folder_colle_index
 		old_folder_item = sk_bl[old_folder_index]
 
+
+		batch_id_list = get_sk_batch_index(sk_pr)
+
+
+		# アクティブのみ、または複数選択のインデックス
 		if self.index == -1:
-			tgt_id = old_index
+			if batch_id_list:
+				# 複数選択の場合は一括
+				name_l = [sk_bl[i].name for i in batch_id_list]
+				old_sk_name_l = name_l
+			else:
+				name_l = [sk_bl[old_index].name] # 単一のアイテム
+
 		else:
-			tgt_id = self.index # 指定のインデックス
+			# 指定のインデックス
+			name_l = [sk_bl[self.index].name]
 
 
-		item = sk_bl[tgt_id]
-		obj.active_shape_key_index = tgt_id
-		folder_index = sk_bl.find(self.folder_name)
+		# 一括処理を行う
+		for tgt_name in name_l:
+			folder_index = sk_bl.find(self.folder_name) # 入れるフォルダーのインデックス
+			tgt_id = sk_bl.find(tgt_name)
+			obj.active_shape_key_index = tgt_id # 対象のシェイプキーをアクティブにする
+
+			# 並び順を変える数を把握する
+			inner_items = get_folder_innner_sk_list(folder_index, sks) # フォルダー内のアイテム
+			move_num = len(inner_items) + folder_index
+
+			if tgt_id < folder_index:
+				move_num -= 1
+
+
+			# 一番上に移動した後、フォルダ下に移動する
+			bpy.ops.object.shape_key_move(type='TOP') # 一番上に移動
+			for i in range(move_num):
+				bpy.ops.object.shape_key_move(type='DOWN')
 
 
 
-		inner_items = get_folder_innner_sk_list(folder_index, sks) # フォルダー内のアイテム
-		print(inner_items)
-
-
-		move_num = len(inner_items) + folder_index
-		if len(sk_bl)-1 <= move_num:
-			move_num = len(sk_bl)-2
-
-		# 一番上に移動した後、フォルダ下に移動する
-		bpy.ops.object.shape_key_move(type='TOP') # 一番上に移動
-		for i in range(move_num):
-			bpy.ops.object.shape_key_move(type='DOWN')
-
-
-
-		# インデックスを変える
+		# インデックスを修正する
 		obj.lazy_shapekeys.folder_colle_index = sk_bl.find(old_folder_item.name)
 		if is_folder(sk_bl[old_index]) and not (len(sk_bl)-1 < old_index):
 			obj.active_shape_key_index = old_index + 1
 		else:
 			obj.active_shape_key_index = old_index
 
+
+		# 移動するとインデックスがずれるので、複数選択のインデックスを新しいものに修正する
+		if self.index == -1:
+			if batch_id_list:
+				batch_id_list = [i for i,sk in enumerate(sk_bl) if sk.name in old_sk_name_l]
+				sks.lazy_shapekeys.multi_select_data = str(batch_id_list)
+
+
 		# アクティブを戻す
 		bpy.context.view_layer.objects.active = old_act
 
+		self.report({'INFO'}, "Move [%s] Item to '%s'" % (str(len(name_l)) ,self.folder_name))
 		return{'FINISHED'}
 
 
@@ -220,6 +244,9 @@ class LAZYSHAPEKEYS_OT_sk_item_add(Operator):
 		is_bottom_folder = False
 		folder_name = None
 		if is_no_sk:
+			if obj.lazy_shapekeys.folder_colle_index > len(sk_bl)-1:
+				obj.lazy_shapekeys.folder_colle_index = 0
+
 			folder_name = sk_bl[obj.lazy_shapekeys.folder_colle_index].name
 			folder_l = [i for i in sk_bl if is_folder(i)]
 			if folder_l:
@@ -339,7 +366,7 @@ def folder_remove(self, obj, folder_index):
 	if not inner_sk_l:
 		bpy.ops.object.shape_key_remove()
 		return
-		
+
 	for sk_name in reversed(inner_sk_l):
 		obj.active_shape_key_index = sk_bl.find(sk_name)
 		bpy.ops.object.shape_key_move(type='TOP')
@@ -413,24 +440,51 @@ class LAZYSHAPEKEYS_OT_folder_item_move(Operator):
 	def execute(self, context):
 		old_act = bpy.context.view_layer.objects.active
 		obj = get_target_obj(self.obj_name)
+		sks = obj.data.shape_keys
+		sk_pr = sks.lazy_shapekeys
 		sk_bl = obj.data.shape_keys.key_blocks
 		index = obj.active_shape_key_index
+		old_index = index
+
 
 		if not obj == bpy.context.object:
 			bpy.context.view_layer.objects.active = obj
 
 		if self.is_def_list:
-			bpy.ops.object.shape_key_move(type=self.direction)
+			batch_id_list = get_sk_batch_index(sk_pr)
+			old_sk_name_l = [sk_bl[i].name for i in batch_id_list]
+
+			# 複数選択移動の場合
+			if batch_id_list:
+				# 下に移動する場合は、逆順処理にする
+				if self.direction == "UP":
+					batch_id_list = batch_id_list
+				else:
+					batch_id_list = reversed(batch_id_list)
+
+
+				for i in batch_id_list:
+					obj.active_shape_key_index = i
+					bpy.ops.object.shape_key_move(type=self.direction)
+
+
+				obj.active_shape_key_index = old_index
+				# 移動するとインデックスがずれるので、複数選択のインデックスを新しいものに修正する
+				if batch_id_list:
+					batch_id_list = [i for i,sk in enumerate(sk_bl) if sk.name in old_sk_name_l]
+					sks.lazy_shapekeys.multi_select_data = str(batch_id_list)
+
+
+
+			else: # 単一アイテムの場合
+				bpy.ops.object.shape_key_move(type=self.direction)
+
 
 		elif is_folder(sk_bl[index]) or not self.is_def_list:
 			folder_items_move(self,context, obj)
 
-		else:
-			bpy.ops.object.shape_key_move(type=self.direction)
-
 
 		bpy.context.view_layer.objects.active = old_act
-
 		return{'FINISHED'}
 
 

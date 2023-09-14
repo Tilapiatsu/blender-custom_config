@@ -7,8 +7,8 @@ License : GNU General Public License version3 (http://www.gnu.org/licenses/)
 bl_info = {
 	"name" : "Lazy Shapekeys",
 	"author" : "Bookyakuno",
-	"version" : (1, 0, 4),
-	"blender" : (3, 4, 0),
+	"version" : (1, 0, 56),
+	"blender" : (3, 6, 0),
 	"location" : "3D View",
 	"description" : "Shapekeys Utility. Transfer Shape(Forced) / Create Objects for All Shape Keys.",
 	"warning" : "",
@@ -37,11 +37,12 @@ ui,
 utils,
 props,
 )
-from .ui.ui_replace_sk_menu import LAZYSHAPEKEYS_PT_shape_keys
+from .ui.ui_core import LAZYSHAPEKEYS_PT_shape_keys_innner
 from .ui.ui_panel import LAZYSHAPEKEYS_PT_main
 from .utils import *
 from .props import *
-
+from .props import LAZYSHAPEKEYS_ui
+from .ui.ui_menu import draw_replace_other_menu
 
 import bpy
 import rna_keymap_ui # キーマップリストに必要
@@ -49,10 +50,16 @@ from bpy.props import *
 from bpy.types import AddonPreferences, UIList
 
 
-lmda = lambda s,c:s.layout;None
 keep_DATA_PT_shape_keys = bpy.types.DATA_PT_shape_keys.draw
 
 
+def LAZYSHAPEKEYS_PT_shape_keys(self, context):
+	layout = self.layout
+	LAZYSHAPEKEYS_PT_shape_keys_innner(self, context, False, layout, None, True)
+
+
+# シェイプキーパネルメニュー内を、フォルダーメニューに置き換える
+lmda = lambda s,c:s.layout;None
 def update_use_folder(self,context):
 	addon_prefs = preference()
 
@@ -94,30 +101,10 @@ class LAZYSHAPEKEYS_MT_AddonPreferences(AddonPreferences):
 	tab_addon_menu : EnumProperty(name="Tab", description="", items=[('OPTION', "Option", "","DOT",0),
 	 ('LINK', "Link", "","URL",1)], default='OPTION')
 	use_folder : BoolProperty(name="Use Folder in List Menu",description="Make the shape key block with '@' at the beginning of the name line into a folder.\nAdd a step to the shape key list menu to make it easier to classify",update=update_use_folder,default=True)
-	sk_menu_use_slider : BoolProperty(name="Use Slider Display",default=True)
-	display_folder_sk_option : BoolProperty(name="Display Folder Option",description="Display hidden shape key info when folder shape key is active (for debugging)")
 
 
-	items = [
-	("DEFAULT","Default","Default Shape keys list.\nBy adding a shape key for the folder, you can collapse the item with the ▼ button","SORTSIZE",0),
-	("FOLDER","Folder","Displayed in two columns, [List of folders] and [Shape keys in folders].\nIf you don't see anything, add a folder","FILE_FOLDER",1),
-	("SYNC","Objects Sync","Synchronize the shape keys with the same name of different objects and operate them all at once","LINK_BLEND",2),
-	]
-	list_mode : EnumProperty(default="DEFAULT",name="List Mode",items= items)
-
-	# use_dialog : BoolProperty(default=True, name = "Use Dialog", description = "Menu remains visible unless clicked")
-	# menu_width         : IntProperty(default=410, name = "Menu Width", description = "Width setting when menu layout is broken. \n Blender Settings-> Interface-> If 'Resolution Scale' is set to a value smaller than 1,\n  icons may be squished together so closely",min = 0)
-	#
-	# items = [
-	# ("MOUSE","Mouse Position",""),
-	# ("MOUSE_RELATIVE","Mouse Relative",""),
-	# ("WINDOW_ABSOLUTE","Window Absolute","The X position is from the left edge of the active editor.\nY position is the position from the whole window"),
-	# # ("PREV_LOCATION","Previous Position","The window position is memorized only when it is closed by pressing [OK] after it is displayed, and the pop-up dialog is displayed at the same position the next time it is opened"),
-	# ]
-	# window_position : EnumProperty(default="MOUSE",name="Window Position",items= items)
-	# loc_x : IntProperty(name="X Location",default=300)
-	# loc_y : IntProperty(name="Y Location",default=600)
-
+	ui : PointerProperty(type=LAZYSHAPEKEYS_ui)
+	debug : BoolProperty(name="Debug",default=True)
 
 
 	def draw(self, context):
@@ -131,50 +118,14 @@ class LAZYSHAPEKEYS_MT_AddonPreferences(AddonPreferences):
 
 			if self.use_folder:
 				box = layout.box()
-				box.prop(self,"sk_menu_use_slider")
+				box.prop(self.ui,"sk_menu_use_slider")
 
-			# box = layout.box()
-			# col = box.column()
-			# col.label(text="Sync Key Popup Menu",icon="NONE")
-			# col.use_property_split = True
-			# col.use_property_decorate = False
-			#
-			# col.prop(self,"menu_width", expand=True)
-			# row = col.row(align=True)
-			# row.prop(self,"window_position", expand=True)
-			# if not self.window_position == "MOUSE":
-			# 	col.prop(self,"loc_x")
-			# 	col.prop(self,"loc_y")
+				box.prop(self.ui,"display_folder_sk_option")
 
 
 
-		# elif self.tab_addon_menu == "KEYMAP":
-		# 	box = layout.box()
-		#
-		# 	col = box.column()
-		# 	col.label(text="Keymap List:",icon="KEYINGSET")
-		#
-		# 	layout = self.layout
-		# 	wm = bpy.context.window_manager
-		# 	kc = wm.keyconfigs.user
-		# 	old_km_name = ""
-		# 	old_id_l = []
-		# 	for km_add, kmi_add in addon_keymaps:
-		# 	    km = kc.keymaps[km_add.name]
-		# 	    for kmi_con in km.keymap_items:
-		# 	        if kmi_add.idname == kmi_con.idname:
-		# 	            if not kmi_con.id in old_id_l:
-		# 	                kmi = kmi_con
-		# 	                old_id_l.append(kmi_con.id)
-		# 	                break
-		# 	    if kmi:
-		# 	        if not km.name == old_km_name:
-		# 	            col.label(text=km.name,icon="DOT")
-		# 	        col.context_pointer_set("keymap", km)
-		# 	        rna_keymap_ui.draw_kmi([], kc, km, kmi, col, 0)
-		# 	        col.separator()
-		# 	        old_km_name = km.name
-		# 	        kmi = None
+			layout.separator()
+			layout.prop(self,"debug")
 
 
 		elif self.tab_addon_menu == "LINK":
@@ -191,46 +142,21 @@ def draw_drag_move_in_graph_editor(self,context):
 	layout.prop(props,"drag_move_multply_value")
 
 
-def draw_menu(self,context):
-	layout = self.layout
-	addon_prefs = preference()
-
-	layout.separator()
-	layout.operator("lazy_shapekeys.shape_keys_transfer_forced",icon="MOD_DATA_TRANSFER")
-	layout.operator("lazy_shapekeys.shape_keys_create_obj_from_all",icon="DUPLICATE")
-	if bpy.app.version >= (2,83,0):
-		icon_val = "CHECKMARK"
-	else:
-		icon_val = "NONE"
-	layout.operator("lazy_shapekeys.shape_keys_apply_modifier",icon=icon_val)
-	layout.operator("lazy_shapekeys.shape_keys_sort",icon="SORTALPHA")
-	layout.operator("lazy_shapekeys.shape_keys_separeate",icon="MOD_MIRROR")
-	layout.separator()
-
-	obj = bpy.context.active_object
-	kb = obj.data.shape_keys.key_blocks
-	id = obj.active_shape_key_index
-	sk = kb[id]
-	is_folder_bool = is_folder(sk)
-
-	col = layout.column(align=True)
-	col.active=is_folder_bool
-	col.prop(addon_prefs,"display_folder_sk_option")
-	layout.operator("lazy_shapekeys.shape_keys_act_sk_to_folder").to_folder = bool(not is_folder_bool)
-
-
-
 
 panels = (
 LAZYSHAPEKEYS_PT_main,
 )
 
 classes = (
+LAZYSHAPEKEYS_sk_batch,
 LAZYSHAPEKEYS_PR_main,
 LAZYSHAPEKEYS_sync_colle,
 LAZYSHAPEKEYS_sk_folder,
 LAZYSHAPEKEYS_sk_data,
 LAZYSHAPEKEYS_obj_sk_data,
+LAZYSHAPEKEYS_ui,
+
+
 LAZYSHAPEKEYS_MT_AddonPreferences,
 )
 
@@ -248,7 +174,7 @@ def register():
 	bpy.types.Key.lazy_shapekeys = PointerProperty(type=LAZYSHAPEKEYS_sk_data)
 	bpy.types.Object.lazy_shapekeys = PointerProperty(type=LAZYSHAPEKEYS_obj_sk_data)
 	bpy.types.Scene.lazy_shapekeys_colle = CollectionProperty(type=LAZYSHAPEKEYS_sync_colle)
-	bpy.types.MESH_MT_shape_key_context_menu.append(draw_menu)
+	bpy.types.MESH_MT_shape_key_context_menu.append(draw_replace_other_menu)
 	# bpy.types.GRAPH_MT_key.append(draw_drag_move_in_graph_editor)
 	bpy.types.ShapeKey.lazy_shapekeys = PointerProperty(type=LAZYSHAPEKEYS_sk_folder)
 	update_use_folder(None,bpy.context)
@@ -271,7 +197,7 @@ def unregister():
 	bpy.types.DATA_PT_shape_keys.draw = keep_DATA_PT_shape_keys
 	bpy.types.DATA_PT_shape_keys.remove(LAZYSHAPEKEYS_PT_shape_keys)
 	# bpy.types.GRAPH_MT_key.remove(draw_drag_move_in_graph_editor)
-	bpy.types.MESH_MT_shape_key_context_menu.remove(draw_menu)
+	bpy.types.MESH_MT_shape_key_context_menu.remove(draw_replace_other_menu)
 
 
 	try:

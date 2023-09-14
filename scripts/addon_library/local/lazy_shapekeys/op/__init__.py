@@ -11,6 +11,7 @@ if "bpy" in locals():
 	"op_sync",
 	"op_other",
 	"op_item",
+	"op_batch",
 	]
 	for module in reloadable_modules:
 		if module in locals():
@@ -24,6 +25,7 @@ from .sk_utils import *
 from .op_sync import *
 from .op_other import *
 from .op_item import *
+from .op_batch import *
 
 classes = (
 LAZYSHAPEKEYS_OT_fcurve_drag_move,
@@ -46,6 +48,10 @@ LAZYSHAPEKEYS_OT_shapekeys_open_window,
 LAZYSHAPEKEYS_OT_sk_item_add,
 LAZYSHAPEKEYS_OT_sk_item_remove,
 OBJECT_OT_shape_keys_apply_modifier,
+LAZYSHAPEKEYS_OT_shape_keys_apply_active_sk_to_base,
+LAZYSHAPEKEYS_OT_batch_set,
+LAZYSHAPEKEYS_OT_batch_select_all_index,
+LAZYSHAPEKEYS_OT_batch_select_index,
 )
 
 
