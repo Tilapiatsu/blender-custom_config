@@ -2956,5 +2956,22 @@
                 "destination_path": "#\\scripts\\addons\\smoothWeight"
             }
         ]
+    },
+    "Super_Batch_Export": {
+        "is_enable": true,
+        "is_sync": true,
+        "online_url": null,
+        "repository_url": "https://github.com/mrtripie/Blender-Super-Batch-Export.git",
+        "branch": null,
+        "is_submodule": false,
+        "local_path": "#\\scripts\\addon_library\\GIT_Clones\\Super_Batch_Export",
+        "keymaps": false,
+        "paths": [
+            {
+                "is_enable": true,
+                "local_subpath": null,
+                "destination_path": "#\\scripts\\addons\\Super_Batch_Export"
+            }
+        ]
     }
 }
