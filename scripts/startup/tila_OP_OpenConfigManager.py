@@ -12,7 +12,7 @@ bl_info = {
 	"category": "Window"
 }
 
-addon_name = "Tila_ConfigManager"
+addon_name = 'Tila_ConfigManager'
 
 class TILA_OpenConfigManager(bpy.types.Operator):
 	bl_idname = "window.tila_open_config_manager"
@@ -22,13 +22,11 @@ class TILA_OpenConfigManager(bpy.types.Operator):
 	auto_enable_addon : bpy.props.BoolProperty(name='force_object_isolate', default=True)
 
 	def execute(self, context):
-		bpy.ops.screen.userpref_show(section='ADDONS')
-		bpy.data.window_managers["WinMan"].addon_search = "tila config manager"
 		if self.auto_enable_addon:
 			if addon_name not in bpy.context.preferences.addons.keys():
 				addon_utils.enable(addon_name, default_set=True, persistent=False, handle_error=None)
 		
-		bpy.ops.preferences.addon_expand(module=addon_name)
+		bpy.ops.preferences.addon_show(module=addon_name)
 		bpy.ops.tila.config_import_addon_list()
 
 		return {'FINISHED'}
