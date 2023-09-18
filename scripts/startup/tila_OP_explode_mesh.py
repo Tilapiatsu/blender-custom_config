@@ -21,7 +21,7 @@ class TILA_SeparateAndSelect(bpy.types.Operator):
     bl_options = {'REGISTER', 'UNDO'}  # enable undo for the operator.
 
     select_linked : bpy.props.BoolProperty(name='Extend Selection to linked', default=True) 
-    apply_modifier : bpy.props.BoolProperty(name='Apply Modifier', default=False) 
+    apply_modifiers : bpy.props.BoolProperty(name='Apply Modifiers', default=False) 
 
     multires_modifier_type = 'MULTIRES'
 
