@@ -60,6 +60,7 @@ class TILA_Config_SetupBlender(Operator):
 
 		return {"PASS_THROUGH"}
 	
+    
 class TILA_Config_UpdateSetupBlender(Operator):
 	"""Update Blender setup, to match the changes made in the Json file. It will :
 	- disable and unlink the addons that are not enable anymore
@@ -111,6 +112,7 @@ class TILA_Config_UpdateSetupBlender(Operator):
 
 		return {"PASS_THROUGH"}
 
+
 class TILA_Config_ForceEnableAddon(Operator):
 	"""Force Enable Addon will ensure to enable the addon by :
 	- sync the addon
@@ -156,6 +158,7 @@ class TILA_Config_ForceEnableAddon(Operator):
 
 		return {"PASS_THROUGH"}
 
+
 class TILA_Config_ForceDisableAddon(Operator):
 	"""Force Disable Addon will ensure to disable the addon by :
 	- disable the addon
@@ -196,6 +199,7 @@ class TILA_Config_ForceDisableAddon(Operator):
 
 		return {"PASS_THROUGH"}
 	
+
 class TILA_Config_PrintAddonList(Operator):
 	"""Print all addons list and all its settings and paths"""
 	bl_idname = "tila.config_print_addon_list"
@@ -243,6 +247,7 @@ class TILA_Config_RemoveConfig(Operator):
 					return {"FINISHED"}
 
 		return {"PASS_THROUGH"}
+
 
 class TILA_Config_CleanAddonList(Operator):
 	"""Clean Addons that have already been linked and are disabled or not set to linked anymore.
@@ -485,6 +490,7 @@ class TILA_Config_DisableAddonList(Operator):
 
 		return {"PASS_THROUGH"}
 
+
 class TILA_Config_RegisterKeymaps(Operator):
 	"""Register keymaps to Blender
 	name : register only the named Addon"""
@@ -543,6 +549,7 @@ class TILA_Config_UnregisterKeymaps(Operator):
 		# keymaps.unregister()
 		return {'FINISHED'}
 	
+
 class TILA_Config_SetSettings(Operator):
 	"""Apply Custom Settings to blender"""
 	bl_idname = "tila.config_set_settings"

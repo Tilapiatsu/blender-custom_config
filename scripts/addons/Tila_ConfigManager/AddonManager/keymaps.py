@@ -473,7 +473,6 @@ class TILA_Config_Keymaps_Global(TILA_Config_Keymaps):
 		# Atomic Data Manager
 		# self.kmi_set_replace('atomic.invoke_pie_menu_ui', 'DEL', "PRESS", ctrl=True, shift=True, disable_double=True)
 		
-
 		##### 3D View
 		self.kmi_init(name='3D View', space_type='VIEW_3D', region_type='WINDOW')
 		self.global_keys()
