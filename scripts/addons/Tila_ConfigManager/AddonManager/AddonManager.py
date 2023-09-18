@@ -515,7 +515,7 @@ class ElementAM():
 				km = eval(f'keymaps.TILA_Config_Keymaps_{self.name}')
 				keymap_instance = km()
 				if restore:
-					keymap_instance.keymap_restore(all=False)
+					keymap_instance.keymap_restore(all=all)
 				keymap_instance.set_keymaps()
 			except AttributeError as e:
 				self.log_progress.warning(f'{self.name} Addon have no keymaps Set')

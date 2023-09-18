@@ -51,7 +51,7 @@ class TILA_Config_SetupBlender(Operator):
 				case 'ENABLE_DONE':
 					bpy.ops.tila.config_set_settings('EXEC_DEFAULT')
 				case 'SET_SETTINGS_DONE':
-					bpy.ops.tila.config_register_keymaps('EXEC_DEFAULT')
+					bpy.ops.tila.config_register_keymaps('EXEC_DEFAULT', restore=True)
 				case 'REGISTER_KEYMAP_DONE':
 					context.window_manager.tila_setup_blender_progress = "NONE"
 					self.report({'INFO'}, 'TilaConfig : Blender Setup Done !')
@@ -512,7 +512,7 @@ class TILA_Config_RegisterKeymaps(Operator):
 		if self.name == '':
 			self.AM.queue_set_keymaps(restore=self.restore)
 		else:
-			self.AM.queue_set_keymaps(element_name=self.name, restore = self.restore)
+			self.AM.queue_set_keymaps(element_name=self.name, restore=self.restore)
 
 		self._timer = bpy.context.window_manager.event_timer_add(
 			0.01, window=context.window)
@@ -528,6 +528,7 @@ class TILA_Config_RegisterKeymaps(Operator):
 				bpy.context.window_manager.keyconfigs.update()
 				bpy.ops.wm.save_userpref()
 				bpy.context.window_manager.event_timer_remove(self._timer)
+				bpy.context.window_manager.tila_config_keymap_restored = False
 				return {"FINISHED"}
 
 			elif not self.AM.processing:

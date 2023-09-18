@@ -306,7 +306,7 @@ class KeymapManager():
         else:
             return None
 
-    def kmi_init(self, name, space_type='EMPTY', region_type='WINDOW', modal=False, tool=False, addon=False, restore_to_default=True):
+    def kmi_init(self, name, space_type='EMPTY', region_type='WINDOW', modal=False, tool=False, addon=False, restore_to_default=False):
         if addon:
             if name in self.kca.keymaps:
                 return False
@@ -315,7 +315,9 @@ class KeymapManager():
                 return False
         if restore_to_default:
             self.kcu.keymaps[name].restore_to_default()
+        
         self.ukmis = self.kcu.keymaps[name].keymap_items
+
         try:
             if restore_to_default:
                 self.kca.keymaps[name].restore_to_default()
@@ -323,13 +325,12 @@ class KeymapManager():
         except KeyError:
             self.akmis = self.kca.keymaps.new(name).keymap_items
 
-        if not addon:
-            self.km = self.kcu.keymaps.new(name, space_type=space_type, region_type=region_type, modal=modal, tool=tool)
-            self.kmis = self.ukmis
-        else:
+        if addon:
             self.km = self.kca.keymaps.new(name, space_type=space_type, region_type=region_type, modal=modal, tool=tool)
-            self.kmis = self.akmis
+        else:
+            self.km = self.kcu.keymaps.new(name, space_type=space_type, region_type=region_type, modal=modal, tool=tool)
         
+        self.kmis = self.ukmis
         return True
 
     def kmi_prop_setattr(self, kmi_props, attr, value):
