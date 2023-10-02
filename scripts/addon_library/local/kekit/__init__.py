@@ -16,32 +16,26 @@
 #
 # ##### END GPL LICENSE BLOCK #####
 
-from . import box_primitive
 from . import _prefs
-from . import _m_duplication
-from . import _m_main
-from . import _m_render
-from . import _m_bookmarks
-from . import _m_selection
-from . import _m_modeling
-from . import _m_direct_loop_cut
-from . import _m_multicut
-from . import _m_subd
-from . import _m_unrotator
-from . import _m_fitprim
-from . import _m_tt
-from . import _m_id_materials
-from . import _m_cleanup
-from . import _m_contexttools
-from . import _m_piemenu_ops
-from . import ke_cursormenu
+from . import _ui
+from .m_bookmarks import m_bookmarks
+from .m_cleanup import m_cleanup
+from .m_context_tools import m_context_tools
+from .m_cursormenu import m_cursormenu
+from .m_geometry import m_geometry
+from .m_modeling import m_modeling
+from .m_modifiers import m_modifiers
+from .m_pie_menus import m_pie_menus
+from .m_render import m_render
+from .m_selection import m_selection
+from .m_tt import m_tt
 
 bl_info = {
     "name": "keKit",
     "author": "Kjell Emanuelsson",
     "category": "",
     "blender": (2, 80, 0),
-    "version": (2, 2, 7),
+    "version": (3, 0, 1),
     "location": "View3D > Sidebar",
     "warning": "",
     "description": "Extensive Script Collection",
@@ -52,30 +46,29 @@ kit_cat = ""
 
 modules = (
     _prefs,
-    box_primitive,
-    _m_duplication,
-    _m_main,
-    _m_render,
-    _m_bookmarks,
-    _m_selection,
-    _m_modeling,
-    _m_direct_loop_cut,
-    _m_multicut,
-    _m_subd,
-    _m_unrotator,
-    _m_fitprim,
-    _m_tt,
-    _m_id_materials,
-    _m_cleanup,
-    _m_contexttools,
-    _m_piemenu_ops,
-    ke_cursormenu
+    _ui,
+    m_geometry,
+    m_render,
+    m_bookmarks,
+    m_selection,
+    m_modeling,
+    m_modifiers,
+    m_context_tools,
+    m_tt,
+    m_cleanup,
+    m_pie_menus,
+    m_cursormenu
 )
 
 
 def register():
-    _prefs.kekit_version = bl_info['version']
-    _prefs.kit_cat = kit_cat
+    # Format version/cat & assign variables
+    bv = bl_info['version']
+    v = "v" + str(bv[0]) + "." + str(bv[1]) + str(bv[2])
+    _ui.kekit_version = v
+    _ui.kit_cat = kit_cat
+    _prefs.kekit_version = v
+
     for m in modules:
         m.register()
 
@@ -83,7 +76,3 @@ def register():
 def unregister():
     for m in modules:
         m.unregister()
-
-
-if __name__ == "__main__":
-    register()

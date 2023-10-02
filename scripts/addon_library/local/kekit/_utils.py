@@ -1,9 +1,28 @@
-import bpy
-import bmesh
 import os
-from mathutils import Matrix, Vector
-from bpy_extras.view3d_utils import region_2d_to_vector_3d, region_2d_to_origin_3d, location_3d_to_region_2d
 from math import radians, sqrt
+
+import numpy as np
+
+import bmesh
+import bpy
+from bpy_extras.view3d_utils import (
+    region_2d_to_vector_3d,
+    region_2d_to_origin_3d,
+    location_3d_to_region_2d
+)
+from mathutils import Matrix, Vector
+
+
+def get_prefs():
+    return bpy.context.preferences.addons[__package__].preferences
+
+
+def is_registered(idname_c):
+    """Check if class is registered (idname string) E.g: 'VIEW3D_OT_ke_bg_sync' """
+    try:
+        return hasattr(bpy.types, idname_c)
+    except AttributeError or ValueError:
+        return False
 
 
 def get_view_type():
@@ -20,7 +39,7 @@ def get_view_type():
 
 
 def refresh_ui():
-    # Redraw everything!
+    """Redraw everything!"""
     for window in bpy.context.window_manager.windows:
         for area in window.screen.areas:
             for region in area.regions:
@@ -28,6 +47,7 @@ def refresh_ui():
 
 
 def pie_pos_offset(xy, v):
+    """(Rough) compensation to get mouse screen pos from pie slot to pie 'center'"""
     scl = bpy.context.preferences.view.ui_scale
     r = None
     if v == "N":
@@ -80,24 +100,24 @@ def restore_transform(og_op):
     bpy.context.scene.tool_settings.transform_pivot_point = og_op[1]
 
 
-def apply_transform(obj, use_location=False, use_rotation=True, use_scale=True):
+def apply_transform(obj, loc=False, rot=True, scl=True):
     mb = obj.matrix_basis
     idmat = Matrix()
-    loc, rot, scale = mb.decompose()
-    trmat = Matrix.Translation(loc)
+    dloc, drot, dscl = mb.decompose()
+    trmat = Matrix.Translation(dloc)
     rotmat = mb.to_3x3().normalized().to_4x4()
-    sclmat = Matrix.Diagonal(scale).to_4x4()
+    sclmat = Matrix.Diagonal(dscl).to_4x4()
     transform = [idmat, idmat, idmat]
     basis = [trmat, rotmat, sclmat]
 
     def swap(i):
         transform[i], basis[i] = basis[i], transform[i]
 
-    if use_location:
+    if loc:
         swap(0)
-    if use_rotation:
+    if rot:
         swap(1)
-    if use_scale:
+    if scl:
         swap(2)
 
     mat = transform[0] @ transform[1] @ transform[2]
@@ -131,6 +151,49 @@ def set_active_collection(context, obj):
     layer_collection = context.view_layer.layer_collection
     layer_coll = get_layer_collection(layer_collection, obj_collection.name)
     context.view_layer.active_layer_collection = layer_coll
+
+
+def dupe(src):
+    new = src.copy()
+    new.data = src.data.copy()
+    src.users_collection[0].objects.link(new)
+    return new
+
+
+def shred(obj):
+    rem_data = obj.data
+    bpy.data.objects.remove(obj, do_unlink=True)
+    bpy.data.meshes.remove(rem_data)
+
+
+def mesh_select_all(obj, action):
+    obj.data.polygons.foreach_set("select", (action,) * len(obj.data.polygons))
+
+
+def mesh_hide_all(obj, state):
+    obj.data.polygons.foreach_set("hide", (state,) * len(obj.data.polygons))
+
+
+def mesh_world_coords(obj):
+    """Calculate verts world space coords really fast (np.einsum)"""
+    n = len(obj.data.vertices)
+    coords = np.empty((n * 3), dtype=float)
+    obj.data.vertices.foreach_get("co", coords)
+    coords = np.reshape(coords, (n, 3))
+    coords4d = np.empty(shape=(n, 4), dtype=float)
+    coords4d[::-1] = 1
+    coords4d[:, :-1] = coords
+    return np.einsum('ij,aj->ai', obj.matrix_world,  coords4d)[:, :-1]
+
+
+def mesh_selected_verts(obj):
+    """Returns sel verts + mask for np processing: wcos, sel count (np.count_nonzero)"""
+    vert_count = len(obj.data.vertices)
+    sel_mask = np.zeros(vert_count, dtype=bool)
+    obj.data.vertices.foreach_get('select', sel_mask)
+    nv = np.array(obj.data.vertices)
+    sel_verts = nv[sel_mask]
+    return sel_verts, sel_mask
 
 
 def wempty(context):
@@ -980,3 +1043,14 @@ def append_nodegroup(path, identifier):
     if not ng_import.node_groups:
         return None
     return ng_import.node_groups[0]
+
+
+def is_bmvert_collinear(v):
+    le = v.link_edges
+    if len(le) == 2:
+        vec1 = Vector(v.co - le[0].other_vert(v).co)
+        vec2 = Vector(v.co - le[1].other_vert(v).co)
+        if vec1.length and vec2.length:
+            if abs(vec1.angle(vec2)) >= 3.1415:
+                return True
+    return False
