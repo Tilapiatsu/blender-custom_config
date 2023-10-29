@@ -2973,5 +2973,22 @@
                 "destination_path": "#\\scripts\\addons\\Super_Batch_Export"
             }
         ]
+    },
+    "tila_character_customization_handler": {
+        "is_enable": true,
+        "is_sync": true,
+        "online_url": null,
+        "repository_url": "https://github.com/Tilapiatsu/blender-character_customization_handler.git",
+        "branch": null,
+        "is_submodule": true,
+        "local_path": "#\\scripts\\addon_library\\GIT_Submodules\\tila_character_customization_handler",
+        "keymaps": false,
+        "paths": [
+            {
+                "is_enable": true,
+                "local_subpath": null,
+                "destination_path": "#\\scripts\\addons\\tila_character_customization_handler"
+            }
+        ]
     }
 }
