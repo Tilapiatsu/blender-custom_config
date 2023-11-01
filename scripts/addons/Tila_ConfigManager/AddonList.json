@@ -2974,20 +2974,20 @@
             }
         ]
     },
-    "tila_character_customization_handler": {
+    "tila_customization_handler": {
         "is_enable": true,
         "is_sync": true,
         "online_url": null,
-        "repository_url": "https://github.com/Tilapiatsu/blender-character_customization_handler.git",
+        "repository_url": "https://github.com/Tilapiatsu/blender-customization_handler.git",
         "branch": null,
         "is_submodule": true,
-        "local_path": "#\\scripts\\addon_library\\GIT_Submodules\\tila_character_customization_handler",
+        "local_path": "#\\scripts\\addon_library\\GIT_Submodules\\tila_customization_handler",
         "keymaps": false,
         "paths": [
             {
                 "is_enable": true,
                 "local_subpath": null,
-                "destination_path": "#\\scripts\\addons\\tila_character_customization_handler"
+                "destination_path": "#\\scripts\\addons\\tila_customization_handler"
             }
         ]
     }
