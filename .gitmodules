@@ -14,6 +14,3 @@
 [submodule "scripts/addon_library/GIT_Submodules/tila_polyquilt"]
 	path = scripts/addon_library/GIT_Submodules/tila_polyquilt
 	url = https://github.com/Tilapiatsu/PolyQuilt.git
-[submodule "scripts/addon_library/GIT_Submodules/tila_character_customization_handler"]
-	path = scripts/addon_library/GIT_Submodules/tila_character_customization_handler
-	url = https://github.com/Tilapiatsu/blender-character_customization_handler.git
