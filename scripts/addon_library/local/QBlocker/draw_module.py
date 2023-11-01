@@ -15,7 +15,7 @@ def draw_callback_transform(self, op, context, _uidpi, _uifactor, _addon_prefs):
 
 
 def draw_callback_cube(self, op, context, _uidpi, _uifactor, _addon_prefs):
-    blf.size(0, _addon_prefs.text_size_int, _uidpi)
+    blf.size(0, _addon_prefs.text_size_int)
     DrawHelp(helpstring_box, _uifactor, _addon_prefs, op)
 
     if op.snapSegHold:
@@ -31,7 +31,7 @@ def draw_callback_cube(self, op, context, _uidpi, _uifactor, _addon_prefs):
 
 
 def draw_callback_cylinder(self, op, context, _uidpi, _uifactor, _addon_prefs):
-    blf.size(0, _addon_prefs.text_size_int, _uidpi)
+    blf.size(0, _addon_prefs.text_size_int)
     DrawHelp(helpstring_cylinder, _uifactor, _addon_prefs, op)
 
     if op.snapSegHold:
@@ -52,7 +52,7 @@ def draw_callback_cylinder(self, op, context, _uidpi, _uifactor, _addon_prefs):
 
 
 def draw_callback_torus(self, op, context, _uidpi, _uifactor, _addon_prefs):
-    blf.size(0, _addon_prefs.text_size_int, _uidpi)
+    blf.size(0, _addon_prefs.text_size_int)
     DrawHelp(helpstring_torus, _uifactor, _addon_prefs, op)
 
     if op.snapSegHold:
@@ -72,7 +72,7 @@ def draw_callback_torus(self, op, context, _uidpi, _uifactor, _addon_prefs):
 
 
 def draw_callback_sphere(self, op, context, _uidpi, _uifactor, _addon_prefs):
-    blf.size(0, _addon_prefs.text_size_int, _uidpi)
+    blf.size(0, _addon_prefs.text_size_int)
     DrawHelp(helpstring_sphere, _uifactor, _addon_prefs, op)
 
     if op.snapSegHold:

@@ -87,13 +87,13 @@ class KeRadialArray(Operator):
             blf.enable(font_id, 4)
             blf.position(font_id, hpos, vpos + self.fs[3], 0)
             blf.color(font_id, self.hcol[0], self.hcol[1], self.hcol[2], self.hcol[3])
-            blf.size(font_id, self.fs[4], 72)
+            blf.size(font_id, self.fs[4])
             blf.shadow(font_id, 5, 0, 0, 0, 1)
             blf.shadow_offset(font_id, 1, -1)
             blf.draw(font_id, "Radial Array: " + str(val))
 
             if self.array_input_mode or self.adj_mode_z or self.adj_mode_rad or self.adj_mode_scl:
-                blf.size(font_id, self.fs[5], 72)
+                blf.size(font_id, self.fs[5])
                 blf.color(font_id, self.hcol[0], self.hcol[1], self.hcol[2], self.hcol[3])
                 blf.position(font_id, hpos, vpos + self.fs[6], 0)
                 adjm = ""
@@ -108,7 +108,7 @@ class KeRadialArray(Operator):
                 else:
                     blf.draw(font_id, adjm)
             if self.help:
-                blf.size(font_id, self.fs[7], 72)
+                blf.size(font_id, self.fs[7])
                 blf.color(font_id, self.tcol[0], self.tcol[1], self.tcol[2], self.tcol[3])
                 blf.position(font_id, hpos, vpos + self.fs[8], 0)
                 blf.draw(font_id, "Count:       Mouse Wheel Up / Down")
@@ -123,7 +123,7 @@ class KeRadialArray(Operator):
                 blf.position(font_id, hpos, vpos - self.fs[13], 0)
                 blf.draw(font_id, "(A) Toggle Numerical Input Mode for Array Count")
 
-                blf.size(font_id, self.fs[14], 72)
+                blf.size(font_id, self.fs[14])
                 blf.color(font_id, self.scol[0], self.scol[1], self.scol[2], self.scol[3])
                 blf.position(font_id, hpos, vpos - self.fs[15], 0)
                 blf.draw(font_id, "Apply: Enter/Spacebar/LMB  Cancel: Esc/RMB")

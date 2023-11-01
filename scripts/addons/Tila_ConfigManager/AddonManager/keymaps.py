@@ -349,12 +349,12 @@ class TILA_Config_Keymaps_Global(TILA_Config_Keymaps):
 		if inverse:
 			self.kmi_set_replace(inverse, 'H', 'PRESS', ctrl=True, alt=True, shift=True)
 
-	def snap(self, snapping=None, snapping_prop=None):
+	def snap(self, snap_datapath=None, snap_element_panel=None):
 		type = 'X'
-		self.kmi_set_replace('wm.context_toggle', type, 'PRESS', properties={'data_path': 'tool_settings.use_snap'})
-		if snapping is not None and snapping_prop is not None:
-			self.kmi_set_replace(snapping, type, 'PRESS', ctrl=True, shift=True, properties=snapping_prop)
-		self.kmi_set_replace('view3d.toggle_snapping', type, 'PRESS', shift=True)
+		if snap_datapath is not None:
+			self.kmi_set_replace('wm.context_toggle', type, 'PRESS', shift=True, properties={'data_path':snap_datapath}, disable_double=True)
+		if snap_element_panel is not None :
+			self.kmi_set_replace('wm.call_panel', type, 'PRESS', ctrl=True, shift=True, properties={'name':snap_element_panel}, disable_double=True)
 
 	def tool_sculpt(self, sculpt=None):
 		if sculpt:
@@ -429,7 +429,7 @@ class TILA_Config_Keymaps_Global(TILA_Config_Keymaps):
 		# 	else:
 		# 		self.kmi_set_replace('wm.call_panel', 'X', 'PRESS', ctrl=True, properties={'name', pivot), ('keep_open', False}, disable_double=True)
 		if orientation:
-			self.kmi_set_replace('wm.call_panel', 'X', 'PRESS', ctrl=True, shift=True, properties={'name': orientation, 'keep_open': False}, disable_double=True)
+			self.kmi_set_replace('wm.call_panel', 'Q', 'PRESS', ctrl=True, shift=True, properties={'name': orientation, 'keep_open': False}, disable_double=True)
 		if action_center_context:
 			self.kmi_set_replace('wm.call_menu', 'X', 'PRESS', alt=True, properties={'name': 'TILA_MT_action_center'}, disable_double=True)
 	
@@ -500,10 +500,10 @@ class TILA_Config_Keymaps_Global(TILA_Config_Keymaps):
 					  		circle_tool='view3d.select_circle',
 							collection_tool='object.select_grouped')
 
-		# self.kmi_set_active(False, idname='view3d.select', shift=True)
+		self.snap(snap_datapath='tool_settings.use_snap', snap_element_panel='VIEW3D_PT_snapping')
+		self.kmi_set_active(True, idname='wm.call_panel', ctrl=True, shift=True)
 
 		self.kmi_set_replace('object.tila_emptymesh', 'N', 'PRESS', ctrl=True, alt=True, shift=True)
-		self.snap(snapping='wm.call_panel', snapping_prop={'name': 'VIEW3D_PT_snapping'})
 
 		self.mode_selection()
 		
@@ -615,8 +615,8 @@ class TILA_Config_Keymaps_Global(TILA_Config_Keymaps):
 		self.kmi_set_replace('uv.cursor_set', self.k_cursor, 'PRESS', ctrl=True, alt=True, shift=True)
 		self.tool_smooth()
 		self.hide_reveal(hide='uv.hide', unhide='uv.reveal')
-		self.snap(snapping='wm.context_menu_enum', snapping_prop={'data_path': 'tool_settings.snap_uv_element'})
-		self.tool_center(pivot='space_data.pivot_point', orientation='IMAGE_PT_snapping')
+		self.snap(snap_datapath='tool_settings.use_snap_uv', snap_element_panel='IMAGE_PT_snapping')
+		self.tool_center(pivot='space_data.pivot_point')
 
 		self.kmi_set_replace('wm.tool_set_by_id', 'W', 'PRESS', ctrl=True, alt=True, shift=True, properties={'name': 'builtin_brush.Grab'})
 		self.tool_radial_control(radius={'data_path_primary': 'tool_settings.uv_sculpt.brush.size', 
@@ -1183,9 +1183,9 @@ class TILA_Config_Keymaps_Global(TILA_Config_Keymaps):
 		# self.duplicate(duplicate='node.duplicate_move_keep_inputs', duplicate_prop={'keep_inputs': True, 'linked': True})
 		self.kmi_set('node.duplicate_move_keep_inputs', type='D', value='PRESS', ctrl=True,
 					 alt=False, shift=False, properties={'keep_inputs': True, 'linked': True})
-		self.snap(snapping='wm.context_menu_enum', snapping_prop={'data_path': 'tool_settings.snap_node_element'})
+		self.snap(snap_datapath='tool_settings.use_snap_node')
 		self.kmi_set_replace('node.view_selected', 'A', 'PRESS', ctrl=True, shift=True)
-		self.kmi_set_replace('node.add_search', self.k_menu, 'PRESS')
+		self.kmi_set_replace('wm.call_menu', self.k_menu, 'PRESS', properties={'name': 'NODE_MT_add'}, disable_double=True)
 		
 		self.kmi_set_replace('node.backimage_move', self.k_cursor, 'PRESS', disable_double=True)
 		self.kmi_set_replace('node.backimage_zoom', self.k_lasso_through, 'CLICK_DRAG', direction='EAST', alt=True, properties={'factor': 1.2}, disable_double=True)

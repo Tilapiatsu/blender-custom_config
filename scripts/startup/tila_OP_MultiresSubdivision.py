@@ -44,12 +44,12 @@ def draw_hud_prop(self, name, value, offset=0, decimal=2, active=True, prop_offs
 	if shadow:
 		blf.color(self.font_id, *shadow, alpha * 0.7)
 		blf.position(self.font_id, self.HUD_x + int(20 * scale) + 1, self.HUD_y + int(20 * scale) + offset + 1, 0)
-		blf.size(self.font_id, int(11 * scale), 72)
+		blf.size(self.font_id, int(11 * scale))
 		blf.draw(self.font_id, name)
 
 	blf.color(self.font_id, *HUDcolor, alpha)
 	blf.position(self.font_id, self.HUD_x + int(20 * scale), self.HUD_y + int(20 * scale) + offset, 0)
-	blf.size(self.font_id, int(11 * scale), 72)
+	blf.size(self.font_id, int(11 * scale))
 	blf.draw(self.font_id, name)
 
 
@@ -59,19 +59,19 @@ def draw_hud_prop(self, name, value, offset=0, decimal=2, active=True, prop_offs
 		if shadow:
 			blf.color(self.font_id, *shadow, alpha * 0.7)
 			blf.position(self.font_id, self.HUD_x + int(prop_offset * scale) + 1, self.HUD_y + int(20 * scale) + offset + 1, 0)
-			blf.size(self.font_id, int(14 * scale), 72)
+			blf.size(self.font_id, int(14 * scale))
 			blf.draw(self.font_id, value)
 
 		blf.color(self.font_id, *HUDcolor, alpha)
 		blf.position(self.font_id, self.HUD_x + int(prop_offset * scale), self.HUD_y + int(20 * scale) + offset, 0)
-		blf.size(self.font_id, int(14 * scale), 72)
+		blf.size(self.font_id, int(14 * scale))
 		blf.draw(self.font_id, value)
 
 	elif type(value) is bool:
 		if shadow:
 			blf.color(self.font_id, *shadow, alpha * 0.7)
 			blf.position(self.font_id, self.HUD_x + int(prop_offset * scale) + 1, self.HUD_y + int(20 * scale) + offset + 1, 0)
-			blf.size(self.font_id, int(14 * scale), 72)
+			blf.size(self.font_id, int(14 * scale))
 			blf.draw(self.font_id, str(value))
 
 		if value:
@@ -80,43 +80,43 @@ def draw_hud_prop(self, name, value, offset=0, decimal=2, active=True, prop_offs
 			blf.color(self.font_id, 1, 0.3, 0.3, alpha)
 
 		blf.position(self.font_id, self.HUD_x + int(prop_offset * scale), self.HUD_y + int(20 * scale) + offset, 0)
-		blf.size(self.font_id, int(14 * scale), 72)
+		blf.size(self.font_id, int(14 * scale))
 		blf.draw(self.font_id, str(value))
 
 	elif type(value) is int:
 		if shadow:
 			blf.color(self.font_id, *shadow, alpha * 0.7)
 			blf.position(self.font_id, self.HUD_x + int(prop_offset * scale) + 1, self.HUD_y + int(20 * scale) + offset + 1, 0)
-			blf.size(self.font_id, int(20 * scale), 72)
+			blf.size(self.font_id, int(20 * scale))
 			blf.draw(self.font_id, "%d" % (value))
 
 		blf.color(self.font_id, *HUDcolor, alpha)
 		blf.position(self.font_id, self.HUD_x + int(prop_offset * scale), self.HUD_y + int(20 * scale) + offset, 0)
-		blf.size(self.font_id, int(20 * scale), 72)
+		blf.size(self.font_id, int(20 * scale))
 		blf.draw(self.font_id, "%d" % (value))
 
 	elif type(value) is float:
 		if shadow:
 			blf.color(self.font_id, *shadow, alpha * 0.7)
 			blf.position(self.font_id, self.HUD_x + int(prop_offset * scale) + 1, self.HUD_y + int(20 * scale) + offset + 1, 0)
-			blf.size(self.font_id, int(16 * scale), 72)
+			blf.size(self.font_id, int(16 * scale))
 			blf.draw(self.font_id, "%.*f" % (decimal, value))
 
 		blf.color(self.font_id, *HUDcolor, alpha)
 		blf.position(self.font_id, self.HUD_x + int(prop_offset * scale), self.HUD_y + int(20 * scale) + offset, 0)
-		blf.size(self.font_id, int(16 * scale), 72)
+		blf.size(self.font_id, int(16 * scale))
 		blf.draw(self.font_id, "%.*f" % (decimal, value))
 
 	if hint:
 		if shadow:
 			blf.color(self.font_id, *shadow, 0.6 * 0.7)
 			blf.position(self.font_id, self.HUD_x + int(hint_offset * scale) + 1, self.HUD_y + int(20 * scale) + offset + 1, 0)
-			blf.size(self.font_id, int(11 * scale), 72)
+			blf.size(self.font_id, int(11 * scale))
 			blf.draw(self.font_id, "%s" % (hint))
 
 		blf.color(self.font_id, *HUDcolor, 0.6)
 		blf.position(self.font_id, self.HUD_x + int(hint_offset * scale), self.HUD_y + int(20 * scale) + offset, 0)
-		blf.size(self.font_id, int(11 * scale), 72)
+		blf.size(self.font_id, int(11 * scale))
 		blf.draw(self.font_id, "%s" % (hint))
 
 class TILA_multires_subdiv_level(bpy.types.Operator):
@@ -469,7 +469,6 @@ class TILA_multires_project_subdivide(bpy.types.Operator):
 			events.append('MOUSEMOVE')
 
 		if event.type in events:
-			print('in event')
 			if event.type == 'MOUSEMOVE' and event.value == 'NOTHING':
 				if self.tweak_smooth:
 					self.post_smooth_iteration = int(self.adjust_modal_value(event, self.post_smooth_iteration, low_clamp=0, high_clamp=1))

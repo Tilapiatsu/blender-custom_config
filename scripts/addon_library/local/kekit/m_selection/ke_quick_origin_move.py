@@ -50,7 +50,7 @@ class KeQuickOriginMove(Operator):
         blf.enable(font_id, 4)
         blf.position(font_id, hpos, vpos - 25, 0)
         blf.color(font_id, self.scol[0], self.scol[1], self.scol[2], self.scol[3])
-        blf.size(font_id, 13, 72)
+        blf.size(font_id, 13)
         blf.shadow(font_id, 5, 0, 0, 0, 1)
         blf.shadow_offset(font_id, 1, -1)
         blf.draw(font_id, "[ Quick Origin Move ]")

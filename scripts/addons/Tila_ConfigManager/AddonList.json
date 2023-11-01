@@ -317,17 +317,17 @@
         ]
     },
     "Poly_Source": {
-        "is_enable": true,
+        "is_enable": false,
         "is_sync": false,
         "online_url": "https://derksen.gumroad.com/l/polysource",
         "repository_url": null,
         "branch": null,
         "is_submodule": false,
         "local_path": "#\\scripts\\addon_library\\local\\Poly_Source",
-        "keymaps": true,
+        "keymaps": false,
         "paths": [
             {
-                "is_enable": true,
+                "is_enable": false,
                 "local_subpath": null,
                 "destination_path": "#\\scripts\\addons\\Poly_Source"
             }
@@ -436,7 +436,7 @@
         ]
     },
     "slcad_transform": {
-        "is_enable": true,
+        "is_enable": false,
         "is_sync": false,
         "online_url": "https://blender-archipack.gumroad.com/l/nQVcS",
         "repository_url": null,
@@ -446,7 +446,7 @@
         "keymaps": false,
         "paths": [
             {
-                "is_enable": true,
+                "is_enable": false,
                 "local_subpath": null,
                 "destination_path": "#\\scripts\\addons\\slcad_transform"
             }
@@ -725,7 +725,7 @@
         ]
     },
     "beta_quad": {
-        "is_enable": true,
+        "is_enable": false,
         "is_sync": false,
         "online_url": null,
         "repository_url": null,
@@ -735,7 +735,7 @@
         "keymaps": false,
         "paths": [
             {
-                "is_enable": true,
+                "is_enable": false,
                 "local_subpath": null,
                 "destination_path": "#\\scripts\\addons\\beta_quad"
             }
@@ -2410,8 +2410,8 @@
         "paths": null
     },
     "bezierutils": {
-        "is_enable": true,
-        "is_sync": true,
+        "is_enable": false,
+        "is_sync": false,
         "online_url": null,
         "repository_url": "https://github.com/Shriinivas/blenderbezierutils.git",
         "branch": null,
@@ -2420,7 +2420,7 @@
         "keymaps": false,
         "paths": [
             {
-                "is_enable": true,
+                "is_enable": false,
                 "local_subpath": "blenderbezierutils.py",
                 "destination_path": "#\\scripts\\addons\\bezierutils.py"
             }
@@ -2449,8 +2449,8 @@
         ]
     },
     "vertex_color_master": {
-        "is_enable": true,
-        "is_sync": true,
+        "is_enable": false,
+        "is_sync": false,
         "online_url": null,
         "repository_url": "https://github.com/andyp123/blender_vertex_color_master.git",
         "branch": null,
@@ -2459,7 +2459,7 @@
         "keymaps": false,
         "paths": [
             {
-                "is_enable": true,
+                "is_enable": false,
                 "local_subpath": "vertex_color_master",
                 "destination_path": "#\\scripts\\addons\\vertex_color_master"
             }

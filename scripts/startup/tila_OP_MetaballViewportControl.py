@@ -15,7 +15,7 @@ bl_info = {
 	"category": "3D View"
 }
 
-shader2D = gpu.shader.from_builtin('2D_UNIFORM_COLOR')
+shader2D = gpu.shader.from_builtin('UNIFORM_COLOR')
 
 font_size = 12
 

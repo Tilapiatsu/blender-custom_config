@@ -74,7 +74,7 @@ def draw_callback_px(self, context, pos):
         blf.enable(font_id, 4)
         blf.position(font_id, hpos, vpos + self.fs[3], 0)
         blf.color(font_id, self.hcol[0], self.hcol[1], self.hcol[2], self.hcol[3])
-        blf.size(font_id, self.fs[4], 72)
+        blf.size(font_id, self.fs[4])
         blf.shadow(font_id, 5, 0, 0, 0, 1)
         blf.shadow_offset(font_id, 1, -1)
         blf.draw(font_id, "Cylinder Sides: " + str(val))

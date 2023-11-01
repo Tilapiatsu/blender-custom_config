@@ -59,7 +59,7 @@ def draw_callback_px(self, context):
         blf.shadow_offset(font_id, 2, -2)
         blf.color(font_id, r, g, b, a)
         blf.position(font_id, width / 2, 60, 0)
-        blf.size(font_id, 30, addon_prefs.text_size)
+        blf.size(font_id, 30)
         blf.draw(font_id, f"{(math.degrees(angle)):.1f}°")
 
 
@@ -272,32 +272,10 @@ def register():
     bpy.utils.register_class(RotateHDRI)
     bpy.utils.register_class(AddonPreferences)
 
-    wm = bpy.context.window_manager
-    if wm.keyconfigs.addon:
-        km = wm.keyconfigs.addon.keymaps.new(
-            name='3D View',
-            space_type='VIEW_3D'
-        )
-        kmi = km.keymap_items.new(
-            'rotate.hdri',
-            'LEFTMOUSE',
-            'PRESS',
-            ctrl=True,
-            alt=True
-        )
-        addon_keymaps.append((km, kmi))
-
 
 def unregister():
     bpy.utils.unregister_class(RotateHDRI)
     bpy.utils.unregister_class(AddonPreferences)
-
-    wm = bpy.context.window_manager
-    kc = wm.keyconfigs.addon
-    if kc:
-        for km, kmi in addon_keymaps:
-            km.keymap_items.remove(kmi)
-    addon_keymaps.clear()
 
 
 if __name__ == "__main__":

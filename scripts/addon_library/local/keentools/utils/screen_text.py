@@ -90,7 +90,7 @@ class KTScreenText(KTShaderBase):
             blf.shadow(font_id, row['shadow_blur'], *row['shadow_color'])
             blf.shadow_offset(font_id, 1, -1)
 
-            blf.size(font_id, row['size'], 72)
+            blf.size(font_id, row['size'])
 
             xp = row['x'] if row['x'] is not None \
                 else xc - blf.dimensions(font_id, row['text'])[0] * 0.5
