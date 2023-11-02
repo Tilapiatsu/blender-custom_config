@@ -2990,5 +2990,22 @@
                 "destination_path": "#\\scripts\\addons\\tila_customization_handler"
             }
         ]
+    },
+    "vertx_artist": {
+        "is_enable": false,
+        "is_sync": false,
+        "online_url": "https://github.com/Mahrkeenerh/VertXArtist.git",
+        "repository_url": null,
+        "branch": null,
+        "is_submodule": false,
+        "local_path": "#\\scripts\\addon_library\\local\\vertx_artist",
+        "keymaps": false,
+        "paths": [
+            {
+                "is_enable": true,
+                "local_subpath": null,
+                "destination_path": "#\\scripts\\addons\\vertx_artist"
+            }
+        ]
     }
 }
