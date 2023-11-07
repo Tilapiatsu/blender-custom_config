@@ -2979,7 +2979,7 @@
         "is_sync": true,
         "online_url": null,
         "repository_url": "https://github.com/Tilapiatsu/blender-customization_handler.git",
-        "branch": null,
+        "branch": "main",
         "is_submodule": true,
         "local_path": "#\\scripts\\addon_library\\GIT_Submodules\\tila_customization_handler",
         "keymaps": false,
