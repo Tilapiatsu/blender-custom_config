@@ -3007,5 +3007,22 @@
                 "destination_path": "#\\scripts\\addons\\vertx_artist"
             }
         ]
+    },
+    "baker-node": {
+        "is_enable": false,
+        "is_sync": false,
+        "online_url": null,
+        "repository_url": "https://github.com/avelgest/baker-node.git",
+        "branch": null,
+        "is_submodule": false,
+        "local_path": "#\\scripts\\addon_library\\GIT_Clones\\baker-node\\",
+        "keymaps": false,
+        "paths": [
+            {
+                "is_enable": false,
+                "local_subpath": null,
+                "destination_path": "#\\scripts\\addons\\baker-node\\"
+            }
+        ]
     }
 }
