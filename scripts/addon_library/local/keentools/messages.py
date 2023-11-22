@@ -20,7 +20,12 @@ import sys
 import platform
 import bpy
 
+from .utils.kt_logging import KTLogger
+from .utils.version import BVersion
 from .addon_config import Config
+
+
+_log = KTLogger(__name__)
 
 
 USER_MESSAGES = {
@@ -100,6 +105,12 @@ ERROR_MESSAGES = {
         'You can experience issues. ',
         'We recommend you to update the addon and the Core library.'],
 
+    'UNSUPPORTED_GPU_BACKEND': [
+        'Error (1120): Looks like a backend problem. ',
+        'This version of add-on supports OpenGL and Metal. ',
+        'If you see this error, please contact our support. ',
+        'We\'ll do our best to figure it out.'],
+
     'UNKNOWN': ['Unknown error (0000)']
 }
 
@@ -116,15 +127,25 @@ def split_long_string(txt, length=80):
 
 
 def get_system_info():
-    txt_arr = []
-    txt_arr.append('Blender version: {} API: {}'.format(bpy.app.version_string,
-               '.'.join([str(x) for x in bpy.app.version])))
-    txt_arr.append('Python: {}'.format(sys.version))
+    txt_arr = list()
+    txt_arr.append(f'Blender version: {bpy.app.version_string} '
+                   f'{bpy.app.version_cycle} '
+                   f'API: {".".join([str(x) for x in bpy.app.version])} '
+                   f'Hash: {str(bpy.app.build_hash, "utf-8")}')
+    txt_arr.append(f'Python: {sys.version}')
     arch = platform.architecture()
-    txt_arr.append('Platform: {} / {}'.format(arch[1], arch[0]))
-    txt_arr.append('Machine: {}, {}'.format(platform.machine(),
-                                     platform.processor()))
-    txt_arr.append('System: {}'.format(format(platform.platform())))
+    txt_arr.append(f'Platform: {arch[1]} / {arch[0]}')
+    txt_arr.append(f'Machine: {platform.machine()}, {platform.processor()}')
+    txt_arr.append(f'System: {platform.platform()}')
+    txt_arr.append(f'GPU backend: {BVersion.gpu_backend}')
+    np_ver = 'Error!'
+    try:
+        import numpy as np
+        np_ver = np.version.version
+    except Exception as err:
+        _log.error(f'get_system_info Exception:\n{str(err)}')
+    finally:
+        txt_arr.append(f'NumPy version: {np_ver}')
     return txt_arr
 
 

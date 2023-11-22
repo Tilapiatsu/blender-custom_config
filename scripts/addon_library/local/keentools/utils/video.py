@@ -16,17 +16,17 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 # ##### END GPL LICENSE BLOCK #####
 import os
-import logging
 from typing import Any, Tuple, List, Optional
 
 import bpy
-from bpy.types import MovieClip, Image
+from bpy.types import MovieClip, Image, Scene
 
 from .kt_logging import KTLogger
 from ..addon_config import ActionStatus
 from .bpy_common import (operator_with_context,
-                         extend_scene_timeline_start,
-                         extend_scene_timeline_end)
+                         bpy_scene,
+                         bpy_create_object,
+                         bpy_create_camera_data)
 from .ui_redraw import get_all_areas
 
 
@@ -82,29 +82,18 @@ def find_movieclip(filepath: str) -> Optional[MovieClip]:
     if not os.path.exists(filepath):
         return None
     for movieclip in bpy.data.movieclips:
+        _log.output(f'find_movieclip: {movieclip}')
         try:
-            if os.path.samefile(movieclip.filepath, filepath):
+            _log.output(f'\nmovieclip.filepath: {movieclip.filepath}\n'
+                        f'filepath: {filepath}')
+            if os.path.samefile(bpy.path.abspath(movieclip.filepath),
+                                bpy.path.abspath(filepath)):
                 return movieclip
         except FileNotFoundError as err:
             _log.error(f'find_movieclip FILE NOT FOUND:\n{str(err)}')
         except Exception as err:
             _log.error(f'find_movieclip error:\n{str(err)}')
     return None
-
-
-def load_image_sequence(directory: str, file_names: List[str]) -> Optional[Image]:
-    if len(file_names) == 0:
-        _log.error('NO FILES HAVE BEEN SELECTED')
-        return None
-
-    file_names.sort()
-    frame_files = [{'name': name} for name in file_names]
-
-    image = bpy.data.images.load(os.path.join(directory, file_names[0]))
-    if image and image.source == 'FILE' and len(frame_files) > 1:
-        image.source = 'SEQUENCE'
-    _log.output(f'loaded image: {image}')
-    return image
 
 
 def load_movieclip(directory: str, file_names: List[str]) -> Optional[MovieClip]:
@@ -115,18 +104,21 @@ def load_movieclip(directory: str, file_names: List[str]) -> Optional[MovieClip]
     file_names.sort()
     frame_files = [{'name': name} for name in file_names]
     _log.output(f'load_movieclip DIR: {directory}')
+    _log.output(f'load_movieclip FILES: {file_names}')
 
     old_movieclips = bpy.data.movieclips[:]
+    _log.output(f'old_movieclips: {[mc.name for mc in old_movieclips]}')
     try:
         res = bpy.ops.clip.open('EXEC_DEFAULT', files=frame_files,
                                 directory=directory)
-        _log.output(f'Operator result: {res}')
+        _log.output(f'load_movieclip result: {res}')
     except RuntimeError as err:
         _log.error('MOVIECLIP OPEN ERROR: {}'.format(str(err)))
         return None
 
     new_movieclip = get_new_movieclip(old_movieclips)
     if new_movieclip is not None:
+        _log.output(f'new movieclip created: {new_movieclip.name}')
         return new_movieclip
 
     _log.error('NO NEW MOVIECLIP HAS BEEN CREATED')
@@ -136,37 +128,40 @@ def load_movieclip(directory: str, file_names: List[str]) -> Optional[MovieClip]
         _log.error('NO NEW MOVIECLIP IN EXISTING')
         return None
 
-    _log.output(f'EXISTING MOVICLIP HAS BEEN FOUND: {new_movieclip}')
+    _log.output(f'EXISTING MOVICLIP HAS BEEN FOUND: {new_movieclip.name}')
     return new_movieclip
 
 
-def convert_movieclip_to_frames(movie_clip: Optional[MovieClip],
-                                filepath: str, *,
-                                file_format: str='PNG',
-                                quality: int=100,
-                                start_frame: int=1,
-                                end_frame: int=-1,
-                                opengl_render: bool=True) -> Optional[str]:
-    def _cleanup_scene() -> None:
-        sequence_editor.sequences.remove(strip)
-        scene.sequence_editor_clear()
-        bpy.data.objects.remove(cam_ob, do_unlink=True)
-        bpy.data.scenes.remove(scene)
-
+def convert_movieclip_to_frames(
+        movie_clip: Optional[MovieClip],
+        filepath: str, *,
+        file_format: str = 'PNG',
+        quality: int = 100,
+        start_frame: int = 1,
+        end_frame: int = -1,
+        orientation: int = 0,
+        single_frame: bool = False,
+        opengl_render: bool = True,
+        video_scene_name: str = 'video_scene') -> Optional[str]:
     w, h = get_movieclip_size(movie_clip)
     if w <= 0 or h <= 0:
-        _cleanup_scene()
         return None
 
-    scene = bpy.data.scenes.new('convert_video_to_frames')
+    scene = bpy.data.scenes.new(video_scene_name)
+    scene_name = scene.name
     sequence_editor = scene.sequence_editor_create()
-    strip = sequence_editor.sequences.new_clip('video', movie_clip, 1, 1)
+    sequence_editor.use_cache_final = False
+    strip = sequence_editor.sequences.new_clip('video', movie_clip, 2, 1)
+    strip.transform.rotation = orientation * 1.5707963  # pi/2 works worse!
 
-    cam_data = bpy.data.cameras.new('output_cam_data')
+    cam_data = bpy_create_camera_data('output_cam_data')
     cam_data.show_background_images = True
-    cam_ob = bpy.data.objects.new('output_camera', cam_data)
+    cam_ob = bpy_create_object('output_camera', cam_data)
     scene.collection.objects.link(cam_ob)
+    scene.camera = cam_ob
 
+    if orientation % 2 != 0:
+        w, h = h, w
     scene.render.resolution_x = w
     scene.render.resolution_y = h
     scene.render.filepath = filepath
@@ -177,11 +172,14 @@ def convert_movieclip_to_frames(movie_clip: Optional[MovieClip],
         scene.render.image_settings.quality = quality
     scene.frame_start = start_frame
     scene.frame_end = end_frame if end_frame >= 0 else movie_clip.frame_duration
-    output_filepath = scene.render.frame_path(frame=start_frame)
+    scene.frame_set(start_frame)
+    output_filepath = scene.render.frame_path(frame=start_frame) \
+        if not single_frame else filepath
     try:
         if opengl_render:
             operator_with_context(bpy.ops.render.opengl,
-                                  {'scene': scene}, animation=True,
+                                  {'scene': scene}, animation=not single_frame,
+                                  write_still=single_frame,
                                   sequencer=True, view_context=False)
         else:
             # Much slower but works everywhere
@@ -191,14 +189,17 @@ def convert_movieclip_to_frames(movie_clip: Optional[MovieClip],
         output_filepath = None
         _log.error(f'convert_movieclip_to_frames Exception:\n{str(err)}')
     finally:
-        _cleanup_scene()
+        _log.output('_cleanup_scene')
+        scene = bpy.data.scenes[scene_name]
+        scene.sequence_editor_clear()
+        bpy.data.scenes.remove(scene)
     return output_filepath
 
 
 def fit_render_size(movie_clip: Optional[MovieClip]) -> ActionStatus:
     w, h = get_movieclip_size(movie_clip)
     if w <= 0 or h <= 0:
-        msg = f'Wrong precalc frame size {w} x {h}'
+        msg = f'Wrong movie clip frame size {w} x {h}'
         _log.error(msg)
         return ActionStatus(False, msg)
 
@@ -213,7 +214,9 @@ def fit_time_length(movie_clip: Optional[MovieClip]) -> ActionStatus:
     if duration < 2:
         return ActionStatus(False, f'Image sequence too short: {duration}!')
 
-    extend_scene_timeline_start(1)
-    extend_scene_timeline_end(duration, force=True)
+    scene = bpy_scene()
+    scene.frame_start = movie_clip.frame_start
+    scene.frame_end = movie_clip.frame_start + duration - 1
 
-    return ActionStatus(True, f'Timeline duration 1 - {duration}')
+    return ActionStatus(
+        True, f'Timeline duration {scene.frame_start} - {scene.frame_end}')

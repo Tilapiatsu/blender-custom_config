@@ -24,7 +24,7 @@ from ..addon_config import (Config,
                             show_user_preferences,
                             show_tool_preferences)
 from .localview import check_context_localview
-from .other import force_show_ui_overlays
+from .viewport_state import force_show_ui_overlays
 from ..utils.ui_redraw import (force_ui_redraw,
                                find_modules_by_name_starting_with,
                                filter_module_list_by_name_starting_with,
@@ -59,10 +59,7 @@ class KT_OT_AddonSettings(Operator):
         return {'FINISHED'}
 
 
-class KT_OT_OpenURL(Operator):
-    bl_idname = Config.kt_open_url_idname
-    bl_label = buttons[bl_idname].label
-    bl_description = buttons[bl_idname].description
+class KT_OT_OpenURLBase:
     bl_options = {'REGISTER', 'INTERNAL'}
 
     url: StringProperty(name='URL', default='')
@@ -70,6 +67,12 @@ class KT_OT_OpenURL(Operator):
     def execute(self, context):
         bpy_url_open(url=self.url)
         return {'FINISHED'}
+
+
+class KT_OT_OpenURL(KT_OT_OpenURLBase, Operator):
+    bl_idname = Config.kt_open_url_idname
+    bl_label = buttons[bl_idname].label
+    bl_description = buttons[bl_idname].description
 
 
 class KT_OT_AddonSearch(Operator):

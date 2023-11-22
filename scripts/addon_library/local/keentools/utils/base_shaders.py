@@ -20,7 +20,11 @@ from typing import Any, List, Callable, Tuple, Optional
 
 from bpy.types import Object, Area, Region, SpaceView3D
 
-from .bpy_common import bpy_background_mode, use_gpu_instead_of_bgl
+from .kt_logging import KTLogger
+from .bpy_common import use_gpu_instead_of_bgl
+
+
+_log = KTLogger(__name__)
 
 
 class KTShaderBase:
@@ -39,16 +43,26 @@ class KTShaderBase:
     def is_handler_list_empty(cls) -> bool:
         return len(cls.handler_list) == 0
 
+    @staticmethod
+    def list_for_batch(arr: Any) -> Any:
+        return arr if len(arr) > 0 else []
+
     def __init__(self, target_class: Any=SpaceView3D):
         self.draw_handler: Optional[Any] = None
         self.target_class: Any = target_class
         self.work_area: Optional[Area] = None
         self.is_shader_visible: bool = True
-        self.draw_main = self.draw_main_gpu if use_gpu_instead_of_bgl \
-            else self.draw_main_bgl
+        self.batch_counter: int = 0
+        self.draw_counter: int = -1
 
-        if not bpy_background_mode():
-            self.init_shaders()
+    def needs_to_be_drawn(self) -> bool:
+        return self.batch_counter != self.draw_counter
+
+    def increment_batch_counter(self) -> None:
+        self.batch_counter += 1
+
+    def count_draw_call(self) -> None:
+        self.draw_counter = self.batch_counter
 
     def is_visible(self) -> bool:
         return self.is_shader_visible
@@ -65,35 +79,38 @@ class KTShaderBase:
     def is_working(self) -> bool:
         return not (self.draw_handler is None)
 
-    def init_shaders(self) -> None:
-        pass
+    def init_shaders(self) -> Optional[bool]:
+        _log.output(f'{self.__class__.__name__}.init_shaders: pass')
+        return None
 
     def create_batch(self) -> None:
-        pass
+        self.increment_batch_counter()
 
     def draw_callback(self, context: Any) -> None:
         if self.draw_checks(context):
             self.draw_main(context)
+            self.count_draw_call()
 
     def draw_checks(self, context: Any) -> bool:
         return True
 
-    def draw_main_bgl(self, context: Any) -> None:
+    def draw_main(self, context: Any) -> None:
         pass
 
-    def draw_main_gpu(self, context: Any) -> None:
-        self.draw_main_bgl(context)  # for undefined
-
     def register_handler(self, context: Any,
-                         post_type: str='POST_VIEW') -> None:
-        self.work_area = context.area
+                         post_type: str = 'POST_VIEW') -> None:
+        _log.output(f'{self.__class__.__name__}.register_handler')
         if self.draw_handler is not None:
+            _log.output('draw_handler is not empty, call unregister')
             self.unregister_handler()
+            _log.output('continue register')
+        self.work_area = context.area
         self.draw_handler = self.get_target_class().draw_handler_add(
             self.draw_callback, (context,), 'WINDOW', post_type)
         self.add_handler_list(self.draw_handler)
 
     def unregister_handler(self) -> None:
+        _log.output(f'{self.__class__.__name__}.unregister_handler')
         if self.draw_handler is not None:
             self.get_target_class().draw_handler_remove(
                 self.draw_handler, 'WINDOW')
@@ -102,7 +119,12 @@ class KTShaderBase:
         self.work_area = None
 
     def hide_shader(self) -> None:
+        _log.output(f'{self.__class__.__name__}.hide_shader')
         self.set_visible(False)
 
     def unhide_shader(self) -> None:
+        _log.output(f'{self.__class__.__name__}.unhide_shader')
         self.set_visible(True)
+
+    def get_statistics(self):
+        return 'No statistics defined'

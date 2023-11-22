@@ -21,6 +21,7 @@ from typing import Any, List
 from bpy.types import Operator
 from bpy.props import BoolProperty, StringProperty, IntProperty
 
+from ..utils.common_operators import KT_OT_OpenURLBase
 from ..utils.kt_logging import KTLogger
 from ..blender_independent_packages.pykeentools_loader import (
     module as pkt_module,
@@ -51,7 +52,7 @@ def get_product_license_manager(product: str) -> Any:
     assert False, 'Wrong product ID'
 
 
-def _get_hardware_id(product: str='facebuilder') -> str:
+def _get_hardware_id(product: str = 'facebuilder') -> str:
     lm = get_product_license_manager(product)
     return lm.hardware_id()
 
@@ -252,7 +253,10 @@ class KTPREF_OT_InstallLicenseOnline(Operator):
 
     def _clear_license_key(self):
         prefs = get_addon_preferences()
-        prefs.license_key = ''
+        if self.product == 'facebuilder':
+            prefs.fb_license_key = ''
+        elif self.product == 'geotracker':
+            prefs.gt_license_key = ''
 
     def execute(self, context):
         _log.info('Start InstallLicenseOnline')
@@ -260,7 +264,7 @@ class KTPREF_OT_InstallLicenseOnline(Operator):
         res = lm.install_license_online(self.license_key)
 
         if res is not None:
-            _log.error(f'InstallLicenseOnline error: {res}')
+            _log.error(f'InstallLicenseOnline error:\n{res}')
             self.report({'ERROR'}, replace_newlines_with_spaces(res))
             return {'CANCELLED'}
 
@@ -269,7 +273,7 @@ class KTPREF_OT_InstallLicenseOnline(Operator):
         lic_status = res_tuple[0].license_status
         if lic_status.status == 'failed':
             _log.error(f'InstallLicenseOnline license check '
-                       f'error: {lic_status.message}')
+                       f'error:\n{lic_status.message}')
             self.report({'ERROR'},
                         replace_newlines_with_spaces(lic_status.message))
             return {'CANCELLED'}
@@ -357,30 +361,16 @@ class KTPREF_OT_FloatingConnect(Operator):
         return {'FINISHED'}
 
 
-class KTPREF_OT_OpenURL(Operator):
+class KTPREF_OT_OpenURL(KT_OT_OpenURLBase, Operator):
     bl_idname = Config.kt_pref_open_url_idname
     bl_label = buttons[bl_idname].label
     bl_description = buttons[bl_idname].description
-    bl_options = {'REGISTER', 'INTERNAL'}
-
-    url: StringProperty(name='URL', default='')
-
-    def execute(self, context):
-        bpy_url_open(url=self.url)
-        return {'FINISHED'}
 
 
-class KTPREF_OT_DownloadsURL(Operator):
+class KTPREF_OT_DownloadsURL(KT_OT_OpenURLBase, Operator):
     bl_idname = Config.kt_pref_downloads_url_idname
     bl_label = buttons[bl_idname].label
     bl_description = buttons[bl_idname].description
-    bl_options = {'REGISTER', 'INTERNAL'}
-
-    url: StringProperty(name='URL', default='')
-
-    def execute(self, context):
-        bpy_url_open(url=self.url)
-        return {'FINISHED'}
 
 
 class KTPREF_OT_ComputerInfo(Operator):

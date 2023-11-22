@@ -17,7 +17,6 @@
 # ##### END GPL LICENSE BLOCK #####
 
 from typing import Any, Set, Tuple, List
-from copy import deepcopy
 
 import bpy
 from bpy.types import Area
@@ -39,9 +38,13 @@ from ..utils.coords import (get_image_space_coord,
                             camera_sensor_width)
 from ..utils.manipulate import force_undo_push
 from ..utils.bpy_common import (bpy_current_frame,
+                                bpy_set_current_frame,
                                 get_scene_camera_shift,
-                                bpy_render_frame)
+                                bpy_render_frame,
+                                bpy_is_animation_playing)
 from .ui_strings import buttons
+from .interface.screen_mesages import (revert_default_screen_message,
+                                       clipping_changed_screen_message)
 
 
 _log = KTLogger(__name__)
@@ -80,10 +83,11 @@ class GT_OT_MovePin(bpy.types.Operator):
 
     def _new_pin(self, area: Area, mouse_x: float, mouse_y: float) -> bool:
         frame = bpy_current_frame()
-        x, y = get_image_space_coord(mouse_x, mouse_y, area)
+        shift_x, shift_y = get_scene_camera_shift()
+        x, y = get_image_space_coord(mouse_x, mouse_y, area, shift_x, shift_y)
 
         pin = GTLoader.add_pin(
-            frame, (image_space_to_frame(x, y, *get_scene_camera_shift())))
+            frame, (image_space_to_frame(x, y, shift_x, shift_y)))
         _log.output(f'_new_pin pin: {pin}')
         pins = GTLoader.viewport().pins()
         if not pin:
@@ -114,7 +118,8 @@ class GT_OT_MovePin(bpy.types.Operator):
 
         GTLoader.load_pins_into_viewport()
 
-        x, y = get_image_space_coord(mouse_x, mouse_y, context.area)
+        x, y = get_image_space_coord(mouse_x, mouse_y, context.area,
+                                     *get_scene_camera_shift())
         pins.set_current_pin((x, y))
 
         nearest, dist2 = nearest_point(x, y, pins.arr())
@@ -150,14 +155,18 @@ class GT_OT_MovePin(bpy.types.Operator):
         new_focal_length = focal_mm_to_px(
             camera_focal_length(geotracker.camobj),
             *bpy_render_frame(), camera_sensor_width(geotracker.camobj))
-        _log.output(_log.color('red',
-                               f'old: {self.old_focal_length} new: {new_focal_length}'))
+
+        _log.output(_log.color('red', f'old: {self.old_focal_length} '
+                                      f'new: {new_focal_length}'))
+
         if self.old_focal_length != new_focal_length:
+            current_frame = bpy_current_frame()
             settings.calculating_mode = 'ESTIMATE_FL'
             gt = GTLoader.kt_geotracker()
             gt.recalculate_model_for_new_focal_length(self.old_focal_length,
                                                       new_focal_length, False,
-                                                      bpy_current_frame())
+                                                      current_frame)
+            bpy_set_current_frame(current_frame)
             settings.stop_calculating()
             _log.output('FOCAL LENGTH CHANGED')
 
@@ -177,7 +186,16 @@ class GT_OT_MovePin(bpy.types.Operator):
         GTLoader.save_geotracker()
 
         self._before_operator_finish()
-        GTLoader.update_viewport_shaders(area)
+
+        settings = get_gt_settings()
+        if not bpy_is_animation_playing() \
+                and not settings.is_calculating():
+            settings.stabilize_viewport(reset=True)
+
+        GTLoader.update_viewport_shaders(area, wireframe=True,
+                                         geomobj_matrix=True,
+                                         pins_and_residuals=True,
+                                         timeline=True)
         GTLoader.viewport_area_redraw()
 
         _push_action_in_undo_history()
@@ -194,7 +212,8 @@ class GT_OT_MovePin(bpy.types.Operator):
             GTLoader.delta_move_pin(kid, selected_pins, offset)
             GTLoader.load_pins_into_viewport()
 
-        x, y = get_image_space_coord(mouse_x, mouse_y, area)
+        shift_x, shift_y = get_scene_camera_shift()
+        x, y = get_image_space_coord(mouse_x, mouse_y, area, shift_x, shift_y)
         pins = GTLoader.viewport().pins()
         pins.set_current_pin((x, y))
         pin_index = pins.current_pin_num()
@@ -204,7 +223,7 @@ class GT_OT_MovePin(bpy.types.Operator):
         GTLoader.safe_keyframe_add(kid)
 
         if len(selected_pins) == 1:
-            GTLoader.move_pin(kid, pin_index, (x, y), *get_scene_camera_shift())
+            GTLoader.move_pin(kid, pin_index, (x, y), shift_x, shift_y)
             return GTLoader.solve()
 
         _drag_multiple_pins(kid, pin_index, selected_pins)
@@ -232,22 +251,17 @@ class GT_OT_MovePin(bpy.types.Operator):
             near = geotracker.camobj.data.clip_start
             far = geotracker.camobj.data.clip_end
             if near == self.camera_clip_start and far == self.camera_clip_end:
-                GTLoader.viewport().revert_default_screen_message()
+                revert_default_screen_message()
             else:
-                default_txt = deepcopy(vp.texter().get_default_text())
-                default_txt[0]['text'] = f'Camera clip planes ' \
-                                         f'have been changed ' \
-                                         f'to {near:.1f} / {far:.1f}'
-                default_txt[0]['color'] = (1.0, 0.0, 1.0, 0.85)
-                GTLoader.viewport().message_to_screen(default_txt)
+                clipping_changed_screen_message(near, far)
 
         gt = GTLoader.kt_geotracker()
         vp.update_surface_points(gt, geotracker.geomobj, frame)
 
-        if not geotracker.camera_mode():
-            wf = vp.wireframer()
-            wf.set_object_world_matrix(geotracker.geomobj.matrix_world)
-            wf.create_batches()
+        wf = vp.wireframer()
+        wf.set_object_world_matrix(geotracker.geomobj.matrix_world)
+        wf.set_lit_light_matrix(geotracker.geomobj.matrix_world,
+                                geotracker.camobj.matrix_world)
 
         vp.create_batch_2d(area)
         vp.update_residuals(gt, area, frame)

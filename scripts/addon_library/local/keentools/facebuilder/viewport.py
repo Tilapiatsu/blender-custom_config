@@ -21,11 +21,13 @@ import numpy as np
 
 from bpy.types import Object, Area, SpaceView3D
 
+from ..utils.kt_logging import KTLogger
+from ..addon_config import Config, get_operator, ErrorType
 from ..facebuilder_config import FBConfig, get_fb_settings
-from ..utils.bpy_common import bpy_render_frame
+from ..utils.bpy_common import bpy_render_frame, bpy_background_mode
 from ..utils.coords import (multiply_verts_on_matrix_4x4,
                             pin_to_xyz_from_mesh,
-                            pin_to_xyz_from_fb_geo_mesh,
+                            pin_to_xyz_from_geo_mesh,
                             xy_to_xz_rotation_matrix_3x3,
                             frame_to_image_space,
                             image_space_to_region,
@@ -39,6 +41,9 @@ from ..utils.points import KTPoints2D, KTPoints3D
 from .utils.edges import FBRasterEdgeShader3D, FBRectangleShader2D
 
 
+_log = KTLogger(__name__)
+
+
 class FBViewport(KTViewport):
     def __init__(self):
         super().__init__()
@@ -50,8 +55,47 @@ class FBViewport(KTViewport):
         self._rectangler: Any = FBRectangleShader2D(SpaceView3D)
         self._draw_update_timer_handler: Optional[Callable] = None
 
+    def get_all_viewport_shader_objects(self) -> List:
+        return [self._texter,
+                self._points2d,
+                self._points3d,
+                self._residuals,
+                self._wireframer,
+                self._rectangler]
+
+    def load_all_shaders(self) -> bool:
+        _log.output('FB load_all_shaders')
+        if bpy_background_mode():
+            return True
+        tmp_log = '--- FB Shaders ---'
+        show_tmp_log = False
+        _log.output(tmp_log)
+        try:
+            for item in self.get_all_viewport_shader_objects():
+                item_type = f'* {item.__class__.__name__}'
+                tmp_log += '\n' + item_type + ' -- '
+
+                _log.output(item_type)
+                res = item.init_shaders()
+
+                tmp_log += 'skipped' if res is None else f'{res}'
+                if res is not None:
+                    show_tmp_log = True
+        except Exception as err:
+            _log.error(f'FB viewport shaders Exception:\n{tmp_log}\n---\n'
+                       f'{str(err)}\n===')
+            warn = get_operator(Config.kt_warning_idname)
+            warn('INVOKE_DEFAULT', msg=ErrorType.ShaderProblem)
+            return False
+
+        _log.output('--- End of FB Shaders ---')
+        if show_tmp_log:
+            _log.info(tmp_log)
+        return True
+
     def register_handlers(self, context: Any) -> None:
         self.unregister_handlers()
+        _log.output(f'{self.__class__.__name__}.register_handlers')
         self.set_work_area(context.area)
         self.residuals().register_handler(context)
         self.rectangler().register_handler(context)
@@ -62,6 +106,7 @@ class FBViewport(KTViewport):
         self.register_draw_update_timer(time_step=FBConfig.viewport_redraw_interval)
 
     def unregister_handlers(self) -> None:
+        _log.output(f'{self.__class__.__name__}.unregister_handlers')
         self.unregister_draw_update_timer()
         self.wireframer().unregister_handler()
         self.texter().unregister_handler()
@@ -86,11 +131,13 @@ class FBViewport(KTViewport):
 
     def update_wireframe_colors(self) -> None:
         settings = get_fb_settings()
-        self.wireframer().init_colors((settings.wireframe_color,
-                                      settings.wireframe_special_color,
-                                      settings.wireframe_midline_color),
-                                      settings.wireframe_opacity * settings.get_adaptive_opacity())
-        self.wireframer().create_batches()
+        wf = self.wireframer()
+        wf.init_colors((settings.wireframe_color,
+                        settings.wireframe_special_color,
+                        settings.wireframe_midline_color),
+                       settings.wireframe_opacity)
+        wf.set_adaptive_opacity(settings.get_adaptive_opacity())
+        wf.set_backface_culling(settings.wireframe_backface_culling)
 
     def update_pin_sensitivity(self) -> None:
         settings = get_fb_settings()
@@ -118,7 +165,7 @@ class FBViewport(KTViewport):
         verts = np.empty((pins_count, 3), dtype=np.float32)
         for i in range(fb.pins_count(keyframe)):
             pin = fb.pin(keyframe, i)
-            p = pin_to_xyz_from_fb_geo_mesh(pin, geo_mesh)
+            p = pin_to_xyz_from_geo_mesh(pin, geo_mesh)
             verts[i] = p
         # tolist() is needed by shader batch on Mac
         return (verts @ xy_to_xz_rotation_matrix_3x3()).tolist()
@@ -194,3 +241,11 @@ class FBViewport(KTViewport):
         # For pin dashes drawing template like this: O- - - -o
         wire.edge_lengths = [0.0, 22.0] * len(kt_pins)
         wire.create_batch()
+
+    def unhide_all_shaders(self):
+        self.residuals().unhide_shader()
+        self.points3d().unhide_shader()
+        self.points2d().unhide_shader()
+        self.texter().unhide_shader()
+        self.wireframer().unhide_shader()
+        self.rectangler().unhide_shader()

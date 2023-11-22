@@ -16,11 +16,11 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 # ##### END GPL LICENSE BLOCK #####
 
-from typing import Any, Callable, Optional, Tuple
-import os
+from typing import Any, Callable, Optional, Tuple, Set, Dict
+from dataclasses import dataclass
 
 import bpy
-from dataclasses import dataclass
+from .utils.version import BVersion
 
 
 _company = 'keentools'
@@ -28,14 +28,17 @@ _PT = 'KEENTOOLS_PT_'
 
 
 class Config:
-    addon_version = '2023.1.0'  # (5/5)
+    addon_version = '2023.3.0'  # (5/5)
     supported_blender_versions = ((2, 80), (2, 81), (2, 82), (2, 83),
                                   (2, 90), (2, 91), (2, 92), (2, 93),
-                                  (3, 0), (3, 1), (3, 2), (3, 3), (3, 4))
+                                  (3, 0), (3, 1), (3, 2), (3, 3), (3, 4),
+                                  (3, 5), (3, 6))
     minimal_blender_api = (2, 80, 60)
 
     fb_tab_category = 'FaceBuilder'
     gt_tab_category = 'GeoTracker'
+
+    kt_testing_tab_category = 'KeenTools Testing'
 
     fb_global_var_name = 'keentools_fb_settings'
     gt_global_var_name = 'keentools_gt_settings'
@@ -51,7 +54,7 @@ class Config:
     keentools_website_url = 'https://keentools.io'
     core_download_website_url = keentools_website_url + '/download/core'
 
-    manual_install_url = keentools_website_url + '/manual-installation'
+    manual_install_url = keentools_website_url + '/activate'
     pykeentools_license_url = 'https://link.keentools.io/eula'
 
     # Preferences operators
@@ -98,17 +101,31 @@ class Config:
     kt_remind_install_later_idname = operators + '.remind_install_later'
     kt_skip_installation_idname = operators + '.skip_installation'
 
+    # Testing panels
+    kt_error_testing = _PT + 'error_testing_panel'
+    kt_gt_shader_testing = _PT + 'gt_shader_testing_panel'
+    kt_fb_shader_testing = _PT + 'fb_shader_testing_panel'
+
+    kt_gt_shader_testing_idname = operators + '.gt_shader_testing'
+    kt_fb_shader_testing_idname = operators + '.fb_shader_testing'
+
     # Object Custom Properties
     core_version_prop_name = _company + '_version'
     viewport_state_prop_name = _company + '_viewport_state'
 
     # Constants
-    surf_pin_size_scale = 0.85
-    text_scale_y = 0.75
-    btn_scale_y = 1.2
+    surf_pin_size_scale: float = 0.85
+    text_scale_y: float = 0.75
+    btn_scale_y: float = 1.2
+    area_bottom_limit: int = 8
 
-    default_tone_exposure = 0.0
-    default_tone_gamma = 1.0
+    default_tone_exposure: float = 0.0
+    default_tone_gamma: float = 1.0
+
+    default_tex_width: int = 2048
+    default_tex_height: int = 2048
+    default_tex_face_angles_affection: float = 10.0
+    default_tex_uv_expand_percents: float = 0.1
 
     default_updater_preferences = {
         'latest_show_datetime_update_reminder': {'value': '', 'type': 'string'},
@@ -136,14 +153,26 @@ class Config:
         'gt_mask_2d_opacity': {'value': 0.35, 'type': 'float'},
     }
 
-    mock_update_for_testing_flag = False
-    mock_update_version = (int(addon_version.partition('.')[0]), 6, 3)
-    mock_update_addon_path = 'http://localhost/addon.zip'
-    mock_update_core_path = 'http://localhost/core.zip'
-    mock_product = None
+    mock_update_for_testing_flag: bool = False
+    mock_update_version: Tuple[int, int, int] = (int(addon_version.partition('.')[0]), 6, 3)
+    mock_update_addon_path: str = 'http://localhost/addon.zip'
+    mock_update_core_path: str = 'http://localhost/core.zip'
+    mock_product: Optional[str] = None
 
-    hide_geotracker = not 'KEENTOOLS_ENABLE_BLENDER_GEOTRACKER' in os.environ
-    allow_use_gpu_instead_of_bgl = False
+    supported_gpu_backends: Set = {'OPENGL', 'Undefined', 'METAL'}
+    strict_shader_check: bool = False
+    wireframe_offset_constant: float = 0.004
+
+    residual_dashed_line_length: float = 22.0
+    residual_dashed_line: Dict = {'start': 0.0, 'step': 6.0, 'threshold': 4.0}
+    selection_dashed_line: Dict = {'start': 5.0, 'step': 10.0, 'threshold': 5.5}
+
+    keyframe_line_width = 2.0
+    keyframe_line_length: float = 1000.0
+
+    integration_enabled: bool = True
+
+    kt_convert_video_scene_name: str = 'gt_convert_video'
 
     @classmethod
     def mock_update_for_testing(cls, value: bool=True, *,
@@ -170,6 +199,10 @@ def is_blender_supported() -> bool:
 
 def get_addon_preferences() -> Any:
     return bpy.context.preferences.addons[Config.addon_name].preferences
+
+
+def supported_gpu_backend() -> bool:
+    return BVersion.gpu_backend in Config.supported_gpu_backends
 
 
 def facebuilder_enabled() -> bool:
@@ -268,6 +301,8 @@ class ErrorType:
     DownloadingProblem = 8
     FBGracePeriod = 9
     GTGracePeriod = 10
+    ShaderProblem = 11
+    UnsupportedGPUBackend = 12
 
 
 @dataclass(frozen=True)

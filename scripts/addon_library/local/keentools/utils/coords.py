@@ -17,15 +17,17 @@
 # ##### END GPL LICENSE BLOCK #####
 import numpy as np
 import math
-from typing import Any, Tuple, List, Optional, Set
+from typing import Any, Tuple, List, Optional, Set, Callable
 
 from bpy.types import Area, Object
-from mathutils import Matrix
+from mathutils import Matrix, Quaternion, Vector
 
+from .version import BVersion
 from .kt_logging import KTLogger
 from .fake_context import get_fake_context
 from .bpy_common import (bpy_current_frame,
                          bpy_render_frame,
+                         bpy_render_aspect,
                          evaluated_mesh,
                          bpy_background_mode)
 from .animation import get_safe_evaluated_fcurve
@@ -72,7 +74,7 @@ def xz_to_xy_rotation_matrix_4x4() -> Any:
                      [0., 0., 0., 1.]], dtype=np.float32)
 
 
-def update_head_mesh_geom(obj: Any, geom: Any) -> None:
+def update_head_mesh_geom(obj: Object, geom: Any) -> None:
     mesh = obj.data
     assert(len(geom) == len(mesh.vertices))
     npbuffer = geom @ xy_to_xz_rotation_matrix_3x3()
@@ -106,13 +108,14 @@ def update_head_mesh_non_neutral(fb: Any, head: Any) -> None:
 
 
 def projection_matrix(w: float, h: float, fl: float, sw: float,
-                      near: float, far: float, scale=1.0) -> Any:
+                      near: float, far: float, scale: float = 1.0,
+                      shift_x: float = 0.0, shift_y: float = 0.0) -> Any:
     z_diff = near - far
     fl_to_sw = fl / sw
     return np.array(
         [[scale * w * fl_to_sw, 0, 0, 0],
          [0, scale * w * fl_to_sw, 0, 0],
-         [-w / 2, -h / 2, (near + far) / z_diff, -1],
+         [w * (2 * shift_x - 0.5), h * (2 * shift_y - 0.5), (near + far) / z_diff, -1],
          [0, 0, 2 * near * far / z_diff, 0]]
     ).transpose()
 
@@ -129,9 +132,10 @@ def _compensate_view_scale(w: float, h: float, inverse=False) -> float:
 
 
 def custom_projection_matrix(w: float, h: float, fl: float, sw: float,
-                             near: float, far: float) -> Any:
+                             near: float, far: float,
+                             shift_x: float = 0, shift_y: float = 0) -> Any:
     return projection_matrix(w, h, fl, sw, near, far,
-                             scale=_compensate_view_scale(w, h))
+                             _compensate_view_scale(w, h), shift_x, shift_y)
 
 
 def focal_by_projection_matrix_mm(pm: Any, sw: float) -> float:
@@ -173,36 +177,42 @@ def image_space_to_frame(x: float, y: float, shift_x: float=0.0,
     return (x + shift_x + 0.5) * w, (y + shift_y) * w + 0.5 * h
 
 
-def frame_to_image_space(x: float, y: float, w: float, h: float,
+def frame_to_image_space(frame_x: float, frame_y: float,
+                         frame_w: float, frame_h: float,
                          shift_x: float=0.0,
                          shift_y: float=0.0) -> Tuple[float, float]:
-    return x / w - 0.5 - shift_x, (y - 0.5 * h) / w - shift_y
-
-
-def get_mouse_coords(event: Any) -> Tuple[float, float]:
-    return event.mouse_region_x, event.mouse_region_y
+    return (frame_x / frame_w - 0.5 - shift_x,
+            (frame_y - 0.5 * frame_h) / frame_w - shift_y)
 
 
 def image_space_to_region(x: float, y: float, x1: float, y1: float,
-                          x2: float, y2: float) -> Tuple[float, float]:
+                          x2: float, y2: float, shift_x: float = 0.0,
+                          shift_y: float = 0.0) -> Tuple[float, float]:
     """ Relative coords to Region (screen) space """
     w = (x2 - x1)
     h = (y2 - y1)
     sc = w
-    return x1 + (x + 0.5) * sc, (y1 + y2) * 0.5 + y * sc
+    return x1 + (x + 0.5 + 2 * shift_x) * sc, \
+           (y1 + y2) * 0.5 + y * sc + 2 * shift_y * h
 
 
-def get_image_space_coord(px: float, py: float, area: Area) -> Tuple[float, float]:
+def get_image_space_coord(px: float, py: float, area: Area,
+                          shift_x: float = 0.0,
+                          shift_y: float = 0.0) -> Tuple[float, float]:
     x1, y1, x2, y2 = get_camera_border(area)
-    x, y = region_to_image_space(px, py, x1, y1, x2, y2)
+    x, y = region_to_image_space(px, py, x1, y1, x2, y2, shift_x, shift_y)
     return x, y
 
 
 def region_to_image_space(x: float, y: float, x1: float, y1: float,
-                          x2: float, y2: float) -> Tuple[float, float]:
+                          x2: float, y2: float, shift_x: float = 0.0,
+                          shift_y: float = 0.0) -> Tuple[float, float]:
     w = (x2 - x1) if x2 != x1 else 1.0
+    h = (y2 - y1) if y2 != y1 else 1.0
     sc = w
-    return (x - (x1 + x2) * 0.5) / sc, (y - (y1 + y2) * 0.5) / sc
+    asp = h / w if w != 0 else 1.0
+    return (x - (x1 + x2) * 0.5) / sc - 2 * shift_x,\
+           (y - (y1 + y2) * 0.5) / sc - 2 * asp * shift_y
 
 
 def pin_to_xyz_from_mesh(
@@ -220,8 +230,8 @@ def pin_to_xyz_from_mesh(
     return p
 
 
-def pin_to_xyz_from_fb_geo_mesh(pin: Any, geo_mesh: Any) -> Tuple[float, float, float]:
-    """ Surface point from barycentric to XYZ using fb geo_mesh"""
+def pin_to_xyz_from_geo_mesh(pin: Any, geo_mesh: Any) -> Tuple[float, float, float]:
+    """ Surface point from barycentric to XYZ using geo_mesh"""
     sp = pin.surface_point
     gp = sp.geo_point_idxs
     bar = sp.barycentric_coordinates
@@ -230,6 +240,15 @@ def pin_to_xyz_from_fb_geo_mesh(pin: Any, geo_mesh: Any) -> Tuple[float, float, 
     v3 = geo_mesh.point(gp[2])
     p = v1 * bar[0] + v2 * bar[1] + v3 * bar[2]
     return p
+
+
+def pin_to_normal_from_geo_mesh(pin: Any, geo_mesh: Any) -> Vector:
+    sp = pin.surface_point
+    gp = sp.geo_point_idxs
+    v1 = geo_mesh.point(gp[0])
+    v2 = geo_mesh.point(gp[1])
+    v3 = geo_mesh.point(gp[2])
+    return Vector(np.cross(v2 - v1, v3 - v2)).normalized()
 
 
 def calc_model_mat(model_mat: Any, head_mat: Any) -> Optional[Any]:
@@ -244,7 +263,9 @@ def calc_model_mat(model_mat: Any, head_mat: Any) -> Optional[Any]:
         return None
 
 
-def get_area_region_3d(area: Area) -> Optional[Any]:
+def get_area_region_3d(area: Optional[Area]) -> Optional[Any]:
+    if not area or not area.spaces or not area.spaces.active:
+        return None
     return area.spaces.active.region_3d
 
 
@@ -252,10 +273,14 @@ def get_area_region(area: Area) -> Optional[Any]:
     return area.regions[-1]
 
 
-def get_area_overlay(area: Area) -> Optional[Any]:
-    if not area or not area.spaces.active:
-        return None
-    return area.spaces.active.overlay
+def blender_zoom_formula(factor: float) -> float:
+    if factor < 0:
+        factor = 0
+    return (math.sqrt(factor) - math.sqrt(0.5)) * 100.0
+
+
+def blender_zoom_scale_factor(z: float) -> float:
+    return (z * 0.01 + math.sqrt(0.5)) ** 2
 
 
 def get_camera_border(area: Area) -> Tuple[float, float, float, float]:
@@ -265,87 +290,80 @@ def get_camera_border(area: Area) -> Tuple[float, float, float, float]:
 
     region = get_area_region(area)
     assert region.type == 'WINDOW'
-    w = region.width
-    h = region.height
+    reg_w, reg_h = region.width, region.height
 
     rv3d = get_area_region_3d(area)
     z = rv3d.view_camera_zoom
-    # Blender Zoom formula
-    f = (z * 0.01 + math.sqrt(0.5)) ** 2  # f - scale factor
+    f = blender_zoom_scale_factor(z)
 
-    rx, ry = bpy_render_frame()
+    region_aspect = reg_w / reg_h
+    render_aspect = bpy_render_aspect()
 
-    a1 = w / h
-    a2 = rx / ry
-
-    offset = (rv3d.view_camera_offset[0] * w * 2 * f,
-              rv3d.view_camera_offset[1] * h * 2 * f)
+    offset = (rv3d.view_camera_offset[0] * reg_w * 2 * f,
+              rv3d.view_camera_offset[1] * reg_h * 2 * f)
 
     # This works when Camera Sensor Mode is Auto
-    if a1 >= 1.0:
-        if a2 >= 1.0:
+    if region_aspect >= 1.0:
+        if render_aspect >= 1.0:
             # Horizontal image in horizontal View
             kx = f
-            ky = f * a1 / a2  # (ry / rx) * (w / h)
+            ky = f * region_aspect / render_aspect  # (ry / rx) * (w / h)
         else:
-            kx = f * a2  # (rx / ry)
-            ky = f * a1  # (w / h)
+            kx = f * render_aspect  # (rx / ry)
+            ky = f * region_aspect  # (w / h)
 
     else:
-        if a2 < 1.0:
+        if render_aspect < 1.0:
             # Vertical image in vertical View
-            kx = f * a2 / a1  # (rx / ry) * (h / w)
+            kx = f * render_aspect / region_aspect  # (rx / ry) * (h / w)
             ky = f
         else:
-            kx = f / a1  # (h / w)
-            ky = f / a2  # (ry / rx)
+            kx = f / region_aspect  # (h / w)
+            ky = f / render_aspect  # (ry / rx)
 
-    x1 = w * 0.5 - kx * w * 0.5 - offset[0]
-    x2 = w * 0.5 + kx * w * 0.5 - offset[0]
-    y1 = h * 0.5 - ky * h * 0.5 - offset[1]
-    y2 = h * 0.5 + ky * h * 0.5 - offset[1]
+    x1 = reg_w * 0.5 - kx * reg_w * 0.5 - offset[0]
+    x2 = reg_w * 0.5 + kx * reg_w * 0.5 - offset[0]
+    y1 = reg_h * 0.5 - ky * reg_h * 0.5 - offset[1]
+    y2 = reg_h * 0.5 + ky * reg_h * 0.5 - offset[1]
     return x1, y1, x2, y2
 
 
-def calc_view_camera_parameters(area: Area, x1: int, y1: int,
-                                width: int) -> Tuple[float, Tuple[float, float]]:
+def calc_camera_zoom_and_offset(
+        area: Area, region_x1: float, region_y1: float,
+        width: float) -> Tuple[float, Tuple[float, float]]:
     region = get_area_region(area)
-    w = region.width
-    h = region.height
-    rx, ry = bpy_render_frame()
-    a1 = w / h
-    a2 = rx / ry
-    x2 = x1 + width
-    y2 = width / a2
-    kx = (x2 - x1) / w
-    ky = (y2 - y1) / h
-    if a1 >= 1.0:
-        if a2 >= 1.0:
+    reg_w, reg_h = region.width, region.height
+    reg_asp = reg_w / reg_h
+    render_asp = bpy_render_aspect()
+    kx = width / reg_w
+    if reg_asp >= 1.0:
+        if render_asp >= 1.0:
             f = kx
-            ky = f * a1 / a2
+            ky = f * reg_asp / render_asp
         else:
-            f = kx / a2
-            ky = f * a1
+            f = kx / render_asp
+            ky = f * reg_asp
     else:
-        if a2 < 1.0:
-            f = kx * a1 / a2
+        if render_asp < 1.0:
+            f = kx * reg_asp / render_asp
             ky = f
         else:
-            f = kx * a1
-            ky = f / a2
-    z = (math.sqrt(f) - math.sqrt(0.5)) * 100.0
-    offset_x = w * 0.5 - kx * w * 0.5 - x1
-    offset_y = h * 0.5 - ky * h * 0.5 - y1
-    offset = (offset_x / (w * 2 * f),
-              offset_y / (h * 2 * f))
+            f = kx * reg_asp
+            ky = f / render_asp
+    z = blender_zoom_formula(f)
+    offset_x = reg_w * 0.5 * (1.0 - kx) - region_x1
+    offset_y = reg_h * 0.5 * (1.0 - ky) - region_y1
+    offset = (offset_x / (reg_w * 2 * f),
+              offset_y / (reg_h * 2 * f))
     return z, offset
 
 
-def point_is_in_area(area: Area, x: float, y: float) -> bool:
+def point_is_in_area(area: Area, x: float, y: float, *,
+                     bottom_limit: float = 0, left_limit: float = 0) -> bool:
     if bpy_background_mode():
         context = get_fake_context()
         area = context.area
-    return (0 <= x <= area.width) and (0 <= y <= area.height)
+    return (left_limit <= x <= area.width) and (bottom_limit <= y <= area.height)
 
 
 def point_is_in_service_region(area: Area, x: float, y: float) -> bool:
@@ -374,9 +392,7 @@ def get_pixel_relative_size(area: Area) -> float:
     w = area.width if area.width > 0 else 1.0
     space = area.spaces.active
     rv3d = space.region_3d
-    z = rv3d.view_camera_zoom
-    # Blender Zoom formula
-    f = (z * 0.01 + math.sqrt(0.5)) ** 2  # f - scale factor
+    f = blender_zoom_scale_factor(rv3d.view_camera_zoom)
     ps = 1.0 / (w * f)
     return ps
 
@@ -434,6 +450,44 @@ def compensate_view_scale() -> float:
     return image_width / image_height
 
 
+def ScaleMatrix(rank: int, sc: Tuple) -> Matrix:
+    scm = Matrix.Identity(rank)
+    scm[0][0], scm[1][1], scm[2][2] = sc[:]
+    return scm
+
+
+def InvScaleMatrix(rank: int, sc: Tuple) -> Matrix:
+    scm = Matrix.Identity(rank)
+    try:
+        scm[0][0], scm[1][1], scm[2][2] = 1.0 / sc[0], 1.0 / sc[1], 1.0 / sc[2]
+    except ZeroDivisionError:
+        pass
+    return scm
+
+
+def UniformScaleMatrix(rank: int, sc: float) -> Matrix:
+    return ScaleMatrix(rank, (sc, sc, sc))
+
+
+def RotationMatrix(r: Quaternion) -> Matrix:
+    r.normalized().to_matrix().to_4x4()
+
+
+def LocRotScale_old(t: Tuple[float, float, float], r: Quaternion,
+                    sc: Tuple[float, float, float]) -> Matrix:
+    scm = ScaleMatrix(4, sc)
+    return Matrix.Translation(t) @ r.normalized().to_matrix().to_4x4() @ scm
+
+
+LocRotScale: Callable = Matrix.LocRotScale \
+    if BVersion.LocRotScale_exist else LocRotScale_old
+
+
+def LocRotWithoutScale(mat: Matrix) -> Matrix:
+    t, r, s = mat.decompose()
+    return LocRotScale(t, r, (1, 1, 1))
+
+
 def calc_bpy_camera_mat_relative_to_model(geom_matrix_world: Matrix,
                                           camera_matrix_world: Matrix,
                                           gt_model_mat: Any) -> Matrix:
@@ -445,7 +499,7 @@ def calc_bpy_camera_mat_relative_to_model(geom_matrix_world: Matrix,
         mat = np.array(geom_matrix_world) @ geom_scale_inv \
               @ rot_mat2 @ np.linalg.inv(gt_model_mat)
         t, r, _ = Matrix(mat).decompose()
-        new_mat = Matrix.LocRotScale(t, r, sc)
+        new_mat = LocRotScale(t, r, sc)
     except Exception:
         new_mat = Matrix.Identity(4)
     return new_mat
@@ -456,7 +510,7 @@ def calc_bpy_model_mat_relative_to_camera(geom_matrix_world: Matrix,
                                           gt_model_mat: Any) -> Matrix:
     rot_mat = xy_to_xz_rotation_matrix_4x4()
     t, r, _ = camera_matrix_world.decompose()
-    camera_mat = Matrix.LocRotScale(t, r, (1, 1, 1))
+    camera_mat = LocRotScale(t, r, (1, 1, 1))
     scale_mat = get_scale_matrix_4x4_from_matrix_world(geom_matrix_world)
     np_mw = np.array(camera_mat) @ gt_model_mat @ rot_mat @ scale_mat
     return Matrix(np_mw)
@@ -474,7 +528,8 @@ def camera_projection(camobj: Object, frame: Optional[int]=None,
         frame =bpy_current_frame()
     lens = get_safe_evaluated_fcurve(cam_data, frame, 'lens')
     proj_mat = custom_projection_matrix(image_width, image_height, lens,
-                                        cam_data.sensor_width, near, far)
+                                        cam_data.sensor_width, near, far,
+                                        cam_data.shift_x, cam_data.shift_y)
     return proj_mat
 
 
@@ -537,9 +592,10 @@ def distance_between_objects(obj1: Object, obj2: Object) -> float:
 
 
 def change_near_and_far_clip_planes(camobj: Object, geomobj: Object,
-                                    *, step: float=1.01,
+                                    *, step: float = 1.05,
                                     prev_clip_start: float,
-                                    prev_clip_end: float) -> bool:
+                                    prev_clip_end: float,
+                                    minimal_clip_start: float = 1e-5) -> bool:
     if not camobj or not geomobj:
         return False
     dist = distance_between_objects(camobj, geomobj)
@@ -568,7 +624,7 @@ def change_near_and_far_clip_planes(camobj: Object, geomobj: Object,
         changed_flag = True
         clip_start = camobj.data.clip_start
 
-    new_clip_start = dist * 0.5
+    new_clip_start = max(dist * 0.5, minimal_clip_start)
     too_close_limit = dist * 0.75
     if clip_start > too_close_limit:
         _log.output(f'OBJECT IS TOO CLOSE TO THE CAMERA NEAR CLIP PLANE:\n '
@@ -586,3 +642,18 @@ def change_near_and_far_clip_planes(camobj: Object, geomobj: Object,
         changed_flag = True
 
     return changed_flag
+
+
+def make_indices_for_wide_edges(numb: int) -> Tuple[Any, Any]:
+    arr = np.tile(np.arange(0, numb).reshape((-1, 2)), (1, 3))
+    return arr.reshape((-1, 3)).ravel(), \
+           np.flip(arr, 1).reshape((-1, 3)).ravel()
+
+
+def bound_box_center(obj: Object) -> Vector:
+    if BVersion.bound_box_has_foreach_get:
+        verts = np.empty((8, 3), dtype=np.float32)
+        obj.bound_box.foreach_get(verts)
+    else:
+        verts = np.array([obj.bound_box[i] for i in range(8)], dtype=np.float32)
+    return Vector(np.mean(verts, axis=0))

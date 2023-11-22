@@ -26,9 +26,6 @@ from ...addon_config import Config, get_operator, ErrorType, ActionStatus
 from ...geotracker_config import get_gt_settings, get_current_geotracker_item
 from ...utils.html import split_long_string
 from ...utils.manipulate import exit_area_localview, switch_to_camera
-from ...utils.other import (unhide_viewport_ui_elements_from_object,
-                            hide_viewport_ui_elements_and_store_on_object)
-from ...utils.images import set_background_image_by_movieclip
 from ...utils.bpy_common import (bpy_all_scene_objects,
                                  bpy_scene_selected_objects,
                                  bpy_background_mode)
@@ -43,23 +40,21 @@ def prepare_camera(area: Area) -> None:
     if not settings.pinmode:
         switch_to_camera(area, geotracker.camobj,
                          geotracker.animatable_object())
-        hide_viewport_ui_elements_and_store_on_object(area,
-                                                      geotracker.camobj)
-    set_background_image_by_movieclip(geotracker.camobj,
-                                      geotracker.movie_clip)
+        settings.viewport_state.hide_ui_elements(area)
+
+    geotracker.setup_background_image()
     geotracker.reload_background_image()
 
 
 def revert_camera(area: Area) -> None:
     settings = get_gt_settings()
-    geotracker = settings.get_current_geotracker_item()
     if not settings.pinmode:
-        unhide_viewport_ui_elements_from_object(area, geotracker.camobj)
+        settings.viewport_state.show_ui_elements(area)
         exit_area_localview(area)
 
 
 def get_alone_object_in_selection_by_type(selection: List,
-                                          obj_type: str='MESH'):
+                                          obj_type: str = 'MESH'):
     found_obj = None
     for obj in selection:
         if obj.type == obj_type:
@@ -69,12 +64,12 @@ def get_alone_object_in_selection_by_type(selection: List,
     return found_obj
 
 
-def get_alone_object_in_scene_by_type(obj_type: str='MESH'):
+def get_alone_object_in_scene_by_type(obj_type: str = 'MESH'):
     return get_alone_object_in_selection_by_type(bpy_all_scene_objects(),
                                                  obj_type)
 
 
-def get_alone_object_in_scene_selection_by_type(obj_type: str='MESH'):
+def get_alone_object_in_scene_selection_by_type(obj_type: str = 'MESH'):
     return get_alone_object_in_selection_by_type(bpy_scene_selected_objects(),
                                                  obj_type)
 
@@ -96,15 +91,16 @@ def show_unlicensed_warning() -> None:
     warn('INVOKE_DEFAULT', msg=ErrorType.NoLicense)
 
 
-def common_checks(*, object_mode: bool=False,
-                  pinmode: bool=False,
-                  pinmode_out: bool=False,
-                  is_calculating: bool=False,
+def common_checks(*, object_mode: bool = False,
+                  pinmode: bool = False,
+                  pinmode_out: bool = False,
+                  is_calculating: bool = False,
                   reload_geotracker: bool = False,
-                  geotracker: bool=False,
-                  camera: bool=False,
-                  geometry: bool=False,
-                  movie_clip: bool=False) -> ActionStatus:
+                  geotracker: bool = False,
+                  camera: bool = False,
+                  geometry: bool = False,
+                  movie_clip: bool = False,
+                  constraints: bool = False) -> ActionStatus:
 
     if object_mode:
         if not hasattr(bpy.context, 'mode'):
@@ -118,7 +114,7 @@ def common_checks(*, object_mode: bool=False,
 
     settings = get_gt_settings()
     if is_calculating and settings.is_calculating():
-        msg = 'Calculation is performing'
+        msg = 'Calculation in progress'
         _log.error(msg)
         return ActionStatus(False, msg)
     if pinmode and not settings.pinmode:
@@ -154,6 +150,23 @@ def common_checks(*, object_mode: bool=False,
         msg = 'GeoTracker movie clip is not found'
         _log.error(msg)
         return ActionStatus(False, msg)
+    if constraints:
+        if not geotracker_item.camobj:
+            msg = 'GeoTracker does not contain Camera object!'
+            _log.error(msg)
+            return ActionStatus(False, msg)
+        if len(geotracker_item.camobj.constraints) != 0:
+            msg = 'Camera object has constraints!'
+            _log.error(msg)
+            return ActionStatus(False, msg)
+        if not geotracker_item.geomobj:
+            msg = 'GeoTracker does not contain Geometry object!'
+            _log.error(msg)
+            return ActionStatus(False, msg)
+        if len(geotracker_item.geomobj.constraints) != 0:
+            msg = 'Geometry object has constraints!'
+            _log.error(msg)
+            return ActionStatus(False, msg)
     return ActionStatus(True, 'Checks have been passed')
 
 

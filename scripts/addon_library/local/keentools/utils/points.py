@@ -18,21 +18,24 @@
 
 from typing import List, Optional, Tuple, Any
 
+import numpy as np
 from bpy.types import SpaceView3D
-import gpu
-import bgl
 from gpu_extras.batch import batch_for_shader
 
+from .kt_logging import KTLogger
 from ..addon_config import Config
-from .bpy_common import bpy_background_mode
-from .shaders import (flat_color_3d_vertex_shader,
-                      circular_dot_fragment_shader,
-                      flat_color_2d_vertex_shader)
+from .gpu_shaders import (circular_dot_2d_shader,
+                          circular_dot_3d_shader)
 from ..preferences.user_preferences import UserPreferences
 from .base_shaders import KTShaderBase
+from .gpu_control import set_blend_alpha, set_point_size
+
+
+_log = KTLogger(__name__)
 
 
 class KTScreenPins:
+    ''' Pins are stored in image space coordinates '''
     def __init__(self):
         self._pins: List[Tuple[float, float]] = []
         self._current_pin: Optional[Tuple[float, float]] = None
@@ -70,8 +73,20 @@ class KTScreenPins:
         self._current_pin = None
         self._current_pin_num = -1
 
-    def get_selected_pins(self) -> List[int]:
+    def get_selected_pins(self, pins_count: Optional[int]=None) -> List[int]:
+        if pins_count is not None:
+            self._selected_pins = [x for x in self._selected_pins
+                                   if x < pins_count]
         return self._selected_pins
+
+    def average_point_of_selected_pins(self) -> Optional[Tuple[float, float]]:
+        ''' Return average point in image space '''
+        arr = self.arr()
+        selected_pins = self.get_selected_pins(len(arr))
+        pins = [arr[x] for x in selected_pins]
+        if len(pins) > 0:
+            return np.average(pins, axis=0).tolist()
+        return None
 
     def set_selected_pins(self, selected_pins: List[int]) -> None:
         self._selected_pins = selected_pins
@@ -140,6 +155,7 @@ class KTScreenPins:
 
 class KTShaderPoints(KTShaderBase):
     def __init__(self, target_class: Any=SpaceView3D):
+        super().__init__(target_class)
         self.shader: Any = None
         self.batch: Any = None
 
@@ -148,7 +164,6 @@ class KTShaderPoints(KTShaderBase):
 
         self._point_size: float = UserPreferences.get_value_safe(
             'pin_size', UserPreferences.type_float)
-        super().__init__(target_class)
 
     def get_vertices(self) -> List[Tuple[float, float, float]]:
         return self.vertices
@@ -182,54 +197,61 @@ class KTShaderPoints(KTShaderBase):
             return False
         return True
 
-    def draw_main_bgl(self, context: Any) -> None:
-        bgl.glPointSize(self.get_point_size())
-        bgl.glEnable(bgl.GL_BLEND)
-        self.shader.bind()
-        self.batch.draw(self.shader)
-        bgl.glDisable(bgl.GL_BLEND)
-
-    def draw_main_gpu(self, context: Any) -> None:
-        gpu.state.point_size_set(self.get_point_size())
-        gpu.state.blend_set('ALPHA')
+    def draw_main(self, context: Any) -> None:
+        set_point_size(self.get_point_size())
+        set_blend_alpha()
         self.shader.bind()
         self.batch.draw(self.shader)
 
 
 class KTPoints2D(KTShaderPoints):
-    def init_shaders(self) -> None:
-        if bpy_background_mode():
-            return
-        self.shader = gpu.types.GPUShader(flat_color_2d_vertex_shader(),
-                                          circular_dot_fragment_shader())
+    def init_shaders(self) -> Optional[bool]:
+        if self.shader is not None:
+            _log.output(f'{self.__class__.__name__}.shader: skip')
+            return None
+
+        self.shader = circular_dot_2d_shader()
+        res = self.shader is not None
+        _log.output(f'{self.__class__.__name__}.shader: {res}')
+        return res
 
     def create_batch(self) -> None:
-        if bpy_background_mode():
+        if self.shader is None:
+            _log.error(f'{self.__class__.__name__}.shader: is empty')
             return
+
         self.batch = batch_for_shader(
             self.shader, 'POINTS',
             {'pos': self.vertices, 'color': self.vertices_colors},
             indices=None)
+        self.increment_batch_counter()
 
     def register_handler(self, context: Any,
-                         post_type: str='POST_PIXEL') -> None:
+                         post_type: str = 'POST_PIXEL') -> None:
+        _log.output(f'{self.__class__.__name__}.register_handler')
         super().register_handler(context, post_type)
 
 
 class KTPoints3D(KTShaderPoints):
-    def init_shaders(self) -> None:
-        if bpy_background_mode():
-            return
-        self.shader = gpu.types.GPUShader(flat_color_3d_vertex_shader(),
-                                          circular_dot_fragment_shader())
+    def init_shaders(self) -> Optional[bool]:
+        if self.shader is not None:
+            _log.output(f'{self.__class__.__name__}.shader: skip')
+            return None
+
+        self.shader = circular_dot_3d_shader()
+        res = self.shader is not None
+        _log.output(f'{self.__class__.__name__}.shader: {res}')
+        return res
 
     def create_batch(self) -> None:
-        if bpy_background_mode():
+        if self.shader is None:
+            _log.error(f'{self.__class__.__name__}.shader: is empty')
             return
         self.batch = batch_for_shader(
             self.shader, 'POINTS',
             {'pos': self.vertices, 'color': self.vertices_colors},
             indices=None)
+        self.increment_batch_counter()
 
     def __init__(self, target_class: Any):
         super().__init__(target_class)

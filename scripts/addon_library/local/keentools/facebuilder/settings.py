@@ -15,7 +15,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 # ##### END GPL LICENSE BLOCK #####
-import logging
+
 import math
 from contextlib import contextmanager
 
@@ -32,12 +32,12 @@ from bpy.props import (
     EnumProperty,
     BoolVectorProperty
 )
-from bpy.types import PropertyGroup
+from bpy.types import PropertyGroup, Object, Area, Image
 
 from ..addon_config import Config, get_addon_preferences
 from ..facebuilder_config import FBConfig, get_fb_settings
 from .fbloader import FBLoader
-from ..utils import coords
+from ..utils.coords import get_camera_border, projection_matrix
 from .callbacks import (update_mesh_with_dialog,
                         update_mesh_simple,
                         update_shape_rigidity,
@@ -62,7 +62,9 @@ from ..preferences.user_preferences import (UserPreferences,
                                             universal_cached_setter)
 from .utils.manipulate import get_current_head
 from ..utils.images import tone_mapping, reset_tone_mapping
+from ..utils.viewport_state import ViewportStateItem
 from ..blender_independent_packages.pykeentools_loader.config import set_mock_update_paths
+from ..utils.bpy_common import bpy_render_frame
 
 
 class FBExifItem(PropertyGroup):
@@ -122,21 +124,18 @@ class FBExifItem(PropertyGroup):
 class FBCameraItem(PropertyGroup):
     keyframe_id: IntProperty(default=-1)
     cam_image: PointerProperty(
-        name="Image", type=bpy.types.Image, update=update_cam_image
+        name='Image', type=Image, update=update_cam_image
     )
     image_width: IntProperty(default=-1)
     image_height: IntProperty(default=-1)
 
     camobj: PointerProperty(
-        name="Camera", type=bpy.types.Object
-    )
-    model_mat: StringProperty(
-        name="Model Matrix", default=""
+        name='Camera', type=Object
     )
     pins_count: IntProperty(
-        name="Pins in Camera", default=0)
+        name='Pins in Camera', default=0)
 
-    use_in_tex_baking: BoolProperty(name="Use In Texture Baking", default=True)
+    use_in_tex_baking: BoolProperty(name='Use In Texture Baking', default=True)
 
     exif: PointerProperty(type=FBExifItem)
 
@@ -355,15 +354,15 @@ class FBCameraItem(PropertyGroup):
 
         if (self.orientation % 2) == 0:
             if w >= h:
-                projection = coords.projection_matrix(
+                projection = projection_matrix(
                     w, h, focal, FBConfig.default_sensor_width,
                     near, far, scale=1.0)
             else:
-                projection = coords.projection_matrix(
+                projection = projection_matrix(
                     w, h, focal, FBConfig.default_sensor_width,
                     near, far, scale=sc)
         else:
-            projection = coords.projection_matrix(
+            projection = projection_matrix(
                 h, w, focal, FBConfig.default_sensor_width,
                 near, far, scale=sc)
 
@@ -430,18 +429,17 @@ def expression_views_callback(self, context):
 
 
 class FBHeadItem(PropertyGroup):
-    use_emotions: bpy.props.BoolProperty(name="Allow facial expressions",
-                                         default=False,
-                                         update=update_use_emotions)
-    lock_blinking: BoolProperty(
-        name="Lock eye blinking", default=False, update=update_lock_blinking)
-    lock_neck_movement: BoolProperty(
-        name="Lock neck movement", default=False, update=update_lock_neck_movement)
-
-    headobj: PointerProperty(name="Head", type=bpy.types.Object)
-    blendshapes_control_panel: PointerProperty(name="Blendshapes Control Panel",
-                                               type=bpy.types.Object)
-    cameras: CollectionProperty(name="Cameras", type=FBCameraItem)
+    use_emotions: BoolProperty(name='Allow facial expressions',
+                               default=False, update=update_use_emotions)
+    lock_blinking: BoolProperty(name='Lock eye blinking',
+                                default=False, update=update_lock_blinking)
+    lock_neck_movement: BoolProperty(name='Lock neck movement',
+                                     default=False,
+                                     update=update_lock_neck_movement)
+    headobj: PointerProperty(name='Head', type=Object)
+    blendshapes_control_panel: PointerProperty(name='Blendshapes Control Panel',
+                                               type=Object)
+    cameras: CollectionProperty(name='Cameras', type=FBCameraItem)
 
     sensor_width: FloatProperty(
         description="The length of the longest side "
@@ -697,23 +695,33 @@ class FBSceneSettings(PropertyGroup):
     force_out_pinmode: BoolProperty(name="Pin Mode Out", default=False)
     license_error: BoolProperty(name="License Error", default=False)
 
-    ui_write_mode: bpy.props.BoolProperty(name='UI Write mode', default=False)
+    ui_write_mode: BoolProperty(name='UI Write mode', default=False)
+    viewport_state: PointerProperty(type=ViewportStateItem)
     # ---------------------
     # Model View parameters
     # ---------------------
-    adaptive_opacity: bpy.props.FloatProperty(
+    adaptive_opacity: FloatProperty(
         description='From 0.0 to 1.0',
         name='FaceBuilder Adaptive Opacity',
         default=1.0,
         min=0.0, max=1.0)
 
-    use_adaptive_opacity: bpy.props.BoolProperty(
+    use_adaptive_opacity: BoolProperty(
         name='Use adaptive opacity',
         default=True,
         update=update_wireframe_func)
 
     def get_adaptive_opacity(self):
         return self.adaptive_opacity if self.use_adaptive_opacity else 1.0
+
+    def calc_adaptive_opacity(self, area: Area) -> None:
+        if not area:
+            return
+        aw = area.width
+        rx, ry = bpy_render_frame()
+        denom = aw if 1 <= aw < rx else rx
+        x1, y1, x2, y2 = get_camera_border(area)
+        self.adaptive_opacity = (x2 - x1) / denom
 
     wireframe_opacity: FloatProperty(
         description='From 0.0 to 1.0',
@@ -755,8 +763,10 @@ class FBSceneSettings(PropertyGroup):
         description='Use different colors for important head parts '
                     'on the mesh',
         name='Special face parts', default=True, update=update_wireframe_image)
-
-    # Initial pin_size state in FBShaderPoints class
+    wireframe_backface_culling: bpy.props.BoolProperty(
+        name='Backface culling',
+        default=True,
+        update=update_wireframe_func)
     pin_size: FloatProperty(
         description='Set pin size in pixels',
         name='Size',
@@ -813,10 +823,10 @@ class FBSceneSettings(PropertyGroup):
     # -------------------------
     tex_width: IntProperty(
         description="Width size of output texture",
-        name="Width", default=2048)
+        name="Width", default=Config.default_tex_width)
     tex_height: IntProperty(
         description="Height size of output texture",
-        name="Height", default=2048)
+        name="Height", default=Config.default_tex_height)
 
     tex_face_angles_affection: FloatProperty(
         description="Choose how much a polygon view angle affects "
@@ -824,10 +834,11 @@ class FBSceneSettings(PropertyGroup):
                     "color from all views; with 100 you'll get color "
                     "information only from the polygons at which a camera "
                     "is looking at 90 degrees",
-        name="Angle strictness", default=10.0, min=0.0, max=100.0)
+        name="Angle strictness",
+        default=Config.default_tex_face_angles_affection, min=0.0, max=100.0)
     tex_uv_expand_percents: FloatProperty(
         description="Expand texture edges",
-        name="Expand edges (%)", default=0.1)
+        name="Expand edges (%)", default=Config.default_tex_uv_expand_percents)
     tex_back_face_culling: BoolProperty(
         description="Exclude backfacing polygons from the created texture",
         name="Back face culling", default=True)

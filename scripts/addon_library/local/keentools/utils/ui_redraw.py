@@ -15,10 +15,10 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 # ##### END GPL LICENSE BLOCK #####
-from typing import List, Any, Dict
+from typing import List, Any, Dict, Tuple
 
 import bpy
-from bpy.types import Area
+from bpy.types import Area, Window
 import addon_utils
 
 from .kt_logging import KTLogger
@@ -28,13 +28,13 @@ from .bpy_common import bpy_background_mode
 _log = KTLogger(__name__)
 
 
-def get_areas_by_type(area_type: str='VIEW_3D') -> List[Area]:
-    areas = []
+def get_areas_by_type(area_type: str = 'VIEW_3D') -> List[Tuple]:
+    pairs = []
     for window in bpy.data.window_managers['WinMan'].windows:
         for area in window.screen.areas:
             if area.type == area_type:
-                areas.append(area)
-    return areas
+                pairs.append((area, window))
+    return pairs
 
 
 def get_all_areas() -> List[Area]:
@@ -42,9 +42,9 @@ def get_all_areas() -> List[Area]:
                  for area in window.screen.areas]
 
 
-def force_ui_redraw(area_type: str='PREFERENCES') -> None:
-    areas = get_areas_by_type(area_type)
-    for area in areas:
+def force_ui_redraw(area_type: str = 'PREFERENCES') -> None:
+    pairs = get_areas_by_type(area_type)
+    for area, _ in pairs:
         area.tag_redraw()
 
 
@@ -74,7 +74,7 @@ def filter_module_list_by_name_starting_with(module_list: List[Any],
     return mods
 
 
-def find_modules_by_name_starting_with(name_start: str='KeenTools') -> List[Any]:
+def find_modules_by_name_starting_with(name_start: str = 'KeenTools') -> List[Any]:
     try:
         mods = filter_module_list_by_name_starting_with(addon_utils.modules(),
                                                         name_start)
@@ -106,5 +106,19 @@ def mark_old_modules(mods: List[Any], filter_dict: Dict) -> None:
 
 
 def total_redraw_ui() -> None:
+    ''' This call also updates all texture nodes in scene depsgraph '''
     if not bpy_background_mode():
         bpy.ops.wm.redraw_timer(type='DRAW_WIN_SWAP', iterations=1)
+        _log.output(_log.color('red', 'total_redraw_ui'))
+
+
+def total_redraw_ui_overriding_window() -> None:
+    ''' This function is actual for Blender 2.80 only '''
+    if not bpy_background_mode():
+        wm = bpy.context.window_manager
+        override = {
+            'window': wm.windows[0],
+            'screen': wm.windows[0].screen,
+        }
+        bpy.ops.wm.redraw_timer(override, type='DRAW_WIN_SWAP', iterations=1)
+        _log.output(_log.color('red', 'total_redraw_ui_overriding_window'))

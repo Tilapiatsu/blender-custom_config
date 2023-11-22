@@ -17,12 +17,10 @@
 # ##### END GPL LICENSE BLOCK #####
 
 bl_info = {
-    "name": "KeenTools FaceBuilder 2023.1.0",  # (1/5)
-    "version": (2023, 1, 0),  # 2023.1.0 (2/5)
+    "name": "KeenTools FaceBuilder & GeoTracker 2023.3.0",  # (1/5)
+    "version": (2023, 3, 0),  # 2023.3.0 (2/5)
     "author": "KeenTools",
-    "description": "KeenTools bundle for Blender. "
-                   "FaceBuilder: Creates Head and Face geometry with a few "
-                   "reference photos",
+    "description": "FaceBuilder: Create Heads. GeoTracker: Track Objects in videos using 3D models",
     "blender": (2, 80, 0),
     "location": "View UI (press N to open tab bar)",
     "wiki_url": "https://keentools.io",
@@ -37,7 +35,9 @@ import os
 import sys
 import logging.config
 
-import bpy
+from bpy import app as _bpy_app
+from bpy.types import AddonPreferences
+from bpy.utils import register_class, unregister_class
 
 # Only minimal imports are performed to check the start
 from .addon_config import Config
@@ -51,10 +51,10 @@ logging.config.fileConfig(os.path.join(base_dir,
     'logging_debug_console.conf' if 'KEENTOOLS_ENABLE_DEBUG_LOGGING'
     in os.environ else 'logging.conf'),
     disable_existing_loggers=False)
-logger = logging.getLogger(__name__)
+_log = logging.getLogger(__name__)
 txt = get_system_info()
 txt.append('Addon: {}'.format(bl_info['name']))
-logger.info('\n---\nSystem Info:\n' + '\n'.join(txt) + '\n---\n')
+_log.info('\n---\nSystem Info:\n' + '\n'.join(txt) + '\n---\n')
 
 
 def _is_platform_64bit():
@@ -67,11 +67,11 @@ def _is_python_64bit():
 
 
 def _is_config_latest():
-    return Config.addon_version == '2023.1.0'  # (3/5)
+    return Config.addon_version == '2023.3.0'  # (3/5)
 
 
 def _is_blender_too_old():
-    return bpy.app.version < Config.minimal_blender_api
+    return _bpy_app.version < Config.minimal_blender_api
 
 
 def _check_libraries():
@@ -89,7 +89,7 @@ def _can_load():
 
 
 if not _can_load():
-    class KTCannotLoadPreferences(bpy.types.AddonPreferences):
+    class KTCannotLoadPreferences(AddonPreferences):
         bl_idname = Config.addon_name
 
         def draw(self, context):
@@ -150,57 +150,72 @@ if not _can_load():
 
 
     def register():
-        logger = logging.getLogger(__name__)
-        bpy.utils.register_class(KTCannotLoadPreferences)
-        logger.error("CANNOT LOAD PREFERENCES REGISTERED")
+        register_class(KTCannotLoadPreferences)
+        _log.error('CANNOT LOAD PREFERENCES REGISTERED')
 
 
     def unregister():
-        logger = logging.getLogger(__name__)
-        bpy.utils.unregister_class(KTCannotLoadPreferences)
-        logger.error("CANNOT LOAD PREFERENCES UNREGISTERED")
+        unregister_class(KTCannotLoadPreferences)
+        _log.error('CANNOT LOAD PREFERENCES UNREGISTERED')
 
 else:
     from .preferences import CLASSES_TO_REGISTER as PREFERENCES_CLASSES
     from .facebuilder import facebuilder_register, facebuilder_unregister
     from .geotracker import geotracker_register, geotracker_unregister
+    from .utils.viewport_state import ViewportStateItem
     from .utils.warning import KT_OT_AddonWarning
     from .utils.common_operators import CLASSES_TO_REGISTER as COMMON_OPERATOR_CLASSES
     from .updater import CLASSES_TO_REGISTER as UPDATER_CLASSES
 
 
     CLASSES_TO_REGISTER = PREFERENCES_CLASSES + UPDATER_CLASSES + \
-                          COMMON_OPERATOR_CLASSES + (KT_OT_AddonWarning,)
+                          COMMON_OPERATOR_CLASSES + (ViewportStateItem,
+                                                     KT_OT_AddonWarning,)
+
+
+    def stop_timers(value: bool = True):
+        _log.debug('STOP TIMERS')
+        try:
+            from .utils.timer import stop_all_working_timers
+            stop_all_working_timers(value)
+        except Exception as err:
+            _log.error(f'stop_timers Exception:\n{str(err)}')
+        _log.debug('STOPPED TIMERS')
 
 
     def register():
-        logger = logging.getLogger(__name__)
-        logger.debug('START REGISTER CLASSES')
+        _log.debug(f'--- START KEENTOOLS ADDON {bl_info["version"]} '
+                   f'REGISTER ---')
+        stop_timers(False)
+        _log.debug('START REGISTER CLASSES')
         for cls in CLASSES_TO_REGISTER:
-            logger.debug('REGISTER CLASS: \n{}'.format(str(cls)))
-            bpy.utils.register_class(cls)
-        logger.info('KeenTools addon classes have been registered')
+            _log.debug('REGISTER CLASS: \n{}'.format(str(cls)))
+            register_class(cls)
+        _log.info('KeenTools addon classes have been registered')
         facebuilder_register()
-        logger.info('FaceBuilder classes have been registered')
-        if not Config.hide_geotracker:
-            geotracker_register()
-            logger.info('GeoTracker classes have been registered')
+        _log.info('FaceBuilder classes have been registered')
+        geotracker_register()
+        _log.info('GeoTracker classes have been registered')
+        _log.debug(f'=== KEENTOOLS ADDON {bl_info["version"]} REGISTERED ===')
 
 
     def unregister():
-        logger = logging.getLogger(__name__)
-        logger.debug('START UNREGISTER CLASSES')
-        if not Config.hide_geotracker:
-            geotracker_unregister()
-            logger.info('GeoTracker classes have been unregistered')
+        _log.debug(f'--- START KEENTOOLS ADDON {bl_info["version"]} '
+                   f'UNREGISTER ---')
+        stop_timers(True)
+        _log.debug('START UNREGISTER CLASSES')
+        geotracker_unregister()
+        _log.info('GeoTracker classes have been unregistered')
         facebuilder_unregister()
-        logger.info('FaceBuilder classes have been unregistered')
+        _log.info('FaceBuilder classes have been unregistered')
         for cls in reversed(CLASSES_TO_REGISTER):
-            logger.debug('UNREGISTER CLASS: \n{}'.format(str(cls)))
-            bpy.utils.unregister_class(cls)
-        logger.info('KeenTools addon classes have been unregistered')
+            _log.debug('UNREGISTER CLASS: \n{}'.format(str(cls)))
+            unregister_class(cls)
+        _log.info('KeenTools addon classes have been unregistered')
+        _log.debug(f'=== KEENTOOLS ADDON {bl_info["version"]} '
+                   f'UNREGISTERED ===')
 
 
 if __name__ == '__main__':
-    logger.info('KeenTools addon direct initialization')
+    _log.info('KeenTools addon direct initialization')
     register()

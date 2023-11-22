@@ -139,6 +139,11 @@ _default_width = 400
 
 
 error_messages: Dict = {
+    ErrorType.Unknown: ErrorMessage(_default_width, [
+        'Unknown error',
+        ' ',
+        'You should never see this error message. Let us now if it happened.'
+    ]),
     ErrorType.NoLicense: ErrorMessage(_default_width, [
         'License is not found',
         ' ',
@@ -207,5 +212,19 @@ error_messages: Dict = {
         'If you\'re using \'Offline\' mode and have generated the license file manually,',
         'it\'s time to renew the file. Please log in to User Portal, ',
         'download a new file and activate it as you did before.'
+    ]),
+    ErrorType.ShaderProblem: ErrorMessage(_default_width, [
+        'Shader problem',
+        ' ',
+        'Something happened during shader compilation.',
+        'See the System Console to get a detailed error information.'
+    ]),
+    ErrorType.UnsupportedGPUBackend: ErrorMessage(_default_width, [
+        'GPU-backend is not supported',
+        ' ',
+        'Error (1120): Looks like a backend problem. ',
+        'This version of add-on supports OpenGL and Metal. ',
+        'If you see this error, please contact our support. ',
+        'We\'ll do our best to figure it out.'
     ]),
 }

@@ -18,6 +18,8 @@
 import math
 import bpy
 
+from .utils.version import BVersion
+
 
 _company = 'keentools'
 _PT = 'FBUILDER_PT_'
@@ -114,6 +116,9 @@ class FBConfig:
     fb_reset_tone_exposure_idname = operators + '.reset_tone_exposure'
     fb_reset_tone_gamma_idname = operators + '.reset_tone_gamma'
 
+    # Integration
+    fb_export_to_cc_idname = operators + '.export_to_cc'
+
     # Panel ids
     fb_header_panel_idname = _PT + 'header_panel'
     fb_camera_panel_idname = _PT + 'camera_panel'
@@ -124,6 +129,7 @@ class FBConfig:
     fb_model_panel_idname = _PT + 'model_panel'
     fb_appearance_panel_idname = _PT + 'appearance_panel'
     fb_blendshapes_panel_idname = _PT + 'blendshapes_panel'
+    fb_export_panel_idname = _PT + 'export_panel'
 
     # Help ids
     fb_help_camera_idname = operators + '.help_camera'
@@ -183,6 +189,8 @@ class FBConfig:
     camera_x_step = 2.0
     camera_y_step = 5
     camera_z_step = 0.5
+
+    wireframe_offset_constant: float = 0.001
 
     next_head_step = (2.5, 0., 0.)
     face_selection_frame_width = 3.0
@@ -246,4 +254,7 @@ def check_addon_settings_var_type():
     if not hasattr(bpy.types.Scene, FBConfig.fb_global_var_name):
         return None
     attr = getattr(bpy.types.Scene, FBConfig.fb_global_var_name)
-    return attr.keywords['type']
+    if BVersion.property_keywords_enabled:
+        return attr.keywords['type']
+    else:
+        return attr[1]['type']

@@ -21,18 +21,19 @@ from typing import Any, Callable, Optional, Tuple, List
 import re
 import os
 
-import bpy
 from bpy.types import Image, Camera, Object, MovieClip
 
-from ..addon_config import Config
+from .version import BVersion
 from .kt_logging import KTLogger
-from .bpy_common import bpy_app_version, bpy_end_frame
+from ..addon_config import Config
+from .bpy_common import (bpy_start_frame,
+                         bpy_end_frame,
+                         bpy_current_frame,
+                         bpy_images,
+                         bpy_abspath)
 
 
 _log = KTLogger(__name__)
-
-
-pixels_foreach_methods_exist = bpy_app_version() >= (2, 83, 0)
 
 
 def _assign_pixels_data_new(pixels: Any, data: Any) -> None:
@@ -44,7 +45,7 @@ def _assign_pixels_data_old(pixels: Any, data: Any) -> None:
 
 
 assign_pixels_data: Callable = _assign_pixels_data_new \
-    if pixels_foreach_methods_exist else _assign_pixels_data_old
+    if BVersion.pixels_foreach_methods_exist else _assign_pixels_data_old
 
 
 def _get_pixels_data_new(pixels: Any, data: Any) -> None:
@@ -56,7 +57,7 @@ def _get_pixels_data_old(pixels: Any, data: Any) -> None:
 
 
 get_pixels_data: Callable = _get_pixels_data_new \
-    if pixels_foreach_methods_exist else _get_pixels_data_old
+    if BVersion.pixels_foreach_methods_exist else _get_pixels_data_old
 
 
 def _copy_pixels_data_new(src_pixels: Any, dst_pixels: Any) -> None:
@@ -68,7 +69,7 @@ def _copy_pixels_data_old(src_pixels: Any, dst_pixels: Any) -> None:
 
 
 copy_pixels_data = _copy_pixels_data_new \
-    if pixels_foreach_methods_exist else _copy_pixels_data_old
+    if BVersion.pixels_foreach_methods_exist else _copy_pixels_data_old
 
 
 def np_array_from_bpy_image(bpy_image: Optional[Image]) -> Optional[Any]:
@@ -99,14 +100,56 @@ def gamma_np_image(np_img: Any, gamma: float=1.0) -> Any:
     return res_img
 
 
-def get_background_image_object(camobj: Camera, index: int=0) -> Any:
+def get_background_image_object(camobj: Camera, index: int = 0) -> Any:
     cam_data = camobj.data
     while len(cam_data.background_images) <= index:
         cam_data.background_images.new()
     return cam_data.background_images[index]
 
 
+def get_background_image_strict(camobj: Camera, index: int = 0) -> Optional[Image]:
+    if not camobj or not camobj.data:
+        return None
+
+    cam_data = camobj.data
+    if len(cam_data.background_images) <= index:
+        return None
+
+    bg_img = cam_data.background_images[index]
+    if not bg_img:
+        return None
+
+    current_frame = bpy_current_frame()
+    img_user = bg_img.image_user
+    if img_user.frame_start <= current_frame < img_user.frame_start + img_user.frame_duration:
+        return bg_img.image
+
+    return None
+
+
+def check_background_image_absent_frames(camobj: Camera, index: int,
+                                         frames: List) -> List:
+    if not camobj or not camobj.data:
+        return frames[:]
+
+    cam_data = camobj.data
+    if len(cam_data.background_images) <= index:
+        return frames[:]
+
+    bg_img = cam_data.background_images[index]
+    if not bg_img:
+        return frames[:]
+
+    frame_start = bg_img.image_user.frame_start
+    frame_duration = bg_img.image_user.frame_duration
+
+    return [x for x in frames if not
+            frame_start <= x < frame_start + frame_duration]
+
+
 def remove_background_image_object(camobj: Camera, index: int) -> bool:
+    if not camobj:
+        return False
     cam_data = camobj.data
     if len(cam_data.background_images) <= index:
         return False
@@ -121,7 +164,8 @@ def show_background_images(camobj: Camera, reload: bool=False) -> None:
     cam_data.show_background_images = True
 
 
-def _get_file_number(filename: str) -> int:
+def get_sequence_file_number(filepath: str) -> int:
+    filename = os.path.basename(bpy_abspath(filepath))
     name, _ = os.path.splitext(filename)
     regex = re.compile(r'\d+$')
     regex.findall(name)
@@ -132,7 +176,9 @@ def _get_file_number(filename: str) -> int:
 
 
 def set_background_image_by_movieclip(camobj: Camera, movie_clip: MovieClip,
-                                      name: str='geotracker_bg') -> None:
+                                      name: str = 'geotracker_bg',
+                                      index: int = 0) -> None:
+    _log.output(f'set_background_image_by_movieclip: {name} index={index}')
     if not camobj or not movie_clip:
         return
 
@@ -140,8 +186,9 @@ def set_background_image_by_movieclip(camobj: Camera, movie_clip: MovieClip,
         _log.error('UNKNOWN MOVIECLIP TYPE')
         return
 
-    bg_img = get_background_image_object(camobj)
-    bg_img.alpha = 1.0
+    bg_img = get_background_image_object(camobj, index)
+    bg_img.alpha = 1.0 if index == 0 else 0.0
+
     cam_data = camobj.data
     cam_data.show_background_images = True
 
@@ -149,9 +196,11 @@ def set_background_image_by_movieclip(camobj: Camera, movie_clip: MovieClip,
     img = bg_img.image
     if not img:
         w, h = movie_clip.size[:]
-        img = bpy.data.images.new(name, width=w, height=h, alpha=True,
+        img = bpy_images().new(name, width=w, height=h, alpha=True,
                                   float_buffer=False)
         bg_img.image = img
+
+    img.use_view_as_render = True
 
     if movie_clip.source == 'MOVIE':
         img.source = 'MOVIE'
@@ -160,25 +209,31 @@ def set_background_image_by_movieclip(camobj: Camera, movie_clip: MovieClip,
 
     img.filepath = movie_clip.filepath
     bg_img.image_user.frame_duration = movie_clip.frame_duration
-    bg_img.image_user.frame_start = 1
+    bg_img.image_user.frame_start = movie_clip.frame_start
     bg_img.image_user.use_auto_refresh = True
 
     if movie_clip.source == 'SEQUENCE':
-        file_number = _get_file_number(os.path.basename(movie_clip.filepath))
-        if file_number > 1:
-            bg_img.image_user.frame_offset = file_number - 1
+        file_number = get_sequence_file_number(movie_clip.filepath)
+        if file_number < 0:
+            file_number = 1
+        bg_img.image_user.frame_offset = file_number - 1
+        _log.output(f'path: [{file_number}]\n{movie_clip.filepath}')
+
+    try:
+        img.colorspace_settings.name = movie_clip.colorspace_settings.name
+    except Exception as err:
+        _log.error(f'set_background_image_by_movieclip Exception:\n{str(err)}')
 
 
-def set_background_image_mask(camobj: Camera, mask_2d: str) -> bool:
-    mask = find_bpy_image_by_name(mask_2d)
+def set_background_image_mask(camobj: Camera, mask: Image) -> bool:
     if mask is not None:
         bg_img = get_background_image_object(camobj, index=1)
         bg_img.alpha = 0.0
         bg_img.source = 'IMAGE'
         bg_img.image = mask
-        bg_img.image_user.frame_start = 1
+        bg_img.image_user.frame_start = bpy_start_frame()
         bg_img.image_user.use_auto_refresh = True
-        bg_img.image_user.frame_duration = bpy_end_frame()
+        bg_img.image_user.frame_duration = bpy_end_frame() - bpy_start_frame() + 1
         camobj.data.show_background_images = True
         return True
     else:
@@ -188,21 +243,21 @@ def set_background_image_mask(camobj: Camera, mask_2d: str) -> bool:
 
 
 def find_bpy_image_by_name(image_name: str) -> Optional[Image]:
-    image_num = bpy.data.images.find(image_name)
+    image_num = bpy_images().find(image_name)
     if image_num >= 0:
-        return bpy.data.images[image_num]
+        return bpy_images()[image_num]
     return None
 
 
 def remove_bpy_image(image: Optional[Image]) -> None:
-    if image and image.name in bpy.data.images.keys():
-        bpy.data.images.remove(image)
+    if image and image.name in bpy_images().keys():
+        bpy_images().remove(image)
 
 
 def remove_bpy_image_by_name(image_name: str) -> None:
     image = find_bpy_image_by_name(image_name)
     if image is not None:
-        bpy.data.images.remove(image)
+        bpy_images().remove(image)
 
 
 def store_bpy_image_in_scene(image: Image) -> None:
@@ -243,10 +298,24 @@ def np_threshold_image(np_img: Any, threshold: float=0.0) -> Any:
                     np_img[:, :, 2]) / 3.0 > threshold)).astype(np.uint8)
 
 
-def np_array_from_background_image(camobj: Camera, index: int=0) -> Optional[Any]:
-    bg_img = get_background_image_object(camobj, index)
-    np_img = np_array_from_bpy_image(bg_img.image)
-    return np_img
+def np_threshold_image_with_channels(np_img: Any, channels: List[bool],
+                                     threshold: float=0.0) -> Optional[Any]:
+    denom = sum(channels)
+    if denom == 0:
+        return None
+    return (255 * ((channels[0] * np_img[:, :, 0] +
+                    channels[1] * np_img[:, :, 1] +
+                    channels[2] * np_img[:, :, 2] +
+                    channels[3] * np_img[:, :, 3]) / denom > threshold)).astype(np.uint8)
+
+
+def np_threshold_single_channel_image(np_img: Any, threshold: float=0.0) -> Any:
+    return (255 * (np_img > threshold)).astype(np.uint8)
+
+
+def np_array_from_background_image(camobj: Camera, index: int = 0) -> Optional[Any]:
+    img = get_background_image_strict(camobj, index)
+    return np_array_from_bpy_image(img)
 
 
 def reset_tone_mapping(cam_image: Optional[Image]) -> None:
@@ -268,6 +337,9 @@ def tone_mapping(cam_image, exposure, gamma):
         _log.output('SKIP tone mapping, only reload()')
         return
     np_img = np_array_from_bpy_image(cam_image)
+    if np_img is None:
+        _log.output('tone_mapping: Cannot load image')
+        return
 
     gain = pow(2, exposure / 2.2)
     np_img[:, :, :3] = np.power(gain * np_img[:, :, :3], 1.0 / gamma)
@@ -276,14 +348,13 @@ def tone_mapping(cam_image, exposure, gamma):
                 '(gain: {}) gamma: {}'.format(exposure, gain, gamma))
 
 
-def create_compatible_bpy_image(np_img: Any, name: str= 'tmp_name') -> Any:
-    img = bpy.data.images.new(name,
-                              width=np_img.shape[1], height=np_img.shape[0],
-                              alpha=True, float_buffer=False)
+def create_compatible_bpy_image(np_img: Any, name: str = 'tmp_name') -> Any:
+    img = bpy_images().new(name, width=np_img.shape[1], height=np_img.shape[0],
+                           alpha=True, float_buffer=False)
     return img
 
 
-def create_bpy_image_from_np_array(np_img: Any, name: str='tmp_name') -> Any:
+def create_bpy_image_from_np_array(np_img: Any, name: str = 'tmp_name') -> Any:
     img = create_compatible_bpy_image(np_img, name)
     assign_pixels_data(img.pixels, np_img.ravel())
     return img

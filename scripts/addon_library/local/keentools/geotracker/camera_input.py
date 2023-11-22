@@ -18,6 +18,7 @@
 
 import numpy as np
 from typing import Any, Tuple, List, Dict, Optional
+from math import frexp
 
 from ..utils.kt_logging import KTLogger
 from ..geotracker_config import get_gt_settings, get_current_geotracker_item
@@ -35,15 +36,18 @@ from ..utils.animation import (get_safe_evaluated_fcurve,
                                remove_fcurve_from_object)
 from ..utils.bpy_common import (bpy_current_frame,
                                 bpy_set_current_frame,
-                                bpy_render_frame)
+                                bpy_render_frame,
+                                bpy_start_frame,
+                                bpy_end_frame,
+                                get_traceback)
 from ..blender_independent_packages.pykeentools_loader import module as pkt_module
 from ..geotracker.gtloader import GTLoader
 from ..utils.images import (np_array_from_background_image,
                             np_threshold_image,
+                            np_threshold_image_with_channels,
                             np_array_from_bpy_image)
 from ..utils.ui_redraw import total_redraw_ui
 from ..utils.mesh_builder import build_geo
-from ..utils.materials import find_bpy_image_by_name
 
 
 _log = KTLogger(__name__)
@@ -65,15 +69,60 @@ class GTCameraInput(pkt_module().TrackerCameraInputI):
 
 
 class GTGeoInput(pkt_module().GeoInputI):
+    _previous_val: int = 0
+    _hash_counter: int = 0
+
+    @classmethod
+    def increment_hash(cls) -> None:
+        cls._hash_counter += 1
+        if cls._hash_counter > 1000:
+            cls._hash_counter = 0
+
+    @classmethod
+    def get_hash_counter(cls) -> int:
+        return cls._hash_counter
+
+    @classmethod
+    def _set_previous_val(cls, val) -> None:
+        cls._previous_val = val
+
+    def _rounded(self, val: float) -> int:
+        p = frexp(val)
+        return int(round(p[0] * 10000, 0) + 3 * p[1])
+
     def geo_hash(self) -> Any:
+        _log.output(_log.color('magenta', 'get geo_hash'))
         settings = get_gt_settings()
-        return pkt_module().Hash(abs(hash(settings.pinmode_id)))
+
+        if settings.is_calculating() and self._previous_val != 0:
+            return pkt_module().Hash(self._previous_val)
+
+        geotracker = settings.get_current_geotracker_item()
+        if geotracker and geotracker.geomobj:
+            vert_count = len(geotracker.geomobj.data.vertices)
+            empirical_const = 3
+            poly_count = len(geotracker.geomobj.data.polygons) * empirical_const
+            scale = geotracker.geomobj.matrix_world.to_scale()
+            scale_val = self._rounded(29 * scale[0]) + \
+                        self._rounded(31 * scale[1]) + \
+                        self._rounded(37 * scale[2])
+        else:
+            vert_count = 0
+            poly_count = 0
+            scale_val = 0
+
+        val = abs(hash(settings.pinmode_id) + vert_count + poly_count +
+                  scale_val + self.get_hash_counter())
+        if val != self._previous_val:
+            _log.output(_log.color('magenta', 'geo_hash changed'))
+            self._set_previous_val(val)
+        return pkt_module().Hash(val)
 
     def geo(self) -> Any:
         geotracker = get_current_geotracker_item()
         if not geotracker:
             return None
-        return build_geo(geotracker.geomobj, evaluated=True, get_uv=False)
+        return build_geo(geotracker.geomobj, get_uv=False)
 
 
 class GTImageInput(pkt_module().ImageInputI):
@@ -85,21 +134,26 @@ class GTImageInput(pkt_module().ImageInputI):
             w, h = bpy_render_frame()
             return np.full((h, w, 3), (0.0, 0.0, 0.0), dtype=np.float32)
 
-        _log.output(f'load_linear_rgb_image_at: {frame}')
-        geotracker = get_current_geotracker_item()
+        _log.output(_log.color('magenta', f'load_linear_rgb_image_at: {frame}'))
+        settings = get_gt_settings()
+        geotracker = settings.get_current_geotracker_item()
         if not geotracker:
             _log.error('load_linear_rgb_image_at NO GEOTRACKER')
             return _empty_image()
 
         current_frame = bpy_current_frame()
         if current_frame != frame:
+            _log.output('load_linear_rgb_image_at1')
             bpy_set_current_frame(frame)
+            _log.output('load_linear_rgb_image_at2')
 
         total_redraw_ui()
-        np_img = np_array_from_background_image(geotracker.camobj)
+        np_img = np_array_from_background_image(geotracker.camobj, index=0)
 
-        if current_frame != frame:
+        if (current_frame != frame) and not settings.is_calculating():
+            _log.output('load_linear_rgb_image_at3')
             bpy_set_current_frame(current_frame)
+
         if np_img is not None:
             return np_img[:, :, :3]
         else:
@@ -107,28 +161,21 @@ class GTImageInput(pkt_module().ImageInputI):
             return _empty_image()
 
     def first_frame(self) -> int:
-        geotracker = get_current_geotracker_item()
-        if not geotracker:
-            return 1
-        return geotracker.precalc_start
+        return bpy_start_frame()
 
     def last_frame(self) -> int:
-        geotracker = get_current_geotracker_item()
-        if not geotracker:
-            return 0
-        return geotracker.precalc_end
+        return bpy_end_frame()
 
 
 class GTMask2DInput(pkt_module().Mask2DInputI):
     def load_image_2d_mask_at(self, frame: int) -> Any:
-        geotracker = get_current_geotracker_item()
-        if not geotracker or geotracker.mask_2d == '':
-            return None
-        bpy_img = find_bpy_image_by_name(geotracker.mask_2d)
-        if bpy_img is None:
+        settings = get_gt_settings()
+        geotracker = settings.get_current_geotracker_item()
+        if not geotracker or not geotracker.mask_2d:
             return None
 
         current_frame = bpy_current_frame()
+        _log.output(f'load_image_2d_mask_at: {frame} [{current_frame}]')
         if current_frame != frame:
             _log.output(f'FORCE CHANGE FRAME TO: {frame}')
             bpy_set_current_frame(frame)
@@ -136,7 +183,7 @@ class GTMask2DInput(pkt_module().Mask2DInputI):
         total_redraw_ui()
         np_img = np_array_from_background_image(geotracker.camobj, index=1)
 
-        if current_frame != frame:
+        if (current_frame != frame) and not settings.is_calculating():
             _log.output(f'REVERT FRAME TO: {frame}')
             bpy_set_current_frame(current_frame)
 
@@ -149,9 +196,15 @@ class GTMask2DInput(pkt_module().Mask2DInputI):
             _log.error(f'MASK HAS DIFFERENT SIZE: {np_img.shape} RW: {rw} RH: {rh}')
 
         _log.output(f'MASK INPUT HAS BEEN CALCULATED AT FRAME: {frame}')
-        grayscale = np_threshold_image(np_img, geotracker.mask_2d_threshold)
-        _log.output(f'MASK SIZE: {grayscale.shape}')
-        return pkt_module().LoadedMask(grayscale, geotracker.mask_2d_inverted)
+
+        result = np_threshold_image_with_channels(
+            np_img, geotracker.get_mask_2d_channels(),
+            geotracker.mask_2d_threshold)
+
+        if result is not None:
+            _log.output(f'mask shape: {result.shape}')
+            return pkt_module().LoadedMask(result, geotracker.mask_2d_inverted)
+        return None
 
     def load_compositing_2d_mask_at(self, frame: int) -> Any:
         geotracker = get_current_geotracker_item()
@@ -170,17 +223,18 @@ class GTMask2DInput(pkt_module().Mask2DInputI):
 
     def load_2d_mask_at(self, frame: int) -> Any:
         geotracker = get_current_geotracker_item()
-        if geotracker.mask_source == 'MASK_2D':
-            return self.load_image_2d_mask_at(frame)
-        elif geotracker.mask_source == 'COMP_MASK':
+        mask_source = geotracker.get_2d_mask_source()
+        if mask_source == 'COMP_MASK':
             return self.load_compositing_2d_mask_at(frame)
+        elif mask_source == 'MASK_2D':
+            return self.load_image_2d_mask_at(frame)
         return None
 
 
 class GTGeoTrackerResultsStorage(pkt_module().GeoTrackerResultsStorageI):
     def __init__(self):
         super().__init__()
-        fl_mode = pkt_module().GeoTracker.FocalLengthMode
+        fl_mode = pkt_module().TrackerFocalLengthMode
         self._modes: Dict = {
             mode.name: mode for mode in [
             fl_mode.CAMERA_FOCAL_LENGTH,
@@ -191,7 +245,7 @@ class GTGeoTrackerResultsStorage(pkt_module().GeoTrackerResultsStorageI):
     def _mode_by_value(self, value: str) -> Any:
         if value in self._modes.keys():
             return self._modes[value]
-        return pkt_module().GeoTracker.FocalLengthMode.CAMERA_FOCAL_LENGTH
+        return pkt_module().TrackerFocalLengthMode.CAMERA_FOCAL_LENGTH
 
     def _set_fl_mode(self, enum_value) -> None:
         geotracker = get_current_geotracker_item()
@@ -222,7 +276,8 @@ class GTGeoTrackerResultsStorage(pkt_module().GeoTrackerResultsStorageI):
         return True
 
     def model_mat_at(self, frame: int) -> Any:
-        geotracker = get_current_geotracker_item()
+        settings = get_gt_settings()
+        geotracker = settings.get_current_geotracker_item()
         if not geotracker:
             return np.eye(4)
 
@@ -230,14 +285,16 @@ class GTGeoTrackerResultsStorage(pkt_module().GeoTrackerResultsStorageI):
         if current_frame != frame:
             bpy_set_current_frame(frame)
             mat = geotracker.calc_model_matrix()
-            bpy_set_current_frame(current_frame)
+            if not settings.is_calculating():
+                bpy_set_current_frame(current_frame)
             return mat
         else:
             return geotracker.calc_model_matrix()
 
     def set_model_mat_at(self, frame: int, model_mat: Any) -> None:
         _log.output(f'set_model_mat_at1: {frame}')
-        geotracker = get_current_geotracker_item()
+        settings = get_gt_settings()
+        geotracker = settings.get_current_geotracker_item()
         if not geotracker:
             return
         if not geotracker.geomobj or not geotracker.camobj:
@@ -263,7 +320,7 @@ class GTGeoTrackerResultsStorage(pkt_module().GeoTrackerResultsStorageI):
         gt = GTLoader.kt_geotracker()
         keyframe_type = 'KEYFRAME' if gt.is_key_at(frame) else 'JITTER'
         create_locrot_keyframe(geotracker.animatable_object(), keyframe_type)
-        if current_frame != frame:
+        if (current_frame != frame) and not settings.is_calculating():
             bpy_set_current_frame(current_frame)
 
     def remove_track_data(self, *args, **kwargs) -> None:
@@ -293,6 +350,8 @@ class GTGeoTrackerResultsStorage(pkt_module().GeoTrackerResultsStorageI):
         _log.output(f'zoom_focal_length_at: {frame}')
         geotracker = get_current_geotracker_item()
         if not geotracker or not geotracker.camobj:
+            _log.output(f'zoom_focal_length_at default: '
+                        f'{geotracker.default_zoom_focal_length}')
             return geotracker.default_zoom_focal_length
         return focal_mm_to_px(
             get_safe_evaluated_fcurve(geotracker.camobj.data, frame, 'lens'),
@@ -317,7 +376,7 @@ class GTGeoTrackerResultsStorage(pkt_module().GeoTrackerResultsStorageI):
     def set_zoom_focal_length_mode(self, default_fl: float) -> None:
         _log.output('set_zoom_focal_length_mode call')
         self.set_default_zoom_focal_length(default_fl)
-        self._set_fl_mode(pkt_module().GeoTracker.FocalLengthMode.ZOOM_FOCAL_LENGTH)
+        self._set_fl_mode(pkt_module().TrackerFocalLengthMode.ZOOM_FOCAL_LENGTH)
 
     def set_static_focal_length(self, static_fl: float) -> None:
         _log.output(f'set_static_focal_length: {static_fl}')
@@ -325,7 +384,7 @@ class GTGeoTrackerResultsStorage(pkt_module().GeoTrackerResultsStorageI):
 
     def set_static_focal_length_mode(self, static_fl: float) -> None:
         _log.output(f'set_static_focal_length_mode: {static_fl}')
-        self._set_fl_mode(pkt_module().GeoTracker.FocalLengthMode.STATIC_FOCAL_LENGTH)
+        self._set_fl_mode(pkt_module().TrackerFocalLengthMode.STATIC_FOCAL_LENGTH)
         self._set_static_fl(static_fl)
 
     def static_focal_length(self) -> float:
@@ -336,12 +395,12 @@ class GTGeoTrackerResultsStorage(pkt_module().GeoTrackerResultsStorageI):
 
     def set_camera_focal_length_mode(self) -> None:
         _log.output('set_camera_focal_length_mode')
-        self._set_fl_mode(pkt_module().GeoTracker.FocalLengthMode.CAMERA_FOCAL_LENGTH)
+        self._set_fl_mode(pkt_module().TrackerFocalLengthMode.CAMERA_FOCAL_LENGTH)
 
     def focal_length_mode(self) -> Any:
         geotracker = get_current_geotracker_item()
         if not geotracker:
-            return pkt_module().GeoTracker.FocalLengthMode.CAMERA_FOCAL_LENGTH
+            return pkt_module().TrackerFocalLengthMode.CAMERA_FOCAL_LENGTH
         return self._mode_by_value(geotracker.focal_length_mode)
 
     def set_zoom_focal_length_at(self, frame: int, fl: float) -> None:
