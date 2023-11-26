@@ -1,5 +1,4 @@
 import json
-
 import bpy
 from bpy.props import (
     BoolProperty,
@@ -17,13 +16,10 @@ from bpy.types import (
     Scene,
     AddonPreferences,
 )
-
 from bpy_extras.io_utils import ImportHelper
 from ._utils import refresh_ui, get_prefs
-from ._ui import prefs_ui
-from .m_tt.m_tt import set_tt_icon_pos
-# tab category panel update
-from ._ui import UIKeKitMain
+from ._ui import UIKeKitMain, prefs_ui
+from .m_tt import set_tt_icon_pos
 
 kekit_version = (0, 0, 0)  # is set from __init__
 m_tooltip = "Toggles Module On/Off. Read Docs/Wiki for Module information"
@@ -31,7 +27,7 @@ path = bpy.utils.user_resource('CONFIG')
 
 
 # Updating tab location will require "Reload Add-ons":
-# To avoid managing x-importing all the module & submodule panels + future panels added
+# (avoiding managing importing all the module & submodule panels manually & future panels added)
 def update_panel(self, context):
     k = get_prefs()
     error_message = "keKit : panel update failed"
@@ -447,6 +443,9 @@ class KeKitAddonPreferences(AddonPreferences):
                                       description="Shortest allowed Edge length for Tiny Edge Selection")
     clean_collinear: BoolProperty(name="Collinear Verts", default=True,
                                   description="Additional(Superfluous) verts in a straight line on an edge")
+    clean_collinear_val: IntProperty(name="Collinear Tolerance", min=0, max=100, default=0, subtype="PERCENTAGE",
+                                     description="Increase to catch larger angle differences\n"
+                                                 "Note: There is a very small tolerance even at 0")
     # Cursor Fit OP Option
     cursorfit: BoolProperty(description="Also set Orientation & Pivot to Cursor", default=True)
     # Linear Array Global Only Option
@@ -502,24 +501,36 @@ class KeKitAddonPreferences(AddonPreferences):
     snap_elements4: StringProperty(description="Snapping Element Combo 4", default="INCREMENT")
     snap_elements5: StringProperty(description="Snapping Element Combo 5", default="INCREMENT")
     snap_elements6: StringProperty(description="Snapping Element Combo 6", default="INCREMENT")
+    snap_elements_ind1: StringProperty(description="Snapping Element Combo 1", default="FACE_PROJECT")
+    snap_elements_ind2: StringProperty(description="Snapping Element Combo 2", default="FACE_PROJECT")
+    snap_elements_ind3: StringProperty(description="Snapping Element Combo 3", default="FACE_PROJECT,FACE_NEAREST")
+    snap_elements_ind4: StringProperty(description="Snapping Element Combo 4", default="FACE_PROJECT")
+    snap_elements_ind5: StringProperty(description="Snapping Element Combo 5", default="FACE_PROJECT")
+    snap_elements_ind6: StringProperty(description="Snapping Element Combo 6", default="FACE_PROJECT")
     snap_targets1: StringProperty(description="Snapping Targets Combo 1", default="ACTIVE")
     snap_targets2: StringProperty(description="Snapping Targets Combo 2", default="CLOSEST")
     snap_targets3: StringProperty(description="Snapping Targets Combo 3", default="ACTIVE")
     snap_targets4: StringProperty(description="Snapping Targets Combo 4", default="ACTIVE")
     snap_targets5: StringProperty(description="Snapping Targets Combo 5", default="ACTIVE")
     snap_targets6: StringProperty(description="Snapping Targets Combo 6", default="ACTIVE")
-    snap_bools1: BoolVectorProperty(description="Snapping Bools Combo 1", size=9,
-                                    default=[True, False, False, True, False, False, True, False, False])
-    snap_bools2: BoolVectorProperty(description="Snapping Bools Combo 2", size=9,
-                                    default=[True, False, False, True, False, False, True, False, False])
-    snap_bools3: BoolVectorProperty(description="Snapping Bools Combo 3", size=9,
-                                    default=[True, False, True, False, True, False, True, False, False])
-    snap_bools4: BoolVectorProperty(description="Snapping Bools Combo 4", size=9,
-                                    default=[True, False, False, True, False, False, True, False, False])
-    snap_bools5: BoolVectorProperty(description="Snapping Bools Combo 5", size=9,
-                                    default=[True, False, False, True, False, False, True, False, False])
-    snap_bools6: BoolVectorProperty(description="Snapping Bools Combo 6", size=9,
-                                    default=[True, False, False, True, False, False, True, False, False])
+    snap_bools1: BoolVectorProperty(
+        description="Snapping Bools Combo 1", size=11,
+        default=[True, False, False, False, False, False, False, False, False, False, False])
+    snap_bools2: BoolVectorProperty(
+        description="Snapping Bools Combo 2", size=11,
+        default=[True, False, False, False, False, False, False, False, False, False, False])
+    snap_bools3: BoolVectorProperty(
+        description="Snapping Bools Combo 3", size=11,
+        default=[True, False, False, False, False, False, False, False, False, False, False])
+    snap_bools4: BoolVectorProperty(
+        description="Snapping Bools Combo 4", size=11,
+        default=[True, False, False, False, False, False, False, False, False, False, False])
+    snap_bools5: BoolVectorProperty(
+        description="Snapping Bools Combo 5", size=11,
+        default=[True, False, False, False, False, False, False, False, False, False, False])
+    snap_bools6: BoolVectorProperty(
+        description="Snapping Bools Combo 6", size=11,
+        default=[True, False, False, False, False, False, False, False, False, False, False])
     # snap combo naming
     snap_name1: StringProperty(description="Snapping Combo 1 Name", default="Snap Combo 1")
     snap_name2: StringProperty(description="Snapping Combo 2 Name", default="Snap Combo 2")
@@ -642,6 +653,9 @@ class KeKitAddonPreferences(AddonPreferences):
                                    description="Context Select - Select All Objects in selected object's Collection\n"
                                                "(in OBJECT MODE)",
                                    default=False)
+    context_merge: BoolProperty(
+        name="E", default=False, description="MergeCollapse Edge Mode:\n"
+                                             "Off: Merge to active edge, On: Collapse average (vanilla op) ")
     # Auto-Apply Scale
     apply_scale: BoolProperty(name="A",
                                    description="Auto Apply Scale before operation. (Shared setting for multiple ops)",
@@ -651,6 +665,9 @@ class KeKitAddonPreferences(AddonPreferences):
                                  description="When mouse is over selected object(s) use non-constrained scale.\n"
                                              "Else, use axis constrain relative to mouse (default mouse axis move)",
                                  default=False)
+
+    show_shortcuts: BoolProperty(name="Show Assigned Shortcuts", default=False)
+    show_conflicts: BoolProperty(name="Show Possible Shortcut Conflicts", default=False)
 
     # TT header icons prefs
     tt_icon_pos: EnumProperty(

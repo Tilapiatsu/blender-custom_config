@@ -1,8 +1,6 @@
 import os
 from math import radians, sqrt
-
 import numpy as np
-
 import bmesh
 import bpy
 from bpy_extras.view3d_utils import (
@@ -141,16 +139,21 @@ def get_layer_collection(layer_coll, coll_name):
 
 
 def set_active_collection(context, obj):
-    avail = [i.name for i in context.view_layer.layer_collection.children]
-    obj_collection = obj.users_collection[0]
-    # Making sure there is no garbage invisible collection used
-    for c in context.object.users_collection:
-        if c.name in avail:
-            obj_collection = c
-            break
+    # get coll
+    if obj:
+        avail = [i.name for i in context.view_layer.layer_collection.children]
+        obj_collection = obj.users_collection[0]
+        # Making sure there is no garbage invisible collection used
+        for c in context.object.users_collection:
+            if c.name in avail:
+                obj_collection = c
+                break
+    else:
+        obj_collection = context.scene.collection
+    # get layer coll
     layer_collection = context.view_layer.layer_collection
-    layer_coll = get_layer_collection(layer_collection, obj_collection.name)
-    context.view_layer.active_layer_collection = layer_coll
+    coll = get_layer_collection(layer_collection, obj_collection.name)
+    context.view_layer.active_layer_collection = coll
 
 
 def dupe(src):
@@ -349,7 +352,7 @@ def get_area_and_type():
 
 
 def override_by_active_view3d(context, mouse_x, mouse_y):
-    # Make context override with active view3d region by mouse pos
+    # Make context override with active view3d region by mouse pos (in active window)
     ctx = context.copy()
     for a in context.screen.areas:
         if a.type == 'VIEW_3D':
@@ -1045,12 +1048,12 @@ def append_nodegroup(path, identifier):
     return ng_import.node_groups[0]
 
 
-def is_bmvert_collinear(v):
+def is_bmvert_collinear(v, tolerance=3.1415):
     le = v.link_edges
     if len(le) == 2:
         vec1 = Vector(v.co - le[0].other_vert(v).co)
         vec2 = Vector(v.co - le[1].other_vert(v).co)
         if vec1.length and vec2.length:
-            if abs(vec1.angle(vec2)) >= 3.1415:
+            if abs(vec1.angle(vec2)) >= tolerance:
                 return True
     return False

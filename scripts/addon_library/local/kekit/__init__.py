@@ -1,9 +1,12 @@
 # ##### BEGIN GPL LICENSE BLOCK #####
 #
-#  This program is free software; you can redistribute it and/or
-#  modify it under the terms of the GNU General Public License
-#  as published by the Free Software Foundation; either version 2
-#  of the License, or (at your option) any later version.
+#  keKit - General Tool Kit / Script Collection for Blender
+#  Copyright (C) 2023  Kjell Emanuelsson (ke-code.xyz)
+#
+#  This program is free software: you can redistribute it and/or modify
+#  it under the terms of the GNU General Public License as published by
+#  the Free Software Foundation, either version 3 of the License, or
+#  (at your option) any later version.
 #
 #  This program is distributed in the hope that it will be useful,
 #  but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -11,31 +14,30 @@
 #  GNU General Public License for more details.
 #
 #  You should have received a copy of the GNU General Public License
-#  along with this program; if not, write to the Free Software Foundation,
-#  Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+#  along with this program.  If not, see https://www.gnu.org/licenses
 #
 # ##### END GPL LICENSE BLOCK #####
 
 from . import _prefs
 from . import _ui
-from .m_bookmarks import m_bookmarks
-from .m_cleanup import m_cleanup
-from .m_context_tools import m_context_tools
-from .m_cursormenu import m_cursormenu
-from .m_geometry import m_geometry
-from .m_modeling import m_modeling
-from .m_modifiers import m_modifiers
-from .m_pie_menus import m_pie_menus
-from .m_render import m_render
-from .m_selection import m_selection
-from .m_tt import m_tt
+from . import m_bookmarks
+from . import m_cleanup
+from . import m_context_tools
+from . import m_cursormenu
+from . import m_geometry
+from . import m_modeling
+from . import m_modifiers
+from . import m_pie_menus
+from . import m_render
+from . import m_selection
+from . import m_tt
 
 bl_info = {
     "name": "keKit",
     "author": "Kjell Emanuelsson",
     "category": "",
     "blender": (2, 80, 0),
-    "version": (3, 0, 1),
+    "version": (3, 0, 8),
     "location": "View3D > Sidebar",
     "warning": "",
     "description": "Extensive Script Collection",
