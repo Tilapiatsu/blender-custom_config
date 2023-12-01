@@ -51,7 +51,10 @@ class TILA_Config_AddonList(bpy.types.UIList):
 		col = grid.column()
 		row = col.row(align=True)
 		if item.is_repository:
-			row.operator('tila.config_sync_addon_list', text='', icon='FILE_REFRESH').name = item.name
+			op = row.operator('tila.config_sync_addon_list', text='', icon='FILE_REFRESH')
+			op.name = item.name
+			op.force = True
+			op.overwrite = True
 			row.prop(item, 'is_sync', text='sync')
 
 		col = grid.column()

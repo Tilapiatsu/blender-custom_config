@@ -61,7 +61,9 @@ class TILA_Config_Preferences(bpy.types.AddonPreferences):
 		column.operator("tila.config_remove", text="Remove Config", icon='TRASH')
 		column.operator("tila.config_disable_addon_list", text="Disable All Addons", icon='CHECKBOX_DEHLT').force=True
 		column.operator("tila.config_clean_addon_list", text="Clean Addon List", icon='BRUSH_DATA').force=False
-		column.operator("tila.config_sync_addon_list", text="Sync Addon List", icon='URL')
+		op = column.operator("tila.config_sync_addon_list", text="Sync Addon List", icon='URL')
+		op.force = True
+		op.overwrite = True
 		column.operator("tila.config_link_addon_list", text="Link Addon List", icon='LINKED')
 		column.operator("tila.config_enable_addon_list", text="Enable Addon List", icon='CHECKBOX_HLT')
 		column.operator("tila.config_set_settings", text="Set Settings", icon='TOOL_SETTINGS')
