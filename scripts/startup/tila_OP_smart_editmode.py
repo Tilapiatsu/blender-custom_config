@@ -104,6 +104,11 @@ class TILA_smart_editmode(bpy.types.Operator):
             elif bpy.context.active_object.type == 'FONT':
                 bpy.ops.object.editmode_toggle()
 
+            elif bpy.context.active_object.type == 'ARMATURE':
+                if self.alt_mode:
+                    bpy.ops.object.posemode_toggle()
+                else:
+                    bpy.ops.object.editmode_toggle()
             else:
                 self.report({'ERROR'}, f'Object Type not Valid : {bpy.context.active_object.type}')
 
