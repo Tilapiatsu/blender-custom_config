@@ -3092,5 +3092,22 @@
                 "destination_path": "#\\scripts\\addons\\shader_plus"
             }
         ]
+    },
+    "substance-tools": {
+        "is_enable": false,
+        "is_sync": false,
+        "online_url": null,
+        "repository_url": "https://github.com/passivestar/substance-tools.git",
+        "branch": "main",
+        "is_submodule": false,
+        "local_path": "#\\scripts\\addon_library\\GIT_Clones\\substance-tools",
+        "keymaps": false,
+        "paths": [
+            {
+                "is_enable": false,
+                "local_subpath": null,
+                "destination_path": "#\\scripts\\addons\\substance-tools"
+            }
+        ]
     }
 }
