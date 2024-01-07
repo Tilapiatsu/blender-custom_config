@@ -3109,5 +3109,22 @@
                 "destination_path": "#\\scripts\\addons\\substance-tools"
             }
         ]
+    },
+    "PidgeonToolBag": {
+        "is_enable": false,
+        "is_sync": false,
+        "online_url": "https://pidgeontools.gumroad.com/l/PidgeonToolBag",
+        "repository_url": null,
+        "branch": null,
+        "is_submodule": false,
+        "local_path": "#\\scripts\\addon_library\\local\\PidgeonToolBag",
+        "keymaps": false,
+        "paths": [
+            {
+                "is_enable": false,
+                "local_subpath": null,
+                "destination_path": "#\\scripts\\addons\\PidgeonToolBag"
+            }
+        ]
     }
 }

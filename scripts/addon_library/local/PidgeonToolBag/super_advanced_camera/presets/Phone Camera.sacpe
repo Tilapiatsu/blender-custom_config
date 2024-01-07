@@ -1,0 +1,53 @@
+{
+    "effects": [
+      {
+        "name": "SAC_CHROMATICABERRATION",
+        "settings": {
+          "Effects_ChromaticAberration_Amount": 0.01
+        }
+      },
+      {
+        "name": "SAC_FOGGLOW",
+        "settings": {
+            "Effects_FogGlow_Strength": 0.03,
+            "Effects_FogGlow_Threshold": 0.25,
+            "Effects_FogGlow_Size": 1
+        }
+      },
+      {
+        "name": "SAC_STREAKS",
+        "settings": {
+            "Effects_Streaks_Strength": 0.01,
+            "Effects_Streaks_Threshold": 5,
+            "Effects_Streaks_Count": 2,
+            "Effects_Streaks_Length": 3,
+            "Effects_Streaks_Fade": 0.97,
+            "Effects_Streaks_Angle": 0.939,
+            "Effects_Streaks_Distortion": 0.25
+        }
+      },
+      {
+        "name": "SAC_POSTERIZE",
+        "settings": {
+          "Effects_Posterize_Steps": 128
+        }
+      },
+      {
+        "name": "SAC_ISONOISE",
+        "settings": {
+            "ISO_strength": 0.1,
+            "ISO_size": 0.6
+        }
+      },
+      {
+        "name": "SAC_HDR",
+        "settings": {
+            "Effects_HDR_blend": 0.4,
+            "Effects_HDR_exposure": -1.75,
+            "Effects_HDR_sigma": 0.1,
+            "Effects_HDR_delta": 1.5
+        }
+      }
+    ]
+  }
+  

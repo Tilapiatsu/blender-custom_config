@@ -1,0 +1,13 @@
+# IDE Settings
+.vscode/
+
+# Run artefacts
+__pycache__
+*_updater/
+test_output.png
+python_modules
+super_render_farm/pidgeon_render_farm
+
+# Release files
+*.zip
+*.pth
