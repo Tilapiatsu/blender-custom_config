@@ -3143,5 +3143,22 @@
                 "destination_path": "#\\scripts\\addons\\Gamepad-Reader"
             }
         ]
+    },
+    "YouV": {
+        "is_enable": false,
+        "is_sync": false,
+        "online_url": null,
+        "repository_url": "https://github.com/JohnKazucki/JD-YouV.git",
+        "branch": "main",
+        "is_submodule": false,
+        "local_path": "#\\scripts\\addon_library\\GIT_Clones\\YouV",
+        "keymaps": false,
+        "paths": [
+            {
+                "is_enable": false,
+                "local_subpath": "JD_YouV",
+                "destination_path": "#\\scripts\\addons\\YouV"
+            }
+        ]
     }
 }
