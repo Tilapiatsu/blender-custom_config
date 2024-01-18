@@ -5,7 +5,7 @@ from mathutils import Vector
 
 
 class KeSelectedToOrigin(Operator):
-    bl_idname = "view3d.selected_to_origin"
+    bl_idname = "view3d.ke_selected_to_origin"
     bl_label = "Selection to Origin"
     bl_description = "Places Selected Object Geo or Element Mode Selection at objects Origin (Location only)\n" \
                      "Object Mode function uses Set Origin - All options available in redo panel"

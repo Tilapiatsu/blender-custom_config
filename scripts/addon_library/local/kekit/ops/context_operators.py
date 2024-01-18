@@ -23,6 +23,7 @@ class KeContextBevel(Operator):
             bpy.ops.object.editmode_toggle()
             bpy.ops.object.transform_apply(location=False, rotation=False, scale=True)
             bpy.ops.object.editmode_toggle()
+            bpy.ops.ed.undo_push()
         if sel_mode[0]:
             bpy.ops.mesh.bevel('INVOKE_DEFAULT', affect='VERTICES')
         elif sel_mode[1]:
@@ -47,7 +48,8 @@ class KeContextExtrude(Operator):
                 context.mode != "OBJECT")
 
     def execute(self, context):
-        k = get_prefs()
+        # k = get_prefs()
+        k = context.preferences.addons['kekit'].preferences
         if k.m_tt:
             use_tt = k.tt_extrude
         else:
@@ -62,6 +64,7 @@ class KeContextExtrude(Operator):
                     if am:
                         context.scene.tool_settings.use_mesh_automerge = False
                     bpy.ops.mesh.extrude_vertices_move(MESH_OT_extrude_verts_indiv=None, TRANSFORM_OT_translate=None)
+                    bpy.ops.ed.undo_push()
                     if am:
                         context.scene.tool_settings.use_mesh_automerge = True
                     bpy.ops.view3d.ke_tt('INVOKE_DEFAULT', True, mode="MOVE")
@@ -74,6 +77,7 @@ class KeContextExtrude(Operator):
                     if am:
                         context.scene.tool_settings.use_mesh_automerge = False
                     bpy.ops.mesh.extrude_edges_move(MESH_OT_extrude_edges_indiv=None, TRANSFORM_OT_translate=None)
+                    bpy.ops.ed.undo_push()
                     if am:
                         context.scene.tool_settings.use_mesh_automerge = True
                     bpy.ops.view3d.ke_tt('INVOKE_DEFAULT', mode="MOVE")

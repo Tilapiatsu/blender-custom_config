@@ -6,7 +6,7 @@ from .._utils import vertloops, get_vert_nearest_mouse, get_area_and_type
 
 
 class KeMergeToMouse(Operator):
-    bl_idname = "mesh.merge_to_mouse"
+    bl_idname = "mesh.ke_merge_to_mouse"
     bl_label = "Merge to Mouse"
     bl_description = "Vert & Face Mode: Merge selected verts to the vert nearest the Mouse " \
                      "(selected + linked verts!)\n" \

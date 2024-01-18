@@ -8,10 +8,10 @@ def get_snap_settings(context):
     s1 = ""
     s4 = ""
     for i in ts.snap_elements_base:
-        s1 = s1 + str(i) + ','
+        s1 += str(i) + ','
     s1 = s1[:-1]
     for i in ts.snap_elements_individual:
-        s4 = s4 + str(i) + ','
+        s4 += str(i) + ','
     if not s4:
         s4 = "NONE"
     s2 = str(ts.snap_target)
@@ -32,9 +32,12 @@ def get_snap_settings(context):
 
 def set_snap_settings(context, s1, s2, s3, s4):
     ts = context.scene.tool_settings
-    ts.snap_elements = s1
     if list(s4)[0] != "NONE":
-        ts.snap_elements_individual = s4
+        # set other set first (to whatever) to 'clear' ind-set...tbd: better method
+        ts.snap_elements = {"INCREMENT"}
+        if s4:
+            ts.snap_elements_individual = set(s4)
+    ts.snap_elements = s1
     ts.snap_target = s2
     ts.use_snap_grid_absolute = s3[0]
     ts.use_snap_backface_culling = s3[1]
@@ -47,6 +50,17 @@ def set_snap_settings(context, s1, s2, s3, s4):
     ts.use_snap_translate = s3[8]
     ts.use_snap_rotate = s3[9]
     ts.use_snap_scale = s3[10]
+
+
+def clean_set(prop):
+    s = set(prop.split(","))
+    if s:
+        ns = []
+        for i in s:
+            if i:
+                ns.append(i)
+        s = set(ns)
+    return s
 
 
 class KeSnapCombo(Operator):
@@ -105,45 +119,33 @@ class KeSnapCombo(Operator):
 
         elif mode == "SET":
             if slot == 1:
-                c = k.snap_elements1
-                s1 = set(c.split(","))
-                ci = k.snap_elements_ind1
-                s4 = set(ci.split(","))
+                s1 = clean_set(k.snap_elements1)
+                s4 = clean_set(k.snap_elements_ind1)
                 s2 = k.snap_targets1
                 s3 = k.snap_bools1
             elif slot == 2:
-                c = k.snap_elements2
-                s1 = set(c.split(","))
-                ci = k.snap_elements_ind2
-                s4 = set(ci.split(","))
+                s1 = clean_set(k.snap_elements2)
+                s4 = clean_set(k.snap_elements_ind2)
                 s2 = k.snap_targets2
                 s3 = k.snap_bools2
             elif slot == 3:
-                c = k.snap_elements3
-                s1 = set(c.split(","))
-                ci = k.snap_elements_ind3
-                s4 = set(ci.split(","))
+                s1 = clean_set(k.snap_elements3)
+                s4 = clean_set(k.snap_elements_ind3)
                 s2 = k.snap_targets3
                 s3 = k.snap_bools3
             elif slot == 4:
-                c = k.snap_elements4
-                s1 = set(c.split(","))
-                ci = k.snap_elements_ind4
-                s4 = set(ci.split(","))
+                s1 = clean_set(k.snap_elements4)
+                s4 = clean_set(k.snap_elements_ind4)
                 s2 = k.snap_targets4
                 s3 = k.snap_bools4
             elif slot == 5:
-                c = k.snap_elements5
-                s1 = set(c.split(","))
-                ci = k.snap_elements_ind5
-                s4 = set(ci.split(","))
+                s1 = clean_set(k.snap_elements5)
+                s4 = clean_set(k.snap_elements_ind5)
                 s2 = k.snap_targets5
                 s3 = k.snap_bools5
             else:
-                c = k.snap_elements6
-                s1 = set(c.split(","))
-                ci = k.snap_elements_ind6
-                s4 = set(ci.split(","))
+                s1 = clean_set(k.snap_elements6)
+                s4 = clean_set(k.snap_elements_ind6)
                 s2 = k.snap_targets6
                 s3 = k.snap_bools6
 

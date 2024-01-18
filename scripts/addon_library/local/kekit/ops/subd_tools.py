@@ -34,10 +34,11 @@ class UISubDModule(Panel):
         row.label(text="Boundary")
         row.prop(k, "boundary_smooth", text="")
         col.separator(factor=0.5)
-        col.prop(k, "limit_surface", text="Use Limit Surface")
+        col.prop(k, "limit_surface")
         col.prop(k, "flat_edit", text="Flat Shade when off")
-        col.prop(k, "optimal_display", text="Use Optimal Display")
-        col.prop(k, "on_cage", text="On Cage")
+        col.prop(k, "optimal_display")
+        col.prop(k, "on_cage")
+        col.prop(k, "em_vis")
         col.prop(k, "subd_autosmooth")
 
 
@@ -77,6 +78,7 @@ class KeSubd(Operator):
         boundary_smooth = k.boundary_smooth
         optimal_display = k.optimal_display
         on_cage = k.on_cage
+        em_vis = k.em_vis
         use_autosmooth = k.subd_autosmooth
 
         mode = context.mode[:]
@@ -109,6 +111,7 @@ class KeSubd(Operator):
                 mod.use_limit_surface = limit_surface
                 mod.show_only_control_edges = optimal_display
                 mod.show_on_cage = on_cage
+                mod.show_in_editmode = em_vis
 
                 obj.data.use_auto_smooth = False
 
@@ -142,11 +145,12 @@ class KeSubd(Operator):
                                 # TURN OFF
                                 mod.show_viewport = False
 
-                                # re-applying these for otherwise added subd modifiers
+                                # re-applying these for subd modifiers added by other means
                                 mod.boundary_smooth = boundary_smooth
                                 mod.use_limit_surface = limit_surface
                                 mod.show_only_control_edges = optimal_display
                                 mod.show_on_cage = on_cage
+                                mod.show_in_editmode = em_vis
 
                                 if use_autosmooth:
                                     auto_smooth = True

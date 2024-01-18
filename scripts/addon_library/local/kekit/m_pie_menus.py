@@ -903,11 +903,12 @@ class KePieMisc(Menu):
             row = pie.row()
             row.separator(factor=1.5)
             p = row.column()
-            p.separator(factor=22)
-            p.ui_units_x = 6
+            p.separator(factor=30)
+            p.ui_units_x = 7
             box = p.box()
             col = box.column(align=True)
-            col.operator('mesh.ke_activeslice', text="Active Slice")
+            col.operator('mesh.ke_activeslice')
+            col.operator('mesh.ke_extrude_along_edges')
             col.separator(factor=0.5)
             if meshtools:
                 col.menu_contents('VIEW3D_MT_ke_edit_mesh')
@@ -1545,7 +1546,7 @@ class KePieSnapAlign(Menu):
     def draw(self, context):
         layout = self.layout
         pie = layout.menu_pie()
-        pie.operator("view3d.cursor_fit_selected_and_orient", text="Cursor Fit&Align", icon="ORIENTATION_CURSOR")
+        pie.operator("view3d.ke_cursor_fit_align", text="Cursor Fit&Align", icon="ORIENTATION_CURSOR")
 
         pie.operator("mesh.ke_zeroscale", text="ZeroScale H", icon="NODE_SIDE").screen_axis = 0
 
@@ -1562,7 +1563,7 @@ class KePieSnapAlign(Menu):
         selbox.operator("view3d.snap_selected_to_cursor", text="Sel.to Cursor w.Offset",
                         icon='RESTRICT_SELECT_OFF').use_offset = True
         selbox.operator("view3d.snap_selected_to_active", text="Selection to Active", icon='RESTRICT_SELECT_OFF')
-        selbox.operator("view3d.selected_to_origin", text="Sel.to Origin (Set Origin)", icon='RESTRICT_SELECT_OFF')
+        selbox.operator("view3d.ke_selected_to_origin", text="Sel.to Origin (Set Origin)", icon='RESTRICT_SELECT_OFF')
         spacer = c.column()
         spacer.label(text="")
         main.label(text="")
@@ -1589,7 +1590,7 @@ class KePieSnapAlign(Menu):
         vbox.label(text="")
         vbox.label(text="")
         vbox = vbox.box().column()
-        vbox.operator('view3d.align_origin_to_selected', text="Align Origin To Selected", icon="OBJECT_ORIGIN")
+        vbox.operator('view3d.ke_align_origin_to_selected', text="Align Origin To Selected", icon="OBJECT_ORIGIN")
         vbox.operator('view3d.ke_origin_to_cursor', text="Align Origin(s) To Cursor", icon="PIVOT_CURSOR")
         vbox.operator('view3d.ke_object_to_cursor', text="Align Object(s) to Cursor", icon="CURSOR")
         vbox.operator('view3d.ke_align_object_to_active', text="Align Object(s) to Active", icon="CON_LOCLIKE")

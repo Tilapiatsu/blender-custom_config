@@ -1,7 +1,6 @@
 import numpy as np
 import blf
 import bpy
-from bpy.app import version as blender_version
 import gpu
 from bpy.props import EnumProperty
 from bpy.types import Operator
@@ -238,7 +237,7 @@ class KeQuickMeasure(Operator):
             return sel, sel_obj
 
         for o in self.ctx.selected_objects:
-            if self.mode == "OBJECT":
+            if self.mode == "OBJECT" or o.type != "MESH":
                 sel.append([o.name, []])
             else:
                 o.update_from_editmode()
@@ -465,10 +464,7 @@ class KeQuickMeasure(Operator):
         bpy.ops.wm.tool_set_by_id(name="builtin.select")
 
         # Prep for GPU draw & run Modal
-        if blender_version >= (4, 0, 0):
-            self.shader = gpu.shader.from_builtin('UNIFORM_COLOR')
-        else:
-            self.shader = gpu.shader.from_builtin('3D_UNIFORM_COLOR')
+        self.shader = gpu.shader.from_builtin('UNIFORM_COLOR')
         bpy.app.handlers.frame_change_post.clear()
 
         args = (self, context)

@@ -4,6 +4,7 @@ from bpy.types import Panel
 from .ops.ke_check_snapping import KeCheckSnapping
 from .ops.ke_clean import KeClean
 from .ops.ke_purge import KePurge
+from .ops.ke_clean_dupe_materials import KeCleanDupeMaterials
 from .ops.ke_select_collinear import KeSelectCollinear
 from .ops.ke_select_flippednormal import KeSelectFlippedNormal
 from .ops.ke_select_occluded_verts import KeSelectOccludedVerts
@@ -48,6 +49,7 @@ class UICleanUpToolsModule(Panel):
         boxrow.operator('view3d.ke_purge', text="Texture").block_type = "TEXTURE"
         boxrow.operator('view3d.ke_purge', text="Image").block_type = "IMAGE"
         col.operator('outliner.orphans_purge', text="Purge All Orphaned Data")
+        col.operator('object.ke_clean_dupe_materials')
 
         col.label(text="Selection Tools")
         col.operator('mesh.ke_select_collinear')
@@ -68,6 +70,7 @@ class UICleanUpToolsModule(Panel):
 classes = (
     KeCheckSnapping,
     KeClean,
+    KeCleanDupeMaterials,
     KePurge,
     KeSelectCollinear,
     KeSelectFlippedNormal,

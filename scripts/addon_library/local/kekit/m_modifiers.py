@@ -1,8 +1,10 @@
 import bpy
 from bpy.types import Panel
 from .ops.ke_shading_toggle import KeShadingToggle
+from .ops.ke_weight_toggle import KeWeightToggle
 from .ops.ke_showcuttermod import KeShowCutterMod
 from .ops.ke_solo_cutter import KeSoloCutter
+from .ops.ke_mod_em_vis import KeModEmVis
 from .ops.subd_tools import KeSubd, KeSubDStep, UISubDModule
 from ._utils import get_prefs
 
@@ -23,11 +25,25 @@ class UIModifiersModule(Panel):
         row.operator('view3d.ke_solo_cutter').mode = "ALL"
         row.operator('view3d.ke_solo_cutter', text="Solo PreC").mode = "PRE"
         col.operator('object.ke_showcuttermod')
+        col.operator('object.ke_mod_em_vis')
+
         row = col.row(align=True)
         row.operator('view3d.ke_shading_toggle', text="Flat/Smooth Toggle")
         row2 = row.row(align=True)
         row2.alignment = "RIGHT"
         row2.prop(k, "shading_tris", text="T", toggle=True)
+
+        row = col.row(align=True)
+        row.operator('mesh.ke_toggle_weight', text="Toggle Bevel Weight").wtype = "BEVEL"
+        row2 = row.row(align=True)
+        row2.alignment = "RIGHT"
+        row2.prop(k, "toggle_same", text="A", toggle=True)
+
+        row = col.row(align=True)
+        row.operator('mesh.ke_toggle_weight', text="Toggle Crease Weight").wtype = "CREASE"
+        row2 = row.row(align=True)
+        row2.alignment = "RIGHT"
+        row2.prop(k, "toggle_same", text="A", toggle=True)
 
 
 classes = (
@@ -38,6 +54,8 @@ classes = (
     KeSoloCutter,
     KeShowCutterMod,
     KeShadingToggle,
+    KeWeightToggle,
+    KeModEmVis,
 )
 
 

@@ -197,6 +197,22 @@ class KeResetPrefs(Operator):
         return {'FINISHED'}
 
 
+class KePropToggle(Operator):
+    bl_idname = "ke.prop_toggle"
+    bl_label = "keKit Property Toggle"
+    bl_description = "Toggle keKit Properties - Boolean On/Off props only\n" \
+                     "Set as shortcut - Assign prop name to shortcut prop field"
+    bl_options = {"INTERNAL"}
+
+    prop : bpy.props.StringProperty()
+
+    def execute(self, context):
+        k = get_prefs()
+        k[self.prop] = not k[self.prop]
+        refresh_ui()
+        return {"FINISHED"}
+
+
 class KeKitPropertiesTemp(PropertyGroup):
     slush: StringProperty(default="")
     view_query: StringProperty(default=" N/A ")
@@ -278,6 +294,9 @@ class KeKitAddonPreferences(AddonPreferences):
     fitprim_sphere_ring: IntProperty(min=3, max=256, default=16)
     fitprim_unit: FloatProperty(min=.00001, max=256, default=0.2)
     fitprim_quadsphere_seg: IntProperty(min=1, max=128, default=8)
+    fitprim_shading: EnumProperty(
+        items=[("FLAT", "Flat", ""), ("SMOOTH", "Smooth", ""), ("AUTO", "AutoSmooth", "")],
+        name="FitPrim Default Shading", default="AUTO")
     # Unrotator
     unrotator_reset: BoolProperty(default=True)
     unrotator_connect: BoolProperty(description="Connect linked faces to selection (Edit Mode)", default=True)
@@ -488,9 +507,10 @@ class KeKitAddonPreferences(AddonPreferences):
     boundary_smooth: EnumProperty(items=[("PRESERVE_CORNERS", "Preserve Corners", ""), ("ALL", "All", "")],
                                   description="Controls how open boundaries are smoothed",
                                   default="PRESERVE_CORNERS")
-    limit_surface: BoolProperty(description="Use Limit Surface", default=False)
-    optimal_display : BoolProperty(description="Use Optimal Display", default=True)
-    on_cage: BoolProperty(description="Show On Edit Cage", default=False)
+    limit_surface: BoolProperty(name="Use Limit Surface",description="Use Limit Surface", default=False)
+    optimal_display: BoolProperty(name="Use Optimal Display", description="Use Optimal Display", default=True)
+    em_vis: BoolProperty(name="Edit-Mode Visibility", description="Edit-Mode Visibility", default=True)
+    on_cage: BoolProperty(name="On Cage", description="Show On Edit Cage", default=False)
     subd_autosmooth: BoolProperty(description="ON:Autosmooth is turned off by toggle when subd is on - and vice versa\n"
                                               "OFF:Autosmooth is not changed by toggle", name="Autosmooth Toggle",
                                   default=True)
@@ -539,21 +559,16 @@ class KeKitAddonPreferences(AddonPreferences):
     snap_name5: StringProperty(description="Snapping Combo 5 Name", default="Snap Combo 5")
     snap_name6: StringProperty(description="Snapping Combo 6 Name", default="Snap Combo 6")
     # Auto activation Option
-    combo_autosnap: BoolProperty(name="Auto-Activate Snap",
-                                 description="Auto activate snapping mode when using snap combo",
-                                 default=False)
+    combo_autosnap: BoolProperty(name="Auto-Activate Snap", default=False,
+                                 description="Auto activate snapping mode when using snap combo")
     # paste+
-    plus_mpoint: BoolProperty(
-        name="P",
-        default=False,
-        description="Paste+ Point\n"
-                    "ON: Places pasted Object(s) at Mouse Point.  OFF: Original location")
-    plus_merge: BoolProperty(
-        name="M",
-        default=False,
-        description="Paste+ Merge\n"
-                    "ON: Merges Pasted items with selected(Active Object) in Object Mode\n"
-                    "OFF: Paste items into New Object, with or without selections in Object Mode")
+    plus_mpoint: BoolProperty(name="P", default=False,
+                              description="Paste+ Point\n"
+                                          "ON: Places pasted Object(s) at Mouse Point.  OFF: Original location")
+    plus_merge: BoolProperty(name="M", default=False,
+                             description="Paste+ Merge\n"
+                                         "ON: Merges Pasted items with selected(Active Object) in Object Mode\n"
+                                         "OFF: Paste items into New Object, with or without selections in Object Mode")
     # Context Delete
     h_delete: BoolProperty(name="Hierarchy Delete", description="And the children too (in Object Mode)", default=True)
     cd_pluscut: BoolProperty(
@@ -607,68 +622,60 @@ class KeKitAddonPreferences(AddonPreferences):
     mc_name6: StringProperty(description="MultiCut Preset 7", default="1 cm (C)")
     mc_name7: StringProperty(description="MultiCut Preset 8", default="1 cm")
     # DLC sel only
-    dlc_so: BoolProperty(name="Selection-Only Toggle",
+    dlc_so: BoolProperty(name="Selection-Only Toggle", default=False,
                          description="No mouse-pick, selected element only (nearest selected edge in face limit "
-                                     "selection)\nAffects all 'Direct' operators",
-                         default=False)
+                                     "selection)\nAffects all 'Direct' operators")
     # Shading Toggle Tri mode
-    shading_tris: BoolProperty(name="Flat Shading Triangulate",
+    shading_tris: BoolProperty(name="Flat Shading Triangulate", default=False,
                                description="Flat Shading Triangulate:\n"
-                                           "Use Triangulate Modifier (always last) for more accurate flat shading",
-                               default=False)
+                                           "Use Triangulate Modifier (always last) for more accurate flat shading")
     # Frame All Mesh Only
-    frame_mo: BoolProperty(name="Geo Only",
-                           description="Ignore non-geo objects (lights, cameras etc) for Frame All (not selected)",
-                           default=False)
+    frame_mo: BoolProperty(name="Geo Only", default=False,
+                           description="Ignore non-geo objects (lights, cameras etc) for Frame All (not selected)")
     # Mouse Axis Move - Scale ignore
     mam_scl: BoolProperty(name="MAS",
                           description="Mouse Axis Scale - Uncheck for default (unlocked) Scale behaviour for "
-                                      "TT Scale MouseAxis",
-                          default=True)
+                                      "TT Scale MouseAxis", default=True)
     # korean toggle
-    korean: BoolProperty(name="Korean/Flat Bevel Toggle",
-                         description="Toggles Korean / Flat Bevel preset for Context Bevel and keKit subdtools bevels",
-                         default=False)
+    korean: BoolProperty(
+        name="Korean Bevel Toggle", default=False,
+        description="Toggles 'Korean style' (flat bevels) preset for Context Bevel and keKit subdtools bevels")
     # select by display type active collection only toggle
     sel_type_coll: BoolProperty(name="Active Collection Only",
                                 description="Select by display type in active collection only",
                                 default=False)
     # Unbevel Auto-Edge Ring
-    unbevel_autoring: BoolProperty(name="Unbevel Auto-EdgeRing",
-                                   description="Runs Edge-Ring selection before Unbevel",
-                                   default=False)
+    unbevel_autoring: BoolProperty(name="Unbevel Auto-EdgeRing", default=False,
+                                   description="Runs Edge-Ring selection before Unbevel")
     # Context Select Object Mode Full Hierarchy
-    context_select_h: BoolProperty(name="FH",
+    context_select_h: BoolProperty(name="FH", default=False,
                                    description="Context Select - OBJECT MODE Full Hierarchy\n"
                                                "(not just the children, but the parents too)\n"
-                                               "Note: Also applies to Extend/Subtract",
-                                   default=False)
+                                               "Note: Also applies to Extend/Subtract")
     # Context Select - Vertex Mode Behaviour
-    context_select_b: BoolProperty(name="B",
+    context_select_b: BoolProperty(name="B", default=False,
                                    description="Context Select - Custom VERTEX MODE behaviour\n "
                                                "On - Selects open boundaries if any in connected geo\n"
-                                               "Off - Selects connected geo",
-                                   default=False)
-    context_select_c: BoolProperty(name="C",
+                                               "Off - Selects connected geo")
+    context_select_c: BoolProperty(name="C", default=False,
                                    description="Context Select - Select All Objects in selected object's Collection\n"
-                                               "(in OBJECT MODE)",
-                                   default=False)
-    context_merge: BoolProperty(
-        name="E", default=False, description="MergeCollapse Edge Mode:\n"
-                                             "Off: Merge to active edge, On: Collapse average (vanilla op) ")
+                                               "(in OBJECT MODE)")
+    context_merge: BoolProperty(name="E", default=False,
+                                description="MergeCollapse Edge Mode:\n"
+                                            "Off: Merge to active edge, On: Collapse average (vanilla op) ")
     # Auto-Apply Scale
-    apply_scale: BoolProperty(name="A",
-                                   description="Auto Apply Scale before operation. (Shared setting for multiple ops)",
-                                   default=True)
+    apply_scale: BoolProperty(name="A", description="Auto Apply Scale before operation", default=True)
     # Mouse Axis Scale Mode
-    mam_scale_mode: BoolProperty(name="Scale Constrain",
+    mam_scale_mode: BoolProperty(name="Scale Constrain", default=False,
                                  description="When mouse is over selected object(s) use non-constrained scale.\n"
-                                             "Else, use axis constrain relative to mouse (default mouse axis move)",
-                                 default=False)
-
+                                             "Else, use axis constrain relative to mouse (default mouse axis move)")
+    # Shortcuts
     show_shortcuts: BoolProperty(name="Show Assigned Shortcuts", default=False)
     show_conflicts: BoolProperty(name="Show Possible Shortcut Conflicts", default=False)
-
+    # Toggle Weights
+    toggle_same: BoolProperty(default=True, name="Toggle All Same",
+                              description="Set all weights to the same (most common) value AFTER toggling\n"
+                                          "(All will be 1 if already mostly 1 and vice versa, else inverted)")
     # TT header icons prefs
     tt_icon_pos: EnumProperty(
         name="TT Icon Placement",
@@ -700,6 +707,7 @@ classes = (
     KeLoadPrefs,
     KeFileBrowser,
     KeResetPrefs,
+    KePropToggle,
 )
 
 

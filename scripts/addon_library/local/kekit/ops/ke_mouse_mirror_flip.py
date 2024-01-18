@@ -128,10 +128,10 @@ class KeMouseMirrorFlip(Operator):
             if em:
                 # EDIT MODE
                 self.tm = Matrix(((1, 0, 0), (0, 1, 0), (0, 0, 1)))
-
                 active_obj.update_from_editmode()
-                if not bbcoords:
-                    bbcoords = [active_obj.matrix_world @ v.co for v in active_obj.data.vertices if v.select]
+                bbcoords = [active_obj.matrix_world @ v.co for v in active_obj.data.vertices if v.select]
+                avg = average_vector([Vector(i) for i in bbcoords])
+                self.startpos = self.get_mpos(context, self.mouse_pos, avg)
             else:
                 # OBJECT MODE
                 if og[1] != "INDIVIDUAL_ORIGINS":

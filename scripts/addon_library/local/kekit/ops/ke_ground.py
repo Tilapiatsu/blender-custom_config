@@ -1,9 +1,10 @@
 import bmesh
+import numpy as np
 import bpy
 from bpy.props import EnumProperty, FloatProperty, BoolProperty
 from bpy.types import Operator
 from mathutils import Vector
-from .._utils import average_vector, point_axis_raycast
+from .._utils import average_vector, point_axis_raycast, get_vertex_islands
 
 
 def zmove(value, zonly=True):
@@ -19,62 +20,76 @@ def zmove(value, zonly=True):
         use_proportional_projected=False, release_confirm=True)
 
 
-def sort_low_z_bb(vc):
-    lz = [vc[0], vc[3], vc[4], vc[7]]
-    return sorted(lz, key=lambda z: z[2])
+def co_zs(o, sel_verts):
+    cos = [o.matrix_world @ v.co for v in sel_verts]
+    zs = [p[2] for p in cos]
+    zs.sort()
+    return cos, zs
 
 
-def sort_low_z(vc):
-    return sorted(vc, key=lambda z: z[2])
-
-
-def editmode_ctx_cos(obj, ccos):
-    bm = bmesh.from_edit_mesh(obj.data)
-    active = bm.select_history.active
-    if active:
-        if type(active).__name__ == "BMVert":
-            ccos = [obj.matrix_world @ active.co]
-        else:
-            ccos = sort_low_z([obj.matrix_world @ v.co for v in active.verts])
-    else:
-        ccos = [ccos[0]]
-    return ccos
+def bb_world_coords(obj):
+    n = len(obj.data.vertices)
+    coords = np.empty((n * 3), dtype=float)
+    obj.data.vertices.foreach_get("co", coords)
+    coords = np.reshape(coords, (n, 3))
+    coords4d = np.empty(shape=(n, 4), dtype=float)
+    coords4d[::-1] = 1
+    coords4d[:, :-1] = coords
+    npwc = np.einsum('ij,aj->ai', obj.matrix_world, coords4d)[:, :-1]
+    bb_x = np.sort(npwc[:, 0])
+    bb_y = np.sort(npwc[:, 1])
+    bb_z = np.sort(npwc[:, 2])
+    # BB: Bottom corners first, then top
+    bb = [
+        Vector((bb_x[0], bb_y[0], bb_z[0])),
+        Vector((bb_x[-1], bb_y[0], bb_z[0])),
+        Vector((bb_x[-1], bb_y[-1], bb_z[0])),
+        Vector((bb_x[0], bb_y[-1], bb_z[0])),
+        Vector((bb_x[0], bb_y[0], bb_z[-1])),
+        Vector((bb_x[-1], bb_y[0], bb_z[-1])),
+        Vector((bb_x[-1], bb_y[-1], bb_z[-1])),
+        Vector((bb_x[0], bb_y[-1], bb_z[-1]))
+    ]
+    return npwc, bb
 
 
 class KeGround(Operator):
     bl_idname = "view3d.ke_ground"
     bl_label = "Ground (or Center)"
-    bl_description = "Ground (or Center) selected Object(s), or selected elements (snap to world Z0 only)"
+    bl_description = "Ground (or Center) selected object(s) - or selected vertices"
     bl_options = {'REGISTER', 'UNDO'}
 
     op: EnumProperty(
-        items=[("GROUND", "Ground", "", 1),
-               ("CENTER", "Ground Midpoint", "", 2),
-               ("CENTER_GROUND", "Ground & Center XY", "", 3),
-               ("CENTER_ALL", "Center XYZ", "", 4),
-               ("UNDER", "Under-Ground", "", 5)],
-        name="Operation",
-        default="GROUND")
+        items=[("GROUND", "Ground", "Drops selection so that the bottom is on Z0 (or raycast point)", 1),
+               ("CENTER", "Ground Midpoint", "Drops selection so that its midpoint is Z0 (or raycast point)", 2),
+               ("CENTER_GROUND", "Ground & Center XY", "Drops Z to ground and zeros X & Y", 3),
+               ("CENTER_ALL", "Center XYZ", "Drops Z to midpoint, and zeros X & Y", 4),
+               ("UNDER", "Under-Ground", "Drops selection -below- ground (Z0 or raycast point)", 5)],
+        name="Operation", default="GROUND")
 
     group: EnumProperty(
-        items=[("NONE", "Individual", "", 1),
-               ("AVG", "Group Averaged", "", 2),
-               ("CTX", "Group Active", "", 3)],
-        name="Process",
-        default="NONE")
+        items=[
+            ("NONE", "Individual", "Process each selected object/vertex separately", 1),
+            ("AVG", "Group Averaged", "Average center of selection as group center", 2),
+            ("CTX", "Group Active", "Active object/element in selection as group center", 3),
+            ("ISLE", "Connected", "Edit Mode: Edge-connected selection 'islands' as separate groups\n"
+                                  "E.g.: Edge-rings on a pipe/cylinder\n"
+                                  "Object Mode: Each object(s) parts (connected geo 'islands') as separate groups", 4)],
+        name="Process", default="NONE")
 
-    custom_z: FloatProperty(
-        name="Ground (Z-Pos)", description="Override for custom position on the Global Z axis", default=0)
+    custom_z: FloatProperty(name="Ground =", default=0,
+                            description="Override for custom position on the Global Z axis (default Z=0).")
 
-    raycast: BoolProperty(
-        name="Raycast", description="Stops on obstructions on the way down (Nothing: Z Pos)", default=True)
+    raycast: BoolProperty(name="Raycast", default=False,
+                          description="Stops on obstructions on the way down (or Ground if nothing is hit)")
 
-    ignore_selected: BoolProperty(
-        name="Ignore Selected", description="Ignore selected Objects when raycasting", default=False)
+    ignore_selected: BoolProperty(name="Ignore Selected", default=False,
+                                  description="Ignore selected Objects when raycasting")
 
     sel_obj = []
     editmode = False
     ctx = None
+    ctx_obj_active_em = None
 
     @classmethod
     def poll(cls, context):
@@ -83,48 +98,50 @@ class KeGround(Operator):
     def draw(self, context):
         layout = self.layout
         layout.use_property_split = True
-        layout.prop(self, "op", expand=True)
+        layout.prop(self, "group", expand=True)
         layout.prop(self, "custom_z")
         layout.separator(factor=0.5)
-        layout.prop(self, "group", expand=True)
+        col = layout.column(align=True)
+        # Only Ground op is valid in per-vertex context:
+        if self.group in {"NONE", "CTX"} and context.mode != "OBJECT" or \
+                self.group == "ISLE" and context.mode == "OBJECT":
+            col.enabled = False
+        col.prop(self, "op", expand=True)
         layout.separator(factor=0.5)
         row = layout.row()
         if self.op == "CENTER_ALL":
             row.enabled = False
         row.prop(self, "raycast")
-        layout.prop(self, "ignore_selected")
+        row = layout.row()
+        if context.mode != "OBJECT":
+            row.enabled = False
+        row.prop(self, "ignore_selected")
         layout.separator(factor=1)
 
     def bbcast(self, points, zs):
         hits = []
-        low_bb = sort_low_z_bb(points)
-        low_z = low_bb[0][2]
-        for p in low_bb:
+        # low_z needs set var here?!:
+        low_z = zs[0]
+        for p in points:
             result, hit = self.ground_raycast(low_z=low_z, point=p, zs=zs)
             if hit is not None:
                 hits.append([result[0], result[-1]])
         if hits:
-            return sorted(hits, key=lambda x: x[0])[0]
+            return sorted(hits, key=lambda z: z[0])[0]
         return zs
 
     def ground_raycast(self, low_z, point, zs):
-        point[2] -= 0.0001  # hack so it doesn't trace itself...
+        point[2] -= 0.0009  # hack so it doesn't trace itself...
         raycast = point_axis_raycast(self.ctx, vec_point=point, axis=2)
         if raycast[1] is not None:
             hit = raycast[1]
-            hit[2] -= 0.0001  # hack offset compensate
+            hit[2] -= 0.0009  # hack offset compensate
             dist = low_z - hit[2]
             zs[-1] = dist + (zs[-1] - zs[0])
             zs[0] = dist
-            if zs[0] == 0:
-                print("Ground: Cancelled - Raycast distance is zero")
-                for ob in self.sel_obj:
-                    ob.select_set(True)
-                if self.ignore_selected:
-                    for obj in self.sel_obj:
-                        obj.hide_set(False)
-                return {"CANCELLED"}
-        return zs, raycast[1]
+        else:
+            hit = None
+        return zs, hit
 
     def zmove_process(self, vc, zs):
         if self.op == "GROUND":
@@ -156,6 +173,51 @@ class KeGround(Operator):
             z = midz[-1] - midz[0]
             zmove(round(zs[0] + z, 6) * -1)
 
+    def bm_co_process(self, co, z, aco, zs):
+        new_co = co
+        if self.op == "GROUND":
+            nz = round(co[2] - z, 6) - self.custom_z * -1
+            new_co = Vector((co[0], co[1], nz))
+
+        elif self.op == "CENTER":
+            offset = z + ((zs[-1] - zs[0]) / 2)
+            nz = round(co[2] - offset, 6) - self.custom_z * -1
+            new_co = Vector((co[0], co[1], nz))
+
+        elif self.op == "CENTER_GROUND":
+            nx = co[0] - aco[0]
+            ny = co[1] - aco[1]
+            nz = round(co[2] - z, 6) - self.custom_z * -1
+            new_co = Vector((nx, ny, nz))
+
+        elif self.op == "CENTER_ALL":
+            nx = co[0] - aco[0]
+            ny = co[1] - aco[1]
+            offset = z + (aco[2] - zs[0])
+            nz = co[2] - round(offset, 6) - self.custom_z * -1
+            new_co = Vector((nx, ny, nz))
+
+        elif self.op == "UNDER":
+            offset = z + (zs[-1] - zs[0])
+            nz = co[2] - round(offset, 6) - self.custom_z * -1
+            new_co = Vector((co[0], co[1], nz))
+        return new_co
+
+    def island_zmove(self, o, islands):
+        o.hide_set(True)
+        for island in islands:
+            coords, zs = co_zs(o, island)
+            # aco = average_vector(coords)
+            if self.raycast:
+                z = self.bbcast(points=coords, zs=zs)[0]
+            else:
+                z = zs[0]
+            for v in island:
+                co = o.matrix_world @ v.co
+                new_co = self.bm_co_process(co, z, co, zs)
+                v.co = o.matrix_world.inverted() @ new_co
+        o.hide_set(False)
+
     def execute(self, context):
         # Prep/Selection Check
         self.sel_obj = [o for o in context.selected_objects]
@@ -169,12 +231,22 @@ class KeGround(Operator):
             self.editmode = False
 
         self.ctx = context
-        ignore_raycast = False
-        if self.op == "CENTER_ALL":
-            ignore_raycast = True
-            self.raycast = False
+        og = context.object if context.object in self.sel_obj else self.sel_obj[0]
+        active = True if context.active_object in self.sel_obj else False
+        if not active:
+            context.view_layer.objects.active = og
 
-        og = context.object
+        # Need to grab and use active vert coords from context obj (only) here
+        if self.editmode and self.group == "CTX":
+            bm = bmesh.from_edit_mesh(og.data)
+            active = bm.select_history.active
+            if active:
+                if type(active).__name__ == "BMVert":
+                    self.ctx_obj_active_em = og.matrix_world @ active.co
+                else:
+                    c = [og.matrix_world @ v.co for v in active.verts]
+                    self.ctx_obj_active_em = sorted(c, key=lambda vz: vz[2])[0]
+
         bpy.ops.object.mode_set(mode='OBJECT')
 
         if self.ignore_selected:
@@ -182,7 +254,7 @@ class KeGround(Operator):
                 o.hide_set(True)
 
         # OBJECT MNODE + GROUP
-        if not self.editmode and self.group != "NONE":
+        if not self.editmode and self.group not in {"NONE", "ISLE"}:
             grp_cos = []
             grp_zs = []
 
@@ -191,7 +263,7 @@ class KeGround(Operator):
                 for o in self.sel_obj:
                     o.hide_set(True)
                     if og.type == "MESH":
-                        grp_cos.extend([o.matrix_world @ Vector(co) for co in o.bound_box])
+                        grp_cos.extend(bb_world_coords(o)[1])
                     else:
                         grp_cos = [o.location] * 8
                 grp_avg = average_vector(grp_cos)
@@ -205,7 +277,7 @@ class KeGround(Operator):
             elif self.group == "CTX":
                 og.hide_set(True)
                 if og.type == "MESH":
-                    grp_cos.extend([og.matrix_world @ Vector(co) for co in og.bound_box])
+                    grp_cos = bb_world_coords(og)[1]
                 else:
                     grp_cos = [og.location] * 8
                 grp_zs = [p[2] for p in grp_cos]
@@ -222,85 +294,117 @@ class KeGround(Operator):
 
         else:
             # INDIVIDUALLY Process each Object / Edit Mode Element selected
+            if self.group == "ISLE" and self.op in {"CENTER_GROUND", "CENTER_ALL"}:
+                print("G&C: Useless operation for Isle Mode - reverted to Ground")
+                self.op = "GROUND"
+
             bpy.ops.object.select_all(action="DESELECT")
 
             for o in self.sel_obj:
 
-                if self.ignore_selected:
-                    o.hide_set(False)
                 o.select_set(True)
                 context.view_layer.objects.active = o
+                if self.ignore_selected:
+                    o.hide_set(False)
 
                 sel_verts = [v for v in o.data.vertices if v.select] if self.editmode else []
 
                 if sel_verts:
-                    cos = [o.matrix_world @ v.co for v in sel_verts]
-                    zs = [p[2] for p in cos]
-                    zs.sort()
 
-                    if self.raycast:
-                        if self.group == "NONE":
-                            # raycast each vert
-                            zs = []
-                            for co in cos:
-                                zs.append(self.ground_raycast(low_z=co[2], point=co, zs=[co[2], co[2]])[0][0])
+                    self.ignore_selected = True
+                    sel_edges = [e for e in o.data.edges if e.select]
 
-                        elif self.group == "CTX":
-                            # raycast verts to active verts z (fallback random)
-                            bpy.ops.object.mode_set(mode='EDIT')
-                            cos = editmode_ctx_cos(o, cos)
+                    if self.group == "ISLE" and not sel_edges:
+                        print("Ground or Center: No connected geo found in selection - Using Group Average")
+                        self.group = "AVG"
 
-                            bpy.ops.object.mode_set(mode='OBJECT')
-                            z, hit = self.ground_raycast(low_z=cos[0][2], point=cos[0], zs=[cos[0][2], cos[0][2]])
-                            zs = [z[0]] * len(sel_verts)
-
-                        elif self.group == "AVG":
-                            cos = [average_vector(cos)]
-                            z, hit = self.ground_raycast(low_z=cos[0][2], point=cos[0], zs=[cos[0][2], cos[0][2]])
-                            zs = [z[0]] * len(sel_verts)
-
-                        # bmesh move verts
-                        bpy.ops.object.mode_set(mode='EDIT')
-                        mesh = o.data
-                        bm = bmesh.from_edit_mesh(mesh)
-                        bm.verts.ensure_lookup_table()
-                        sel_verts = [v for v in bm.verts if v.select]
+                    if self.group == "NONE":
+                        # Only Ground op is valid in per-vertex context
+                        self.op = "GROUND"
+                        # Get z-distance
+                        coords, zs = co_zs(o, sel_verts)
+                        if self.raycast:
+                            projz = []
+                            for co in coords:
+                                z = self.ground_raycast(low_z=co[2], point=co, zs=[co[2]])[0][0]
+                                projz.append(z)
+                            zs = projz
+                        else:
+                            zs = [c[2] for c in coords]
+                        # Move verts
                         for v, z in zip(sel_verts, zs):
                             co = o.matrix_world @ v.co
                             co[2] -= round(z, 6)
                             v.co = o.matrix_world.inverted() @ co
 
-                        bmesh.update_edit_mesh(mesh)
-                        mesh.update()
-                        zs = [0, 0]
-                    else:
-                        bpy.ops.object.mode_set(mode='EDIT')
-                        if self.group == "CTX":
-                            cos = editmode_ctx_cos(o, cos)
-                            zs = [p[2] for p in cos]
-                        elif self.group == "AVG":
-                            grp_avg = average_vector(cos)
-                            cos = [grp_avg]
-                            zs = [p[2] for p in cos]
-                            zs.sort()
+                    elif self.group == "AVG":
+                        coords, zs = co_zs(o, sel_verts)
+                        aco = average_vector(coords)
 
-                    # Process
-                    self.zmove_process(cos, zs)
+                        if self.raycast:
+                            o.hide_set(True)
+                            z = self.ground_raycast(low_z=zs[0], point=aco, zs=[zs[0], zs[-1]])[0][0]
+                        else:
+                            z = zs[0]
+
+                        for v in sel_verts:
+                            co = o.matrix_world @ v.co
+                            new_co = self.bm_co_process(co, z, aco, zs)
+                            v.co = o.matrix_world.inverted() @ new_co
+
+                    elif self.group == "CTX":
+                        # Only Center Ground op is valid in this context
+                        self.op = "CENTER"
+
+                        coords, zs = co_zs(o, sel_verts)
+                        # Get active vert coord as grp center. Fallback: random (index 0)
+                        if self.ctx_obj_active_em is not None:
+                            aco = self.ctx_obj_active_em
+                        else:
+                            aco = coords[0]
+                            aco[2] = zs[0]
+
+                        if self.raycast:
+                            o.hide_set(True)
+                            z = self.ground_raycast(low_z=aco[2], point=aco, zs=[zs[0], zs[-1]])[0][0]
+                        else:
+                            z = zs[0]
+
+                        for v in sel_verts:
+                            co = o.matrix_world @ v.co
+                            new_co = self.bm_co_process(co, z, aco, zs)
+                            v.co = o.matrix_world.inverted() @ new_co
+
+                    elif self.group == "ISLE":
+                        islands = get_vertex_islands(sel_verts, sel_edges, is_bm=False)
+                        self.island_zmove(o, islands)
+
+                    o.data.update()
 
                 else:
-                    # OBJECT MODE - Non-grouped
-                    if og.type == "MESH":
-                        cos = [o.matrix_world @ Vector(co) for co in o.bound_box]
-                        zs = [p[2] for p in cos]
+                    # OBJECT MODE -> Edit Mode Parts Process
+                    if self.group == "ISLE":
+                        islands = get_vertex_islands(o.data.vertices, o.data.edges, is_bm=False)
+                        self.island_zmove(o, islands)
+                        o.data.update()
                     else:
-                        cos = [og.location] * 8
-                        zs = [p[2] for p in cos]
-                        zs.sort()
-                    # Process
-                    if self.raycast:
-                        zs = self.bbcast(points=cos, zs=zs)
+                        # OBJECT MODE - Individual
+                        if og.type == "MESH":
+                            npcoords, coords = bb_world_coords(o)
+                            zs = [p[2] for p in coords]
+                        else:
+                            coords = [og.location] * 8
+                            zs = [p[2] for p in coords]
+                            zs.sort()
 
-                    self.zmove_process(cos, zs)
+                        # Process
+                        if self.raycast:
+                            o.hide_set(True)
+                            zs = self.bbcast(points=coords, zs=zs)
+
+                        o.hide_set(False)
+                        o.select_set(True)
+                        self.zmove_process(coords, zs)
 
                 o.select_set(False)
                 if self.ignore_selected:
@@ -317,7 +421,5 @@ class KeGround(Operator):
 
         if self.editmode:
             bpy.ops.object.mode_set(mode='EDIT')
-        if ignore_raycast:
-            self.raycast = True
 
         return {"FINISHED"}

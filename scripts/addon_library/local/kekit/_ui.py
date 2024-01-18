@@ -171,6 +171,8 @@ def prefs_ui(self, layout):
         kk_entries = []
         conflicts = {}
 
+        # See, the "ke" naming scheme isn't an ego thing! ;P
+        # Real reason: Avoid maintaining a list of ops!
         for km in kc.keymaps:
             entry = []
             for i in km.keymap_items:

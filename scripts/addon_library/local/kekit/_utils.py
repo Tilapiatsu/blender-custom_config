@@ -10,6 +10,10 @@ from bpy_extras.view3d_utils import (
 )
 from mathutils import Matrix, Vector
 
+#
+# Misc keKit Utility Funcs
+#
+
 
 def get_prefs():
     return bpy.context.preferences.addons[__package__].preferences
@@ -36,6 +40,50 @@ def get_view_type():
                         return "ORTHO"
 
 
+def get_area_of_type(type_name):
+    for area in bpy.context.screen.areas:
+        if area.type == type_name:
+            return area
+
+
+def get_3d_view():
+    return get_area_of_type('VIEW_3D').spaces[0]
+
+
+def get_area_and_type():
+    for area in bpy.context.screen.areas:
+        if area.type == 'VIEW_3D':
+            for space in area.spaces:
+                if space.type == 'VIEW_3D':
+                    if len(space.region_quadviews) > 0:
+                        return area, "QUAD"
+                    elif space.region_3d.is_perspective:
+                        return area, "PERSP"
+                    else:
+                        return area, "ORTHO"
+
+
+def override_by_active_view3d(context, mouse_x, mouse_y):
+    # Make context override with active view3d region by mouse pos (in active window)
+    ctx = context.copy()
+    for a in context.screen.areas:
+        if a.type == 'VIEW_3D':
+            is_quad = bool(len(a.spaces.active.region_quadviews) > 0)
+            if not is_quad:
+                if a.x <= mouse_x < a.width + a.x and a.y <= mouse_y < a.height + a.y:
+                    ctx['area'] = a
+                    ctx['region'] = a.regions[-1]
+                    return ctx
+            elif is_quad:
+                for r in a.regions:
+                    if r.type == "WINDOW":
+                        if r.x <= mouse_x < r.width + r.x and r.y <= mouse_y < r.height + r.y:
+                            ctx['area'] = a
+                            ctx['region'] = r
+                            return ctx
+    return ctx
+
+
 def refresh_ui():
     """Redraw everything!"""
     for window in bpy.context.window_manager.windows:
@@ -46,6 +94,7 @@ def refresh_ui():
 
 def pie_pos_offset(xy, v):
     """(Rough) compensation to get mouse screen pos from pie slot to pie 'center'"""
+    # untested on 4k+ monitors (due to lack of 4k monitor)
     scl = bpy.context.preferences.view.ui_scale
     r = None
     if v == "N":
@@ -99,6 +148,7 @@ def restore_transform(og_op):
 
 
 def apply_transform(obj, loc=False, rot=True, scl=True):
+    """Non-ops API method to apply object transforms"""
     mb = obj.matrix_basis
     idmat = Matrix()
     dloc, drot, dscl = mb.decompose()
@@ -110,14 +160,12 @@ def apply_transform(obj, loc=False, rot=True, scl=True):
 
     def swap(i):
         transform[i], basis[i] = basis[i], transform[i]
-
     if loc:
         swap(0)
     if rot:
         swap(1)
     if scl:
         swap(2)
-
     mat = transform[0] @ transform[1] @ transform[2]
     if hasattr(obj.data, "transform"):
         obj.data.transform(mat)
@@ -128,7 +176,6 @@ def apply_transform(obj, loc=False, rot=True, scl=True):
 
 
 def get_layer_collection(layer_coll, coll_name):
-    # todo: find better solution to set active coll
     if layer_coll.name == coll_name:
         return layer_coll
     for layer in layer_coll.children:
@@ -139,6 +186,7 @@ def get_layer_collection(layer_coll, coll_name):
 
 
 def set_active_collection(context, obj):
+    """Sets the active collection to provided object's (first)"""
     # get coll
     if obj:
         avail = [i.name for i in context.view_layer.layer_collection.children]
@@ -156,10 +204,10 @@ def set_active_collection(context, obj):
     context.view_layer.active_layer_collection = coll
 
 
-def dupe(src):
-    new = src.copy()
-    new.data = src.data.copy()
-    src.users_collection[0].objects.link(new)
+def dupe(obj):
+    new = obj.copy()
+    new.data = obj.data.copy()
+    obj.users_collection[0].objects.link(new)
     return new
 
 
@@ -281,97 +329,6 @@ def vertloops(vertpairs):
     return loops
 
 
-# def get_loops(vertpairs, legacy=False):
-#     # sort list of edges (vert index pairs)
-#     loop_vp = [i for i in vertpairs]
-#     # og_verts = list(set(flatten(loop_vp)))
-#     og_verts = [v for vp in loop_vp for v in vp]
-#     loops = []
-#     while (len(loop_vp) - 1) > 0:
-#         vpsort = [loop_vp[0][0], loop_vp[0][1]]
-#         loop_vp.pop(0)
-#         loops.append(vpsort)
-#
-#         for n in range(0, len(vertpairs)):
-#             i = 0
-#             for e in loop_vp:
-#                 if vpsort[0] == e[0]:
-#                     vpsort.insert(0, e[1])
-#                     loop_vp.pop(i)
-#                     break
-#                 elif vpsort[0] == e[1]:
-#                     vpsort.insert(0, e[0])
-#                     loop_vp.pop(i)
-#                     break
-#                 elif vpsort[-1] == e[0]:
-#                     vpsort.append(e[1])
-#                     loop_vp.pop(i)
-#                     break
-#                 elif vpsort[-1] == e[1]:
-#                     vpsort.append(e[0])
-#                     loop_vp.pop(i)
-#                     break
-#                 else:
-#                     i = i + 1
-#     # check...bcause it doesn't work on single edges...
-#     # end vert on closed loop is dupe of start vert; as intended (check for closed loops), also the +1 below:
-#     if not legacy:
-#         if loops[0][0] == loops[0][-1]:
-#             counter = len(og_verts) + 1
-#         else:
-#             counter = len(og_verts)
-#
-#         if len(loops) == 1 and len(loops[0]) != counter:
-#             missing_island = [v for v in og_verts if v not in loops[0]]
-#             loops.append(missing_island)
-#
-#     return loops
-
-
-def get_area_of_type(type_name):
-    for area in bpy.context.screen.areas:
-        if area.type == type_name:
-            return area
-
-
-def get_3d_view():
-    return get_area_of_type('VIEW_3D').spaces[0]
-
-
-def get_area_and_type():
-    for area in bpy.context.screen.areas:
-        if area.type == 'VIEW_3D':
-            for space in area.spaces:
-                if space.type == 'VIEW_3D':
-                    if len(space.region_quadviews) > 0:
-                        return area, "QUAD"
-                    elif space.region_3d.is_perspective:
-                        return area, "PERSP"
-                    else:
-                        return area, "ORTHO"
-
-
-def override_by_active_view3d(context, mouse_x, mouse_y):
-    # Make context override with active view3d region by mouse pos (in active window)
-    ctx = context.copy()
-    for a in context.screen.areas:
-        if a.type == 'VIEW_3D':
-            is_quad = bool(len(a.spaces.active.region_quadviews) > 0)
-            if not is_quad:
-                if a.x <= mouse_x < a.width + a.x and a.y <= mouse_y < a.height + a.y:
-                    ctx['area'] = a
-                    ctx['region'] = a.regions[-1]
-                    return ctx
-            elif is_quad:
-                for r in a.regions:
-                    if r.type == "WINDOW":
-                        if r.x <= mouse_x < r.width + r.x and r.y <= mouse_y < r.height + r.y:
-                            ctx['area'] = a
-                            ctx['region'] = r
-                            return ctx
-    return ctx
-
-
 def rotation_from_vector(n, t, rotate90=True, rw=True):
     u = t.cross(n).normalized()
     mat = Matrix((t, n, u)).to_4x4().inverted()
@@ -413,47 +370,8 @@ def sort_quad(vl):
     return vs
 
 
-def tri_order(p):
-    """Sort (min) 3 first verts from tuple or tuple of tuples (obj, vertlist)"""
-    sets = []
-    tri = []
-    if len(p) > 1 and type(p[0]) != tuple:
-        p = ((p),)
-    # setup paired lists
-    for pair in p:
-        if pair[1]:
-            s = [pair[0], [v for v in pair[1]]]
-            sets.append(s)
-    sets = sorted(sets, key=len)
-    # get three first verts+
-    count = 0
-    for s in sets:
-        if count < 3:
-            if type(s[1]) != list:
-                sl = [s[1], ]
-            else:
-                sl = s[1]
-            for i in sl:
-                tri.append([s[0], i])
-                count += 1
-    # Fail insufficient points
-    if count < 3:
-        return None
-    # side lengths -hypot for tri
-    vc1 = tri[0][0].matrix_world @ tri[0][1].co
-    vc2 = tri[1][0].matrix_world @ tri[1][1].co
-    vc3 = tri[2][0].matrix_world @ tri[2][1].co
-    torder = tri_points_order((vc1, vc2, vc3))
-    ot = [tri[i] for i in torder]
-    q = [i for i in tri if i not in ot]
-    if q:
-        for i in q:
-            ot.append(i)
-    return ot
-
-
 def tri_points_order(vcoords):
-    # Avoiding the hypotenuse (always longest) for vec
+    """Returns list of indices of 3 coords distance sorted (hypotenuse points last)"""
     vp = vcoords[0], vcoords[1], vcoords[2]
     vp1 = get_distance(vp[0], vp[1])
     vp2 = get_distance(vp[0], vp[2])
@@ -465,12 +383,15 @@ def tri_points_order(vcoords):
 
 
 def tri_points_vectors(objmtx, normal, coords):
-    """ input normal to check/force z flip """
+    """ Returns normal + tangent from 3 points. Input ref normal to check/force z flip """
     h = tri_points_order([coords[0], coords[1], coords[2]])
     vec_poslist = coords[h[0]], coords[h[1]], coords[h[2]]
 
     # Vectors
-    p1, p2, p3 = objmtx @ vec_poslist[0], objmtx @ vec_poslist[1], objmtx @ vec_poslist[2]
+    if objmtx:
+        p1, p2, p3 = objmtx @ vec_poslist[0], objmtx @ vec_poslist[1], objmtx @ vec_poslist[2]
+    else:
+        p1, p2, p3 = vec_poslist[0], vec_poslist[1], vec_poslist[2]
     v_1 = p2 - p1
     v_2 = p3 - p1
     n_v = v_1.cross(v_2).normalized()
@@ -485,8 +406,9 @@ def tri_points_vectors(objmtx, normal, coords):
     t_v = u_v.cross(n_v).normalized()
 
     # check inverse Z
-    if n_v.dot(normal) < 0:
-        n_v.negate()
+    if normal:
+        if n_v.dot(normal) < 0:
+            n_v.negate()
 
     return n_v, t_v
 
@@ -564,7 +486,7 @@ def mouse_raycast(context, mouse_pos, evaluated=False):
 
     # cat = {'MESH', 'CURVE', 'SURFACE', 'META', 'FONT', 'HAIR', 'GPENCIL'}
     cat = ["MESH"]
-    # todo: Make hit curves returnable objs w. evaluated
+    # todo: Make hit curves returnable objs w. evaluated geo?
 
     if not evaluated:
         objects = [o for o in context.visible_objects]
@@ -588,6 +510,7 @@ def mouse_raycast(context, mouse_pos, evaluated=False):
             obj_mtx = obj.matrix_world.copy()
 
         if obj.type in cat and obj.name in objects:
+            hit = normal = face_index = None
             try:
                 hit, normal, face_index = obj_raycast(obj, obj_mtx, ray_origin, ray_target)
             except RuntimeError:
@@ -648,7 +571,14 @@ def point_axis_raycast(context, vec_point, axis=2, targetcap=-10000):
         return None, None, None, None
 
 
-def walk_island(vert, sedges=[]):
+#
+# Note: Island funcs are for separating/sorting selection into islands (except "expand_to_island")
+#
+def expand_to_island(single_vert):
+    return list(walk_island(single_vert))
+
+
+def walk_island(vert, sedges=None):
     vert.tag = True
     yield vert
     if sedges:
@@ -667,7 +597,7 @@ def walk_island(vert, sedges=[]):
         yield from walk_island(v, sedges=sedges)
 
 
-def get_islands(bm, verts, same_part_edges=[]):
+def get_islands(bm, verts, same_part_edges=None):
     def tag(vs, switch):
         for i in vs:
             i.tag = switch
@@ -686,8 +616,8 @@ def get_islands(bm, verts, same_part_edges=[]):
     return islands
 
 
-def get_face_islands(bm, sel_verts=[], sel_edges=[], sel_faces=[]):
-    # Not super optimal, but convenient reuse ;>
+def get_face_islands(bm, sel_verts=None, sel_edges=None, sel_faces=None):
+    # Not super optimal, but convenient
     if not sel_verts:
         sel_verts = [v for v in bm.verts if v.select]
     if not sel_edges:
@@ -702,23 +632,38 @@ def get_face_islands(bm, sel_verts=[], sel_edges=[], sel_faces=[]):
     return f_islands
 
 
-def get_selection_islands(sel_faces, active_face):
-    # Old legacy garbage that only sorts two islands? - should prob remove
-    sortfaces = [p for p in sel_faces if p != active_face]
-    first_island, second_island = active_face.verts[:], []
-    maxcount = len(sortfaces) * 4
-    while maxcount:
-        maxcount -= 1
-        for p in sortfaces:
-            faceverts = p.verts[:]
-            for v in faceverts:
-                if v in first_island:
-                    first_island.extend(faceverts)
-                    sortfaces.remove(p)
-                    break
-    for p in sortfaces:
-        second_island.extend(p.verts)
-    return list(set(first_island)), list(set(second_island))
+def get_vertex_islands(verts, edges, is_bm=False):
+    # Best solution - Works in both obj mode (for parts) & bmesh (for selection islands)
+    paths = {v.index: set() for v in verts}
+    if is_bm:
+        for e in edges:
+            paths[e.verts[0]].add(e.verts[1])
+            paths[e.verts[1]].add(e.verts[0])
+    else:
+        for e in edges:
+            paths[e.vertices[0]].add(e.vertices[1])
+            paths[e.vertices[1]].add(e.vertices[0])
+    parts = []
+    while True:
+        try:
+            i = next(iter(paths.keys()))
+        except StopIteration:
+            break
+        part = {i}
+        current = {i}
+        while True:
+            candidate = {sc for sc in current if sc in paths}
+            if not candidate:
+                break
+            current = {ve for sc in candidate for ve in paths[sc]}
+            part.update(current)
+            for key in candidate:
+                paths.pop(key)
+        parts.append(part)
+    islands = []
+    for p in parts:
+        islands.append([v for v in verts if v.index in p])
+    return islands
 
 
 def correct_normal(world_matrix, vec_normal):
@@ -739,22 +684,36 @@ def flattened(nested):
     return list(flatten(nested))
 
 
+def shift_list(a, s):
+    s %= len(a)
+    s *= -1
+    return a[s:] + a[:s]
+
+
 def get_distance(v1, v2):
-    dist = [(a - b) ** 2 for a, b in zip(v1, v2)]
-    return sqrt(sum(dist))
+    return sqrt(sum([(a - b) ** 2 for a, b in zip(v1, v2)]))
 
 
 def get_midpoint(p1, p2):
-    mid_p = [(p1[0] + p2[0]) / 2, (p1[1] + p2[1]) / 2, (p1[2] + p2[2]) / 2]
-    return mid_p
+    return [(p1[0] + p2[0]) / 2, (p1[1] + p2[1]) / 2, (p1[2] + p2[2]) / 2]
+
+
+def remap(x, in_min, in_max, out_min, out_max):
+    return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min
 
 
 def chunk(cl, n):
     return [cl[i:i + n] for i in range(0, len(cl), n)]
 
 
-def remap(x, in_min, in_max, out_min, out_max):
-    return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min
+def pairlink(vlist):
+    """Chain pairs of verts (or other elements) like a continous edge loop"""
+    linked_pairs = []
+    tot = len(vlist) - 1
+    for i, v in enumerate(vlist):
+        if i < tot:
+            linked_pairs.append([v, vlist[i + 1]])
+    return linked_pairs
 
 
 def average_vector(vectors):
@@ -872,23 +831,25 @@ def mouse_over_element(bm, mouse_pos):
     if geom is None:
         geom = geom2
 
-    if isinstance(geom, bmesh.types.BMVert):
-        geom_sel = verts_sel
-        bm_geom = bm.verts
-    elif isinstance(geom, bmesh.types.BMEdge):
-        geom_sel = edges_sel
-        bm_geom = bm.edges
-    elif isinstance(geom, bmesh.types.BMFace):
-        geom_sel = faces_sel
-        bm_geom = bm.faces
+    if geom is not None:
+        geom_sel = bm_geom = None
 
-    for sel, g in zip(geom_sel, bm_geom):
-        if sel != g.select:
-            g.select_set(False)
-            bm.select_history.remove(g)
-            bm.select_flush_mode()
-            break
+        if isinstance(geom, bmesh.types.BMVert):
+            geom_sel = verts_sel
+            bm_geom = bm.verts
+        elif isinstance(geom, bmesh.types.BMEdge):
+            geom_sel = edges_sel
+            bm_geom = bm.edges
+        elif isinstance(geom, bmesh.types.BMFace):
+            geom_sel = faces_sel
+            bm_geom = bm.faces
 
+        for sel, g in zip(geom_sel, bm_geom):
+            if sel != g.select:
+                g.select_set(False)
+                bm.select_history.remove(g)
+                bm.select_flush_mode()
+                break
     return geom
 
 
@@ -918,7 +879,7 @@ def pick_closest_edge(context, mtx, mousepos, edges):
 
 
 def get_scene_unit(value, nearest=False):
-    """Converts value to current scene setting"""
+    """Converts value to current scene setting ('nearest' returns 'adaptive' style unit)"""
     unit_length = bpy.context.scene.unit_settings.length_unit
     unit_scale = bpy.context.scene.unit_settings.scale_length
     unit_system = bpy.context.scene.unit_settings.system
@@ -928,6 +889,7 @@ def get_scene_unit(value, nearest=False):
     if unit_length == 'ADAPTIVE':
         nearest = True
 
+    # "Nerest==Adaptive": for displaying more "typical" unit. 1m instead of 100cm etc.
     if nearest and unit_system == 'METRIC':
         if value == 0:
             unit = 'm'
@@ -956,6 +918,7 @@ def get_scene_unit(value, nearest=False):
             else:
                 unit, value = ' thou', int(value * 12000)
 
+    # or, straight conversion in defined unit only
     elif unit_length == 'KILOMETERS':
         unit, factor = 'km', 0.001
     elif unit_length == 'METERS':
@@ -984,12 +947,6 @@ def get_scene_unit(value, nearest=False):
         value = int(value)
 
     return unit, value
-
-
-def shift_list(a, s):
-    s %= len(a)
-    s *= -1
-    return a[s:] + a[:s]
 
 
 def traverse_tree(o):

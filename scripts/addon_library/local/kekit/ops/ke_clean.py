@@ -55,8 +55,11 @@ class KeClean(Operator):
             sel_count = 0
             precount = int(len(o.data.vertices))
 
-            bpy.ops.mesh.select_all(action="DESELECT")
             bpy.ops.mesh.select_mode(type='VERT')
+            bpy.ops.mesh.select_all(action="DESELECT")
+            # lame (but solid) update
+            bpy.ops.object.editmode_toggle()
+            bpy.ops.object.editmode_toggle()
 
             bm_select = []
             bm_dissolve = []

@@ -33,7 +33,6 @@ class KeCursorMenuPanel(Panel):
         c = layout.column()
 
         c.operator("view3d.ke_cursor_rotation", text="Align Cursor To View").mode = "VIEW"
-        c.operator("view3d.ke_cursor_rotation", text="Show Cursor Axis")
 
         c.label(text="Step Rotate")
         col = c.column(align=True)
@@ -43,7 +42,7 @@ class KeCursorMenuPanel(Panel):
         row = col.row(align=True)
         row.prop(temp, "kcm_rot_preset", expand=True)
 
-        # Removing due to "unsupported RNA type 2" errors, solution TBD
+        # flagged as "experimental"  due to "unsupported RNA type 2" error-spam, solution TBD
         row = col.row(align=True)
         if xp:
             row.prop(temp, "kcm_custom_rot")
@@ -102,7 +101,7 @@ class KeCursorMenuPanel(Panel):
                 row.operator('view3d.ke_cursor_bookmark', text="6", depress=True).mode = "USE6"
 
         if xp:
-            # Removing due to "unsupported RNA type 2" errors, solution TBD
+            # flagged as "experimental" due to "unsupported RNA type 2" error-spam, solution TBD
             cf = c.column_flow(columns=2, align=True)
             cf.prop(context.scene.cursor, "location", text="Cursor Location", expand=True)
             cf.operator("view3d.snap_cursor_to_center", text="Clear Loc")

@@ -2,6 +2,13 @@ import bpy
 from bpy.types import Operator
 
 
+def restore_cursor(cursor, loc, rot, ogmode):
+    cursor.location = loc
+    cursor.rotation_mode = "QUATERNION"
+    cursor.rotation_quaternion = rot
+    cursor.rotation_mode = ogmode
+
+
 class KeOriginToSelected(Operator):
     bl_idname = "view3d.origin_to_selected"
     bl_label = "Origin To Selected Elements"
@@ -14,20 +21,17 @@ class KeOriginToSelected(Operator):
     @classmethod
     def poll(cls, context):
         return (context.object is not None and
-                context.object.type == 'MESH')
+                context.object.type in {'MESH', "CURVE"})
 
     def execute(self, context):
         # Need to assign all of these vars, due to the context override
-        obj = context.object
         cursor = context.scene.cursor
         rot = cursor.rotation_quaternion.copy()
         loc = cursor.location.copy()
         ogmode = str(cursor.rotation_mode)
-        obj_type = obj.type
 
-        editmode = False if context.mode != "EDIT_MESH" else True
-        if obj_type == "CURVE":
-            editmode = False if context.mode != "EDIT_CURVE" else True
+        editmode = True if context.mode == "EDIT_MESH" else False
+        curve = True if context.mode == "EDIT_CURVE" else False
 
         for area in context.screen.areas:
             if area.type == 'VIEW_3D':
@@ -35,18 +39,19 @@ class KeOriginToSelected(Operator):
                 context['area'] = area
                 context['region'] = area.regions[-1]
 
-                if not editmode :
-                    bpy.ops.object.origin_set(type='ORIGIN_GEOMETRY', center='MEDIAN')
-                else:
+                if editmode:
                     bpy.ops.view3d.snap_cursor_to_center()
                     bpy.ops.view3d.snap_cursor_to_selected()
                     bpy.ops.object.mode_set(mode="OBJECT")
                     bpy.ops.object.origin_set(type='ORIGIN_CURSOR')
-
-                    cursor.location = loc
-                    cursor.rotation_mode = "QUATERNION"
-                    cursor.rotation_quaternion = rot
-                    cursor.rotation_mode = ogmode
-                    break
+                    restore_cursor(cursor, loc, rot, ogmode)
+                elif curve:
+                    bpy.ops.view3d.snap_cursor_to_selected()
+                    bpy.ops.object.editmode_toggle()
+                    bpy.ops.view3d.ke_origin_to_cursor(align="LOCATION")
+                    restore_cursor(cursor, loc, rot, ogmode)
+                else:
+                    bpy.ops.object.origin_set(type='ORIGIN_GEOMETRY', center='MEDIAN')
+                break
 
         return {'FINISHED'}

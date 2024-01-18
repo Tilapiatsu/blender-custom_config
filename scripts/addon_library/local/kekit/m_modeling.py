@@ -2,7 +2,9 @@ import bpy
 from bpy.types import Panel
 from .ops.ke_activeslice import KeActiveSlice
 from .ops.ke_boolknife import KeBoolKnife
+from .ops.ke_convert_cbo import KeCBO
 from .ops.ke_direct_loop_cut import KeDirectLoopCut, UIDirectLoopCutModule
+from .ops.ke_extrude_along_edges import KeExtrudeAlongEdges
 from .ops.ke_facematch import KeFaceMatch
 from .ops.ke_fit2grid import KeFit2Grid
 from .ops.ke_ground import KeGround
@@ -31,6 +33,10 @@ class UIModelingModule(Panel):
         k = get_prefs()
         layout = self.layout
         col = layout.column(align=True)
+
+        col.operator('mesh.ke_extrude_along_edges')
+        col.operator('view3d.ke_cbo')
+
         row = col.row(align=True)
         row.operator('mesh.ke_unbevel')
         row2 = row.row(align=True)
@@ -47,7 +53,7 @@ class UIModelingModule(Panel):
 
         col.label(text="Merge To:")
         row = col.row(align=True)
-        row.operator('mesh.merge_to_mouse', text="Mouse", icon="MOUSE_MOVE")
+        row.operator('mesh.ke_merge_to_mouse', text="Mouse", icon="MOUSE_MOVE")
         row.operator('mesh.ke_merge_near_selected', text="Sel.Range")
 
         col.label(text="Dimensional")
@@ -76,7 +82,9 @@ class UIModelingModule(Panel):
 classes = (
     KeActiveSlice,
     KeBoolKnife,
+    KeCBO,
     KeDirectLoopCut,
+    KeExtrudeAlongEdges,
     KeFaceMatch,
     KeFit2Grid,
     KeGround,

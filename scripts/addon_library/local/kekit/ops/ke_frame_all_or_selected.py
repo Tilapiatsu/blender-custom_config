@@ -26,6 +26,7 @@ class KeFrameView(Operator):
     def execute(self, context):
         k = get_prefs()
         mesh_only = k.frame_mo
+        is_curve = False
         cat = {'LIGHT', 'LIGHT_PROBE', 'CAMERA', 'SPEAKER', 'EMPTY', 'LATTICE', 'VOLUME'}
         space = context.space_data.type
         if space == "VIEW_3D":
@@ -85,6 +86,7 @@ class KeFrameView(Operator):
                                 break
 
                     elif o.type == "CURVE":
+                        is_curve = True
                         for sp in o.data.splines:
                             for cp in sp.bezier_points:
                                 if cp.select_control_point:
@@ -128,11 +130,17 @@ class KeFrameView(Operator):
                                 temp_hide.append(o)
                                 o.hide_viewport = True
 
-                    # bpy.ops.view3d.view_all(ctx, 'INVOKE_DEFAULT')
-                    bpy.ops.mesh.select_all(action='SELECT')
+                    if is_curve:
+                        bpy.ops.curve.select_all(action='SELECT')
+                    else:
+                        bpy.ops.mesh.select_all(action='SELECT')
                     with override:
                         bpy.ops.view3d.view_selected('INVOKE_DEFAULT')
-                    bpy.ops.mesh.select_all(action='DESELECT')
+
+                    if is_curve:
+                        bpy.ops.curve.select_all(action='DESELECT')
+                    else:
+                        bpy.ops.mesh.select_all(action='DESELECT')
 
             if mesh_only and temp_hide:
                 for o in temp_hide:

@@ -4,7 +4,50 @@ from bpy.types import Operator
 from bpy_extras.view3d_utils import region_2d_to_vector_3d, region_2d_to_location_3d
 from mathutils import Vector
 from mathutils.geometry import intersect_ray_tri
-from .._utils import get_prefs, get_distance, average_vector, mouse_raycast, get_view_type, set_active_collection
+from .._utils import get_prefs, get_distance, average_vector, mouse_raycast, get_view_type, set_active_collection, \
+    refresh_ui
+
+
+def store_og_materials():
+    # BL copy-paste buffer workaround (Checks in paste if user wants to create duplicate materials)
+    for o in bpy.context.selected_editable_objects:
+        if o.material_slots == 0:
+            continue
+        materials = []
+        for slot in o.material_slots:
+            if slot.material:
+                materials.append(slot.material.name)
+        if materials:
+            o.data["copyplus"] = materials
+
+
+def apply_og_materials():
+    # re-applies stored list of materials (from custom prop stored earlier)
+    for o in bpy.context.selected_editable_objects:
+        if o.material_slots == 0:
+            continue
+        og_materials = o.data.get("copyplus")
+        if not og_materials:
+            continue
+        if len(og_materials) == len(o.material_slots) :
+            for og, slot in zip(og_materials, o.material_slots):
+                if slot.material and og in bpy.data.materials:
+                    o.data.materials[slot.slot_index] = bpy.data.materials[og]
+    refresh_ui()
+
+
+def apply_og_materials_em():
+    # For edit+merge mode, when not all materials might be used
+    for o in bpy.context.selected_editable_objects:
+        if o.material_slots == 0:
+            continue
+        og_materials = o.data.get("copyplus")
+        if not og_materials:
+            continue
+        for i, og in enumerate(og_materials):
+            o.data.materials[i] = bpy.data.materials[og]
+        bpy.ops.object.material_slot_remove_unused()
+    refresh_ui()
 
 
 class KeCopyPlus(Operator):
@@ -39,15 +82,13 @@ class KeCopyPlus(Operator):
         sel_mode = context.mode[:]
         sel_obj = [o for o in context.selected_objects]
         self.active = context.object
+        dupe_materials = context.preferences.edit.use_duplicate_material
         # CollectionSetup
-        active_coll = context.scene.collection
         if self.active:
             set_active_collection(context, self.active)
-            active_coll = self.active.users_collection[0]
         elif sel_obj:
             set_active_collection(context, sel_obj[0])
             self.active = sel_obj[0]
-            active_coll = self.active.users_collection[0]
         #
         # OBJECT MODE
         #
@@ -55,16 +96,17 @@ class KeCopyPlus(Operator):
 
             if self.mode == "COPY" or self.mode == "CUT":
                 if sel_obj:
+                    store_og_materials()
                     bpy.ops.view3d.copybuffer()
                     if self.mode == "CUT":
                         bpy.ops.object.delete()
                 else:
                     self.report({"INFO"}, "No objects selected?")
 
-            elif self.mode == "PASTE" and active_coll:
+            elif self.mode == "PASTE":
                 bpy.ops.object.select_all(action='DESELECT')
                 bpy.ops.view3d.pastebuffer()
-                new_objects = context.selected_objects
+                new_objects = list(context.selected_objects)
 
                 if mouse_point:
                     # View placement compensation & Z0 drop
@@ -102,7 +144,16 @@ class KeCopyPlus(Operator):
                 if paste_merge and self.active:
                     context.view_layer.objects.active = self.active
                     self.active.select_set(True)
+                    if not dupe_materials:
+                        apply_og_materials_em()
                     bpy.ops.object.join()
+                else:
+                    for o in sel_obj:
+                        o.select_set(False)
+                    if new_objects:
+                        context.view_layer.objects.active = new_objects[-1]
+                    if not dupe_materials:
+                        apply_og_materials()
 
             return {'FINISHED'}
         #
@@ -117,8 +168,9 @@ class KeCopyPlus(Operator):
                 # SELECTION CHECK
                 for o in sel_obj:
                     o.update_from_editmode()
-                    p = [i.index for i in o.data.polygons if i.select]
-                    sel_poly.extend(p)
+                    p = [i for i in o.data.polygons if i.select]
+                    sel_poly.extend([i.index for i in p])
+
                 if not sel_poly:
                     self.report({"INFO"}, "No polygons selected?")
                     return {'CANCELLED'}
@@ -145,6 +197,9 @@ class KeCopyPlus(Operator):
                 obj_to_cache.matrix_world.translation = mtx
 
                 # BUFFER
+                # clean_material_slots()
+                bpy.ops.object.material_slot_remove_unused()
+                store_og_materials()
                 bpy.ops.view3d.copybuffer()
                 if self.mode in {"CUT", "COPY"}:
                     bpy.ops.object.delete()
@@ -169,6 +224,8 @@ class KeCopyPlus(Operator):
 
                 # PASTE (DUPES FROM BUFFER)
                 bpy.ops.view3d.pastebuffer()
+                if not dupe_materials:
+                    apply_og_materials_em()
 
                 # MERGE & RESTORE EDIT MODE
                 self.active.select_set(True)

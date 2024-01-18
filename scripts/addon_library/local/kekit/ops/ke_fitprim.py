@@ -21,16 +21,73 @@ from .._utils import (
     get_closest_midpoint,
     rotation_from_vector,
     point_to_plane,
-    get_selection_islands,
     mouse_raycast,
     pie_pos_offset,
     flatten,
-    tri_order,
+    tri_points_order,
     set_active_collection,
     set_status_text,
     get_view_type,
     get_prefs
 )
+
+
+def get_selection_islands(sel_faces, active_face):
+    # Old garbage func that only sorts two islands
+    sortfaces = [p for p in sel_faces if p != active_face]
+    first_island, second_island = active_face.verts[:], []
+    maxcount = len(sortfaces) * 4
+    while maxcount:
+        maxcount -= 1
+        for p in sortfaces:
+            faceverts = p.verts[:]
+            for v in faceverts:
+                if v in first_island:
+                    first_island.extend(faceverts)
+                    sortfaces.remove(p)
+                    break
+    for p in sortfaces:
+        second_island.extend(p.verts)
+    return list(set(first_island)), list(set(second_island))
+
+
+def tri_order(p):
+    # custom 3 point sort thing
+    sets = []
+    tri = []
+    if len(p) > 1 and type(p[0]) != tuple:
+        p = ((p,),)
+    # setup paired lists
+    for pair in p:
+        if pair[1]:
+            s = [pair[0], [v for v in pair[1]]]
+            sets.append(s)
+    sets = sorted(sets, key=len)
+    # get three first verts+
+    count = 0
+    for s in sets:
+        if count < 3:
+            if type(s[1]) != list:
+                sl = [s[1], ]
+            else:
+                sl = s[1]
+            for i in sl:
+                tri.append([s[0], i])
+                count += 1
+    # Fail insufficient points
+    if count < 3:
+        return None
+    # side lengths -hypot for tri
+    vc1 = tri[0][0].matrix_world @ tri[0][1].co
+    vc2 = tri[1][0].matrix_world @ tri[1][1].co
+    vc3 = tri[2][0].matrix_world @ tri[2][1].co
+    torder = tri_points_order((vc1, vc2, vc3))
+    ot = [tri[i] for i in torder]
+    q = [i for i in tri if i not in ot]
+    if q:
+        for i in q:
+            ot.append(i)
+    return ot
 
 
 class UIFitPrimModule(Panel):
@@ -61,6 +118,9 @@ class UIFitPrimModule(Panel):
         col.prop(k, "fitprim_quadsphere_seg", text="QuadSphere Div")
         col.prop(k, "fitprim_select", text="Select Result (Edit Mesh)")
         col.prop(k, "fitprim_item", text="Make Object")
+        col.label(text="FP Default Shading:")
+        row = col.row(align=True)
+        row.prop(k, "fitprim_shading", expand=True)
 
 
 def draw_callback_px(self, context, pos):
@@ -73,7 +133,7 @@ def draw_callback_px(self, context, pos):
         blf.enable(font_id, 4)
         blf.position(font_id, hpos, vpos + self.fs[3], 0)
         blf.color(font_id, self.hcol[0], self.hcol[1], self.hcol[2], self.hcol[3])
-        blf.size(font_id, self.fs[4], 72)
+        blf.size(font_id, self.fs[4])
         blf.shadow(font_id, 5, 0, 0, 0, 1)
         blf.shadow_offset(font_id, 1, -1)
         blf.draw(font_id, "Cylinder Sides: " + str(val))
@@ -249,10 +309,14 @@ class KeFitPrim(Operator):
     boxmode = True
     sphere = False
     world = False
-    settings = (0, 0, 0)
+    settings = [0, 0, 0, 0]
+    shading_mode = "AUTO"
+    og_settings = None
     _handle = None
     _timer = None
     cyl_sides = 16
+    circle = False
+    circle_pos = None
     unit = .1
     is_modal = True
     select = True
@@ -282,6 +346,12 @@ class KeFitPrim(Operator):
 
     def draw(self, context):
         layout = self.layout
+
+    def set_shading(self, ctx):
+        if self.shading_mode in {"SMOOTH", "AUTO"}:
+            bpy.ops.object.shade_smooth()
+        if self.shading_mode == "AUTO":
+            ctx.object.data.use_auto_smooth = True
 
     def invoke(self, context, event):
         self.screen_x = int(context.region.width * 0.5)
@@ -323,7 +393,7 @@ class KeFitPrim(Operator):
                     self.cyl_sides = val
                     bpy.ops.mesh.delete(type='FACE')
                     bpy.ops.mesh.primitive_cylinder_add(vertices=self.cyl_sides, radius=self.settings[0],
-                                                        depth=self.settings[1] * 2, enter_editmode=False, align='WORLD',
+                                                        depth=self.settings[1], enter_editmode=False, align='WORLD',
                                                         location=self.settings[2], rotation=self.settings[3])
                     context.area.tag_redraw()
                     self.input_nrs = []
@@ -332,7 +402,7 @@ class KeFitPrim(Operator):
             self.cyl_sides += 1
             bpy.ops.mesh.delete(type='FACE')
             bpy.ops.mesh.primitive_cylinder_add(vertices=self.cyl_sides, radius=self.settings[0],
-                                                depth=self.settings[1] * 2, enter_editmode=False, align='WORLD',
+                                                depth=self.settings[1], enter_editmode=False, align='WORLD',
                                                 location=self.settings[2], rotation=self.settings[3])
             context.area.tag_redraw()
 
@@ -340,7 +410,7 @@ class KeFitPrim(Operator):
             self.cyl_sides -= 1
             bpy.ops.mesh.delete(type='FACE')
             bpy.ops.mesh.primitive_cylinder_add(vertices=self.cyl_sides, radius=self.settings[0],
-                                                depth=self.settings[1] * 2, enter_editmode=False, align='WORLD',
+                                                depth=self.settings[1], enter_editmode=False, align='WORLD',
                                                 location=self.settings[2], rotation=self.settings[3])
             context.area.tag_redraw()
 
@@ -350,17 +420,40 @@ class KeFitPrim(Operator):
                 event.ctrl and event.type == "MIDDLEMOUSE":
             return {'PASS_THROUGH'}
 
+        elif event.type == 'C' and event.value == 'RELEASE':
+            self.circle = not self.circle
+            if self.circle:
+                self.settings[1] = 0
+                self.settings[2] = self.circle_pos
+                bpy.ops.mesh.delete(type='FACE')
+                bpy.ops.mesh.primitive_cylinder_add(vertices=self.cyl_sides, radius=self.settings[0],
+                                                    depth=self.settings[1], enter_editmode=False, align='WORLD',
+                                                    location=self.settings[2], rotation=self.settings[3])
+                context.area.tag_redraw()
+            else:
+                self.settings = self.og_settings
+
         elif event.type in {'LEFTMOUSE', 'RIGHTMOUSE', 'ESC', 'RET', 'SPACE'}:
+            if self.circle:
+                bpy.ops.mesh.select_linked()
+                bpy.ops.mesh.flip_normals()
+                bpy.ops.mesh.remove_doubles()
+
             context.area.tag_redraw()
             context.window_manager.event_timer_remove(self._timer)
-
             bpy.types.SpaceView3D.draw_handler_remove(self._handle, 'WINDOW')
 
             if self.itemize or self.edit_mode == "OBJECT":
                 bpy.ops.object.mode_set(mode='OBJECT')
-                bpy.ops.object.shade_smooth()
-                context.object.data.use_auto_smooth = True
-                # bpy.ops.view3d.snap_cursor_to_center()
+
+                if self.shading_mode in {"SMOOTH", "AUTO"}:
+                    bpy.ops.object.shade_smooth()
+                if self.shading_mode == "AUTO":
+                    context.object.data.use_auto_smooth = True
+
+                if self.circle:
+                    bpy.ops.object.origin_set(type='ORIGIN_GEOMETRY', center='MEDIAN')
+
                 cursor = context.scene.cursor
                 cursor.location = self.og_cloc
                 cursor.rotation_euler = self.og_crot
@@ -406,6 +499,7 @@ class KeFitPrim(Operator):
         self.sphere_ring = k.fitprim_sphere_ring
         self.sphere_seg = k.fitprim_sphere_seg
         self.quadsphere_seg = k.fitprim_quadsphere_seg
+        self.shading_mode = k.fitprim_shading
 
         self.edit_mode = context.mode
         sel_mode = (False, False, False)
@@ -534,6 +628,7 @@ class KeFitPrim(Operator):
                 else:
                     offset = hit_normal * (side / 2)
                     setpos = center + offset
+                    self.circle_pos = setpos - offset
                     # setpos = mtx @ hit_obj.data.polygons[hit_face].center + offset
 
                 setrot = rotation_from_vector(hit_normal, start_vec)
@@ -579,6 +674,7 @@ class KeFitPrim(Operator):
                 else:
                     setpos = region_2d_to_location_3d(context.region, context.space_data.region_3d, self.mouse_pos,
                                                       view_vec)
+                self.circle_pos = setpos
 
                 if non_mesh_clones and void_size_clone == 0:
                     bpy.ops.object.duplicate()
@@ -895,6 +991,7 @@ class KeFitPrim(Operator):
             if self.ke_fitprim_option == "PLANE" and self.edit_mode != "OBJECT":
                 if sel_mode[2]:
                     setpos = center
+                    self.circle_pos = setpos
 
             elif len(sel_verts) == 0 or sel_mode[0] or sel_mode[1]:
                 side *= .5
@@ -919,6 +1016,8 @@ class KeFitPrim(Operator):
                 if not island_mode and self.sphere:
                     setpos = setpos - offset
 
+                self.circle_pos = setpos - offset
+
             # SET FINAL ROTATION
             if self.world:
                 setrot = (0, 0, 0)
@@ -926,6 +1025,9 @@ class KeFitPrim(Operator):
                     setpos[2] = 0
             else:
                 setrot = setrot.to_euler()
+
+            if self.circle_pos is None:
+                self.circle_pos = setpos
 
             # RUN OP
             if not self.edit_mode == "OBJECT":
@@ -937,7 +1039,6 @@ class KeFitPrim(Operator):
                 bpy.ops.transform.select_orientation(orientation='GLOBAL')
                 cursor.location = setpos
                 cursor.rotation_euler = setrot
-
             #
             # CUBE
             #
@@ -945,8 +1046,7 @@ class KeFitPrim(Operator):
                 bpy.ops.mesh.ke_primitive_box_add(width=side, depth=side, height=distance,
                                                   align='WORLD', location=setpos, rotation=setrot)
                 if self.itemize or self.edit_mode == "OBJECT":
-                    bpy.ops.object.shade_smooth()
-                    context.object.data.use_auto_smooth = True
+                    self.set_shading(context)
 
             #
             # PLANE
@@ -962,9 +1062,7 @@ class KeFitPrim(Operator):
                 bpy.ops.mesh.primitive_plane_add(enter_editmode=enter, align='WORLD', location=setpos,
                                                  rotation=setrot, size=side, scale=(1, 1, 1), calc_uvs=True)
                 if self.itemize or self.edit_mode == "OBJECT":
-                    bpy.ops.object.shade_smooth()
-                    context.object.data.use_auto_smooth = True
-
+                    self.set_shading(context)
             #
             # SPHERE
             #
@@ -972,9 +1070,7 @@ class KeFitPrim(Operator):
                 bpy.ops.mesh.primitive_uv_sphere_add(segments=self.sphere_seg, ring_count=self.sphere_ring, radius=side,
                                                      align='WORLD', location=setpos, rotation=setrot)
                 if self.itemize or self.edit_mode == "OBJECT":
-                    bpy.ops.object.shade_smooth()
-                    context.object.data.use_auto_smooth = True
-
+                    self.set_shading(context)
             #
             # QUADSPHERE
             #
@@ -995,19 +1091,17 @@ class KeFitPrim(Operator):
                 if self.itemize or self.edit_mode == "OBJECT":
                     bpy.ops.object.mode_set(mode="EDIT")
                     bpy.ops.mesh.subdivide(number_cuts=cutnr, smoothness=1)
-                    bpy.ops.mesh.faces_shade_smooth()
+                    # bpy.ops.mesh.faces_shade_smooth()
                     bpy.ops.object.mode_set(mode="OBJECT")
+                    self.set_shading(context)
                 else:
                     bpy.ops.mesh.subdivide(number_cuts=cutnr, smoothness=1)
                     bpy.ops.mesh.faces_shade_smooth()
 
                 bpy.ops.ed.undo_push()
-                # context.object.data.use_auto_smooth = as_check
 
                 if self.itemize or self.edit_mode == "OBJECT":
-                    bpy.ops.object.shade_smooth()
-                    context.object.data.use_auto_smooth = True
-
+                    self.set_shading(context)
             #
             # CYLINDER
             #
@@ -1015,12 +1109,12 @@ class KeFitPrim(Operator):
                 bpy.ops.mesh.primitive_cylinder_add(vertices=self.cyl_sides, radius=side, depth=distance * 2,
                                                     enter_editmode=False, align='WORLD',
                                                     location=setpos, rotation=setrot)
-
                 if self.is_modal:
                     if self.itemize or self.edit_mode == "OBJECT":
                         bpy.ops.object.mode_set(mode="EDIT")
 
-                    self.settings = (side, distance, setpos, setrot)
+                    self.settings = [side, distance * 2, setpos, setrot]
+                    self.og_settings = self.settings.copy()
                     context.window_manager.modal_handler_add(self)
 
                     self._timer = context.window_manager.event_timer_add(0.5, window=context.window)
@@ -1034,6 +1128,7 @@ class KeFitPrim(Operator):
                     status_help = [
                         "[WHEEL] Side Count",
                         "[MMB, ALT-MBs] Navigation",
+                        "[C] Circle Mode (In Cylinder Modal)"
                         "[ESC/ENTER/SPACEBAR LMB/RMB] Apply",
                         "[ESC/RMB] Cancel"]
                     set_status_text(context, status_help)

@@ -50,17 +50,13 @@ class KeGetSetMaterial(Operator):
                 self.report({"INFO"}, "GetSetMaterial: Invalid Object Type Selected")
                 return {"CANCELLED"}
 
-        obj, hit_wloc, hit_normal, face_index = self.raycast(context)
+        # hide blocking wireframe objects
+        for o in context.scene.objects:
+            if o.display_type in {'WIRE', 'BOUNDS'} and not o.hide_viewport:
+                o.hide_viewport = True
+                hidden.append(o)
 
-        if obj.display_type in {'WIRE', 'BOUNDS'}:
-            # Hiding *all* of them just in case there's stacked layers of 'em.
-            # Only doing this if we hit a wire mesh (just-in-case perf issue)
-            for o in context.scene.objects:
-                if o.display_type in {'WIRE', 'BOUNDS'} and not o.hide_viewport:
-                    o.hide_viewport = True
-                    hidden.append(o)
-            # ...and AGAIN:
-            obj, hit_wloc, hit_normal, face_index = self.raycast(context)
+        obj, hit_wloc, hit_normal, face_index = self.raycast(context)
 
         if face_index is not None or self.nonmesh_target :
             if self.target_index is None:
@@ -112,13 +108,15 @@ class KeGetSetMaterial(Operator):
                     else:
                         if sel_mode == "OBJECT":
                             bpy.ops.object.mode_set(mode='OBJECT')
+                            o.data.update()
                             bpy.ops.object.material_slot_remove_unused()
                         else:
                             bpy.ops.object.mode_set(mode='OBJECT')
+                            o.data.update()
                             bpy.ops.object.material_slot_remove_unused()
                             bpy.ops.object.mode_set(mode='EDIT')
 
-                    o.select_set(False)
+                        o.select_set(False)
 
                 for o in sel_obj:
                     o.select_set(True)
@@ -127,8 +125,6 @@ class KeGetSetMaterial(Operator):
                 if sel_mode == "EDIT_MESH":
                     bpy.ops.object.mode_set(mode='EDIT')
                 self.report({"INFO"}, "GetSetMaterial: No Material found")
-
-            obj.update_from_editmode()
 
             if sel_mode == "OBJECT":
                 bpy.ops.object.mode_set(mode='OBJECT')

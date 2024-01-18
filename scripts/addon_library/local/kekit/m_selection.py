@@ -4,6 +4,7 @@ from .ops.ke_align_object_to_active import KeAlignObjectToActive
 from .ops.ke_align_origin_to_selected import KeAlignOriginToSelected
 from .ops.ke_bbmatch import KeBBMatch
 from .ops.ke_cursor_fit_and_align import KeCursorFitAlign
+from .ops.ke_cursor_align_rot import KeCursorAlignRot
 from .ops.ke_frame_all_or_selected import KeFrameView
 from .ops.ke_lock import KeLock
 from .ops.ke_mouse_side_of_active import KeMouseSideofActive
@@ -41,13 +42,15 @@ class UISelectionModule(Panel):
 
         # ALIGN (leaning)
         row = col.row(align=True)
-        row.operator("view3d.cursor_fit_selected_and_orient", text="Cursor Fit & Align")
+        row.operator("view3d.ke_cursor_fit_align", text="Cursor Fit & Align")
         split = row.row(align=True)
         split.alignment = "RIGHT"
         if k.cursorfit:
             split.prop(k, "cursorfit", text="", icon="CHECKMARK", toggle=True)
         else:
             split.prop(k, "cursorfit", text="", icon_value=pcoll['kekit']['ke_uncheck'].icon_id, toggle=True)
+
+        col.operator("view3d.ke_cursor_align_rot", icon="MOUSE_MOVE")
 
         row = col.row(align=True)
         row.operator("view3d.ke_vp_step_rotate", text="StepRotate 90").rot = 90
@@ -71,7 +74,7 @@ class UISelectionModule(Panel):
         col.label(text="Align Origin(s) To")
         row = col.row(align=True)
         row.operator('view3d.ke_origin_to_cursor', text="Cursor")
-        row.operator('view3d.align_origin_to_selected', text="Selection")
+        row.operator('view3d.ke_align_origin_to_selected', text="Selection")
         row.operator('view3d.origin_to_selected', text="Sel.Loc")
 
         row = col.row(align=False)
@@ -84,7 +87,7 @@ class UISelectionModule(Panel):
         row = col.row(align=True)
         row.operator('view3d.ke_object_to_cursor', text="Cursor")
         row.operator('view3d.ke_align_object_to_active', text="Active Object").align = "BOTH"
-        row.operator('view3d.selected_to_origin', text="Origin")
+        row.operator('view3d.ke_selected_to_origin', text="Origin")
         col.operator('object.ke_bbmatch')
 
         col.separator(factor=0.5)
@@ -222,6 +225,7 @@ classes = (
     KeBBMatch,
     KeCursorClearRot,
     KeCursorFitAlign,
+    KeCursorAlignRot,
     KeFrameView,
     KeLock,
     KeMouseSideofActive,

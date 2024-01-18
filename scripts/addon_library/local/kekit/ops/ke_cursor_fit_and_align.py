@@ -19,6 +19,7 @@ def set_cursor(rotmat, pos=None):
     q = rotmat.to_euler("XYZ")
     bpy.context.scene.cursor.rotation_mode = "XYZ"
     bpy.context.scene.cursor.rotation_euler = q
+    # Floating point rounding - people prefer "clean zeros"
     crot = bpy.context.scene.cursor.rotation_euler
     crot.x = round(crot.x, 4)
     crot.y = round(crot.y, 4)
@@ -44,7 +45,7 @@ def set_custom_orientation(context, pos):
 
 
 class KeCursorFitAlign(Operator):
-    bl_idname = "view3d.cursor_fit_selected_and_orient"
+    bl_idname = "view3d.ke_cursor_fit_align"
     bl_label = "Cursor Fit & Align"
     bl_description = "Snap Cursor to selected + orient to FACE/VERT/EDGE normal. \n" \
                      "No selection = Cursor reset\n" \
