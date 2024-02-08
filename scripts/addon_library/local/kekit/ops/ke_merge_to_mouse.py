@@ -2,15 +2,15 @@ import bmesh
 import bpy
 from bpy.types import Operator
 from mathutils import Vector
-from .._utils import vertloops, get_vert_nearest_mouse, get_area_and_type
+from .._utils import vertloops, get_vert_nearest_mouse, get_area_and_type, get_prefs
 
 
 class KeMergeToMouse(Operator):
     bl_idname = "mesh.ke_merge_to_mouse"
     bl_label = "Merge to Mouse"
-    bl_description = "Vert & Face Mode: Merge selected verts to the vert nearest the Mouse " \
-                     "(selected + linked verts!)\n" \
-                     "Edge Mode: Collapse selected edges to edge nearest Mouse (+connected, for multiple rows)\n" \
+    bl_description = "Merge selected verts to the vert nearest the Mouse\n" \
+                     "(Tip: You can point to merge (linked) unselected verts!)\n" \
+                     "Edge Mode (C): Collapse selected edge rows to edge row nearest Mouse\n" \
                      "Note: In Quad Windows, Merge to Last is used instead"
     bl_options = {'REGISTER', 'UNDO'}
 
@@ -28,9 +28,10 @@ class KeMergeToMouse(Operator):
         return self.execute(context)
 
     def execute(self, context):
+        k = get_prefs()
         sel_mode = context.tool_settings.mesh_select_mode[:]
 
-        # IDC...maybe later
+        # QUAD view? maybe later
         areatype = get_area_and_type()[1]
         if areatype == "QUAD":
             bpy.ops.mesh.merge(type='LAST')
@@ -48,7 +49,7 @@ class KeMergeToMouse(Operator):
             print("Cancelled: Nothing Selected")
             return {"CANCELLED"}
 
-        if sel_mode[1]:
+        if sel_mode[1] and k.merge2mouse_ec:
             sel_edges = [e for e in bm.edges if e.select]
 
             if len(sel_edges) > 1:
@@ -87,40 +88,39 @@ class KeMergeToMouse(Operator):
 
                 collapse_rows = vertloops([e.verts for e in list(set(le))])
 
-                for row in collapse_rows:
-                    target = [i for i in row if i in start_line][0]
-                    if not target:
-                        target = row[0]
-                    bmesh.ops.pointmerge(bm, verts=row, merge_co=target.co)
+                if len(collapse_rows) >= 2:
+                    for row in collapse_rows:
+                        target = [i for i in row if i in start_line][0]
+                        if not target:
+                            target = row[0]
+                        bmesh.ops.pointmerge(bm, verts=row, merge_co=target.co)
+
+                    # Update & Finalize
                     bmesh.update_edit_mesh(mesh)
+                    return {'FINISHED'}
 
-                mesh.update()
-                # trust blender to update the mesh w/o issue? nah ;P
-                bpy.ops.object.mode_set(mode="OBJECT")
-                bpy.ops.object.mode_set(mode="EDIT")
-
+        # ELSE VERT MODE MERGE
+        context.tool_settings.mesh_select_mode = (True, False, False)
+        if skip_linked:
+            verts = sel_verts
         else:
-            context.tool_settings.mesh_select_mode = (True, False, False)
-            if skip_linked:
-                verts = sel_verts
-            else:
-                verts = []
-                for v in sel_verts:
-                    for e in v.link_edges:
-                        verts.append(e.other_vert(v))
+            verts = []
+            for v in sel_verts:
+                for e in v.link_edges:
+                    verts.append(e.other_vert(v))
 
-                verts += sel_verts
-                verts = list(set(verts))
+            verts += sel_verts
+            verts = list(set(verts))
 
-            merge_point = get_vert_nearest_mouse(context, self.mouse_pos, verts, obj_mtx)
+        merge_point = get_vert_nearest_mouse(context, self.mouse_pos, verts, obj_mtx)
 
-            if merge_point:
-                if merge_point not in sel_verts:
-                    sel_verts.append(merge_point)
-                bmesh.ops.pointmerge(bm, verts=sel_verts, merge_co=merge_point.co)
-                bm.select_flush_mode()
-                bmesh.update_edit_mesh(obj.data)
+        if merge_point:
+            if merge_point not in sel_verts:
+                sel_verts.append(merge_point)
+            bmesh.ops.pointmerge(bm, verts=sel_verts, merge_co=merge_point.co)
+            bm.select_flush_mode()
+            bmesh.update_edit_mesh(obj.data)
 
-            context.tool_settings.mesh_select_mode = (sel_mode[0], sel_mode[1], sel_mode[2])
+        context.tool_settings.mesh_select_mode = (sel_mode[0], sel_mode[1], sel_mode[2])
 
         return {'FINISHED'}

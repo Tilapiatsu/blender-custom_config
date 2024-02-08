@@ -4,8 +4,16 @@ from bpy.types import Operator
 from bpy_extras.view3d_utils import region_2d_to_vector_3d, region_2d_to_location_3d
 from mathutils import Vector
 from mathutils.geometry import intersect_ray_tri
-from .._utils import get_prefs, get_distance, average_vector, mouse_raycast, get_view_type, set_active_collection, \
-    refresh_ui
+from .._utils import (
+    get_prefs,
+    get_distance,
+    average_vector,
+    mouse_raycast,
+    get_view_type,
+    set_active_collection,
+    refresh_ui,
+    get_selected
+)
 
 
 def store_og_materials():
@@ -163,6 +171,10 @@ class KeCopyPlus(Operator):
             sel_poly = []
             # Limit obj selection to Mesh, for now
             sel_obj = [o for o in context.selected_objects if o.type == 'MESH']
+            if not sel_obj:
+                obj = get_selected(context)
+                obj.select_set(True)
+                sel_obj = [obj]
 
             if self.mode == "COPY" or self.mode == "CUT":
                 # SELECTION CHECK

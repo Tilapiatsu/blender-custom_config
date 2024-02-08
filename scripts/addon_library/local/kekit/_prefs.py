@@ -26,7 +26,7 @@ m_tooltip = "Toggles Module On/Off. Read Docs/Wiki for Module information"
 path = bpy.utils.user_resource('CONFIG')
 
 
-# Updating tab location will require "Reload Add-ons":
+# Updating kekit tab location will require "Reload Add-ons": TBD: run op here?
 # (avoiding managing importing all the module & submodule panels manually & future panels added)
 def update_panel(self, context):
     k = get_prefs()
@@ -53,7 +53,7 @@ def save_prefs():
         else:
             prefs[key] = k
     jsondata = json.dumps(prefs, indent=1, ensure_ascii=True)
-    file_name = path + "/kekit_prefs" + ".json"
+    file_name = path + "/kekit_prefs.json"
     with open(file_name, "w") as text_file:
         text_file.write(jsondata)
     text_file.close()
@@ -97,87 +97,27 @@ class KeLoadPrefs(Operator):
 
     def execute(self, context):
         ap = get_prefs()
-        # file_name = path + "/kekit_prefs.json"
-        file_name = self.inputpath
         prefs = None
+        # Loading prefs file
         try:
-            with open(file_name, "r") as jf:
+            with open(self.inputpath, "r") as jf:
                 prefs = json.load(jf)
                 jf.close()
         except (OSError, IOError) as e:
             print("keKit: Prefs Load Error:", e)
             pass
+        # Assigning properties prefs file -> add-on prefs
         if prefs is not None and ap is not None:
             for key in prefs :
                 if key in ap.__annotations__.keys():
                     v = prefs[key]
-                    # OPC1 (Brute force assigning ENUMS)
-                    if key == "opc1_obj_o":
-                        ap.opc1_obj_o = v
-                    elif key == "opc1_obj_p":
-                        ap.opc1_obj_p = v
-                    elif key == "opc1_edit_o":
-                        ap.opc1_edit_o = v
-                    elif key == "opc1_edit_p":
-                        ap.opc1_edit_p = v
-                    # OPC2
-                    elif key == "opc2_obj_o":
-                        ap.opc2_obj_o = v
-                    elif key == "opc2_obj_p":
-                        ap.opc2_obj_p = v
-                    elif key == "opc2_edit_o":
-                        ap.opc2_edit_o = v
-                    elif key == "opc2_edit_p":
-                        ap.opc2_edit_p = v
-                    # OPC3
-                    elif key == "opc3_obj_o":
-                        ap.opc3_obj_o = v
-                    elif key == "opc3_obj_p":
-                        ap.opc3_obj_p = v
-                    elif key == "opc3_edit_o":
-                        ap.opc3_edit_o = v
-                    elif key == "opc3_edit_p":
-                        ap.opc3_edit_p = v
-                    # OPC4
-                    elif key == "opc4_obj_o":
-                        ap.opc4_obj_o = v
-                    elif key == "opc4_obj_p":
-                        ap.opc4_obj_p = v
-                    elif key == "opc4_edit_o":
-                        ap.opc4_edit_o = v
-                    elif key == "opc4_edit_p":
-                        ap.opc4_edit_p = v
-                    # OPC5
-                    elif key == "opc5_obj_o":
-                        ap.opc5_obj_o = v
-                    elif key == "opc5_obj_p":
-                        ap.opc5_obj_p = v
-                    elif key == "opc5_edit_o":
-                        ap.opc5_edit_o = v
-                    elif key == "opc5_edit_p":
-                        ap.opc5_edit_p = v
-                    # OPC6
-                    elif key == "opc6_obj_o":
-                        ap.opc6_obj_o = v
-                    elif key == "opc6_obj_p":
-                        ap.opc6_obj_p = v
-                    elif key == "opc6_edit_o":
-                        ap.opc6_edit_o = v
-                    elif key == "opc6_edit_p":
-                        ap.opc6_edit_p = v
-                    # misc
-                    elif key == "tt_icon_pos":
-                        ap.tt_icon_pos = v
-                    elif key == "boundary_smooth":
-                        ap.boundary_smooth = v
-                    else:
-                        try:
-                            ap[key] = prefs[key]
-                        except Exception as e:
-                            print("keKit Prefs Import - Key not found: ", e)
+                    try:
+                        setattr(ap, key, v)
+                    except Exception as e:
+                        print("keKit Prefs Import - Key not found: ", e)
             self.report({"INFO"}, "keKit Perferences Imported!")
         else:
-            print("keKIT Load Settings JSON File Error")
+            print("keKIT Load Settings: Path/JSON File Error")
         refresh_ui()
         return {'FINISHED'}
 
@@ -213,7 +153,14 @@ class KePropToggle(Operator):
         return {"FINISHED"}
 
 
+# TBD:
+# class KeKitTempSession(PropertyGroup):
+#     # Session (WM) Stored "temp"
+#     int = IntProperty()
+
+
 class KeKitPropertiesTemp(PropertyGroup):
+    # Scene Stored "temp"
     slush: StringProperty(default="")
     view_query: StringProperty(default=" N/A ")
     toggle: BoolProperty(default=False)
@@ -293,7 +240,7 @@ class KeKitAddonPreferences(AddonPreferences):
     fitprim_sphere_seg: IntProperty(min=3, max=256, default=32)
     fitprim_sphere_ring: IntProperty(min=3, max=256, default=16)
     fitprim_unit: FloatProperty(min=.00001, max=256, default=0.2)
-    fitprim_quadsphere_seg: IntProperty(min=1, max=128, default=8)
+    fitprim_quadsphere_seg: IntProperty(min=0, max=128, default=8)
     fitprim_shading: EnumProperty(
         items=[("FLAT", "Flat", ""), ("SMOOTH", "Smooth", ""), ("AUTO", "AutoSmooth", "")],
         name="FitPrim Default Shading", default="AUTO")
@@ -507,7 +454,7 @@ class KeKitAddonPreferences(AddonPreferences):
     boundary_smooth: EnumProperty(items=[("PRESERVE_CORNERS", "Preserve Corners", ""), ("ALL", "All", "")],
                                   description="Controls how open boundaries are smoothed",
                                   default="PRESERVE_CORNERS")
-    limit_surface: BoolProperty(name="Use Limit Surface",description="Use Limit Surface", default=False)
+    limit_surface: BoolProperty(name="Use Limit Surface", description="Use Limit Surface", default=False)
     optimal_display: BoolProperty(name="Use Optimal Display", description="Use Optimal Display", default=True)
     em_vis: BoolProperty(name="Edit-Mode Visibility", description="Edit-Mode Visibility", default=True)
     on_cage: BoolProperty(name="On Cage", description="Show On Edit Cage", default=False)
@@ -638,8 +585,9 @@ class KeKitAddonPreferences(AddonPreferences):
                                       "TT Scale MouseAxis", default=True)
     # korean toggle
     korean: BoolProperty(
-        name="Korean Bevel Toggle", default=False,
-        description="Toggles 'Korean style' (flat bevels) preset for Context Bevel and keKit subdtools bevels")
+        name="Flat Profile Bevels", default=False,
+        description="Toggles flat profile (aka 'Korean/Solid/Square bevels') bevel preset (2-seg, 1-profile)\n"
+                    "for Context Bevel and keKit SubD pie menu bevels")
     # select by display type active collection only toggle
     sel_type_coll: BoolProperty(name="Active Collection Only",
                                 description="Select by display type in active collection only",
@@ -676,6 +624,11 @@ class KeKitAddonPreferences(AddonPreferences):
     toggle_same: BoolProperty(default=True, name="Toggle All Same",
                               description="Set all weights to the same (most common) value AFTER toggling\n"
                                           "(All will be 1 if already mostly 1 and vice versa, else inverted)")
+    toggle_add: BoolProperty(default=True, name="Toggle & Add Modifier",
+                             description="Adds a Bevel (Weights) or SubD Toggle (Crease) mod if not already present")
+    # Mouse Merge
+    merge2mouse_ec: BoolProperty(default=True, name="C",
+                                 description="In Edge-Mode: ON: Edge Row-Collapse, OFF: Vert Merge (all the same)")
     # TT header icons prefs
     tt_icon_pos: EnumProperty(
         name="TT Icon Placement",
@@ -717,6 +670,7 @@ def register():
         bpy.utils.register_class(cls)
 
     Scene.kekit_temp = PointerProperty(type=KeKitPropertiesTemp)
+    # bpy.types.WindowManager.kekit_session = PointerProperty(type=KeKitTempSession)
 
     v = "v" + str(kekit_version[0]) + "." + str(kekit_version[1]) + str(kekit_version[2])
     bpy.context.preferences.addons[__package__].preferences.version = v

@@ -39,6 +39,8 @@ class KeTT(Operator):
         elif properties.mode == "TOGGLE_DUPE":
             return "TT Linked Dupe Toggle - Duplicate Linked or not using TT Dupe\n" \
                    "Also used by MouseAxis Dupe & VPtransform Dupe"
+        elif properties.mode == "DUPE":
+            return "Duplicates mesh/object & runs selected TT Move Operator (Grab/MAM/VPT)"
         elif properties.mode == "F_DUPE":
             return "TT Dupe Forced - Overrides Toggle value -> Unlinked duplication"
         elif properties.mode == "F_LINKDUPE":

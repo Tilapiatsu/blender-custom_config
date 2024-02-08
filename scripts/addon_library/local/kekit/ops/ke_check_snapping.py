@@ -43,6 +43,7 @@ class KeCheckSnapping(Operator):
             mesh_select_all(obj, False)
 
         # FIND MATCHING CO'S
+        count = 0
         for obj, coords in oac:
             # SETUP K-DIMENSIONAL TREE SPACE-PARTITIONING DATA STRUCTURE
             cmp_co = np.concatenate([i[1] for i in oac if i[0].name != obj.name])
@@ -55,8 +56,13 @@ class KeCheckSnapping(Operator):
             # FIND MATCHING CO'S IN K-D TREE & SELECT
             sel_mask = [bool(kd.find_range(co, self.epsilon)) for co in coords]
             obj.data.vertices.foreach_set("select", sel_mask)
+            count += sum(sel_mask)
 
         bpy.ops.object.mode_set(mode="EDIT")
         bpy.ops.mesh.select_mode(use_extend=False, use_expand=False, type='VERT')
+        if count:
+            self.report({"INFO"}, "Snapped: %i verts share coords" % count)
+        else:
+            self.report({"INFO"}, "Not Snapped: No verts share coords")
 
         return {"FINISHED"}

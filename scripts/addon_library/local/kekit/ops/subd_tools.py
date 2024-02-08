@@ -22,6 +22,7 @@ class UISubDModule(Panel):
         row.operator('view3d.ke_subd', text="Set VP Lv").level_mode = "VIEWPORT"
         row.operator('view3d.ke_subd', text="Set Render Lv").level_mode = "RENDER"
         col.separator()
+        col = col.box().column(align=True)
         col.operator('view3d.ke_subd', text="SubD Toggle").level_mode = "TOGGLE"
         # col.separator()
         col.label(text="SubD Toggle Options")
@@ -79,7 +80,7 @@ class KeSubd(Operator):
         optimal_display = k.optimal_display
         on_cage = k.on_cage
         em_vis = k.em_vis
-        use_autosmooth = k.subd_autosmooth
+        toggle_autosmooth = k.subd_autosmooth
 
         mode = context.mode[:]
         if mode == "EDIT_MESH":
@@ -113,7 +114,8 @@ class KeSubd(Operator):
                 mod.show_on_cage = on_cage
                 mod.show_in_editmode = em_vis
 
-                obj.data.use_auto_smooth = False
+                if toggle_autosmooth:
+                    obj.data.use_auto_smooth = False
 
                 if mode != "OBJECT":
                     bpy.ops.object.mode_set(mode="OBJECT")
@@ -128,22 +130,21 @@ class KeSubd(Operator):
 
             if obj not in new_subd:
                 set_flat = False
-                auto_smooth = False
 
                 for mod in obj.modifiers:
 
                     if mod.type == "SUBSURF":
-
                         if self.level_mode == "VIEWPORT":
                             mod.levels = vp_level
                         elif self.level_mode == "RENDER":
                             mod.render_levels = render_level
 
                         elif self.level_mode == "TOGGLE":
-
                             if mod.show_viewport:
                                 # TURN OFF
                                 mod.show_viewport = False
+                                if toggle_autosmooth:
+                                    obj.data.use_auto_smooth = True
 
                                 # re-applying these for subd modifiers added by other means
                                 mod.boundary_smooth = boundary_smooth
@@ -152,23 +153,16 @@ class KeSubd(Operator):
                                 mod.show_on_cage = on_cage
                                 mod.show_in_editmode = em_vis
 
-                                if use_autosmooth:
-                                    auto_smooth = True
-
                                 if flat_edit:
                                     set_flat = True
 
                             elif not mod.show_viewport:
                                 # TURN ON
                                 mod.show_viewport = True
+                                if toggle_autosmooth:
+                                    obj.data.use_auto_smooth = False
 
                 if self.level_mode == "TOGGLE":
-                    if use_autosmooth:
-                        if auto_smooth:
-                            obj.data.use_auto_smooth = True
-                        else:
-                            obj.data.use_auto_smooth = False
-
                     if flat_edit and set_flat:
                         if mode != "OBJECT":
                             bpy.ops.object.mode_set(mode="OBJECT")

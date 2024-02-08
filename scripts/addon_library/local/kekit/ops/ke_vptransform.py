@@ -164,18 +164,43 @@ class KeVPTransform(Operator):
         # Copygrab
         elif self.transform == 'COPYGRAB':
 
-            if context.mode == 'EDIT_MESH' and context.object.type == 'MESH':
-                bpy.ops.mesh.duplicate('INVOKE_DEFAULT')
-            elif context.mode != 'OBJECT' and self.obj.type == "CURVE":
-                bpy.ops.curve.duplicate('INVOKE_DEFAULT')
-            elif context.mode == 'OBJECT':
-                if k.tt_linkdupe:
-                    bpy.ops.object.duplicate('INVOKE_DEFAULT', linked=True)
+            if context.mode != "OBJECT":
+                if self.obj.type == "CURVE":
+                    bpy.ops.curve.duplicate_move('INVOKE_DEFAULT',
+                             TRANSFORM_OT_translate={"orient_matrix_type": og_transform,
+                                                     "constraint_axis": vplane,
+                                                     "use_proportional_edit": pe_use,
+                                                     "proportional_edit_falloff": pe_falloff,
+                                                     "use_proportional_connected": pe_connected,
+                                                     "use_proportional_projected": pe_proj})
+                elif self.obj.type == "MESH":
+                    bpy.ops.mesh.duplicate_move('INVOKE_DEFAULT',
+                            TRANSFORM_OT_translate={"orient_matrix_type": og_transform,
+                                                    "constraint_axis": vplane,
+                                                    "use_proportional_edit": pe_use,
+                                                    "proportional_edit_falloff": pe_falloff,
+                                                    "use_proportional_connected": pe_connected,
+                                                    "use_proportional_projected": pe_proj})
+
+            elif context.mode == "OBJECT":
+                if not k.tt_linkdupe:
+                    bpy.ops.object.duplicate_move('INVOKE_DEFAULT',
+                          TRANSFORM_OT_translate={"orient_matrix_type": og_transform,
+                                                  "constraint_axis": vplane,
+                                                  "use_proportional_edit": pe_use,
+                                                  "proportional_edit_falloff": pe_falloff,
+                                                  "use_proportional_connected": pe_connected,
+                                                  "use_proportional_projected": pe_proj})
                 else:
-                    bpy.ops.object.duplicate('INVOKE_DEFAULT', linked=False)
+                    bpy.ops.object.duplicate_move_linked('INVOKE_DEFAULT',
+                         TRANSFORM_OT_translate={"orient_matrix_type": og_transform,
+                                                 "constraint_axis": vplane,
+                                                 "use_proportional_edit": pe_use,
+                                                 "proportional_edit_falloff": pe_falloff,
+                                                 "use_proportional_connected": pe_connected,
+                                                 "use_proportional_projected": pe_proj})
             else:
+                print("VPT: Invalid selection?")
                 return {'CANCELLED'}
-            bpy.ops.transform.translate('INVOKE_DEFAULT', constraint_axis=vplane,
-                                        orient_matrix_type=og_transform, orient_type=og_transform)
 
         return {'FINISHED'}

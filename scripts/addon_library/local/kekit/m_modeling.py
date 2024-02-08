@@ -9,6 +9,7 @@ from .ops.ke_facematch import KeFaceMatch
 from .ops.ke_fit2grid import KeFit2Grid
 from .ops.ke_ground import KeGround
 from .ops.ke_merge_near_selected import KeMergeNearSelected
+from .ops.ke_merge_to_active import KeMergeToActive
 from .ops.ke_merge_to_mouse import KeMergeToMouse
 from .ops.ke_multicut import KeMultiCut, KeMultiCutPrefs, UIMultiCutModule
 from .ops.ke_niceproject import KeNiceProject
@@ -52,13 +53,26 @@ class UIModelingModule(Panel):
         col.operator('mesh.ke_quads')
 
         col.label(text="Merge To:")
+        # row = col.row(align=True)
+        # row.operator('mesh.ke_merge_to_mouse', text="Mouse", icon="MOUSE_MOVE")
         row = col.row(align=True)
-        row.operator('mesh.ke_merge_to_mouse', text="Mouse", icon="MOUSE_MOVE")
-        row.operator('mesh.ke_merge_near_selected', text="Sel.Range")
+        split = row.split(factor=0.8, align=True)
+        split.operator('mesh.ke_merge_to_mouse', text="Mouse", icon="MOUSE_MOVE")
+        split.prop(k, "merge2mouse_ec", toggle=True)
+
+        col.operator('mesh.ke_merge_near_selected', text="Near Selected")
+
+        row = col.row(align=True)
+        split = row.split(factor=0.8, align=True)
+        split.operator('mesh.ke_merge_to_active')
+        split.prop(k, "context_merge", toggle=True)
 
         col.label(text="Dimensional")
         col.operator('view3d.ke_fit2grid')
-        col.operator('mesh.ke_zeroscale', text="ZeroScale to Cursor").orient_type = "CURSOR"
+        row = col.row(align=True)
+        split = row.split(factor=0.65, align=True)
+        split.operator('mesh.ke_zeroscale', text="ZeroScale Cursor").orient_type = "CURSOR"
+        split.operator('mesh.ke_zeroscale', text="ZS Auto").orient_type = "AUTO"
         col.operator('mesh.ke_facematch')
         row = col.row(align=True)
         row.scale_x = 0.85
@@ -89,6 +103,7 @@ classes = (
     KeFit2Grid,
     KeGround,
     KeMergeNearSelected,
+    KeMergeToActive,
     KeMergeToMouse,
     KeMultiCut,
     KeMultiCutPrefs,

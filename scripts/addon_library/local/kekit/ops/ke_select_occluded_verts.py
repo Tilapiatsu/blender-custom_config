@@ -36,6 +36,7 @@ class KeSelectOccludedVerts(Operator):
             o.select_set(False)
 
         # TEMP-BOOL OCCLUDED INTERSECTION MESH & USE TO FIND MATCHING CO'S
+        # Slow Bool-hack Method, because Raycasting is slighly less reliable
         for obj in og_sel_obj:
             # CREATE TEMP DUPES FOR BOOLEAN
             o = dupe(obj)

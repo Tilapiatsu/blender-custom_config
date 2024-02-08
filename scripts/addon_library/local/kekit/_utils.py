@@ -10,11 +10,10 @@ from bpy_extras.view3d_utils import (
 )
 from mathutils import Matrix, Vector
 
+
 #
 # Misc keKit Utility Funcs
 #
-
-
 def get_prefs():
     return bpy.context.preferences.addons[__package__].preferences
 
@@ -160,12 +159,14 @@ def apply_transform(obj, loc=False, rot=True, scl=True):
 
     def swap(i):
         transform[i], basis[i] = basis[i], transform[i]
+
     if loc:
         swap(0)
     if rot:
         swap(1)
     if scl:
         swap(2)
+
     mat = transform[0] @ transform[1] @ transform[2]
     if hasattr(obj.data, "transform"):
         obj.data.transform(mat)
@@ -218,10 +219,14 @@ def shred(obj):
 
 
 def mesh_select_all(obj, action):
+    obj.data.vertices.foreach_set("select", (action,) * len(obj.data.vertices))
+    obj.data.edges.foreach_set("select", (action,) * len(obj.data.edges))
     obj.data.polygons.foreach_set("select", (action,) * len(obj.data.polygons))
 
 
 def mesh_hide_all(obj, state):
+    obj.data.vertices.foreach_set("hide", (state,) * len(obj.data.vertices))
+    obj.data.edges.foreach_set("hide", (state,) * len(obj.data.edges))
     obj.data.polygons.foreach_set("hide", (state,) * len(obj.data.polygons))
 
 
@@ -325,7 +330,7 @@ def vertloops(vertpairs):
                     loop_vp.pop(i)
                     break
                 else:
-                    i = i + 1
+                    i += 1
     return loops
 
 
@@ -883,7 +888,7 @@ def get_scene_unit(value, nearest=False):
     unit_length = bpy.context.scene.unit_settings.length_unit
     unit_scale = bpy.context.scene.unit_settings.scale_length
     unit_system = bpy.context.scene.unit_settings.system
-    value = value * unit_scale
+    value *= unit_scale
     factor, unit = 1, ""
 
     if unit_length == 'ADAPTIVE':
@@ -940,7 +945,7 @@ def get_scene_unit(value, nearest=False):
     else:
         unit, factor = 'bu', 1
 
-    value = value / factor
+    value /= factor
     value = round(value, 4)
     # de-floating whole nrs
     if value.is_integer():

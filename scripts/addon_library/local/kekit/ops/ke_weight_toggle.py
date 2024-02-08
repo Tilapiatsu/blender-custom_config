@@ -2,7 +2,7 @@ from bpy.types import Operator
 from bpy.props import EnumProperty
 import bmesh
 import bpy
-from .._utils import refresh_ui, get_prefs
+from .._utils import refresh_ui, get_prefs, get_selected
 
 
 class KeWeightToggle(Operator):
@@ -24,7 +24,10 @@ class KeWeightToggle(Operator):
     def execute(self, context):
         sel_obj = [o for o in context.selected_objects if o.type == "MESH" and o.mode != "OBJECT"]
         if not sel_obj:
-            return {"CANCELLED"}
+            obj = get_selected(context)
+            obj.select_set(True)
+            sel_obj = [obj]
+
         k = get_prefs()
         em = context.tool_settings.mesh_select_mode
         vertex_mode = bool(em[0])
@@ -87,6 +90,62 @@ class KeWeightToggle(Operator):
                     element[bw] = 1.0
 
             bmesh.update_edit_mesh(mesh)
+
+            # Add modifier if not present
+            if k.toggle_add:
+                bmod = []
+                smod = []
+                wmod = []
+                for m in o.modifiers:
+                    if m.type == "BEVEL":
+                        if m.limit_method == "WEIGHT":
+                            bmod.append(m)
+                    elif m.type == "SUBSURF":
+                        smod.append(m)
+                    elif m.type == "WEIGHTED_NORMAL":
+                        wmod.append(m)
+
+                if not bmod or not smod:
+                    bpy.ops.object.editmode_toggle()
+                    if not bmod and self.wtype == "BEVEL":
+                        mod = o.modifiers.new("Bevel", "BEVEL")
+                        mod.width = 0.02
+                        mod.limit_method = "WEIGHT"
+                        mod.miter_outer = 'MITER_ARC'
+                        mod.is_active = True
+                        mod.show_expanded = True
+                        if k.korean:
+                            mod.profile = 1
+                            mod.segments = 2
+                        else:
+                            mod.segments = 3
+
+                        # Auto add WN mod too (or sort if present) ?
+                        # if not k.korean:
+                        #     if not wmod:
+                        #         context.object.data.use_auto_smooth = True
+                        #         mod = o.modifiers.new(name="kWeightedN", type="WEIGHTED_NORMAL")
+                        #         mod.keep_sharp = True
+                        #     else:
+                        #         bpy.ops.ke.mod_order(obj_name=o.name, mod_type="WEIGHTED_NORMAL", top=False)
+
+                    elif not smod and self.wtype == "CREASE":
+                        bpy.ops.view3d.ke_subd(level_mode="TOGGLE")
+                    bpy.ops.object.editmode_toggle()
+
+                    # open modifier tab if not already open
+                    p_area = None
+                    m_active = False
+                    for window in context.window_manager.windows:
+                        for area in window.screen.areas:
+                            if area.ui_type == 'PROPERTIES':
+                                p_area = area
+                                if area.spaces.active.context == 'MODIFIER':
+                                    m_active = True
+                                    area.tag_redraw()
+                    if not m_active and p_area:
+                        p_area.spaces.active.context = 'MODIFIER'
+                        p_area.tag_redraw()
 
         refresh_ui()
         if face_mode:

@@ -1,9 +1,10 @@
+from addon_utils import check
 from cmath import sqrt as cmath_sqrt
 from math import cos, pi, sqrt
 import blf
 import bmesh
 import bpy
-from bpy.props import StringProperty, EnumProperty, BoolProperty
+from bpy.props import StringProperty, EnumProperty, BoolProperty, IntProperty
 from bpy_extras.view3d_utils import (
     region_2d_to_location_3d,
     region_2d_to_vector_3d,
@@ -32,6 +33,42 @@ from .._utils import (
 )
 
 
+class UIFitPrimModule(Panel):
+    bl_idname = "UI_PT_M_FITPRIM"
+    bl_label = "FitPrim"
+    bl_space_type = 'VIEW_3D'
+    bl_region_type = 'UI'
+    bl_parent_id = "UI_PT_M_GEO"
+    bl_options = {'DEFAULT_CLOSED'}
+
+    def draw(self, context):
+        k = get_prefs()
+        layout = self.layout
+        col = layout.column(align=True)
+        col.operator('VIEW3D_OT_ke_fitprim', text="Cube", icon="MESH_CUBE").ke_fitprim_option = "BOX"
+        col.operator('VIEW3D_OT_ke_fitprim', text="Cylinder", icon="MESH_CYLINDER").ke_fitprim_option = "CYL"
+        col.operator('VIEW3D_OT_ke_fitprim', text="Plane", icon="MESH_PLANE").ke_fitprim_option = "PLANE"
+        col.operator('VIEW3D_OT_ke_fitprim', text="Sphere", icon="SHADING_WIRE").ke_fitprim_option = "SPHERE"
+        col.operator('VIEW3D_OT_ke_fitprim', text="QuadSphere", icon="MESH_UVSPHERE").ke_fitprim_option = "QUADSPHERE"
+        col.separator()
+        col.label(text="Options")
+        col.prop(k, "fitprim_unit", text="No-sel Unit Size")
+        col.separator()
+        col.prop(k, "fitprim_sides", text="Cylinder Default Sides:")
+        col.prop(k, "fitprim_modal", text="Modal Cylinder")
+        col.prop(k, "fitprim_sphere_seg", text="Sphere Segments")
+        col.prop(k, "fitprim_sphere_ring", text="Sphere Rings")
+        col.prop(k, "fitprim_quadsphere_seg", text="QuadSphere Division")
+        col.prop(k, "fitprim_select", text="Select Result (Edit Mesh)")
+        col.prop(k, "fitprim_item", text="Make Object")
+        col.label(text="FP Default Shading:")
+        row = col.row(align=True)
+        row.prop(k, "fitprim_shading", expand=True)
+
+
+#
+# OP FUNCTIONS
+#
 def get_selection_islands(sel_faces, active_face):
     # Old garbage func that only sorts two islands
     sortfaces = [p for p in sel_faces if p != active_face]
@@ -88,39 +125,6 @@ def tri_order(p):
         for i in q:
             ot.append(i)
     return ot
-
-
-class UIFitPrimModule(Panel):
-    bl_idname = "UI_PT_M_FITPRIM"
-    bl_label = "FitPrim"
-    bl_space_type = 'VIEW_3D'
-    bl_region_type = 'UI'
-    bl_parent_id = "UI_PT_M_GEO"
-    bl_options = {'DEFAULT_CLOSED'}
-
-    def draw(self, context):
-        k = get_prefs()
-        layout = self.layout
-        col = layout.column(align=True)
-        col.operator('VIEW3D_OT_ke_fitprim', text="FitPrim Cube", icon="MESH_CUBE").ke_fitprim_option = "BOX"
-        col.operator('VIEW3D_OT_ke_fitprim', text="FitPrim Cylinder", icon="MESH_CYLINDER").ke_fitprim_option = "CYL"
-        col.operator('VIEW3D_OT_ke_fitprim', text="FitPrim Plane", icon="MESH_PLANE").ke_fitprim_option = "PLANE"
-        col.operator('VIEW3D_OT_ke_fitprim', text="FitPrim Sphere", icon="MESH_UVSPHERE").ke_fitprim_option = "SPHERE"
-        col.operator('VIEW3D_OT_ke_fitprim', text="FitPrim QuadSphere", icon="SPHERE").ke_fitprim_option = "QUADSPHERE"
-        col.separator()
-        col.label(text="Options")
-        col.prop(k, "fitprim_unit", text="No-sel Unit Size")
-        col.separator()
-        col.prop(k, "fitprim_sides", text="Cylinder Default Sides:")
-        col.prop(k, "fitprim_modal", text="Modal Cylinder")
-        col.prop(k, "fitprim_sphere_seg", text="Sphere Segments")
-        col.prop(k, "fitprim_sphere_ring", text="Sphere Rings")
-        col.prop(k, "fitprim_quadsphere_seg", text="QuadSphere Div")
-        col.prop(k, "fitprim_select", text="Select Result (Edit Mesh)")
-        col.prop(k, "fitprim_item", text="Make Object")
-        col.label(text="FP Default Shading:")
-        row = col.row(align=True)
-        row.prop(k, "fitprim_shading", expand=True)
 
 
 def draw_callback_px(self, context, pos):
@@ -305,6 +309,9 @@ class KeFitPrim(Operator):
     ke_fitprim_itemize : BoolProperty(
         name="Make Object", description="Makes new object also from Edit mode", default=False)
 
+    round_cube_div: IntProperty(name="Divisions", min=1, max=99, default=4)
+    round_cube_offset: IntProperty(name="Cube Factor", min=0, max=100, default=0, subtype="PERCENTAGE")
+
     itemize = False
     boxmode = True
     sphere = False
@@ -324,6 +331,7 @@ class KeFitPrim(Operator):
     sphere_seg = 32
     sphere_ring = 16
     quadsphere_seg = 4
+    round_cube = False
     mouse_pos = Vector((0, 0))
     edit_mode = ""
     hcol = (1, 1, 1, 1)
@@ -346,6 +354,14 @@ class KeFitPrim(Operator):
 
     def draw(self, context):
         layout = self.layout
+        if self.round_cube and self.ke_fitprim_option == "QUADSPHERE":
+            layout.use_property_split = True
+            row = layout.row()
+            row.enabled = False
+            row.label(text=" Round Cube Properties:")
+            layout.prop(self, "round_cube_div")
+            layout.prop(self, "round_cube_offset")
+            layout.separator()
 
     def set_shading(self, ctx):
         if self.shading_mode in {"SMOOTH", "AUTO"}:
@@ -361,6 +377,9 @@ class KeFitPrim(Operator):
         if self.ke_fitprim_pieslot:
             self.mouse_pos = pie_pos_offset(self.mouse_pos, self.ke_fitprim_pieslot)
             self.ke_fitprim_pieslot = "NONE"
+        preset = context.preferences.addons["kekit"].preferences.fitprim_quadsphere_seg
+        if preset != 0:
+            self.round_cube_div = preset
         return self.execute(context)
 
     def modal(self, context, event):
@@ -500,6 +519,9 @@ class KeFitPrim(Operator):
         self.sphere_seg = k.fitprim_sphere_seg
         self.quadsphere_seg = k.fitprim_quadsphere_seg
         self.shading_mode = k.fitprim_shading
+        if all(check("add_mesh_extra_objects")):
+            # Use ExtraObjects' Round Cube instead of subdiv cube if available
+            self.round_cube = True
 
         self.edit_mode = context.mode
         sel_mode = (False, False, False)
@@ -1075,30 +1097,45 @@ class KeFitPrim(Operator):
             # QUADSPHERE
             #
             elif self.ke_fitprim_option == "QUADSPHERE":
-                cutnr = self.quadsphere_seg
 
-                # calc compensated subd radius from cube
-                v1_pos = setpos[0] + side, setpos[1] + side, setpos[2] + side
-                rad = sqrt(sum([(a - b) ** 2 for a, b in zip(setpos, v1_pos)]))
-                diff = side / rad
+                if self.round_cube:
+                    if not self.edit_mode == "OBJECT":
+                        bpy.ops.mesh.select_all(action="DESELECT")
+                    cutnr = self.round_cube_div
+                    r = side
+                    s = side * 2
+                    if self.round_cube_offset:
+                        r -= (r / 100) * self.round_cube_offset
 
-                side = (side * diff)
-                distance = side
+                    bpy.ops.mesh.primitive_round_cube_add(align='WORLD', location=setpos, rotation=setrot, change=False,
+                                                          radius=r, size=[s, s, s],
+                                                          arc_div=cutnr, lin_div=0, div_type='CORNERS')
 
-                bpy.ops.mesh.ke_primitive_box_add(width=side, depth=side, height=distance,
-                                                  align='WORLD', location=setpos, rotation=setrot, name="QuadSphere")
-
-                if self.itemize or self.edit_mode == "OBJECT":
-                    bpy.ops.object.mode_set(mode="EDIT")
-                    bpy.ops.mesh.subdivide(number_cuts=cutnr, smoothness=1)
-                    # bpy.ops.mesh.faces_shade_smooth()
-                    bpy.ops.object.mode_set(mode="OBJECT")
-                    self.set_shading(context)
                 else:
-                    bpy.ops.mesh.subdivide(number_cuts=cutnr, smoothness=1)
-                    bpy.ops.mesh.faces_shade_smooth()
+                    cutnr = self.quadsphere_seg
+                    if cutnr == 0:
+                        cutnr = 1
+                    # calc compensated subd radius from cube
+                    v1_pos = setpos[0] + side, setpos[1] + side, setpos[2] + side
+                    rad = sqrt(sum([(a - b) ** 2 for a, b in zip(setpos, v1_pos)]))
+                    diff = side / rad
+                    side = (side * diff)
+                    distance = side
 
-                bpy.ops.ed.undo_push()
+                    bpy.ops.mesh.ke_primitive_box_add(width=side, depth=side, height=distance, align='WORLD',
+                                                      location=setpos, rotation=setrot, name="QuadSphere")
+
+                    if self.itemize or self.edit_mode == "OBJECT":
+                        bpy.ops.object.mode_set(mode="EDIT")
+                        bpy.ops.mesh.subdivide(number_cuts=cutnr, smoothness=1)
+                        # bpy.ops.mesh.faces_shade_smooth()
+                        bpy.ops.object.mode_set(mode="OBJECT")
+                        self.set_shading(context)
+                    else:
+                        bpy.ops.mesh.subdivide(number_cuts=cutnr, smoothness=1)
+                        bpy.ops.mesh.faces_shade_smooth()
+
+                    bpy.ops.ed.undo_push()
 
                 if self.itemize or self.edit_mode == "OBJECT":
                     self.set_shading(context)
@@ -1143,7 +1180,7 @@ class KeFitPrim(Operator):
         else:
             self.report({"INFO"}, "FitPrim: Invalid Selection / No Active Element?")
 
-        if not self.select and not self.itemize and not self.edit_mode == "OBJECT":
+        if not self.select and not self.itemize and self.edit_mode != "OBJECT":
             bpy.ops.mesh.select_all(action='DESELECT')
 
         if self.itemize:

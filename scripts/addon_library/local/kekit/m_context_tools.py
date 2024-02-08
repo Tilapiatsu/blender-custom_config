@@ -1,6 +1,5 @@
 import bpy
 from bpy.types import Panel
-from .ops.ke_merge_to_active import KeMergeToActive
 from .ops.context_operators import (
     KeContextDissolve,
     KeContextSelect,
@@ -70,12 +69,6 @@ class UIContextToolsModule(Panel):
         col.operator('mesh.ke_context_connect')
         col.operator('mesh.ke_triple_connect_spin')
 
-        row = col.row(align=False)
-        split = row.split(factor=.75, align=True)
-        split.operator('mesh.ke_merge_to_active')
-        split2 = split.row(align=True)
-        split2.prop(k, "context_merge", toggle=True)
-
         col.operator('mesh.ke_contextslide')
 
 
@@ -90,7 +83,6 @@ classes = (
     KeContextSelectExtend,
     KeContextSelectSubtract,
     KeContextSlide,
-    KeMergeToActive,
     KeTripleConnectSpin,
     UIContextToolsModule,
 )

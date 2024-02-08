@@ -476,7 +476,3 @@ def unregister():
     if "bl_rna" in UIBookmarksModule.__dict__:
         for c in reversed(classes):
             bpy.utils.unregister_class(c)
-
-
-if __name__ == "__main__":
-    register()

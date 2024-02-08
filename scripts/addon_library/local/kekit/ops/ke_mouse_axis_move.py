@@ -40,6 +40,7 @@ class KeMouseAxisMove(Operator):
     is_editor2d = False
     sculpthack = False
     scale_mode = False
+    linkdupe = False
 
     @classmethod
     def description(cls, context, properties):
@@ -63,6 +64,7 @@ class KeMouseAxisMove(Operator):
     def invoke(self, context, event):
         k = get_prefs()
         self.scale_mode = k.mam_scale_mode
+        self.linkdupe = k.tt_linkdupe
 
         if context.mode == "SCULPT":
             self.sculpthack = True
@@ -206,17 +208,6 @@ class KeMouseAxisMove(Operator):
                 self.report({"INFO"}, "Unsupported Orientation Mode")
                 return {'CANCELLED'}
 
-            if self.mode == "DUPE":
-                if context.mode != "OBJECT" and self.obj.type == "CURVE":
-                    bpy.ops.curve.duplicate('INVOKE_DEFAULT')
-                elif em != "OBJECT" and self.obj.type == "MESH":
-                    bpy.ops.mesh.duplicate('INVOKE_DEFAULT')
-                elif context.mode == "OBJECT":
-                    if k.tt_linkdupe:
-                        bpy.ops.object.duplicate('INVOKE_DEFAULT', linked=True)
-                    else:
-                        bpy.ops.object.duplicate('INVOKE_DEFAULT', linked=False)
-
         context.window_manager.modal_handler_add(self)
 
         return {'RUNNING_MODAL'}
@@ -279,25 +270,62 @@ class KeMouseAxisMove(Operator):
                                              proportional_edit_falloff=self.pe_falloff,
                                              use_proportional_connected=self.pe_connected,
                                              use_proportional_projected=self.pe_proj)
-
-                # elif self.mode == "CURSOR":
-                #     bpy.ops.transform.translate('INVOKE_DEFAULT', orient_type=self.ot, orient_matrix_type=self.ot,
-                #                                 constraint_axis=axis, mirror=True,
-                #                                 use_proportional_edit=self.pe_use,
-                #                                 proportional_edit_falloff=self.pe_falloff,
-                #                                 use_proportional_connected=self.pe_connected,
-                #                                 use_proportional_projected=self.pe_proj)
                 else:
-                    # if self.em_normal_mode:
-                    #     axis = False, False, True
-                    bpy.ops.transform.translate('INVOKE_DEFAULT', orient_type=self.ot, orient_matrix_type=self.ot,
-                                                constraint_axis=axis, mirror=True,
-                                                use_proportional_edit=self.pe_use,
-                                                proportional_edit_falloff=self.pe_falloff,
-                                                use_proportional_connected=self.pe_connected,
-                                                use_proportional_projected=self.pe_proj)
+                    if self.mode == "DUPE":
+
+                        if context.mode != "OBJECT":
+                            if self.obj.type == "CURVE":
+                                # bpy.ops.curve.duplicate('INVOKE_DEFAULT')
+                                bpy.ops.curve.duplicate_move('INVOKE_DEFAULT',
+                                    TRANSFORM_OT_translate={"orient_type": self.ot,
+                                                            "orient_matrix_type": self.ot,
+                                                            "constraint_axis": axis,
+                                                            "use_proportional_edit": self.pe_use,
+                                                            "proportional_edit_falloff": self.pe_falloff,
+                                                            "use_proportional_connected": self.pe_connected,
+                                                            "use_proportional_projected": self.pe_proj})
+                            elif self.obj.type == "MESH":
+                                # bpy.ops.mesh.duplicate('INVOKE_DEFAULT')
+                                bpy.ops.mesh.duplicate_move('INVOKE_DEFAULT',
+                                    TRANSFORM_OT_translate={"orient_type": self.ot,
+                                                            "orient_matrix_type": self.ot,
+                                                            "constraint_axis": axis,
+                                                            "use_proportional_edit": self.pe_use,
+                                                            "proportional_edit_falloff": self.pe_falloff,
+                                                            "use_proportional_connected": self.pe_connected,
+                                                            "use_proportional_projected": self.pe_proj})
+
+                        elif context.mode == "OBJECT":
+                            if not self.linkdupe:
+                                bpy.ops.object.duplicate_move('INVOKE_DEFAULT',
+                                    TRANSFORM_OT_translate={"orient_type": self.ot,
+                                                            "orient_matrix_type": self.ot,
+                                                            "constraint_axis": axis,
+                                                            "use_proportional_edit": self.pe_use,
+                                                            "proportional_edit_falloff": self.pe_falloff,
+                                                            "use_proportional_connected": self.pe_connected,
+                                                            "use_proportional_projected": self.pe_proj})
+                            else:
+                                bpy.ops.object.duplicate_move_linked('INVOKE_DEFAULT',
+                                    TRANSFORM_OT_translate={"orient_type": self.ot,
+                                                            "orient_matrix_type": self.ot,
+                                                            "constraint_axis": axis,
+                                                            "use_proportional_edit": self.pe_use,
+                                                            "proportional_edit_falloff": self.pe_falloff,
+                                                            "use_proportional_connected": self.pe_connected,
+                                                            "use_proportional_projected": self.pe_proj})
+                    else:
+                        bpy.ops.transform.translate('INVOKE_DEFAULT',
+                                                    orient_type=self.ot, orient_matrix_type=self.ot,
+                                                    constraint_axis=axis, mirror=True,
+                                                    use_proportional_edit=self.pe_use,
+                                                    proportional_edit_falloff=self.pe_falloff,
+                                                    use_proportional_connected=self.pe_connected,
+                                                    use_proportional_projected=self.pe_proj)
+
                 if self.sculpthack:
                     bpy.ops.object.mode_set(mode="SCULPT")
+
                 return {'FINISHED'}
 
         elif event.type == 'ESC':

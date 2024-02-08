@@ -17,7 +17,6 @@
 #  along with this program.  If not, see https://www.gnu.org/licenses
 #
 # ##### END GPL LICENSE BLOCK #####
-
 from . import _prefs
 from . import _ui
 from . import m_bookmarks
@@ -37,7 +36,7 @@ bl_info = {
     "author": "Kjell Emanuelsson",
     "category": "",
     "blender": (2, 80, 0),
-    "version": (3, 1, 2),
+    "version": (3, 1, 4),
     "location": "View3D > Sidebar",
     "warning": "",
     "description": "Extensive Script Collection",

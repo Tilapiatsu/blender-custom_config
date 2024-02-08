@@ -1,8 +1,7 @@
 import bmesh
-from bpy.props import FloatProperty, IntProperty
+from bpy.props import FloatProperty, IntProperty, BoolProperty
 from bpy.types import Operator
-from mathutils import Vector
-from .._utils import get_distance
+from .._utils import get_distance, is_bmvert_collinear
 
 
 class KeMergeNearSelected(Operator):
@@ -12,10 +11,11 @@ class KeMergeNearSelected(Operator):
                      "(at specified link-depth)"
     bl_options = {'REGISTER', 'UNDO'}
 
-    distance: FloatProperty(min=0, max=99, default=0.01, name="Distance", step=0.001, precision=5,
+    distance: FloatProperty(min=0, max=99, default=0.0254, name="Distance", step=0.001, precision=5,
                             description="Distance from each vert to merge linked verts from")
     link_level: IntProperty(min=1, max=99, default=1, name="Link Level",
                             description="The # of edge links away from each vert to process distance on")
+    collinear: BoolProperty(name="Remove Collinear", default=True, description="Remove left-over collinear verts")
 
     @classmethod
     def poll(cls, context):
@@ -24,7 +24,7 @@ class KeMergeNearSelected(Operator):
                 context.object.data.is_editmode)
 
     def execute(self, context):
-        if context.object.scale != Vector((1.0, 1.0, 1.0)):
+        if round(sum(context.object.scale), 6) % 3 != 0:
             self.report({"INFO"}, "Scale is not applied - Results may be unpredictable")
 
         mesh = context.object.data
@@ -91,6 +91,12 @@ class KeMergeNearSelected(Operator):
         bmesh.ops.remove_doubles(bm, verts=linkverts, dist=md)
 
         bmesh.update_edit_mesh(mesh)
-        mesh.update()
+
+        if self.collinear:
+            to_delete = [v for v in bm.verts if is_bmvert_collinear(v, tolerance=3)]
+            bmesh.ops.dissolve_verts(bm, verts=to_delete)
+            bmesh.update_edit_mesh(mesh)
+
+        context.tool_settings.mesh_select_mode = (True, False, False)
 
         return {'FINISHED'}
