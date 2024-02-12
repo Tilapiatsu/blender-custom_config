@@ -448,8 +448,8 @@
             <gradients>
               <ThemeGradientColors
                 background_type="RADIAL"
-                high_gradient="#2a2d34"
-                gradient="#11141a"
+                high_gradient="#1e2125"
+                gradient="#0d0f14"
                 >
               </ThemeGradientColors>
             </gradients>
