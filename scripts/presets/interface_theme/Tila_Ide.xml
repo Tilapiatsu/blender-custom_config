@@ -96,7 +96,7 @@
             outline="#333942ff"
             inner="#21252bff"
             inner_sel="#333942ff"
-            item="#2a8d98ff"
+            item="#1c5e66ff"
             text="#e6e6e6"
             text_sel="#e6e6e6"
             show_shaded="FALSE"
@@ -229,7 +229,7 @@
         <wcol_pie_menu>
           <ThemeWidgetColors
             outline="#21252bff"
-            inner="#21252bff"
+            inner="#373e48ff"
             inner_sel="#2a8d98ff"
             item="#2a8d98e6"
             text="#e6e6e6"
@@ -305,7 +305,7 @@
           <ThemeWidgetColors
             outline="#21252bff"
             inner="#21252bff"
-            inner_sel="#333942ff"
+            inner_sel="#324550ff"
             item="#2a8d9833"
             text="#e6e6e6"
             text_sel="#e6e6e6"
