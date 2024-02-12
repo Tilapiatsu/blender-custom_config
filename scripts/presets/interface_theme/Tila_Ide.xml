@@ -96,7 +96,7 @@
             outline="#333942ff"
             inner="#21252bff"
             inner_sel="#333942ff"
-            item="#2a8d9833"
+            item="#2a8d98ff"
             text="#e6e6e6"
             text_sel="#e6e6e6"
             show_shaded="FALSE"
@@ -140,7 +140,7 @@
           <ThemeWidgetColors
             outline="#333942ff"
             inner="#333942ff"
-            inner_sel="#333942ff"
+            inner_sel="#272c33ff"
             item="#2a8d98ff"
             text="#e6e6e6"
             text_sel="#e6e6e6"
@@ -925,7 +925,7 @@
       <ThemeTextEditor
         line_numbers="#cccccc"
         line_numbers_background="#21252b"
-        selected_text="#8c3d43"
+        selected_text="#1c5e66"
         cursor="#3fd3e3"
         syntax_builtin="#ff3351"
         syntax_symbols="#ff734d"
@@ -1614,7 +1614,7 @@
   <ThemeStyle>
     <panel_title>
       <ThemeFontStyle
-        points="12"
+        points="11.5"
         shadow="5"
         shadow_offset_x="0"
         shadow_offset_y="-1"
