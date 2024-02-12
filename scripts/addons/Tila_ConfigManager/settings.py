@@ -30,7 +30,7 @@ class TILA_Config_Settings():
         # # Set Theme to Tila
         root_path = bpy.utils.resource_path('USER')
         theme_filepath = os.path.join(
-            root_path, 'scripts', 'presets', 'interface_theme', 'tila.xml')
+            root_path, 'scripts', 'presets', 'interface_theme', 'Tila_Ide.xml')
         bpy.ops.script.execute_preset(
             filepath=theme_filepath, menu_idname='USERPREF_MT_interface_theme_presets')
         
