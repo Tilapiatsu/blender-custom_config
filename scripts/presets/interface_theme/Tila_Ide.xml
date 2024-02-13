@@ -168,7 +168,7 @@
         </wcol_numslider>
         <wcol_box>
           <ThemeWidgetColors
-            outline="#1b1e23ff"
+            outline="#3d4451ff"
             inner="#282c34ff"
             inner_sel="#333942ff"
             item="#e6e6e6ff"
@@ -902,7 +902,7 @@
             button_title="#ffffff"
             button_text="#e6e6e6"
             button_text_hi="#ffffff"
-            navigation_bar="#282c34ff"
+            navigation_bar="#1f2329ff"
             execution_buts="#282c34ff"
             tab_active="#444d59"
             tab_inactive="#21252b"
@@ -925,7 +925,7 @@
       <ThemeTextEditor
         line_numbers="#cccccc"
         line_numbers_background="#21252b"
-        selected_text="#1c5e66"
+        selected_text="#324550"
         cursor="#3fd3e3"
         syntax_builtin="#ff3351"
         syntax_symbols="#ff734d"
@@ -1046,8 +1046,8 @@
     <outliner>
       <ThemeOutliner
         match="#008033"
-        selected_highlight="#063c42"
-        active="#15474c"
+        selected_highlight="#324550"
+        active="#405a60"
         selected_object="#3fd3e3"
         active_object="#75dee9"
         edited_object="#2a8d9866"
