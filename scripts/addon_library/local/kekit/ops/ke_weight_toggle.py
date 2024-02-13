@@ -120,14 +120,14 @@ class KeWeightToggle(Operator):
                         else:
                             mod.segments = 3
 
-                        # Auto add WN mod too (or sort if present) ?
-                        # if not k.korean:
-                        #     if not wmod:
-                        #         context.object.data.use_auto_smooth = True
-                        #         mod = o.modifiers.new(name="kWeightedN", type="WEIGHTED_NORMAL")
-                        #         mod.keep_sharp = True
-                        #     else:
-                        #         bpy.ops.ke.mod_order(obj_name=o.name, mod_type="WEIGHTED_NORMAL", top=False)
+                        # Auto add WN mod too (or sort if present)
+                        if not k.korean:
+                            if not wmod:
+                                context.object.data.use_auto_smooth = True
+                                mod = o.modifiers.new(name="kWeightedN", type="WEIGHTED_NORMAL")
+                                mod.keep_sharp = True
+                            else:
+                                bpy.ops.ke.mod_order(obj_name=o.name, mod_type="WEIGHTED_NORMAL", top=False)
 
                     elif not smod and self.wtype == "CREASE":
                         bpy.ops.view3d.ke_subd(level_mode="TOGGLE")

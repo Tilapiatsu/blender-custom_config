@@ -11,7 +11,8 @@ from .._utils import (
     tri_points_order,
     vertloops,
     flatten,
-    get_face_islands
+    get_face_islands,
+    is_tf_applied
 )
 
 
@@ -74,7 +75,7 @@ class KeCursorFitAlign(Operator):
         og_pivot = str(context.scene.tool_settings.transform_pivot_point)
 
         if context.object:
-            if round(sum(context.object.scale), 6) % 3 != 0:
+            if not is_tf_applied(context.object)[2]:
                 scale_check = False
 
         if context.object and context.object.type in {'CURVE', 'GPENCIL'}:
@@ -384,7 +385,7 @@ class KeCursorFitAlign(Operator):
 
                 obj_mtx = hit_obj.matrix_world.copy()
 
-                if round(sum(hit_obj.scale), 6) % 3 != 0:
+                if not is_tf_applied(hit_obj)[2]:
                     scale_check = False
                 else:
                     scale_check = True

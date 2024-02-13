@@ -19,42 +19,39 @@ class UITTModule(Panel):
         layout = self.layout
         tt_mode = k.tt_mode
         tt_link = k.tt_linkdupe
-        col = layout.column(align=True)
-        sub = col.box()
-        scol = sub.column(align=True)
-        srow = scol.row(align=True)
+        col = layout.column(align=False)
+        srow = col.row(align=True)
         srow.label(text="TT Toggle")
+        srow = col.row(align=True)
+        srow.operator('view3d.ke_tt', text="TT Mode Cycle").mode = "TOGGLE_CYCLE"
         srow.operator("view3d.ke_tt", text="", icon='OBJECT_ORIGIN', depress=tt_mode[0]).mode = "TOGGLE_MOVE"
         srow.operator("view3d.ke_tt", text="", icon='EMPTY_AXIS', depress=tt_mode[1]).mode = "TOGGLE_ROTATE"
         srow.operator("view3d.ke_tt", text="", icon='AXIS_SIDE', depress=tt_mode[2]).mode = "TOGGLE_SCALE"
-        scol.separator(factor=0.6)
-        srow = scol.row(align=True)
+        col = col.column(align=True)
+        srow = col.row(align=True)
         srow.operator('view3d.ke_tt', text="TT Move").mode = "MOVE"
         srow.operator('view3d.ke_tt', text="TT Rotate").mode = "ROTATE"
         srow.operator('view3d.ke_tt', text="TT Scale").mode = "SCALE"
-        srow = scol.row(align=True)
-        srow.operator('view3d.ke_tt', text="TT Dupe").mode = "DUPE"
-        srow.operator('view3d.ke_tt', text="TT Cycle").mode = "TOGGLE_CYCLE"
-        scol.separator(factor=0.6)
-        srow = scol.row(align=True)
+        split = col.row(align=True)
+        split.operator('view3d.ke_tt', text="TT Dupe (Toggle)").mode = "DUPE"
+        if tt_link:
+            split.operator("view3d.ke_tt", text="", icon="LINKED",
+                          depress=tt_link).mode = "TOGGLE_DUPE"
+        else:
+            split.operator("view3d.ke_tt", text="", icon="UNLINKED",
+                          depress=tt_link).mode = "TOGGLE_DUPE"
+        srow = col.row(align=True)
+        srow.operator('view3d.ke_tt', text="TT Dupe", icon="UNLINKED").mode = "F_DUPE"
+        srow.operator('view3d.ke_tt', text="Linked", icon="LINKED").mode = "F_LINKDUPE"
+        srow = col.row(align=True)
         srow.prop(k, "tt_handles", text="Giz")
         srow.prop(k, "tt_select", text="Sel")
         srow.prop(k, "mam_scl", text="MAS")
-        if tt_link:
-            scol.operator("view3d.ke_tt", text="Dupe Linked Toggle", icon="LINKED",
-                          depress=tt_link).mode = "TOGGLE_DUPE"
-        else:
-            scol.operator("view3d.ke_tt", text="Dupe Linked Toggle", icon="UNLINKED",
-                          depress=tt_link).mode = "TOGGLE_DUPE"
-        scol.operator('view3d.ke_tt', text="Force Unlinked", icon="UNLINKED").mode = "F_DUPE"
-        scol.operator('view3d.ke_tt', text="Force Linked", icon="LINKED").mode = "F_LINKDUPE"
 
-        col.separator()
-        sub = col.box()
-        scol = sub.column(align=True)
-        srow = scol.row(align=True)
+        col.separator(factor=1.5)
+        srow = col.row(align=True)
         srow.label(text="Mouse Axis", icon="EMPTY_AXIS")
-        srow = scol.row(align=True)
+        srow = col.row(align=True)
         split = srow.split(factor=0.89, align=True)
         subrow1 = split.row(align=True)
         subrow1.operator('view3d.ke_mouse_axis_move', text="Move").mode = "MOVE"
@@ -62,25 +59,21 @@ class UITTModule(Panel):
         subrow1.operator('view3d.ke_mouse_axis_move', text="Scale").mode = "SCL"
         subrow2 = split.row(align=True)
         subrow2.prop(k, "mam_scale_mode", text="C", toggle=True)
-        srow = scol.row(align=True)
+        srow = col.row(align=True)
         srow.operator('view3d.ke_mouse_axis_move', text="Move Dupe").mode = "DUPE"
-        # srow.operator('view3d.ke_mouse_axis_move', text="Move Cursor").mode = "CURSOR"
-        col.separator()
 
-        sub = col.box()
-        scol = sub.column(align=True)
-        scol.label(text="View Plane", icon="AXIS_SIDE")
-        scol.operator("VIEW3D_OT_ke_vptransform", text="VPDupe").transform = "COPYGRAB"
-        scol.separator(factor=0.6)
-        row = scol.row(align=True)
+        col.separator(factor=1.5)
+        col.label(text="View Plane", icon="AXIS_SIDE")
+        row = col.row(align=True)
         row.operator("VIEW3D_OT_ke_vptransform", text="VPGrab").transform = "TRANSLATE"
         row.operator("VIEW3D_OT_ke_vptransform", text="VPRotate").transform = "ROTATE"
         row.operator("VIEW3D_OT_ke_vptransform", text="VPResize").transform = "RESIZE"
-        row = scol.row(align=True)
+        col.operator("VIEW3D_OT_ke_vptransform", text="VPDupe").transform = "COPYGRAB"
+        row = col.row(align=True)
         row.prop(k, "loc_got", text="GGoT")
         row.prop(k, "rot_got", text="RGoT")
         row.prop(k, "scl_got", text="SGoT")
-        scol.prop(k, "vptransform", toggle=True)
+        col.prop(k, "vptransform", toggle=True)
 
 
 class KeTTHeader(Header):

@@ -16,10 +16,10 @@ class KeTT(Operator):
                ("MOVE", "TT Move", "", "MOVE", 5),
                ("ROTATE", "TT Rotate", "", "ROTATE", 6),
                ("SCALE", "TT Scale", "", "SCALE", 7),
-               ("DUPE", "TT Dupe", "", "DUPE", 8),
+               ("DUPE", "TT Dupe (Toggle)", "", "DUPE", 8),
                ("TOGGLE_DUPE", "TT Dupe Mode", "", "TOGGLE_DUPE", 9),
-               ("F_DUPE", "TT Dupe Forced", "", "F_DUPE", 10),
-               ("F_LINKDUPE", "TT LinkDupe Forced", "", "F_LINKDUPE", 11)
+               ("F_DUPE", "TT Dupe Unlinked", "", "F_DUPE", 10),
+               ("F_LINKDUPE", "TT Dupe Linked", "", "F_LINKDUPE", 11)
                ],
         name="Level Mode",
         options={'HIDDEN'},
@@ -42,9 +42,9 @@ class KeTT(Operator):
         elif properties.mode == "DUPE":
             return "Duplicates mesh/object & runs selected TT Move Operator (Grab/MAM/VPT)"
         elif properties.mode == "F_DUPE":
-            return "TT Dupe Forced - Overrides Toggle value -> Unlinked duplication"
+            return "TT Dupe Unlinked - Unlinked duplication with TT move (disregards dupe toggle)"
         elif properties.mode == "F_LINKDUPE":
-            return "TT Linked Dupe Forced - Overrides Toggle value -> Linked duplication"
+            return "TT Dupe Linked - Linked duplication with TT move (disregards dupe toggle)"
         else:
             return "Toggles TT Move/Rotate/Scale between using Default Transform / MouseAxis / Viewplane\n" \
                    "Note: Preferred default state can be set by saving kit settings\n" \
@@ -53,64 +53,67 @@ class KeTT(Operator):
     def execute(self, context):
         k = get_prefs()
         tt_handles = k.tt_handles
+        grab, mam, vpt = k.tt_mode
         tt_mode = k.tt_mode
-        tt_linkdupe = k.tt_linkdupe
+        tt_linkdupe = bool(k.tt_linkdupe)
+        link_override = False
 
         # Forcing modes overrides
         if self.mode == "F_DUPE":
             self.mode = "DUPE"
             tt_linkdupe = False
-            k.tt_linkdupe = False
+            link_override = True
+
         elif self.mode == "F_LINKDUPE":
             self.mode = "DUPE"
             tt_linkdupe = True
-            k.tt_linkdupe = True
+            link_override = True
 
         if context.space_data.type in {"IMAGE_EDITOR", "NODE_EDITOR"}:
-            if tt_mode[2]:
+            if vpt:
                 tt_mode = (False, True, False)
+                grab, mam, vpt = (False, True, False)
 
         if self.mode == "MOVE":
-            if tt_mode[0]:
+            if grab:
                 if tt_handles:
                     bpy.ops.wm.tool_set_by_id(name="builtin.move")
                 else:
                     bpy.ops.transform.translate('INVOKE_DEFAULT')
-            elif tt_mode[1]:
+            elif mam:
                 bpy.ops.view3d.ke_mouse_axis_move('INVOKE_DEFAULT', mode='MOVE')
-            elif tt_mode[2]:
+            elif vpt:
                 bpy.ops.view3d.ke_vptransform('INVOKE_DEFAULT', transform='TRANSLATE')
 
         elif self.mode == "ROTATE":
-            if tt_mode[0]:
+            if grab:
                 if tt_handles:
                     bpy.ops.wm.tool_set_by_id(name="builtin.rotate")
                 else:
                     bpy.ops.transform.rotate('INVOKE_DEFAULT')
-            elif tt_mode[1]:
+            elif mam:
                 bpy.ops.view3d.ke_mouse_axis_move('INVOKE_DEFAULT', mode='ROT')
-            elif tt_mode[2]:
+            elif vpt:
                 bpy.ops.view3d.ke_vptransform('INVOKE_DEFAULT', transform='ROTATE')
 
         elif self.mode == "SCALE":
-
-            if tt_mode[0]:
+            if grab:
                 if tt_handles:
                     bpy.ops.wm.tool_set_by_id(name="builtin.scale")
                 else:
                     bpy.ops.transform.resize('INVOKE_DEFAULT')
 
-            elif tt_mode[1]:
+            elif mam:
                 if not k.mam_scl:
                     bpy.ops.transform.resize('INVOKE_DEFAULT')
                 else:
                     bpy.ops.view3d.ke_mouse_axis_move('INVOKE_DEFAULT', mode='SCL')
 
-            elif tt_mode[2]:
+            elif vpt:
                 bpy.ops.view3d.ke_vptransform('INVOKE_DEFAULT', transform='RESIZE')
 
         elif self.mode == "DUPE":
-            if tt_mode[0]:
+            if grab:
                 if context.mode == 'EDIT_MESH' and context.object.type == 'MESH':
                     bpy.ops.mesh.duplicate_move('INVOKE_DEFAULT')
                 elif context.mode != "OBJECT" and context.object:
@@ -123,10 +126,24 @@ class KeTT(Operator):
                     else:
                         bpy.ops.object.duplicate_move(
                             'INVOKE_DEFAULT', OBJECT_OT_duplicate={"linked": False, "mode": 'TRANSLATION'})
-            elif tt_mode[1]:
-                bpy.ops.view3d.ke_mouse_axis_move('INVOKE_DEFAULT', mode='DUPE')
-            elif tt_mode[2]:
-                bpy.ops.view3d.ke_vptransform('INVOKE_DEFAULT', transform='COPYGRAB')
+
+            elif mam:
+                if link_override:
+                    if tt_linkdupe:
+                        bpy.ops.view3d.ke_mouse_axis_move('INVOKE_DEFAULT', mode='F_LINKDUPE')
+                    else:
+                        bpy.ops.view3d.ke_mouse_axis_move('INVOKE_DEFAULT', mode='F_DUPE')
+                else:
+                    bpy.ops.view3d.ke_mouse_axis_move('INVOKE_DEFAULT', mode='DUPE')
+
+            elif vpt:
+                if link_override:
+                    if tt_linkdupe:
+                        bpy.ops.view3d.ke_vptransform('INVOKE_DEFAULT', transform='F_LINKDUPE')
+                    else:
+                        bpy.ops.view3d.ke_vptransform('INVOKE_DEFAULT', transform='F_DUPE')
+                else:
+                    bpy.ops.view3d.ke_vptransform('INVOKE_DEFAULT', transform='COPYGRAB')
 
         elif self.mode == "TOGGLE_DUPE":
             k.tt_linkdupe = not tt_linkdupe
@@ -161,7 +178,7 @@ class KeTT(Operator):
                 tt_mode[0], tt_mode[1] = False, False
 
         if not any(tt_mode):
-            tt_mode[0], tt_mode[1], tt_mode[1] = True, False, False
+            tt_mode[0], tt_mode[1], tt_mode[2] = True, False, False
 
         context.area.tag_redraw()
 

@@ -124,24 +124,34 @@ class KeContextDelete(Operator):
 
         ctx_mode = context.mode
         if ctx_mode == "EDIT_MESH":
-            if smart:
-                bm = bmesh.from_edit_mesh(context.object.data)
-                floaters = [i for i in bm.verts if i.select and not i.link_faces]
-                if floaters:
-                    for v in floaters:
-                        bm.verts.remove(v)
-                    bmesh.update_edit_mesh(context.object.data)
             sel_mode = context.tool_settings.mesh_select_mode
+
+            # VERTS
             if sel_mode[0]:
                 if smart:
-                    bpy.ops.mesh.ke_contextdissolve('INVOKE_DEFAULT', True)
+                    bm = bmesh.from_edit_mesh(context.object.data)
+                    floaters = [i for i in bm.verts if i.select and len(i.link_edges) < 2]
+                    if floaters:
+                        bmesh.ops.delete(bm, geom=floaters)
+                        bmesh.update_edit_mesh(context.object.data)
+                    else:
+                        bpy.ops.mesh.ke_contextdissolve('INVOKE_DEFAULT', True)
                 else:
                     bpy.ops.mesh.delete(type='VERT')
+
+            # EDGES
             elif sel_mode[1]:
                 if smart:
-                    bpy.ops.mesh.ke_contextdissolve('INVOKE_DEFAULT', True)
+                    bm = bmesh.from_edit_mesh(context.object.data)
+                    floaters = [i for i in bm.edges if i.select and len(i.link_faces) < 2]
+                    if floaters:
+                        bpy.ops.mesh.delete(type='EDGE')
+                    else:
+                        bpy.ops.mesh.ke_contextdissolve('INVOKE_DEFAULT', True)
                 else:
                     bpy.ops.mesh.delete(type='EDGE')
+
+            # FACES
             elif sel_mode[2]:
                 if has_dm and pluscut:
                     bpy.ops.view3d.ke_copyplus('INVOKE_DEFAULT', True, mode="CUT")
@@ -149,7 +159,7 @@ class KeContextDelete(Operator):
                     bpy.ops.mesh.delete(type='FACE')
 
         elif ctx_mode == "OBJECT":
-            sel = context.selected_objects[:]
+            sel = list(context.selected_objects)
             if k.h_delete:
                 for o in sel:
                     for child in o.children:

@@ -44,7 +44,6 @@ class UIPieMenusModule(Panel):
         row = pie.row(align=True)
         if m_modeling:
             row.operator("wm.call_menu_pie", text="keFit2Grid", icon="DOT").name = "VIEW3D_MT_ke_pie_fit2grid"
-            row.operator("wm.call_menu_pie", text="F2G Micro", icon="DOT").name = "VIEW3D_MT_ke_pie_fit2grid_micro"
         else:
             row.enabled = False
             row.label(text="keFit2Grid N/A")
@@ -438,36 +437,33 @@ class KePieFit2Grid(Menu):
     def draw(self, context):
         layout = self.layout
         pie = layout.menu_pie()
-        pie.operator("view3d.ke_fit2grid", text="50cm").set_grid = 0.5
-        pie.operator("view3d.ke_fit2grid", text="5cm").set_grid = 0.05
-        pie.operator("view3d.ke_fit2grid", text="15cm").set_grid = 0.15
-        pie.operator("view3d.ke_fit2grid", text="1cm").set_grid = 0.01
-        pie.operator("view3d.ke_fit2grid", text="1m").set_grid = 1.0
-        pie.operator("view3d.ke_fit2grid", text="2.5cm").set_grid = 0.025
-        pie.operator("view3d.ke_fit2grid", text="25cm").set_grid = 0.25
-        pie.operator("view3d.ke_fit2grid", text="10cm").set_grid = 0.1
 
+        menu = pie.box().column(align=False)
+        menu.ui_units_x = 9
+        menu.scale_y = 1.15
+        box = menu.column_flow(columns=2)
+        col = box.column()
+        col.operator("view3d.ke_fit2grid", text="1 µm").set_grid = 0.0001
+        col.operator("view3d.ke_fit2grid", text="2.5 µm").set_grid = 0.00025
+        col.operator("view3d.ke_fit2grid", text="5 µm").set_grid = 0.0005
+        col.operator("view3d.ke_fit2grid", text="1 mm").set_grid = 0.001
+        col.operator("view3d.ke_fit2grid", text="1.5 mm").set_grid = 0.0015
+        col.operator("view3d.ke_fit2grid", text="2 mm").set_grid = 0.002
+        col.operator("view3d.ke_fit2grid", text="2.5 mm").set_grid = 0.0025
+        col.operator("view3d.ke_fit2grid", text="5 mm").set_grid = 0.005
+        col = box.column()
+        col.operator("view3d.ke_fit2grid", text="1 cm").set_grid = 0.01
+        col.operator("view3d.ke_fit2grid", text="2.5 cm").set_grid = 0.025
+        col.operator("view3d.ke_fit2grid", text="5 cm").set_grid = 0.05
+        col.operator("view3d.ke_fit2grid", text="10 cm").set_grid = 0.1
+        col.operator("view3d.ke_fit2grid", text="15 cm").set_grid = 0.15
+        col.operator("view3d.ke_fit2grid", text="25 cm").set_grid = 0.25
+        col.operator("view3d.ke_fit2grid", text="50 cm").set_grid = 0.5
+        col.operator("view3d.ke_fit2grid", text="1 m").set_grid = 1.0
 
-class KePieFit2GridMicro(Menu):
-    bl_label = "keFit2Grid_micro"
-    bl_idname = "VIEW3D_MT_ke_pie_fit2grid_micro"
-
-    @classmethod
-    def poll(cls, context):
-        k = get_prefs()
-        return context.space_data.type == "VIEW_3D" and k.m_modeling
-
-    def draw(self, context):
-        layout = self.layout
-        pie = layout.menu_pie()
-        pie.operator("view3d.ke_fit2grid", text="5mm").set_grid = 0.005
-        pie.operator("view3d.ke_fit2grid", text="5µm").set_grid = 0.0005
-        pie.operator("view3d.ke_fit2grid", text="1.5mm").set_grid = 0.0015
-        pie.operator("view3d.ke_fit2grid", text="1µm").set_grid = 0.0001
-        pie.operator("view3d.ke_fit2grid", text="1cm").set_grid = 0.01
-        pie.operator("view3d.ke_fit2grid", text="2.5µm").set_grid = 0.00025
-        pie.operator("view3d.ke_fit2grid", text="5µm").set_grid = 0.0005
-        pie.operator("view3d.ke_fit2grid", text="1mm").set_grid = 0.001
+        pie.operator("view3d.ke_fit2grid", text="10 cm").set_grid = 0.1
+        pie.operator("view3d.ke_fit2grid", text="1 m").set_grid = 1.0
+        pie.operator("view3d.ke_fit2grid", text="1 cm").set_grid = 0.01
 
 
 class KePieFitPrim(Menu):
@@ -1485,12 +1481,12 @@ class KePieSnapAlign(Menu):
         spacer.label(text="")
 
         spacer = pie.row()
-        spacer.label(text="")
+        spacer.separator(factor=2)
         vbox = spacer.column()
-        vbox.label(text="")
-        vbox.label(text="")
-        vbox = vbox.box().column()
+        vbox.separator(factor=9.5)
+        vbox = vbox.box().column(align=True)
         vbox.operator('view3d.ke_align_origin_to_selected', text="Align Origin To Selected", icon="OBJECT_ORIGIN")
+        vbox.operator('view3d.origin_to_selected', text="Origin To Selection Loc", icon="OBJECT_ORIGIN")
         vbox.operator('view3d.ke_origin_to_cursor', text="Align Origin(s) To Cursor", icon="PIVOT_CURSOR")
         vbox.operator('view3d.ke_object_to_cursor', text="Align Object(s) to Cursor", icon="CURSOR")
         vbox.operator('view3d.ke_align_object_to_active', text="Align Object(s) to Active", icon="CON_LOCLIKE")
@@ -1669,21 +1665,27 @@ class KePieSubd(Menu):
             box = pie.box()
             box.label(text="[ Disabled: Requires keKit Experimental Mode ]")
         else:
-            # Check existing modifiers
-            bevel_mods = []
+            angle_mods = []
+            vg_mods = []
+            weight_mods = []
             mirror_mods = []
             solidify_mods = []
             subd_mods = []
             wn_mods = []
-            vgicon = "GROUP_VERTEX"
 
             cat = {'MESH', 'CURVE', 'SURFACE', 'META', 'FONT', 'HAIR', 'GPENCIL'}
             active = context.active_object
 
+            # Check existing modifiers
             if active and active.type in cat:
                 for m in active.modifiers:
                     if m.type == "BEVEL":
-                        bevel_mods.append(m)
+                        if m.limit_method == "ANGLE":
+                            angle_mods.append(m)
+                        elif m.limit_method == "VGROUP":
+                            vg_mods.append(m)
+                        elif m.limit_method == "WEIGHT":
+                            weight_mods.append(m)
                     elif m.type == "MIRROR":
                         mirror_mods.append(m)
                     elif m.type == "SOLIDIFY":
@@ -1695,6 +1697,7 @@ class KePieSubd(Menu):
 
             # Placeholder until Edge Groups actually introduced
             edge_groups = [i for i in active.vertex_groups if i.name[:3] == "V_G"]
+            vgicon = "GROUP_VERTEX"
 
             # LEFT BOX - Bevel Weight & Crease Tools
             box = pie.box()
@@ -1824,23 +1827,20 @@ class KePieSubd(Menu):
             col = main.column()
             col.ui_units_x = 9
 
-            # VG Selection & Removal  (Re-using 'VG' naming for EDGE GROUPS...)
+            # VG Selection & Removal  (Re-using 'VG' naming for EDGE GROUPS...?)
             if edge_groups:
                 box = col.box()
-                # split = row.split(factor=1, align=True)
-                # col.operator("ke.pieops", text="Remove From All", icon="LOOP_BACK").op = "CLEAR_VG"
-                # col.separator()
-
                 for group in edge_groups:
                     gn = group.name[-3:]
                     row = box.row(align=True)
-                    split = row.split(factor=0.45)
-                    # split.label(text=gn, icon=vgicon)
-                    split.operator("ke.pieops", text=gn, icon=vgicon).op = "ADD_VG¤" + group.name
+                    split = row.split(factor=0.6)
+                    row = split.row(align=False)
+                    row.operator("ke.pieops", text=gn, icon=vgicon).op = "ADD_VG¤" + group.name
+                    row.operator("ke.pieops", text="", icon="LOOP_BACK").op = "OPVG¤REM¤" + gn
                     sub = split.row(align=True)
-                    sub.operator("ke.pieops", text="", icon="ADD").op = "OPVG¤SEL¤" + gn
-                    sub.operator("ke.pieops", text="", icon="REMOVE").op = "OPVG¤DSEL¤" + gn
-                    sub.operator("ke.pieops", text="", icon="LOOP_BACK").op = "OPVG¤REM¤" + gn
+                    sub.operator("ke.pieops", text="", icon="ZOOM_IN").op = "OPVG¤SEL¤" + gn
+                    sub.operator("ke.pieops", text="", icon="ZOOM_OUT").op = "OPVG¤DSEL¤" + gn
+                    # sub.operator("ke.pieops", text="", icon="LOOP_BACK").op = "OPVG¤REM¤" + gn
                     sub.operator("ke.pieops", text="", icon="PANEL_CLOSE").op = "OPVG¤DEL¤" + gn
 
                 box.operator("ke.pieops", text="New Vertex Group", icon=vgicon).op = "ADD_VG"
@@ -1886,9 +1886,8 @@ class KePieSubd(Menu):
             if edge_groups:
                 used = []
 
-                if bevel_mods:
-                    bevm = [m for m in bevel_mods if m.limit_method == "VGROUP"]
-                    for m in bevm:
+                if vg_mods:
+                    for m in vg_mods:
                         s = b.box().column(align=True)
                         sub = s.row(align=True)
                         sub.label(text=m.name, icon="MOD_BEVEL")
@@ -1896,18 +1895,17 @@ class KePieSubd(Menu):
                         sub.operator("ke.pieops", text="", icon="CHECKMARK").op = "APPLY¤" + str(m.name)
                         sub.operator("ke.pieops", text="", icon="X").op = "DELETE¤" + str(m.name)
 
-                        split = s.split(factor=0.65, align=True)
-                        row = split.row(align=True)
+                        row = s.row(align=True)
                         row.prop_menu_enum(m, "offset_type", text="", icon="DOT")
                         row.prop(m, "width", text="")
-                        split.prop(m, "segments", text="")
+                        row.prop(m, "segments", text="")
 
                         row = s.row(align=True)
                         row.prop(m, "use_clamp_overlap", text="", toggle=False)
                         row.prop(m, "profile")
 
-                        s.separator(factor=0.3)
                         row = s.row(align=True)
+                        row.prop(m, "loop_slide", text="", toggle=False)
                         row.prop(m, "miter_outer", text="")
                         row.prop(m, "miter_inner", text="")
                         b.separator(factor=0.7)
@@ -1926,9 +1924,8 @@ class KePieSubd(Menu):
                 b.separator(factor=0.7)
 
             b.separator(factor=0.7)
-            if bevel_mods:
-                bevm = [m for m in bevel_mods if m.limit_method == "WEIGHT"]
-                for m in bevm:
+            if weight_mods:
+                for m in weight_mods:
                     s = b.box().column(align=True)
                     sub = s.row(align=True)
                     sub.label(text=m.name, icon="MOD_BEVEL")
@@ -1936,24 +1933,23 @@ class KePieSubd(Menu):
                     sub.operator("ke.pieops", text="", icon="CHECKMARK").op = "APPLY¤" + str(m.name)
                     sub.operator("ke.pieops", text="", icon="X").op = "DELETE¤" + str(m.name)
 
-                    split = s.split(factor=0.65, align=True)
-                    row = split.row(align=True)
+                    row = s.row(align=True)
                     row.prop_menu_enum(m, "offset_type", text="", icon="DOT")
                     row.prop(m, "width", text="")
-                    split.prop(m, "segments", text="")
+                    row.prop(m, "segments", text="")
 
                     row = s.row(align=True)
                     row.prop(m, "use_clamp_overlap", text="", toggle=False)
-                    row.separator(factor=0.3)
                     row.prop(m, "profile")
 
                     s.separator(factor=0.3)
                     row = s.row(align=True)
+                    row.prop(m, "loop_slide", text="", toggle=False)
                     row.prop(m, "miter_outer", text="")
                     row.prop(m, "miter_inner", text="")
                     b.separator(factor=0.7)
 
-                if not bevm:
+                if not weight_mods:
                     b.operator("ke.pieops", text="Add Weight Bevel", icon="MOD_BEVEL").op = "W_BEVEL"
                     b.separator(factor=0.7)
             else:
@@ -1961,9 +1957,8 @@ class KePieSubd(Menu):
                 b.separator(factor=0.7)
 
             b.separator(factor=0.7)
-            if bevel_mods:
-                bevm = [m for m in bevel_mods if m.limit_method == "ANGLE"]
-                for m in bevm:
+            if angle_mods:
+                for m in angle_mods:
                     s = b.box().column(align=True)
                     sub = s.row(align=True)
                     sub.label(text=m.name, icon="MOD_BEVEL")
@@ -1971,25 +1966,26 @@ class KePieSubd(Menu):
                     sub.operator("ke.pieops", text="", icon="CHECKMARK").op = "APPLY¤" + str(m.name)
                     sub.operator("ke.pieops", text="", icon="X").op = "DELETE¤" + str(m.name)
 
-                    split = s.split(factor=0.65, align=True)
-                    row = split.row(align=True)
+                    row = s.row(align=True)
                     row.prop_menu_enum(m, "offset_type", text="", icon="DOT")
                     row.prop(m, "width", text="")
-                    split.prop(m, "segments", text="")
+                    row.prop(m, "segments", text="")
 
-                    row = s.row(align=True)
+                    # no idea why I need to split here, but angle_limit freaks out ow
+                    row = s.row(align=True).split(factor=0.1, align=True)
                     row.prop(m, "use_clamp_overlap", text="", toggle=False)
-                    row.separator(factor=0.3)
+                    row = row.row(align=True)
                     row.prop(m, "profile", text="")
                     row.prop(m, "angle_limit", text="")
 
                     s.separator(factor=0.3)
                     row = s.row(align=True)
+                    row.prop(m, "loop_slide", text="", toggle=False)
                     row.prop(m, "miter_outer", text="")
                     row.prop(m, "miter_inner", text="")
                     b.separator(factor=0.7)
 
-                if not bevm:
+                if not angle_mods:
                     b.operator("ke.pieops", text="Add Angle Bevel", icon="MOD_BEVEL").op = "ANGLE_BEVEL"
                     b.separator(factor=0.7)
             else:
@@ -2046,7 +2042,6 @@ classes = (
     KePieBookmarks,
     KePieBoolTool,
     KePieFit2Grid,
-    KePieFit2GridMicro,
     KePieFitPrim,
     KePieMaterials,
     KePieMisc,

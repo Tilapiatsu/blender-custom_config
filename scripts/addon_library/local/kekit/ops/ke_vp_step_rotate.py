@@ -66,4 +66,10 @@ class KeStepRotate(Operator):
                                  proportional_edit_falloff='SMOOTH', proportional_size=1,
                                  use_proportional_connected=False, use_proportional_projected=False)
 
+        # QnD Quat-conversion to keet rotation values sane (and fp-rounded)
+        r = obj.rotation_euler.to_quaternion().to_euler()
+        obj.rotation_euler.x = round(r.x, 4)
+        obj.rotation_euler.y = round(r.y, 4)
+        obj.rotation_euler.z = round(r.z, 4)
+
         return {"FINISHED"}

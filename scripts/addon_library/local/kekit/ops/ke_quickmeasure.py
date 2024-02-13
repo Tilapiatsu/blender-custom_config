@@ -116,10 +116,11 @@ def draw_callback_px(self, context):
             ui_entries.append((self.scol, self.fontsize[0], "[ Freeze: Using Saved Selection (F) ]"))
             ui_entries.append((self.scol, self.fontsize[1], ""))
         if self.display[0] == "DISTANCE":
-            ui_entries.append((self.hcol, self.fontsize[0], "QM - [Distance Total: %s]" % self.lines_tot))
+            ui_entries.append((self.hcol, self.fontsize[0], "QM - Distance Total: %s" % self.lines_tot))
         else:
             ui_entries.append((self.hcol, self.fontsize[0],
-                               "QM - [Distance Total: %s] - [Area Mode (M) %s]" % (self.lines_tot, self.area)))
+                               "QM - %s, %s, %s - Area (M) %s" % (
+                                   self.bb_lines_dist[0], self.bb_lines_dist[1], self.bb_lines_dist[2], self.area)))
 
         ui_entries.append((self.tcol, self.fontsize[1], "Display (D): %s" % self.display[0]))
         if self.fast_calc and self.mode == "OBJECT":
@@ -195,6 +196,7 @@ class KeQuickMeasure(Operator):
     font_id = 0
     first_run = 0
     fast_calc = False
+    rounding = 3
 
     @classmethod
     def poll(cls, context):
@@ -349,17 +351,17 @@ class KeQuickMeasure(Operator):
             else:
                 self.lines = []
 
-        # Finalize for draw with unit conversion
+        # Finalize for draw with unit conversion and rounding
         tot = 0
         for pair in self.lines:
             d = get_distance(pair[0], pair[1])
             tot += d
             unit = get_scene_unit(d, nearest=True)
-            value = str(round(unit[1], 4)) + unit[0]
+            value = str(round(unit[1], self.rounding)) + unit[0]
             self.lines_dist.append(value)
 
         unit = get_scene_unit(tot, nearest=True)
-        self.lines_tot = str(round(unit[1], 4)) + unit[0]
+        self.lines_tot = str(round(unit[1], self.rounding - 1)) + unit[0]
 
     def txt_calc(self, lines):
         upd = []
@@ -414,14 +416,14 @@ class KeQuickMeasure(Operator):
         else:
             unit = get_scene_unit((x[-1] - x[0]) * (y[-1] - y[0]), nearest=True)
             am = "XY: "
-        self.area = am + str(round(unit[1], 2)) + unit[0] + "\u00b2"
+        self.area = am + str(round(unit[1], self.rounding-1)) + unit[0] + "\u00b2"
 
         # Format bb values
         self.bb_lines_dist = []
         for i, j in zip(self.bb_lines, ("x:", "y:", "z:")):
             d = get_distance(i[0], i[1])
             unit = get_scene_unit(d, nearest=True)
-            self.bb_lines_dist.append(j + str(round(unit[1], 4)) + unit[0])
+            self.bb_lines_dist.append(j + str(round(unit[1], self.rounding)) + unit[0])
 
     def intial_update(self):
         self.get_modes()
@@ -468,8 +470,10 @@ class KeQuickMeasure(Operator):
         bpy.app.handlers.frame_change_post.clear()
 
         args = (self, context)
-        self._handle_view = bpy.types.SpaceView3D.draw_handler_add(draw_callback_view, args, 'WINDOW', 'POST_VIEW')
-        self._handle_px = bpy.types.SpaceView3D.draw_handler_add(draw_callback_px, args, 'WINDOW', 'POST_PIXEL')
+        self._handle_view = bpy.types.SpaceView3D.draw_handler_add(
+            draw_callback_view, args, 'WINDOW', 'POST_VIEW')
+        self._handle_px = bpy.types.SpaceView3D.draw_handler_add(
+            draw_callback_px, args, 'WINDOW', 'POST_PIXEL')
 
         wm = context.window_manager
         self._timer = wm.event_timer_add(time_step=0.004, window=context.window)
@@ -481,7 +485,8 @@ class KeQuickMeasure(Operator):
         if (self.component[0] or self.component[1]) and self.mode != "OBJECT":
             self.display = ["DISTANCE", "BBOX + DISTANCE", "BBOX"]
         else:
-            self.display = ["BBOX + DISTANCE", "BBOX", "DISTANCE"]
+            # self.display = ["BBOX + DISTANCE", "BBOX", "DISTANCE"]
+            self.display = ["BBOX", "DISTANCE", "BBOX + DISTANCE"]
 
         # UPDATE STATUS BAR
         # spacing "autodetect" skipping unicode "icons" due to text amount

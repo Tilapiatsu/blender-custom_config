@@ -36,7 +36,7 @@ bl_info = {
     "author": "Kjell Emanuelsson",
     "category": "",
     "blender": (2, 80, 0),
-    "version": (3, 1, 4),
+    "version": (3, 1, 5),
     "location": "View3D > Sidebar",
     "warning": "",
     "description": "Extensive Script Collection",

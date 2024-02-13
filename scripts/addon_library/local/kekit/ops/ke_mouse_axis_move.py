@@ -19,7 +19,9 @@ class KeMouseAxisMove(Operator):
                ("DUPE", "Duplicate", "", 2),
                ("ROT", "Rotate", "", 3),
                ("SCL", "Resize", "", 4),
-               ("CURSOR", "Cursor", "", 5)
+               ("CURSOR", "Cursor", "", 5),
+               ("F_DUPE", "Duplicate Unlinked", "", 6),
+               ("F_LINKDUPE", "Duplicate Linked", "", 7),
                ],
         name="Mode",
         default="MOVE")
@@ -64,7 +66,16 @@ class KeMouseAxisMove(Operator):
     def invoke(self, context, event):
         k = get_prefs()
         self.scale_mode = k.mam_scale_mode
-        self.linkdupe = k.tt_linkdupe
+        self.linkdupe = bool(k.tt_linkdupe)
+
+        # Forcing modes overrides
+        if self.mode == "F_DUPE":
+            self.mode = "DUPE"
+            self.linkdupe = False
+
+        elif self.mode == "F_LINKDUPE":
+            self.mode = "DUPE"
+            self.linkdupe = True
 
         if context.mode == "SCULPT":
             self.sculpthack = True

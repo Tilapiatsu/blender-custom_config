@@ -16,6 +16,8 @@ class KeVPTransform(Operator):
                ("ROTATE", "Rotate", "", 2),
                ("RESIZE", "Resize", "", 3),
                ("COPYGRAB", "Duplicate & Move", "", 4),
+               ("F_DUPE", "Duplicate Unlinked", "", 5),
+               ("F_LINKDUPE", "Duplicate Linked", "", 6),
                ],
         name="Transform",
         default="ROTATE")
@@ -60,6 +62,17 @@ class KeVPTransform(Operator):
         pe_connected = ct.use_proportional_connected
         pe_proj = ct.use_proportional_projected
         pe_falloff = ct.proportional_edit_falloff
+
+        linkdupe = bool(k.tt_linkdupe)
+
+        # Forcing modes overrides
+        if self.transform == "F_DUPE":
+            self.transform = "COPYGRAB"
+            linkdupe = False
+
+        elif self.transform == "F_LINKDUPE":
+            self.transform = "COPYGRAB"
+            linkdupe = True
 
         if self.world_only:
             # set Global
@@ -183,7 +196,7 @@ class KeVPTransform(Operator):
                                                     "use_proportional_projected": pe_proj})
 
             elif context.mode == "OBJECT":
-                if not k.tt_linkdupe:
+                if not linkdupe:
                     bpy.ops.object.duplicate_move('INVOKE_DEFAULT',
                           TRANSFORM_OT_translate={"orient_matrix_type": og_transform,
                                                   "constraint_axis": vplane,

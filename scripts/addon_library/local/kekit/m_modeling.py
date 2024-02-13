@@ -61,11 +61,7 @@ class UIModelingModule(Panel):
         split.prop(k, "merge2mouse_ec", toggle=True)
 
         col.operator('mesh.ke_merge_near_selected', text="Near Selected")
-
-        row = col.row(align=True)
-        split = row.split(factor=0.8, align=True)
-        split.operator('mesh.ke_merge_to_active')
-        split.prop(k, "context_merge", toggle=True)
+        col.operator('mesh.ke_merge_to_active')
 
         col.label(text="Dimensional")
         col.operator('view3d.ke_fit2grid')

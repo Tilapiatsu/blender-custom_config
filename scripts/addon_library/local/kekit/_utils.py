@@ -176,6 +176,25 @@ def apply_transform(obj, loc=False, rot=True, scl=True):
     bpy.context.evaluated_depsgraph_get().update()
 
 
+def is_tf_applied(obj):
+    loc, rot, scl = True, True, True
+    if round(sum(obj.location), 6) % 3 != 0:
+        loc = False
+    if round(sum(obj.rotation_euler), 6) % 3 != 0:
+        rot = False
+    if round(sum(obj.scale), 6) % 3 != 0:
+        scl = False
+    return loc, rot, scl
+
+
+def get_linked_objects(obj):
+    linked = []
+    for o in bpy.context.scene.objects:
+        if obj.data == o.data:
+            linked.append(o)
+    return linked
+
+
 def get_layer_collection(layer_coll, coll_name):
     if layer_coll.name == coll_name:
         return layer_coll

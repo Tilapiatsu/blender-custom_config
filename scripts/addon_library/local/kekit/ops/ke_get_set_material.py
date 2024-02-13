@@ -39,9 +39,10 @@ class KeGetSetMaterial(Operator):
 
     def execute(self, context):
         hidden = []
+        og_active_obj = context.active_object
+        og_active_obj.select_set(True)
         sel_obj = context.selected_objects[:]
         sel_mode = context.mode[:]
-        og_active_obj = context.active_object
 
         bpy.ops.object.mode_set(mode='OBJECT')
 

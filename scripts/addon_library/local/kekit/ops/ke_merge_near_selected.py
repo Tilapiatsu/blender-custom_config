@@ -1,7 +1,7 @@
 import bmesh
 from bpy.props import FloatProperty, IntProperty, BoolProperty
 from bpy.types import Operator
-from .._utils import get_distance, is_bmvert_collinear
+from .._utils import get_distance, is_bmvert_collinear, is_tf_applied
 
 
 class KeMergeNearSelected(Operator):
@@ -24,7 +24,7 @@ class KeMergeNearSelected(Operator):
                 context.object.data.is_editmode)
 
     def execute(self, context):
-        if round(sum(context.object.scale), 6) % 3 != 0:
+        if not is_tf_applied(context.object)[2]:
             self.report({"INFO"}, "Scale is not applied - Results may be unpredictable")
 
         mesh = context.object.data

@@ -4,13 +4,14 @@ import bpy
 from bpy.props import FloatProperty
 from bpy.types import Operator
 from mathutils import kdtree
-from .._utils import mesh_world_coords, mesh_select_all
+from .._utils import mesh_world_coords, mesh_select_all, get_linked_objects
 
 
 class KeCheckSnapping(Operator):
     bl_idname = "view3d.ke_check_snapping"
     bl_label = "Check Snapping"
-    bl_description = "Selects (2+) mesh objects verts that (are supposed to) share coords (='Snapped')"
+    bl_description = ("Selects (2+) mesh objects verts that (are supposed to) share coords (='Snapped')\n"
+                      "If there are Linked Objects selected, it will not select verts, only objects")
     bl_options = {'REGISTER', 'UNDO'}
 
     epsilon : FloatProperty(
@@ -36,13 +37,22 @@ class KeCheckSnapping(Operator):
             bpy.ops.object.mode_set(mode="OBJECT")
 
         # GET 'OBJECT AND COORDS' LOOP PAIRS
+        ao = None
         oac = []
+        linked = 0
         for obj in context.selected_objects:
+            if len(get_linked_objects(obj)) > 1:
+                linked += 1
+            mesh_select_all(obj, False)
             wcos = mesh_world_coords(obj)
             oac.append([obj, wcos])
-            mesh_select_all(obj, False)
+
+        if linked:
+            if context.active_object in context.selected_objects:
+                ao = context.active_object
 
         # FIND MATCHING CO'S
+        obj_to_select = []
         count = 0
         for obj, coords in oac:
             # SETUP K-DIMENSIONAL TREE SPACE-PARTITIONING DATA STRUCTURE
@@ -55,14 +65,31 @@ class KeCheckSnapping(Operator):
 
             # FIND MATCHING CO'S IN K-D TREE & SELECT
             sel_mask = [bool(kd.find_range(co, self.epsilon)) for co in coords]
-            obj.data.vertices.foreach_set("select", sel_mask)
-            count += sum(sel_mask)
+            mcount = sum(sel_mask)
+            count += mcount
+            if mcount:
+                obj_to_select.append(obj)
+            if not linked or obj == ao:
+                obj.data.vertices.foreach_set("select", sel_mask)
 
-        bpy.ops.object.mode_set(mode="EDIT")
-        bpy.ops.mesh.select_mode(use_extend=False, use_expand=False, type='VERT')
+        bpy.ops.object.select_all(action="DESELECT")
+        if ao:
+            obj_to_select = [ao]
+        for o in obj_to_select:
+            o.select_set(True)
+
+        linktxt = ""
+        if linked:
+            linktxt = "[Linked Object(s)]"
+            print("Note: Linked Object(s) selected - Active Object selection only")
+
+        if ao or not linked:
+            bpy.ops.object.mode_set(mode="EDIT")
+            bpy.ops.mesh.select_mode(use_extend=False, use_expand=False, type='VERT')
+
         if count:
-            self.report({"INFO"}, "Snapped: %i verts share coords" % count)
+            self.report({"INFO"}, "Snapped - %i verts. %s" % (count, linktxt))
         else:
-            self.report({"INFO"}, "Not Snapped: No verts share coords")
+            self.report({"INFO"}, "Not Snapped. %s" % linktxt)
 
         return {"FINISHED"}

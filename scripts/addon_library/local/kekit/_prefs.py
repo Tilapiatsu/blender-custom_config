@@ -608,9 +608,6 @@ class KeKitAddonPreferences(AddonPreferences):
     context_select_c: BoolProperty(name="C", default=False,
                                    description="Context Select - Select All Objects in selected object's Collection\n"
                                                "(in OBJECT MODE)")
-    context_merge: BoolProperty(name="E", default=False,
-                                description="MergeCollapse Edge Mode:\n"
-                                            "Off: Merge to active edge, On: Collapse average (vanilla op) ")
     # Auto-Apply Scale
     apply_scale: BoolProperty(name="A", description="Auto Apply Scale before operation", default=True)
     # Mouse Axis Scale Mode

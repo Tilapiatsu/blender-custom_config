@@ -27,7 +27,8 @@ class KeMouseMirrorFlip(Operator):
 
     mode: EnumProperty(
         items=[("FLIP", "Move", "", 1),
-               ("MIRROR", "Duplicate", "", 2)
+               ("MIRROR", "Duplicate", "", 2),
+               ("LOCALMIRROR", "Local Duplicate", "Always use local mode for mirror", 3)
                ],
         name="Mode",
         default="MIRROR")
@@ -71,7 +72,8 @@ class KeMouseMirrorFlip(Operator):
         bbcoords, bbmin, bbmax = [], [], []
 
         og = getset_transform(setglobal=False)
-        self.ot = og[0]
+        tf = og[0]
+        self.ot = tf
 
         if context.object.type in {'MESH', 'CURVE', 'SURFACE', 'META', 'FONT', 'HAIR', 'GPENCIL'}:
             em = bool(context.object.data.is_editmode)
@@ -83,8 +85,12 @@ class KeMouseMirrorFlip(Operator):
         else:
             og_obj = [context.object]
 
+        if self.mode == "LOCALMIRROR":
+            self.mode = "MIRROR"
+            tf = "LOCAL"
+
         if self.mode == "MIRROR":
-            if em and og[0] != "NORMAL":
+            if em and tf != "NORMAL":
                 bpy.ops.mesh.duplicate()
             elif not em:
                 bpy.ops.object.duplicate()
@@ -99,16 +105,16 @@ class KeMouseMirrorFlip(Operator):
         ]
 
         # Mouse vec start
-        if og[0] == "CURSOR":
+        if tf == "CURSOR":
             self.startpos = self.get_mpos(context, self.mouse_pos, cursor.location)
         else:
             self.startpos = self.get_mpos(context, self.mouse_pos, active_obj.location)
 
         # Fallback for Normal in Object Mode
-        if og[0] == "NORMAL" and not em:
-            og[0] = "LOCAL"
+        if tf == "NORMAL" and not em:
+            tf = "LOCAL"
 
-        if og[0] == "GLOBAL":
+        if tf == "GLOBAL":
             if not em:
                 avg_pos = active_obj.location
             else:
@@ -116,13 +122,13 @@ class KeMouseMirrorFlip(Operator):
                 bbcoords = [active_obj.matrix_world @ v.co for v in active_obj.data.vertices if v.select]
                 avg_pos = average_vector(bbcoords)
 
-        elif og[0] == "CURSOR":
+        elif tf == "CURSOR":
             context.scene.tool_settings.transform_pivot_point = 'CURSOR'
             self.tm = cursor.matrix.to_3x3()
             avg_pos = cursor.location
             cursor_mode = True
 
-        elif og[0] == "LOCAL":
+        elif tf == "LOCAL":
             # AKA BBOX MODE
 
             if em:
@@ -156,7 +162,7 @@ class KeMouseMirrorFlip(Operator):
                 bbmin = active_obj.matrix_world @ Vector(bbmin)
                 bbmax = active_obj.matrix_world @ Vector(bbmax)
 
-            if self.mode == "FLIP" and og[0] == "LOCAL":
+            if self.mode == "FLIP" and tf == "LOCAL":
                 # resetting to flip in place instead of BBOX
                 bbmin, bbmax = [], []
                 if em:
@@ -172,7 +178,7 @@ class KeMouseMirrorFlip(Operator):
         #
         # NORMAL
         #
-        elif og[0] == "NORMAL" and em:
+        elif tf == "NORMAL" and em:
 
             sel_mode = context.tool_settings.mesh_select_mode[:]
             mesh = active_obj.data
@@ -281,7 +287,7 @@ class KeMouseMirrorFlip(Operator):
                     avg_pos = Vector(bbmax)
 
         # Global offset fix
-        if og[0] == "GLOBAL":
+        if tf == "GLOBAL":
             avg_pos = Vector((0, 0, 0))
 
         # Temp-deactivate

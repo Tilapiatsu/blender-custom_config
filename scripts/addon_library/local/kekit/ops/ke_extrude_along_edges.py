@@ -4,7 +4,7 @@ from bpy.types import Operator
 from mathutils import Vector
 from mathutils.geometry import intersect_line_plane
 from .._utils import vertloops, get_distance, shift_list, is_bmvert_collinear, tri_points_vectors, expand_to_island, \
-    pairlink, flattened, average_vector
+    pairlink, flattened, average_vector, is_tf_applied
 
 
 class KeExtrudeAlongEdges(Operator):
@@ -56,7 +56,7 @@ class KeExtrudeAlongEdges(Operator):
             print("Invalid Selection: Mesh Object in Edit Mode expected")
             return {"CANCELLED"}
 
-        if round(sum(src_obj.scale), 6) % 3 != 0:
+        if not is_tf_applied(src_obj)[2]:
             self.report({"INFO"}, "Note: Object Scale is not applied")
 
         src_obj.select_set(True)

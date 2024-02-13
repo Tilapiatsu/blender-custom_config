@@ -45,7 +45,20 @@ class KePieOps(Operator):
         elif v == "CLEAR_VG":
             return "Remove selected elements from *ALL* Bevel Vertex Groups"
         elif v[:4] == "OPVG":
-            return "Select verts, Deselect verts, Remove selected (from VG), Delete VG"
+            vgop = str(v).split("¤")[1]
+            if vgop == "SEL":
+                return "Select elements in group"
+            elif vgop == "DSEL":
+                return "Deselect elements in group"
+            elif vgop == "REM":
+                return "Remove selected elements from group"
+            elif vgop == "DEL":
+                return "Delete group"
+        elif v[:6] == "ADD_VG":
+            if len(v) > 6:
+                return "Add selected elements to group"
+            else:
+                return "Add new group"
         elif v in cls.mirror_ops:
             return "Mirror modifer ops (with bisect added presets)"
         else:
@@ -54,16 +67,8 @@ class KePieOps(Operator):
     def execute(self, context):
         k = get_prefs()
         mode = str(context.mode)
-
         active = context.active_object
-        # sel_obj = [o for o in context.selected_objects if o.type == "MESH"]
-        # if sel_obj and active not in sel_obj:
-        #     active = sel_obj[0]
-        #     active.select_set(True)
-        # if not active:
-        #     return {"CANCELLED"}
-
-        # Auto Add WN for Bevels check
+        # Check for Auto Add WN for Bevels
         wmod = [m for m in active.modifiers if m.type == "WEIGHTED_NORMAL"]
 
         #

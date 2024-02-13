@@ -2,7 +2,7 @@ import bmesh
 import bpy
 from bpy.types import Operator
 from mathutils import Vector
-from .._utils import (rotation_from_vector, mouse_raycast,)
+from .._utils import rotation_from_vector, mouse_raycast, is_tf_applied
 
 
 class KeCursorAlignRot(Operator):
@@ -44,7 +44,7 @@ class KeCursorAlignRot(Operator):
 
             obj_mtx = hit_obj.matrix_world.copy()
 
-            if round(sum(hit_obj.scale), 6) % 3 != 0:
+            if not is_tf_applied(hit_obj)[2]:
                 print("Cursor Rot Align: Object Scale is not applied. jfyi.")
 
             bm = bmesh.new()

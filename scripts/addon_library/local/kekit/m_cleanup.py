@@ -2,6 +2,7 @@ import bpy
 from bpy.types import Panel
 
 from .ops.ke_check_snapping import KeCheckSnapping
+from .ops.ke_check_origin_at_vert import KeCheckOriginAtVert
 from .ops.ke_clean import KeClean
 from .ops.ke_purge import KePurge
 from .ops.ke_clean_dupe_materials import KeCleanDupeMaterials
@@ -55,6 +56,7 @@ class UICleanUpToolsModule(Panel):
         col.operator('mesh.ke_select_collinear')
         col.operator('mesh.ke_select_flipped_normal')
         col.operator('view3d.ke_check_snapping')
+        col.operator('view3d.ke_check_origin_at_vert')
         col.operator('view3d.ke_select_occluded_verts')
 
         col.label(text="Select Elements by Vert Count:")
@@ -69,6 +71,7 @@ class UICleanUpToolsModule(Panel):
 
 classes = (
     KeCheckSnapping,
+    KeCheckOriginAtVert,
     KeClean,
     KeCleanDupeMaterials,
     KePurge,
