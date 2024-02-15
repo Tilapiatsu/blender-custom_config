@@ -1,11 +1,11 @@
 bl_info = {
     "name": "Exporter",
     "author": "Simon Geoffriau",
-    "version": (2, 1, 4),
+    "version": (2, 2, 0),
     "blender": (2, 80, 0),
     "category": "Scene",
     "location": "3D viewport",
-    "description": "Convert collections to empties and export",
+    "description": "Export prop from list of selected objects, manage collections structure",
     "warning": "",
     "doc_url": "",
     "tracker_url": "",
@@ -26,7 +26,7 @@ PR_ANN_0185_A (collection)
     Origin_A (empty) > define pivot point for convertion to empties
 >>>
 PR_ANN_0185_A (empty)
-    PR_ANN_0185_A_Metal_COL
+    PR_ANN_0185_A_Metal_COL  
     PR_ANN_0185_A_Metal_LOD (empty)
         PR_ANN_0185_A_Metal_LOD0
     PR_ANN_0185_A_Stone_LOD (empty)
@@ -34,7 +34,7 @@ PR_ANN_0185_A (empty)
 
 
 TO DO     
-    5 . Multi select Add    //done
+    1. define naming convention as a rule  for a larger scope of the exporter
 '''
 
 import bpy
@@ -89,16 +89,23 @@ class CUSTOM_OT_actions(bpy.types.Operator):
 
         if self.action == 'ADD':
             for o in context.selected_objects:
-                if o and findProp(o) not in scn.custom.keys():
-                    item = scn.custom.add()
-                    item.name = findProp(o)
-                    item.obj_type = o.type
-                    item.obj_id = len(scn.custom)
-                    scn.custom_index = len(scn.custom)-1
-                    info = '"%s" added to list' % (item.name)
-                    self.report({'INFO'}, info)
-                else:
-                    self.report({'INFO'}, "Nothing selected in the Viewport or prop already in the list")
+                foundProp = findPropByColl(o)
+                if foundProp == None:
+                    #check if parent is an empty with correct naming
+                    foundProp = findPropByParent(o)
+                    if foundProp == None:
+                        self.report({'INFO'}, "No prop found, check your naming")
+                    else:    
+                        if o and foundProp not in scn.custom.keys():
+                            item = scn.custom.add()
+                            item.name = foundProp
+                            item.obj_type = o.type
+                            item.obj_id = len(scn.custom)
+                            scn.custom_index = len(scn.custom)-1
+                            info = '"%s" added to list' % (item.name)
+                            self.report({'INFO'}, info)
+                        else:
+                            self.report({'INFO'}, "Nothing selected in the Viewport or prop already in the list")
         return {"FINISHED"}
 
 
@@ -109,15 +116,15 @@ class CUSTOM_OT_export(bpy.types.Operator):
 
     # CONVERT FROM COLLECTIONS TO EMPTIES STRUCTURE AND EXPORT FBX
     def HExport(self, context):
-
+        # Selection
+        selectedProps = bpy.context.scene.custom.keys()
         # Check scene structure
         if bool(bpy.context.scene.collection):
             # Variables
             parentCol = dict()
             empties = dict()
             props = bpy.context.scene.collection.children
-            selectedProps = bpy.context.scene.custom.keys()
-
+            
             # Convert each props
             for p in props:
                 # Variables
@@ -206,30 +213,30 @@ class CUSTOM_OT_export(bpy.types.Operator):
             # REMOVE COLLECTIONS
             for c in bpy.data.collections:
                 bpy.data.collections.remove(c)
-
-            # SAVE FILE
-            for p in selectedProps:
-                bpy.data.objects[p].select_set(True)
-                for o in bpy.data.objects[p].children_recursive:
-                    o.select_set(True)
-
-                # Create filepath
-                bfilepath = bpy.data.filepath
-                directory = os.path.dirname(bfilepath)
-
-                # Creates the path for the exported fbx.
-                filepath = os.path.join(directory, p + "." + "fbx")
-                bpy.ops.export_scene.fbx(filepath=filepath, use_selection=True)
-
-            # Back to normal
-            bpy.ops.object.select_all(action='DESELECT')           
-            bpy.ops.ed.undo_push()
-            bpy.ops.ed.undo()
-
-            # Return exported prop list
-            return(selectedProps)
         else:
-            print("Info: Export not possible, wrong scene structure.")
+            # Empties Structure
+            print("Empties")
+        # SAVE FILE
+        for p in selectedProps:
+            bpy.data.objects[p].select_set(True)
+            for o in bpy.data.objects[p].children_recursive:
+                o.select_set(True)
+
+            # Create filepath
+            bfilepath = bpy.data.filepath
+            directory = os.path.dirname(bfilepath)
+
+            # Creates the path for the exported fbx.
+            filepath = os.path.join(directory, p + "." + "fbx")
+            bpy.ops.export_scene.fbx(filepath=filepath, use_selection=True)
+
+        # Back to normal
+        bpy.ops.object.select_all(action='DESELECT')           
+        bpy.ops.ed.undo_push()
+        bpy.ops.ed.undo()
+
+        # Return exported prop list
+        return(selectedProps, filepath)
 
     @classmethod
     def poll(cls, context):
@@ -241,7 +248,7 @@ class CUSTOM_OT_export(bpy.types.Operator):
     def execute(self, context):
         if len(bpy.data.collections) != 0:
             exportedProps = self.HExport(context)
-            self.report({'INFO'}, str(exportedProps)+" exported") 
+            self.report({'INFO'}, str(exportedProps[0])+" exported in "+exportedProps[1]) 
         else:
             self.report({'INFO'}, "Warning - Wrong scene structure, nothing was exported ...") 
         return {'FINISHED'}
@@ -567,21 +574,39 @@ def linkedCollections(obj):
                 collectionList.append(c)
     return collectionList
 
-# Find top collection, prop name, for a given object
-def findProp(obj):
+# Find the name of a prop looking at the collection a selected object is in
+def findPropByColl(obj):
+    propName = None
     for c in bpy.data.collections:
         for o in c.objects:
             if o == obj:
                 pSplit = c.name.split('_')[0:4]
-                propName = ''
-                for i in range(0, 3):
-                    try:
-                        propName = propName+pSplit[i]+"_"
-                    except:
-                        return
-                propName = propName+pSplit[3]
-                return propName
+                try:
+                    propName = '%s_%s_%s_%s' % (pSplit[0], pSplit[1], pSplit[2], pSplit[3])
+                except:
+                    print("Scene structure issue")
+    return propName
 
+# Find the name of a prop looking at the hierarchy a selected object is in
+def findPropByParent(obj):
+    propName = None
+    objTopParent = findTopParent(obj)
+    if objTopParent.type == 'EMPTY':
+        pSplit = objTopParent.name.split('_')[0:4]
+        try:
+            propName = '%s_%s_%s_%s' % (pSplit[0], pSplit[1], pSplit[2], pSplit[3])
+        except:
+            print("Scene structure issue")
+    return propName
+
+# Find the top parent of an object
+def findTopParent(obj):
+    topParent = obj.parent
+    while topParent is not None:
+        if topParent.parent == None:
+            break
+        topParent = topParent.parent
+    return topParent
 
 blender_classes = [
     CUSTOM_OT_export,
