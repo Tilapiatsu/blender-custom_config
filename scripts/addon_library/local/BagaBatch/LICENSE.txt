@@ -1,0 +1,12 @@
+BagaBatch Addon License
+
+Source Code:
+	The source code for the BagaBatch addon, as identified by .py files within this directorie, is copyrighted and made available under the GNU GPL License. 
+	Use, modification, and distribution of the source code are permitted as long as these actions comply with the terms of the GNU GPL License.
+
+Graphic Resources and Blend File Content:
+	Images, materials, lighting setups, and any other graphic content included in .blend files or any other graphic file formats provided with this addon are offered under a royalty-free license. 
+	This permits you to utilize them for your projects, commercial or non-commercial, without the obligation to pay additional royalties. 
+	You cannot share, resell, redistribute, or modify the images, materials, lighting setups, or any other graphic content included in the .blend files.
+
+By using this addon, you agree to these terms and conditions.

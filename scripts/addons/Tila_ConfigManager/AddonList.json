@@ -3160,5 +3160,22 @@
                 "destination_path": "#\\scripts\\addons\\YouV"
             }
         ]
+    },
+    "BagaBatch": {
+        "is_enable": false,
+        "is_sync": false,
+        "online_url": "https://abaga.gumroad.com/l/rnkem",
+        "repository_url": null,
+        "branch": null,
+        "is_submodule": false,
+        "local_path": "#\\scrips\\addon_library\\local\\BagaBatch",
+        "keymaps": false,
+        "paths": [
+            {
+                "is_enable": false,
+                "local_subpath": null,
+                "destination_path": "#\\scrips\\addons\\BagaBatch"
+            }
+        ]
     }
 }
