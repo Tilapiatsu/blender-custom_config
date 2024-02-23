@@ -109,6 +109,10 @@ class TILA_smart_editmode(bpy.types.Operator):
                     bpy.ops.object.posemode_toggle()
                 else:
                     bpy.ops.object.editmode_toggle()
+
+            elif bpy.context.active_object.type == 'LATTICE':
+                bpy.ops.object.editmode_toggle()
+                
             else:
                 self.report({'ERROR'}, f'Object Type not Valid : {bpy.context.active_object.type}')
 
