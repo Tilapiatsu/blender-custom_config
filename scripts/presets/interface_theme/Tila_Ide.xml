@@ -213,7 +213,7 @@
         </wcol_pulldown>
         <wcol_menu_back>
           <ThemeWidgetColors
-            outline="#282c34ff"
+            outline="#313640ff"
             inner="#282c34ff"
             inner_sel="#2a8d98ff"
             item="#e6e6e6ff"
@@ -1175,7 +1175,7 @@
         line_info="#8bdc00"
         line_error="#ff3370"
         cursor="#3fd3e3"
-        select="#ffffff04"
+        select="#31a6b380"
         >
         <space>
           <ThemeSpaceGeneric
