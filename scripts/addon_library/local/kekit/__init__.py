@@ -19,6 +19,7 @@
 # ##### END GPL LICENSE BLOCK #####
 from . import _prefs
 from . import _ui
+from . import shared
 from . import m_bookmarks
 from . import m_cleanup
 from . import m_context_tools
@@ -36,7 +37,7 @@ bl_info = {
     "author": "Kjell Emanuelsson",
     "category": "",
     "blender": (2, 80, 0),
-    "version": (3, 1, 5),
+    "version": (3, 1, 8),
     "location": "View3D > Sidebar",
     "warning": "",
     "description": "Extensive Script Collection",
@@ -48,6 +49,7 @@ kit_cat = ""
 modules = (
     _prefs,
     _ui,
+    shared,
     m_geometry,
     m_render,
     m_bookmarks,

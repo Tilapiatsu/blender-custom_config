@@ -93,7 +93,7 @@ class KeLoadPrefs(Operator):
     bl_description = "Import keKit settings (from JSON-file)"
     bl_options = {"INTERNAL"}
 
-    inputpath : StringProperty(name="filepath", default=path + "/kekit_prefs.json", options={'HIDDEN'})
+    inputpath: StringProperty(name="filepath", default=path + "/kekit_prefs.json", options={'HIDDEN'})
 
     def execute(self, context):
         ap = get_prefs()
@@ -108,7 +108,7 @@ class KeLoadPrefs(Operator):
             pass
         # Assigning properties prefs file -> add-on prefs
         if prefs is not None and ap is not None:
-            for key in prefs :
+            for key in prefs:
                 if key in ap.__annotations__.keys():
                     v = prefs[key]
                     try:
@@ -144,7 +144,7 @@ class KePropToggle(Operator):
                      "Set as shortcut - Assign prop name to shortcut prop field"
     bl_options = {"INTERNAL"}
 
-    prop : bpy.props.StringProperty()
+    prop: bpy.props.StringProperty()
 
     def execute(self, context):
         k = get_prefs()
@@ -510,12 +510,12 @@ class KeKitAddonPreferences(AddonPreferences):
                                  description="Auto activate snapping mode when using snap combo")
     # paste+
     plus_mpoint: BoolProperty(name="P", default=False,
-                              description="Paste+ Point\n"
+                              description="Paste+ at Mouse Point\n"
                                           "ON: Places pasted Object(s) at Mouse Point.  OFF: Original location")
     plus_merge: BoolProperty(name="M", default=False,
-                             description="Paste+ Merge\n"
-                                         "ON: Merges Pasted items with selected(Active Object) in Object Mode\n"
-                                         "OFF: Paste items into New Object, with or without selections in Object Mode")
+                             description="Paste+ Object Mode Merge\n"
+                                         "ON: Merges Pasted items with selected(Active Object) (in Object Mode)\n"
+                                         "OFF: Always Paste items into New Object (in Object Mode)")
     # Context Delete
     h_delete: BoolProperty(name="Hierarchy Delete", description="And the children too (in Object Mode)", default=True)
     cd_pluscut: BoolProperty(
@@ -568,10 +568,11 @@ class KeKitAddonPreferences(AddonPreferences):
     mc_name5: StringProperty(description="MultiCut Preset 6", default="5 cm (C)")
     mc_name6: StringProperty(description="MultiCut Preset 7", default="1 cm (C)")
     mc_name7: StringProperty(description="MultiCut Preset 8", default="1 cm")
-    # DLC sel only
-    dlc_so: BoolProperty(name="Selection-Only Toggle", default=False,
-                         description="No mouse-pick, selected element only (nearest selected edge in face limit "
-                                     "selection)\nAffects all 'Direct' operators")
+    # Direct Loop Cut -  sel only
+    dlc_so: BoolProperty(name="Selection Only", default=False,
+                         description="ON: Pre-selected element only (& nearest selected edge in face selection)\n"
+                                     "OFF: Picks Edge by Mouse position (Fallback to pre-selected, if in space)\n"
+                                     "Note: Affects all 'Direct' operators")
     # Shading Toggle Tri mode
     shading_tris: BoolProperty(name="Flat Shading Triangulate", default=False,
                                description="Flat Shading Triangulate:\n"
@@ -596,26 +597,27 @@ class KeKitAddonPreferences(AddonPreferences):
     unbevel_autoring: BoolProperty(name="Unbevel Auto-EdgeRing", default=False,
                                    description="Runs Edge-Ring selection before Unbevel")
     # Context Select Object Mode Full Hierarchy
-    context_select_h: BoolProperty(name="FH", default=False,
+    context_select_h: BoolProperty(name="Full Hierarchy Select", default=False,
                                    description="Context Select - OBJECT MODE Full Hierarchy\n"
                                                "(not just the children, but the parents too)\n"
                                                "Note: Also applies to Extend/Subtract")
     # Context Select - Vertex Mode Behaviour
-    context_select_b: BoolProperty(name="B", default=False,
-                                   description="Context Select - Custom VERTEX MODE behaviour\n "
-                                               "On - Selects open boundaries if any in connected geo\n"
+    context_select_b: BoolProperty(name="Vertex Mode Behaviour", default=False,
+                                   description="On - Selects open boundaries, if any, in connected geo\n"
                                                "Off - Selects connected geo")
-    context_select_c: BoolProperty(name="C", default=False,
+    context_select_c: BoolProperty(name="Collection Select", default=False,
                                    description="Context Select - Select All Objects in selected object's Collection\n"
                                                "(in OBJECT MODE)")
     # Auto-Apply Scale
-    apply_scale: BoolProperty(name="A", description="Auto Apply Scale before operation", default=True)
+    apply_scale: BoolProperty(name="Auto-Apply Scale", description="Apply Scale before operation", default=True)
     # Mouse Axis Scale Mode
     mam_scale_mode: BoolProperty(name="Scale Constrain", default=False,
                                  description="When mouse is over selected object(s) use non-constrained scale.\n"
                                              "Else, use axis constrain relative to mouse (default mouse axis move)")
-    # Shortcuts
-    show_shortcuts: BoolProperty(name="Show Assigned Shortcuts", default=False)
+    # Show / Hide SubMenus
+    show_modules: BoolProperty(name="keKit Modules", default=False)
+    show_ui: BoolProperty(name="keKit UI Settings", default=False)
+    show_shortcuts: BoolProperty(name="Show Assigned keKit Shortcuts", default=False)
     show_conflicts: BoolProperty(name="Show Possible Shortcut Conflicts", default=False)
     # Toggle Weights
     toggle_same: BoolProperty(default=True, name="Toggle All Same",
@@ -624,8 +626,21 @@ class KeKitAddonPreferences(AddonPreferences):
     toggle_add: BoolProperty(default=True, name="Toggle & Add Modifier",
                              description="Adds a Bevel (Weights) or SubD Toggle (Crease) mod if not already present")
     # Mouse Merge
-    merge2mouse_ec: BoolProperty(default=True, name="C",
+    merge2mouse_ec: BoolProperty(default=True, name="Edge Mode Behaviour",
                                  description="In Edge-Mode: ON: Edge Row-Collapse, OFF: Vert Merge (all the same)")
+    # Unwrap Macro
+    uv_obj_seam: BoolProperty(default=True, name="Object Mode Auto-Seam",
+                              description="In Object Mode, always ON\n"
+                                          "In Edit Mode, always OFF")
+    # UI options
+    color_icons: BoolProperty(default=True, name="Color Icons",
+                              description="Use custom color icons for various modules -or- just numbers (if disabled)")
+    ext_tools: BoolProperty(default=False, name="Extend Tool Settings",
+                            description="Extend Tool Settings menu with additional buttons\n"
+                                        "Also displays buttons (but disabled) in Object Mode (to show state)")
+    ext_factor: FloatProperty(default=1.0, name="Separator factor", min=0, max=999,
+                          description="UI-separator value the Extend Tool Settings menu is offset (from the right)")
+
     # TT header icons prefs
     tt_icon_pos: EnumProperty(
         name="TT Icon Placement",
@@ -639,11 +654,11 @@ class KeKitAddonPreferences(AddonPreferences):
         default="CENTER")
 
     category: StringProperty(
-            name="Tab Category",
-            description="Choose a name (category) for tab placement",
-            default="kekit",
-            update=update_panel
-            )
+        name="Tab Category",
+        description="Choose a name (category) for tab placement",
+        default="kekit",
+        update=update_panel
+    )
 
     def draw(self, context):
         layout = self.layout
@@ -662,7 +677,6 @@ classes = (
 
 
 def register():
-
     for cls in classes:
         bpy.utils.register_class(cls)
 
@@ -674,7 +688,6 @@ def register():
 
 
 def unregister():
-
     save_prefs()
 
     for cls in reversed(classes):

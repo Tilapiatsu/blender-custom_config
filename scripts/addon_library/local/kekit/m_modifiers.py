@@ -1,13 +1,13 @@
 import bpy
-from bpy.types import Panel, Operator
 from bpy.props import StringProperty, BoolProperty
+from bpy.types import Panel, Operator
+from ._ui import pcoll
+from ._utils import get_prefs
+from .ops.ke_mod_vis import KeToggleModVis
 from .ops.ke_shading_toggle import KeShadingToggle
-from .ops.ke_weight_toggle import KeWeightToggle
 from .ops.ke_showcuttermod import KeShowCutterMod
 from .ops.ke_solo_cutter import KeSoloCutter
-from .ops.ke_mod_vis import KeToggleModVis
 from .ops.subd_tools import KeSubd, KeSubDStep, UISubDModule
-from ._utils import get_prefs
 
 
 class UIModifiersModule(Panel):
@@ -19,6 +19,8 @@ class UIModifiersModule(Panel):
 
     def draw(self, context):
         k = get_prefs()
+        u = pcoll['kekit']['ke_uncheck'].icon_id
+        c = pcoll['kekit']['ke_check'].icon_id
         layout = self.layout
         col = layout.column(align=True)
 
@@ -30,21 +32,17 @@ class UIModifiersModule(Panel):
 
         row = col.row(align=True)
         row.operator('view3d.ke_shading_toggle', text="Flat/Smooth Toggle")
-        row2 = row.row(align=True)
-        row2.alignment = "RIGHT"
-        row2.prop(k, "shading_tris", text="T", toggle=True)
+        row.prop(k, "shading_tris", text="", toggle=True, icon_value=c if k.shading_tris else u)
 
         row = col.row(align=True)
-        split = row.split(factor=0.75, align=True)
-        split.operator('mesh.ke_toggle_weight', text="Toggle Bevel Weight").wtype = "BEVEL"
-        split.prop(k, "toggle_same", text="A", toggle=True)
-        split.prop(k, "toggle_add", text="M", toggle=True)
+        row.operator('mesh.ke_toggle_weight', text="Toggle Bevel Weight").wtype = "BEVEL"
+        row.prop(k, "toggle_same", text="", toggle=True, icon_value=c if k.toggle_same else u)
+        row.prop(k, "toggle_add", text="", toggle=True, icon="ADD")
 
         row = col.row(align=True)
-        split = row.split(factor=0.75, align=True)
-        split.operator('mesh.ke_toggle_weight', text="Toggle Crease Weight").wtype = "CREASE"
-        split.prop(k, "toggle_same", text="A", toggle=True)
-        split.prop(k, "toggle_add", text="M", toggle=True)
+        row.operator('mesh.ke_toggle_weight', text="Toggle Crease Weight").wtype = "CREASE"
+        row.prop(k, "toggle_same", text="", toggle=True, icon_value=c if k.toggle_same else u)
+        row.prop(k, "toggle_add", text="", toggle=True, icon="ADD")
 
 
 class KeModOrder(Operator):
@@ -99,7 +97,6 @@ classes = (
     KeSoloCutter,
     KeShowCutterMod,
     KeShadingToggle,
-    KeWeightToggle,
     KeToggleModVis,
     KeModOrder,
 )

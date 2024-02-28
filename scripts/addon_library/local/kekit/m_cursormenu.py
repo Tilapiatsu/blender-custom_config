@@ -5,6 +5,7 @@ from bpy.props import EnumProperty
 from bpy.types import Header, Panel, Operator
 from mathutils import Vector, Matrix, Quaternion
 from ._utils import rotation_from_vector, get_prefs
+from ._ui import pcoll
 
 
 class KeCursorMenuHeader(Header):
@@ -25,10 +26,26 @@ class KeCursorMenuPanel(Panel):
     bl_label = "KCM"
 
     def draw(self, context):
+        kt = context.scene.kekit_temp
         k = get_prefs()
+        if k.color_icons:
+            c1 = pcoll['kekit']['ke_cursor1'].icon_id
+            c2 = pcoll['kekit']['ke_cursor2'].icon_id
+            c3 = pcoll['kekit']['ke_cursor3'].icon_id
+            c4 = pcoll['kekit']['ke_cursor4'].icon_id
+            c5 = pcoll['kekit']['ke_cursor5'].icon_id
+            c6 = pcoll['kekit']['ke_cursor6'].icon_id
+        else:
+            c1 = pcoll['kekit']['ke_mono1'].icon_id
+            c2 = pcoll['kekit']['ke_mono2'].icon_id
+            c3 = pcoll['kekit']['ke_mono3'].icon_id
+            c4 = pcoll['kekit']['ke_mono4'].icon_id
+            c5 = pcoll['kekit']['ke_mono5'].icon_id
+            c6 = pcoll['kekit']['ke_mono6'].icon_id
+
         xp = k.experimental
         bookmarks = bool(k.m_bookmarks)
-        temp = context.scene.kekit_temp
+
         layout = self.layout
         c = layout.column()
 
@@ -37,15 +54,15 @@ class KeCursorMenuPanel(Panel):
         c.label(text="Step Rotate")
         col = c.column(align=True)
         row = col.row(align=True)
-        row.prop(temp, "kcm_axis", expand=True)
+        row.prop(kt, "kcm_axis", expand=True)
 
         row = col.row(align=True)
-        row.prop(temp, "kcm_rot_preset", expand=True)
+        row.prop(kt, "kcm_rot_preset", expand=True)
 
         # flagged as "experimental"  due to "unsupported RNA type 2" error-spam, solution TBD
         row = col.row(align=True)
         if xp:
-            row.prop(temp, "kcm_custom_rot")
+            row.prop(kt, "kcm_custom_rot")
 
         row = col.row(align=True)
         row.operator("view3d.ke_cursor_rotation", text="Step Rotate").mode = "STEP"
@@ -75,30 +92,30 @@ class KeCursorMenuPanel(Panel):
             row.operator('view3d.ke_cursor_bookmark', text="", icon="IMPORT").mode = "SET5"
             row.operator('view3d.ke_cursor_bookmark', text="", icon="IMPORT").mode = "SET6"
 
-            if sum(temp.cursorslot1) == 0:
-                row.operator('view3d.ke_cursor_bookmark', text="1", depress=False).mode = "USE1"
+            if sum(kt.cursorslot1) == 0:
+                row.operator('view3d.ke_cursor_bookmark', text="", icon_value=c1, depress=False).mode = "USE1"
             else:
-                row.operator('view3d.ke_cursor_bookmark', text="1", depress=True).mode = "USE1"
-            if sum(temp.cursorslot2) == 0:
-                row.operator('view3d.ke_cursor_bookmark', text="2", depress=False).mode = "USE2"
+                row.operator('view3d.ke_cursor_bookmark', text="", icon_value=c1, depress=True).mode = "USE1"
+            if sum(kt.cursorslot2) == 0:
+                row.operator('view3d.ke_cursor_bookmark', text="", icon_value=c2, depress=False).mode = "USE2"
             else:
-                row.operator('view3d.ke_cursor_bookmark', text="2", depress=True).mode = "USE2"
-            if sum(temp.cursorslot3) == 0:
-                row.operator('view3d.ke_cursor_bookmark', text="3", depress=False).mode = "USE3"
+                row.operator('view3d.ke_cursor_bookmark', text="", icon_value=c2, depress=True).mode = "USE2"
+            if sum(kt.cursorslot3) == 0:
+                row.operator('view3d.ke_cursor_bookmark', text="", icon_value=c3, depress=False).mode = "USE3"
             else:
-                row.operator('view3d.ke_cursor_bookmark', text="3", depress=True).mode = "USE3"
-            if sum(temp.cursorslot4) == 0:
-                row.operator('view3d.ke_cursor_bookmark', text="4", depress=False).mode = "USE4"
+                row.operator('view3d.ke_cursor_bookmark', text="", icon_value=c3, depress=True).mode = "USE3"
+            if sum(kt.cursorslot4) == 0:
+                row.operator('view3d.ke_cursor_bookmark', text="", icon_value=c4, depress=False).mode = "USE4"
             else:
-                row.operator('view3d.ke_cursor_bookmark', text="4", depress=True).mode = "USE4"
-            if sum(temp.cursorslot5) == 0:
-                row.operator('view3d.ke_cursor_bookmark', text="5", depress=False).mode = "USE5"
+                row.operator('view3d.ke_cursor_bookmark', text="", icon_value=c4, depress=True).mode = "USE4"
+            if sum(kt.cursorslot5) == 0:
+                row.operator('view3d.ke_cursor_bookmark', text="", icon_value=c5, depress=False).mode = "USE5"
             else:
-                row.operator('view3d.ke_cursor_bookmark', text="5", depress=True).mode = "USE5"
-            if sum(temp.cursorslot6) == 0:
-                row.operator('view3d.ke_cursor_bookmark', text="6", depress=False).mode = "USE6"
+                row.operator('view3d.ke_cursor_bookmark', text="", icon_value=c5, depress=True).mode = "USE5"
+            if sum(kt.cursorslot6) == 0:
+                row.operator('view3d.ke_cursor_bookmark', text="", icon_value=c6, depress=False).mode = "USE6"
             else:
-                row.operator('view3d.ke_cursor_bookmark', text="6", depress=True).mode = "USE6"
+                row.operator('view3d.ke_cursor_bookmark', text="", icon_value=c6, depress=True).mode = "USE6"
 
         if xp:
             # flagged as "experimental" due to "unsupported RNA type 2" error-spam, solution TBD

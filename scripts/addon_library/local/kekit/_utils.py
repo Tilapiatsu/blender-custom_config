@@ -39,14 +39,16 @@ def get_view_type():
                         return "ORTHO"
 
 
-def get_area_of_type(type_name):
-    for area in bpy.context.screen.areas:
-        if area.type == type_name:
-            return area
-
-
-def get_3d_view():
-    return get_area_of_type('VIEW_3D').spaces[0]
+def get_override_by_type(t="VIEW_3D"):
+    w, a, r = None, None, None
+    for window in bpy.context.window_manager.windows:
+        for area in window.screen.areas:
+            if area.type == t:
+                if area.regions:
+                    w = window
+                    a = area
+                    r = area.regions[0]
+    return w, a, r
 
 
 def get_area_and_type():

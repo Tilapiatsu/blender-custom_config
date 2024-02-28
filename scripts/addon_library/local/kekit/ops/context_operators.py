@@ -110,9 +110,11 @@ class KeContextDelete(Operator):
 
     @classmethod
     def poll(cls, context):
-        return context.active_object is not None
+        return context.selected_objects
 
     def execute(self, context):
+        if context.active_object not in context.selected_objects:
+            context.view_layer.objects.active = context.selected_objects[0]
         k = get_prefs()
         has_dm = k.m_geo
         if has_dm:
@@ -215,9 +217,9 @@ class KeContextDissolve(Operator):
 class KeContextSelect(Operator):
     bl_idname = "view3d.ke_contextselect"
     bl_label = "Context Select"
-    bl_description = "EDGES: loop select, POLYS: Linked select, VERTS: (linked) Border edges" \
-                     "OBJECT: Hierarchy select with children. Run again to include parents" \
-                     "Intended for Double-click select. (Assign in prefs)"
+    bl_description = "EDGES: loop select, POLYS: Linked select, VERTS: (linked) Border edges\n" \
+                     "OBJECT: Hierarchy select with children. Run again to include parents\n" \
+                     "Intended for *Double-click select* (Assign in prefs)"
 
     @classmethod
     def poll(cls, context):
@@ -272,7 +274,7 @@ class KeContextSelect(Operator):
 class KeContextSelectExtend(Operator):
     bl_idname = "view3d.ke_contextselect_extend"
     bl_label = "Context Select Extend"
-    bl_description = "Extends Context Select. Intended for Shift-Double-click LMB" \
+    bl_description = "Extends Context Select. Intended for Shift-Double-click LMB\n" \
                      "(You have to assign dbl-click in preferences)"
 
     @classmethod
@@ -317,7 +319,7 @@ class KeContextSelectExtend(Operator):
 class KeContextSelectSubtract(Operator):
     bl_idname = "view3d.ke_contextselect_subtract"
     bl_label = "Context Select Subtract"
-    bl_description = "Subtracts Context Select. Intended for Ctrl-Double-click LMB" \
+    bl_description = "Subtracts Context Select. Intended for Ctrl-Double-click LMB\n" \
                      "(You have to assign dbl-click in preferences)"
 
     @classmethod

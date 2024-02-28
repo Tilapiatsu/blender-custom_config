@@ -1,10 +1,12 @@
 import bpy
 from bpy.types import Panel, Operator
+from ._ui import pcoll
+from ._utils import get_prefs, set_active_collection
 from .ops.ke_align_object_to_active import KeAlignObjectToActive
 from .ops.ke_align_origin_to_selected import KeAlignOriginToSelected
 from .ops.ke_bbmatch import KeBBMatch
-from .ops.ke_cursor_fit_and_align import KeCursorFitAlign
 from .ops.ke_cursor_align_rot import KeCursorAlignRot
+from .ops.ke_cursor_fit_and_align import KeCursorFitAlign
 from .ops.ke_frame_all_or_selected import KeFrameView
 from .ops.ke_lock import KeLock
 from .ops.ke_mouse_side_of_active import KeMouseSideofActive
@@ -23,8 +25,6 @@ from .ops.ke_view_align import KeViewAlign
 from .ops.ke_view_align_snap import KeViewAlignSnap
 from .ops.ke_view_align_toggle import KeViewAlignToggle
 from .ops.ke_vp_step_rotate import KeStepRotate
-from ._ui import pcoll
-from ._utils import get_prefs, set_active_collection
 
 
 class UISelectionModule(Panel):
@@ -37,18 +37,15 @@ class UISelectionModule(Panel):
 
     def draw(self, context):
         k = get_prefs()
+        u = pcoll['kekit']['ke_uncheck'].icon_id
+        c = pcoll['kekit']['ke_check'].icon_id
         layout = self.layout
         col = layout.column(align=True)
 
         # ALIGN (leaning)
         row = col.row(align=True)
         row.operator("view3d.ke_cursor_fit_align", text="Cursor Fit & Align")
-        split = row.row(align=True)
-        split.alignment = "RIGHT"
-        if k.cursorfit:
-            split.prop(k, "cursorfit", text="", icon="CHECKMARK", toggle=True)
-        else:
-            split.prop(k, "cursorfit", text="", icon_value=pcoll['kekit']['ke_uncheck'].icon_id, toggle=True)
+        row.prop(k, "cursorfit", text="", toggle=True, icon_value=c if k.cursorfit else u)
 
         col.operator("view3d.ke_cursor_align_rot", icon="MOUSE_MOVE")
 
@@ -64,12 +61,7 @@ class UISelectionModule(Panel):
 
         row = col.row(align=True)
         row.operator("screen.ke_frame_view", text="Frame All or Selected")
-        split = row.row(align=True)
-        split.alignment = "RIGHT"
-        if k.frame_mo:
-            split.prop(k, "frame_mo", text="", icon="CHECKMARK", toggle=True)
-        else:
-            split.prop(k, "frame_mo", text="", icon_value=pcoll['kekit']['ke_uncheck'].icon_id, toggle=True)
+        row.prop(k, "frame_mo", text="", toggle=True, icon_value=c if k.frame_mo else u)
 
         col.label(text="Align Origin(s) To")
         row = col.row(align=True)

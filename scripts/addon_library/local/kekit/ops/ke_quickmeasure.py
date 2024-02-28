@@ -12,7 +12,8 @@ from .._utils import (
     shift_list,
     get_scene_unit,
     get_midpoint,
-    set_status_text
+    set_status_text,
+    refresh_ui
 )
 from mathutils import Vector
 
@@ -55,6 +56,8 @@ def draw_callback_view(self, context):
             self.shader.uniform_float("color", (0.12, 0.43, 0.76, 1))
             z.draw(self.shader)
 
+            gpu.state.line_width_set(2)
+
             bb = batch_for_shader(self.shader, 'LINES', {"pos": self.bb_graylines})
             self.shader.uniform_float("color", (0.65, 0.65, 0.65, .35))
             bb.draw(self.shader)
@@ -96,7 +99,8 @@ def draw_callback_px(self, context):
         if self.bb_mpos and self.display[0] != "DISTANCE":
             for t, s in zip(self.bb_mpos, self.bb_lines_dist):
                 if t and s:
-                    blf.position(self.font_id, t[0] - self.txt_vspace * 2, t[1] - self.txt_vspace, 0)
+                    blf.position(self.font_id, t[0], t[1] + int(self.txt_vspace * 0.1), 0)
+                    # blf.position(self.font_id, t[0] - self.txt_vspace * 2, t[1] - self.txt_vspace, 0)
                     blf.draw(self.font_id, s)
 
         if self.lines_mpos and self.display[0] != "BBOX":
@@ -118,11 +122,16 @@ def draw_callback_px(self, context):
         if self.display[0] == "DISTANCE":
             ui_entries.append((self.hcol, self.fontsize[0], "QM - Distance Total: %s" % self.lines_tot))
         else:
-            ui_entries.append((self.hcol, self.fontsize[0],
-                               "QM - %s, %s, %s - Area (M) %s" % (
-                                   self.bb_lines_dist[0], self.bb_lines_dist[1], self.bb_lines_dist[2], self.area)))
+            if self.bb_lines_dist:
+                ui_entries.append((self.hcol, self.fontsize[0],
+                                   "QM - %s, %s, %s - Area (M) %s" % (
+                                       self.bb_lines_dist[0], self.bb_lines_dist[1], self.bb_lines_dist[2], self.area)))
+            else:
+                ui_entries.append((self.scol, self.fontsize[0], "[ Invalid Selection ]"))
+                ui_entries.append((self.scol, self.fontsize[1], ""))
 
-        ui_entries.append((self.tcol, self.fontsize[1], "Display (D): %s" % self.display[0]))
+        if not self.component[2]:
+            ui_entries.append((self.tcol, self.fontsize[1], "Display (D): %s" % self.display[0]))
         if self.fast_calc and self.mode == "OBJECT":
             ui_entries.append((self.scol, self.fontsize[1], "[ Fast Bounds Calc Active (B) ]"))
 
@@ -210,6 +219,7 @@ class KeQuickMeasure(Operator):
         bpy.types.SpaceView3D.draw_handler_remove(self._handle_view, 'WINDOW')
         bpy.types.SpaceView3D.draw_handler_remove(self._handle_px, 'WINDOW')
         self.ctx.area.tag_redraw()
+        refresh_ui()
         self.ctx.preferences.addons['kekit'].preferences.qm_running = False
         self.ctx.workspace.status_text_set(None)
         # Final Report
@@ -225,9 +235,11 @@ class KeQuickMeasure(Operator):
     def get_modes(self):
         self.mode = self.ctx.mode
         self.component = self.ctx.tool_settings.mesh_select_mode[:]
-        # Face mode
-        if self.mode != "OBJECT" and self.component[2]:
-            if self.display[0] == "DISTANCE":
+        # BBOX + DISTANCE is only for object mode & Face mode only has BBox:
+        if self.mode != "OBJECT":
+            if self.component[2] and self.display[0] == "DISTANCE":
+                self.display = shift_list(self.display, -1)
+            if self.display[0] == "BBOX + DISTANCE":
                 self.display = shift_list(self.display, -1)
 
     def get_selection(self):
@@ -363,12 +375,15 @@ class KeQuickMeasure(Operator):
         unit = get_scene_unit(tot, nearest=True)
         self.lines_tot = str(round(unit[1], self.rounding - 1)) + unit[0]
 
-    def txt_calc(self, lines):
+    def txt_calc(self, lines, end):
         upd = []
         if lines:
             for i in lines:
-                line_mid = get_midpoint(i[0], i[1])
-                tpos = location_3d_to_region_2d(self.ctx.region, self.ctx.space_data.region_3d, line_mid)
+                if end:
+                    line_txt_pos = i[1]
+                else:
+                    line_txt_pos = get_midpoint(i[0], i[1])
+                tpos = location_3d_to_region_2d(self.ctx.region, self.ctx.space_data.region_3d, line_txt_pos)
                 upd.append(tpos)
         return upd
 
@@ -428,25 +443,22 @@ class KeQuickMeasure(Operator):
     def intial_update(self):
         self.get_modes()
         if len([i for i in self.component if i]) > 1:
-            print("QM: More than one component mode is active: QM may not work as intended.\n"
-                  "    Please use EITHER Vertex, Edge, Face (or Object mode)")
+            self.display = ["BBOX", "DISTANCE", "BBOX + DISTANCE"]
+
         if self.component[0] and self.mode == "EDIT_MESH":
             tot = 0
             for o in self.ctx.selected_objects:
                 o.update_from_editmode()
                 tot += len([v.index for v in o.data.vertices if v.select])
             if tot > 2:
-                print("QM: Vertex mode selection starting with more than 2 verts cleared "
-                      "to avoid garbage line results\n"
-                      "    QM has vert selection history, Blender doesn't!")
-                bpy.ops.view3d.select(deselect_all=True)
+                self.display = ["BBOX", "DISTANCE", "BBOX + DISTANCE"]
         self.modal_update()
 
     def modal_update(self):
         self.get_modes()
         self.check_selection()
         self.calc_values()
-        self.ctx.area.tag_redraw()
+        refresh_ui()
 
     def invoke(self, context, event):
         k = get_prefs()
@@ -485,11 +497,9 @@ class KeQuickMeasure(Operator):
         if (self.component[0] or self.component[1]) and self.mode != "OBJECT":
             self.display = ["DISTANCE", "BBOX + DISTANCE", "BBOX"]
         else:
-            # self.display = ["BBOX + DISTANCE", "BBOX", "DISTANCE"]
             self.display = ["BBOX", "DISTANCE", "BBOX + DISTANCE"]
 
         # UPDATE STATUS BAR
-        # spacing "autodetect" skipping unicode "icons" due to text amount
         spacer_val = 4
         w = self.ctx.window.width
         if w <= 1280:
@@ -503,17 +513,12 @@ class KeQuickMeasure(Operator):
             "[1,2,3,4/TAB] Change/Update ElementMode",
             "[W/G, R, S] Grab, Rotate, Scale",
             "[F] Toggle Sel.Freeze",
-            "[A] Cycle Area Mode",
-            "[M] Cycle Display Mode",
-            "[C] Clear Selection",
-            "[B] Fast Bounds Calc Mode",
-            "[H] Toggle Help",
+            "[H] Toggle Help (Full)",
             "[ESC/ENTER/SPACEBAR] Finish",
             "[MMB, ALT-MBs] Navigation",
         ]
-
+        # skipping unicode "icons" due to text amount
         set_status_text(self.ctx, text_list=status_help, spacing=spacer_val, mb="", kb="")
-
         k.qm_running = True
 
         return {'RUNNING_MODAL'}
@@ -534,7 +539,6 @@ class KeQuickMeasure(Operator):
                 bpy.ops.mesh.select_mode(use_extend=False, use_expand=False, type='EDGE')
             elif event.type == "THREE":
                 bpy.ops.mesh.select_mode(use_extend=False, use_expand=False, type='FACE')
-            bpy.ops.view3d.select(deselect_all=True)
             self.modal_update()
 
         elif event.type in {'FOUR', 'TAB'} and event.value == 'RELEASE':
@@ -548,7 +552,8 @@ class KeQuickMeasure(Operator):
         if self.first_run > 1:
             if event.type == 'D' and event.value == 'RELEASE':
                 self.display = shift_list(self.display, -1)
-                context.area.tag_redraw()
+                self.modal_update()
+                # context.area.tag_redraw()
 
             elif event.type == 'F' and event.value == 'RELEASE':
                 self.sel_freeze = not self.sel_freeze
@@ -582,8 +587,8 @@ class KeQuickMeasure(Operator):
                 self.ctx.area.tag_redraw()
 
                 self.screen_x = int(self.ctx.region.width * .5)
-                self.lines_mpos = self.txt_calc(self.lines)
-                self.bb_mpos = self.txt_calc(self.bb_lines)
+                self.lines_mpos = self.txt_calc(self.lines, end=False)
+                self.bb_mpos = self.txt_calc(self.bb_lines, end=True)
 
             context.area.tag_redraw()
             # silly delay for mode inputs (in case QM shortcut is also on the mode keys...)

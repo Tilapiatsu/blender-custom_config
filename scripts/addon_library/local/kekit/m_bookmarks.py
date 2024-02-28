@@ -30,6 +30,34 @@ class UIBookmarksModule(Panel):
 
     def draw(self, context):
         kt = context.scene.kekit_temp
+        k = get_prefs()
+
+        if k.color_icons:
+            b1 = pcoll['kekit']['ke_bm1'].icon_id
+            b2 = pcoll['kekit']['ke_bm2'].icon_id
+            b3 = pcoll['kekit']['ke_bm3'].icon_id
+            b4 = pcoll['kekit']['ke_bm4'].icon_id
+            b5 = pcoll['kekit']['ke_bm5'].icon_id
+            b6 = pcoll['kekit']['ke_bm6'].icon_id
+            c1 = pcoll['kekit']['ke_cursor1'].icon_id
+            c2 = pcoll['kekit']['ke_cursor2'].icon_id
+            c3 = pcoll['kekit']['ke_cursor3'].icon_id
+            c4 = pcoll['kekit']['ke_cursor4'].icon_id
+            c5 = pcoll['kekit']['ke_cursor5'].icon_id
+            c6 = pcoll['kekit']['ke_cursor6'].icon_id
+        else:
+            c1 = pcoll['kekit']['ke_mono1'].icon_id
+            c2 = pcoll['kekit']['ke_mono2'].icon_id
+            c3 = pcoll['kekit']['ke_mono3'].icon_id
+            c4 = pcoll['kekit']['ke_mono4'].icon_id
+            c5 = pcoll['kekit']['ke_mono5'].icon_id
+            c6 = pcoll['kekit']['ke_mono6'].icon_id
+            b1 = c1
+            b2 = c2
+            b3 = c3
+            b4 = c4
+            b5 = c5
+            b6 = c6
 
         layout = self.layout
         # CURSOR BOOKMARKS
@@ -46,29 +74,29 @@ class UIBookmarksModule(Panel):
         row.operator('view3d.ke_cursor_bookmark', text="", icon="IMPORT").mode = "SET6"
 
         if sum(kt.cursorslot1) == 0:
-            row.operator('view3d.ke_cursor_bookmark', text="1", depress=False).mode = "USE1"
+            row.operator('view3d.ke_cursor_bookmark', text="", icon_value=c1, depress=False).mode = "USE1"
         else:
-            row.operator('view3d.ke_cursor_bookmark', text="1", depress=True).mode = "USE1"
+            row.operator('view3d.ke_cursor_bookmark', text="", icon_value=c1, depress=True).mode = "USE1"
         if sum(kt.cursorslot2) == 0:
-            row.operator('view3d.ke_cursor_bookmark', text="2", depress=False).mode = "USE2"
+            row.operator('view3d.ke_cursor_bookmark', text="", icon_value=c2, depress=False).mode = "USE2"
         else:
-            row.operator('view3d.ke_cursor_bookmark', text="2", depress=True).mode = "USE2"
+            row.operator('view3d.ke_cursor_bookmark', text="", icon_value=c2, depress=True).mode = "USE2"
         if sum(kt.cursorslot3) == 0:
-            row.operator('view3d.ke_cursor_bookmark', text="3", depress=False).mode = "USE3"
+            row.operator('view3d.ke_cursor_bookmark', text="", icon_value=c3, depress=False).mode = "USE3"
         else:
-            row.operator('view3d.ke_cursor_bookmark', text="3", depress=True).mode = "USE3"
+            row.operator('view3d.ke_cursor_bookmark', text="", icon_value=c3, depress=True).mode = "USE3"
         if sum(kt.cursorslot4) == 0:
-            row.operator('view3d.ke_cursor_bookmark', text="4", depress=False).mode = "USE4"
+            row.operator('view3d.ke_cursor_bookmark', text="", icon_value=c4, depress=False).mode = "USE4"
         else:
-            row.operator('view3d.ke_cursor_bookmark', text="4", depress=True).mode = "USE4"
+            row.operator('view3d.ke_cursor_bookmark', text="", icon_value=c4, depress=True).mode = "USE4"
         if sum(kt.cursorslot5) == 0:
-            row.operator('view3d.ke_cursor_bookmark', text="5", depress=False).mode = "USE5"
+            row.operator('view3d.ke_cursor_bookmark', text="", icon_value=c5, depress=False).mode = "USE5"
         else:
-            row.operator('view3d.ke_cursor_bookmark', text="5", depress=True).mode = "USE5"
+            row.operator('view3d.ke_cursor_bookmark', text="", icon_value=c5, depress=True).mode = "USE5"
         if sum(kt.cursorslot6) == 0:
-            row.operator('view3d.ke_cursor_bookmark', text="6", depress=False).mode = "USE6"
+            row.operator('view3d.ke_cursor_bookmark', text="", icon_value=c6, depress=False).mode = "USE6"
         else:
-            row.operator('view3d.ke_cursor_bookmark', text="6", depress=True).mode = "USE6"
+            row.operator('view3d.ke_cursor_bookmark', text="", icon_value=c6, depress=True).mode = "USE6"
 
         # VIEW BOOKMARKS
         row = layout.row(align=True)
@@ -83,29 +111,29 @@ class UIBookmarksModule(Panel):
         row.operator('view3d.ke_view_bookmark', text="", icon="IMPORT").mode = "SET5"
         row.operator('view3d.ke_view_bookmark', text="", icon="IMPORT").mode = "SET6"
         if sum(kt.viewslot1) == 0:
-            row.operator('view3d.ke_view_bookmark', text="1", depress=False).mode = "USE1"
+            row.operator('view3d.ke_view_bookmark', text="", icon_value=b1, depress=False).mode = "USE1"
         else:
-            row.operator('view3d.ke_view_bookmark', text="1", depress=True).mode = "USE1"
+            row.operator('view3d.ke_view_bookmark', text="", icon_value=b1, depress=True).mode = "USE1"
         if sum(kt.viewslot2) == 0:
-            row.operator('view3d.ke_view_bookmark', text="2", depress=False).mode = "USE2"
+            row.operator('view3d.ke_view_bookmark', text="", icon_value=b2, depress=False).mode = "USE2"
         else:
-            row.operator('view3d.ke_view_bookmark', text="2", depress=True).mode = "USE2"
+            row.operator('view3d.ke_view_bookmark', text="", icon_value=b2, depress=True).mode = "USE2"
         if sum(kt.viewslot3) == 0:
-            row.operator('view3d.ke_view_bookmark', text="3", depress=False).mode = "USE3"
+            row.operator('view3d.ke_view_bookmark', text="", icon_value=b3, depress=False).mode = "USE3"
         else:
-            row.operator('view3d.ke_view_bookmark', text="3", depress=True).mode = "USE3"
+            row.operator('view3d.ke_view_bookmark', text="", icon_value=b3, depress=True).mode = "USE3"
         if sum(kt.viewslot4) == 0:
-            row.operator('view3d.ke_view_bookmark', text="4", depress=False).mode = "USE4"
+            row.operator('view3d.ke_view_bookmark', text="", icon_value=b4, depress=False).mode = "USE4"
         else:
-            row.operator('view3d.ke_view_bookmark', text="4", depress=True).mode = "USE4"
+            row.operator('view3d.ke_view_bookmark', text="", icon_value=b4, depress=True).mode = "USE4"
         if sum(kt.viewslot5) == 0:
-            row.operator('view3d.ke_view_bookmark', text="5", depress=False).mode = "USE5"
+            row.operator('view3d.ke_view_bookmark', text="", icon_value=b5, depress=False).mode = "USE5"
         else:
-            row.operator('view3d.ke_view_bookmark', text="5", depress=True).mode = "USE5"
+            row.operator('view3d.ke_view_bookmark', text="", icon_value=b5, depress=True).mode = "USE5"
         if sum(kt.viewslot6) == 0:
-            row.operator('view3d.ke_view_bookmark', text="6", depress=False).mode = "USE6"
+            row.operator('view3d.ke_view_bookmark', text="", icon_value=b6, depress=False).mode = "USE6"
         else:
-            row.operator('view3d.ke_view_bookmark', text="6", depress=True).mode = "USE6"
+            row.operator('view3d.ke_view_bookmark', text="", icon_value=b6, depress=True).mode = "USE6"
 
         sub = layout.row(align=True)
         sub.alignment = "CENTER"
@@ -136,12 +164,21 @@ class UISnapComboNames(Panel):
     def draw(self, context):
         layout = self.layout
         k = get_prefs()
-        s1 = pcoll['kekit']['ke_snap1'].icon_id
-        s2 = pcoll['kekit']['ke_snap2'].icon_id
-        s3 = pcoll['kekit']['ke_snap3'].icon_id
-        s4 = pcoll['kekit']['ke_snap4'].icon_id
-        s5 = pcoll['kekit']['ke_snap5'].icon_id
-        s6 = pcoll['kekit']['ke_snap6'].icon_id
+        if k.color_icons:
+            s1 = pcoll['kekit']['ke_snap1'].icon_id
+            s2 = pcoll['kekit']['ke_snap2'].icon_id
+            s3 = pcoll['kekit']['ke_snap3'].icon_id
+            s4 = pcoll['kekit']['ke_snap4'].icon_id
+            s5 = pcoll['kekit']['ke_snap5'].icon_id
+            s6 = pcoll['kekit']['ke_snap6'].icon_id
+        else:
+            s1 = pcoll['kekit']['ke_mono1'].icon_id
+            s2 = pcoll['kekit']['ke_mono2'].icon_id
+            s3 = pcoll['kekit']['ke_mono3'].icon_id
+            s4 = pcoll['kekit']['ke_mono4'].icon_id
+            s5 = pcoll['kekit']['ke_mono5'].icon_id
+            s6 = pcoll['kekit']['ke_mono6'].icon_id
+
         f = 0.06
         col = layout.column(align=True)
         row = col.row(align=True)
@@ -179,50 +216,66 @@ class UISnapCombos(Panel):
     bl_parent_id = "VIEW3D_PT_snapping"
 
     def draw(self, context):
+        k = get_prefs()
         f = 0.6
-        s1 = pcoll['kekit']['ke_snap1'].icon_id
-        s2 = pcoll['kekit']['ke_snap2'].icon_id
-        s3 = pcoll['kekit']['ke_snap3'].icon_id
-        s4 = pcoll['kekit']['ke_snap4'].icon_id
-        s5 = pcoll['kekit']['ke_snap5'].icon_id
-        s6 = pcoll['kekit']['ke_snap6'].icon_id
+        if k.color_icons:
+            s1 = pcoll['kekit']['ke_snap1'].icon_id
+            s2 = pcoll['kekit']['ke_snap2'].icon_id
+            s3 = pcoll['kekit']['ke_snap3'].icon_id
+            s4 = pcoll['kekit']['ke_snap4'].icon_id
+            s5 = pcoll['kekit']['ke_snap5'].icon_id
+            s6 = pcoll['kekit']['ke_snap6'].icon_id
+        else:
+            s1 = pcoll['kekit']['ke_mono1'].icon_id
+            s2 = pcoll['kekit']['ke_mono2'].icon_id
+            s3 = pcoll['kekit']['ke_mono3'].icon_id
+            s4 = pcoll['kekit']['ke_mono4'].icon_id
+            s5 = pcoll['kekit']['ke_mono5'].icon_id
+            s6 = pcoll['kekit']['ke_mono6'].icon_id
+
         layout = self.layout
         row = layout.row(align=True)
         col = row.column_flow(columns=6, align=True)
         c = col.row(align=True)
         c.alignment = "CENTER"
         c.scale_y = f
-        c.label(text="  1")
+        # if k.color_icons:
+        #     c.label(text="  1")
         col.operator('view3d.ke_snap_combo', icon="IMPORT", text="").mode = "GET1"
         col.operator('view3d.ke_snap_combo', text="", icon_value=s1).mode = "SET1"
         c = col.row(align=True)
         c.alignment = "CENTER"
         c.scale_y = f
-        c.label(text="2")
+        # if k.color_icons:
+        #     c.label(text="2")
         col.operator('view3d.ke_snap_combo', icon="IMPORT", text="").mode = "GET2"
         col.operator('view3d.ke_snap_combo', text="", icon_value=s2).mode = "SET2"
         c = col.row(align=True)
         c.alignment = "CENTER"
         c.scale_y = f
-        c.label(text="3")
+        # if k.color_icons:
+        #     c.label(text="3")
         col.operator('view3d.ke_snap_combo', icon="IMPORT", text="").mode = "GET3"
         col.operator('view3d.ke_snap_combo', text="", icon_value=s3).mode = "SET3"
         c = col.row(align=True)
         c.alignment = "CENTER"
         c.scale_y = f
-        c.label(text="4")
+        # if k.color_icons:
+        #     c.label(text="4")
         col.operator('view3d.ke_snap_combo', icon="IMPORT", text="").mode = "GET4"
         col.operator('view3d.ke_snap_combo', text="", icon_value=s4).mode = "SET4"
         c = col.row(align=True)
         c.alignment = "CENTER"
         c.scale_y = f
-        c.label(text="5")
+        # if k.color_icons:
+        #     c.label(text="5")
         col.operator('view3d.ke_snap_combo', icon="IMPORT", text="").mode = "GET5"
         col.operator('view3d.ke_snap_combo', text="", icon_value=s5).mode = "SET5"
         c = col.row(align=True)
         c.alignment = "CENTER"
         c.scale_y = f
-        c.label(text="6")
+        # if k.color_icons:
+        #     c.label(text="6")
         col.operator('view3d.ke_snap_combo', icon="IMPORT", text="").mode = "GET6"
         col.operator('view3d.ke_snap_combo', text="", icon_value=s6).mode = "SET6"
 
@@ -258,7 +311,10 @@ class UIopc1(Panel):
         k = get_prefs()
         name = k.opc1_name
         toggle = context.scene.kekit_temp.toggle
-
+        if k.color_icons:
+            c1 = pcoll['kekit']['ke_opc1'].icon_id
+        else:
+            c1 = pcoll['kekit']['ke_mono1'].icon_id
         layout = self.layout
         row = layout.row(align=True)
         if toggle:
@@ -266,7 +322,7 @@ class UIopc1(Panel):
             row.alignment = "CENTER"
             row.prop(context.scene.kekit_temp, "toggle", text="Name", toggle=True)
         else:
-            row.operator('view3d.ke_opc', icon_value=pcoll['kekit']['ke_opc1'].icon_id, text="%s" % name).combo = "1"
+            row.operator('view3d.ke_opc', icon_value=c1, text="%s" % name).combo = "1"
             row.alignment = "CENTER"
             row.prop(context.scene.kekit_temp, "toggle", text="Name", toggle=True)
 
@@ -291,7 +347,10 @@ class UIopc2(Panel):
         k = get_prefs()
         name = k.opc2_name
         toggle = context.scene.kekit_temp.toggle
-
+        if k.color_icons:
+            c2 = pcoll['kekit']['ke_opc2'].icon_id
+        else:
+            c2 = pcoll['kekit']['ke_mono2'].icon_id
         layout = self.layout
         row = layout.row(align=True)
         if toggle:
@@ -299,7 +358,7 @@ class UIopc2(Panel):
             row.alignment = "CENTER"
             row.prop(context.scene.kekit_temp, "toggle", text="Name", toggle=True)
         else:
-            row.operator('view3d.ke_opc', icon_value=pcoll['kekit']['ke_opc2'].icon_id, text="%s" % name).combo = "2"
+            row.operator('view3d.ke_opc', icon_value=c2, text="%s" % name).combo = "2"
             row.alignment = "CENTER"
             row.prop(context.scene.kekit_temp, "toggle", text="Name", toggle=True)
 
@@ -324,6 +383,10 @@ class UIopc3(Panel):
         k = get_prefs()
         name = k.opc3_name
         toggle = context.scene.kekit_temp.toggle
+        if k.color_icons:
+            c3 = pcoll['kekit']['ke_opc3'].icon_id
+        else:
+            c3 = pcoll['kekit']['ke_mono3'].icon_id
 
         layout = self.layout
         row = layout.row(align=True)
@@ -332,7 +395,7 @@ class UIopc3(Panel):
             row.alignment = "CENTER"
             row.prop(context.scene.kekit_temp, "toggle", text="Name", toggle=True)
         else:
-            row.operator('view3d.ke_opc', icon_value=pcoll['kekit']['ke_opc3'].icon_id, text="%s" % name).combo = "3"
+            row.operator('view3d.ke_opc', icon_value=c3, text="%s" % name).combo = "3"
             row.alignment = "CENTER"
             row.prop(context.scene.kekit_temp, "toggle", text="Name", toggle=True)
 
@@ -357,6 +420,10 @@ class UIopc4(Panel):
         k = get_prefs()
         name = k.opc4_name
         toggle = context.scene.kekit_temp.toggle
+        if k.color_icons:
+            c4 = pcoll['kekit']['ke_opc4'].icon_id
+        else:
+            c4 = pcoll['kekit']['ke_mono4'].icon_id
 
         layout = self.layout
         row = layout.row(align=True)
@@ -365,7 +432,7 @@ class UIopc4(Panel):
             row.alignment = "CENTER"
             row.prop(context.scene.kekit_temp, "toggle", text="Name", toggle=True)
         else:
-            row.operator('view3d.ke_opc', icon_value=pcoll['kekit']['ke_opc4'].icon_id, text="%s" % name).combo = "4"
+            row.operator('view3d.ke_opc', icon_value=c4, text="%s" % name).combo = "4"
             row.alignment = "CENTER"
             row.prop(context.scene.kekit_temp, "toggle", text="Name", toggle=True)
 
@@ -390,6 +457,10 @@ class UIopc5(Panel):
         k = get_prefs()
         name = k.opc5_name
         toggle = context.scene.kekit_temp.toggle
+        if k.color_icons:
+            c5 = pcoll['kekit']['ke_opc5'].icon_id
+        else:
+            c5 = pcoll['kekit']['ke_mono5'].icon_id
 
         layout = self.layout
         row = layout.row(align=True)
@@ -398,7 +469,7 @@ class UIopc5(Panel):
             row.alignment = "CENTER"
             row.prop(context.scene.kekit_temp, "toggle", text="Name", toggle=True)
         else:
-            row.operator('view3d.ke_opc', icon_value=pcoll['kekit']['ke_opc5'].icon_id, text="%s" % name).combo = "5"
+            row.operator('view3d.ke_opc', icon_value=c5, text="%s" % name).combo = "5"
             row.alignment = "CENTER"
             row.prop(context.scene.kekit_temp, "toggle", text="Name", toggle=True)
 
@@ -423,6 +494,10 @@ class UIopc6(Panel):
         k = get_prefs()
         name = k.opc6_name
         toggle = context.scene.kekit_temp.toggle
+        if k.color_icons:
+            c6 = pcoll['kekit']['ke_opc6'].icon_id
+        else:
+            c6 = pcoll['kekit']['ke_mono6'].icon_id
 
         layout = self.layout
         row = layout.row(align=True)
@@ -431,7 +506,7 @@ class UIopc6(Panel):
             row.alignment = "CENTER"
             row.prop(context.scene.kekit_temp, "toggle", text="Name", toggle=True)
         else:
-            row.operator('view3d.ke_opc', icon_value=pcoll['kekit']['ke_opc6'].icon_id, text="%s" % name).combo = "6"
+            row.operator('view3d.ke_opc', icon_value=c6, text="%s" % name).combo = "6"
             row.alignment = "CENTER"
             row.prop(context.scene.kekit_temp, "toggle", text="Name", toggle=True)
 

@@ -1,5 +1,7 @@
 import bpy
 from bpy.types import Panel
+from ._ui import pcoll
+from ._utils import get_prefs
 from .ops.context_operators import (
     KeContextDissolve,
     KeContextSelect,
@@ -13,7 +15,6 @@ from .ops.context_operators import (
 from .ops.ke_bridge_or_fill import KeBridgeOrFill
 from .ops.ke_context_connect import KeContextConnect
 from .ops.ke_triple_connect_spin import KeTripleConnectSpin
-from ._utils import get_prefs
 
 
 class UIContextToolsModule(Panel):
@@ -26,45 +27,35 @@ class UIContextToolsModule(Panel):
 
     def draw(self, context):
         k = get_prefs()
+        u = pcoll['kekit']['ke_uncheck'].icon_id
+        c = pcoll['kekit']['ke_check'].icon_id
         layout = self.layout
         col = layout.column(align=True)
 
-        row = col.row(align=False)
-        split = row.split(factor=.7, align=True)
-        split.operator('mesh.ke_contextbevel')
-        split2 = split.row(align=True)
-        split2.prop(k, "apply_scale", toggle=True)
-        split2.prop(k, "korean", text="K/F", toggle=True)
+        row = col.row(align=True)
+        row.operator('mesh.ke_contextextrude')
+        row.prop(k, "tt_extrude", text="", toggle=True, icon_value=c if k.tt_extrude else u)
 
-        row = col.row(align=False)
-        split = row.split(factor=.7, align=True)
-        split.operator('mesh.ke_contextextrude')
-        split2 = split.row(align=True)
-        split2.prop(k, "tt_extrude", text="TT", toggle=True)
+        row = col.row(align=True)
+        row.operator('mesh.ke_contextbevel')
+        row.prop(k, "korean", text="", toggle=True, icon_value=c if k.korean else u)
+        row.prop(k, "apply_scale", text="", icon="AUTO", toggle=True)
 
-        row = col.row(align=False)
-        split = row.split(factor=.6, align=True)
-        split.operator('view3d.ke_contextdelete')
-        split2 = split.row(align=True)
-        split2.prop(k, "cd_smart", text="S", toggle=True)
-        split2.prop(k, "h_delete", text="H", toggle=True)
-        split2.prop(k, "cd_pluscut", text="+", toggle=True)
+        row = col.row(align=True)
+        row.operator('view3d.ke_contextdelete')
+        row.prop(k, "cd_smart", text="", toggle=True, icon_value=c if k.cd_smart else u)
+        row.prop(k, "h_delete", text="", icon="CON_CHILDOF", toggle=True)
+        row.prop(k, "cd_pluscut", text="", icon="ADD", toggle=True)
         col.operator('mesh.ke_contextdissolve')
 
-        col.separator(factor=0.5)
-        row = col.row(align=False)
-        split = row.split(factor=.5, align=True)
-        split.label(text=" C.Select:")
-        split2 = split.row(align=True)
-        split2.prop(k, "context_select_h", toggle=True)
-        split2.prop(k, "context_select_b", toggle=True)
-        split2.prop(k, "context_select_c", toggle=True)
-
-        col.operator('view3d.ke_contextselect')
+        row = col.row(align=True)
+        row.operator('view3d.ke_contextselect')
+        row.prop(k, "context_select_b", text="", toggle=True, icon_value=c if k.context_select_b else u)
+        row.prop(k, "context_select_h", text="", icon="CON_CHILDOF", toggle=True)
+        row.prop(k, "context_select_c", text="", icon="COLLECTION_NEW", toggle=True)
         col.operator('view3d.ke_contextselect_extend')
         col.operator('view3d.ke_contextselect_subtract')
 
-        col.separator(factor=0.5)
         col.operator('mesh.ke_bridge_or_fill')
         col.operator('mesh.ke_context_connect')
         col.operator('mesh.ke_triple_connect_spin')
