@@ -1,5 +1,5 @@
 import bpy
-from bpy.types import Panel, Header
+from bpy.types import Panel
 from .ops.ke_mouse_axis_move import KeMouseAxisMove
 from .ops.ke_tt import KeTT
 from .ops.ke_vptransform import KeVPTransform
@@ -75,46 +75,45 @@ class UITTModule(Panel):
         col.prop(k, "vptransform", toggle=True)
 
 
-class KeTTHeader(Header):
-    bl_idname = "VIEW3D_HT_KE_TT"
-    bl_label = "Transform Toggle Menu"
-    bl_region_type = 'HEADER'
-    bl_space_type = 'VIEW_3D'
-
-    def draw(self, context):
-        k = get_prefs()
-        layout = self.layout
-        tt_mode = k.tt_mode
-        tt_link = k.tt_linkdupe
-        row = layout.row(align=True)
-        row.operator("view3d.ke_tt", text="", icon='OBJECT_ORIGIN', depress=tt_mode[0]).mode = "TOGGLE_MOVE"
-        row.operator("view3d.ke_tt", text="", icon='EMPTY_AXIS', depress=tt_mode[1]).mode = "TOGGLE_ROTATE"
-        row.operator("view3d.ke_tt", text="", icon='AXIS_SIDE', depress=tt_mode[2]).mode = "TOGGLE_SCALE"
-        row.separator(factor=0.5)
-        if tt_link:
-            row.operator("view3d.ke_tt", text="", icon='LINKED', depress=tt_link).mode = "TOGGLE_DUPE"
-        else:
-            row.operator("view3d.ke_tt", text="", icon='UNLINKED', depress=tt_link).mode = "TOGGLE_DUPE"
-        row.separator(factor=1)
-
-
-def set_tt_icon_pos(self, context):
-    prefs = get_prefs()
-    bpy.types.VIEW3D_HT_header.remove(KeTTHeader.draw)
-    bpy.types.VIEW3D_MT_editor_menus.remove(KeTTHeader.draw)
-    if prefs.tt_icon_pos == "CENTER":
-        bpy.types.VIEW3D_MT_editor_menus.append(KeTTHeader.draw)
-    elif prefs.tt_icon_pos == "RIGHT":
-        bpy.types.VIEW3D_HT_header.append(KeTTHeader.draw)
-    elif prefs.tt_icon_pos == "LEFT":
-        bpy.types.VIEW3D_HT_header.prepend(KeTTHeader.draw)
-    # ...else REMOVE only
+# class KeTTHeader(Header):
+#     bl_idname = "VIEW3D_HT_KE_TT"
+#     bl_label = "Transform Toggle Menu"
+#     bl_region_type = 'HEADER'
+#     bl_space_type = 'VIEW_3D'
+#
+#     def draw(self, context):
+#         k = get_prefs()
+#         layout = self.layout
+#         tt_mode = k.tt_mode
+#         tt_link = k.tt_linkdupe
+#         row = layout.row(align=True)
+#         row.operator("view3d.ke_tt", text="", icon='OBJECT_ORIGIN', depress=tt_mode[0]).mode = "TOGGLE_MOVE"
+#         row.operator("view3d.ke_tt", text="", icon='EMPTY_AXIS', depress=tt_mode[1]).mode = "TOGGLE_ROTATE"
+#         row.operator("view3d.ke_tt", text="", icon='AXIS_SIDE', depress=tt_mode[2]).mode = "TOGGLE_SCALE"
+#         row.separator(factor=0.5)
+#         if tt_link:
+#             row.operator("view3d.ke_tt", text="", icon='LINKED', depress=tt_link).mode = "TOGGLE_DUPE"
+#         else:
+#             row.operator("view3d.ke_tt", text="", icon='UNLINKED', depress=tt_link).mode = "TOGGLE_DUPE"
+#         row.separator(factor=1)
+#
+#
+# def set_tt_icon_pos(self, context):
+#     prefs = get_prefs()
+#     bpy.types.VIEW3D_HT_header.remove(KeTTHeader.draw)
+#     bpy.types.VIEW3D_MT_editor_menus.remove(KeTTHeader.draw)
+#     if prefs.tt_icon_pos == "CENTER":
+#         bpy.types.VIEW3D_MT_editor_menus.append(KeTTHeader.draw)
+#     elif prefs.tt_icon_pos == "RIGHT":
+#         bpy.types.VIEW3D_HT_header.append(KeTTHeader.draw)
+#     elif prefs.tt_icon_pos == "LEFT":
+#         bpy.types.VIEW3D_HT_header.prepend(KeTTHeader.draw)
+#     # ...else REMOVE only
 
 
 classes = (
     KeMouseAxisMove,
     KeTT,
-    KeTTHeader,
     KeVPTransform,
     UITTModule,
 )
@@ -126,18 +125,18 @@ def register():
         for c in classes:
             bpy.utils.register_class(c)
 
-        if k.tt_icon_pos == "LEFT":
-            bpy.types.VIEW3D_HT_header.prepend(KeTTHeader.draw)
-        elif k.tt_icon_pos == "CENTER":
-            bpy.types.VIEW3D_MT_editor_menus.append(KeTTHeader.draw)
-        elif k.tt_icon_pos == "RIGHT":
-            bpy.types.VIEW3D_HT_header.append(KeTTHeader.draw)
+        # if k.tt_icon_pos == "LEFT":
+        #     bpy.types.VIEW3D_HT_header.prepend(KeTTHeader.draw)
+        # elif k.tt_icon_pos == "CENTER":
+        #     bpy.types.VIEW3D_MT_editor_menus.append(KeTTHeader.draw)
+        # elif k.tt_icon_pos == "RIGHT":
+        #     bpy.types.VIEW3D_HT_header.append(KeTTHeader.draw)
 
 
 def unregister():
-    if "bl_rna" in UITTModule.__dict__:
-        bpy.types.VIEW3D_HT_header.remove(KeTTHeader.draw)
-        bpy.types.VIEW3D_MT_editor_menus.remove(KeTTHeader.draw)
+    # if "bl_rna" in UITTModule.__dict__:
+    # bpy.types.VIEW3D_HT_header.remove(KeTTHeader.draw)
+    # bpy.types.VIEW3D_MT_editor_menus.remove(KeTTHeader.draw)
 
-        for c in reversed(classes):
-            bpy.utils.unregister_class(c)
+    for c in reversed(classes):
+        bpy.utils.unregister_class(c)

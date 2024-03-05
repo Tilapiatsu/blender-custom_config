@@ -5,6 +5,8 @@ classes = (
     KeWeightToggle,
 )
 
+# Room For future ops that is shared by modules ('global' ops)
+
 
 def register():
     for c in classes:

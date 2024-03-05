@@ -209,8 +209,7 @@ class KeQuickMeasure(Operator):
 
     @classmethod
     def poll(cls, context):
-        k = get_prefs()
-        return (k.qm_running is False
+        return (context.window_manager.kekit_temp_session.qm_running is False
                 and context.object is not None and context.area.type == 'VIEW_3D')
 
     def quit_qm(self):
@@ -220,14 +219,14 @@ class KeQuickMeasure(Operator):
         bpy.types.SpaceView3D.draw_handler_remove(self._handle_px, 'WINDOW')
         self.ctx.area.tag_redraw()
         refresh_ui()
-        self.ctx.preferences.addons['kekit'].preferences.qm_running = False
+        self.ctx.window_manager.kekit_temp_session.qm_running = False
         self.ctx.workspace.status_text_set(None)
         # Final Report
         print("")
-        if self.bb_lines_dist:
+        if self.bb_lines_dist and self.display[0] != "DISTANCE":
             s = ', '.join(self.bb_lines_dist)
             print("QM Bounding Box : %s" % s)
-        if self.lines_dist:
+        if self.lines_dist and self.display[0] != "BBOX":
             s = ', '.join(self.lines_dist)
             print("QM Lines        : %s" % s)
             print("QM Lines Total  : %s" % self.lines_tot)
@@ -519,7 +518,7 @@ class KeQuickMeasure(Operator):
         ]
         # skipping unicode "icons" due to text amount
         set_status_text(self.ctx, text_list=status_help, spacing=spacer_val, mb="", kb="")
-        k.qm_running = True
+        wm.kekit_temp_session.qm_running = True
 
         return {'RUNNING_MODAL'}
 

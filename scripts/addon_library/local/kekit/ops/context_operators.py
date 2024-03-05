@@ -110,11 +110,9 @@ class KeContextDelete(Operator):
 
     @classmethod
     def poll(cls, context):
-        return context.selected_objects
+        return context.object
 
     def execute(self, context):
-        if context.active_object not in context.selected_objects:
-            context.view_layer.objects.active = context.selected_objects[0]
         k = get_prefs()
         has_dm = k.m_geo
         if has_dm:
@@ -123,11 +121,10 @@ class KeContextDelete(Operator):
             pluscut = False
 
         smart = bool(k.cd_smart)
-
         ctx_mode = context.mode
+
         if ctx_mode == "EDIT_MESH":
             sel_mode = context.tool_settings.mesh_select_mode
-
             # VERTS
             if sel_mode[0]:
                 if smart:
@@ -161,7 +158,13 @@ class KeContextDelete(Operator):
                     bpy.ops.mesh.delete(type='FACE')
 
         elif ctx_mode == "OBJECT":
+            context.object.select_set(True)
+            context.view_layer.objects.active = context.object
+
             sel = list(context.selected_objects)
+            if not sel:
+                return {"CANCELLED"}
+
             if k.h_delete:
                 for o in sel:
                     for child in o.children:

@@ -34,6 +34,8 @@ class UIRenderModule(bpy.types.Panel):
         row.prop(k, "renderslotfullwrap", text="", toggle=True, icon_value=c if k.renderslotfullwrap else u)
 
         col.operator('view3d.ke_bg_sync', icon="SHADING_TEXTURE")
+        col.operator("view3d.ke_syncvpmaterial", icon="COLOR").active_only = False
+
         col.operator('view3d.ke_get_set_material', icon="MOUSE_MOVE", text="Get&Set Material")
 
         row = col.row(align=True)
@@ -298,16 +300,19 @@ class KeIDMaterial(Operator):
                     area.spaces.active.context = 'MATERIAL'
                     area.tag_redraw()
 
-        bpy.ops.ed.undo_push()
+        # bpy.ops.ed.undo_push()
+        # if context.view_layer.objects.active.type == "MESH":
+        #     bpy.ops.object.editmode_toggle()
+        #     bpy.ops.object.editmode_toggle()
 
         return {'FINISHED'}
 
 
-def draw_syncvpbutton(self, context):
-    layout = self.layout
-    row = layout.row()
-    row.use_property_split = True
-    row.operator("view3d.ke_syncvpmaterial", icon="COLOR")
+# def draw_syncvpbutton(self, context):
+#     layout = self.layout
+#     row = layout.row()
+#     row.use_property_split = True
+#     row.operator("view3d.ke_syncvpmaterial", icon="COLOR")
 
 
 classes = (
@@ -330,16 +335,16 @@ def register():
         for c in classes:
             bpy.utils.register_class(c)
 
-        if k.material_extras:
-            bpy.types.EEVEE_MATERIAL_PT_surface.prepend(draw_syncvpbutton)
-
+        # if k.material_extras:
+        #     bpy.types.EEVEE_MATERIAL_PT_surface.prepend(draw_syncvpbutton)
+        #
 
 def unregister():
-    try:
-        bpy.types.EEVEE_MATERIAL_PT_surface.remove(draw_syncvpbutton)
-    except Exception as e:
-        print('keKit Draw SyncVpMaterial Button Unregister: ', e)
-        pass
+    # try:
+    #     bpy.types.EEVEE_MATERIAL_PT_surface.remove(draw_syncvpbutton)
+    # except Exception as e:
+    #     print('keKit Draw SyncVpMaterial Button Unregister: ', e)
+    #     pass
 
     if "bl_rna" in UIRenderModule.__dict__:
         for c in reversed(classes):

@@ -54,14 +54,14 @@ class KeBgSync(Operator):
 
         bg = [n.from_node for n in n_in.links]
         if bg:
-            using_bg = True
-            if bg[0].image.name == vp_img:
-                vp_is_bg = True
-                env_vector_in = bg[0].inputs['Vector']
-                if not bg[0].image.has_data:
-                    bg[0].image.filepath = vp_img_path
-                    bg[0].image.reload()
-                # print("Env already connected!") # Update strength and rot only
+            if bg[0].image is not None:
+                using_bg = True
+                if bg[0].image.name == vp_img:
+                    vp_is_bg = True
+                    env_vector_in = bg[0].inputs['Vector']
+                    if not bg[0].image.has_data:
+                        bg[0].image.filepath = vp_img_path
+                        bg[0].image.reload()
 
         #
         # CHECK IF ENV IS LOADED

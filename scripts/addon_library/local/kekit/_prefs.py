@@ -16,17 +16,18 @@ from bpy.types import (
     Scene,
     AddonPreferences,
 )
-from bpy_extras.io_utils import ImportHelper
-from ._utils import refresh_ui, get_prefs
-from ._ui import UIKeKitMain, prefs_ui
-from .m_tt import set_tt_icon_pos
+from bpy_extras.io_utils import ImportHelper, ExportHelper
+from ._utils import refresh_ui, get_prefs, get_kekit_keymap
+from ._ui import UIKeKitMain, prefs_ui, add_extras, remove_extras
 
 kekit_version = (0, 0, 0)  # is set from __init__
+kkv = ""  # is set from __init__
 m_tooltip = "Toggles Module On/Off. Read Docs/Wiki for Module information"
 path = bpy.utils.user_resource('CONFIG')
+shortcuts_session_temp = {}
 
 
-# Updating kekit tab location will require "Reload Add-ons": TBD: run op here?
+# Updating kekit tab location will require "Reload Add-ons": TBD: run op here? nah.
 # (avoiding managing importing all the module & submodule panels manually & future panels added)
 def update_panel(self, context):
     k = get_prefs()
@@ -43,82 +44,185 @@ def update_panel(self, context):
         pass
 
 
-def save_prefs():
+def operator_exists(idname):
+    # c:o Mackraken (correctly finds "left over operators")
+    names = idname.split(".")
+    a = bpy.ops
+    for prop in names:
+        a = getattr(a, prop)
+    try:
+        name = a.__repr__()
+    except Exception as e:
+        print(e)
+        return False
+    return True
+
+
+def save_prefs(inputpath):
     ap = get_prefs()
-    prefs = {}
-    for key in ap.__annotations__.keys():
-        k = getattr(ap, key)
-        if str(type(k)) == "<class 'bpy_prop_array'>":
-            prefs[key] = k[:]
-        else:
-            prefs[key] = k
+    prefs = {
+        "kekit": get_kekit_prefs(ap),
+        "kekit_shortcuts": get_kekit_shortcuts(),
+    }
     jsondata = json.dumps(prefs, indent=1, ensure_ascii=True)
-    file_name = path + "/kekit_prefs.json"
-    with open(file_name, "w") as text_file:
+    with open(inputpath, "w") as text_file:
         text_file.write(jsondata)
     text_file.close()
 
 
-class KeSavePrefs(Operator):
+def get_kekit_prefs(ap):
+    kekit = {}
+    for key in ap.__annotations__.keys():
+        k = getattr(ap, key)
+        if str(type(k)) == "<class 'bpy_prop_array'>":
+            kekit[key] = k[:]
+        else:
+            kekit[key] = k
+    return kekit
+
+
+def import_shortcuts(kks):
+    # Remove old shortcuts
+    old_entries = get_kekit_keymap()
+    if old_entries:
+        for km, kmi in old_entries:
+            for i in kmi:
+                km.keymap_items.remove(i)
+
+    # Apply imported shortcuts
+    wm = bpy.context.window_manager
+    kc = wm.keyconfigs.user
+
+    for kid, ikm, i in kks:
+        km = kc.keymaps[ikm]
+        kmi = km.keymap_items.new(
+            idname=i["idname"],
+            ctrl=i["ctrl"],
+            alt=i["alt"],
+            shift=i["shift"],
+            any=i["any"],
+            oskey=i["oskey"],
+            key_modifier=i["key_modifier"],
+            type=i["type"],
+            value=i["value"],
+            direction=i["direction"],
+            repeat=i["repeat"],
+        )
+        kmi.active = i["is_active"]
+        kmi.map_type = i["map_type"]
+        properties = i.get("properties", None)
+        if properties is not None:
+            for name, value in properties:
+                kmi.properties[name] = value
+
+
+def get_kekit_shortcuts():
+    shortcuts = []
+    kk_entries = get_kekit_keymap()
+    if kk_entries:
+        for km, kmi in kk_entries:
+            for nr, item in enumerate(kmi):
+                d = {
+                    "idname": item.idname,
+                    "ctrl": item.ctrl,
+                    "alt": item.alt,
+                    "shift": item.shift,
+                    "any": item.any,
+                    "oskey": item.oskey,
+                    "key_modifier": item.key_modifier,
+                    "type": item.type,
+                    "value": item.value,
+                    "direction": item.direction,
+                    "repeat": item.repeat,
+                    "map_type": item.map_type,
+                    "is_active": item.active,
+                }
+                props = []
+                for p in item.properties.keys():
+                    v = item.properties.get(p, None)
+                    if v is not None:
+                        props.append((p, v))
+                if props:
+                    d["properties"] = props
+
+                shortcut_id = "KI" + str(nr).zfill(6)
+                shortcuts.append([shortcut_id, km.name, d])
+
+    return shortcuts
+
+
+class KeSavePrefs(Operator, ExportHelper):
     bl_idname = "kekit.prefs_export"
     bl_label = "Export keKit Settings"
-    bl_description = "Export current keKit settings (to JSON-file in user config folder)\n" \
-                     "Note: keKit automatically exports when closing Blender"
+    bl_description = "Open a filebrowser to export keKit prefs file"
     bl_options = {"INTERNAL"}
 
+    filename_ext = '.json'
+    filter_glob: StringProperty(
+        default='*.json',
+        options={'HIDDEN'})
+
+    def invoke(self, context, _event):
+        self.filepath = path + "/kekit_prefs_%s.json" % kkv
+        context.window_manager.fileselect_add(self)
+        return {'RUNNING_MODAL'}
+
     def execute(self, context):
-        save_prefs()
+        save_prefs(self.filepath)
         self.report({"INFO"}, "keKit Preferences Exported!")
         return {'FINISHED'}
 
 
-class KeFileBrowser(Operator, ImportHelper):
-    bl_idname = "kekit.filebrowser"
+class KeLoadPrefs(Operator, ImportHelper):
+    bl_idname = "kekit.prefs_import"
     bl_label = "Import keKit Settings"
-    bl_description = "Open a filebrowser to load keKit prefs file"
+    bl_description = "Import keKit settings (from JSON-file) - Restarting Blender is recommended"
     bl_options = {"INTERNAL"}
 
+    filename_ext = '.json'
     filter_glob: StringProperty(
         default='*.json',
         options={'HIDDEN'})
 
     def execute(self, context):
-        bpy.ops.kekit.prefs_import(inputpath=self.filepath)
-        return {'FINISHED'}
-
-
-class KeLoadPrefs(Operator):
-    bl_idname = "kekit.prefs_import"
-    bl_label = "Import keKit Settings"
-    bl_description = "Import keKit settings (from JSON-file)"
-    bl_options = {"INTERNAL"}
-
-    inputpath: StringProperty(name="filepath", default=path + "/kekit_prefs.json", options={'HIDDEN'})
-
-    def execute(self, context):
         ap = get_prefs()
         prefs = None
-        # Loading prefs file
         try:
-            with open(self.inputpath, "r") as jf:
+            with open(self.filepath, "r") as jf:
                 prefs = json.load(jf)
                 jf.close()
         except (OSError, IOError) as e:
             print("keKit: Prefs Load Error:", e)
             pass
-        # Assigning properties prefs file -> add-on prefs
+
         if prefs is not None and ap is not None:
-            for key in prefs:
+            kp = prefs.get("kekit", None)
+            if kp is None:
+                self.report({"WARNING"}, "No keKit Prefs found - old/incompatible file?")
+                return {"CANCELLED"}
+
+            for key in kp:
                 if key in ap.__annotations__.keys():
-                    v = prefs[key]
+                    v = kp[key]
                     try:
                         setattr(ap, key, v)
                     except Exception as e:
                         print("keKit Prefs Import - Key not found: ", e)
             self.report({"INFO"}, "keKit Perferences Imported!")
+
         else:
             print("keKIT Load Settings: Path/JSON File Error")
-        refresh_ui()
+
+        kks = prefs.get("kekit_shortcuts", None)
+        if kks is None:
+            # This is probably caught in the 1st part
+            self.report({"WARNING"}, "No keKit Shortcuts found - old/incompatible file?")
+            return {"CANCELLED"}
+
+        import_shortcuts(kks)
+        bpy.ops.wm.save_userpref()
+
+        bpy.ops.script.reload()
         return {'FINISHED'}
 
 
@@ -133,7 +237,7 @@ class KeResetPrefs(Operator):
         props = prefs.__annotations__.keys()
         for k in props:
             prefs.property_unset(k)
-        refresh_ui()
+        bpy.ops.script.reload()
         return {'FINISHED'}
 
 
@@ -154,17 +258,17 @@ class KePropToggle(Operator):
 
 
 # TBD:
-# class KeKitTempSession(PropertyGroup):
-#     # Session (WM) Stored "temp"
-#     int = IntProperty()
+class KeKitTempSession(PropertyGroup):
+    # Session (WM) Stored "temp"
+    qm_running : BoolProperty(default=False)
+    is_rendering: BoolProperty(default=False)
+    slush: StringProperty(default="")
 
 
 class KeKitPropertiesTemp(PropertyGroup):
-    # Scene Stored "temp"
-    slush: StringProperty(default="")
+    # Per-Scene Stored Properties
     view_query: StringProperty(default=" N/A ")
-    toggle: BoolProperty(default=False)
-    is_rendering: BoolProperty(default=False)
+    toggle: BoolProperty(default=False)  # used by multicut - todo: rename
     cursorslot1: FloatVectorProperty(size=6)
     cursorslot2: FloatVectorProperty(size=6)
     cursorslot3: FloatVectorProperty(size=6)
@@ -194,22 +298,57 @@ class KeKitPropertiesTemp(PropertyGroup):
                                   description="Custom rotation (non zero will override preset-use) for step-rotate")
 
 
+def reload_extras(self, context):
+    k = get_prefs()
+    remove_extras()
+    add_extras(k)
+
+
 class KeKitAddonPreferences(AddonPreferences):
     bl_idname = __package__
-    version: StringProperty(name="", default="")
-    # KIT PREFS
-    ui_scale: FloatProperty(name="Text Scale", default=1.0, min=0.1, max=10,
-                            description="keKIT modal UI text scale - multiplied to Blender UI Scale")
-    outliner_extras: BoolProperty(name="Outliner Buttons", default=False,
+    # KIT UI PREFS
+    category: StringProperty(
+        name="Tab Category",
+        description="Choose a name (category) for tab placement",
+        default="kekit",
+        update=update_panel
+    )
+    color_icons: BoolProperty(default=True, name="Color Icons",
+                              description="Use custom color icons for various modules -or- just numbers (if disabled)")
+    ext_tools: BoolProperty(default=False, name="Extend Tool Settings",
+                            description="Extend Tool Settings menu with additional buttons\n"
+                                        "Also displays buttons (but disabled) in Object Mode (to show state)")
+    ext_factor: FloatProperty(default=1.0, name="Separator factor", min=0, max=999,
+                          description="UI-separator value the Extend Tool Settings menu is offset (from the right)")
+    obj_menu: BoolProperty(default=True, name="Object Context Menu", update=reload_extras,
+                           description="Show the keKit Object Context Panel (RMB on object) Operators\n"
+                                       "Req: Select & Align Module")
+    kcm: BoolProperty(name="Cursor Menu", default=True, update=reload_extras,
+                      description="Show KeKit Cursor Menu icon in toolbar\nRequires keKit Select & Align Module")
+    outliner_extras: BoolProperty(name="Outliner Buttons", default=False, update=reload_extras,
                                   description="Adds extra buttons in Outliner header for:\n'Show Active', "
-                                              "'Show One Level' and 'Hide One Level'\n Use 'Reload Addons' to apply")
-    material_extras: BoolProperty(name="Material Buttons", default=False,
+                                              "'Show One Level' and 'Hide One Level'")
+    material_extras: BoolProperty(name="Material Buttons", default=False, update=reload_extras,
                                   description="Adds extra buttons in Material Properties Surface for:\n"
-                                              "'Sync Viewport Display'. Use 'Reload Addons' to apply")
+                                              "'Sync Viewport Display' (Req: Render Module")
     experimental: BoolProperty(name="Experimental", default=False,
                                description="Toggle properties/features that work - but has some quirks\n"
                                            "See keKit Wiki for details.")
-    # MODAL COLORS
+    # TT header icons prefs
+    tt_icon_pos: EnumProperty(
+        name="TT Icon Placement",
+        description="Viewport icons for Transform Tools (TT) module",
+        items=[("LEFT", "Left", ""),
+               ("CENTER", "Center", ""),
+               ("RIGHT", "Right", ""),
+               ("REMOVE", "Remove", "")
+               ],
+        update=reload_extras,
+        default="CENTER"
+    )
+    # MODAL TEXT
+    ui_scale: FloatProperty(name="Text Scale", default=1.0, min=0.1, max=10,
+                            description="keKIT modal UI text scale - multiplied to Blender UI Scale")
     modal_color_header: FloatVectorProperty(name="Header Color", subtype='COLOR',
                                             size=4, default=[0.8, 0.8, 0.8, 1.0])
     modal_color_text: FloatVectorProperty(name="Text Color", subtype='COLOR',
@@ -227,10 +366,6 @@ class KeKitAddonPreferences(AddonPreferences):
     m_tt: BoolProperty(name="8: Transform Tools", default=True, description=m_tooltip)
     m_cleanup: BoolProperty(name="9: Clean-Up Tools", default=True, description=m_tooltip)
     m_piemenus: BoolProperty(name="10: Pie Menus", default=True, description=m_tooltip)
-    # SPECIAL MODULE
-    kcm: BoolProperty(name="Cursor Menu", default=True,
-                      description="Show KeKit Cursor Menu icon in toolbar\nRequires keKit Select & Align Module\n"
-                                  "Use 'Reload Addons' to apply")
     # OPERATOR PREFS
     # Fitprim
     fitprim_select: BoolProperty(default=False)
@@ -617,8 +752,8 @@ class KeKitAddonPreferences(AddonPreferences):
     # Show / Hide SubMenus
     show_modules: BoolProperty(name="keKit Modules", default=False)
     show_ui: BoolProperty(name="keKit UI Settings", default=False)
-    show_shortcuts: BoolProperty(name="Show Assigned keKit Shortcuts", default=False)
-    show_conflicts: BoolProperty(name="Show Possible Shortcut Conflicts", default=False)
+    # show_shortcuts: BoolProperty(name="Show Assigned keKit Shortcuts", default=False)
+    show_kmtools: BoolProperty(name="Show keKit Shortcut Tools", default=False)
     # Toggle Weights
     toggle_same: BoolProperty(default=True, name="Toggle All Same",
                               description="Set all weights to the same (most common) value AFTER toggling\n"
@@ -632,32 +767,15 @@ class KeKitAddonPreferences(AddonPreferences):
     uv_obj_seam: BoolProperty(default=True, name="Object Mode Auto-Seam",
                               description="In Object Mode, always ON\n"
                                           "In Edit Mode, always OFF")
-    # UI options
-    color_icons: BoolProperty(default=True, name="Color Icons",
-                              description="Use custom color icons for various modules -or- just numbers (if disabled)")
-    ext_tools: BoolProperty(default=False, name="Extend Tool Settings",
-                            description="Extend Tool Settings menu with additional buttons\n"
-                                        "Also displays buttons (but disabled) in Object Mode (to show state)")
-    ext_factor: FloatProperty(default=1.0, name="Separator factor", min=0, max=999,
-                          description="UI-separator value the Extend Tool Settings menu is offset (from the right)")
-
-    # TT header icons prefs
-    tt_icon_pos: EnumProperty(
-        name="TT Icon Placement",
-        description="Viewport icons for Transform Tools (TT) module",
-        items=[("LEFT", "Left", ""),
-               ("CENTER", "Center", ""),
-               ("RIGHT", "Right", ""),
-               ("REMOVE", "Remove", "")
+    # Shortcut Prefs KeyMap Display Mode
+    km_mode: EnumProperty(
+        name="keKit Shortcut Display",
+        description="List either Assigned shortcuts, possible conflicts, or useless (invalid) shortcuts",
+        items=[("ASSIGNED", "List Assigned", ""),
+               ("CONFLICT", "Find Conflicts", ""),
+               ("USELESS", "Find Useless", ""),
                ],
-        update=set_tt_icon_pos,
-        default="CENTER")
-
-    category: StringProperty(
-        name="Tab Category",
-        description="Choose a name (category) for tab placement",
-        default="kekit",
-        update=update_panel
+        default="USELESS"
     )
 
     def draw(self, context):
@@ -668,9 +786,9 @@ class KeKitAddonPreferences(AddonPreferences):
 classes = (
     KeKitAddonPreferences,
     KeKitPropertiesTemp,
+    KeKitTempSession,
     KeSavePrefs,
     KeLoadPrefs,
-    KeFileBrowser,
     KeResetPrefs,
     KePropToggle,
 )
@@ -681,15 +799,10 @@ def register():
         bpy.utils.register_class(cls)
 
     Scene.kekit_temp = PointerProperty(type=KeKitPropertiesTemp)
-    # bpy.types.WindowManager.kekit_session = PointerProperty(type=KeKitTempSession)
-
-    v = "v" + str(kekit_version[0]) + "." + str(kekit_version[1]) + str(kekit_version[2])
-    bpy.context.preferences.addons[__package__].preferences.version = v
+    bpy.types.WindowManager.kekit_temp_session = PointerProperty(type=KeKitTempSession)
 
 
 def unregister():
-    save_prefs()
-
     for cls in reversed(classes):
         bpy.utils.unregister_class(cls)
     try:
