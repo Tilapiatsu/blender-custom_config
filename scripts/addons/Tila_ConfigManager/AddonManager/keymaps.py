@@ -466,7 +466,7 @@ class TILA_Config_Keymaps_Global(TILA_Config_Keymaps):
 		
 		self.kmi_init(name='Window', space_type='EMPTY', region_type='WINDOW', addon=False)
 		self.kmi_set_active(False, 'wm.save_as_mainfile', type='S', value='PRESS', ctrl=True, shift=True)
-		self.kmi_set_replace('import_scene.tila_universal_multi_importer', 'I', 'PRESS', ctrl=True, alt=False, shift=False)
+		self.kmi_set_replace('import_scene.tila_universal_multi_importer', 'I', 'PRESS', ctrl=True, alt=False, shift=False, properties={'filter_folder':False})
 		self.kmi_set_replace('wm.search_operator', 'F3', 'PRESS', ctrl=True, alt=False, shift=False)
 
 		# MACHINE3tools
