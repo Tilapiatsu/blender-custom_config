@@ -1,7 +1,7 @@
 bl_info = {
     "name": "Exporter",
     "author": "Simon Geoffriau",
-    "version": (2, 2, 0),
+    "version": (2, 3, 0),
     "blender": (2, 80, 0),
     "category": "Scene",
     "location": "3D viewport",
@@ -34,11 +34,14 @@ PR_ANN_0185_A (empty)
 
 
 TO DO     
-    1. define naming convention as a rule  for a larger scope of the exporter
+    1. define naming convention as a rule for a larger scope of the exporter
+    2. Use regex to look for naming convention          // done
+        (^[A-Za-z]{2}_[A-Za-z]{3}_[0-9]{4}_[abc])(\w+)?
 '''
 
 import bpy
 import os
+import re
 
 # -------------------------------------------------------------------
 #   Operators
@@ -89,23 +92,22 @@ class CUSTOM_OT_actions(bpy.types.Operator):
 
         if self.action == 'ADD':
             for o in context.selected_objects:
-                foundProp = findPropByColl(o)
-                if foundProp == None:
-                    #check if parent is an empty with correct naming
-                    foundProp = findPropByParent(o)
-                    if foundProp == None:
-                        self.report({'INFO'}, "No prop found, check your naming")
-                    else:    
-                        if o and foundProp not in scn.custom.keys():
-                            item = scn.custom.add()
-                            item.name = foundProp
-                            item.obj_type = o.type
-                            item.obj_id = len(scn.custom)
-                            scn.custom_index = len(scn.custom)-1
-                            info = '"%s" added to list' % (item.name)
-                            self.report({'INFO'}, info)
-                        else:
-                            self.report({'INFO'}, "Nothing selected in the Viewport or prop already in the list")
+                # foundProp = findPropByColl(o)
+                foundProp = findProp(o)
+                print(foundProp[0])
+                if foundProp[0] == None:
+                    self.report({'INFO'}, "No prop found, check your naming")
+                else:    
+                    if o and foundProp[0] not in scn.custom.keys():
+                        item = scn.custom.add()
+                        item.name = foundProp[0]
+                        item.obj_type = foundProp[1]
+                        item.obj_id = len(scn.custom)
+                        scn.custom_index = len(scn.custom)-1
+                        info = '"%s" added to list' % (item.name)
+                        self.report({'INFO'}, info)
+                    else:
+                        self.report({'INFO'}, "Nothing selected in the Viewport or prop already in the list")
         return {"FINISHED"}
 
 
@@ -117,65 +119,55 @@ class CUSTOM_OT_export(bpy.types.Operator):
     # CONVERT FROM COLLECTIONS TO EMPTIES STRUCTURE AND EXPORT FBX
     def HExport(self, context):
         # Selection
-        selectedProps = bpy.context.scene.custom.keys()
+        selectedProps = bpy.context.scene.custom.values()
+
         # Check scene structure
-        if bool(bpy.context.scene.collection):
-            # Variables
-            parentCol = dict()
-            empties = dict()
-            props = bpy.context.scene.collection.children
-            
-            # Convert each props
-            for p in props:
+        for p in selectedProps:
+
+            # If collection structure, convert for export
+            if p.obj_type == 'COLLECTION':
+
                 # Variables
-                topCol = p
-                colCol = []
-                parentCol.clear()
-                empties.clear()
+                empties = dict()
+                propL = propL = p.name.split('_')[-1]                       # prop last letter, that is also on origin_# empties
+                pColls = bpy.data.collections[p.name].children.values()     # children collections
+                exCol = []                                                  # Exceptions like _COL collections
+                empties.clear()                                             # reset
 
-                # Naming convention
-                propL = p.name.split('_')[-1]
-
-                # Clear Selection
-                bpy.ops.object.select_all(action='DESELECT')    
-
-                # Get Origin location
-                # Check if Origin is present / if not 0 0 0 
+                # Origin check
                 if bpy.context.scene.objects.get('Origin_'+propL):
                     originPos = context.scene.objects['Origin_'+propL].location
                 else:
-                    originPos = (0,0,0)
+                    originPos = (0,0,0)                
 
-                # CREATE AN EMPTIES HIERARCHY BASED ON COLLECTIONS HIERARCHY
+                # Create prop top empty
                 newEmpty = addEmpty(p.name, originPos)
                 empties[p.name] = newEmpty
-                for c in p.children:       
-                    parentCol[c.name] = None
-                    # EXCEPTIONS HANDLING
+
+                # Create empties for children
+                for c in pColls:
+                    # Exception handling
                     exceptions = ['_COL', '_SCOL', '_MCOL']
                     found = False
                     for ex in exceptions:
                         if (c.name).find(ex) != -1:
                             found = True
                     if found:
-                        colCol.append(c)
-
-                    # Create empties
+                        exCol.append(c)
                     else:
+                        # Create empties
                         newName = c.name+'_LOD'
                         newEmpty = addEmpty(newName, originPos)
                         empties[c.name] = newEmpty
 
-                # Props objects
-                for c in p.children:
-                    if c not in colCol:
-                        parentCol[c.name] = c.name
-                        
+                # Create hirerchy
+                for c in pColls:
+                    if c not in exCol:
                         # Parent empties
                         keepTransform = empties[c.name].matrix_world
                         empties[c.name].parent = empties[p.name]
                         empties[c.name].matrix_world = keepTransform
-                        
+
                         # MERGE OBJECTS INTO LOD0 AND RE-PARENT TO EMPTIES (!_COL, _MCOL, _SCOL)
                         colObjs = c.objects.values() 
                         for o in colObjs:
@@ -197,7 +189,7 @@ class CUSTOM_OT_export(bpy.types.Operator):
                         for o in colObjs:
                             o.select_set(True)
                             # Parent to top empty
-                            bpy.context.view_layer.objects.active = empties[topCol.name]
+                            bpy.context.view_layer.objects.active = empties[p.name]
                             bpy.ops.object.parent_set(keep_transform=True)
                             # Unlink from collections
                             bpy.context.scene.collection.objects.link(o)
@@ -209,17 +201,16 @@ class CUSTOM_OT_export(bpy.types.Operator):
                         bpy.ops.object.join()
                         bpy.context.active_object.name = (c.name)
                         bpy.ops.object.select_all(action='DESELECT')   
-                     
-            # REMOVE COLLECTIONS
-            for c in bpy.data.collections:
-                bpy.data.collections.remove(c)
-        else:
-            # Empties Structure
-            print("Empties")
+                        
+                # REMOVE COLLECTIONS
+                for c in pColls:
+                    bpy.data.collections.remove(c)
+                bpy.data.collections.remove(bpy.data.collections[p.name])
+
         # SAVE FILE
         for p in selectedProps:
-            bpy.data.objects[p].select_set(True)
-            for o in bpy.data.objects[p].children_recursive:
+            bpy.data.objects[p.name].select_set(True)
+            for o in bpy.data.objects[p.name].children_recursive:
                 o.select_set(True)
 
             # Create filepath
@@ -227,7 +218,7 @@ class CUSTOM_OT_export(bpy.types.Operator):
             directory = os.path.dirname(bfilepath)
 
             # Creates the path for the exported fbx.
-            filepath = os.path.join(directory, p + "." + "fbx")
+            filepath = os.path.join(directory, p.name + "." + "fbx")
             bpy.ops.export_scene.fbx(filepath=filepath, use_selection=True)
 
         # Back to normal
@@ -462,6 +453,11 @@ class CUSTOM_objectCollection(bpy.types.PropertyGroup):
     obj_type: bpy.props.StringProperty()
     obj_id: bpy.props.IntProperty()
 
+# Regex naming pattern
+def use_regex(input_text):
+    pattern = re.compile(r"(^[A-Za-z]{2}_[A-Za-z]{3}_[0-9]{4}_[abc])(\w+)?", re.IGNORECASE)
+    return pattern.match(input_text)
+
 # CONVERT FROM EMPTIES TO COLLECTIONS STRUCTURE
 def HImport(context):
 
@@ -598,6 +594,52 @@ def findPropByParent(obj):
         except:
             print("Scene structure issue")
     return propName
+
+# Find prop name from selection using regex
+def findProp(obj):
+    # Variables
+    propName = None
+    propType = None
+    
+    # get topParent
+    objTopParent = findTopParent(obj)  # Evolve topParent function to find top Collection if selection is a collection        
+    # if topParent is none : means is a topParent OR in a collection
+    if objTopParent is None:
+        # Check if its a TopParent Empty
+        if obj.type == 'EMPTY':
+            propName = obj.name
+            propType = 'EMPTY'
+        # Check if in a collection other than scene collection
+        for c in bpy.data.scenes['Scene'].collection.children:
+            if obj in c.all_objects.values():
+                # name to check = collection name
+                propName = c.name
+                # type = Coll
+                propType = 'COLLECTION'
+                break
+        if propName is None:
+            print("No prop here my friend")
+            return(None, None)
+    # else name to check = topParent
+    else:
+        # if type is Empty
+        if objTopParent.type == 'EMPTY':
+            # type = Empty
+            propName = objTopParent.name
+            propType = 'EMPTY'
+        # else not from a prop, check scene structure and naming
+        else:
+            return(None, None) 
+
+    # check name with regex
+    # print(propName)
+    result = use_regex(propName)
+    # if name matches regex.Group1
+    if result:          #result.groups()[0] == propName:
+        # return propName and type (Coll/Empty)
+        return(propName, propType)
+    else:
+        return(None, None)
 
 # Find the top parent of an object
 def findTopParent(obj):
