@@ -66,6 +66,7 @@ class TILA_OT_toggle_shading(bpy.types.Operator):
                 bpy.context.space_data.shading.background_type = 'THEME'
                 bpy.context.space_data.shading.color_type = 'MATERIAL'
                 bpy.context.space_data.shading.studio_light = 'TilaSculpt.sl'
+                bpy.context.space_data.shading.wireframe_color_type = 'THEME'
                 bpy.context.space_data.shading.show_object_outline = True
                 bpy.context.space_data.overlay.show_face_orientation = True
             if self.type == 'WIREFRAME':
@@ -85,10 +86,12 @@ class TILA_OT_toggle_shading(bpy.types.Operator):
                 bpy.context.space_data.shading.light = 'STUDIO'
                 bpy.context.space_data.shading.studio_light = 'paint.sl'
                 bpy.context.space_data.shading.background_type = 'THEME'
+                bpy.context.space_data.shading.wireframe_color_type = 'THEME'
                 bpy.context.space_data.shading.show_object_outline = False
                 bpy.context.space_data.overlay.show_face_orientation = False
             elif self.type == 'RANDOM':
                 bpy.context.space_data.shading.color_type = 'RANDOM'
+                bpy.context.space_data.shading.wireframe_color_type = 'THEME'
                 bpy.context.space_data.shading.light = 'STUDIO'
                 bpy.context.space_data.shading.studio_light = 'TilaSculpt.sl'
                 bpy.context.space_data.shading.background_type = 'THEME'
@@ -99,12 +102,14 @@ class TILA_OT_toggle_shading(bpy.types.Operator):
                 bpy.context.space_data.shading.light = 'STUDIO'
                 bpy.context.space_data.shading.studio_light = 'paint.sl'
                 bpy.context.space_data.shading.background_type = 'THEME'
+                bpy.context.space_data.shading.wireframe_color_type = 'THEME'
                 bpy.context.space_data.shading.show_object_outline = True
                 bpy.context.space_data.overlay.show_face_orientation = False
             elif self.type == 'SILHOUETTE':
                 bpy.context.space_data.shading.color_type = 'SINGLE'
                 bpy.context.space_data.shading.light = 'FLAT'
                 bpy.context.space_data.shading.background_type = 'VIEWPORT'
+                bpy.context.space_data.shading.wireframe_color_type = 'THEME'
                 bpy.context.space_data.shading.background_color = (0, 0, 0)
                 bpy.context.space_data.shading.show_object_outline = False
                 bpy.context.space_data.overlay.show_face_orientation = False
