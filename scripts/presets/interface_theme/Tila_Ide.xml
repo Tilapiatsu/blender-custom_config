@@ -383,7 +383,7 @@
         freestyle_edge_mark="#33ff85"
         face="#ffffff04"
         face_select="#3fd3e326"
-        face_mode_select="#00e8ff33"
+        face_mode_select="#ffb70033"
         face_dot="#3fd3e3"
         facedot_size="2"
         freestyle_face_mark="#33ff8555"
@@ -974,8 +974,8 @@
     <node_editor>
       <ThemeNodeEditor
         grid="#282c34"
-        node_selected="#3fd3e3"
-        node_active="#ffffff"
+        node_selected="#ffffff"
+        node_active="#3fd3e3"
         wire="#282c34ff"
         wire_inner="#6c798d"
         wire_select="#ffffff80"
