@@ -9,7 +9,6 @@ from bpy.types import Gizmo, GizmoGroup
 
 
 
-
 def polycount(self, context):
     if context.active_object != None:
         font_info = {
@@ -18,7 +17,7 @@ def polycount(self, context):
         }
 
         props = context.preferences.addons[__package__].preferences
-        settings = context.scene.ps_set_
+        settings = context.scene.PS_scene_set
 
  
     
@@ -29,11 +28,13 @@ def polycount(self, context):
         height = 45
         name = "Polycount: " + str(settings.tris_count) + "/"
         blf.position(font_id_name, width, height, 0)
-        blf.size(font_id_name, 14, 72)
+        blf.size(font_id_name, 14)
         blf.color(font_id_name, 0.58, 0.72, 0.0, 1.0)
+        
+        blf.enable(font_id_name, blf.SHADOW)
+        blf.shadow(font_id_name, 3, 0.0, 0.0, 0.0, 1.0)
         blf.draw(font_id_name, name)
-        
-        
+
 
         if props.low_suffix == False:
             viewlayer = context.view_layer
@@ -77,11 +78,12 @@ def polycount(self, context):
         width = 110 + offset
         apply_text = str(tris)
         blf.position(font_id_name, width, height, 0)
-        blf.size(font_id_name, 14, 72)
+        blf.size(font_id_name, 14)
         blf.color(font_id_name, col[0], col[1], col[2], 1.0)
-        blf.draw(font_id_name, apply_text)
-
-        #blf.shadow(font_id_name, 6, 0.0, 0.0, 0.0, 1.0)
+        
+        blf.enable(font_id_name, blf.SHADOW)
+        blf.shadow(font_id_name, 3, 0.0, 0.0, 0.0, 1.0)
+        blf.draw(font_id_name, name)
         
 
 
@@ -107,8 +109,11 @@ def polycount(self, context):
         height = 30
         name = "Active Object: "
         blf.position(font_id_name, width, height, 0)
-        blf.size(font_id_name, 14, 72)
+        blf.size(font_id_name, 14)
         blf.color(font_id_name, 0.58, 0.72, 0.0, 1.0)
+        
+        blf.enable(font_id_name, blf.SHADOW)
+        blf.shadow(font_id_name, 3, 0.0, 0.0, 0.0, 1.0)
         blf.draw(font_id_name, name)
 
 
@@ -116,9 +121,12 @@ def polycount(self, context):
         width = 110 + offset
         apply_text = str(tris)
         blf.position(font_id_name, width, height, 0)
-        blf.size(font_id_name, 14, 72)
+        blf.size(font_id_name, 14)
         blf.color(font_id_name, 0.9, 0.9, 0.9, 1.0)
-        blf.draw(font_id_name, apply_text)
+        
+        blf.enable(font_id_name, blf.SHADOW)
+        blf.shadow(font_id_name, 3, 0.0, 0.0, 0.0, 1.0)
+        blf.draw(font_id_name, name)
 
 
 
@@ -147,7 +155,7 @@ class PS_GGT_polycount_group(GizmoGroup):
     @classmethod
     def poll(cls, context):
         if context.active_object != None:
-            settings = context.scene.ps_set_
+            settings = context.scene.PS_scene_set
             return settings.PS_polycount
         
   
@@ -158,8 +166,8 @@ class PS_GGT_polycount_group(GizmoGroup):
 
 
     def draw_prepare(self, context):
-        settings = context.scene.ps_set_
-        #props = context.preferences.addons[__package__.split(".")[0]].preferences
+        settings = context.scene.PS_scene_set
+        #props = context.preferences.addons[__package__].preferences
         mesh = self.mesh
         if settings.PS_polycount:
             mesh.hide = False
