@@ -1092,7 +1092,7 @@ class MeshDataTransfer (object):
         current_mode = bpy.context.object.mode
         scene = bpy.context.scene
         if not current_object == obj:
-            if current_mode is not "OBJECT":
+            if current_mode != "OBJECT":
                 bpy.ops.object.mode_set (mode="OBJECT")
                 bpy.context.view_layer.objects.active = obj
         if not bpy.context.object.mode == "EDIT":
