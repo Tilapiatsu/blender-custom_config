@@ -727,7 +727,7 @@
     "beta_quad": {
         "is_enable": true,
         "is_sync": false,
-        "online_url": null,
+        "online_url": "https://kushiro.gumroad.com/l/FBGXq",
         "repository_url": null,
         "branch": null,
         "is_submodule": false,
@@ -2449,8 +2449,8 @@
         ]
     },
     "vertex_color_master": {
-        "is_enable": true,
-        "is_sync": true,
+        "is_enable": false,
+        "is_sync": false,
         "online_url": null,
         "repository_url": "https://github.com/andyp123/blender_vertex_color_master.git",
         "branch": null,
@@ -2459,7 +2459,7 @@
         "keymaps": false,
         "paths": [
             {
-                "is_enable": true,
+                "is_enable": false,
                 "local_subpath": "vertex_color_master",
                 "destination_path": "#\\scripts\\addons\\vertex_color_master"
             }
