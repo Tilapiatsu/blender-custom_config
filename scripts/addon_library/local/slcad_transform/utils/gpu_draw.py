@@ -399,7 +399,7 @@ class GPU_3d_ArcFill(GPU_Polygon, GPU_3d_uniform, Arc):
 
 
 class GPU_2d_uniform(GPU_Draw):
-    _shader = get_shader('2D_UNIFORM_COLOR')
+    _shader = get_shader('UNIFORM_COLOR')
 
     def __init__(self, color, batch_type):
         GPU_Draw.__init__(self, color, dims=2)
