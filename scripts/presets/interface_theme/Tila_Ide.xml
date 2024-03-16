@@ -989,7 +989,7 @@
         matte_node="#333942"
         distor_node="#333942"
         noodle_curving="0"
-        grid_levels="0"
+        grid_levels="3"
         dash_alpha="1"
         input_node="#ff3333"
         output_node="#282c34"
