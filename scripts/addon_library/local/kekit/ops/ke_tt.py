@@ -70,9 +70,10 @@ class KeTT(Operator):
             link_override = True
 
         if context.space_data.type in {"IMAGE_EDITOR", "NODE_EDITOR"}:
+            # hardcoded limit to MaM for now
             if vpt:
-                tt_mode = (False, True, False)
-                grab, mam, vpt = (False, True, False)
+                tt_mode = [False, True, False]
+                grab, mam, vpt = [False, True, False]
 
         if self.mode == "MOVE":
             if grab:

@@ -14,8 +14,8 @@ class KeZeroScale(Operator):
     bl_options = {'REGISTER', 'UNDO'}
 
     orient_type: EnumProperty(
-        items=[("GLOBAL", "Global", "", "GLOBAL", 1),
-               ("NORMAL", "Normal", "", "NORMAL", 2),
+        items=[("GLOBAL", "Global", "", "ORIENTATION_GLOBAL", 1),
+               ("NORMAL", "Normal", "", "ORIENTATION_NORMAL", 2),
                ("CURSOR", "Cursor", "", "CURSOR", 3),
                ("AUTO", "Auto", "", "AUTO", 4),
                ],

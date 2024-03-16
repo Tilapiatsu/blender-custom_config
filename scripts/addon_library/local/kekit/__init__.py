@@ -19,10 +19,10 @@
 # ##### END GPL LICENSE BLOCK #####
 from . import _prefs
 from . import _ui
+from . import shared
 from . import m_bookmarks
 from . import m_cleanup
 from . import m_context_tools
-from . import m_cursormenu
 from . import m_geometry
 from . import m_modeling
 from . import m_modifiers
@@ -36,7 +36,7 @@ bl_info = {
     "author": "Kjell Emanuelsson",
     "category": "",
     "blender": (2, 80, 0),
-    "version": (3, 1, 5),
+    "version": (3, 1, 9),
     "location": "View3D > Sidebar",
     "warning": "",
     "description": "Extensive Script Collection",
@@ -48,6 +48,7 @@ kit_cat = ""
 modules = (
     _prefs,
     _ui,
+    shared,
     m_geometry,
     m_render,
     m_bookmarks,
@@ -58,7 +59,6 @@ modules = (
     m_tt,
     m_cleanup,
     m_pie_menus,
-    m_cursormenu
 )
 
 
@@ -69,6 +69,7 @@ def register():
     _ui.kekit_version = v
     _ui.kit_cat = kit_cat
     _prefs.kekit_version = v
+    _prefs.kkv = v[1] + v[3] + v[4]
 
     for m in modules:
         m.register()

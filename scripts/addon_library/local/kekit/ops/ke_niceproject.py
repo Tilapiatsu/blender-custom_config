@@ -7,7 +7,7 @@ from bpy.types import Operator
 class KeNiceProject(Operator):
     bl_idname = "view3d.ke_nice_project"
     bl_label = "Nice Project"
-    bl_description = "'Knife Project', but nice. \n" \
+    bl_description = "It's 'Knife Project', but nice. \n" \
                      "Edit Mode: Cutter = Selected Faces (with boundry edges)\n" \
                      "Object Mode: Cutter = Active (selected) Object (with boundry edges)"
     bl_options = {'REGISTER', 'UNDO'}

@@ -1,10 +1,14 @@
 import bpy
 from bpy.types import Panel, Operator
+from ._ui import pcoll
+from ._utils import get_prefs, set_active_collection
 from .ops.ke_align_object_to_active import KeAlignObjectToActive
 from .ops.ke_align_origin_to_selected import KeAlignOriginToSelected
 from .ops.ke_bbmatch import KeBBMatch
-from .ops.ke_cursor_fit_and_align import KeCursorFitAlign
 from .ops.ke_cursor_align_rot import KeCursorAlignRot
+from .ops.ke_cursor_fit_and_align import KeCursorFitAlign
+from .ops.ke_cursor_ortho_snap import KeCursorOrthoSnap
+from .ops.ke_cursor_rotation import KeCursorRotation
 from .ops.ke_frame_all_or_selected import KeFrameView
 from .ops.ke_lock import KeLock
 from .ops.ke_mouse_side_of_active import KeMouseSideofActive
@@ -23,8 +27,6 @@ from .ops.ke_view_align import KeViewAlign
 from .ops.ke_view_align_snap import KeViewAlignSnap
 from .ops.ke_view_align_toggle import KeViewAlignToggle
 from .ops.ke_vp_step_rotate import KeStepRotate
-from ._ui import pcoll
-from ._utils import get_prefs, set_active_collection
 
 
 class UISelectionModule(Panel):
@@ -37,18 +39,15 @@ class UISelectionModule(Panel):
 
     def draw(self, context):
         k = get_prefs()
+        u = pcoll['kekit']['ke_uncheck'].icon_id
+        c = pcoll['kekit']['ke_check'].icon_id
         layout = self.layout
         col = layout.column(align=True)
 
         # ALIGN (leaning)
         row = col.row(align=True)
         row.operator("view3d.ke_cursor_fit_align", text="Cursor Fit & Align")
-        split = row.row(align=True)
-        split.alignment = "RIGHT"
-        if k.cursorfit:
-            split.prop(k, "cursorfit", text="", icon="CHECKMARK", toggle=True)
-        else:
-            split.prop(k, "cursorfit", text="", icon_value=pcoll['kekit']['ke_uncheck'].icon_id, toggle=True)
+        row.prop(k, "cursorfit", text="", toggle=True, icon_value=c if k.cursorfit else u)
 
         col.operator("view3d.ke_cursor_align_rot", icon="MOUSE_MOVE")
 
@@ -64,12 +63,7 @@ class UISelectionModule(Panel):
 
         row = col.row(align=True)
         row.operator("screen.ke_frame_view", text="Frame All or Selected")
-        split = row.row(align=True)
-        split.alignment = "RIGHT"
-        if k.frame_mo:
-            split.prop(k, "frame_mo", text="", icon="CHECKMARK", toggle=True)
-        else:
-            split.prop(k, "frame_mo", text="", icon_value=pcoll['kekit']['ke_uncheck'].icon_id, toggle=True)
+        row.prop(k, "frame_mo", text="", toggle=True, icon_value=c if k.frame_mo else u)
 
         col.label(text="Align Origin(s) To")
         row = col.row(align=True)
@@ -108,7 +102,7 @@ class UISelectionModule(Panel):
         col.operator('object.ke_select_objects_by_vertselection')
 
 
-class UISelectByDisplayType(Panel):
+class UIxSelectByDisplayType(Panel):
     bl_idname = "UI_PT_ke_select_by_display_type"
     bl_label = "Select by Display Type"
     bl_space_type = 'VIEW_3D'
@@ -211,21 +205,23 @@ class KeCursorClearRot(Operator):
         return {'FINISHED'}
 
 
-def menu_show_in_outliner(self, context):
-    self.layout.operator(KeShowInOutliner.bl_idname, text=KeShowInOutliner.bl_label)
-
-
-def menu_set_active_collection(self, context):
-    self.layout.operator(KeSetActiveCollection.bl_idname, text=KeSetActiveCollection.bl_label)
+# def menu_show_in_outliner(self, context):
+#     self.layout.operator(KeShowInOutliner.bl_idname, text=KeShowInOutliner.bl_label)
+#
+#
+# def menu_set_active_collection(self, context):
+#     self.layout.operator(KeSetActiveCollection.bl_idname, text=KeSetActiveCollection.bl_label)
 
 
 classes = (
     KeAlignObjectToActive,
     KeAlignOriginToSelected,
     KeBBMatch,
+    KeCursorAlignRot,
     KeCursorClearRot,
     KeCursorFitAlign,
-    KeCursorAlignRot,
+    KeCursorOrthoSnap,
+    KeCursorRotation,
     KeFrameView,
     KeLock,
     KeMouseSideofActive,
@@ -247,7 +243,7 @@ classes = (
     KeViewAlignSnap,
     KeViewAlignToggle,
     UISelectionModule,
-    UISelectByDisplayType,
+    UIxSelectByDisplayType,
 )
 
 
@@ -257,8 +253,8 @@ def register():
         for c in classes:
             bpy.utils.register_class(c)
 
-        bpy.types.VIEW3D_MT_object_context_menu.append(menu_set_active_collection)
-        bpy.types.VIEW3D_MT_object_context_menu.append(menu_show_in_outliner)
+        # bpy.types.VIEW3D_MT_object_context_menu.append(menu_set_active_collection)
+        # bpy.types.VIEW3D_MT_object_context_menu.append(menu_show_in_outliner)
         bpy.types.Scene.kekit_cursor_obj = bpy.props.StringProperty()
 
 
@@ -267,8 +263,8 @@ def unregister():
         for c in reversed(classes):
             bpy.utils.unregister_class(c)
 
-        bpy.types.VIEW3D_MT_object_context_menu.remove(menu_set_active_collection)
-        bpy.types.VIEW3D_MT_object_context_menu.remove(menu_show_in_outliner)
+        # bpy.types.VIEW3D_MT_object_context_menu.remove(menu_set_active_collection)
+        # bpy.types.VIEW3D_MT_object_context_menu.remove(menu_show_in_outliner)
         try:
             del bpy.types.Scene.kekit_cursor_obj
         except Exception as e:

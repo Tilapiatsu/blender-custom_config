@@ -33,10 +33,12 @@ class UIDirectLoopCutModule(Panel):
         col = layout.column(align=True)
         col.operator('mesh.ke_direct_loop_cut', text="Direct Insert Vertex").mode = "VERTEX"
         col.operator('mesh.ke_direct_loop_cut', text="Direct Insert Vertex & Slide").mode = "VERTEX_SLIDE"
-        row = layout.row()
-        row.prop(k, "dlc_so")
-        if not k.dlc_so:
-            row.label(text="", icon="MOUSE_MOVE")
+        row = layout.row(align=True)
+        split = row.split(factor=0.35)
+        split.label(text="Selection:")
+        # row.label()
+        split.prop(k, "dlc_so", toggle=True, text="Selected" if k.dlc_so else "Mouse-over",
+                   icon="RESTRICT_SELECT_OFF" if k.dlc_so else "MOUSE_MOVE")
 
 
 class KeDirectLoopCut(Operator):

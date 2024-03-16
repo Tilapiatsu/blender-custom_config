@@ -1,13 +1,14 @@
 import bpy
-from bpy.types import Panel, Operator
 from bpy.props import IntProperty
+from bpy.types import Panel, Operator
+from ._ui import pcoll
+from ._utils import get_prefs
 from .ops.ke_bgsync import KeBgSync
 from .ops.ke_get_set_material import KeGetSetMaterial
 from .ops.ke_render_slotcycle import KeRenderSlotCycle
 from .ops.ke_render_visible import KeRenderVisible
 from .ops.ke_syncvpmaterial import KeSyncviewportMaterial
-from ._ui import pcoll
-from ._utils import get_prefs
+from .ops.ke_unwrap_macro import KeUnwrapMacro
 
 
 class UIRenderModule(bpy.types.Panel):
@@ -21,23 +22,29 @@ class UIRenderModule(bpy.types.Panel):
         k = get_prefs()
         layout = self.layout
         col = layout.column(align=True)
+        u = pcoll['kekit']['ke_uncheck'].icon_id
+        c = pcoll['kekit']['ke_check'].icon_id
 
         row = col.row(align=True)
         row.operator('screen.ke_render_visible', icon="RENDER_STILL", text="Render Visible")
-        if k.renderslotcycle:
-            row.prop(k, "renderslotcycle", text="", toggle=True, icon="CHECKMARK")
-        else:
-            row.prop(k, "renderslotcycle", text="", toggle=True, icon_value=pcoll['kekit']['ke_uncheck'].icon_id)
+        row.prop(k, "renderslotcycle", text="", toggle=True, icon_value=c if k.renderslotcycle else u)
 
         row = col.row(align=True)
         row.operator('screen.ke_render_slotcycle', icon="RENDER_STILL", text="Render Slot Cycle")
-        if k.renderslotfullwrap:
-            row.prop(k, "renderslotfullwrap", text="", toggle=True, icon="CHECKMARK")
-        else:
-            row.prop(k, "renderslotfullwrap", text="", toggle=True, icon_value=pcoll['kekit']['ke_uncheck'].icon_id)
+        row.prop(k, "renderslotfullwrap", text="", toggle=True, icon_value=c if k.renderslotfullwrap else u)
 
         col.operator('view3d.ke_bg_sync', icon="SHADING_TEXTURE")
+        col.operator("view3d.ke_syncvpmaterial", icon="COLOR").active_only = False
+
         col.operator('view3d.ke_get_set_material', icon="MOUSE_MOVE", text="Get&Set Material")
+
+        row = col.row(align=True)
+        row.operator('view3d.ke_unwrap_macro')
+        row.prop(k, "uv_obj_seam", text="", toggle=True, icon_value=c if k.uv_obj_seam else u)
+
+        row = col.row(align=True)
+        row.operator('mesh.ke_toggle_weight', text="Toggle Seam").wtype = "SEAM"
+        row.prop(k, "toggle_same", text="", toggle=True, icon_value=c if k.toggle_same else u)
 
 
 class UIIDMaterialsSubModule(Panel):
@@ -293,21 +300,25 @@ class KeIDMaterial(Operator):
                     area.spaces.active.context = 'MATERIAL'
                     area.tag_redraw()
 
-        bpy.ops.ed.undo_push()
+        # bpy.ops.ed.undo_push()
+        # if context.view_layer.objects.active.type == "MESH":
+        #     bpy.ops.object.editmode_toggle()
+        #     bpy.ops.object.editmode_toggle()
 
         return {'FINISHED'}
 
 
-def draw_syncvpbutton(self, context):
-    layout = self.layout
-    row = layout.row()
-    row.use_property_split = True
-    row.operator("view3d.ke_syncvpmaterial", icon="COLOR")
+# def draw_syncvpbutton(self, context):
+#     layout = self.layout
+#     row = layout.row()
+#     row.use_property_split = True
+#     row.operator("view3d.ke_syncvpmaterial", icon="COLOR")
 
 
 classes = (
     KeBgSync,
     KeGetSetMaterial,
+    KeUnwrapMacro,
     KeIDMaterial,
     KeRenderSlotCycle,
     KeRenderVisible,
@@ -324,16 +335,16 @@ def register():
         for c in classes:
             bpy.utils.register_class(c)
 
-        if k.material_extras:
-            bpy.types.EEVEE_MATERIAL_PT_surface.prepend(draw_syncvpbutton)
-
+        # if k.material_extras:
+        #     bpy.types.EEVEE_MATERIAL_PT_surface.prepend(draw_syncvpbutton)
+        #
 
 def unregister():
-    try:
-        bpy.types.EEVEE_MATERIAL_PT_surface.remove(draw_syncvpbutton)
-    except Exception as e:
-        print('keKit Draw SyncVpMaterial Button Unregister: ', e)
-        pass
+    # try:
+    #     bpy.types.EEVEE_MATERIAL_PT_surface.remove(draw_syncvpbutton)
+    # except Exception as e:
+    #     print('keKit Draw SyncVpMaterial Button Unregister: ', e)
+    #     pass
 
     if "bl_rna" in UIRenderModule.__dict__:
         for c in reversed(classes):

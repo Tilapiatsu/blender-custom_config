@@ -14,12 +14,12 @@ class KeRenderSlotCycle(Operator):
 
     @persistent
     def ke_init_render(self, scene, depsgraph):
-        scene.kekit_temp.is_rendering = True
+        bpy.context.window_manager.kekit_temp_session.qm_running = True
         # print("Render Starting")
 
     @persistent
     def ke_post_render(self, scene, depsgraph):
-        scene.kekit_temp.is_rendering = False
+        bpy.context.window_manager.kekit_temp_session.qm_running = False
         # print("Render Done")
 
     def execute(self, context):
@@ -38,7 +38,7 @@ class KeRenderSlotCycle(Operator):
             # print("keKit Render Handlers Loaded")
 
         # Check rendering status
-        rendering = context.scene.kekit_temp.is_rendering
+        rendering = context.window_manager.kekit_temp_session.qm_running
 
         if not rendering:
             k = get_prefs()

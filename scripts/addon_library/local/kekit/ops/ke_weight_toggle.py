@@ -11,11 +11,12 @@ class KeWeightToggle(Operator):
     bl_description = "Toggles specified weighting on or off on selected elements"
     bl_options = {'REGISTER', 'UNDO'}
 
-    wtype : EnumProperty(
+    wtype: EnumProperty(
         items=[("BEVEL", "Bevel Weight", "", 1),
-               ("CREASE", "Crease Weight", "", 2)],
+               ("CREASE", "Crease Weight", "", 2),
+               ("SEAM", "Seam", "", 3)],
         name="Weight Type",
-        default="BEVEL", options={"HIDDEN"})
+        default="SEAM", options={"HIDDEN"})
 
     @classmethod
     def poll(cls, context):
@@ -32,7 +33,8 @@ class KeWeightToggle(Operator):
         em = context.tool_settings.mesh_select_mode
         vertex_mode = bool(em[0])
         face_mode = bool(em[2])
-        if face_mode:
+        if face_mode or self.wtype == "SEAM":
+            vertex_mode = False
             bpy.ops.mesh.select_mode(use_extend=False, use_expand=False, type='EDGE')
 
         if self.wtype == "CREASE":
@@ -46,53 +48,78 @@ class KeWeightToggle(Operator):
             mesh = o.data
             bm = bmesh.from_edit_mesh(mesh)
 
-            if vertex_mode:
-                bw = bm.verts.layers.float.get(v_type, None)
-            else:
-                bw = bm.edges.layers.float.get(e_type, None)
-
-            if bw is not None:
-
-                vals = []
-                if vertex_mode:
-                    sel = [v for v in bm.verts if v.select]
-                else:
-                    sel = [e for e in bm.edges if e.select]
-                for element in sel:
-                    # Inverting here
-                    val = float(not round(element[bw]))
-                    vals.append(val)
-
+            if self.wtype == "SEAM":
+                # Sel & invert
+                sel = [e for e in bm.edges if e.select]
+                if not sel:
+                    continue
+                vals = [not e.seam for e in sel]
+                # Toggling
                 if k.toggle_same and len(vals) > 1:
-                    if all(v == 0 for v in vals):
-                        val = 0
-                    elif all(v == 1 for v in vals):
-                        val = 1
+                    if all(v == False for v in vals):
+                        val = False
+                    elif all(v == True for v in vals):
+                        val = True
                     else:
                         c = max(set(vals), key=vals.count)
-                        # Reverting, for "same" option
+                        # Reverting for "toggle_same" option
                         if c == 1:
                             val = 0
                         else:
                             val = 1
                     vals = [val] * len(vals)
+                # Re-Assign
+                for e, val in zip(sel, vals):
+                    e.seam = val
 
-                for element, val in zip(sel, vals):
-                    element[bw] = val
             else:
                 if vertex_mode:
-                    bw = bm.verts.layers.float.new(v_type)
-                    sel = [v for v in bm.verts if v.select]
+                    bw = bm.verts.layers.float.get(v_type, None)
                 else:
-                    bw = bm.edges.layers.float.new(e_type)
-                    sel = [e for e in bm.edges if e.select]
-                for element in sel:
-                    element[bw] = 1.0
+                    bw = bm.edges.layers.float.get(e_type, None)
+
+                if bw is not None:
+                    vals = []
+                    if vertex_mode:
+                        sel = [v for v in bm.verts if v.select]
+                    else:
+                        sel = [e for e in bm.edges if e.select]
+
+                    for element in sel:
+                        # Inverting here
+                        val = float(not int(round(element[bw])))
+                        vals.append(val)
+
+                    if k.toggle_same and len(vals) > 1:
+                        if all(v == 0 for v in vals):
+                            val = 0
+                        elif all(v == 1 for v in vals):
+                            val = 1
+                        else:
+                            c = max(set(vals), key=vals.count)
+                            # Reverting for "toggle_same" option
+                            if c == 1:
+                                val = 0
+                            else:
+                                val = 1
+                        vals = [val] * len(vals)
+
+                    for element, val in zip(sel, vals):
+                        element[bw] = float(val)
+                else:
+                    if vertex_mode:
+                        bw = bm.verts.layers.float.new(v_type)
+                        sel = [v for v in bm.verts if v.select]
+                    else:
+                        bw = bm.edges.layers.float.new(e_type)
+                        sel = [e for e in bm.edges if e.select]
+                    for element in sel:
+                        element[bw] = 1.0
 
             bmesh.update_edit_mesh(mesh)
 
             # Add modifier if not present
-            if k.toggle_add:
+            if k.toggle_add and self.wtype != "SEAM":
                 bmod = []
                 smod = []
                 wmod = []

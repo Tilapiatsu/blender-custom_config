@@ -161,6 +161,11 @@ class TILA_multires_subdiv_level(bpy.types.Operator):
 				self.change_subdivision(context, self.processing)
 				self.processing = None
 
+			elif self.multires_modifier is None:
+				self.processing = self.object_to_process.pop()
+				self.change_subdivision(context, self.processing)
+				self.processing = None
+
 			else:
 				self.report({'INFO'}, f'TILA Multires Set Subdivision Level to {self.multires_modifier.levels}')
 				bpy.context.window_manager.event_timer_remove(self._timer)
@@ -202,7 +207,6 @@ class TILA_multires_subdiv_level(bpy.types.Operator):
 		else:
 			self.multires_modifier = self.multires_modifier[0]
 
-
 		if self.mode == 'RELATIVE':
 			self.offset_subdivision()
 		elif self.mode == 'ABSOLUTE':
@@ -215,7 +219,11 @@ class TILA_multires_subdiv_level(bpy.types.Operator):
 			self.set_subdivision()
 
 	def invoke(self, context, event):
-		self.object_to_process = [o for o in bpy.context.selected_objects if o.type in self.compatible_type]
+		self.object_to_process = [o for o in bpy.context.selected_objects if o.type in self.compatible_type and o.library is None]
+		
+		if not len(self.object_to_process):
+			self.report({'ERROR'}, 'Tila Multires subdiv : no valid objects found')
+			return {'CANCELLED'}
 
 		self._timer = bpy.context.window_manager.event_timer_add(0.1, window=bpy.context.window)
 		bpy.context.window_manager.modal_handler_add(self)

@@ -1,11 +1,14 @@
 import bpy
 from bpy.types import Panel
+from ._ui import pcoll
+from ._utils import get_prefs
 from .ops.ke_collision import KeCollision
 from .ops.ke_copyplus import KeCopyPlus
 from .ops.ke_exex import KeExEx
 from .ops.ke_extract_and_edit import KeExtractAndEdit
 from .ops.ke_fitprim import KeFitPrim, UIFitPrimModule
 from .ops.ke_get_set_editmesh import KeGetSetEditMesh
+from .ops.ke_grid_toggle import KeGridToggle
 from .ops.ke_linear_array import KeLinearArray
 from .ops.ke_local_by_distance import KeLocalByDistance
 from .ops.ke_mouse_mirror_flip import KeMouseMirrorFlip
@@ -17,8 +20,6 @@ from .ops.ke_unhide_or_local import KeUnhideOrLocal
 from .ops.ke_unrotator import KeUnrotator, UIUnrotatorModule
 from .ops.ke_vp_flip import KeVPFlip
 from .ops.ke_zerolocal import KeZeroLocal
-from ._ui import pcoll
-from ._utils import get_prefs
 
 
 class UIGeoModule(Panel):
@@ -31,6 +32,7 @@ class UIGeoModule(Panel):
     def draw(self, context):
         k = get_prefs()
         u = pcoll['kekit']['ke_uncheck'].icon_id
+        c = pcoll['kekit']['ke_check'].icon_id
         s = 0.78
         m = 0.65
 
@@ -38,19 +40,18 @@ class UIGeoModule(Panel):
         col = layout.column(align=True)
 
         row = col.row(align=True)
-        split = row.split(factor=s, align=True)
-        subrow1 = split.row(align=True)
-        subrow1.operator('view3d.ke_copyplus', text="Cut+").mode = "CUT"
-        subrow1.operator('view3d.ke_copyplus', text="Copy+").mode = "COPY"
-        subrow1.operator('view3d.ke_copyplus', text="Paste+").mode = "PASTE"
-        subrow2 = split.row(align=True)
-        subrow2.prop(k, "plus_merge", toggle=True)
-        subrow2.prop(k, "plus_mpoint", toggle=True)
+        row.operator('view3d.ke_copyplus', text="Cut+").mode = "CUT"
+        row.operator('view3d.ke_copyplus', text="Copy+").mode = "COPY"
+        row.operator('view3d.ke_copyplus', text="Paste+").mode = "PASTE"
+        row.prop(k, "plus_merge", toggle=True, text="", icon_value=c if k.plus_merge else u)
+        row.prop(k, "plus_mpoint", toggle=True, text="", icon="MOUSE_MMB")
 
         row = col.row(align=True)
+        # I *have* to split here?, or the second part of the row flickers away in some region sizes
         split = row.split(factor=m, align=True)
         split.operator('mesh.ke_extract_and_edit', text="Extract & Edit")
         split.operator('mesh.ke_exex', text="ExEx")
+        col.separator(factor=0.5)
 
         row = col.row(align=True)
         split = row.split(factor=m, align=True)
@@ -76,27 +77,25 @@ class UIGeoModule(Panel):
         col.separator(factor=0.5)
 
         row = col.row(align=True)
-        split = row.split(factor=s, align=True)
+        split = row.split(factor=m, align=True)
         split.operator('view3d.ke_quickmeasure', icon="DRIVER_DISTANCE", text="QuickMeasure").qm_start = "DEFAULT"
-        split.operator('view3d.ke_quickmeasure', text="QMF").qm_start = "SEL_SAVE"
+        split.operator('view3d.ke_quickmeasure', icon="DRIVER_DISTANCE", text="QMF").qm_start = "SEL_SAVE"
 
         row = col.row(align=True)
         split = row.split(factor=s, align=True)
         split.operator('view3d.ke_get_set_editmesh', icon="MOUSE_MOVE", text="Get&Set EditMode")
         row2 = split.row(align=True)
-        split2 = row2.split(factor=0.5, align=True)  # coz checkmark & single letter != same size
-        split2.operator('view3d.ke_get_set_editmesh', text="E").extend = True
-        if k.getset_ep:
-            split2.prop(k, "getset_ep", text="", toggle=True, icon="CHECKMARK")
-        else:
-            split2.prop(k, "getset_ep", text="", toggle=True, icon_value=u)
+        split2 = row2.split(factor=0.5, align=True)
+        split2.operator('view3d.ke_get_set_editmesh', text="Ext").extend = True
+        split2.prop(k, "getset_ep", text="", toggle=True, icon_value=c if k.getset_ep else u)
 
         row = col.row(align=True)
-        split = row.split(factor=0.5, align=True)  # coz weird flicker w. only align here
+        split = row.split(factor=0.5, align=True)
         split.operator('view3d.ke_zerolocal', icon="HIDE_OFF")
         split.operator('object.ke_local_by_distance', text="Local By Dist.")
 
         col.operator('view3d.ke_unhide_or_local', icon="HIDE_OFF")
+        col.operator('view3d.ke_grid_toggle', icon="GRID").toggle = True
 
 
 classes = (
@@ -106,6 +105,7 @@ classes = (
     KeExtractAndEdit,
     KeFitPrim,
     KeGetSetEditMesh,
+    KeGridToggle,
     KeLinearArray,
     KeLocalByDistance,
     KeMouseMirrorFlip,

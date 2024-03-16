@@ -360,7 +360,7 @@
         gp_vertex_select="#3fd3e3"
         gp_vertex_size="3"
         text_grease_pencil="#8bdc00"
-        object_selected="#237780"
+        object_selected="#c8c8c8"
         object_active="#3fd3e3"
         text_keyframe="#ffc633"
         camera="#000000"
@@ -374,6 +374,7 @@
         vertex_bevel="#2890ff"
         vertex_unreferenced="#000000"
         edge_select="#3fd3e3"
+        edge_mode_select="#ffd800"
         edge_seam="#ff3333"
         edge_sharp="#56c5be"
         edge_crease="#8f00b3"
@@ -382,6 +383,7 @@
         freestyle_edge_mark="#33ff85"
         face="#ffffff04"
         face_select="#3fd3e326"
+        face_mode_select="#ffb70033"
         face_dot="#3fd3e3"
         facedot_size="2"
         freestyle_face_mark="#33ff8555"
@@ -740,6 +742,7 @@
         vertex_unreferenced="#000000"
         face="#ffffff04"
         face_select="#309fac26"
+        face_mode_select="#00000000"
         face_dot="#3fd3e3"
         facedot_size="2"
         freestyle_face_mark="#7fff7f33"
@@ -971,8 +974,8 @@
     <node_editor>
       <ThemeNodeEditor
         grid="#282c34"
-        node_selected="#3fd3e3"
-        node_active="#ffffff"
+        node_selected="#ffffff"
+        node_active="#3fd3e3"
         wire="#282c34ff"
         wire_inner="#6c798d"
         wire_select="#ffffff80"
@@ -1615,6 +1618,7 @@
     <panel_title>
       <ThemeFontStyle
         points="11.5"
+        character_weight="400"
         shadow="5"
         shadow_offset_x="0"
         shadow_offset_y="-1"
@@ -1626,6 +1630,7 @@
     <widget_label>
       <ThemeFontStyle
         points="11"
+        character_weight="400"
         shadow="5"
         shadow_offset_x="0"
         shadow_offset_y="-1"
@@ -1637,6 +1642,7 @@
     <widget>
       <ThemeFontStyle
         points="11"
+        character_weight="400"
         shadow="5"
         shadow_offset_x="0"
         shadow_offset_y="-1"

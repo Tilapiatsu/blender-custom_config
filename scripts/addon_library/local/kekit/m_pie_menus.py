@@ -1,9 +1,9 @@
 import bpy
 from addon_utils import check
 from bpy.types import Panel, Menu
-from .ops.pie_operators import KePieOps, KeCallPie, KeObjectOp, KeOverlays
-from ._utils import get_prefs, is_registered
 from ._ui import pcoll
+from ._utils import get_prefs, is_registered
+from .ops.pie_operators import KePieOps, KeCallPie, KeObjectOp, KeOverlays
 
 
 class UIPieMenusModule(Panel):
@@ -143,18 +143,34 @@ class KePieBookmarks(Menu):
         return context.space_data.type == "VIEW_3D" and k.m_bookmarks
 
     def draw(self, context):
-        b1 = pcoll['kekit']['ke_bm1'].icon_id
-        b2 = pcoll['kekit']['ke_bm2'].icon_id
-        b3 = pcoll['kekit']['ke_bm3'].icon_id
-        b4 = pcoll['kekit']['ke_bm4'].icon_id
-        b5 = pcoll['kekit']['ke_bm5'].icon_id
-        b6 = pcoll['kekit']['ke_bm6'].icon_id
-        c1 = pcoll['kekit']['ke_cursor1'].icon_id
-        c2 = pcoll['kekit']['ke_cursor2'].icon_id
-        c3 = pcoll['kekit']['ke_cursor3'].icon_id
-        c4 = pcoll['kekit']['ke_cursor4'].icon_id
-        c5 = pcoll['kekit']['ke_cursor5'].icon_id
-        c6 = pcoll['kekit']['ke_cursor6'].icon_id
+        kp = get_prefs()
+        if kp.color_icons:
+            b1 = pcoll['kekit']['ke_bm1'].icon_id
+            b2 = pcoll['kekit']['ke_bm2'].icon_id
+            b3 = pcoll['kekit']['ke_bm3'].icon_id
+            b4 = pcoll['kekit']['ke_bm4'].icon_id
+            b5 = pcoll['kekit']['ke_bm5'].icon_id
+            b6 = pcoll['kekit']['ke_bm6'].icon_id
+            c1 = pcoll['kekit']['ke_cursor1'].icon_id
+            c2 = pcoll['kekit']['ke_cursor2'].icon_id
+            c3 = pcoll['kekit']['ke_cursor3'].icon_id
+            c4 = pcoll['kekit']['ke_cursor4'].icon_id
+            c5 = pcoll['kekit']['ke_cursor5'].icon_id
+            c6 = pcoll['kekit']['ke_cursor6'].icon_id
+        else:
+            b1 = pcoll['kekit']['ke_mono1'].icon_id
+            b2 = pcoll['kekit']['ke_mono2'].icon_id
+            b3 = pcoll['kekit']['ke_mono3'].icon_id
+            b4 = pcoll['kekit']['ke_mono4'].icon_id
+            b5 = pcoll['kekit']['ke_mono5'].icon_id
+            b6 = pcoll['kekit']['ke_mono6'].icon_id
+            c1 = b1
+            c2 = b2
+            c3 = b3
+            c4 = b4
+            c5 = b5
+            c6 = b6
+
         k = context.scene.kekit_temp
         opv = 'view3d.ke_view_bookmark'
         opb = 'view3d.ke_cursor_bookmark'
@@ -956,6 +972,20 @@ class KePieOrientPivot(Menu):
         name4 = k.opc4_name
         name5 = k.opc5_name
         name6 = k.opc6_name
+        if k.color_icons:
+            o1 = pcoll['kekit']['ke_opc1'].icon_id
+            o2 = pcoll['kekit']['ke_opc2'].icon_id
+            o3 = pcoll['kekit']['ke_opc3'].icon_id
+            o4 = pcoll['kekit']['ke_opc4'].icon_id
+            o5 = pcoll['kekit']['ke_opc5'].icon_id
+            o6 = pcoll['kekit']['ke_opc6'].icon_id
+        else:
+            o1 = pcoll['kekit']['ke_mono1'].icon_id
+            o2 = pcoll['kekit']['ke_mono2'].icon_id
+            o3 = pcoll['kekit']['ke_mono3'].icon_id
+            o4 = pcoll['kekit']['ke_mono4'].icon_id
+            o5 = pcoll['kekit']['ke_mono5'].icon_id
+            o6 = pcoll['kekit']['ke_mono6'].icon_id
 
         mode = context.mode
         obj = context.active_object
@@ -965,12 +995,12 @@ class KePieOrientPivot(Menu):
 
         layout = self.layout
         pie = layout.menu_pie()
-        pie.operator("view3d.ke_opc", text="%s" % name5, icon_value=pcoll['kekit']['ke_opc5'].icon_id).combo = "5"
-        pie.operator("view3d.ke_opc", text="%s" % name3, icon_value=pcoll['kekit']['ke_opc3'].icon_id).combo = "3"
-        pie.operator("view3d.ke_opc", text="%s" % name4, icon_value=pcoll['kekit']['ke_opc4'].icon_id).combo = "4"
-        pie.operator("view3d.ke_opc", text="%s" % name1, icon_value=pcoll['kekit']['ke_opc1'].icon_id).combo = "1"
-        pie.operator("view3d.ke_opc", text="%s" % name6, icon_value=pcoll['kekit']['ke_opc6'].icon_id).combo = "6"
-        pie.operator("view3d.ke_opc", text="%s" % name2, icon_value=pcoll['kekit']['ke_opc2'].icon_id).combo = "2"
+        pie.operator("view3d.ke_opc", text="%s" % name5, icon_value=o5).combo = "5"
+        pie.operator("view3d.ke_opc", text="%s" % name3, icon_value=o3).combo = "3"
+        pie.operator("view3d.ke_opc", text="%s" % name4, icon_value=o4).combo = "4"
+        pie.operator("view3d.ke_opc", text="%s" % name1, icon_value=o1).combo = "1"
+        pie.operator("view3d.ke_opc", text="%s" % name6, icon_value=o6).combo = "6"
+        pie.operator("view3d.ke_opc", text="%s" % name2, icon_value=o2).combo = "2"
 
         c = pie.column()
         c.separator(factor=13)
@@ -1013,20 +1043,13 @@ class KePieOverlays(Menu):
         layout = self.layout
         pie = layout.menu_pie()
 
+        # OBJECT OVERLAYS
         c = pie.column()
         cbox = c.box().column()
         cbox.scale_y = 1.15
         cbox.ui_units_x = 7
-
-        if s.show_backface_culling:
-            cbox.operator(op, text="Backface Culling", icon="XRAY", depress=True).overlay = "BACKFACE"
-        else:
-            cbox.operator(op, text="Backface Culling", icon="XRAY",
-                          depress=False).overlay = "BACKFACE"
-
-        cbox.separator(factor=0.25)
-
         row = cbox.row(align=True)
+
         if o.show_floor:
             row.operator(op, text="Floor", depress=True).overlay = "GRID"
         else:
@@ -1091,6 +1114,7 @@ class KePieOverlays(Menu):
             cbox.operator(op, text="Object Outline", icon="MESH_CIRCLE",
                           depress=False).overlay = "OBJ_OUTLINE"
 
+        # EDIT MODE OVERLAYS
         c = pie.column()
         cbox = c.box().column()
         cbox.scale_y = 1.15
@@ -1143,13 +1167,6 @@ class KePieOverlays(Menu):
 
         cbox.separator(factor=0.25)
 
-        if o.show_face_orientation:
-            cbox.operator(op, text="Face Orientation", icon="FACESEL",
-                          depress=True).overlay = "FACEORIENT"
-        else:
-            cbox.operator(op, text="Face Orientation", icon="FACESEL",
-                          depress=False).overlay = "FACEORIENT"
-
         if o.show_weight:
             cbox.operator(op, text="Vertex Weights", icon="GROUP_VERTEX",
                           depress=True).overlay = "WEIGHT"
@@ -1175,12 +1192,34 @@ class KePieOverlays(Menu):
                          depress=False).overlay = "LENGTHS"
 
         c = pie.column()
-        c.separator(factor=4)
-        cbox = c.box().column()
-        cbox.scale_y = 1.15
-        cbox.ui_units_x = 7
-        cbox.use_property_split = False
+        c.ui_units_x = 8.5
+        c.separator(factor=5)
 
+        # BOTTOM MENU - GRID TOGGLE
+        cbox = c.box().column()
+        row = cbox.row(align=True)
+        row.scale_y = 0.8
+        row.enabled = False
+        row.label(text="Grid Scale:")
+        row = cbox.row(align=True)
+        row.scale_y = 1.1
+        g = row.operator("view3d.ke_grid_toggle", text="1.0")
+        g.factor = 1.0
+        g.toggle = False
+        g = row.operator("view3d.ke_grid_toggle", text="0.5")
+        g.factor = 0.5
+        g.toggle = False
+        g = row.operator("view3d.ke_grid_toggle", text="0.25")
+        g.factor = 0.25
+        g.toggle = False
+        g = row.operator("view3d.ke_grid_toggle", text="0.1")
+        g.factor = 0.1
+        g.toggle = False
+
+        # BOTTOM MENU - OBJECT DISPLAY
+        cbox = c.box().column()
+        cbox.scale_y = 1
+        cbox.use_property_split = False
         obj = context.object
         if obj:
             obj_type = obj.type
@@ -1190,30 +1229,28 @@ class KePieOverlays(Menu):
             is_dupli = (obj.instance_type != 'NONE')
 
             col = cbox.column(align=True)
-            row = col.row()
-            if o.show_stats:
-                row.operator(op, text="Stats", icon="LINENUMBERS_ON", depress=True).overlay = "STATS"
-            else:
-                row.operator(op, text="Stats", icon="LINENUMBERS_ON", depress=False).overlay = "STATS"
-            row = col.row()
+            row = col.row(align=True)
             row.scale_y = 0.8
             row.enabled = False
             row.label(text="Show Active Object:")
+            col = cbox.column_flow(columns=2, align=True)
+
             col.prop(obj, "show_name", text="Name")
             col.prop(obj, "show_axis", text="Axis")
 
             if is_geometry or is_dupli:
-                col.prop(obj, "show_wire", text="Wireframe")
+                col.prop(obj, "show_wire", text="Wire")
             if obj_type == 'MESH' or is_dupli:
-                col.prop(obj, "show_all_edges", text="All Edges")
+                col.prop(obj, "show_all_edges", text="Edges")
             if is_geometry:
                 col.prop(obj, "show_texture_space", text="Texture Space")
                 col.prop(obj.display, "show_shadows", text="Shadow")
             col.prop(obj, "show_in_front", text="In Front")
 
             if has_bounds:
-                col.prop(obj, "show_bounds")
+                col.prop(obj, "show_bounds", text="Bounds")
 
+            col = cbox.column(align=True)
             sub = col.row(align=True)
             if is_wire:
                 # wire objects only use the max. display type for duplis
@@ -1228,10 +1265,37 @@ class KePieOverlays(Menu):
             col.label(text="No Active Object")
 
         c = pie.column()
-        cbox = c.box().row(align=True)
-        cbox.scale_y = 1.2
-        cbox.operator(op, text="All Overlays", icon="OVERLAY").overlay = "ALL"
-        cbox.operator(op, text="All Edge Overlays", icon="UV_EDGESEL").overlay = "ALLEDIT"
+        cbox = c.box().column()
+
+        # OVERLAYS
+        row = cbox.row(align=True)
+        row.operator(op, text="All Overlays", icon="OVERLAY").overlay = "ALL"
+        if context.mode != "OBJECT":
+            row.operator(op, text="All Edge Overlays", icon="UV_EDGESEL").overlay = "ALLEDIT"
+        else:
+            row.label(text="All Edge Overlays", icon="UV_EDGESEL")
+
+        # STATS
+        if o.show_stats:
+            row.operator(op, text="", icon="LINENUMBERS_ON", depress=True).overlay = "STATS"
+        else:
+            row.operator(op, text="", icon="LINENUMBERS_ON", depress=False).overlay = "STATS"
+
+        # BACKFACES
+        row = cbox.row(align=True)
+        if s.show_backface_culling:
+            row.operator(op, text="Backface Culling", icon="XRAY", depress=True).overlay = "BACKFACE"
+        else:
+            row.operator(op, text="Backface Culling", icon="XRAY",
+                         depress=False).overlay = "BACKFACE"
+
+        if o.show_face_orientation:
+            row.operator(op, text="Face Orientation", icon="FACESEL",
+                         depress=True).overlay = "FACEORIENT"
+        else:
+            row.operator(op, text="Face Orientation", icon="FACESEL",
+                         depress=False).overlay = "FACEORIENT"
+
         c.separator(factor=7)
 
 
@@ -1511,12 +1575,20 @@ class KePieSnapping(Menu):
         name4 = k.snap_name4
         name5 = k.snap_name5
         name6 = k.snap_name6
-        s1 = pcoll['kekit']['ke_snap1'].icon_id
-        s2 = pcoll['kekit']['ke_snap2'].icon_id
-        s3 = pcoll['kekit']['ke_snap3'].icon_id
-        s4 = pcoll['kekit']['ke_snap4'].icon_id
-        s5 = pcoll['kekit']['ke_snap5'].icon_id
-        s6 = pcoll['kekit']['ke_snap6'].icon_id
+        if k.color_icons:
+            s1 = pcoll['kekit']['ke_snap1'].icon_id
+            s2 = pcoll['kekit']['ke_snap2'].icon_id
+            s3 = pcoll['kekit']['ke_snap3'].icon_id
+            s4 = pcoll['kekit']['ke_snap4'].icon_id
+            s5 = pcoll['kekit']['ke_snap5'].icon_id
+            s6 = pcoll['kekit']['ke_snap6'].icon_id
+        else:
+            s1 = pcoll['kekit']['ke_mono1'].icon_id
+            s2 = pcoll['kekit']['ke_mono2'].icon_id
+            s3 = pcoll['kekit']['ke_mono3'].icon_id
+            s4 = pcoll['kekit']['ke_mono4'].icon_id
+            s5 = pcoll['kekit']['ke_mono5'].icon_id
+            s6 = pcoll['kekit']['ke_mono6'].icon_id
 
         layout = self.layout
         pie = layout.menu_pie()

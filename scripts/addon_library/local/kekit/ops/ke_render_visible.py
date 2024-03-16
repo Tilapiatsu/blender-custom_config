@@ -18,12 +18,12 @@ class KeRenderVisible(Operator):
 
     @persistent
     def ke_init_render(self, scene, depsgraph):
-        scene.kekit_temp.is_rendering = True
+        bpy.context.window_manager.kekit_temp_session.qm_running = True
         # print("Render Starting")
 
     @persistent
     def ke_post_render(self, scene, depsgraph):
-        scene.kekit_temp.is_rendering = False
+        bpy.context.window_manager.kekit_temp_session.qm_running = False
         # print("Render Done")
 
     def execute(self, context):
@@ -42,7 +42,7 @@ class KeRenderVisible(Operator):
             # print("keKit Render Handlers Loaded")
 
         # Check rendering status
-        rendering = context.scene.kekit_temp.is_rendering
+        rendering = context.window_manager.kekit_temp_session.qm_running
 
         if not rendering:
             # Grab visibility states & setup
@@ -69,8 +69,9 @@ class KeRenderVisible(Operator):
 
     def modal(self, context, event):
         if event.type == 'TIMER':
+            print(context.window_manager.kekit_temp_session.qm_running)
             if self.stop or event.type == "ESC":
-                if not context.scene.kekit_temp.is_rendering:
+                if not context.window_manager.kekit_temp_session.qm_running:
                     # remove timer
                     context.window_manager.event_timer_remove(self._timer)
                     # restore visibility states

@@ -9,6 +9,7 @@ from bpy_extras.view3d_utils import (
     location_3d_to_region_2d
 )
 from mathutils import Matrix, Vector
+from .manifest import keops, kepies
 
 
 #
@@ -19,11 +20,27 @@ def get_prefs():
 
 
 def is_registered(idname_c):
-    """Check if class is registered (idname string) E.g: 'VIEW3D_OT_ke_bg_sync' """
+    """Check if class is registered (with c-style idname string) E.g: 'VIEW3D_OT_ke_bg_sync' """
     try:
         return hasattr(bpy.types, idname_c)
     except AttributeError or ValueError:
         return False
+
+
+def get_kekit_keymap():
+    wm = bpy.context.window_manager
+    kc = wm.keyconfigs.user
+    kk_entries = []
+    for km in kc.keymaps:
+        entry = []
+        for i in km.keymap_items:
+            if i.idname in keops:
+                entry.append(i)
+            elif i.idname == "wm.call_menu_pie" and i.name in kepies:
+                entry.append(i)
+        if entry:
+            kk_entries.append((km, entry))
+    return kk_entries
 
 
 def get_view_type():
@@ -39,14 +56,16 @@ def get_view_type():
                         return "ORTHO"
 
 
-def get_area_of_type(type_name):
-    for area in bpy.context.screen.areas:
-        if area.type == type_name:
-            return area
-
-
-def get_3d_view():
-    return get_area_of_type('VIEW_3D').spaces[0]
+def get_override_by_type(t="VIEW_3D"):
+    w, a, r = None, None, None
+    for window in bpy.context.window_manager.windows:
+        for area in window.screen.areas:
+            if area.type == t:
+                if area.regions:
+                    w = window
+                    a = area
+                    r = area.regions[0]
+    return w, a, r
 
 
 def get_area_and_type():

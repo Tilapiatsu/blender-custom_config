@@ -1,5 +1,7 @@
 import bpy
 from bpy.types import Panel
+from ._ui import pcoll
+from ._utils import get_prefs
 from .ops.ke_activeslice import KeActiveSlice
 from .ops.ke_boolknife import KeBoolKnife
 from .ops.ke_convert_cbo import KeCBO
@@ -18,8 +20,6 @@ from .ops.ke_quads import KeQuads
 from .ops.ke_quickscale import KeQuickScale
 from .ops.ke_unbevel import KeUnbevel
 from .ops.ke_zeroscale import KeZeroScale
-from ._ui import pcoll
-from ._utils import get_prefs
 
 
 class UIModelingModule(Panel):
@@ -32,6 +32,8 @@ class UIModelingModule(Panel):
 
     def draw(self, context):
         k = get_prefs()
+        u = pcoll['kekit']['ke_uncheck'].icon_id
+        c = pcoll['kekit']['ke_check'].icon_id
         layout = self.layout
         col = layout.column(align=True)
 
@@ -40,12 +42,8 @@ class UIModelingModule(Panel):
 
         row = col.row(align=True)
         row.operator('mesh.ke_unbevel')
-        row2 = row.row(align=True)
-        row2.alignment = "RIGHT"
-        if k.unbevel_autoring:
-            row2.prop(k, "unbevel_autoring", text="", toggle=True, icon="CHECKMARK")
-        else:
-            row2.prop(k, "unbevel_autoring", text="", toggle=True, icon_value=pcoll['kekit']['ke_uncheck'].icon_id)
+        row.prop(k, "unbevel_autoring", text="", toggle=True, icon_value=c if k.unbevel_autoring else u)
+
         col.operator('view3d.ke_ground', text="Ground or Center")
         col.operator('view3d.ke_nice_project')
         col.operator('view3d.ke_boolknife')
@@ -53,13 +51,9 @@ class UIModelingModule(Panel):
         col.operator('mesh.ke_quads')
 
         col.label(text="Merge To:")
-        # row = col.row(align=True)
-        # row.operator('mesh.ke_merge_to_mouse', text="Mouse", icon="MOUSE_MOVE")
         row = col.row(align=True)
-        split = row.split(factor=0.8, align=True)
-        split.operator('mesh.ke_merge_to_mouse', text="Mouse", icon="MOUSE_MOVE")
-        split.prop(k, "merge2mouse_ec", toggle=True)
-
+        row.operator('mesh.ke_merge_to_mouse', text="Mouse", icon="MOUSE_MOVE")
+        row.prop(k, "merge2mouse_ec", text="", toggle=True, icon_value=c if k.merge2mouse_ec else u)
         col.operator('mesh.ke_merge_near_selected', text="Near Selected")
         col.operator('mesh.ke_merge_to_active')
 
@@ -70,6 +64,7 @@ class UIModelingModule(Panel):
         split.operator('mesh.ke_zeroscale', text="ZeroScale Cursor").orient_type = "CURSOR"
         split.operator('mesh.ke_zeroscale', text="ZS Auto").orient_type = "AUTO"
         col.operator('mesh.ke_facematch')
+
         row = col.row(align=True)
         row.scale_x = 0.85
         row.prop(k, "qs_user_value", text="QScale")

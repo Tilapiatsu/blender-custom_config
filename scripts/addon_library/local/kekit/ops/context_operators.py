@@ -110,7 +110,7 @@ class KeContextDelete(Operator):
 
     @classmethod
     def poll(cls, context):
-        return context.active_object is not None
+        return context.object
 
     def execute(self, context):
         k = get_prefs()
@@ -121,11 +121,10 @@ class KeContextDelete(Operator):
             pluscut = False
 
         smart = bool(k.cd_smart)
-
         ctx_mode = context.mode
+
         if ctx_mode == "EDIT_MESH":
             sel_mode = context.tool_settings.mesh_select_mode
-
             # VERTS
             if sel_mode[0]:
                 if smart:
@@ -159,7 +158,13 @@ class KeContextDelete(Operator):
                     bpy.ops.mesh.delete(type='FACE')
 
         elif ctx_mode == "OBJECT":
+            context.object.select_set(True)
+            context.view_layer.objects.active = context.object
+
             sel = list(context.selected_objects)
+            if not sel:
+                return {"CANCELLED"}
+
             if k.h_delete:
                 for o in sel:
                     for child in o.children:
@@ -215,9 +220,9 @@ class KeContextDissolve(Operator):
 class KeContextSelect(Operator):
     bl_idname = "view3d.ke_contextselect"
     bl_label = "Context Select"
-    bl_description = "EDGES: loop select, POLYS: Linked select, VERTS: (linked) Border edges" \
-                     "OBJECT: Hierarchy select with children. Run again to include parents" \
-                     "Intended for Double-click select. (Assign in prefs)"
+    bl_description = "EDGES: loop select, POLYS: Linked select, VERTS: (linked) Border edges\n" \
+                     "OBJECT: Hierarchy select with children. Run again to include parents\n" \
+                     "Intended for *Double-click select* (Assign in prefs)"
 
     @classmethod
     def poll(cls, context):
@@ -272,7 +277,7 @@ class KeContextSelect(Operator):
 class KeContextSelectExtend(Operator):
     bl_idname = "view3d.ke_contextselect_extend"
     bl_label = "Context Select Extend"
-    bl_description = "Extends Context Select. Intended for Shift-Double-click LMB" \
+    bl_description = "Extends Context Select. Intended for Shift-Double-click LMB\n" \
                      "(You have to assign dbl-click in preferences)"
 
     @classmethod
@@ -317,7 +322,7 @@ class KeContextSelectExtend(Operator):
 class KeContextSelectSubtract(Operator):
     bl_idname = "view3d.ke_contextselect_subtract"
     bl_label = "Context Select Subtract"
-    bl_description = "Subtracts Context Select. Intended for Ctrl-Double-click LMB" \
+    bl_description = "Subtracts Context Select. Intended for Ctrl-Double-click LMB\n" \
                      "(You have to assign dbl-click in preferences)"
 
     @classmethod
