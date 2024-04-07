@@ -895,7 +895,7 @@ class TILA_Config_Keymaps_Global(TILA_Config_Keymaps):
 		self.kmi_set_replace('wm.context_toggle', 'F', 'PRESS', shift=True, properties={'data_path': 'space_data.overlay.show_sculpt_face_sets'}, disable_double=True)
 
 		# self.kmi_set_replace('view3d.tila_inverse_visibility', self.k_nav, 'PRESS', ctrl=True, shift=True)
-		self.kmi_set_replace('sculpt.face_set_invert_visibility', self.k_nav, 'PRESS', ctrl=True, alt=True, shift=True, properties={'mode': 'INVERT'}, disable_double=True)
+		self.kmi_set_replace('paint.visibility_invert', self.k_nav, 'PRESS', ctrl=True, alt=True, shift=True, disable_double=True)
 		self.kmi_set_replace('sculpt.sculpt.sample_color', 'S', 'PRESS', disable_double=True)
 
 		if bversion >= 3.2: 

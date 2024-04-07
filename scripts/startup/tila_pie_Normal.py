@@ -182,7 +182,6 @@ class TILA_OT_normalflatten(bpy.types.Operator):
 
     def update_customnormals(self, mesh, normalslist):
         if len(normalslist) > 0:
-            if mesh.use_auto_smooth:
                 newnormslist = ()
                 
                 for f in mesh.polygons:
@@ -207,29 +206,6 @@ class TILA_OT_normalflatten(bpy.types.Operator):
                 mesh.update()
                 return True
 
-            else:
-                meshverts = []
-                if bpy.context.mode == 'EDIT_MESH':
-                    bm = bmesh.from_edit_mesh(mesh)
-                    meshverts = [v for v in bm.verts]
-
-                    for v_index, v in enumerate(meshverts):
-                        v.normal = normalslist[v_index].copy()
-
-                    bmesh.update_edit_mesh(mesh, loop_triangles=False, destructive=False)
-                    mesh.update()
-                else:
-                    bm = bmesh.new()
-                    bm.from_mesh(mesh)
-                    meshverts = [v for v in bm.verts]
-
-                    for v_index, v in enumerate(meshverts):
-                        v.normal = normalslist[v_index].copy()
-
-                    bm.to_mesh(mesh)
-
-                del meshverts[:]
-                return True
 
         return False
 
@@ -339,9 +315,9 @@ class TILA_OT_normalaverage(bpy.types.Operator):
     bl_label = "Tilapiatsu Average Normals"
     bl_options = {'REGISTER', 'UNDO'}
 
-    func = {'VERT': ((bpy.ops.view3d.tila_autosmooth, None), (bpy.ops.mesh.average_normals, {'average_type': 'FACE_AREA'}),),
-            'EDGE': ((bpy.ops.view3d.tila_autosmooth, None), (bpy.ops.mesh.average_normals, {'average_type': 'FACE_AREA'}),),
-            'FACE': ((bpy.ops.view3d.tila_autosmooth, None), (bpy.ops.mesh.average_normals, {'average_type': 'FACE_AREA'}))}
+    func = {'VERT': ((bpy.ops.mesh.average_normals, {'average_type': 'FACE_AREA'}),),
+            'EDGE': ((bpy.ops.mesh.average_normals, {'average_type': 'FACE_AREA'}),),
+            'FACE': ((bpy.ops.mesh.average_normals, {'average_type': 'FACE_AREA'}),)}
 
     def execute(self, context):
 
@@ -355,9 +331,9 @@ class TILA_OT_normaluseface(bpy.types.Operator):
     bl_label = "Tilapiatsu Use Face Normals"
     bl_options = {'REGISTER', 'UNDO'}
 
-    func = {'VERT': ((bpy.ops.view3d.tila_autosmooth, None), (bpy.ops.mesh.set_normals_from_faces, {'keep_sharp':True})),
-            'EDGE': ((bpy.ops.view3d.tila_autosmooth, None), (bpy.ops.mesh.set_normals_from_faces, {'keep_sharp':True})),
-            'FACE': ((bpy.ops.view3d.tila_autosmooth, None), (bpy.ops.mesh.set_normals_from_faces, {'keep_sharp':True}))}
+    func = {'VERT': ((bpy.ops.mesh.set_normals_from_faces, {'keep_sharp':True}),),
+            'EDGE': ((bpy.ops.mesh.set_normals_from_faces, {'keep_sharp':True}),),
+            'FACE': ((bpy.ops.mesh.set_normals_from_faces, {'keep_sharp':True}),)}
 
     def execute(self, context):
 
@@ -371,9 +347,9 @@ class TILA_OT_normalsmooth(bpy.types.Operator):
     bl_label = "Tilapiatsu smooth Normals"
     bl_options = {'REGISTER', 'UNDO'}
 
-    func = {'VERT': ((bpy.ops.view3d.tila_autosmooth, None), (bpy.ops.mesh.smooth_normals, {'factor': 1}),),
-            'EDGE': ((bpy.ops.view3d.tila_autosmooth, None), (bpy.ops.mesh.smooth_normals, {'factor': 1}),),
-            'FACE': ((bpy.ops.view3d.tila_autosmooth, None), (bpy.ops.mesh.smooth_normals, {'factor': 1}))}
+    func = {'VERT': ((bpy.ops.mesh.smooth_normals, {'factor': 1}),),
+            'EDGE': ((bpy.ops.mesh.smooth_normals, {'factor': 1}),),
+            'FACE': ((bpy.ops.mesh.smooth_normals, {'factor': 1}))}
 
     def execute(self, context):
 
@@ -387,7 +363,7 @@ class TILA_OT_smartsplit(bpy.types.Operator):
     bl_label = "Tilapiatsu Smartly Split vertex normal"
     bl_options = {'REGISTER', 'UNDO'}
 
-    func = {'VERT': ((bpy.ops.view3d.tila_autosmooth, None), (bpy.ops.mesh.normals_tools, {'mode': 'RESET'}), (bpy.ops.view3d.tila_splitnormal, None)),
+    func = {'VERT': ((bpy.ops.mesh.normals_tools, {'mode': 'RESET'}), (bpy.ops.view3d.tila_splitnormal, None)),
             'EDGE': ((bpy.ops.view3d.tila_splitnormal, None),),
             'FACE': ((bpy.ops.mesh.tila_selectborderedges, {'mode': 'ACTIVE'}), (bpy.ops.view3d.tila_splitnormal, None), (bpy.ops.mesh.select_mode, {'type':"FACE"})),
             'OBJECT': ((bpy.ops.object.shade_flat, None),)}
@@ -408,15 +384,15 @@ class TILA_OT_normalsmartmerge(bpy.types.Operator):
     def get_shade_smooth(self):
         if bversion < 3.2:
                 print('< 3.2')
-                return {'VERT': ((bpy.ops.view3d.tila_autosmooth, None), (bpy.ops.mesh.smooth_normals, {'factor': 1}), (bpy.ops.view3d.tila_smoothnormal, None)),
+                return {'VERT': ((bpy.ops.mesh.smooth_normals, {'factor': 1}), (bpy.ops.view3d.tila_smoothnormal, None)),
                     'EDGE': ((bpy.ops.view3d.tila_smoothnormal, None),),
                     'FACE': ((bpy.ops.mesh.tila_selectborderedges, {'mode': 'ACTIVE'}), (bpy.ops.view3d.tila_smoothnormal, None), (bpy.ops.mesh.select_mode, {'type':"FACE"})),
                     'OBJECT': ((bpy.ops.object.shade_smooth, None),)}
         else:
-                return {'VERT': ((bpy.ops.view3d.tila_autosmooth, None), (bpy.ops.mesh.smooth_normals, {'factor': 1}), (bpy.ops.view3d.tila_smoothnormal, None)),
+                return {'VERT': ((bpy.ops.mesh.smooth_normals, {'factor': 1}), (bpy.ops.view3d.tila_smoothnormal, None)),
                     'EDGE': ((bpy.ops.view3d.tila_smoothnormal, None),),
                     'FACE': ((bpy.ops.mesh.tila_selectborderedges, {'mode': 'ACTIVE'}), (bpy.ops.view3d.tila_smoothnormal, None), (bpy.ops.mesh.select_mode, {'type':"FACE"})),
-                    'OBJECT': ((bpy.ops.object.shade_smooth, {'use_auto_smooth':True}),)}
+                    'OBJECT': ((bpy.ops.object.shade_smooth, None),)}
 
     def execute(self, context):
 
@@ -453,7 +429,6 @@ class TILA_OT_splitNormal(bpy.types.Operator):
     bl_options = {'REGISTER', 'UNDO'}
 
     def execute(self, context):
-        bpy.ops.view3d.tila_autosmooth(value=True)
         bpy.ops.mesh.split_normals()
         return {'FINISHED'}
 
@@ -464,7 +439,6 @@ class TILA_OT_smoothNormal(bpy.types.Operator):
     bl_options = {'REGISTER', 'UNDO'}
 
     def execute(self, context):
-        bpy.ops.view3d.tila_autosmooth(value=True)
         bpy.ops.mesh.merge_normals()
         return {'FINISHED'}
 
