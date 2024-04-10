@@ -284,6 +284,10 @@ class TILA_multires_rebuild_subdiv(bpy.types.Operator):
 			multires_modifier = ob.modifiers.new(name=self.modifier_name, type=self.modifier_type)
 		else:
 			multires_modifier = multires_modifier[0]
+		
+		multires_modifier.uv_smooth = 'NONE'
+		multires_modifier.boundary_smooth = 'PRESERVE_CORNERS'
+
 
 		try:
 			bpy.ops.object.multires_rebuild_subdiv(modifier=multires_modifier.name)
