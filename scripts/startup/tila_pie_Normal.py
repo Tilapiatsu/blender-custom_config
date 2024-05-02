@@ -182,29 +182,29 @@ class TILA_OT_normalflatten(bpy.types.Operator):
 
     def update_customnormals(self, mesh, normalslist):
         if len(normalslist) > 0:
-                newnormslist = ()
-                
-                for f in mesh.polygons:
-                    for i in range(len(f.vertices)):
-                        if f.select:
-                            newnormslist = newnormslist + ((normalslist[0][0].x, normalslist[0][0].y, normalslist[0][0].z),)
-                        else:
-                            newnormslist = newnormslist + ((f.normal.x, f.normal.y, f.normal.z),)
+            newnormslist = ()
+            
+            for f in mesh.polygons:
+                for i in range(len(f.vertices)):
+                    if f.select:
+                        newnormslist = newnormslist + ((normalslist[0][0].x, normalslist[0][0].y, normalslist[0][0].z),)
+                    else:
+                        newnormslist = newnormslist + ((f.normal.x, f.normal.y, f.normal.z),)
 
-                # for f in normalslist:
-                #     newnormslist = tuple([(n.x, n.y, n.z) for n in f])
+            # for f in normalslist:
+            #     newnormslist = tuple([(n.x, n.y, n.z) for n in f])
 
-                print('newnormslist', newnormslist)
-                mesh.calc_normals_split()
+            print('newnormslist', newnormslist)
+            mesh.calc_normals_split()
 
-                for e in mesh.edges:
-                    e.use_edge_sharp = False
+            for e in mesh.edges:
+                e.use_edge_sharp = False
 
-                mesh.validate(clean_customdata=False)
-                mesh.normals_split_custom_set(newnormslist)
-                mesh.free_normals_split()
-                mesh.update()
-                return True
+            mesh.validate(clean_customdata=False)
+            mesh.normals_split_custom_set(newnormslist)
+            mesh.free_normals_split()
+            mesh.update()
+            return True
 
 
         return False
@@ -266,6 +266,8 @@ class TILA_OT_normalflatten(bpy.types.Operator):
             for f in selected:
                 sum = sum + f.normal
             length = len(selected)
+            if not length:
+                return
             sum = (sum.x / length, sum.y / length, sum.z / length)
 
             sum = Vector(sum)
@@ -279,8 +281,8 @@ class TILA_OT_normalflatten(bpy.types.Operator):
 
                 # f.normal_update()
             # bm.select_flush(True)
+            # bm.normal_update()
             bmesh.update_edit_mesh(mesh)
-            mesh.update()
             bm.free()
             # bpy.ops.mesh.normals_make_consistent()
 
@@ -349,7 +351,7 @@ class TILA_OT_normalsmooth(bpy.types.Operator):
 
     func = {'VERT': ((bpy.ops.mesh.smooth_normals, {'factor': 1}),),
             'EDGE': ((bpy.ops.mesh.smooth_normals, {'factor': 1}),),
-            'FACE': ((bpy.ops.mesh.smooth_normals, {'factor': 1}))}
+            'FACE': ((bpy.ops.mesh.smooth_normals, {'factor': 1}),)}
 
     def execute(self, context):
 
