@@ -181,19 +181,19 @@
         ]
     },
     "EasyHDRI": {
-        "is_enable": false,
+        "is_enable": true,
         "is_sync": false,
         "online_url": "https://codeofart.gumroad.com/l/EasyHDRI",
         "repository_url": null,
         "branch": null,
         "is_submodule": false,
-        "local_path": "#\\scripts\\addon_library\\local",
+        "local_path": "#\\scripts\\addon_library\\local\\EasyHDRI",
         "keymaps": false,
         "paths": [
             {
-                "is_enable": false,
-                "local_subpath": "EasyHDRI.py",
-                "destination_path": "#\\scripts\\addons\\EasyHDRI.py"
+                "is_enable": true,
+                "local_subpath": null,
+                "destination_path": "#\\scripts\\addons\\EasyHDRI"
             }
         ]
     },
