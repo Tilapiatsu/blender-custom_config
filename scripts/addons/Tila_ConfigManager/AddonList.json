@@ -2169,7 +2169,7 @@
         "is_enable": true,
         "is_sync": true,
         "online_url": null,
-        "repository_url": "https://github.com/1C0D/optiloops.git",
+        "repository_url": "https://github.com/vilemduha/optiloops.git",
         "branch": null,
         "is_submodule": false,
         "local_path": "#\\scripts\\addon_library\\GIT_Clones\\optiloops",
