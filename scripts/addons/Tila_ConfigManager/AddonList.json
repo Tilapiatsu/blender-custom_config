@@ -2,6 +2,8 @@
     "Global": {
         "is_enable": false,
         "is_sync": false,
+        "is_extension": false,
+        "extension_id": null,
         "online_url": null,
         "repository_url": null,
         "branch": null,
@@ -13,6 +15,8 @@
     "ProTheme": {
         "is_enable": false,
         "is_sync": true,
+        "is_extension": false,
+        "extension_id": null,
         "online_url": null,
         "repository_url": "https://github.com/paulcoops/blender_pro-theme.git",
         "branch": null,
@@ -30,6 +34,8 @@
     "matcap": {
         "is_enable": false,
         "is_sync": true,
+        "is_extension": false,
+        "extension_id": null,
         "online_url": null,
         "repository_url": "https://github.com/Tilapiatsu/matcap-selection.git",
         "branch": "master",
@@ -47,6 +53,8 @@
     "HDRI": {
         "is_enable": false,
         "is_sync": false,
+        "is_extension": false,
+        "extension_id": null,
         "online_url": null,
         "repository_url": null,
         "branch": null,
@@ -64,6 +72,8 @@
     "AgX": {
         "is_enable": false,
         "is_sync": false,
+        "is_extension": false,
+        "extension_id": null,
         "online_url": null,
         "repository_url": "https://github.com/sobotka/AgX.git",
         "branch": null,
@@ -81,6 +91,8 @@
     "OpenColorIO-Config-ACES": {
         "is_enable": false,
         "is_sync": false,
+        "is_extension": false,
+        "extension_id": null,
         "online_url": null,
         "repository_url": "https://github.com/AcademySoftwareFoundation/OpenColorIO-Config-ACES.git",
         "branch": null,
@@ -98,6 +110,8 @@
     "BulkAsset": {
         "is_enable": false,
         "is_sync": false,
+        "is_extension": false,
+        "extension_id": null,
         "online_url": "https://johnnygizmo.gumroad.com/l/bulk-asset-tools",
         "repository_url": null,
         "branch": null,
@@ -115,6 +129,8 @@
     "BystedtsBlenderBaker": {
         "is_enable": false,
         "is_sync": false,
+        "is_extension": false,
+        "extension_id": null,
         "online_url": "https://3dbystedt.gumroad.com/l/JAqLT",
         "repository_url": null,
         "branch": null,
@@ -132,6 +148,8 @@
     "CheckToolBox": {
         "is_enable": false,
         "is_sync": false,
+        "is_extension": false,
+        "extension_id": null,
         "online_url": "https://vfxgrace.gumroad.com/l/apny",
         "repository_url": null,
         "branch": null,
@@ -149,6 +167,8 @@
     "context_browser": {
         "is_enable": false,
         "is_sync": false,
+        "is_extension": false,
+        "extension_id": null,
         "online_url": "https://roaoao.gumroad.com/l/context_browser",
         "repository_url": null,
         "branch": null,
@@ -166,6 +186,8 @@
     "drop_it": {
         "is_enable": false,
         "is_sync": false,
+        "is_extension": false,
+        "extension_id": null,
         "online_url": "https://andreasaust.gumroad.com/l/drop_it",
         "repository_url": null,
         "branch": null,
@@ -183,6 +205,8 @@
     "EasyHDRI": {
         "is_enable": true,
         "is_sync": false,
+        "is_extension": false,
+        "extension_id": null,
         "online_url": "https://codeofart.gumroad.com/l/EasyHDRI",
         "repository_url": null,
         "branch": null,
@@ -200,6 +224,8 @@
     "flow_map_painter": {
         "is_enable": false,
         "is_sync": false,
+        "is_extension": false,
+        "extension_id": null,
         "online_url": "https://clemensbeute.gumroad.com/l/heZDT",
         "repository_url": null,
         "branch": null,
@@ -217,6 +243,8 @@
     "keentools": {
         "is_enable": false,
         "is_sync": false,
+        "is_extension": false,
+        "extension_id": null,
         "online_url": "https://keentools.io/download/facebuilder-for-blender",
         "repository_url": null,
         "branch": null,
@@ -234,6 +262,8 @@
     "kekit": {
         "is_enable": true,
         "is_sync": false,
+        "is_extension": false,
+        "extension_id": null,
         "online_url": "https://kjell.gumroad.com/l/kekit_blender",
         "repository_url": null,
         "branch": null,
@@ -251,6 +281,8 @@
     "lazy_shapekeys": {
         "is_enable": false,
         "is_sync": false,
+        "is_extension": false,
+        "extension_id": null,
         "online_url": "https://bookyakuno.gumroad.com/l/lazy-shapekeys",
         "repository_url": null,
         "branch": null,
@@ -268,6 +300,8 @@
     "MeshDataTransfer": {
         "is_enable": true,
         "is_sync": false,
+        "is_extension": false,
+        "extension_id": null,
         "online_url": "https://mmemoli.gumroad.com/l/tOKEh",
         "repository_url": null,
         "branch": null,
@@ -285,6 +319,8 @@
     "mouselook_navigation": {
         "is_enable": false,
         "is_sync": false,
+        "is_extension": false,
+        "extension_id": null,
         "online_url": "https://moth3r.gumroad.com/l/mouselook",
         "repository_url": null,
         "branch": null,
@@ -302,6 +338,8 @@
     "NGon Loop Select": {
         "is_enable": true,
         "is_sync": false,
+        "is_extension": false,
+        "extension_id": null,
         "online_url": "https://amanbairwal.gumroad.com/l/NGonLoopSelect",
         "repository_url": null,
         "branch": null,
@@ -319,6 +357,8 @@
     "Poly_Source": {
         "is_enable": false,
         "is_sync": false,
+        "is_extension": false,
+        "extension_id": null,
         "online_url": "https://derksen.gumroad.com/l/polysource",
         "repository_url": null,
         "branch": null,
@@ -336,6 +376,8 @@
     "Pro_Aligner": {
         "is_enable": true,
         "is_sync": false,
+        "is_extension": false,
+        "extension_id": null,
         "online_url": "https://cggalaxy.gumroad.com/l/proaligner",
         "repository_url": null,
         "branch": null,
@@ -353,6 +395,8 @@
     "QBlocker": {
         "is_enable": false,
         "is_sync": false,
+        "is_extension": false,
+        "extension_id": null,
         "online_url": "https://sanislovart.gumroad.com/l/gOEV",
         "repository_url": null,
         "branch": null,
@@ -370,6 +414,8 @@
     "render_task_list": {
         "is_enable": false,
         "is_sync": false,
+        "is_extension": false,
+        "extension_id": null,
         "online_url": "https://bookyakuno.gumroad.com/l/render-task-list",
         "repository_url": null,
         "branch": null,
@@ -387,6 +433,8 @@
     "RetopoFlow": {
         "is_enable": false,
         "is_sync": false,
+        "is_extension": false,
+        "extension_id": null,
         "online_url": null,
         "repository_url": "https://github.com/CGCookie/retopoflow.git",
         "branch": null,
@@ -404,6 +452,8 @@
     "rotate_an_hdri": {
         "is_enable": true,
         "is_sync": false,
+        "is_extension": false,
+        "extension_id": null,
         "online_url": "https://alexbel.gumroad.com/l/XQYEl",
         "repository_url": null,
         "branch": null,
@@ -421,6 +471,8 @@
     "sj_selection_set": {
         "is_enable": false,
         "is_sync": false,
+        "is_extension": false,
+        "extension_id": null,
         "online_url": "https://captainhansode.gumroad.com/l/wqaMJ",
         "repository_url": null,
         "branch": null,
@@ -438,6 +490,8 @@
     "slcad_transform": {
         "is_enable": false,
         "is_sync": false,
+        "is_extension": false,
+        "extension_id": null,
         "online_url": "https://blender-archipack.gumroad.com/l/nQVcS",
         "repository_url": null,
         "branch": null,
@@ -455,6 +509,8 @@
     "softMod": {
         "is_enable": false,
         "is_sync": false,
+        "is_extension": false,
+        "extension_id": null,
         "online_url": "https://mmemoli.gumroad.com/l/softmod",
         "repository_url": null,
         "branch": null,
@@ -472,6 +528,8 @@
     "SSGI": {
         "is_enable": false,
         "is_sync": false,
+        "is_extension": false,
+        "extension_id": null,
         "online_url": "https://n0451.gumroad.com/l/PgyXc",
         "repository_url": null,
         "branch": null,
@@ -489,6 +547,8 @@
     "surface_inflate": {
         "is_enable": true,
         "is_sync": false,
+        "is_extension": false,
+        "extension_id": null,
         "online_url": "https://kushiro.gumroad.com/l/inmas",
         "repository_url": null,
         "branch": null,
@@ -506,6 +566,8 @@
     "Is_Synchronize Workspace": {
         "is_enable": false,
         "is_sync": false,
+        "is_extension": false,
+        "extension_id": null,
         "online_url": "https://m-soluyanov.gumroad.com/l/afoty",
         "repository_url": null,
         "branch": null,
@@ -523,6 +585,8 @@
     "UnwrapMe": {
         "is_enable": true,
         "is_sync": false,
+        "is_extension": false,
+        "extension_id": null,
         "online_url": null,
         "repository_url": "https://github.com/3e33/UnwrapMe.git",
         "branch": null,
@@ -540,6 +604,8 @@
     "weight_layers": {
         "is_enable": false,
         "is_sync": false,
+        "is_extension": false,
+        "extension_id": null,
         "online_url": "https://strike-digital.gumroad.com/l/weight_layers",
         "repository_url": null,
         "branch": null,
@@ -557,6 +623,8 @@
     "auto_mirror_ex": {
         "is_enable": false,
         "is_sync": false,
+        "is_extension": false,
+        "extension_id": null,
         "online_url": "https://bookyakuno.gumroad.com/l/vgRSB",
         "repository_url": null,
         "branch": null,
@@ -574,6 +642,8 @@
     "bakeToVertexColor": {
         "is_enable": false,
         "is_sync": false,
+        "is_extension": false,
+        "extension_id": null,
         "online_url": "https://3dbystedt.gumroad.com/l/zdgxg",
         "repository_url": null,
         "branch": null,
@@ -591,6 +661,8 @@
     "Blender_light_manager": {
         "is_enable": true,
         "is_sync": false,
+        "is_extension": false,
+        "extension_id": null,
         "online_url": "https://engelik.gumroad.com/l/DQNYI",
         "repository_url": null,
         "branch": null,
@@ -608,6 +680,8 @@
     "boundary_alinged_remesh": {
         "is_enable": false,
         "is_sync": false,
+        "is_extension": false,
+        "extension_id": null,
         "online_url": "https://bookyakuno.gumroad.com/l/NEMDA",
         "repository_url": null,
         "branch": null,
@@ -625,6 +699,8 @@
     "hide_only_vertex": {
         "is_enable": false,
         "is_sync": false,
+        "is_extension": false,
+        "extension_id": null,
         "online_url": "https://bookyakuno.gumroad.com/l/NEMDA",
         "repository_url": null,
         "branch": null,
@@ -642,6 +718,8 @@
     "ke_i2m": {
         "is_enable": false,
         "is_sync": false,
+        "is_extension": false,
+        "extension_id": null,
         "online_url": "https://kjell.gumroad.com/l/i2m",
         "repository_url": null,
         "branch": null,
@@ -659,6 +737,8 @@
     "thumbMate": {
         "is_enable": false,
         "is_sync": false,
+        "is_extension": false,
+        "extension_id": null,
         "online_url": "https://www.braverabbit.com/braverabbit/tools/thumbmate/",
         "repository_url": null,
         "branch": null,
@@ -676,6 +756,8 @@
     "transfer_vertex_order": {
         "is_enable": false,
         "is_sync": false,
+        "is_extension": false,
+        "extension_id": null,
         "online_url": "https://bartoszstyperek.gumroad.com/l/copy_verts_ids",
         "repository_url": null,
         "branch": null,
@@ -693,6 +775,8 @@
     "ZWeightTools": {
         "is_enable": false,
         "is_sync": false,
+        "is_extension": false,
+        "extension_id": null,
         "online_url": "https://zacheastin.gumroad.com/l/tukDb",
         "repository_url": null,
         "branch": null,
@@ -710,6 +794,8 @@
     "uvpackmaster3": {
         "is_enable": true,
         "is_sync": false,
+        "is_extension": false,
+        "extension_id": null,
         "online_url": "https://glukoz.gumroad.com/l/uvpackmaster3",
         "repository_url": null,
         "branch": null,
@@ -727,6 +813,8 @@
     "beta_quad": {
         "is_enable": false,
         "is_sync": false,
+        "is_extension": false,
+        "extension_id": null,
         "online_url": null,
         "repository_url": null,
         "branch": null,
@@ -744,6 +832,8 @@
     "MACHIN3tools": {
         "is_enable": true,
         "is_sync": false,
+        "is_extension": false,
+        "extension_id": null,
         "online_url": null,
         "repository_url": null,
         "branch": null,
@@ -761,6 +851,8 @@
     "MESHmachine": {
         "is_enable": true,
         "is_sync": false,
+        "is_extension": false,
+        "extension_id": null,
         "online_url": null,
         "repository_url": null,
         "branch": null,
@@ -778,6 +870,8 @@
     "physical-starlight-atmosphere": {
         "is_enable": true,
         "is_sync": false,
+        "is_extension": false,
+        "extension_id": null,
         "online_url": null,
         "repository_url": null,
         "branch": null,
@@ -795,6 +889,8 @@
     "SculptLayers": {
         "is_enable": true,
         "is_sync": false,
+        "is_extension": false,
+        "extension_id": null,
         "online_url": null,
         "repository_url": null,
         "branch": null,
@@ -812,6 +908,8 @@
     "uv_toolkit": {
         "is_enable": true,
         "is_sync": false,
+        "is_extension": false,
+        "extension_id": null,
         "online_url": null,
         "repository_url": null,
         "branch": null,
@@ -829,6 +927,8 @@
     "BakeWrangler": {
         "is_enable": true,
         "is_sync": false,
+        "is_extension": false,
+        "extension_id": null,
         "online_url": null,
         "repository_url": null,
         "branch": null,
@@ -846,6 +946,8 @@
     "quad_remesher": {
         "is_enable": true,
         "is_sync": false,
+        "is_extension": false,
+        "extension_id": null,
         "online_url": "https://exoside.com/quadremesher/quadremesher-download/",
         "repository_url": null,
         "branch": null,
@@ -863,6 +965,8 @@
     "noodler": {
         "is_enable": true,
         "is_sync": true,
+        "is_extension": false,
+        "extension_id": null,
         "online_url": null,
         "repository_url": "https://github.com/DB3D/Noodler.git",
         "branch": null,
@@ -880,6 +984,8 @@
     "keymesh": {
         "is_enable": false,
         "is_sync": false,
+        "is_extension": false,
+        "extension_id": null,
         "online_url": null,
         "repository_url": "https://github.com/pablodp606/keymesh-addon.git",
         "branch": null,
@@ -897,6 +1003,8 @@
     "leomoon-lightstudio": {
         "is_enable": false,
         "is_sync": false,
+        "is_extension": false,
+        "extension_id": null,
         "online_url": "https://github.com/leomoon-studios/leomoon-lightstudio.git",
         "repository_url": null,
         "branch": null,
@@ -914,6 +1022,8 @@
     "BakeMyScan": {
         "is_enable": false,
         "is_sync": false,
+        "is_extension": false,
+        "extension_id": null,
         "online_url": null,
         "repository_url": "https://github.com/norgeotloic/BakeMyScan.git",
         "branch": null,
@@ -931,6 +1041,8 @@
     "curve_cad": {
         "is_enable": false,
         "is_sync": false,
+        "is_extension": false,
+        "extension_id": null,
         "online_url": "https://github.com/Lichtso/curve_cad.git",
         "repository_url": null,
         "branch": null,
@@ -948,6 +1060,8 @@
     "GoB": {
         "is_enable": false,
         "is_sync": false,
+        "is_extension": false,
+        "extension_id": null,
         "online_url": null,
         "repository_url": "https://github.com/JoseConseco/GoB.git",
         "branch": null,
@@ -965,6 +1079,8 @@
     "animation_nodes": {
         "is_enable": false,
         "is_sync": false,
+        "is_extension": false,
+        "extension_id": null,
         "online_url": "https://github.com/JacquesLucke/animation_nodes.git",
         "repository_url": null,
         "branch": null,
@@ -982,6 +1098,8 @@
     "fSpy-Blender": {
         "is_enable": false,
         "is_sync": false,
+        "is_extension": false,
+        "extension_id": null,
         "online_url": null,
         "repository_url": "https://github.com/stuffmatic/fSpy-Blender.git",
         "branch": null,
@@ -999,6 +1117,8 @@
     "Capsule": {
         "is_enable": false,
         "is_sync": false,
+        "is_extension": false,
+        "extension_id": null,
         "online_url": null,
         "repository_url": "https://github.com/Takanu/Capsule.git",
         "branch": null,
@@ -1016,6 +1136,8 @@
     "ScreenCast_Keys": {
         "is_enable": false,
         "is_sync": false,
+        "is_extension": false,
+        "extension_id": null,
         "online_url": null,
         "repository_url": "https://github.com/nutti/Screencast-Keys.git",
         "branch": null,
@@ -1033,6 +1155,8 @@
     "bpy_photogrametry": {
         "is_enable": false,
         "is_sync": false,
+        "is_extension": false,
+        "extension_id": null,
         "online_url": null,
         "repository_url": "https://github.com/uhlik/bpy.git",
         "branch": null,
@@ -1065,6 +1189,8 @@
     "yavne": {
         "is_enable": false,
         "is_sync": false,
+        "is_extension": false,
+        "extension_id": null,
         "online_url": null,
         "repository_url": "https://github.com/fedackb/yavne.git",
         "branch": null,
@@ -1082,6 +1208,8 @@
     "FontSelector": {
         "is_enable": false,
         "is_sync": false,
+        "is_extension": false,
+        "extension_id": null,
         "online_url": null,
         "repository_url": "https://github.com/samytichadou/FontSelector_blender_addon.git",
         "branch": null,
@@ -1099,6 +1227,8 @@
     "MapsModelsImporter": {
         "is_enable": false,
         "is_sync": false,
+        "is_extension": false,
+        "extension_id": null,
         "online_url": null,
         "repository_url": "https://github.com/eliemichel/MapsModelsImporter.git",
         "branch": null,
@@ -1116,6 +1246,8 @@
     "BlendShell": {
         "is_enable": false,
         "is_sync": false,
+        "is_extension": false,
+        "extension_id": null,
         "online_url": null,
         "repository_url": "https://github.com/oormicreations/BlendShell.git",
         "branch": null,
@@ -1133,6 +1265,8 @@
     "Neltulz_Edge_Curve_Plus": {
         "is_enable": false,
         "is_sync": false,
+        "is_extension": false,
+        "extension_id": null,
         "online_url": null,
         "repository_url": "https://github.com/Neltulz/Neltulz_Edge_Curve_Plus.git",
         "branch": null,
@@ -1150,6 +1284,8 @@
     "BlenderGIS": {
         "is_enable": false,
         "is_sync": false,
+        "is_extension": false,
+        "extension_id": null,
         "online_url": null,
         "repository_url": "https://github.com/domlysz/BlenderGIS.git",
         "branch": null,
@@ -1167,6 +1303,8 @@
     "LuxeCore": {
         "is_enable": false,
         "is_sync": false,
+        "is_extension": false,
+        "extension_id": null,
         "online_url": null,
         "repository_url": "https://github.com/LuxCoreRender/BlendLuxCore.git",
         "branch": null,
@@ -1184,6 +1322,8 @@
     "Export_Paper_Model": {
         "is_enable": false,
         "is_sync": false,
+        "is_extension": false,
+        "extension_id": null,
         "online_url": null,
         "repository_url": "https://github.com/addam/Export-Paper-Model-from-Blender.git",
         "branch": null,
@@ -1201,6 +1341,8 @@
     "glsl_texture": {
         "is_enable": false,
         "is_sync": false,
+        "is_extension": false,
+        "extension_id": null,
         "online_url": null,
         "repository_url": "https://github.com/patriciogonzalezvivo/glslTexture.git",
         "branch": null,
@@ -1218,6 +1360,8 @@
     "modifier_list": {
         "is_enable": false,
         "is_sync": false,
+        "is_extension": false,
+        "extension_id": null,
         "online_url": null,
         "repository_url": "https://github.com/Symstract/modifier_list.git",
         "branch": null,
@@ -1235,6 +1379,8 @@
     "seams_to_sewing_pattern": {
         "is_enable": false,
         "is_sync": false,
+        "is_extension": false,
+        "extension_id": null,
         "online_url": null,
         "repository_url": "https://gitlab.com/thomaskole/blender-seams-to-sewing-pattern.git",
         "branch": null,
@@ -1252,6 +1398,8 @@
     "BMAX_Connector": {
         "is_enable": false,
         "is_sync": false,
+        "is_extension": false,
+        "extension_id": null,
         "online_url": null,
         "repository_url": "https://github.com/TitusLVR/BMAX_Connector.git",
         "branch": null,
@@ -1269,6 +1417,8 @@
     "modular_tree": {
         "is_enable": false,
         "is_sync": false,
+        "is_extension": false,
+        "extension_id": null,
         "online_url": null,
         "repository_url": "https://github.com/MaximeHerpin/modular_tree.git",
         "branch": null,
@@ -1286,6 +1436,8 @@
     "Abnormal": {
         "is_enable": false,
         "is_sync": false,
+        "is_extension": false,
+        "extension_id": null,
         "online_url": null,
         "repository_url": "https://github.com/bnpr/Abnormal.git",
         "branch": null,
@@ -1303,6 +1455,8 @@
     "Shader_to_OpenVDB": {
         "is_enable": false,
         "is_sync": false,
+        "is_extension": false,
+        "extension_id": null,
         "online_url": null,
         "repository_url": "https://github.com/joshuabloemer/Shader-to-OpenVDB.git",
         "branch": null,
@@ -1320,6 +1474,8 @@
     "HEAVYPOLY": {
         "is_enable": false,
         "is_sync": true,
+        "is_extension": false,
+        "extension_id": null,
         "online_url": null,
         "repository_url": "https://github.com/HEAVYPOLY/HEAVYPOLY_Blender.git",
         "branch": null,
@@ -1362,6 +1518,8 @@
     "Character_Pipeline_Assistant": {
         "is_enable": false,
         "is_sync": false,
+        "is_extension": false,
+        "extension_id": null,
         "online_url": null,
         "repository_url": "https://gitlab.com/blender/character-pipeline-assistant.git",
         "branch": null,
@@ -1379,6 +1537,8 @@
     "Lattice_Magic": {
         "is_enable": false,
         "is_sync": false,
+        "is_extension": false,
+        "extension_id": null,
         "online_url": null,
         "repository_url": "https://gitlab.com/blender/lattice_magic.git",
         "branch": null,
@@ -1396,6 +1556,8 @@
     "uvpacker": {
         "is_enable": false,
         "is_sync": false,
+        "is_extension": false,
+        "extension_id": null,
         "online_url": null,
         "repository_url": "https://github.com/3d-io/uvpacker-blender-addon.git",
         "branch": null,
@@ -1413,6 +1575,8 @@
     "MeshSlicer": {
         "is_enable": false,
         "is_sync": false,
+        "is_extension": false,
+        "extension_id": null,
         "online_url": null,
         "repository_url": "https://github.com/TomekSc/MeshSlicer.git",
         "branch": null,
@@ -1430,6 +1594,8 @@
     "NodeRelax": {
         "is_enable": false,
         "is_sync": false,
+        "is_extension": false,
+        "extension_id": null,
         "online_url": null,
         "repository_url": "https://github.com/Shahzod114/NodeRelax-Blender-Addon.git",
         "branch": null,
@@ -1447,6 +1613,8 @@
     "TheLightmapper": {
         "is_enable": false,
         "is_sync": false,
+        "is_extension": false,
+        "extension_id": null,
         "online_url": null,
         "repository_url": "https://github.com/Naxela/The_Lightmapper.git",
         "branch": null,
@@ -1464,6 +1632,8 @@
     "gret": {
         "is_enable": false,
         "is_sync": false,
+        "is_extension": false,
+        "extension_id": null,
         "online_url": null,
         "repository_url": "https://github.com/greisane/gret.git",
         "branch": null,
@@ -1481,6 +1651,8 @@
     "PrintNode": {
         "is_enable": false,
         "is_sync": false,
+        "is_extension": false,
+        "extension_id": null,
         "online_url": null,
         "repository_url": "https://github.com/Yeetus3141/PrintNodes.git",
         "branch": null,
@@ -1498,6 +1670,8 @@
     "ez_baker": {
         "is_enable": false,
         "is_sync": false,
+        "is_extension": false,
+        "extension_id": null,
         "online_url": null,
         "repository_url": "https://gitlab.com/AquaticNightmare/ez_baker.git",
         "branch": null,
@@ -1515,6 +1689,8 @@
     "photogrammetry_importer": {
         "is_enable": false,
         "is_sync": false,
+        "is_extension": false,
+        "extension_id": null,
         "online_url": null,
         "repository_url": "https://github.com/SBCV/Blender-Addon-Photogrammetry-Importer.git",
         "branch": null,
@@ -1532,6 +1708,8 @@
     "tila_export_as_blend": {
         "is_enable": false,
         "is_sync": true,
+        "is_extension": false,
+        "extension_id": null,
         "online_url": null,
         "repository_url": "https://github.com/Tilapiatsu/blender-export_as_blend.git",
         "branch": "main",
@@ -1549,6 +1727,8 @@
     "MaterialUtilities": {
         "is_enable": false,
         "is_sync": false,
+        "is_extension": false,
+        "extension_id": null,
         "online_url": null,
         "repository_url": "https://github.com/ChrisHinde/MaterialUtilities.git",
         "branch": null,
@@ -1566,6 +1746,8 @@
     "RiggingNodes": {
         "is_enable": false,
         "is_sync": false,
+        "is_extension": false,
+        "extension_id": null,
         "online_url": null,
         "repository_url": "https://gitlab.com/AquaticNightmare/rigging_nodes.git",
         "branch": null,
@@ -1583,6 +1765,8 @@
     "Renderman": {
         "is_enable": false,
         "is_sync": false,
+        "is_extension": false,
+        "extension_id": null,
         "online_url": null,
         "repository_url": "https://github.com/prman-pixar/RenderManForBlender.git",
         "branch": null,
@@ -1600,6 +1784,8 @@
     "GrabDoc": {
         "is_enable": false,
         "is_sync": true,
+        "is_extension": false,
+        "extension_id": null,
         "online_url": null,
         "repository_url": "https://github.com/oRazeD/GrabDoc.git",
         "branch": null,
@@ -1617,6 +1803,8 @@
     "eyek": {
         "is_enable": false,
         "is_sync": false,
+        "is_extension": false,
+        "extension_id": null,
         "online_url": null,
         "repository_url": "https://github.com/p4ymak/eyek.git",
         "branch": null,
@@ -1634,6 +1822,8 @@
     "b3dsdf": {
         "is_enable": false,
         "is_sync": false,
+        "is_extension": false,
+        "extension_id": null,
         "online_url": null,
         "repository_url": "https://github.com/williamchange/b3dsdf.git",
         "branch": null,
@@ -1651,6 +1841,8 @@
     "CAD_Sketcher": {
         "is_enable": false,
         "is_sync": false,
+        "is_extension": false,
+        "extension_id": null,
         "online_url": null,
         "repository_url": "https://github.com/hlorus/CAD_Sketcher.git",
         "branch": null,
@@ -1668,6 +1860,8 @@
     "RenderNode": {
         "is_enable": false,
         "is_sync": false,
+        "is_extension": false,
+        "extension_id": null,
         "online_url": null,
         "repository_url": "https://github.com/atticus-lv/RenderNode.git",
         "branch": null,
@@ -1685,6 +1879,8 @@
     "asset_snapshot": {
         "is_enable": false,
         "is_sync": true,
+        "is_extension": false,
+        "extension_id": null,
         "online_url": null,
         "repository_url": "https://github.com/johnnygizmo/asset_snapshot.git",
         "branch": null,
@@ -1702,6 +1898,8 @@
     "shotmanager": {
         "is_enable": false,
         "is_sync": false,
+        "is_extension": false,
+        "extension_id": null,
         "online_url": null,
         "repository_url": "https://github.com/ubisoft/shotmanager.git",
         "branch": null,
@@ -1719,6 +1917,8 @@
     "asset_bridge": {
         "is_enable": false,
         "is_sync": false,
+        "is_extension": false,
+        "extension_id": null,
         "online_url": null,
         "repository_url": "https://github.com/strike-digital/asset_bridge.git",
         "branch": null,
@@ -1736,6 +1936,8 @@
     "io_export_blend": {
         "is_enable": false,
         "is_sync": false,
+        "is_extension": false,
+        "extension_id": null,
         "online_url": null,
         "repository_url": "https://github.com/CGCookie/io_export_blend.git",
         "branch": null,
@@ -1753,6 +1955,8 @@
     "gp_triangulation": {
         "is_enable": false,
         "is_sync": false,
+        "is_extension": false,
+        "extension_id": null,
         "online_url": null,
         "repository_url": "https://gitlab.com/lfs.coop/blender/gp-triangulation.git",
         "branch": null,
@@ -1770,6 +1974,8 @@
     "miter_box": {
         "is_enable": false,
         "is_sync": false,
+        "is_extension": false,
+        "extension_id": null,
         "online_url": null,
         "repository_url": "https://github.com/JohnKazucki/JD-Miter-Box.git",
         "branch": null,
@@ -1787,6 +1993,8 @@
     "wiggle": {
         "is_enable": false,
         "is_sync": false,
+        "is_extension": false,
+        "extension_id": null,
         "online_url": null,
         "repository_url": "https://github.com/shteeve3d/blender-wiggle-2.git",
         "branch": null,
@@ -1804,6 +2012,8 @@
     "mesh_align_plus": {
         "is_enable": false,
         "is_sync": false,
+        "is_extension": false,
+        "extension_id": null,
         "online_url": null,
         "repository_url": "https://github.com/egtwobits/mesh_mesh_align_plus.git",
         "branch": null,
@@ -1821,6 +2031,8 @@
     "mesh_snap_utilities_line": {
         "is_enable": false,
         "is_sync": false,
+        "is_extension": false,
+        "extension_id": null,
         "online_url": null,
         "repository_url": null,
         "branch": null,
@@ -1832,6 +2044,8 @@
     "Principled_Baker": {
         "is_enable": false,
         "is_sync": false,
+        "is_extension": false,
+        "extension_id": null,
         "online_url": null,
         "repository_url": "https://github.com/danielenger/Principled-Baker.git",
         "branch": null,
@@ -1849,6 +2063,8 @@
     "MeasureIt_ARCH": {
         "is_enable": false,
         "is_sync": false,
+        "is_extension": false,
+        "extension_id": null,
         "online_url": null,
         "repository_url": "https://github.com/kevancress/MeasureIt-ARCH.git",
         "branch": null,
@@ -1866,6 +2082,8 @@
     "space_view3d_copy_attributes": {
         "is_enable": false,
         "is_sync": false,
+        "is_extension": false,
+        "extension_id": null,
         "online_url": null,
         "repository_url": null,
         "branch": null,
@@ -1877,6 +2095,8 @@
     "space_view3d_align_tools": {
         "is_enable": false,
         "is_sync": false,
+        "is_extension": false,
+        "extension_id": null,
         "online_url": null,
         "repository_url": null,
         "branch": null,
@@ -1888,6 +2108,8 @@
     "Polycount": {
         "is_enable": false,
         "is_sync": false,
+        "is_extension": false,
+        "extension_id": null,
         "online_url": null,
         "repository_url": "https://github.com/Vinc3r/Polycount.git",
         "branch": null,
@@ -1905,6 +2127,8 @@
     "mira_tools": {
         "is_enable": false,
         "is_sync": false,
+        "is_extension": false,
+        "extension_id": null,
         "online_url": null,
         "repository_url": "https://github.com/mifth/mifthtools.git",
         "branch": null,
@@ -1922,6 +2146,8 @@
     "Neltulz_Smart_Sharpen": {
         "is_enable": false,
         "is_sync": false,
+        "is_extension": false,
+        "extension_id": null,
         "online_url": null,
         "repository_url": "https://github.com/Neltulz/Neltulz_Smart_Sharpen.git",
         "branch": null,
@@ -1939,6 +2165,8 @@
     "Neltulz_Symmetry": {
         "is_enable": false,
         "is_sync": false,
+        "is_extension": false,
+        "extension_id": null,
         "online_url": null,
         "repository_url": "https://github.com/Neltulz/Neltulz_Symmetry.git",
         "branch": null,
@@ -1956,6 +2184,8 @@
     "keentools_facebuilder": {
         "is_enable": false,
         "is_sync": false,
+        "is_extension": false,
+        "extension_id": null,
         "online_url": null,
         "repository_url": null,
         "branch": null,
@@ -1967,6 +2197,8 @@
     "W_Mesh": {
         "is_enable": false,
         "is_sync": false,
+        "is_extension": false,
+        "extension_id": null,
         "online_url": null,
         "repository_url": null,
         "branch": null,
@@ -1978,6 +2210,8 @@
     "fspy": {
         "is_enable": false,
         "is_sync": false,
+        "is_extension": false,
+        "extension_id": null,
         "online_url": null,
         "repository_url": null,
         "branch": null,
@@ -1989,6 +2223,8 @@
     "lineup_maker": {
         "is_enable": false,
         "is_sync": true,
+        "is_extension": false,
+        "extension_id": null,
         "online_url": null,
         "repository_url": "https://github.com/Tilapiatsu/blender-lineup_maker.git",
         "branch": "blender-format-assets",
@@ -2006,6 +2242,8 @@
     "io_sketchfab": {
         "is_enable": false,
         "is_sync": false,
+        "is_extension": false,
+        "extension_id": null,
         "online_url": null,
         "repository_url": "https://github.com/sketchfab/blender-plugin.git",
         "branch": null,
@@ -2023,6 +2261,8 @@
     "simple_renaming_panel": {
         "is_enable": true,
         "is_sync": true,
+        "is_extension": false,
+        "extension_id": null,
         "online_url": null,
         "repository_url": "https://github.com/Weisl/simple_renaming_panel.git",
         "branch": null,
@@ -2037,9 +2277,11 @@
             }
         ]
     },
-    "mesh_f2": {
+    "F2": {
         "is_enable": true,
-        "is_sync": false,
+        "is_sync": true,
+        "is_extension": true,
+        "extension_id": "f2",
         "online_url": null,
         "repository_url": null,
         "branch": null,
@@ -2051,6 +2293,8 @@
     "TexTools": {
         "is_enable": true,
         "is_sync": true,
+        "is_extension": false,
+        "extension_id": null,
         "online_url": null,
         "repository_url": "https://github.com/SavMartin/TexTools-Blender.git",
         "branch": null,
@@ -2065,9 +2309,11 @@
             }
         ]
     },
-    "io_import_images_as_planes": {
+    "3D Print Toolbox": {
         "is_enable": true,
         "is_sync": true,
+        "is_extension": true,
+        "extension_id": "print3d_toolbox",
         "online_url": null,
         "repository_url": null,
         "branch": null,
@@ -2076,20 +2322,11 @@
         "keymaps": false,
         "paths": null
     },
-    "object_print3d_utils": {
+    "LoopTools": {
         "is_enable": true,
         "is_sync": true,
-        "online_url": null,
-        "repository_url": null,
-        "branch": null,
-        "is_submodule": false,
-        "local_path": null,
-        "keymaps": false,
-        "paths": null
-    },
-    "mesh_looptools": {
-        "is_enable": true,
-        "is_sync": true,
+        "is_extension": true,
+        "extension_id": "looptools",
         "online_url": null,
         "repository_url": null,
         "branch": null,
@@ -2101,6 +2338,8 @@
     "UvSquares": {
         "is_enable": true,
         "is_sync": true,
+        "is_extension": false,
+        "extension_id": null,
         "online_url": null,
         "repository_url": "https://github.com/Radivarig/UvSquares.git",
         "branch": null,
@@ -2118,6 +2357,8 @@
     "Auto_Reload": {
         "is_enable": true,
         "is_sync": true,
+        "is_extension": false,
+        "extension_id": null,
         "online_url": null,
         "repository_url": "https://github.com/samytichadou/Auto_Reload-Blender_addon.git",
         "branch": null,
@@ -2135,6 +2376,8 @@
     "node_wrangler": {
         "is_enable": true,
         "is_sync": true,
+        "is_extension": false,
+        "extension_id": null,
         "online_url": null,
         "repository_url": null,
         "branch": null,
@@ -2143,9 +2386,11 @@
         "keymaps": false,
         "paths": null
     },
-    "node_presets": {
+    "Node Presets": {
         "is_enable": true,
         "is_sync": true,
+        "is_extension": true,
+        "extension_id": "node_presets",
         "online_url": null,
         "repository_url": null,
         "branch": null,
@@ -2154,9 +2399,11 @@
         "keymaps": false,
         "paths": null
     },
-    "object_boolean_tools": {
+    "Bool Tool": {
         "is_enable": true,
         "is_sync": true,
+        "is_extension": true,
+        "extension_id": "bool_tool",
         "online_url": null,
         "repository_url": null,
         "branch": null,
@@ -2168,6 +2415,8 @@
     "optiloops": {
         "is_enable": true,
         "is_sync": true,
+        "is_extension": false,
+        "extension_id": null,
         "online_url": null,
         "repository_url": "https://github.com/vilemduha/optiloops.git",
         "branch": null,
@@ -2182,9 +2431,11 @@
             }
         ]
     },
-    "magic_uv": {
+    "Magic UV": {
         "is_enable": true,
         "is_sync": true,
+        "is_extension": true,
+        "extension_id": "magic_uv",
         "online_url": null,
         "repository_url": null,
         "branch": null,
@@ -2196,6 +2447,8 @@
     "PolyQuilt": {
         "is_enable": false,
         "is_sync": false,
+        "is_extension": false,
+        "extension_id": null,
         "online_url": null,
         "repository_url": "https://github.com/sakana3/PolyQuilt.git",
         "branch": "Future",
@@ -2213,6 +2466,8 @@
     "Lodify": {
         "is_enable": true,
         "is_sync": true,
+        "is_extension": false,
+        "extension_id": null,
         "online_url": null,
         "repository_url": "https://github.com/DB3D/Lodify.git",
         "branch": null,
@@ -2227,9 +2482,11 @@
             }
         ]
     },
-    "add_curve_extra_objects": {
+    "Extra Curve Objects": {
         "is_enable": true,
         "is_sync": true,
+        "is_extension": true,
+        "extension_id": "extra_curve_objectes",
         "online_url": null,
         "repository_url": null,
         "branch": null,
@@ -2238,9 +2495,11 @@
         "keymaps": false,
         "paths": null
     },
-    "add_mesh_extra_objects": {
+    "Extra Mesh Objects": {
         "is_enable": true,
         "is_sync": true,
+        "is_extension": true,
+        "extension_id": "extra_mesh_objects",
         "online_url": null,
         "repository_url": null,
         "branch": null,
@@ -2252,6 +2511,8 @@
     "io_scene_fbx": {
         "is_enable": true,
         "is_sync": true,
+        "is_extension": false,
+        "extension_id": null,
         "online_url": null,
         "repository_url": null,
         "branch": null,
@@ -2260,20 +2521,11 @@
         "keymaps": false,
         "paths": null
     },
-    "io_scene_obj": {
+    "Web3D X3D/VRML2": {
         "is_enable": true,
         "is_sync": true,
-        "online_url": null,
-        "repository_url": null,
-        "branch": null,
-        "is_submodule": false,
-        "local_path": null,
-        "keymaps": false,
-        "paths": null
-    },
-    "io_scene_x3d": {
-        "is_enable": true,
-        "is_sync": true,
+        "is_extension": true,
+        "extension_id": "web3d_x3d_vrml2_format",
         "online_url": null,
         "repository_url": null,
         "branch": null,
@@ -2285,17 +2537,8 @@
     "io_scene_gltf2": {
         "is_enable": true,
         "is_sync": true,
-        "online_url": null,
-        "repository_url": null,
-        "branch": null,
-        "is_submodule": false,
-        "local_path": null,
-        "keymaps": false,
-        "paths": null
-    },
-    "io_mesh_stl": {
-        "is_enable": true,
-        "is_sync": true,
+        "is_extension": false,
+        "extension_id": null,
         "online_url": null,
         "repository_url": null,
         "branch": null,
@@ -2307,17 +2550,8 @@
     "io_curve_svg": {
         "is_enable": true,
         "is_sync": true,
-        "online_url": null,
-        "repository_url": null,
-        "branch": null,
-        "is_submodule": false,
-        "local_path": null,
-        "keymaps": false,
-        "paths": null
-    },
-    "io_mesh_ply": {
-        "is_enable": true,
-        "is_sync": true,
+        "is_extension": false,
+        "extension_id": null,
         "online_url": null,
         "repository_url": null,
         "branch": null,
@@ -2329,6 +2563,8 @@
     "io_mesh_uv_layout": {
         "is_enable": true,
         "is_sync": true,
+        "is_extension": false,
+        "extension_id": null,
         "online_url": null,
         "repository_url": null,
         "branch": null,
@@ -2337,9 +2573,11 @@
         "keymaps": false,
         "paths": null
     },
-    "object_collection_manager": {
+    "Collection Manager": {
         "is_enable": true,
         "is_sync": true,
+        "is_extension": true,
+        "extension_id": "collection_manager",
         "online_url": null,
         "repository_url": null,
         "branch": null,
@@ -2348,9 +2586,11 @@
         "keymaps": false,
         "paths": null
     },
-    "space_view3d_modifier_tools": {
+    "Modifier Tools": {
         "is_enable": true,
         "is_sync": true,
+        "is_extension": true,
+        "extension_id": "modifier_tools",
         "online_url": null,
         "repository_url": null,
         "branch": null,
@@ -2362,6 +2602,8 @@
     "EdgeFlow": {
         "is_enable": true,
         "is_sync": true,
+        "is_extension": false,
+        "extension_id": null,
         "online_url": null,
         "repository_url": "https://github.com/BenjaminSauder/EdgeFlow.git",
         "branch": null,
@@ -2376,9 +2618,11 @@
             }
         ]
     },
-    "mesh_tools": {
+    "Edit Mesh Tools": {
         "is_enable": true,
-        "is_sync": false,
+        "is_sync": true,
+        "is_extension": true,
+        "extension_id": "edit_mesh_tools",
         "online_url": null,
         "repository_url": null,
         "branch": null,
@@ -2390,6 +2634,8 @@
     "cycles": {
         "is_enable": true,
         "is_sync": false,
+        "is_extension": false,
+        "extension_id": null,
         "online_url": null,
         "repository_url": null,
         "branch": null,
@@ -2401,6 +2647,8 @@
     "maxivz_tools": {
         "is_enable": false,
         "is_sync": false,
+        "is_extension": false,
+        "extension_id": null,
         "online_url": null,
         "repository_url": "https://github.com/maxivz/interactivetoolsblender.git",
         "branch": null,
@@ -2412,6 +2660,8 @@
     "bezierutils": {
         "is_enable": false,
         "is_sync": false,
+        "is_extension": false,
+        "extension_id": null,
         "online_url": null,
         "repository_url": "https://github.com/Shriinivas/blenderbezierutils.git",
         "branch": null,
@@ -2429,6 +2679,8 @@
     "oscurart_edit_split_normals": {
         "is_enable": true,
         "is_sync": true,
+        "is_extension": false,
+        "extension_id": null,
         "online_url": null,
         "repository_url": "https://github.com/oscurart/Blender-28-Addons.git",
         "branch": null,
@@ -2451,6 +2703,8 @@
     "vertex_color_master": {
         "is_enable": false,
         "is_sync": false,
+        "is_extension": false,
+        "extension_id": null,
         "online_url": null,
         "repository_url": "https://github.com/andyp123/blender_vertex_color_master.git",
         "branch": null,
@@ -2468,6 +2722,8 @@
     "atomic_data_manager": {
         "is_enable": true,
         "is_sync": true,
+        "is_extension": false,
+        "extension_id": null,
         "online_url": null,
         "repository_url": "https://github.com/grantwilk/atomic-data-manager.git",
         "branch": null,
@@ -2485,6 +2741,8 @@
     "ImagePaste": {
         "is_enable": false,
         "is_sync": false,
+        "is_extension": false,
+        "extension_id": null,
         "online_url": "https://yeetusblenditus.gumroad.com/l/ImPaste",
         "repository_url": null,
         "branch": null,
@@ -2499,9 +2757,11 @@
             }
         ]
     },
-    "greasepencil_tools": {
+    "Grease Pencil Tools": {
         "is_enable": true,
-        "is_sync": false,
+        "is_sync": true,
+        "is_extension": true,
+        "extension_id": "grease_pencil_tools",
         "online_url": null,
         "repository_url": null,
         "branch": null,
@@ -2513,6 +2773,8 @@
     "Texel_Density": {
         "is_enable": true,
         "is_sync": true,
+        "is_extension": false,
+        "extension_id": null,
         "online_url": null,
         "repository_url": "https://github.com/mrven/Blender-Texel-Density-Checker.git",
         "branch": null,
@@ -2530,6 +2792,8 @@
     "RestoreSymmetry": {
         "is_enable": true,
         "is_sync": true,
+        "is_extension": false,
+        "extension_id": null,
         "online_url": null,
         "repository_url": "https://github.com/n-taka/BlenderAddons.git",
         "branch": null,
@@ -2547,6 +2811,8 @@
     "B-GEN": {
         "is_enable": false,
         "is_sync": false,
+        "is_extension": false,
+        "extension_id": null,
         "online_url": "https://munorr.gumroad.com/l/bgen",
         "repository_url": null,
         "branch": null,
@@ -2564,6 +2830,8 @@
     "where_am_i": {
         "is_enable": false,
         "is_sync": false,
+        "is_extension": false,
+        "extension_id": null,
         "online_url": "https://github.com/Nezumi72/join_areas",
         "repository_url": null,
         "branch": null,
@@ -2581,6 +2849,8 @@
     "Filters": {
         "is_enable": false,
         "is_sync": false,
+        "is_extension": false,
+        "extension_id": null,
         "online_url": null,
         "repository_url": null,
         "branch": null,
@@ -2598,6 +2868,8 @@
     "VDMBrushBaker": {
         "is_enable": false,
         "is_sync": false,
+        "is_extension": false,
+        "extension_id": null,
         "online_url": "https://robinhohni.gumroad.com/l/spxbj",
         "repository_url": null,
         "branch": null,
@@ -2615,6 +2887,8 @@
     "even_triangulation": {
         "is_enable": false,
         "is_sync": false,
+        "is_extension": false,
+        "extension_id": null,
         "online_url": "https://kushiro.gumroad.com/l/jpjox",
         "repository_url": null,
         "branch": null,
@@ -2632,6 +2906,8 @@
     "mrKit": {
         "is_enable": false,
         "is_sync": false,
+        "is_extension": false,
+        "extension_id": null,
         "online_url": "https://rmkit.readthedocs.io/en/latest/index.html",
         "repository_url": "https://github.com/roosterMAP/rmKit.git",
         "branch": null,
@@ -2649,6 +2925,8 @@
     "QuickSnap": {
         "is_enable": false,
         "is_sync": false,
+        "is_extension": false,
+        "extension_id": null,
         "online_url": null,
         "repository_url": "https://github.com/JulienHeijmans/quicksnap.git",
         "branch": null,
@@ -2666,6 +2944,8 @@
     "Pixel-Unwrapper": {
         "is_enable": false,
         "is_sync": false,
+        "is_extension": false,
+        "extension_id": null,
         "online_url": null,
         "repository_url": "https://github.com/noio/Pixel-Unwrapper.git",
         "branch": null,
@@ -2683,6 +2963,8 @@
     "drag_and_drop": {
         "is_enable": false,
         "is_sync": false,
+        "is_extension": false,
+        "extension_id": null,
         "online_url": null,
         "repository_url": "https://github.com/mika-f/blender-drag-and-drop.git",
         "branch": null,
@@ -2700,6 +2982,8 @@
     "face_regulator": {
         "is_enable": false,
         "is_sync": false,
+        "is_extension": false,
+        "extension_id": null,
         "online_url": "https://kushiro.gumroad.com/l/wfwfx",
         "repository_url": null,
         "branch": null,
@@ -2717,6 +3001,8 @@
     "quad_swords": {
         "is_enable": false,
         "is_sync": false,
+        "is_extension": false,
+        "extension_id": null,
         "online_url": "https://kushiro.gumroad.com/l/VNhcN",
         "repository_url": null,
         "branch": null,
@@ -2739,6 +3025,8 @@
     "pin_verts": {
         "is_enable": true,
         "is_sync": false,
+        "is_extension": false,
+        "extension_id": null,
         "online_url": "https://coreycorza.gumroad.com/l/pinvertsaddon",
         "repository_url": null,
         "branch": null,
@@ -2756,6 +3044,8 @@
     "easy_weights": {
         "is_enable": false,
         "is_sync": true,
+        "is_extension": false,
+        "extension_id": null,
         "online_url": "https://projects.blender.org/studio/blender-studio-pipeline/src/branch/main",
         "repository_url": "https://projects.blender.org/studio/blender-studio-pipeline.git",
         "branch": null,
@@ -2773,6 +3063,8 @@
     "checkpoint": {
         "is_enable": false,
         "is_sync": false,
+        "is_extension": false,
+        "extension_id": null,
         "online_url": "https://flowerboystudio.gumroad.com/l/blender-checkpoint",
         "repository_url": null,
         "branch": null,
@@ -2790,6 +3082,8 @@
     "node_pie": {
         "is_enable": false,
         "is_sync": false,
+        "is_extension": false,
+        "extension_id": null,
         "online_url": null,
         "repository_url": "https://github.com/strike-digital/node_pie.git",
         "branch": null,
@@ -2807,6 +3101,8 @@
     "Exporter": {
         "is_enable": false,
         "is_sync": false,
+        "is_extension": false,
+        "extension_id": null,
         "online_url": null,
         "repository_url": null,
         "branch": null,
@@ -2824,6 +3120,8 @@
     "BystedtsClothBuilder": {
         "is_enable": false,
         "is_sync": false,
+        "is_extension": false,
+        "extension_id": null,
         "online_url": "https://3dbystedt.gumroad.com/l/bystedtsClothBuilder",
         "repository_url": null,
         "branch": null,
@@ -2841,6 +3139,8 @@
     "safe_inset": {
         "is_enable": false,
         "is_sync": false,
+        "is_extension": false,
+        "extension_id": null,
         "online_url": "https://kushiro.gumroad.com/l/iruis",
         "repository_url": null,
         "branch": null,
@@ -2858,6 +3158,8 @@
     "padding_inset": {
         "is_enable": false,
         "is_sync": false,
+        "is_extension": false,
+        "extension_id": null,
         "online_url": "https://kushiro.gumroad.com/l/ysrdcg",
         "repository_url": null,
         "branch": null,
@@ -2875,6 +3177,8 @@
     "uvflow": {
         "is_enable": false,
         "is_sync": false,
+        "is_extension": false,
+        "extension_id": null,
         "online_url": "https://blendermarket.com/products/uv-flow",
         "repository_url": null,
         "branch": null,
@@ -2892,6 +3196,8 @@
     "tila_polyquilt": {
         "is_enable": true,
         "is_sync": true,
+        "is_extension": false,
+        "extension_id": null,
         "online_url": null,
         "repository_url": "https://github.com/Tilapiatsu/PolyQuilt.git",
         "branch": "master",
@@ -2909,6 +3215,8 @@
     "universal_multi_importer": {
         "is_enable": true,
         "is_sync": true,
+        "is_extension": false,
+        "extension_id": null,
         "online_url": null,
         "repository_url": "https://github.com/Tilapiatsu/blender-Universal_Multi_Importer.git",
         "branch": "develop",
@@ -2923,9 +3231,11 @@
             }
         ]
     },
-    "light-painter": {
+    "Light Painter": {
         "is_enable": false,
         "is_sync": false,
+        "is_extension": true,
+        "extension_id": "lightpainter",
         "online_url": null,
         "repository_url": "https://github.com/semagnum/light-painter.git",
         "branch": null,
@@ -2943,6 +3253,8 @@
     "smoothWeight": {
         "is_enable": false,
         "is_sync": false,
+        "is_extension": false,
+        "extension_id": null,
         "online_url": "https://www.braverabbit.com/braverabbit/tools/smoothweights/",
         "repository_url": null,
         "branch": null,
@@ -2960,6 +3272,8 @@
     "Super_Batch_Export": {
         "is_enable": true,
         "is_sync": true,
+        "is_extension": false,
+        "extension_id": null,
         "online_url": null,
         "repository_url": "https://github.com/mrtripie/Blender-Super-Batch-Export.git",
         "branch": null,
@@ -2977,6 +3291,8 @@
     "tila_customization_handler": {
         "is_enable": true,
         "is_sync": true,
+        "is_extension": false,
+        "extension_id": null,
         "online_url": null,
         "repository_url": "https://github.com/Tilapiatsu/blender-customization_handler.git",
         "branch": "main",
@@ -2994,6 +3310,8 @@
     "vertx_artist": {
         "is_enable": false,
         "is_sync": false,
+        "is_extension": false,
+        "extension_id": null,
         "online_url": "https://github.com/Mahrkeenerh/VertXArtist.git",
         "repository_url": null,
         "branch": null,
@@ -3011,6 +3329,8 @@
     "baker-node": {
         "is_enable": false,
         "is_sync": false,
+        "is_extension": false,
+        "extension_id": null,
         "online_url": null,
         "repository_url": "https://github.com/avelgest/baker-node.git",
         "branch": null,
@@ -3028,6 +3348,8 @@
     "VoronoiLinker": {
         "is_enable": false,
         "is_sync": false,
+        "is_extension": false,
+        "extension_id": null,
         "online_url": null,
         "repository_url": "https://github.com/ugorek000/VoronoiLinker.git",
         "branch": "main",
@@ -3045,6 +3367,8 @@
     "QuickMenu": {
         "is_enable": false,
         "is_sync": false,
+        "is_extension": false,
+        "extension_id": null,
         "online_url": null,
         "repository_url": "https://github.com/passivestar/quickmenu.git",
         "branch": "main",
@@ -3062,6 +3386,8 @@
     "Matalogue": {
         "is_enable": false,
         "is_sync": false,
+        "is_extension": false,
+        "extension_id": null,
         "online_url": null,
         "repository_url": "https://github.com/gregzaal/Matalogue.git",
         "branch": "master",
@@ -3079,6 +3405,8 @@
     "shader_plus": {
         "is_enable": true,
         "is_sync": false,
+        "is_extension": false,
+        "extension_id": null,
         "online_url": "https://blendermarket.com/products/shadersplus",
         "repository_url": null,
         "branch": null,
@@ -3096,6 +3424,8 @@
     "substance-tools": {
         "is_enable": false,
         "is_sync": false,
+        "is_extension": false,
+        "extension_id": null,
         "online_url": null,
         "repository_url": "https://github.com/passivestar/substance-tools.git",
         "branch": "main",
@@ -3113,6 +3443,8 @@
     "PidgeonToolBag": {
         "is_enable": false,
         "is_sync": false,
+        "is_extension": false,
+        "extension_id": null,
         "online_url": "https://pidgeontools.gumroad.com/l/PidgeonToolBag",
         "repository_url": null,
         "branch": null,
@@ -3130,6 +3462,8 @@
     "Gamepad-Reader": {
         "is_enable": false,
         "is_sync": false,
+        "is_extension": false,
+        "extension_id": null,
         "online_url": null,
         "repository_url": "https://github.com/Erindale/Gamepad-Reader.git",
         "branch": "main",
@@ -3147,6 +3481,8 @@
     "YouV": {
         "is_enable": false,
         "is_sync": false,
+        "is_extension": false,
+        "extension_id": null,
         "online_url": null,
         "repository_url": "https://github.com/JohnKazucki/JD-YouV.git",
         "branch": "main",
@@ -3164,6 +3500,8 @@
     "BagaBatch": {
         "is_enable": false,
         "is_sync": false,
+        "is_extension": false,
+        "extension_id": null,
         "online_url": "https://abaga.gumroad.com/l/rnkem",
         "repository_url": null,
         "branch": null,
@@ -3181,6 +3519,8 @@
     "geometry_script": {
         "is_enable": false,
         "is_sync": false,
+        "is_extension": false,
+        "extension_id": null,
         "online_url": null,
         "repository_url": "https://github.com/carson-katri/geometry-script.git",
         "branch": null,
@@ -3192,6 +3532,25 @@
                 "is_enable": false,
                 "local_subpath": null,
                 "destination_path": "#\\scripts\\addons\\geometry_script\\"
+            }
+        ]
+    },
+    "ND": {
+        "is_enable": true,
+        "is_sync": false,
+        "is_extension": true,
+        "extension_id": "nd",
+        "online_url": "https://extensions.blender.org/add-ons/nd/",
+        "repository_url": null,
+        "branch": null,
+        "is_submodule": false,
+        "local_path": null,
+        "keymaps": false,
+        "paths": [
+            {
+                "is_enable": false,
+                "local_subpath": null,
+                "destination_path": null
             }
         ]
     }

@@ -140,10 +140,11 @@ class TILA_Config_Settings():
             self.set_machin3tool_settings(context, 'activate_cursor_pie' , True)
 
         # # object_collection_manager
-        addon_name = 'object_collection_manager'
+        addon_name = 'bl_ext.blender_org.collection_manager'
         if addon_name in bpy.context.preferences.addons:
             addon = context.preferences.addons.get(addon_name)
             addon.preferences.enable_qcd = False
+            addon.preferences.enable_qcd_3dview_header_widget = False
 
         # # noodler
         addon_name = 'noodler'
@@ -174,7 +175,7 @@ class TILA_Config_Settings():
             # addon.preferences.category = 'Tools'
 
         # # greasepencil_tools
-        addon_name = 'greasepencil_tools'
+        addon_name = 'bl_ext.blender_org.grease_pencil_tools'
         if addon_name in bpy.context.preferences.addons:
             addon = context.preferences.addons.get(addon_name)
             addon.preferences.canvas_use_hud = False
