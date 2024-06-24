@@ -3219,7 +3219,7 @@
         "extension_id": null,
         "online_url": null,
         "repository_url": "https://github.com/Tilapiatsu/blender-Universal_Multi_Importer.git",
-        "branch": "develop",
+        "branch": "main",
         "is_submodule": true,
         "local_path": "#\\scripts\\addon_library\\GIT_Submodules\\tila_universal_multi_importer",
         "keymaps": false,
@@ -3536,11 +3536,11 @@
         ]
     },
     "ND": {
-        "is_enable": true,
+        "is_enable": false,
         "is_sync": false,
         "is_extension": true,
         "extension_id": "nd",
-        "online_url": "https://extensions.blender.org/add-ons/nd/",
+        "online_url": null,
         "repository_url": null,
         "branch": null,
         "is_submodule": false,
