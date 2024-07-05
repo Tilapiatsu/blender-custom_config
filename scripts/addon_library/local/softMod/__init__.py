@@ -2,15 +2,15 @@ bl_info = {
     "name" : "SoftMod",
     "author" : "Maurizio Memoli",
     "description" : "",
-    "blender" : (2, 80, 0),
-    "version" : (2, 1, 0,),
+    "blender" : (4, 1, 0),
+    "version" : (2, 5, 0,),
     "location" : "",
     "warning" : "",
     "wiki_url": "",
     "category" : "3D View"
 }
 import bpy
-from . ui.softMod_panel import SoftMod_PT_Panel
+from . ui.softMod_panel import SOFTMOD_PT_Panel
 from bpy.types import (PropertyGroup)
 from bpy.props import (BoolProperty, PointerProperty)
 #from . operators.softMod_ops import Create_SoftMod_Operator
@@ -54,7 +54,7 @@ class SoftModSettings(PropertyGroup):
 
 
 
-classes = (SoftMod_PT_Panel, OT_Create_SoftMod_operator, OT_delete_override, OT_paint_mode, SoftModSettings,
+classes = (SOFTMOD_PT_Panel, OT_Create_SoftMod_operator, OT_delete_override, OT_paint_mode, SoftModSettings,
            OT_toggle_soft_mod, OT_smooth_weight, OT_parent_widget,SoftWidgetSttings,OT_activate_opposite_weight,
            OT_unparent_widget, OT_rename_softMod, OT_convert_to_shape_key, OT_deformed_to_shape_key,
            OT_smooth_paint_weight, OT_mirror_to_opposite_weight, OT_mirror_weights, OT_invert_paint_weight)
@@ -109,12 +109,10 @@ def unregister():
 
 
     for cl in classes:
-        print(cl)
         bpy.utils.unregister_class(cl)
 
 
     for km, kmi in addon_keymaps:
-        print(km,kmi)
         km.keymap_items.remove(kmi)
 
 

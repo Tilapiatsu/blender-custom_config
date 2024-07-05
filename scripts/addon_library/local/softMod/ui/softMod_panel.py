@@ -5,15 +5,14 @@ from .. api.object_handlers import SoftWidgetHandler, SoftDeformedHandler
 
 version = ".".join([ str(x) for x in bl_info["version"]])
 
-class SoftMod_PT_Panel(bpy.types.Panel):
+class SOFTMOD_PT_Panel(bpy.types.Panel):
     global version
-    bl_idname = "SoftMod_PT_Panel"
+    bl_idname = "SOFTMOD_PT_Panel"
     bl_label =  "SoftMod v{}".format(version)
     bl_category = "SoftMod"
     bl_space_type = "VIEW_3D"
     bl_region_type = "UI"
     bl_context = ""
-
 
     def draw(self, context):
         layout=self.layout

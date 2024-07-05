@@ -76,7 +76,6 @@ class OT_Create_SoftMod_operator(Operator):
 
         return {"RUNNING_MODAL"}
 
-
     def register_handlers(self, args, context):
         self.draw_handle_3d = bpy.types.SpaceView3D.draw_handler_add(
             self.draw_callback_3d, args, "WINDOW", "POST_VIEW")
@@ -278,13 +277,12 @@ class OT_Create_SoftMod_operator(Operator):
         if self.mouse_vert is not None:
             points.append(self.mouse_vert)
                     
-        self.shader = gpu.shader.from_builtin('3D_UNIFORM_COLOR')
+        self.shader = gpu.shader.from_builtin('UNIFORM_COLOR')
         
         self.batch = batch_for_shader(self.shader, 'LINES', 
         {"pos": points})
         # self.shader.uniform_float("color", (1, 1, 1, 1))
 
-	# Draw handler to paint in pixels
     def draw_callback_2d(self, op, context):
         # Draw text to indicate that draw mode is active
         region = context.region
@@ -292,14 +290,15 @@ class OT_Create_SoftMod_operator(Operator):
 
         xt = int(region.width / 2.0)
         
-        blf.size(0, 24, 60)
+        blf.size(24, 60)
         blf.position(0, xt - blf.dimensions(0, text)[0] / 2, 60 , 0)
         blf.draw(0, text) 
 
     # Draw handler to paint onto the screen
     def draw_callback_3d(self, op, context):
         # Draw lines
-        bgl.glLineWidth(2)
+
         self.shader.bind()
+        # bgl.glLineWidth(2)
         self.shader.uniform_float("color", (0.8, 0.8, 0.8, 1.0))
         self.batch.draw(self.shader)
