@@ -5,6 +5,8 @@ config/userpref.blend
 
 dependencies/*
 
+extensions/*
+
 scripts/addon_library/GIT_Clones/*
 
 scripts/addons/Tila_ConfigManager/AddonManager/Dependencies/*
