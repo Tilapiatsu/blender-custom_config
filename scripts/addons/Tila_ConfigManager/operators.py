@@ -323,6 +323,9 @@ class TILA_Config_SyncAddonList(Operator):
         self.wm.tila_setup_blender_progress = "NONE"
         self.AM = AddonManager.AddonManager(AL)
 
+        # Ensure online access is possible
+        context.preferences.system.use_online_access = True
+
         self.AM.flush_queue()
         if self.name == '':
             self.AM.queue_sync(force=self.force, overwrite=self.overwrite)
