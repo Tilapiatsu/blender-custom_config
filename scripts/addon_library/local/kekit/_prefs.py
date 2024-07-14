@@ -315,10 +315,10 @@ class KeKitAddonPreferences(AddonPreferences):
     )
     color_icons: BoolProperty(default=True, name="Color Icons",
                               description="Use custom color icons for various modules -or- just numbers (if disabled)")
-    ext_tools: BoolProperty(default=False, name="Extend Tool Settings",
+    ext_tools: BoolProperty(default=False, name="Extend Tool Settings", update=reload_extras,
                             description="Extend Tool Settings menu with additional buttons\n"
                                         "Also displays buttons (but disabled) in Object Mode (to show state)")
-    ext_factor: FloatProperty(default=1.0, name="Separator factor", min=0, max=999,
+    ext_factor: FloatProperty(default=1.5, name="Separator factor", min=0, max=999,
                           description="UI-separator value the Extend Tool Settings menu is offset (from the right)")
     obj_menu: BoolProperty(default=True, name="Object Context Menu", update=reload_extras,
                            description="Show the keKit Object Context Panel (RMB on object) Operators\n"
@@ -328,9 +328,9 @@ class KeKitAddonPreferences(AddonPreferences):
     outliner_extras: BoolProperty(name="Outliner Buttons", default=False, update=reload_extras,
                                   description="Adds extra buttons in Outliner header for:\n'Show Active', "
                                               "'Show One Level' and 'Hide One Level'")
-    material_extras: BoolProperty(name="Material Buttons", default=False, update=reload_extras,
-                                  description="Adds extra buttons in Material Properties Surface for:\n"
-                                              "'Sync Viewport Display' (Req: Render Module")
+    material_extras: BoolProperty(name="Sync Material Button", default=False, update=reload_extras,
+                                  description="Adds extra button in Material Properties Surface for:\n"
+                                              "'Sync Material & Viewport' (Req: Render Module")
     experimental: BoolProperty(name="Experimental", default=False,
                                description="Toggle properties/features that work - but has some quirks\n"
                                            "See keKit Wiki for details.")
@@ -549,6 +549,10 @@ class KeKitAddonPreferences(AddonPreferences):
                                                  "Note: There is a very small tolerance even at 0")
     # Cursor Fit OP Option
     cursorfit: BoolProperty(description="Also set Orientation & Pivot to Cursor", default=True)
+    cursor_gizmo: BoolProperty(
+        description="Display a simple, temporary, axis-gizmo for the Cursor's X,Y & Z rotation",
+        default=False
+    )
     # Linear Array Global Only Option
     lineararray_go: BoolProperty(description="Applies Rotation and usese Global Orientation & Pivot during modal",
                                  default=False)
@@ -597,6 +601,13 @@ class KeKitAddonPreferences(AddonPreferences):
                                               "OFF:Autosmooth is not changed by toggle", name="Autosmooth Toggle",
                                   default=True)
     # Snapping Combos
+    snap_combo1: FloatVectorProperty(size=30, precision=4, default=[0] * 30)
+    snap_combo2: FloatVectorProperty(size=30, precision=4, default=[0] * 30)
+    snap_combo3: FloatVectorProperty(size=30, precision=4, default=[0] * 30)
+    snap_combo4: FloatVectorProperty(size=30, precision=4, default=[0] * 30)
+    snap_combo5: FloatVectorProperty(size=30, precision=4, default=[0] * 30)
+    snap_combo6: FloatVectorProperty(size=30, precision=4, default=[0] * 30)
+    # Snapping Combos (Old, pre 4.2:)
     snap_elements1: StringProperty(description="Snapping Element Combo 1", default="INCREMENT")
     snap_elements2: StringProperty(description="Snapping Element Combo 2", default="FACE,EDGE,EDGE_MIDPOINT,VERTEX")
     snap_elements3: StringProperty(description="Snapping Element Combo 3", default="FACE")
@@ -616,23 +627,23 @@ class KeKitAddonPreferences(AddonPreferences):
     snap_targets5: StringProperty(description="Snapping Targets Combo 5", default="ACTIVE")
     snap_targets6: StringProperty(description="Snapping Targets Combo 6", default="ACTIVE")
     snap_bools1: BoolVectorProperty(
-        description="Snapping Bools Combo 1", size=11,
-        default=[True, False, False, False, False, False, False, False, False, False, False])
+        description="Snapping Bools Combo 1", size=14,
+        default=[True, False, False, False, False, False, False, False, False, False, False, False, False, False])
     snap_bools2: BoolVectorProperty(
-        description="Snapping Bools Combo 2", size=11,
-        default=[True, False, False, False, False, False, False, False, False, False, False])
+        description="Snapping Bools Combo 2", size=14,
+        default=[True, False, False, False, False, False, False, False, False, False, False, False, False, False])
     snap_bools3: BoolVectorProperty(
-        description="Snapping Bools Combo 3", size=11,
-        default=[True, False, False, False, False, False, False, False, False, False, False])
+        description="Snapping Bools Combo 3", size=14,
+        default=[True, False, False, False, False, False, False, False, False, False, False, False, False, False])
     snap_bools4: BoolVectorProperty(
-        description="Snapping Bools Combo 4", size=11,
-        default=[True, False, False, False, False, False, False, False, False, False, False])
+        description="Snapping Bools Combo 4", size=14,
+        default=[True, False, False, False, False, False, False, False, False, False, False, False, False, False])
     snap_bools5: BoolVectorProperty(
-        description="Snapping Bools Combo 5", size=11,
-        default=[True, False, False, False, False, False, False, False, False, False, False])
+        description="Snapping Bools Combo 5", size=14,
+        default=[True, False, False, False, False, False, False, False, False, False, False, False, False, False])
     snap_bools6: BoolVectorProperty(
-        description="Snapping Bools Combo 6", size=11,
-        default=[True, False, False, False, False, False, False, False, False, False, False])
+        description="Snapping Bools Combo 6", size=14,
+        default=[True, False, False, False, False, False, False, False, False, False, False, False, False, False])
     # snap combo naming
     snap_name1: StringProperty(description="Snapping Combo 1 Name", default="Snap Combo 1")
     snap_name2: StringProperty(description="Snapping Combo 2 Name", default="Snap Combo 2")
@@ -746,14 +757,16 @@ class KeKitAddonPreferences(AddonPreferences):
     # Auto-Apply Scale
     apply_scale: BoolProperty(name="Auto-Apply Scale", description="Apply Scale before operation", default=True)
     # Mouse Axis Scale Mode
-    mam_scale_mode: BoolProperty(name="Scale Constrain", default=False,
-                                 description="When mouse is over selected object(s) use non-constrained scale.\n"
-                                             "Else, use axis constrain relative to mouse (default mouse axis move)")
+    mam_scale_mode: BoolProperty(
+        name="No Constrain Over", default=False,
+        description="When mouse is OVER selected object(s): start non-constrained (like standard tools)\n"
+                    "Else, constrain axis relative to mouse direction (default mouse axis)\n"
+                    "Note: Does not affect Rotate (always axis constrained)")
     # Show / Hide SubMenus
     show_modules: BoolProperty(name="keKit Modules", default=False)
     show_ui: BoolProperty(name="keKit UI Settings", default=False)
     # show_shortcuts: BoolProperty(name="Show Assigned keKit Shortcuts", default=False)
-    show_kmtools: BoolProperty(name="Show keKit Shortcut Tools", default=False)
+    show_kmtools: BoolProperty(name="keKit Shortcut Tools", default=False)
     # Toggle Weights
     toggle_same: BoolProperty(default=True, name="Toggle All Same",
                               description="Set all weights to the same (most common) value AFTER toggling\n"
@@ -767,6 +780,8 @@ class KeKitAddonPreferences(AddonPreferences):
     uv_obj_seam: BoolProperty(default=True, name="Object Mode Auto-Seam",
                               description="In Object Mode, always ON\n"
                                           "In Edit Mode, always OFF")
+    # Get & Set Material Toggle Remove Unused
+    getmat_clear_unused: BoolProperty(name="Remove Unused Materials/Slots", default=True)
     # Shortcut Prefs KeyMap Display Mode
     km_mode: EnumProperty(
         name="keKit Shortcut Display",

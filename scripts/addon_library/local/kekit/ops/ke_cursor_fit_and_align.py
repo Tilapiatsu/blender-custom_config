@@ -1,48 +1,40 @@
 import bmesh
 import bpy
+import gpu
+from gpu_extras.batch import batch_for_shader
 from bpy.types import Operator
-from mathutils import Vector
+from bpy_extras.view3d_utils import region_2d_to_location_3d
+from mathutils import Vector, Matrix
 from .._utils import (
     get_prefs,
     rotation_from_vector,
     mouse_raycast,
-    correct_normal,
     average_vector,
-    tri_points_order,
-    vertloops,
-    flatten,
-    get_face_islands,
-    is_tf_applied
+    get_distance,
+    vector_from_matrix,
+    is_tf_applied,
+    bm_selections,
 )
 
 
-def set_cursor(rotmat, pos=None):
-    q = rotmat.to_euler("XYZ")
-    bpy.context.scene.cursor.rotation_mode = "XYZ"
-    bpy.context.scene.cursor.rotation_euler = q
-    # Floating point rounding - people prefer "clean zeros"
-    crot = bpy.context.scene.cursor.rotation_euler
-    crot.x = round(crot.x, 4)
-    crot.y = round(crot.y, 4)
-    crot.z = round(crot.z, 4)
-    if pos is not None:
-        bpy.context.scene.cursor.location = pos
-    else:
-        bpy.ops.view3d.snap_cursor_to_selected()
-    bpy.ops.transform.select_orientation(orientation="CURSOR")
-    bpy.context.tool_settings.transform_pivot_point = "CURSOR"
+def draw_callback_view(self, context):
+    # Temp xyz axis-gizmo
+    gpu.state.line_width_set(2)
+    # gpu.state.blend_set("NONE")
 
+    if self.axis_lines:
+        x = batch_for_shader(self.shader, 'LINES', {"pos": self.axis_lines[0]})
+        self.shader.uniform_float("color", (0.85, 0.15, 0.15, 1))
+        x.draw(self.shader)
 
-def set_custom_orientation(context, pos):
-    try:
-        bpy.ops.transform.create_orientation(name='keTF', use_view=False, use=True, overwrite=True)
-        tm = context.scene.transform_orientation_slots[0].custom_orientation.matrix.copy()
-        bpy.ops.transform.delete_orientation()
-        set_cursor(tm, pos)
-    except RuntimeError:
-        # print("Fallback: Invalid selection for Orientation - just snapping to selection")
-        return False
-    return True
+        y = batch_for_shader(self.shader, 'LINES', {"pos": self.axis_lines[1]})
+        self.shader.uniform_float("color", (0.25, 0.8, 0.3, 1))
+
+        y.draw(self.shader)
+
+        z = batch_for_shader(self.shader, 'LINES', {"pos": self.axis_lines[2]})
+        self.shader.uniform_float("color", (0.15, 0.50, 0.85, 1))
+        z.draw(self.shader)
 
 
 class KeCursorFitAlign(Operator):
@@ -58,27 +50,104 @@ class KeCursorFitAlign(Operator):
 
     cursor_orient_set = True
     mouse_pos = Vector((0, 0))
+    ctx = None
+    pos = Vector()
+    og = ["GLOBAL", "MEDIAN_POINT", "XYZ"]
+    keep_cursor_tf = False
+    apply_custom = True
+    lfn = None
+    lfavgpos = None
+    axis_lines = None
+    axis_line_length = 0.015
+    shader = None
+    _handle_view = None
+    _timer = None
+    start_time = 0
+    end = False
+
+    def use_blender_tf(self):
+        om = Matrix()
+        try:
+            bpy.ops.transform.create_orientation(name='keTF', use_view=False, use=True, overwrite=True)
+            om = self.ctx.scene.transform_orientation_slots[0].custom_orientation.matrix.copy()
+            bpy.ops.transform.delete_orientation()
+        except RuntimeError:
+            pass
+        self.set_cursor(om)
+        self.apply_custom = False
+
+    def set_cursor(self, rot):
+        # Apply - (rotmtx should now be worldspace)
+        if self.lfn and self.lfavgpos:
+            # Check z-dir 1st
+            x, y, z = vector_from_matrix(rot)
+            lfncheck = round(z.dot(self.lfn), 3)
+            lfavgvec = (self.pos - self.lfavgpos).normalized()
+            lfavgcheck = round(z.dot(lfavgvec), 3)
+            # print("LFN:", lfncheck, " LFAVG:", lfavgcheck)
+            if lfncheck < 0 and lfavgcheck <= 0:
+                # print("lfn NEG")
+                rot = Matrix((x, -y, -z)).to_4x4().inverted_safe()
+            if lfavgcheck < 0 and lfncheck == 0:
+                # print("lfavgvec NEG")
+                rot = Matrix((x, -y, -z)).to_4x4().inverted_safe()
+        q = rot.to_euler("XYZ")
+        self.ctx.scene.cursor.rotation_mode = "XYZ"
+        self.ctx.scene.cursor.rotation_euler = q
+        # Floating point rounding (zero-floats over 3 dec.pts still "looks wrong" to ppl)
+        crot = self.ctx.scene.cursor.rotation_euler
+        crot.x = round(crot.x, 4)
+        crot.y = round(crot.y, 4)
+        crot.z = round(crot.z, 4)
+        self.ctx.scene.cursor.location = self.pos
+        bpy.ops.transform.select_orientation(orientation="CURSOR")
+        self.ctx.tool_settings.transform_pivot_point = "CURSOR"
+
+    def restore_cursor(self):
+        if not self.keep_cursor_tf:
+            bpy.ops.transform.select_orientation(orientation=self.og[0])
+            self.ctx.scene.tool_settings.transform_pivot_point = self.og[1]
+            self.ctx.scene.cursor.rotation_mode = self.og[2]
+
+    def quit(self):
+        wm = self.ctx.window_manager
+        wm.event_timer_remove(self._timer)
+        bpy.types.SpaceView3D.draw_handler_remove(self._handle_view, 'WINDOW')
+        self.ctx.area.tag_redraw()
 
     def invoke(self, context, event):
         self.mouse_pos[0] = event.mouse_region_x
         self.mouse_pos[1] = event.mouse_region_y
+        self.start_time = 0
+        self.end = False
         return self.execute(context)
 
     def execute(self, context):
         k = get_prefs()
-        og_cursor_setting = str(context.scene.cursor.rotation_mode)
-        self.cursor_orient_set = k.cursorfit
+        self.keep_cursor_tf = k.cursorfit
+        self.ctx = context
+        self.apply_custom = True
+        self.lfn = None
+        self.lfavgpos = None
         scale_check = True
+        # Axis preview gizmo
+        use_axis_gizmo = k.cursor_gizmo
 
-        # GRAB CURRENT ORIENT & PIVOT (to restore at the end)
-        og_orientation = str(context.scene.transform_orientation_slots[0].type)
-        og_pivot = str(context.scene.tool_settings.transform_pivot_point)
+        # GRAB CURRENT (Original) ORIENT & PIVOT (to restore at the end)
+        self.og = [str(context.scene.transform_orientation_slots[0].type),
+                   str(context.scene.tool_settings.transform_pivot_point),
+                   str(context.scene.cursor.rotation_mode)]
 
         if context.object:
+            # to-do: Multi-object in edit mode support - not possible with blenders custom tf's, so...
             if not is_tf_applied(context.object)[2]:
                 scale_check = False
 
-        if context.object and context.object.type in {'CURVE', 'GPENCIL'}:
+        #
+        # CURVES
+        #
+        if context.object and context.object.type in {'CURVE', 'GPENCIL'} and context.mode != "OBJECT":
+            # print("CURVE EDIT MODE")
             obj_mtx = context.object.matrix_world
             cos = []
 
@@ -105,15 +174,7 @@ class KeCursorFitAlign(Operator):
                                     cos.append(obj_mtx @ p.co)
 
             if len(cos) > 1:
-                n = Vector(cos[0] - cos[-1]).normalized()
-                z = n.cross(Vector((0, 0, 1)))
-                t_v = n.cross(z)
-                if t_v.dot(n) < 0.00001:
-                    y = n.cross(Vector((0, 1, 0)))
-                    t_v = n.cross(y)
-                rot_mtx = rotation_from_vector(n, t_v)
-                set_cursor(rot_mtx)
-            elif cos:
+                self.use_blender_tf()
                 bpy.ops.view3d.snap_cursor_to_selected()
             else:
                 bpy.ops.view3d.snap_cursor_to_center()
@@ -122,251 +183,153 @@ class KeCursorFitAlign(Operator):
             if cos and context.object.type == "GPENCIL":
                 bpy.ops.gpencil.snap_cursor_to_selected()
 
-        elif context.mode == "EDIT_MESH":
+        #
+        # EDIT MESH
+        #
+        if context.mode == "EDIT_MESH":
             sel_mode = context.tool_settings.mesh_select_mode[:]
             obj = context.edit_object
             obj_mtx = obj.matrix_world.copy()
+            mtx_inv = obj_mtx.inverted_safe().transposed().to_3x3()
             bm = bmesh.from_edit_mesh(obj.data)
 
-            bm.verts.ensure_lookup_table()
-            bm.edges.ensure_lookup_table()
-            bm.faces.ensure_lookup_table()
+            active, sel_verts, sel_edges, sel_faces = bm_selections(bm, sel_mode)
+            vert_count = len(sel_verts)
 
-            vert_mode = True
-            sel_verts = [v for v in bm.verts if v.select]
-            sel_count = len(sel_verts)
-
-            if sel_count == 0:
+            # JUST RESET CURSOR IF NO ELEMENTS ARE SELECTED
+            if vert_count == 0:
                 bpy.ops.view3d.snap_cursor_to_center()
                 return {'FINISHED'}
 
-            ps = [v.co for v in sel_verts]
-            pos = obj_mtx @ average_vector(ps)
-            using_default = True
+            # VARs
+            vert_coords = [v.co for v in sel_verts]
+            pos = average_vector(vert_coords)
+            self.pos = obj_mtx @ pos
+            lf = set([i for j in [v.link_faces for v in sel_verts] for i in j])
+            if lf:
+                self.lfavgpos = obj_mtx @ average_vector([f.calc_center_median().freeze() for f in lf])
+            z = y = x = Vector()
 
-            #
-            # POLY MODE
-            #
-            if sel_mode[2]:
-                sel_poly = [p for p in bm.faces if p.select]
-
-                if sel_poly:
-
-                    af = bm.faces.active
-                    if af not in sel_poly:
-                        af = sel_poly[-1]
-
-                    if len(sel_poly) == 1:
-                        pos = obj_mtx @ bm.faces[af.index].calc_center_median()
-
-                    sel_islands = get_face_islands(bm, sel_verts)
-
-                    if len(sel_islands) > 1:
-                        normal = correct_normal(obj_mtx, af.normal)
-                        tangent = correct_normal(obj_mtx, af.calc_tangent_edge_pair().normalized())
-                        # fallbacks (tangent edges are same as n on other face etc.)
-                        if normal.magnitude == 0 or tangent.magnitude == 0:
-                            normal = Vector((0, 0, 1))
-                            tangent = Vector((1, 0, 0))
-                        rot_mtx = rotation_from_vector(normal, tangent, rw=True)
-                        set_cursor(rot_mtx, pos=pos)
+            # PROCESS
+            if sel_faces and sel_mode[2]:
+                # print("[FACE MODE]")
+                if len(sel_faces) > 1:
+                    fn = [mtx_inv @ f.normal for f in sel_faces]
+                    # Check faces facing each other
+                    active_only = False
+                    for f in fn:
+                        for of in fn:
+                            d = f.dot(of)
+                            if d < 0:
+                                active_only = True
+                                break
+                    if active_only:
+                        # print("Z: Facing vectors cancelling out - using active only")
+                        z = active.normal
+                        y = active.calc_tangent_edge_diagonal()
+                        x = z.cross(y).normalized()
+                        self.set_cursor(obj_mtx @ Matrix((x, y, z)).to_4x4().inverted_safe())
                     else:
-                        using_default = set_custom_orientation(context, pos)
-                        if not using_default:
-                            bpy.ops.view3d.snap_cursor_to_selected()
+                        self.use_blender_tf()
                 else:
-                    bpy.ops.view3d.snap_cursor_to_center()
+                    self.use_blender_tf()
 
-                vert_mode = False
-            #
-            # EDGE MODE
-            #
-            if sel_mode[1]:
-                n = Vector((0, 0, 1))
-                t_v = Vector((1, 0, 0))
+            elif sel_mode[1] and sel_edges:
+                # print("[EDGE MODE]")
+                edge_vec = (active.verts[1].co - active.verts[0].co).normalized()
+                sel_edge_count = len(sel_edges)
+                if lf:
+                    self.lfn = average_vector([i.normal for j in [e.link_faces for e in sel_edges] for i in j])
 
-                loop_mode = False
-                line_mode = False
+                if sel_edge_count == 1:
+                    # print("Z: 1-EDGE ALIGNED")
+                    if lf:
+                        self.use_blender_tf()
+                    else:
+                        z = edge_vec
+                        y = active.verts[0].normal
+                        x = y.cross(z).normalized()
 
-                sel_edges = [e for e in bm.edges if e.select]
-                e_count = len(sel_edges)
+                if sel_edge_count == 2:
+                    # print("Z: 2-EDGE CROSS special")
+                    elf = [i for j in [e.link_faces for e in sel_edges] for i in j]
+                    shared = [f for f in elf if elf.count(f) > 1]
+                    if shared:
+                        z = shared[0].normal
+                        y = edge_vec
+                        x = z.cross(y).normalized()
+                    elif self.lfn and not [e for e in sel_edges if e.is_boundary]:
+                        x = edge_vec
+                        z = self.lfn
+                        y = x.cross(z).normalized()
+                    else:
+                        h_vert = [v for v in sel_verts if v not in active.verts][0]
+                        h = (h_vert.co - active.verts[0].co).normalized()
+                        z = edge_vec.cross(h).normalized()
+                        y = z.cross(edge_vec)
+                        x = edge_vec
+                    rot = obj_mtx @ Matrix((y, x, z)).to_4x4().inverted_safe()
+                    self.set_cursor(rot)
 
-                if e_count > 1:
-                    vps = [e.verts[:] for e in sel_edges]
-                    loops = vertloops(vps)
-                    if len(loops) >= 1 and loops[0][0] != loops[0][-1]:
-                        fl = list(set(flatten(vps)))
-                        if len(fl) == len(loops[0]):
-                            line_mode = True
-                            using_default = False
+                else:
+                    if not lf:
+                        # WIRE EDGES (not in a straight line)
+                        self.use_blender_tf()
+                    else:
+                        # EDGES (W. LINKFACES, INCL BORDER EDGES)
+                        edges = set(sel_edges)
+                        edges = [e for e in edges if e != active]
 
-                if not line_mode:
-                    using_default = set_custom_orientation(context, pos)
-                    vert_mode = False
+                        le = set()
+                        for v in sel_verts:
+                            for vle in v.link_edges:
+                                le.add(vle)
+                        edges += list(le)
 
-                if not using_default:
-                    # todo: clean up redundant code
-                    if e_count == 1:
-                        ev = sel_edges[0].verts[:]
-                        n = Vector((ev[0].normal + ev[1].normal) * .5).normalized()
-                        t_v = Vector((ev[0].co - ev[1].co).normalized())
-                        vert_mode = False
-
-                    elif e_count == 2 or line_mode:
-                        shared_face = []
-                        for f in sel_edges[0].link_faces:
-                            for fe in sel_edges[1].link_faces:
-                                if fe == f:
-                                    shared_face = f
+                        # Find good vecs for crossp from the edges selected (& linked)
+                        best_vec = Vector(), 9
+                        for e in edges:
+                            vec = (e.verts[0].co - e.verts[1].co).normalized()
+                            d = abs(round(vec.dot(edge_vec), 5))
+                            if d < best_vec[1]:
+                                best_vec = vec, d
+                                if d == 0:
                                     break
 
-                        ev = sel_edges[0].verts[:]
-                        etv = sel_edges[1].verts[:]
-
-                        n = Vector((ev[0].normal + ev[1].normal) * .5).normalized()
-                        t_v = Vector((etv[0].normal + etv[1].normal) * .5).normalized()
-
-                        if abs(round(n.dot(t_v), 2)) == 1 or shared_face or line_mode:
-                            avg_v, avg_e = [], []
-                            for e in sel_edges:
-                                avg_v.append((e.verts[0].normal + e.verts[1].normal) * .5)
-                                uv = Vector(e.verts[0].co - e.verts[1].co).normalized()
-                                avg_e.append(uv)
-
-                            n = average_vector(avg_v)
-                            # I forgot why I needed these checks?
-                            if sum(n) == 0:
-                                n = avg_v[0]
-                            t_v = average_vector(avg_e)
-                            if sum(t_v) == 0:
-                                t_v = avg_e[0]
-
-                            if shared_face:
-                                t_v = avg_e[0]
-
-                            vert_mode = False
-
-                    elif e_count > 2:
-                        loop_mode = True
-
-                        startv = Vector(sel_edges[0].verts[0].co - sel_edges[0].verts[1].co).normalized()
-                        cv1 = Vector(sel_edges[1].verts[0].co - sel_edges[1].verts[1].co).normalized()
-                        cdot = abs(round(startv.dot(cv1), 6))
-
-                        for e in sel_edges[2:]:
-                            v = Vector(e.verts[0].co - e.verts[1].co).normalized()
-                            vdot = abs(round(startv.dot(v), 3))
-                            if vdot < cdot:
-                                cv1 = v
-                                cdot = vdot
-
-                        n = startv
-                        t_v = cv1
-                        n.negate()
-                        vert_mode = False
-
-                    # final pass
-                    n = correct_normal(obj_mtx, n)
-                    t_v = correct_normal(obj_mtx, t_v)
-                    n = n.cross(t_v)
-
-                    # vert average fallback
-                    if sum(t_v) == 0 or sum(n) == 0:
-                        vert_mode = True
-
-                    if not vert_mode:
-                        if loop_mode:
-                            rot_mtx = rotation_from_vector(n, t_v, rotate90=True)
+                        if best_vec[1] > 0:
+                            # print("No good crossp vec found - using blender default tf")
+                            self.use_blender_tf()
                         else:
-                            rot_mtx = rotation_from_vector(n, t_v, rotate90=False)
+                            y = best_vec[0]
+                            x = edge_vec
+                            z = x.cross(y).normalized()
 
-                        set_cursor(rot_mtx)
+                # APPLY EDGES MODES
+                if self.apply_custom:
+                    self.set_cursor(obj_mtx @ Matrix((x, y, z)).to_4x4().inverted_safe())
 
-            #
-            # VERT (& GENERAL AVERAGE) MODE
-            #
-            if sel_mode[0] or vert_mode:
-
-                if sel_count == 2:
-                    n = Vector(sel_verts[0].co - sel_verts[1].co).normalized()
-                    v_n = [v.normal for v in sel_verts]
-                    t_v = correct_normal(obj_mtx, sum(v_n, Vector()) / len(v_n))
-                    n = correct_normal(obj_mtx, n)
-                    t_v = t_v.cross(n)
-
-                    rot_mtx = rotation_from_vector(n, t_v)
-                    set_cursor(rot_mtx)
-
-                elif sel_count == 3:
-                    cv = [v.co for v in sel_verts]
-
-                    # make triangle vectors, sort to avoid the hypot.vector
-                    h = tri_points_order(cv)
-                    tri = sel_verts[h[0]].co, sel_verts[h[1]].co, sel_verts[h[2]].co
-                    v1 = Vector((tri[0] - tri[1])).normalized()
-                    v2 = Vector((tri[0] - tri[2])).normalized()
-                    v1 = correct_normal(obj_mtx, v1)
-                    v2 = correct_normal(obj_mtx, v2)
-                    n_v = v1.cross(v2)
-
-                    # flipcheck
-                    v_n = [v.normal for v in sel_verts]
-                    ncheck = correct_normal(obj_mtx, sum(v_n, Vector()) / len(v_n))
-                    if ncheck.dot(n_v) < 0:
-                        n_v.negate()
-
-                    # tangentcheck
-                    c1 = n_v.cross(v1).normalized()
-                    c2 = n_v.cross(v2).normalized()
-                    if c1.dot(n_v) > c2.dot(n_v):
-                        u_v = c2
-                    else:
-                        u_v = c1
-                    t_v = u_v.cross(n_v).normalized()
-
-                    rot_mtx = rotation_from_vector(n_v, t_v)
-                    set_cursor(rot_mtx)
-
-                elif sel_count != 0:
-
-                    v_n = [v.normal for v in sel_verts]
-                    n = correct_normal(obj_mtx, sum(v_n, Vector()) / len(v_n))
-
-                    if sel_count >= 1:
-                        if sel_count == 1:
-                            if not sel_verts[0].link_edges:
-                                # floater vert check -> world rot
-                                t_c = Vector((1, 0, 0))
-                                n = Vector((0, 0, 1))
-                            else:
-                                t_c = sel_verts[0].co - sel_verts[0].link_edges[0].other_vert(sel_verts[0]).co
-                        else:
-                            t_c = sel_verts[0].co - sel_verts[1].co
-
-                        t_c = correct_normal(obj_mtx, t_c)
-                        t_v = n.cross(t_c).normalized()
-
-                        rot_mtx = rotation_from_vector(n, t_v)
-                        set_cursor(rot_mtx)
-
-                elif sel_count == 0:
-                    bpy.ops.view3d.snap_cursor_to_center()
-
-                bm.select_flush_mode()
-                bmesh.update_edit_mesh(obj.data)
+            else:
+                if vert_count == 2:
+                    # print("[2-VERTEX MODE]")
+                    other_vert = [v for v in sel_verts if v != active][0]
+                    z = (active.co - other_vert.co).normalized()
+                    y = z.orthogonal()
+                    x = z.cross(y).normalized()
+                    self.set_cursor(obj_mtx @ Matrix((y, x, z)).to_4x4().inverted_safe())
+                else:
+                    # print("[VERTEX / FALL-BACK MODE] (Blender Custom Transform)")
+                    self.use_blender_tf()
 
         #
         # OBJECT MODE
         #
         elif context.mode == "OBJECT":
-
+            # print("[OBJECT MODE]")
             sel_obj = [o for o in context.selected_objects]
             active_object = context.active_object if context.active_object in sel_obj else None
             hit_obj, hit_wloc, hit_normal, hit_face = mouse_raycast(context, self.mouse_pos)
-            nohitsel = True if hit_obj not in sel_obj else False
 
-            # excluding if any modifier that deform/ change the mesh's location to avoid any None type error
-            # contrib: Wahyu Nugraha
+            # excluding if mod deform/ change the mesh's location to avoid any None type errror. contrib: Wahyu Nugraha
             m_deform = ['ARMATURE', 'CAST', 'CURVE', 'DISPLACE', 'HOOK', 'LAPLACIANDEFORM', 'LATTICE', 'MESH_DEFORM',
                         'SHRINKWRAP',
                         'SIMPLE_DEFORM', 'SMOOTH', 'CORRECTIVE_SMOOTH', 'LAPLACIANSMOOTH', 'SURFACE_DEFORM', 'WARP',
@@ -380,7 +343,7 @@ class KeCursorFitAlign(Operator):
                         if m.show_viewport and m.type not in m_deform:
                             mfs.append(m)
                             m.show_viewport = False
-                    # casting again for unevaluated index (the "proper way" is bugged?)
+                    # casting again for unevaluated index (TBD: better method)
                     hit_obj, hit_wloc, hit_normal, hit_face = mouse_raycast(context, self.mouse_pos)
 
                 obj_mtx = hit_obj.matrix_world.copy()
@@ -395,69 +358,118 @@ class KeCursorFitAlign(Operator):
                 bm.faces.ensure_lookup_table()
 
                 normal = bm.faces[hit_face].normal
-                tangent = bm.faces[hit_face].calc_tangent_edge()
-                pos = obj_mtx @ bm.faces[hit_face].calc_center_median()
+                tangent = bm.faces[hit_face].calc_tangent_edge_diagonal()
+                self.pos = obj_mtx @ bm.faces[hit_face].calc_center_median()
 
                 rot_mtx = rotation_from_vector(normal, tangent, rw=True)
                 rot_mtx = obj_mtx @ rot_mtx
-                set_cursor(rot_mtx, pos=pos)
-
+                self.set_cursor(rot_mtx)
+                # restore vis for workaround
                 if mfs:
                     for m in mfs:
                         m.show_viewport = True
-
-            elif len(sel_obj) == 1 and nohitsel:
-                # LOC - as bo
-                context.scene.cursor.location = sel_obj[0].matrix_world.to_translation()
-                # ROT - as obj
-                context.scene.cursor.rotation_euler = sel_obj[0].matrix_world.to_euler()
-                if self.cursor_orient_set:
-                    bpy.ops.transform.select_orientation(orientation="CURSOR")
-                    context.tool_settings.transform_pivot_point = "CURSOR"
-
-            elif len(sel_obj) == 2 and nohitsel:
-                # LOC
-                context.scene.cursor.location = average_vector([o.matrix_world.to_translation() for o in sel_obj])
-                # ROT - towards active
-                if active_object is not None:
-                    if sel_obj[0] == active_object:
-                        target, start = active_object, sel_obj[-1]
-                    else:
-                        target, start = active_object, sel_obj[0]
-                else:
-                    start, target = sel_obj[0], sel_obj[-1]
-                v = Vector(target.matrix_world.to_translation() - start.matrix_world.to_translation()).normalized()
-                if round(abs(v.dot(Vector((1, 0, 0)))), 3) == 1:
-                    u = Vector((0, 0, 1))
-                else:
-                    u = Vector((-1, 0, 0))
-                t = v.cross(u).normalized()
-                rot_mtx = rotation_from_vector(v, t, rw=False)
-                context.scene.cursor.rotation_euler = rot_mtx.to_euler()
-
-            elif len(sel_obj) >= 3 and nohitsel:
-                # LOC
-                context.scene.cursor.location = average_vector([o.matrix_world.to_translation() for o in sel_obj])
-                # ROT - as active
-                if active_object:
-                    context.scene.cursor.rotation_euler = active_object.matrix_world.to_euler()
-                else:
-                    context.scene.cursor.rotation_euler = sel_obj[-1].matrix_world.to_euler()
             else:
-                bpy.ops.view3d.snap_cursor_to_center()
+                # NO HIT SELECTION
+                if len(sel_obj) == 1:
+                    self.pos = sel_obj[0].matrix_world.to_translation()
+                    self.set_cursor(sel_obj[0].matrix_world)
 
-        if not self.cursor_orient_set:
-            # RESET OP TRANSFORMS
-            bpy.ops.transform.select_orientation(orientation=og_orientation)
-            context.scene.tool_settings.transform_pivot_point = og_pivot
+                elif len(sel_obj) == 2:
+                    # print("2 OBJ - ALIGN (TOWARDS ACTIVE)")
+                    self.pos = average_vector([o.matrix_world.to_translation() for o in sel_obj])
+                    if active_object is not None:
+                        if sel_obj[0] == active_object:
+                            target, start = active_object, sel_obj[-1]
+                        else:
+                            target, start = active_object, sel_obj[0]
+                    else:
+                        start, target = sel_obj[0], sel_obj[-1]
+                    z = (target.location - start.location).normalized()
+                    y = z.orthogonal()
+                    x = z.cross(y).normalized()
+                    rot = Matrix((y, x, z)).to_4x4().inverted_safe()
+                    self.set_cursor(rot)
 
-        if og_cursor_setting != "QUATERNION":
-            # just going to go ahead and assume no one uses this as default, for back-compatibility reasons...
-            context.scene.cursor.rotation_mode = og_cursor_setting
-        else:
-            context.scene.cursor.rotation_mode = 'XYZ'
+                elif len(sel_obj) >= 3:
+                    # print("3+ OBJ - ALIGN (AS LAST)")
+                    self.pos = average_vector([o.matrix_world.to_translation() for o in sel_obj])
+                    if active_object:
+                        rot = active_object.matrix_world
+                    else:
+                        rot = sel_obj[-1].matrix_world
+                    self.set_cursor(rot)
+                else:
+                    # print("NO SELECTION -> RESET")
+                    bpy.ops.view3d.snap_cursor_to_center()
+
+        if not self.keep_cursor_tf:
+            self.restore_cursor()
 
         if not scale_check:
             self.report({"INFO"}, "Object Scale is not applied")
 
-        return {'FINISHED'}
+        #
+        # MODAL AXIS PREVIEW
+        #
+        if use_axis_gizmo:
+            # Calc Axis size - Just some % relative to screen res Y
+            cpos = context.scene.cursor.location
+            # TBD: something smarter...
+            h = context.region.height
+            self.axis_line_length = (h * 0.015) / h
+            p1, p2 = (0, h), (0, int(h - self.axis_line_length))
+            v1 = region_2d_to_location_3d(context.region, context.region_data, p1,
+                                          cpos)
+            v2 = region_2d_to_location_3d(context.region, context.region_data, p2,
+                                          cpos)
+
+            # Cursor Axis coords
+            d = get_distance(v1, v2)
+            self.axis_line_length = d * 70
+
+            cmtx = context.scene.cursor.rotation_euler.to_matrix()
+            x_vec, y_vec, z_vec = vector_from_matrix(cmtx)
+            self.axis_lines = [
+                (cpos, cpos + (x_vec * self.axis_line_length)),
+                (cpos, cpos + (y_vec * self.axis_line_length)),
+                (cpos, cpos + (z_vec * self.axis_line_length))
+            ]
+
+            # Prep for GPU draw & run Modal
+            self.shader = gpu.shader.from_builtin('UNIFORM_COLOR')
+            bpy.app.handlers.frame_change_post.clear()
+
+            args = (self, context)
+            self._handle_view = bpy.types.SpaceView3D.draw_handler_add(
+                draw_callback_view, args, 'WINDOW', 'POST_VIEW')
+
+            wm = context.window_manager
+            self._timer = wm.event_timer_add(time_step=0.004, window=context.window)
+            wm.modal_handler_add(self)
+
+            return {'RUNNING_MODAL'}
+        return {"FINISHED"}
+
+    def modal(self, context, event):
+        if context.area and event.type == 'TIMER':
+            if self._timer.time_duration > 10:
+                self.end = True
+            else:
+                self.start_time = self._timer.time_duration
+
+        if event.type in {"MOUSEMOVE", "MOUSEROTATE", "WHEELUPMOUSE", "WHEELDOWNMOUSE", "INBETWEEN_MOUSEMOVE"}:
+            return {'PASS_THROUGH'}
+
+        elif event.type in {"LEFTMOUSE", "MIDDLEMOUSE", "RIGHTMOUSE"} and self.start_time > 0.2:
+            self.end = True
+            return {'PASS_THROUGH'}
+
+        elif event.type not in {"NONE", "TIMER"} and self.start_time > 0.2:
+            self.quit()
+            return {'FINISHED'}
+
+        if self.end:
+            self.quit()
+            return {'FINISHED'}
+
+        return {'RUNNING_MODAL'}

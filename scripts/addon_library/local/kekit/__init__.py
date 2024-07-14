@@ -17,6 +17,7 @@
 #  along with this program.  If not, see https://www.gnu.org/licenses
 #
 # ##### END GPL LICENSE BLOCK #####
+
 from . import _prefs
 from . import _ui
 from . import shared
@@ -36,14 +37,14 @@ bl_info = {
     "author": "Kjell Emanuelsson",
     "category": "",
     "blender": (2, 80, 0),
-    "version": (3, 1, 9),
+    "version": (3, 2, 4),
     "location": "View3D > Sidebar",
     "warning": "",
-    "description": "Extensive Script Collection",
+    "description": "Extensive Script Collection - Pro Version",
     "doc_url": "https://ke-code.xyz/scripts/wiki.html",
 }
 
-kit_cat = ""
+kit_cat = "Pro"
 
 modules = (
     _prefs,

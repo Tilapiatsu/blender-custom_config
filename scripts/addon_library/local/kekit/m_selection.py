@@ -46,10 +46,13 @@ class UISelectionModule(Panel):
 
         # ALIGN (leaning)
         row = col.row(align=True)
-        row.operator("view3d.ke_cursor_fit_align", text="Cursor Fit & Align")
+        row.operator("view3d.ke_cursor_fit_align", text="Cursor Fit & Align", icon="CURSOR")
         row.prop(k, "cursorfit", text="", toggle=True, icon_value=c if k.cursorfit else u)
+        row.prop(k, "cursor_gizmo", text="", icon="EMPTY_DATA")
 
-        col.operator("view3d.ke_cursor_align_rot", icon="MOUSE_MOVE")
+        row = col.row(align=True)
+        row.operator("view3d.ke_cursor_align_rot", icon="MOUSE_MOVE")
+        row.prop(k, "cursorfit", text="", toggle=True, icon_value=c if k.cursorfit else u)
 
         row = col.row(align=True)
         row.operator("view3d.ke_vp_step_rotate", text="StepRotate 90").rot = 90

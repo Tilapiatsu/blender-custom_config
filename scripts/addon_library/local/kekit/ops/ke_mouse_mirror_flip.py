@@ -297,19 +297,23 @@ class KeMouseMirrorFlip(Operator):
         context.scene.tool_settings.use_mesh_automerge = False
 
         # PROCESS
-        if not em and cursor_mode:
-            bpy.ops.transform.mirror(orient_type=self.ot, orient_matrix=self.tm,
-                                     orient_matrix_type=self.ot, constraint_axis=axis)
+        if not em and self.mode == "MIRROR" and tf == "GLOBAL":
+            x, y, z = float(axis[0]), float(axis[1]), float(axis[2])
+            active_obj.matrix_world = Matrix.Scale(-1, 4, (x, y, z)) @ active_obj.matrix_world
         else:
-            bpy.ops.transform.resize(value=scale_value, orient_type=self.ot,
-                                     orient_matrix=self.tm,
-                                     orient_matrix_type=self.ot, constraint_axis=axis, mirror=True,
-                                     use_proportional_edit=False, proportional_edit_falloff='SMOOTH',
-                                     proportional_size=1.0, use_proportional_connected=False,
-                                     use_proportional_projected=False, snap=False,
-                                     gpencil_strokes=False, texture_space=False,
-                                     remove_on_cancel=False, center_override=avg_pos, release_confirm=False,
-                                     use_accurate=False)
+            if not em and cursor_mode:
+                bpy.ops.transform.mirror(orient_type=self.ot, orient_matrix=self.tm,
+                                         orient_matrix_type=self.ot, constraint_axis=axis)
+            else:
+                bpy.ops.transform.resize(value=scale_value, orient_type=self.ot,
+                                         orient_matrix=self.tm,
+                                         orient_matrix_type=self.ot, constraint_axis=axis, mirror=True,
+                                         use_proportional_edit=False, proportional_edit_falloff='SMOOTH',
+                                         proportional_size=1.0, use_proportional_connected=False,
+                                         use_proportional_projected=False, snap=False,
+                                         gpencil_strokes=False, texture_space=False,
+                                         remove_on_cancel=False, center_override=avg_pos, release_confirm=False,
+                                         use_accurate=False)
 
         if em:
             bpy.ops.mesh.flip_normals()

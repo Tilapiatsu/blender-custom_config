@@ -115,8 +115,8 @@ class KeExtractAndEdit(Operator):
                                 vec_poslist.append(obj_mtx @ sel_verts[int(len(sel_verts) * 0.33)].co)
                                 vec_poslist.append(obj_mtx @ sel_verts[int(len(sel_verts) * 0.66)].co)
                             else:
-                                vec_poslist = obj_mtx @ sel_verts[0].co,\
-                                              obj_mtx @ sel_verts[1].co,\
+                                vec_poslist = obj_mtx @ sel_verts[0].co, \
+                                              obj_mtx @ sel_verts[1].co, \
                                               obj_mtx @ sel_verts[2].co
 
                         if active_loop_verts > 2:
@@ -171,7 +171,8 @@ class KeExtractAndEdit(Operator):
 
                 new_obj.location = loc
                 new_obj.rotation_euler = rot
-                new_obj.data.use_auto_smooth = True
+                if bpy.app.version < (4, 1):
+                    new_obj.data.use_auto_smooth = True
 
                 if self.dupe:
                     bpy.ops.mesh.duplicate()

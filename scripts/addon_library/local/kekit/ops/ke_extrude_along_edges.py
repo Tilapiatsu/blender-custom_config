@@ -1,10 +1,11 @@
+import bpy
 import bmesh
 from bpy.props import BoolProperty
 from bpy.types import Operator
 from mathutils import Vector
 from mathutils.geometry import intersect_line_plane
-from .._utils import vertloops, get_distance, shift_list, is_bmvert_collinear, tri_points_vectors, expand_to_island, \
-    pairlink, flattened, average_vector, is_tf_applied
+from .._utils import vertloops, get_distance, shift_list, expand_to_island, \
+    pairlink, flattened, average_vector, is_tf_applied, is_bmvert_collinear
 
 
 class KeExtrudeAlongEdges(Operator):
@@ -18,7 +19,10 @@ class KeExtrudeAlongEdges(Operator):
 
     caps: BoolProperty(name="Cap Ends", default=True)
     invert: BoolProperty(name="Flip Face Normals", default=False)
+    flip: BoolProperty(name="Flip Direction", default=False)
     closed: BoolProperty(default=False, options={"HIDDEN"})
+    lines_only: BoolProperty(name="Edge Lines Only", default=False)
+    col_lines: BoolProperty(name="Remove Collinear Verts", default=True)
 
     mtx = None
     coll = None
@@ -33,9 +37,13 @@ class KeExtrudeAlongEdges(Operator):
         layout.use_property_split = True
         row = layout.row()
         row.prop(self, "caps", toggle=True)
-        if self.closed:
+        if self.closed or self.lines_only:
             row.enabled = False
         layout.prop(self, "invert", toggle=True)
+        layout.prop(self, "flip", toggle=True)
+        layout.prop(self, "lines_only", toggle=True)
+        if self.lines_only:
+            layout.prop(self, "col_lines")
         layout.separator()
 
     def execute(self, context):
@@ -73,13 +81,37 @@ class KeExtrudeAlongEdges(Operator):
         # EDGE SELECTION
         #
         sel_edges = [e for e in bm.edges if e.select]
+        active = None
+
+        # Face Mode Macro
+        if context.scene.tool_settings.mesh_select_mode[2]:
+            active_face = bm.select_history.active
+            if not active_face:
+                self.report({"INFO"}, "Invalid Selection: No Active Element in selection")
+                return {"CANCELLED"}
+            og_ae = active_face.edges
+            # Convert to Edge Mode
+            bpy.ops.mesh.region_to_loop()
+            context.tool_settings.mesh_select_mode = (False, True, False)
+            bm.select_mode = {'EDGE'}
+            # Set active edge
+            sel_edges = [e for e in bm.edges if e.select]
+            if sel_edges:
+                for e in sel_edges:
+                    if e in og_ae:
+                        active = e
+                        bm.select_history.clear()
+                        bm.select_history.add(e)
+                        break
+
         if not sel_edges:
             self.report({"INFO"}, "Invalid Selection: No edges selected")
             return {"CANCELLED"}
         else:
             sel_verts = [v for v in bm.verts if v.select]
 
-        active = bm.select_history.active
+        if not active:
+            active = bm.select_history.active
         if active:
             if type(active).__name__ != "BMVert":
                 active = [v for v in active.verts][0]
@@ -139,26 +171,16 @@ class KeExtrudeAlongEdges(Operator):
                 pathloop = shift_list(pathloop, -idx)
                 pathloop.append(pathloop[0])
 
-            # Checking which start loop edge (dir vec) is pointing the same way as the shape loop (normal)
             if self.closed:
-                # candidate path vecs
-                edges = [e for e in sel_edges if startvert in e.verts]
-                e1p1, e1p2 = edges[0].verts[0], edges[0].verts[1]
-                e2p1, e2p2 = edges[1].verts[0], edges[1].verts[1]
-                ed1 = Vector(e1p2.co - e1p1.co).normalized()
-                ed2 = Vector(e2p2.co - e2p1.co).normalized()
-
-                # shape normal ref (this 3 point calc covers all cases)
-                coords = [v.co for v in shape_verts if not is_bmvert_collinear(v)]
-                normal, tangent = tri_points_vectors(self.mtx, Vector(), coords)
-
-                # dot -||+ does not matter: just avoiding perp dir & using bm-op recalc normals anyways!
-                if abs(normal.dot(ed1)) > abs(normal.dot(ed2)):
-                    if e1p1 != pathloop[0] and e1p2 != pathloop[1]:
-                        pathloop.reverse()
-                else:
-                    if e2p1 != pathloop[0] and e2p2 != pathloop[1]:
-                        pathloop.reverse()
+                # simple (probably bad) winding-check
+                c = pathloop[0].co
+                e1 = pathloop[1].co - c
+                e2 = pathloop[-2].co - c
+                sd = shape_co - c
+                d1 = sd.dot(e1)
+                d2 = sd.dot(e2)
+                if d1 < d2:
+                    pathloop.reverse()
         else:
             # Only loop ends can be starting point, closest to shapeloop determines direction
             d1 = get_distance(pathloop[0].co, shape_co)
@@ -169,6 +191,9 @@ class KeExtrudeAlongEdges(Operator):
                 startvert = pathloop[-1]
             if pathloop[0] != startvert:
                 pathloop.reverse()
+
+        if self.flip:
+            pathloop.reverse()
 
         rem_shape = False
         if self.closed:
@@ -219,7 +244,7 @@ class KeExtrudeAlongEdges(Operator):
                         next_normal = normal + 0.001 * normal
                     else:
                         normal = Vector(loop[1].co - loop[0].co).normalized()
-                        next_normal = Vector(edgeloop[i+1][1].co - edgeloop[i+1][0].co).normalized()
+                        next_normal = Vector(edgeloop[i + 1][1].co - edgeloop[i + 1][0].co).normalized()
                 else:
                     # Closed Loop - substitute last with first (& skip first segment later)
                     if i < tot:
@@ -258,10 +283,12 @@ class KeExtrudeAlongEdges(Operator):
 
             face_pairs, new_ring_segments = [], []
             segcount = len(ring_segments)
+            bkp_rings = []
 
             for i in range(0, segcount):
                 ring = ring_segments[i]
                 ring.append(ring[0])
+                bkp_rings.append(ring)
                 ringedge = pairlink(ring)
                 for pair in ringedge:
                     new_ring_segments.append(pair)
@@ -278,46 +305,71 @@ class KeExtrudeAlongEdges(Operator):
                 face_pairs.append(e2 + e1)
 
             # Create Edges
-            es = new_ring_segments + loop_segments
+            if self.lines_only:
+                gap = []
+                if self.closed:
+                    # Filling in the missing edge loop "gap" for lines-only mode
+                    for i, j in zip(bkp_rings[0][:-1], bkp_rings[-1][:-1]):
+                        gap.append([i, j])
+                    es = loop_segments + gap
+                else:
+                    es = loop_segments
+                # Nuke src shape
+                if shape_faces:
+                    interior_edges = set()
+                    for f in shape_faces:
+                        for e in f.edges:
+                            interior_edges.add(e)
+                        bm.faces.remove(f)
+                    if interior_edges:
+                        for e in interior_edges:
+                            bm.edges.remove(e)
+            else:
+                es = new_ring_segments + loop_segments
+
             for e in es:
-                new_edge = bm.edges.new(e)
-                new_edges.append(new_edge)
+                new_edges.append(bm.edges.new(e))
 
-            # Create Faces
-            for ep in face_pairs:
-                f = ep[1], ep[3], ep[2], ep[0]
-                nf = bm.faces.new(f)
-                new_faces.append(nf)
-
-            # Cap Ends
-            if self.caps and not self.closed:
-                cap = ring_segments[-1][:-1]
-                nf = bm.faces.new(cap)
-                new_faces.append(nf)
-                if not has_start_cap:
-                    cap = []
-                    for i in shapeloop:
-                        if i not in cap:
-                            cap.append(i)
-                    nf = bm.faces.new(cap)
-                    nf.normal_flip()
+            if not self.lines_only:
+                # Create Faces
+                for ep in face_pairs:
+                    f = ep[1], ep[3], ep[2], ep[0]
+                    nf = bm.faces.new(f)
                     new_faces.append(nf)
 
-            if rem_shape:
-                for v in shapeloop:
-                    if v.is_valid:
-                        bm.verts.remove(v)
+                # Cap Ends
+                if self.caps and not self.closed:
+                    cap = ring_segments[-1][:-1]
+                    nf = bm.faces.new(cap)
+                    new_faces.append(nf)
+                    if not has_start_cap:
+                        cap = []
+                        for i in shapeloop:
+                            if i not in cap:
+                                cap.append(i)
+                        nf = bm.faces.new(cap)
+                        nf.normal_flip()
+                        new_faces.append(nf)
 
-            if not rem_shape and not self.caps:
-                interior_edges = set()
-                for f in shape_faces:
-                    for e in f.edges:
-                        interior_edges.add(e)
-                    bm.faces.remove(f)
-                interior_edges = [e for e in interior_edges if e not in sel_edges]
-                if interior_edges:
-                    for e in interior_edges:
-                        bm.edges.remove(e)
+                if rem_shape:
+                    for v in shapeloop:
+                        if v.is_valid:
+                            bm.verts.remove(v)
+
+                if not rem_shape and not self.caps:
+                    interior_edges = set()
+                    for f in shape_faces:
+                        for e in f.edges:
+                            interior_edges.add(e)
+                        bm.faces.remove(f)
+                    interior_edges = [e for e in interior_edges if e not in sel_edges]
+                    if interior_edges:
+                        for e in interior_edges:
+                            bm.edges.remove(e)
+
+        if self.lines_only and self.col_lines:
+            cvs = [v for v in bm.verts if is_bmvert_collinear(v, tolerance=3.1415)]
+            bmesh.ops.dissolve_verts(bm, verts=cvs)
 
         # Drop all selections
         bm.select_mode = {'VERT'}
@@ -326,13 +378,14 @@ class KeExtrudeAlongEdges(Operator):
         bm.select_flush_mode()
         bm.select_history.clear()
 
-        # bmop to ensure face normals are facing out
-        fl = shape_faces + new_faces
-        fl = [f for f in fl if f.is_valid]
-        bmesh.ops.recalc_face_normals(bm, faces=fl)
-        if self.invert:
-            for f in fl:
-                f.normal_flip()
+        if not self.lines_only:
+            # bmop to ensure face normals are facing out
+            fl = shape_faces + new_faces
+            fl = [f for f in fl if f.is_valid]
+            bmesh.ops.recalc_face_normals(bm, faces=fl)
+            if self.invert:
+                for f in fl:
+                    f.normal_flip()
         # Finish
         bm.normal_update()
         bmesh.update_edit_mesh(src_obj.data)

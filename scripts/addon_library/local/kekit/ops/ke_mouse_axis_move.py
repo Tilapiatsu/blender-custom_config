@@ -41,7 +41,7 @@ class KeMouseAxisMove(Operator):
     pe_falloff = "SMOOTH"
     is_editor2d = False
     sculpthack = False
-    scale_mode = False
+    constrain = False
     linkdupe = False
 
     @classmethod
@@ -65,8 +65,9 @@ class KeMouseAxisMove(Operator):
 
     def invoke(self, context, event):
         k = get_prefs()
-        self.scale_mode = k.mam_scale_mode
+        self.constrain = k.mam_scale_mode
         self.linkdupe = bool(k.tt_linkdupe)
+        # self.constrain =
 
         # Forcing modes overrides
         if self.mode == "F_DUPE":
@@ -132,7 +133,10 @@ class KeMouseAxisMove(Operator):
             if self.obj.type in self.em_types:
                 is_em = bool(self.obj.data.is_editmode)
 
-        if self.mode == "SCL" and self.scale_mode:
+        #
+        # AXIS CONSTRAINT OR DEFAULT TF OPTION CHECK
+        #
+        if self.constrain:
             # Check if mouse is over obj to use unconstrained scale
             if is_em:
                 bpy.ops.object.mode_set(mode="OBJECT")
@@ -141,17 +145,24 @@ class KeMouseAxisMove(Operator):
                 bpy.ops.object.mode_set(mode="EDIT")
 
             if hit_obj is not None:
+
                 # Check if mouse is over SELECTED ELEMENTS to use unconstrained scale
                 if is_em and hit_obj.name == self.obj.name:
                     sel_poly = [p.index for p in self.obj.data.polygons if p.select]
                     if hit_face in sel_poly:
-                        bpy.ops.transform.resize('INVOKE_DEFAULT')
+                        if self.mode == "SCL":
+                            bpy.ops.transform.resize('INVOKE_DEFAULT')
+                        elif self.mode == "MOVE":
+                            bpy.ops.transform.translate('INVOKE_DEFAULT')
                         return {'FINISHED'}
                 # Object mode selection check
                 if not is_em:
                     c = [o.name for o in context.selected_objects]
                     if hit_obj.name in c:
-                        bpy.ops.transform.resize('INVOKE_DEFAULT')
+                        if self.mode == "SCL":
+                            bpy.ops.transform.resize('INVOKE_DEFAULT')
+                        elif self.mode == "MOVE":
+                            bpy.ops.transform.translate('INVOKE_DEFAULT')
                         return {'FINISHED'}
 
         # get rotation vectors

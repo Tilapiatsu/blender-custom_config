@@ -33,12 +33,14 @@ class KeClean(Operator):
         tinyedges = k.clean_tinyedge
         tinyedges_val = k.clean_tinyedge_val
         tv = 3.1415 - (k.clean_collinear_val * 0.0031415)
+        set_edit_mode = False
 
         # PRESELECTION
         sel_obj = [o for o in context.selected_objects if o.type == "MESH"]
         if not sel_obj:
             return {"CANCELLED"}
 
+        single_object = True if len(sel_obj) == 1 else False
         report = {}
         mes_found = ""
 
@@ -47,6 +49,7 @@ class KeClean(Operator):
 
         for o in sel_obj:
             # SELECT
+            set_edit_mode = False
             o.select_set(state=True)
             context.view_layer.objects.active = o
             bpy.ops.object.transform_apply(location=False, rotation=False, scale=True)
@@ -140,16 +143,20 @@ class KeClean(Operator):
             postcount = int(len(o.data.vertices))
             vert_count = precount - postcount
             if vert_count > 0:
-                print("Removed %s verts from %s" % ((precount - postcount), o.name))
+                print("### Removed %s verts from %s ###" % ((precount - postcount), o.name))
                 report[o.name] = vert_count
             if sel_count > 0:
-                print("Found %s verts in %s" % (sel_count, o.name))
+                print("### Found %s verts in %s ###" % (sel_count, o.name))
                 report[o.name] = sel_count
+                set_edit_mode = True
 
-            o.select_set(state=False)
+            if not set_edit_mode:
+                o.select_set(state=False)
+            else:
+                o.select_set(state=True)
 
-        for o in sel_obj:
-            o.select_set(state=True)
+        if single_object and set_edit_mode:
+            bpy.ops.object.mode_set(mode="EDIT")
 
         # bpy.ops.object.mode_set(mode=og_mode)
         if report:

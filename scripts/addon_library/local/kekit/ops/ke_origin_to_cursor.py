@@ -32,6 +32,7 @@ class KeOriginToCursor(Operator):
     def execute(self, context):
 
         if len(context.selected_objects) == 0:
+            self.report({"INFO"}, "No object selected?")
             return {"CANCELLED"}
 
         # make sure the cursor euler values are not quaternion converted floating point garbage:

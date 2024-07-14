@@ -68,6 +68,7 @@ def get_override_by_type(t="VIEW_3D"):
     return w, a, r
 
 
+# only one use case, maybe combine with get_view_type...?
 def get_area_and_type():
     for area in bpy.context.screen.areas:
         if area.type == 'VIEW_3D':
@@ -165,8 +166,7 @@ def restore_transform(og_op):
     bpy.context.scene.tool_settings.transform_pivot_point = og_op[1]
 
 
-def apply_transform(obj, loc=False, rot=True, scl=True):
-    """Non-ops API method to apply object transforms"""
+def apply_transform(obj, loc=False, rot=True, scl=True, upd_dg=True):
     mb = obj.matrix_basis
     idmat = Matrix()
     dloc, drot, dscl = mb.decompose()
@@ -192,7 +192,9 @@ def apply_transform(obj, loc=False, rot=True, scl=True):
     for c in obj.children:
         c.matrix_local = mat @ c.matrix_local
     obj.matrix_basis = basis[0] @ basis[1] @ basis[2]
-    bpy.context.evaluated_depsgraph_get().update()
+    if upd_dg:
+        # Multiple objects: Do it manually once instead:
+        bpy.context.evaluated_depsgraph_get().update()
 
 
 def is_tf_applied(obj):
@@ -243,10 +245,45 @@ def set_active_collection(context, obj):
     context.view_layer.active_layer_collection = coll
 
 
-def dupe(obj):
+def bm_selections(bm, mode):
+    # Get all selections & active element
+    bm.verts.ensure_lookup_table()
+    bm.edges.ensure_lookup_table()
+    bm.faces.ensure_lookup_table()
+    sv = [v for v in bm.verts if v.select]
+    if not sv:
+        return None, [], [], []
+    se = [e for e in bm.edges if e.select]
+    sf = [f for f in bm.faces if f.select]
+    active = bm.select_history.active
+    # or fallbacks
+    if mode[0]:
+        if active:
+            if not isinstance(active, bmesh.types.BMVert):
+                active = sv[0]
+        else:
+            active = sv[0]
+    elif mode[1]:
+        if active:
+            if not isinstance(active, bmesh.types.BMEdge):
+                active = se[0]
+        else:
+            active = se[0]
+    elif mode[2]:
+        if active:
+            if not isinstance(active, bmesh.types.BMFace):
+                active = sf[0]
+        else:
+            active = sf[0]
+    return active, sv, se, sf
+
+
+def dupe(obj, col=False):
     new = obj.copy()
     new.data = obj.data.copy()
-    obj.users_collection[0].objects.link(new)
+    if not col:
+        col = obj.users_collection[0]
+    col.objects.link(new)
     return new
 
 
@@ -676,12 +713,12 @@ def get_face_islands(bm, sel_verts=None, sel_edges=None, sel_faces=None):
 
 
 def get_vertex_islands(verts, edges, is_bm=False):
-    # Best solution - Works in both obj mode (for parts) & bmesh (for selection islands)
     paths = {v.index: set() for v in verts}
+    dindex = {v.index: v for v in verts}
     if is_bm:
         for e in edges:
-            paths[e.verts[0]].add(e.verts[1])
-            paths[e.verts[1]].add(e.verts[0])
+            paths[e.verts[0].index].add(e.verts[1].index)
+            paths[e.verts[1].index].add(e.verts[0].index)
     else:
         for e in edges:
             paths[e.vertices[0]].add(e.vertices[1])
@@ -702,11 +739,15 @@ def get_vertex_islands(verts, edges, is_bm=False):
             part.update(current)
             for key in candidate:
                 paths.pop(key)
-        parts.append(part)
-    islands = []
-    for p in parts:
-        islands.append([v for v in verts if v.index in p])
-    return islands
+        # Optimized!
+        n_p = []
+        for vidx in part:
+            n_p.append(dindex[vidx])
+        parts.append(n_p)
+    # islands = []
+    # for p in parts:
+    #     islands.append([v for v in verts if v.index in p])
+    return parts
 
 
 def correct_normal(world_matrix, vec_normal):

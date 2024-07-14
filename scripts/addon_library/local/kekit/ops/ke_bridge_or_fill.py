@@ -1,5 +1,6 @@
 import bmesh
 import bpy
+from addon_utils import check
 from bpy.types import Operator
 from mathutils import Vector
 from .._utils import vertloops
@@ -35,7 +36,8 @@ class KeBridgeOrFill(Operator):
 
     def execute(self, context):
         sel_mode = context.tool_settings.mesh_select_mode[:]
-
+        has_f2 = True if all(check("mesh_f2")) or all(check("bl_ext.blender_org.f2")) else False
+        f2_notify = False
         obj = context.object
         mesh = obj.data
         bm = bmesh.from_edit_mesh(mesh)
@@ -58,6 +60,8 @@ class KeBridgeOrFill(Operator):
                     bpy.ops.mesh.f2('INVOKE_DEFAULT')
                 except Exception as e:
                     print("F2 aborted - using Mesh Fill:\n", e)
+                    if not has_f2:
+                        f2_notify = True
                     bpy.ops.mesh.fill('INVOKE_DEFAULT')
             else:
                 # 'Add Edge/Face to selected' (verts) mode
@@ -78,6 +82,8 @@ class KeBridgeOrFill(Operator):
                         bpy.ops.mesh.f2('INVOKE_DEFAULT')
                     except Exception as e:
                         print("F2 aborted - using Mesh Fill:\n", e)
+                        if not has_f2:
+                            f2_notify = True
                         bpy.ops.mesh.fill('INVOKE_DEFAULT')
                 else:
                     # Check if edges are a loop or not
@@ -98,6 +104,8 @@ class KeBridgeOrFill(Operator):
                                 bpy.ops.mesh.f2('INVOKE_DEFAULT')
                             except Exception as e:
                                 print("F2 aborted - using Mesh Fill:\n", e)
+                                if not has_f2:
+                                    f2_notify = True
                                 bpy.ops.mesh.fill('INVOKE_DEFAULT')
 
                     elif len(check_loops) == 1:
@@ -117,5 +125,8 @@ class KeBridgeOrFill(Operator):
             sel_faces = [f for f in bm.faces if f.select]
             if sel_faces:
                 bpy.ops.mesh.bridge_edge_loops()
+
+        if f2_notify:
+            self.report({"INFO"}, "F2 not found - Ext/Add-on not installed/enabled?")
 
         return {'FINISHED'}

@@ -2,7 +2,7 @@ import bmesh
 import bpy
 from bpy.types import Operator
 from mathutils import Vector
-from .._utils import rotation_from_vector, mouse_raycast, is_tf_applied
+from .._utils import rotation_from_vector, mouse_raycast, is_tf_applied, get_prefs
 
 
 class KeCursorAlignRot(Operator):
@@ -20,6 +20,9 @@ class KeCursorAlignRot(Operator):
         return self.execute(context)
 
     def execute(self, context):
+        k = get_prefs()
+        set_cursor_tf = k.cursorfit
+
         og_mode = []
         if context.mode != "OBJECT":
             og_mode = context.mode
@@ -76,5 +79,9 @@ class KeCursorAlignRot(Operator):
             if og_mode == 'EDIT_MESH':
                 bpy.ops.object.mode_set(mode='EDIT')
             # There is no cursor in the other edit modes?
+
+        if set_cursor_tf:
+            bpy.ops.transform.select_orientation(orientation="CURSOR")
+            context.tool_settings.transform_pivot_point = "CURSOR"
 
         return {"FINISHED"}

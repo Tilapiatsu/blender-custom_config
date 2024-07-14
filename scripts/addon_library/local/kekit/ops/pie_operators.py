@@ -314,7 +314,7 @@ class KePieOps(Operator):
             m.name = "kSolidify"
             m.thickness = -0.01
 
-        elif self.op == "WEIGHTED_NORMAL":
+        elif self.op == "WEIGHTED_NORMAL" and bpy.app.version < (4, 1):
             context.object.data.use_auto_smooth = True
             bpy.ops.object.modifier_add(type='WEIGHTED_NORMAL')
             m = active.modifiers[-1]
@@ -341,11 +341,12 @@ class KePieOps(Operator):
 
         # Auto Add WN if Bevel Added
         if self.op in {"W_BEVEL", "ANGLE_BEVEL", "VG_BEVEL"} and not wmod:
-            context.object.data.use_auto_smooth = True
-            bpy.ops.object.modifier_add(type='WEIGHTED_NORMAL')
-            m = active.modifiers[-1]
-            m.name = "kWeightedN"
-            m.keep_sharp = True
+            if bpy.app.version < (4, 1):
+                context.object.data.use_auto_smooth = True
+                bpy.ops.object.modifier_add(type='WEIGHTED_NORMAL')
+                m = active.modifiers[-1]
+                m.name = "kWeightedN"
+                m.keep_sharp = True
 
         # AUTO SORT
         bpy.ops.ke.mod_order(obj_name=active.name, mod_type='WEIGHTED_NORMAL', top=False)
@@ -388,20 +389,23 @@ class KeObjectOp(Operator):
                 context.object.rotation_euler[2] = 0
 
         elif "AS" in self.cmd:
-            sel = [o for o in context.selected_objects if o.type == "MESH"]
-            v = radians(30)
-            if self.cmd == "AS_180":
-                v = radians(180)
-            elif self.cmd == "AS_60":
-                v = radians(60)
-            if self.cmd == "AS_45":
-                v = radians(45)
+            if bpy.app.version < (4, 1):
+                sel = [o for o in context.selected_objects if o.type == "MESH"]
+                v = radians(30)
+                if self.cmd == "AS_180":
+                    v = radians(180)
+                elif self.cmd == "AS_60":
+                    v = radians(60)
+                if self.cmd == "AS_45":
+                    v = radians(45)
 
-            if len(sel) > 1:
-                for o in sel:
-                    o.data.auto_smooth_angle = v
+                if len(sel) > 1:
+                    for o in sel:
+                        o.data.auto_smooth_angle = v
+                else:
+                    context.object.data.auto_smooth_angle = v
             else:
-                context.object.data.auto_smooth_angle = v
+                print("N/A - Only for pre 4.1")
 
         elif self.cmd == "CLEAR_LR":
             bpy.ops.object.location_clear(clear_delta=False)

@@ -36,7 +36,9 @@ class UIRenderModule(bpy.types.Panel):
         col.operator('view3d.ke_bg_sync', icon="SHADING_TEXTURE")
         col.operator("view3d.ke_syncvpmaterial", icon="COLOR").active_only = False
 
-        col.operator('view3d.ke_get_set_material', icon="MOUSE_MOVE", text="Get&Set Material")
+        row = col.row(align=True)
+        row.operator('view3d.ke_get_set_material', icon="MOUSE_MOVE", text="Get&Set Material")
+        row.prop(k, "getmat_clear_unused", text="", toggle=True, icon_value=c if k.getmat_clear_unused else u)
 
         row = col.row(align=True)
         row.operator('view3d.ke_unwrap_macro')

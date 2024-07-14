@@ -49,6 +49,10 @@ class KeBoolKnife(Operator):
         # SETUP
         if objmode:
             active = context.active_object
+            if not active:
+                self.report({"INFO"}, "No objects selected to use as cutter?")
+                return {"CANCELLED"}
+
             mesh_select_all(active, False)
             og_cutters = [o for o in context.selected_objects if o != active]
 
@@ -70,8 +74,22 @@ class KeBoolKnife(Operator):
 
         # CUT UNSELECTED MESH
         bm = bmesh.from_edit_mesh(active.data)
+        og_sel, og_verts = [], []
+        if not objmode:
+            og_sel = [f for f in bm.faces if f.select]
+            if not og_sel:
+                self.report({"INFO"}, "No elements selected to use as cutter?")
+                return {"CANCELLED"}
+            og_verts = [v for v in bm.verts if v.select]
+            bpy.ops.mesh.duplicate()
+            # Hiding the faces to avoid "cutting the cutter" is not enough
+            # --> just moving 'em out of the way - probably ;)  (alt. extract/merge, meh)
+            for v in og_verts:
+                v.co.z -= 100000
+
         sel = [f for f in bm.faces if f.select]
-        bpy.ops.mesh.intersect()
+        # return {"FINISHED"}
+        bpy.ops.mesh.intersect(mode="SELECT_UNSELECT", separate_mode="CUT")
 
         # SELECT REMAINING CONNECTED TENP-CUTTER MESH
         remains = [i for i in sel if i.is_valid]
@@ -84,6 +102,12 @@ class KeBoolKnife(Operator):
             f.select_set(True)
         bpy.ops.mesh.select_linked(delimit=set())
         new_sel = [f for f in bm.faces if f.select]
+        if og_sel:
+            bmesh.ops.delete(bm, geom=new_sel, context="FACES")
+            for f in og_sel:
+                f.select_set(True)
+            for v in og_verts:
+                v.co.z += 100000
 
         # PROCESS CUTTER MESH
         if objmode or self.post_op_edit == "DELETE":

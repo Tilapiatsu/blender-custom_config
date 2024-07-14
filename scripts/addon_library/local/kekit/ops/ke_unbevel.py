@@ -37,7 +37,7 @@ def get_endpoints(vert, exclude_faces, vec_check, se):
 class KeUnbevel(Operator):
     bl_idname = "mesh.ke_unbevel"
     bl_label = "Unbevel"
-    bl_description = "Select the Edge Ring(s) on bevel(s)\n" \
+    bl_description = "Select 1 of the bevel(s) Edge Ring(s) -or- 1 row of faces in the bevel\n" \
                      "Rebevel: Adjust settings in redo-panel"
     bl_options = {'REGISTER', 'UNDO'}
 
@@ -83,7 +83,6 @@ class KeUnbevel(Operator):
 
         if sel_mode[2]:
             edge_rings = []
-
             face_island = get_face_islands(bm, sel_faces=sel_faces)
 
             for island in face_island:

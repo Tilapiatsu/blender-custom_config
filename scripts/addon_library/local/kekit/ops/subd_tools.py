@@ -80,7 +80,9 @@ class KeSubd(Operator):
         optimal_display = k.optimal_display
         on_cage = k.on_cage
         em_vis = k.em_vis
-        toggle_autosmooth = k.subd_autosmooth
+        toggle_autosmooth = bool(k.subd_autosmooth)
+        if bpy.app.version >= (4, 1):
+            toggle_autosmooth = False
 
         mode = context.mode[:]
         if mode == "EDIT_MESH":

@@ -47,7 +47,7 @@ class UIModifiersModule(Panel):
 
 class KeModOrder(Operator):
     bl_idname = "ke.mod_order"
-    bl_description = ("Moves Weighted Normal last in modifier stack (& sets AutoSmooth)\n"
+    bl_description = ("pre-4.1: Moves Weighted Normal last in modifier stack (& sets AutoSmooth)\n"
                       "Note: All 'Add Bevel' ops & Toggle Weight automatically run this op")
     bl_label = "Mod Order"
     bl_options = {'INTERNAL'}
@@ -71,11 +71,12 @@ class KeModOrder(Operator):
             return {"CANCELLED"}
 
         for mod in mods:
-            # Set as appropriate for general workflow types?
-            # if mod.type == "SUBSURF":
-            #     self.obj.data.use_auto_smooth = False
-            if mod.type == "WEIGHTED_NORMAL":
-                self.obj.data.use_auto_smooth = True
+            if bpy.app.version < (4, 1):
+                # Set as appropriate for general workflow types?
+                # if mod.type == "SUBSURF":
+                #     self.obj.data.use_auto_smooth = False
+                if mod.type == "WEIGHTED_NORMAL":
+                    self.obj.data.use_auto_smooth = True
 
             vn_index = self.obj.modifiers.find(mod.name)
             if vn_index != -1:

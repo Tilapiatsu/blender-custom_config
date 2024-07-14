@@ -306,7 +306,11 @@ class KePieBoolTool(Menu):
         s1 = " \u2002"  # "auto", aka "destructive": default symbol = just invisible spacer
         s2 = " \u2699"  # modifier, default symbol = cog icon
 
-        if not all(check("object_boolean_tools")):
+        bt_installed = False
+        if all(check("object_boolean_tools")) or all(check("bl_ext.blender_org.bool_tool")):
+            bt_installed = True
+
+        if not bt_installed:
             pie.label(text="BoolTool Add-on not activated")
         else:
             # W
@@ -583,7 +587,9 @@ class KePieMaterials(Menu):
         return context.space_data.type == "VIEW_3D" and k.m_render
 
     def draw(self, context):
-        c = all(check("materials_utils"))
+        c = False
+        if all(check("materials_utils")) or all(check("bl_ext.blender_org.material_utilities")):
+            c = True
         k = get_prefs()
         op = "view3d.ke_id_material"
         layout = self.layout
@@ -708,9 +714,9 @@ class KePieMisc(Menu):
         pie = layout.menu_pie()
         f_val = 0.1
 
-        looptools = all(check("mesh_looptools"))
+        looptools = True if all(check("mesh_looptools")) or all(check("bl_ext.blender_org.looptools")) else False
         quickpipe = all(check("quick_pipe"))
-        meshtools = all(check("mesh_tools"))
+        meshtools = True if all(check("mesh_tools")) or all(check("bl_ext.blender_org.edit_mesh_tools")) else False
 
         # LÄNSI JA ITÄ
         if mode != "OBJECT":
@@ -1341,7 +1347,10 @@ class KePieShading(Menu):
 
             row = col.row()
             row.prop(shading, "render_pass", text="")
-            row.operator("preferences.studiolight_show", emboss=False, text="", icon='PREFERENCES')
+            if bpy.app.version >= (4, 2):
+                row.operator("screen.userpref_show", text="Preferences", emboss=False, icon='PREFERENCES').section = "LIGHTS"
+            else:
+                row.operator("preferences.studiolight_show", emboss=False, text="", icon='PREFERENCES')
             c.separator(factor=2.5)
             b.separator(factor=3.5)
         else:
@@ -1376,7 +1385,10 @@ class KePieShading(Menu):
                 sub2.scale_y = 1.8
                 p = sub2.column(align=False)
                 p.prop(shading, "use_world_space_lighting", text="World Space Lighting", icon='WORLD', toggle=True)
-                p.operator("preferences.studiolight_show", text="Preferences", emboss=False, icon='PREFERENCES')
+                if bpy.app.version >= (4, 2):
+                    p.operator("screen.userpref_show", text="Preferences", emboss=False, icon='PREFERENCES').section = "LIGHTS"
+                else:
+                    p.operator("preferences.studiolight_show", text="Preferences", emboss=False, icon='PREFERENCES')
                 p.separator(factor=0.3)
                 if xp:
                     p.prop(shading, "studiolight_rotate_z", text="RotateZ")
@@ -1390,7 +1402,10 @@ class KePieShading(Menu):
 
                 sub = sub.column()
                 sub.scale_y = 1.8
-                sub.operator("preferences.studiolight_show", emboss=False, text="", icon='PREFERENCES')
+                if bpy.app.version >= (4, 2):
+                    sub.operator("screen.userpref_show", text="Preferences", emboss=False, icon='PREFERENCES').section = "LIGHTS"
+                else:
+                    sub.operator("preferences.studiolight_show", emboss=False, text="", icon='PREFERENCES')
                 sub.operator("view3d.toggle_matcap_flip", emboss=False, text="", icon='ARROW_LEFTRIGHT')
 
         elif shading.type == 'RENDERED' and not shading.use_scene_world_render:
@@ -1432,7 +1447,10 @@ class KePieShading(Menu):
             # col.separator(factor=1.2)
             row = col.row()
             row.prop(shading, "render_pass", text="")
-            row.operator("preferences.studiolight_show", emboss=False, text="", icon='PREFERENCES')
+            if bpy.app.version >= (4, 2):
+                row.operator("screen.userpref_show", text="Preferences", emboss=False, icon='PREFERENCES').section = "LIGHTS"
+            else:
+                row.operator("preferences.studiolight_show", emboss=False, text="", icon='PREFERENCES')
             r.separator(factor=2.4)
 
         else:
@@ -1634,10 +1652,11 @@ class KePieSnapping(Menu):
         cbox = r.box().column()
         cbox.scale_y = 1.05
         col = cbox.column(align=True)
-        if not ct.use_snap_grid_absolute:
-            col.operator("ke.pieops", text="Absolute Grid", icon="SNAP_GRID", depress=False).op = "GRID"
-        else:
-            col.operator("ke.pieops", text="Absolute Grid", icon="SNAP_GRID", depress=True).op = "GRID"
+        if bpy.app.version < (4, 2):
+            if not ct.use_snap_grid_absolute:
+                col.operator("ke.pieops", text="Absolute Grid", icon="SNAP_GRID", depress=False).op = "GRID"
+            else:
+                col.operator("ke.pieops", text="Absolute Grid", icon="SNAP_GRID", depress=True).op = "GRID"
         col.prop(ct, 'use_snap_align_rotation', text="Align Rotation")
         col.prop(ct, 'use_snap_backface_culling', text="Backface Culling")
         col.prop(ct, 'use_snap_peel_object', text="Peel Object")
@@ -1648,7 +1667,7 @@ class KePieSnapping(Menu):
         col.prop(ct, 'use_snap_self')
         col.prop(ct, 'use_snap_edit')
         col.prop(ct, 'use_snap_nonedit')
-        cbox.prop(ct, 'use_snap_selectable')
+        col.prop(ct, 'use_snap_selectable')
         # cbox.separator(factor=0.5)
         row = cbox.row(align=True)
         row.prop(ct, 'use_snap_translate', text="T")
@@ -2077,9 +2096,10 @@ class KePieSubd(Menu):
             row.operator("object.ke_object_op", text="45").cmd = "AS_45"
             row.operator("object.ke_object_op", text="60").cmd = "AS_60"
             row.operator("object.ke_object_op", text="180").cmd = "AS_180"
-            split = col.split(align=True, factor=0.65)
-            split.prop(active.data, "use_auto_smooth", text="AutoSmooth", toggle=True)
-            split.prop(active.data, "auto_smooth_angle", text="")
+            if bpy.app.version < (4, 1):
+                split = col.split(align=True, factor=0.65)
+                split.prop(active.data, "use_auto_smooth", text="AutoSmooth", toggle=True)
+                split.prop(active.data, "auto_smooth_angle", text="")
 
             row = col.row(align=True)
             row.operator("ke.pieops", text="Flat").op = "SHADE_FLAT"

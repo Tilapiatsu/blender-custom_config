@@ -48,8 +48,8 @@ class KeContextExtrude(Operator):
                 context.mode != "OBJECT")
 
     def execute(self, context):
-        # k = get_prefs()
-        k = context.preferences.addons['kekit'].preferences
+        k = get_prefs()
+        # k = context.preferences.addons['kekit'].preferences
         if k.m_tt:
             use_tt = k.tt_extrude
         else:
@@ -85,7 +85,29 @@ class KeContextExtrude(Operator):
                     bpy.ops.mesh.extrude_edges_move('INVOKE_DEFAULT')
 
             elif sel_mode[2]:
-                bpy.ops.view3d.edit_mesh_extrude_move_normal('INVOKE_DEFAULT', True)
+                if use_tt:
+                    am = bool(context.scene.tool_settings.use_mesh_automerge)
+                    if am:
+                        context.scene.tool_settings.use_mesh_automerge = False
+                    # bpy.ops.mesh.extrude_region_move(MESH_OT_extrude_region=None, TRANSFORM_OT_translate=None)
+                    bpy.ops.mesh.extrude_region_move(
+                        MESH_OT_extrude_region={"use_normal_flip": False, "use_dissolve_ortho_edges": False,
+                                                "mirror": False},
+                        TRANSFORM_OT_translate={"constraint_axis": (False, False, True), "mirror": False,
+                                                "use_proportional_edit": False, "proportional_edit_falloff": 'SMOOTH',
+                                                "proportional_size": 1, "use_proportional_connected": False,
+                                                "use_proportional_projected": False, "snap": False,
+                                                "gpencil_strokes": False, "cursor_transform": False,
+                                                "texture_space": False, "remove_on_cancel": False,
+                                                "use_duplicated_keyframes": False, "view2d_edge_pan": False,
+                                                "release_confirm": False, "use_accurate": False,
+                                                "use_automerge_and_split": False})
+                    bpy.ops.ed.undo_push()
+                    if am:
+                        context.scene.tool_settings.use_mesh_automerge = True
+                    bpy.ops.view3d.ke_tt('INVOKE_DEFAULT', mode="MOVE")
+                else:
+                    bpy.ops.view3d.edit_mesh_extrude_move_normal('INVOKE_DEFAULT', True)
 
         elif context.object.type == 'CURVE':
             if use_tt:

@@ -1,7 +1,7 @@
-from bpy.types import Operator
-from bpy.props import EnumProperty
 import bmesh
 import bpy
+from bpy.props import EnumProperty
+from bpy.types import Operator
 from .._utils import refresh_ui, get_prefs, get_selected
 
 
@@ -148,7 +148,7 @@ class KeWeightToggle(Operator):
                             mod.segments = 3
 
                         # Auto add WN mod too (or sort if present)
-                        if not k.korean:
+                        if bpy.app.version < (4, 1) and not k.korean:
                             if not wmod:
                                 context.object.data.use_auto_smooth = True
                                 mod = o.modifiers.new(name="kWeightedN", type="WEIGHTED_NORMAL")
@@ -158,6 +158,7 @@ class KeWeightToggle(Operator):
 
                     elif not smod and self.wtype == "CREASE":
                         bpy.ops.view3d.ke_subd(level_mode="TOGGLE")
+
                     bpy.ops.object.editmode_toggle()
 
                     # open modifier tab if not already open

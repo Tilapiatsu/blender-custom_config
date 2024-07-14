@@ -409,7 +409,7 @@ class KeRadialInstances(Operator):
 
         # "Did you apply scale?"
         for o in self.og_batch:
-            apply_transform(o, False, False, True)
+            apply_transform(o, False, False, True, True)
         # bkp
         self.og_orient = getset_transform("CURSOR", "CURSOR")
         self.og_rot = self.obj.rotation_euler.copy()

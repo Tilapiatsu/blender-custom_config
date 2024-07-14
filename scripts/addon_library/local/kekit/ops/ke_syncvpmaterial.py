@@ -1,9 +1,8 @@
 import numpy as np
-from math import pow
 from bpy.props import BoolProperty
 from bpy.types import Operator
 from mathutils import Vector
-
+from .._utils import get_override_by_type
 
 def travel_back_nodes(node_in):
     found = []
@@ -122,6 +121,8 @@ class KeSyncviewportMaterial(Operator):
                     vp_set = update_vpshading(slot.material)
 
         if vp_set:
-            context.space_data.shading.color_type = 'MATERIAL'
+            w, a, r = get_override_by_type()
+            with context.temp_override(window=w, area=a, region=r):
+                context.space_data.shading.color_type = 'MATERIAL'
 
         return {"FINISHED"}

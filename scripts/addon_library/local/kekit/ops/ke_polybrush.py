@@ -274,8 +274,11 @@ class KePolyBrush(Operator):
         self.ctx.view_layer.objects.active = self.new_obj
 
     def invoke(self, context, event):
+        bt_installed = False
+        if all(check("object_boolean_tools")) or all(check("bl_ext.blender_org.bool_tool")):
+            bt_installed = True
 
-        if not all(check("object_boolean_tools")):
+        if not bt_installed:
             self.report({"INFO"}, "Cancelled: BoolTool Add-on not activated")
             return {"CANCELLED"}
 

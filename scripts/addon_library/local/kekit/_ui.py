@@ -62,6 +62,9 @@ def prefs_ui(self, layout):
     box = layout.box()
     col = box.column()
     col.emboss = "PULLDOWN_MENU"
+    # Todo: Replace with 4.1 "layout panels" (for submenus) ...at some point post 4.1 release
+    # header, panel = layout.panel("my_panel_id", default_closed=False)
+    #         header.label(text="Hello World")
     col.prop(self, "show_modules", icon='DISCLOSURE_TRI_DOWN' if self.show_modules else 'DISCLOSURE_TRI_RIGHT')
     if self.show_modules:
         # double box for better(SOME) padding
@@ -136,6 +139,7 @@ def prefs_ui(self, layout):
     col = box.column()
     col.emboss = "PULLDOWN_MENU"
     col.prop(self, "show_kmtools", icon='DISCLOSURE_TRI_DOWN' if self.show_kmtools else 'DISCLOSURE_TRI_RIGHT')
+
     if self.show_kmtools:
         main_col = box.column()
         main_col.alignment = "CENTER"
@@ -187,6 +191,7 @@ def prefs_ui(self, layout):
                                     srow = srow.column()
                                     srow.context_pointer_set("keymap", fkm)
                                     rna_keymap_ui.draw_kmi([], kc, fkm, fi, srow, 0)
+
                 row = top_col.row()
                 row.alignment = "CENTER"
                 row.label(text="[ Found %s Candidates ]" % count)
@@ -208,8 +213,6 @@ def prefs_ui(self, layout):
             row = top_col.row()
             row.alignment = "CENTER"
             row.label(text="[ Found %s Candidates ]" % count)
-
-
 
 
 #
@@ -324,15 +327,27 @@ def draw_tool_options(self, context):
             row.prop(t, "use_transform_pivot_point_align", text="", icon="ORIENTATION_LOCAL", toggle=True)
             row.prop(t, "use_transform_skip_children", text="", icon="CON_CHILDOF", toggle=True)
             row.separator(factor=3.8)
+
+        elif context.mode == "PAINT_TEXTURE":
+            row.separator(factor=11)
+
+        elif context.mode == "PAINT_VERTEX":
+            row.separator(factor=19.5)
+
+        elif context.mode == "PAINT_WEIGHT":
+            row.separator(factor=7.5)
+
         else:
+            pass
+            # meh do nothing
             # + disabled objmode settings to fill void
-            row.enabled = False
-            row.separator(factor=1)
-            row.label(text="Affect Only")
-            row.prop(t, "use_transform_data_origin", text="", icon="PIVOT_INDIVIDUAL", toggle=True)
-            row.prop(t, "use_transform_pivot_point_align", text="", icon="ORIENTATION_LOCAL", toggle=True)
-            row.prop(t, "use_transform_skip_children", text="", icon="CON_CHILDOF", toggle=True)
-            row.separator(factor=14.2)
+            # row.enabled = False
+            # row.separator(factor=1)
+            # row.label(text="Affect Only")
+            # row.prop(t, "use_transform_data_origin", text="", icon="PIVOT_INDIVIDUAL", toggle=True)
+            # row.prop(t, "use_transform_pivot_point_align", text="", icon="ORIENTATION_LOCAL", toggle=True)
+            # row.prop(t, "use_transform_skip_children", text="", icon="CON_CHILDOF", toggle=True)
+            # row.separator(factor=14.2)
 
         layout.separator(factor=f)
 

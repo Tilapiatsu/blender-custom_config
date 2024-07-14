@@ -9,7 +9,7 @@ class KeUnwrapMacro(Operator):
     bl_idname = "view3d.ke_unwrap_macro"
     bl_label = "Unwrap Macro"
     bl_description = ("A simple macro script to do common (to me) UV-unwrapping tasks in 1 click\n"
-                      "Please read the online documentation")
+                      "Requires TexTools Add-on. Please read the wiki documentation")
     bl_options = {'REGISTER', 'UNDO'}
 
     udim_pack: BoolProperty(default=False, name="Auto-Pack", description="Pack UV's")
@@ -134,15 +134,14 @@ class KeUnwrapMacro(Operator):
         context.object.select_set(True)
         sel_obj = list(context.selected_objects)
 
-        # REQ CHECKS
-        # TexTools addon-name changes every version? not updated often, but to avoid version hassle...
+        # TT REQ CHECK
+        #  TexTools addon-name includes version nr(!) Not updated often(?), but could change,
+        #  so, to avoid version hassle:
         ttcheck = False
         for i in context.preferences.addons:
             name = str(i.module)
             if "textools" in name.lower():
-                if not all(check(name)):
-                    ttcheck = False
-                else:
+                if all(check(name)):
                     ttcheck = True
                     break
 

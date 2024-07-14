@@ -2,7 +2,7 @@ import bpy
 from bpy.types import Operator
 from bpy.props import IntVectorProperty
 from mathutils import Vector
-from .._utils import mouse_raycast
+from .._utils import mouse_raycast, get_prefs
 
 
 class KeGetSetMaterial(Operator):
@@ -58,6 +58,7 @@ class KeGetSetMaterial(Operator):
         return self.execute(context)
 
     def execute(self, context):
+        k = get_prefs()
         hidden = []
         og_active_obj = context.active_object
         og_active_obj.select_set(True)
@@ -129,23 +130,24 @@ class KeGetSetMaterial(Operator):
                     bpy.ops.object.material_slot_assign()
 
                 # Cleanup
-                # 'Remove_unused' does not work on 'screw-mesh' (it's checking non-existant geo?)
-                if o.type != "MESH" or screw_type:
-                    # print("'Non-mesh' just use the top slot")
-                    for s in range(len(o.material_slots)):
-                        bpy.ops.object.material_slot_move(direction='UP')
-                else:
-                    if sel_mode == "OBJECT":
-                        bpy.ops.object.mode_set(mode='OBJECT')
-                        o.data.update()
-                        bpy.ops.object.material_slot_remove_unused()
+                if k.getmat_clear_unused:
+                    # 'Remove_unused' does not work on 'screw-mesh' (it's checking non-existant geo?)
+                    if o.type != "MESH" or screw_type:
+                        # print("'Non-mesh' just use the top slot")
+                        for s in range(len(o.material_slots)):
+                            bpy.ops.object.material_slot_move(direction='UP')
                     else:
-                        bpy.ops.object.mode_set(mode='OBJECT')
-                        o.data.update()
-                        bpy.ops.object.material_slot_remove_unused()
-                        bpy.ops.object.mode_set(mode='EDIT')
+                        if sel_mode == "OBJECT":
+                            bpy.ops.object.mode_set(mode='OBJECT')
+                            o.data.update()
+                            bpy.ops.object.material_slot_remove_unused()
+                        else:
+                            bpy.ops.object.mode_set(mode='OBJECT')
+                            o.data.update()
+                            bpy.ops.object.material_slot_remove_unused()
+                            bpy.ops.object.mode_set(mode='EDIT')
 
-                    o.select_set(False)
+                        o.select_set(False)
 
             for o in sel_obj:
                 o.select_set(True)

@@ -19,6 +19,7 @@ from .ops.ke_primitive_box_add import KePrimitiveBoxAdd
 from .ops.ke_quads import KeQuads
 from .ops.ke_quickscale import KeQuickScale
 from .ops.ke_unbevel import KeUnbevel
+from .ops.ke_wonkify import KeWonkify
 from .ops.ke_zeroscale import KeZeroScale
 
 
@@ -49,6 +50,7 @@ class UIModelingModule(Panel):
         col.operator('view3d.ke_boolknife')
         col.operator('mesh.ke_activeslice')
         col.operator('mesh.ke_quads')
+        col.operator('view3d.ke_wonkify')
 
         col.label(text="Merge To:")
         row = col.row(align=True)
@@ -103,6 +105,7 @@ classes = (
     KeQuads,
     KeQuickScale,
     KeUnbevel,
+    KeWonkify,
     KeZeroScale,
     UIModelingModule,
     UIDirectLoopCutModule,

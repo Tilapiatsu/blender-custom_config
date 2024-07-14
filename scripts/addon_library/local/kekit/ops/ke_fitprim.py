@@ -29,7 +29,7 @@ from .._utils import (
     set_active_collection,
     set_status_text,
     get_view_type,
-    get_prefs
+    get_prefs,
 )
 
 
@@ -92,7 +92,7 @@ def tri_order(p):
     # custom 3 point sort thing
     sets = []
     tri = []
-    if len(p) > 1 and type(p[0]) != tuple:
+    if len(p) > 1 and isinstance(type(p[0]), tuple):
         p = ((p,),)
     # setup paired lists
     for pair in p:
@@ -343,6 +343,7 @@ class KeFitPrim(Operator):
     tick = 0
     tock = 0
     input_nrs = []
+    v4_1 = True
 
     numbers = ('ZERO', 'ONE', 'TWO', 'THREE', 'FOUR', 'FIVE', 'SIX', 'SEVEN', 'EIGHT', 'NINE')
     numpad = ('NUMPAD_0', 'NUMPAD_1', 'NUMPAD_2', 'NUMPAD_3', 'NUMPAD_4', 'NUMPAD_5', 'NUMPAD_6', 'NUMPAD_7',
@@ -366,10 +367,15 @@ class KeFitPrim(Operator):
     def set_shading(self, ctx):
         if self.shading_mode in {"SMOOTH", "AUTO"}:
             bpy.ops.object.shade_smooth()
-        if self.shading_mode == "AUTO":
+        if self.shading_mode == "AUTO" and not self.v4_1:
             ctx.object.data.use_auto_smooth = True
+        elif self.shading_mode == "AUTO" and self.v4_1:
+            bpy.ops.object.modifier_add_node_group(
+                asset_library_type='ESSENTIALS', asset_library_identifier='',
+                relative_asset_identifier='geometry_nodes/smooth_by_angle.blend/NodeTree/Smooth by Angle')
 
     def invoke(self, context, event):
+        self.v4_1 = bool(bpy.app.version >= (4, 1))
         self.screen_x = int(context.region.width * 0.5)
         self.mouse_pos[0] = int(event.mouse_region_x)
         self.mouse_pos[1] = int(event.mouse_region_y)
@@ -381,111 +387,6 @@ class KeFitPrim(Operator):
         if preset != 0:
             self.round_cube_div = preset
         return self.execute(context)
-
-    def modal(self, context, event):
-        if event.type == 'TIMER':
-            self.tick += 1
-
-        if event.type in (self.numbers + self.numpad) and event.value == 'PRESS':
-            if event.type in self.numbers:
-                nr = self.numbers.index(event.type)
-            else:
-                nr = self.index(event.type)
-
-            self.input_nrs.append(nr)
-            self.tock = int(self.tick)
-
-        if self.tick - self.tock >= 1:
-            nrs = len(self.input_nrs)
-            if nrs != 0:
-                if nrs == 3:
-                    val = (self.input_nrs[0] * 100) + (self.input_nrs[1] * 10) + self.input_nrs[2]
-                elif nrs == 2:
-                    val = (self.input_nrs[0] * 10) + self.input_nrs[1]
-                else:
-                    val = self.input_nrs[0]
-
-                if val < 3:
-                    val = 3
-
-                if val != self.cyl_sides:
-                    self.cyl_sides = val
-                    bpy.ops.mesh.delete(type='FACE')
-                    bpy.ops.mesh.primitive_cylinder_add(vertices=self.cyl_sides, radius=self.settings[0],
-                                                        depth=self.settings[1], enter_editmode=False, align='WORLD',
-                                                        location=self.settings[2], rotation=self.settings[3])
-                    context.area.tag_redraw()
-                    self.input_nrs = []
-
-        if event.type == 'WHEELUPMOUSE' and 2 < self.cyl_sides < 256:
-            self.cyl_sides += 1
-            bpy.ops.mesh.delete(type='FACE')
-            bpy.ops.mesh.primitive_cylinder_add(vertices=self.cyl_sides, radius=self.settings[0],
-                                                depth=self.settings[1], enter_editmode=False, align='WORLD',
-                                                location=self.settings[2], rotation=self.settings[3])
-            context.area.tag_redraw()
-
-        elif event.type == 'WHEELDOWNMOUSE' and 3 < self.cyl_sides < 256:
-            self.cyl_sides -= 1
-            bpy.ops.mesh.delete(type='FACE')
-            bpy.ops.mesh.primitive_cylinder_add(vertices=self.cyl_sides, radius=self.settings[0],
-                                                depth=self.settings[1], enter_editmode=False, align='WORLD',
-                                                location=self.settings[2], rotation=self.settings[3])
-            context.area.tag_redraw()
-
-        elif event.alt and event.type == "LEFTMOUSE" or event.type == "MIDDLEMOUSE" or \
-                event.alt and event.type == "RIGHTMOUSE" or \
-                event.shift and event.type == "MIDDLEMOUSE" or \
-                event.ctrl and event.type == "MIDDLEMOUSE":
-            return {'PASS_THROUGH'}
-
-        elif event.type == 'C' and event.value == 'RELEASE':
-            self.circle = not self.circle
-            if self.circle:
-                self.settings[1] = 0
-                self.settings[2] = self.circle_pos
-                bpy.ops.mesh.delete(type='FACE')
-                bpy.ops.mesh.primitive_cylinder_add(vertices=self.cyl_sides, radius=self.settings[0],
-                                                    depth=self.settings[1], enter_editmode=False, align='WORLD',
-                                                    location=self.settings[2], rotation=self.settings[3])
-                context.area.tag_redraw()
-            else:
-                self.settings = self.og_settings
-
-        elif event.type in {'LEFTMOUSE', 'RIGHTMOUSE', 'ESC', 'RET', 'SPACE'}:
-            if self.circle:
-                bpy.ops.mesh.select_linked()
-                bpy.ops.mesh.flip_normals()
-                bpy.ops.mesh.remove_doubles()
-
-            context.area.tag_redraw()
-            context.window_manager.event_timer_remove(self._timer)
-            bpy.types.SpaceView3D.draw_handler_remove(self._handle, 'WINDOW')
-
-            if self.itemize or self.edit_mode == "OBJECT":
-                bpy.ops.object.mode_set(mode='OBJECT')
-
-                if self.shading_mode in {"SMOOTH", "AUTO"}:
-                    bpy.ops.object.shade_smooth()
-                if self.shading_mode == "AUTO":
-                    context.object.data.use_auto_smooth = True
-
-                if self.circle:
-                    bpy.ops.object.origin_set(type='ORIGIN_GEOMETRY', center='MEDIAN')
-
-                cursor = context.scene.cursor
-                cursor.location = self.og_cloc
-                cursor.rotation_euler = self.og_crot
-
-            if not self.select and not self.itemize and not self.edit_mode == "OBJECT":
-                bpy.ops.mesh.select_all(action='DESELECT')
-
-            context.space_data.overlay.show_cursor = True
-            self.ke_fitprim_itemize = False
-            context.workspace.status_text_set(None)
-
-            return {'FINISHED'}
-        return {'RUNNING_MODAL'}
 
     def execute(self, context):
         k = get_prefs()
@@ -519,7 +420,7 @@ class KeFitPrim(Operator):
         self.sphere_seg = k.fitprim_sphere_seg
         self.quadsphere_seg = k.fitprim_quadsphere_seg
         self.shading_mode = k.fitprim_shading
-        if all(check("add_mesh_extra_objects")):
+        if all(check("add_mesh_extra_objects")) or all(check("bl_ext.blender_org.extra_mesh_objects")):
             # Use ExtraObjects' Round Cube instead of subdiv cube if available
             self.round_cube = True
 
@@ -1017,7 +918,7 @@ class KeFitPrim(Operator):
 
             elif len(sel_verts) == 0 or sel_mode[0] or sel_mode[1]:
                 side *= .5
-                distance = distance / 2
+                distance /= 2
                 if self.sphere and sel_mode[0]:
                     if not len(sel_verts) == 0:
                         side = distance
@@ -1191,3 +1092,112 @@ class KeFitPrim(Operator):
 
         self.ke_fitprim_itemize = False
         return {"FINISHED"}
+
+    def modal(self, context, event):
+        if event.type == 'TIMER':
+            self.tick += 1
+
+        if event.type in (self.numbers + self.numpad) and event.value == 'PRESS':
+            if event.type in self.numbers:
+                nr = self.numbers.index(event.type)
+            else:
+                nr = self.index(event.type)
+
+            self.input_nrs.append(nr)
+            self.tock = int(self.tick)
+
+        if self.tick - self.tock >= 1:
+            nrs = len(self.input_nrs)
+            if nrs != 0:
+                if nrs == 3:
+                    val = (self.input_nrs[0] * 100) + (self.input_nrs[1] * 10) + self.input_nrs[2]
+                elif nrs == 2:
+                    val = (self.input_nrs[0] * 10) + self.input_nrs[1]
+                else:
+                    val = self.input_nrs[0]
+
+                if val < 3:
+                    val = 3
+
+                if val != self.cyl_sides:
+                    self.cyl_sides = val
+                    bpy.ops.mesh.delete(type='FACE')
+                    bpy.ops.mesh.primitive_cylinder_add(vertices=self.cyl_sides, radius=self.settings[0],
+                                                        depth=self.settings[1], enter_editmode=False, align='WORLD',
+                                                        location=self.settings[2], rotation=self.settings[3])
+                    context.area.tag_redraw()
+                    self.input_nrs = []
+
+        if event.type == 'WHEELUPMOUSE' and 2 < self.cyl_sides < 256:
+            self.cyl_sides += 1
+            bpy.ops.mesh.delete(type='FACE')
+            bpy.ops.mesh.primitive_cylinder_add(vertices=self.cyl_sides, radius=self.settings[0],
+                                                depth=self.settings[1], enter_editmode=False, align='WORLD',
+                                                location=self.settings[2], rotation=self.settings[3])
+            context.area.tag_redraw()
+
+        elif event.type == 'WHEELDOWNMOUSE' and 3 < self.cyl_sides < 256:
+            self.cyl_sides -= 1
+            bpy.ops.mesh.delete(type='FACE')
+            bpy.ops.mesh.primitive_cylinder_add(vertices=self.cyl_sides, radius=self.settings[0],
+                                                depth=self.settings[1], enter_editmode=False, align='WORLD',
+                                                location=self.settings[2], rotation=self.settings[3])
+            context.area.tag_redraw()
+
+        elif event.alt and event.type == "LEFTMOUSE" or event.type == "MIDDLEMOUSE" or \
+                event.alt and event.type == "RIGHTMOUSE" or \
+                event.shift and event.type == "MIDDLEMOUSE" or \
+                event.ctrl and event.type == "MIDDLEMOUSE":
+            return {'PASS_THROUGH'}
+
+        elif event.type == 'C' and event.value == 'RELEASE':
+            self.circle = not self.circle
+            if self.circle:
+                self.settings[1] = 0
+                self.settings[2] = self.circle_pos
+                bpy.ops.mesh.delete(type='FACE')
+                bpy.ops.mesh.primitive_cylinder_add(vertices=self.cyl_sides, radius=self.settings[0],
+                                                    depth=self.settings[1], enter_editmode=False, align='WORLD',
+                                                    location=self.settings[2], rotation=self.settings[3])
+                context.area.tag_redraw()
+            else:
+                self.settings = self.og_settings
+
+        elif event.type in {'LEFTMOUSE', 'RIGHTMOUSE', 'ESC', 'RET', 'SPACE'}:
+            if self.circle:
+                bpy.ops.mesh.select_linked()
+                bpy.ops.mesh.flip_normals()
+                bpy.ops.mesh.remove_doubles()
+
+            context.area.tag_redraw()
+            context.window_manager.event_timer_remove(self._timer)
+            bpy.types.SpaceView3D.draw_handler_remove(self._handle, 'WINDOW')
+
+            if self.itemize or self.edit_mode == "OBJECT":
+                bpy.ops.object.mode_set(mode='OBJECT')
+
+                if self.shading_mode in {"SMOOTH", "AUTO"}:
+                    bpy.ops.object.shade_smooth()
+                if self.shading_mode == "AUTO" and not self.v4_1:
+                    context.object.data.use_auto_smooth = True
+                elif self.shading_mode == "AUTO" and self.v4_1:
+                    bpy.ops.object.modifier_add_node_group(
+                        asset_library_type='ESSENTIALS', asset_library_identifier='',
+                        relative_asset_identifier='geometry_nodes/smooth_by_angle.blend/NodeTree/Smooth by Angle')
+
+                if self.circle:
+                    bpy.ops.object.origin_set(type='ORIGIN_GEOMETRY', center='MEDIAN')
+
+                cursor = context.scene.cursor
+                cursor.location = self.og_cloc
+                cursor.rotation_euler = self.og_crot
+
+            if not self.select and not self.itemize and not self.edit_mode == "OBJECT":
+                bpy.ops.mesh.select_all(action='DESELECT')
+
+            context.space_data.overlay.show_cursor = True
+            self.ke_fitprim_itemize = False
+            context.workspace.status_text_set(None)
+
+            return {'FINISHED'}
+        return {'RUNNING_MODAL'}

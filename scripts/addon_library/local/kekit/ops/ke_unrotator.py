@@ -36,10 +36,11 @@ class UIUnrotatorModule(Panel):
         layout = self.layout
         col = layout.column(align=True)
         col.operator('VIEW3D_OT_ke_unrotator', text="Unrotator",
-                     icon="ORIENTATION_NORMAL").ke_unrotator_option = "DEFAULT"
-        col.operator('VIEW3D_OT_ke_unrotator', text="Unrotator Duplicate", icon="LINKED").ke_unrotator_option = "DUPE"
+                     icon="MOUSE_MOVE").ke_unrotator_option = "DEFAULT"
+        col.operator('VIEW3D_OT_ke_unrotator', text="Unrotator Duplicate",
+                     icon="MOUSE_MOVE").ke_unrotator_option = "DUPE"
         col.operator('VIEW3D_OT_ke_unrotator', text="Unrotator RotOnly",
-                     icon="ORIENTATION_LOCAL").ke_unrotator_option = "NO_LOC"
+                     icon="MOUSE_MOVE").ke_unrotator_option = "NO_LOC"
         col.separator()
         col.label(text="Options")
         col.prop(k, "unrotator_connect", text="Auto-Select Linked")
@@ -54,14 +55,24 @@ def get_snap_settings(context):
     ts = context.scene.tool_settings
     s1 = ts.snap_elements
     s2 = ts.snap_target
-    s3 = [ts.use_snap_grid_absolute,
-          ts.use_snap_backface_culling,
-          ts.use_snap_align_rotation,
-          ts.use_snap_self,
-          ts.use_snap_peel_object,
-          ts.use_snap_translate,
-          ts.use_snap_rotate,
-          ts.use_snap_scale]
+    if bpy.app.version >= (4, 2):
+        s3 = [False,
+              ts.use_snap_backface_culling,
+              ts.use_snap_align_rotation,
+              ts.use_snap_self,
+              ts.use_snap_peel_object,
+              ts.use_snap_translate,
+              ts.use_snap_rotate,
+              ts.use_snap_scale]
+    else:
+        s3 = [ts.use_snap_grid_absolute,
+              ts.use_snap_backface_culling,
+              ts.use_snap_align_rotation,
+              ts.use_snap_self,
+              ts.use_snap_peel_object,
+              ts.use_snap_translate,
+              ts.use_snap_rotate,
+              ts.use_snap_scale]
     s4 = ts.use_snap
     return [s1, s2, s3, s4]
 
@@ -70,7 +81,8 @@ def set_snap_settings(context, s):
     ts = context.scene.tool_settings
     ts.snap_elements = s[0]
     ts.snap_target = s[1]
-    ts.use_snap_grid_absolute = s[2][0]
+    if bpy.app.version < (4, 2):
+        ts.use_snap_grid_absolute = s[2][0]
     ts.use_snap_backface_culling = s[2][1]
     ts.use_snap_align_rotation = s[2][2]
     ts.use_snap_self = s[2][3]
@@ -352,7 +364,7 @@ class KeUnrotator(Operator):
             #
             # Check mouse over target - place check
             #
-            if type(hit_face) == int:
+            if isinstance(hit_face, int):
 
                 if hit_obj.name == obj.name:
                     bm.faces.ensure_lookup_table()
