@@ -231,8 +231,10 @@ class TILA_Config_Keymaps_Global(TILA_Config_Keymaps):
 		#  shortest Path Select / Deselect / Add
 		if shortestpath_tool:
 			self.kmi_remove(idname=shortestpath_tool)
-			self.kmi_set_replace(shortestpath_tool, self.k_context, 'CLICK', shift=True, disable_double=True, properties={'use_fill': False, 'use_face_step': False, 'use_topology_distance': False})
-			self.kmi_set_replace(shortestpath_tool, self.k_context, 'CLICK', ctrl=True, shift=True, disable_double=True, properties={'use_fill': True, 'use_face_step': False, 'use_topology_distance': False})
+			use_topology_distance = self.km.name == 'UV Editor'
+				
+			self.kmi_set_replace(shortestpath_tool, self.k_context, 'CLICK', shift=True, disable_double=True, properties={'use_fill': False, 'use_face_step': False, 'use_topology_distance': use_topology_distance})
+			self.kmi_set_replace(shortestpath_tool, self.k_context, 'CLICK', ctrl=True, shift=True, disable_double=True, properties={'use_fill': True, 'use_face_step': False, 'use_topology_distance': use_topology_distance})
 
 		#  shortest ring
 		if shortestring_tool:
@@ -1751,6 +1753,21 @@ class TILA_Config_Keymaps_uv_toolkit(TILA_Config_Keymaps):
 
 		if self.kmi_init(name='UV Editor', space_type='EMPTY', region_type='WINDOW', addon=False, restore_to_default=False):
 			self.kmi_set_replace('uv.toolkit_orient_to_edge', 'D', "PRESS", ctrl=True, alt=True, shift=True, disable_double=True)
+
+		self.print_status(f"Assignment of {self.addon_name} complete", start=False)
+
+class TILA_Config_Keymaps_TexTools(TILA_Config_Keymaps):
+	addon_name = "TexTools"
+
+	def __init__(self):
+		super(TILA_Config_Keymaps_TexTools, self).__init__()
+
+	def set_keymaps(self):
+		self.print_status(f"Assigning {self.addon_name} Keymaps")
+
+		if self.kmi_init(name='UV Editor', space_type='EMPTY', region_type='WINDOW', addon=False, restore_to_default=False):
+			self.kmi_set_replace('uv.textools_uv_unwrap', 'U', "PRESS", ctrl=True, alt=False, shift=False, disable_double=True, properties={'axis': "x"})
+			self.kmi_set_replace('uv.textools_uv_unwrap', 'V', "PRESS", ctrl=True, alt=False, shift=False, disable_double=True, properties={'axis': "y"})
 
 		self.print_status(f"Assignment of {self.addon_name} complete", start=False)
 
