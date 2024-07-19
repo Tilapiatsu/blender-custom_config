@@ -5,11 +5,11 @@ import shutil
 import subprocess
 import stat
 import bpy
-from . import keymaps
 from os import path
 from . import admin
-from . Logger import Logger
-from .log_list import TILA_Config_Log as Log
+from ..config import keymaps
+from ..logger.logger import Logger
+from ..preferences.ui.log_list import TILA_Config_Log as Log
 
 root_folder = path.dirname(bpy.utils.script_path_user())
 
@@ -19,7 +19,7 @@ create_symbolic_link_file = path.join(path.dirname(path.realpath(__file__)), 'cr
 
 def install_dependencies():
     current_dir = path.dirname(path.realpath(__file__))
-    dependencies_path = path.join(current_dir, 'Dependencies')
+    dependencies_path = path.join(current_dir, 'dependencies')
     print(dependencies_path)
     if dependencies_path not in sys.path:
         sys.path.append(dependencies_path)

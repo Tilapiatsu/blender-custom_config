@@ -1,7 +1,7 @@
 import sys
 import argparse
 import os
-from Logger import Logger
+from scripts.addons.Tila_ConfigManager.logger.logger import Logger
 
 class CreateSymbolicLink():
 	def __init__(self, argv=''):

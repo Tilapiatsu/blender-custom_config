@@ -1,8 +1,8 @@
 import bpy
 from abc import ABC, abstractmethod
-from .KeymapManager import KeymapManager
-from .blender_version import bversion
-from . log_list import TILA_Config_Log as Log
+from .keymap_manager import KeymapManager
+from ..blender_version.blender_version import bversion
+from ..preferences.ui.log_list import TILA_Config_Log as Log
 
 
 # TODO  

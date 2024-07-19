@@ -1,19 +1,28 @@
 import bpy
-import os
 import time
-from os import path
 from bpy.types import (Operator)
-from . settings import TILA_Config_Settings as S
-from .AddonManager import AddonManager
-from .AddonManager.log_list import TILA_Config_Log as Log
-from . addon_list import TILA_Config_PathElement
+from .config.settings import TILA_Config_Settings as S
+from .config import AL
+from .addon_manager import addon_manager
+from .preferences.ui.log_list import TILA_Config_Log as Log
+from .preferences.ui.addon_list import TILA_Config_PathElement
 
+setup_blender_progress = [  ('NONE', 'None', ''),
+                            ('DISABLE_STARTED', 'Disable Started', ''),
+                            ('DISABLE_DONE', 'Disable Done', ''),
+                            ('CLEAN_STARTED', 'Clean Started', ''),
+                            ('CLEAN_DONE', 'Clean Done', ''),
+                            ('SYNC_STARTED', 'Sync Started', ''),
+                            ('SYNC_DONE', 'Sync Done', ''),
+                            ('LINK_STARTED', 'Link Started', ''),
+                            ('LINK_DONE', 'Link Done', ''),
+                            ('ENABLE_STARTED', 'Enable Started', ''),
+                            ('ENABLE_DONE', 'ENABLE Done', ''),
+                            ('REGISTER_KEYMAP_STARTED', 'Register Keymap Started', ''),
+                            ('REGISTER_KEYMAP_DONE', 'Register Keymap Done', ''),
+                            ('SET_SETTINGS_STARTED', 'Set Settings Started', ''),
+                            ('SET_SETTINGS_DONE', 'Set Settings Done', '')]
 
-def get_path():
-    return os.path.dirname(os.path.realpath(__file__))
-
-
-AL = path.join(get_path(), 'AddonList.json')
 
 class TILA_Config_SetupBlender(Operator):
     """One click blender setup. Based on the Json file It will :
@@ -25,7 +34,7 @@ class TILA_Config_SetupBlender(Operator):
     bl_options = {'REGISTER'}
 
     def execute(self, context):
-        self.AM = AddonManager.AddonManager(AL)
+        self.AM = addon_manager.AddonManager(AL)
 
         self.wm = bpy.context.window_manager
         self.log_status = Log(self.wm.tila_config_status_list,
@@ -75,7 +84,7 @@ class TILA_Config_UpdateSetupBlender(Operator):
     def execute(self, context):
         self.log_status = Log(bpy.context.window_manager.tila_config_status_list,
                        'tila_config_status_list_idx')
-        self.AM = AddonManager.AddonManager(AL)
+        self.AM = addon_manager.AddonManager(AL)
 
         self.wm = bpy.context.window_manager
         self.wm.tila_setup_blender_progress = "NONE"
@@ -125,7 +134,7 @@ class TILA_Config_ForceEnableAddon(Operator):
     name : bpy.props.StringProperty(name="Addon Name", default="", description='Name of the addon Enable')
 
     def execute(self, context):
-        self.AM = AddonManager.AddonManager(AL)
+        self.AM = addon_manager.AddonManager(AL)
 
         self.wm = bpy.context.window_manager
         self.log_status = Log(self.wm.tila_config_status_list,
@@ -170,7 +179,7 @@ class TILA_Config_ForceDisableAddon(Operator):
     name : bpy.props.StringProperty(name="Addon Name", default="", description='Name of the addon Disable')
 
     def execute(self, context):
-        self.AM = AddonManager.AddonManager(AL)
+        self.AM = addon_manager.AddonManager(AL)
 
         self.wm = bpy.context.window_manager
         self.log_status = Log(self.wm.tila_config_status_list,
@@ -207,7 +216,7 @@ class TILA_Config_PrintAddonList(Operator):
     bl_options = {'REGISTER'}
 
     def execute(self, context):
-        self.AM = AddonManager.AddonManager(AL)
+        self.AM = addon_manager.AddonManager(AL)
         print(self.AM)
         return {'FINISHED'}
 
@@ -221,7 +230,7 @@ class TILA_Config_RemoveConfig(Operator):
     def execute(self, context):
         self.log_status = Log(
             bpy.context.window_manager.tila_config_status_list, 'tila_config_status_list_idx')
-        self.AM = AddonManager.AddonManager(AL)
+        self.AM = addon_manager.AddonManager(AL)
 
         self.wm = bpy.context.window_manager
         self.wm.tila_setup_blender_progress = "NONE"
@@ -267,7 +276,7 @@ class TILA_Config_CleanAddonList(Operator):
             bpy.context.window_manager.tila_config_status_list, 'tila_config_status_list_idx')
         self.wm = bpy.context.window_manager
         self.wm.tila_setup_blender_progress = "NONE"
-        self.AM = AddonManager.AddonManager(AL)
+        self.AM = addon_manager.AddonManager(AL)
 
         self.AM.flush_queue()
         if self.name == '':
@@ -321,7 +330,7 @@ class TILA_Config_SyncAddonList(Operator):
             bpy.context.window_manager.tila_config_status_list, 'tila_config_status_list_idx')
         self.wm = bpy.context.window_manager
         self.wm.tila_setup_blender_progress = "NONE"
-        self.AM = AddonManager.AddonManager(AL)
+        self.AM = addon_manager.AddonManager(AL)
 
         # Ensure online access is possible
         context.preferences.system.use_online_access = True
@@ -374,7 +383,7 @@ class TILA_Config_LinkAddonList(Operator):
             bpy.context.window_manager.tila_config_status_list, 'tila_config_status_list_idx')
         self.wm = bpy.context.window_manager
         self.wm.tila_setup_blender_progress = "NONE"
-        self.AM = AddonManager.AddonManager(AL)
+        self.AM = addon_manager.AddonManager(AL)
 
         self.wm.tila_setup_blender_progress = "LINK_STARTED"
         self.report({'INFO'}, 'TilaConfig : Start Link')
@@ -414,7 +423,7 @@ class TILA_Config_EnableAddonList(Operator):
             bpy.context.window_manager.tila_config_status_list, 'tila_config_status_list_idx')
         self.wm = bpy.context.window_manager
         self.wm.tila_setup_blender_progress = "NONE"
-        self.AM = AddonManager.AddonManager(AL)
+        self.AM = addon_manager.AddonManager(AL)
 
         self.AM.flush_queue()
         if self.name == '':
@@ -462,7 +471,7 @@ class TILA_Config_DisableAddonList(Operator):
             bpy.context.window_manager.tila_config_status_list, 'tila_config_status_list_idx')
         self.wm = bpy.context.window_manager
         self.wm.tila_setup_blender_progress = "NONE"
-        self.AM = AddonManager.AddonManager(AL)
+        self.AM = addon_manager.AddonManager(AL)
 
         self.AM.flush_queue()
         if self.name == '':
@@ -509,7 +518,7 @@ class TILA_Config_RegisterKeymaps(Operator):
             bpy.context.window_manager.tila_config_status_list, 'tila_config_status_list_idx')
         self.wm = bpy.context.window_manager
         self.wm.tila_setup_blender_progress = "NONE"
-        self.AM = AddonManager.AddonManager(AL)
+        self.AM = addon_manager.AddonManager(AL)
 
         self.AM.flush_queue()
         if self.name == '':
@@ -570,7 +579,9 @@ class TILA_Config_SetSettings(Operator):
         self.wm.tila_setup_blender_progress = "SET_SETTINGS_STARTED"
         self.report({'INFO'}, 'TilaConfig : Start Set Setting')
         self.log_status.start('Start Set Setting !')
+
         settings.set_settings()
+
         self.wm.tila_setup_blender_progress = "SET_SETTINGS_DONE"
         self.report({'INFO'}, 'TilaConfig : Set Setting Done')
         self.log_status.done('Set Setting Done !')
@@ -641,7 +652,7 @@ class TILA_Config_ImportAddonList(Operator):
             bpy.context.window_manager.tila_config_status_list, 'tila_config_status_list_idx')
         wm = context.window_manager
 
-        AM = AddonManager.AddonManager(AL)
+        AM = addon_manager.AddonManager(AL)
 
         wm.tila_config_addon_list.clear()
         for e in AM.elements.values():
@@ -668,7 +679,7 @@ class TILA_Config_SaveAddonList(Operator):
             bpy.context.window_manager.tila_config_status_list, 'tila_config_status_list_idx')
         wm = context.window_manager
 
-        AM = AddonManager.AddonManager(AL)
+        AM = addon_manager.AddonManager(AL)
 
         # wm.tila_config_addon_list.clear()
         json_dict = {}
@@ -789,7 +800,7 @@ class TILA_Config_AddAddon(bpy.types.Operator):
 
         json_dict[self.name] = get_addon_element_dict(self, None)
 
-        AM = AddonManager.AddonManager(AL)
+        AM = addon_manager.AddonManager(AL)
 
         AM.save_json(json_dict=json_dict)
 
@@ -807,7 +818,6 @@ class TILA_Config_AddAddon(bpy.types.Operator):
     def draw(self, context):
         draw_addon_layout(self, context)
             
-
     def draw_path(self, row,  path):
         col = row.column(align=True)
         col.alignment='RIGHT'
@@ -874,7 +884,7 @@ class TILA_Config_EditAddon(bpy.types.Operator):
             else:
                 json_dict[e.name] = get_addon_element_dict(wm.tila_config_addon_list[e.name], None)
 
-        AM = AddonManager.AddonManager(AL)
+        AM = addon_manager.AddonManager(AL)
 
         AM.save_json(json_dict=json_dict)
 
@@ -887,7 +897,6 @@ class TILA_Config_EditAddon(bpy.types.Operator):
     def draw(self, context):
         draw_addon_layout(self, context)
             
-
     def draw_path(self, row,  path):
         col = row.column(align=True)
         col.alignment='RIGHT'
@@ -929,7 +938,7 @@ class TILA_Config_RemoveAddon(bpy.types.Operator):
                 continue
             json_dict[e.name] = get_addon_element_dict(wm.tila_config_addon_list[e.name], None)
 
-        AM = AddonManager.AddonManager(AL)
+        AM = addon_manager.AddonManager(AL)
         AM.save_json(json_dict=json_dict)
 
         wm.tila_config_addon_list.remove(index)
@@ -963,3 +972,46 @@ class TILA_Config_ClearLogList(Operator):
         wm.tila_config_log_list.clear()
         self.report({'INFO'}, 'TilaConfig : Log List cleared')
         return {"FINISHED"}
+
+
+classes = (	
+            TILA_Config_ClearStatusList,
+            TILA_Config_ClearLogList,
+            TILA_Config_PrintAddonList,
+            TILA_Config_CleanAddonList,
+            TILA_Config_RemoveConfig,
+            TILA_Config_SyncAddonList,
+            TILA_Config_LinkAddonList,
+            TILA_Config_EnableAddonList,
+            TILA_Config_DisableAddonList,
+            TILA_Config_RegisterKeymaps,
+            TILA_Config_UnregisterKeymaps,
+            TILA_Config_ImportAddonList,
+            TILA_Config_SaveAddonList,
+            TILA_Config_RemoveAddon,
+            TILA_Config_AddAddon,
+            TILA_Config_EditAddon,
+            TILA_Config_SetSettings,
+            TILA_Config_SetupBlender,
+            TILA_Config_ForceEnableAddon,
+            TILA_Config_ForceDisableAddon,
+            TILA_Config_UpdateSetupBlender
+            )
+
+def register():
+    bpy.types.WindowManager.tila_setup_blender_progress = bpy.props.EnumProperty(default="NONE", items=setup_blender_progress)
+    bpy.types.WindowManager.tila_path_count = bpy.props.IntProperty(default=1)
+    bpy.types.WindowManager.tila_config_keymap_restored = bpy.props.BoolProperty(default=False)
+
+    from bpy.utils import register_class
+    for cls in classes:
+        register_class(cls)
+
+def unregister():
+    from bpy.utils import unregister_class
+    for cls in reversed(classes):
+        unregister_class(cls)
+    
+    del bpy.types.WindowManager.tila_path_count
+    del bpy.types.WindowManager.tila_setup_blender_progress
+    del bpy.types.WindowManager.tila_config_keymap_restored

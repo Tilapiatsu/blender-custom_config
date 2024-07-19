@@ -1,11 +1,15 @@
 import bpy
 import os
 import textwrap
-from . items import preferences_tabs
-from bpy.props import IntProperty, StringProperty, BoolProperty, EnumProperty, FloatProperty, FloatVectorProperty
+from bpy.props import EnumProperty
+
+
+PREFERENCE_TABS = [("GENERAL", "General", ""),
+                    ("ADDONS", "Addons", ""),
+                    ("ABOUT", "About", "")]
 
 def get_path():
-	return os.path.dirname(os.path.realpath(__file__))
+	return os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
 
 def get_name():
 	return os.path.basename(get_path())
@@ -17,11 +21,12 @@ def _label_multiline(context, text, parent):
 	text_lines = wrapper.wrap(text=text)
 	for text_line in text_lines:
 		parent.label(text=text_line)
-		
+
+
 class TILA_Config_Preferences(bpy.types.AddonPreferences):
 	bl_idname = get_name()
 
-	tabs: EnumProperty(name="Tabs", items=preferences_tabs, default="GENERAL")
+	tabs: EnumProperty(name="Tabs", items=PREFERENCE_TABS, default="GENERAL")
 
 	def draw(self, context):
 		layout = self.layout
@@ -69,7 +74,6 @@ class TILA_Config_Preferences(bpy.types.AddonPreferences):
 		column.operator("tila.config_set_settings", text="Set Settings", icon='TOOL_SETTINGS')
 		column.operator("tila.config_register_keymaps", text="Register Keymaps", icon='KEYINGSET').restore=True
 		
-
 	def draw_addons(self, box, wm):
 		split = box.split()
 
@@ -82,7 +86,6 @@ class TILA_Config_Preferences(bpy.types.AddonPreferences):
 		c.operator('tila.config_save_addon_list', text='', icon='CURRENT_FILE')
 		c.operator('tila.config_add_addon', text='', icon='ADD')
 		
-
 	def draw_about(self, box):
 		column = box.column(align=True)
 
@@ -110,3 +113,14 @@ class TILA_Config_Preferences(bpy.types.AddonPreferences):
 		
 		row.operator('tila.config_clear_log_list', text='', icon='TRASH')
 
+classes = (TILA_Config_Preferences,)
+
+def register():
+	from bpy.utils import register_class
+	for cls in classes:
+		register_class(cls)
+
+def unregister():
+	from bpy.utils import unregister_class
+	for cls in reversed(classes):
+		unregister_class(cls)

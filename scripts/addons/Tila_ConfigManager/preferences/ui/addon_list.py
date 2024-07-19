@@ -11,7 +11,7 @@ class TILA_Config_AddonElement(bpy.types.PropertyGroup):
     is_enable       : bpy.props.BoolProperty(default=False)
     is_repository   : bpy.props.BoolProperty(default=False)
     is_extension    : bpy.props.BoolProperty(default=False)
-    extension_id      : bpy.props.StringProperty(default='')
+    extension_id    : bpy.props.StringProperty(default='')
     is_sync         : bpy.props.BoolProperty(default=False)
     online_url      : bpy.props.StringProperty(default='')
     repository_url  : bpy.props.StringProperty(default='')
@@ -84,15 +84,27 @@ class TILA_Config_AddonList(bpy.types.UIList):
         row.operator('tila.config_enable_addon_list', text='', icon='CHECKBOX_HLT').name = item.name
         row.prop(item, 'is_enable', text='enable')
 
-        # col = grid.column()
-        # row = col.row(align=True)
-        # row.operator('tila.config_sync_addon_list', text='', icon='KEYINGSET').name = item.name
-        # row.prop(item, 'keymaps', text='keymaps')
-
-        
     def separator_iter(self, ui, iter) :
         for i in range(iter):
             ui.separator()
     
     def blank_space(self, ui):
         ui.label(text='', icon='BLANK1')
+
+
+classes = (TILA_Config_PathElement,
+           TILA_Config_AddonElement,
+           TILA_Config_AddonList)
+
+def register():
+    from bpy.utils import register_class
+    for cls in classes:
+        register_class(cls)
+          
+    bpy.types.WindowManager.tila_config_addon_list_idx = bpy.props.IntProperty()
+    bpy.types.WindowManager.tila_config_addon_list = bpy.props.CollectionProperty(type=TILA_Config_AddonElement)
+
+def unregister():
+    from bpy.utils import unregister_class
+    for cls in reversed(classes):
+        unregister_class(cls)
