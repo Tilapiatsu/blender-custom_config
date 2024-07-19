@@ -700,6 +700,8 @@ def draw_addon_layout(self, context):
     col.label(text=f'Online URL :  ')
     if self.is_extension:
         col.label(text='Extension ID :   ')
+        col.label(text=f'Sync :  ')
+        col.label(text=f'Enable :  ')
         col.label(text=f'Keymaps :  ')
     else:
         col.label(text=f'Sync :  ')
@@ -722,6 +724,8 @@ def draw_addon_layout(self, context):
     col.prop(self, 'online_url', text=f'')
     if self.is_extension:
         col.prop(self, 'extension_id', text=f'')
+        col.prop(self, 'is_sync', text=f'')
+        col.prop(self, 'is_enable', text=f'')
         col.prop(self, 'keymaps', text=f'')
     else:
         col.prop(self, 'is_sync', text=f'')

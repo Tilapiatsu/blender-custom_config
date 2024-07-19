@@ -33,7 +33,11 @@ class TILA_Config_AddonList(bpy.types.UIList):
         row = col.row(align=True)
         row.operator('tila.config_remove_addon', text='', icon='TRASH').name = item.name
         row.operator('tila.config_edit_addon', text='', icon='GREASEPENCIL').name = item.name
-        row.prop(item, 'is_extension', text='')
+        
+        if item.is_extension: icon = "INTERNET"
+        else: icon = "INTERNET_OFFLINE"
+
+        row.prop(item, 'is_extension', text='', icon=icon)
 
         if len(item.online_url):
             row.operator("wm.url_open", text='', icon='URL').url = item.online_url

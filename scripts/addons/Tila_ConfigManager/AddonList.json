@@ -563,25 +563,6 @@
             }
         ]
     },
-    "Is_Synchronize Workspace": {
-        "is_enable": false,
-        "is_sync": false,
-        "is_extension": false,
-        "extension_id": null,
-        "online_url": "https://m-soluyanov.gumroad.com/l/afoty",
-        "repository_url": null,
-        "branch": null,
-        "is_submodule": false,
-        "local_path": "#\\scripts\\addon_library\\local\\Is_Synchronize Workspace",
-        "keymaps": false,
-        "paths": [
-            {
-                "is_enable": false,
-                "local_subpath": null,
-                "destination_path": "#\\scripts\\addons\\Is_Synchronize Workspace"
-            }
-        ]
-    },
     "UnwrapMe": {
         "is_enable": true,
         "is_sync": false,
@@ -2426,8 +2407,8 @@
         "paths": [
             {
                 "is_enable": true,
-                "local_subpath": "optiloops_v1_3_2.py",
-                "destination_path": "#\\scripts\\addons\\optiloops.py"
+                "local_subpath": null,
+                "destination_path": "#\\scripts\\addons\\optiloops"
             }
         ]
     },
@@ -3212,7 +3193,7 @@
             }
         ]
     },
-    "universal_multi_importer": {
+    "Universal Multi Importer": {
         "is_enable": true,
         "is_sync": true,
         "is_extension": false,
@@ -3570,6 +3551,63 @@
                 "is_enable": true,
                 "local_subpath": null,
                 "destination_path": "#/scripts/addons/blendshop"
+            }
+        ]
+    },
+    "Push To Talk": {
+        "is_enable": false,
+        "is_sync": false,
+        "is_extension": false,
+        "extension_id": null,
+        "online_url": null,
+        "repository_url": "https://github.com/britalmeida/push_to_talk.git",
+        "branch": null,
+        "is_submodule": false,
+        "local_path": "#\\scripts\\addon_library\\GIT_Clones\\push_to_talk",
+        "keymaps": false,
+        "paths": [
+            {
+                "is_enable": false,
+                "local_subpath": null,
+                "destination_path": "#\\scripts\\addons\\push_to_talk"
+            }
+        ]
+    },
+    "CWF Remesh": {
+        "is_enable": false,
+        "is_sync": false,
+        "is_extension": false,
+        "extension_id": null,
+        "online_url": null,
+        "repository_url": "https://github.com/AIGODLIKE/Blender-CWF-Remesher.git",
+        "branch": "main",
+        "is_submodule": false,
+        "local_path": "#\\scripts\\addon_library\\GIT_Clones\\CWF_Remesh",
+        "keymaps": false,
+        "paths": [
+            {
+                "is_enable": false,
+                "local_subpath": null,
+                "destination_path": "#\\scripts\\addons\\CWF_Remesh"
+            }
+        ]
+    },
+    "Synchronize Workspaces": {
+        "is_enable": true,
+        "is_sync": true,
+        "is_extension": true,
+        "extension_id": "synchronize_workspaces",
+        "online_url": "https://extensions.blender.org/add-ons/synchronize-workspaces/",
+        "repository_url": "blender_org",
+        "branch": null,
+        "is_submodule": false,
+        "local_path": null,
+        "keymaps": false,
+        "paths": [
+            {
+                "is_enable": false,
+                "local_subpath": null,
+                "destination_path": null
             }
         ]
     }
