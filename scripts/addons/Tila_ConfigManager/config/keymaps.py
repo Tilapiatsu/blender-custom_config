@@ -2,7 +2,7 @@ import bpy
 from abc import ABC, abstractmethod
 from .keymap_manager import KeymapManager
 from ..blender_version.blender_version import bversion
-from ..preferences.ui.log_list import TILA_Config_Log as Log
+from ..preferences.ui.log_list import TILA_Config_Log as log_list
 
 
 # TODO  
@@ -57,7 +57,7 @@ class TILA_Config_Keymaps(ABC, KeymapManager.KeymapManager):
 
 	def __init__(self):
 		super(TILA_Config_Keymaps, self).__init__()
-		self.log_progress = Log(bpy.context.window_manager.tila_config_log_list, 'tila_config_log_list_idx')
+		self.log_progress = log_list(bpy.context.window_manager.tila_config_log_list, 'tila_config_log_list_idx')
 
 	@abstractmethod
 	def set_keymaps(self):

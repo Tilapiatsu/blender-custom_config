@@ -1,11 +1,11 @@
 import sys
 import argparse
 import os
-from scripts.addons.Tila_ConfigManager.logger.logger import Logger
+from scripts.addons.Tila_ConfigManager.logger.logger_base.logger import LOG
 
 class CreateSymbolicLink():
 	def __init__(self, argv=''):
-		self.log = Logger('Create Symbolic Link')
+		self.log = LOG('Create Symbolic Link')
 		self.parse_argsv(argv[argv.index("--") + 1:])
 	
 	def parse_argsv(self, argv):

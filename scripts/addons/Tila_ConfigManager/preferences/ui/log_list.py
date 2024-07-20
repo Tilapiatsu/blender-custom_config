@@ -1,4 +1,5 @@
 import bpy
+from ...logger import LOG
 
 
 class TILA_Config_LogElement(bpy.types.PropertyGroup):
@@ -28,6 +29,7 @@ class TILA_Config_Log():
         element = self.log.add()
         element.name = name
         element.icon = icon
+        LOG.info(name)
         setattr(bpy.context.window_manager, self.index_name, len(self.log)-1)
     
     def info(self, name):
@@ -44,6 +46,16 @@ class TILA_Config_Log():
     
     def done(self, name):
         self.append(name, icon='CHECKMARK')
+
+    def start_stage(self, name):
+        LOG.info('-----------------------------------')
+        self.append(name, icon='TRIA_RIGHT')
+        LOG.info('-----------------------------------')
+
+    def done_stage(self, name):
+        LOG.info('-----------------------------------')
+        self.append(name, icon='CHECKMARK')
+        LOG.info('-----------------------------------')
 
 classes = (TILA_Config_LogElement,
            TILA_Config_LogList,

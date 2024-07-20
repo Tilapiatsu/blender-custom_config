@@ -4,7 +4,8 @@ from bpy.types import (Operator)
 from .config.settings import TILA_Config_Settings as S
 from .config import AL
 from .addon_manager import addon_manager
-from .preferences.ui.log_list import TILA_Config_Log as Log
+from .logger import LOG
+from .preferences.ui.log_list import TILA_Config_Log as log_list
 from .preferences.ui.addon_list import TILA_Config_PathElement
 
 setup_blender_progress = [  ('NONE', 'None', ''),
@@ -37,7 +38,7 @@ class TILA_Config_SetupBlender(Operator):
         self.AM = addon_manager.AddonManager(AL)
 
         self.wm = bpy.context.window_manager
-        self.log_status = Log(self.wm.tila_config_status_list,
+        self.log_status = log_list(self.wm.tila_config_status_list,
                               'tila_config_status_list_idx')
         self.wm.tila_setup_blender_progress = "NONE"
 
@@ -45,7 +46,7 @@ class TILA_Config_SetupBlender(Operator):
             0.01, window=context.window)
         bpy.context.window_manager.modal_handler_add(self)
         self.report({'INFO'}, 'TilaConfig : Blender Setup Started !')
-        self.log_status.start('Blender Setup Started !')
+        self.log_status.start_stage('Blender Setup Started !')
         return {'RUNNING_MODAL'}
 
     def modal(self, context, event):
@@ -64,7 +65,7 @@ class TILA_Config_SetupBlender(Operator):
                 case 'REGISTER_KEYMAP_DONE':
                     context.window_manager.tila_setup_blender_progress = "NONE"
                     self.report({'INFO'}, 'TilaConfig : Blender Setup Done !')
-                    self.log_status.done('Blender Setup Done !')
+                    self.log_status.done_stage('Blender Setup Done !')
                     return {"FINISHED"}
 
         return {"PASS_THROUGH"}
@@ -82,7 +83,7 @@ class TILA_Config_UpdateSetupBlender(Operator):
 
 
     def execute(self, context):
-        self.log_status = Log(bpy.context.window_manager.tila_config_status_list,
+        self.log_status = log_list(bpy.context.window_manager.tila_config_status_list,
                        'tila_config_status_list_idx')
         self.AM = addon_manager.AddonManager(AL)
 
@@ -93,7 +94,7 @@ class TILA_Config_UpdateSetupBlender(Operator):
             0.01, window=context.window)
         bpy.context.window_manager.modal_handler_add(self)
         self.report({'INFO'}, 'TilaConfig : Update Blender Setup Started !')
-        self.log_status.start('Update Blender Setup Started !')
+        self.log_status.start_stage('Update Blender Setup Started !')
         return {'RUNNING_MODAL'}
 
     def modal(self, context, event):
@@ -116,7 +117,7 @@ class TILA_Config_UpdateSetupBlender(Operator):
                 case 'REGISTER_KEYMAP_DONE':
                     context.window_manager.tila_setup_blender_progress = "NONE"
                     self.report({'INFO'}, 'TilaConfig : Update Blender Setup Done !')
-                    self.log_status.done('Update Setup Started !')
+                    self.log_status.done_stage('Update Setup Started !')
                     return {"FINISHED"}
 
         return {"PASS_THROUGH"}
@@ -137,7 +138,7 @@ class TILA_Config_ForceEnableAddon(Operator):
         self.AM = addon_manager.AddonManager(AL)
 
         self.wm = bpy.context.window_manager
-        self.log_status = Log(self.wm.tila_config_status_list,
+        self.log_status = log_list(self.wm.tila_config_status_list,
                               'tila_config_status_list_idx')
         self.wm.tila_setup_blender_progress = "NONE"
 
@@ -145,7 +146,7 @@ class TILA_Config_ForceEnableAddon(Operator):
             0.01, window=context.window)
         bpy.context.window_manager.modal_handler_add(self)
         self.report({'INFO'}, 'TilaConfig : Force Enable Addon Started !')
-        self.log_status.start('Force Enable Addon Started !')
+        self.log_status.start_stage('Force Enable Addon Started !')
         return {'RUNNING_MODAL'}
 
     def modal(self, context, event):
@@ -162,7 +163,7 @@ class TILA_Config_ForceEnableAddon(Operator):
                 case 'REGISTER_KEYMAP_DONE':
                     context.window_manager.tila_setup_blender_progress = "NONE"
                     self.report({'INFO'}, 'TilaConfig : Force Enable Addon Done !')
-                    self.log_status.done('Force Enable Addon Done !')
+                    self.log_status.done_stage('Force Enable Addon Done !')
                     return {"FINISHED"}
 
         return {"PASS_THROUGH"}
@@ -182,7 +183,7 @@ class TILA_Config_ForceDisableAddon(Operator):
         self.AM = addon_manager.AddonManager(AL)
 
         self.wm = bpy.context.window_manager
-        self.log_status = Log(self.wm.tila_config_status_list,
+        self.log_status = log_list(self.wm.tila_config_status_list,
                               'tila_config_status_list_idx')
         self.wm.tila_setup_blender_progress = "NONE"
 
@@ -190,7 +191,7 @@ class TILA_Config_ForceDisableAddon(Operator):
             0.01, window=context.window)
         bpy.context.window_manager.modal_handler_add(self)
         self.report({'INFO'}, 'TilaConfig : Force Disable Addon Started !')
-        self.log_status.start('Force Disable Addon Started !')
+        self.log_status.start_stage('Force Disable Addon Started !')
         return {'RUNNING_MODAL'}
 
     def modal(self, context, event):
@@ -203,7 +204,7 @@ class TILA_Config_ForceDisableAddon(Operator):
                 case 'CLEAN_DONE':
                     context.window_manager.tila_setup_blender_progress = "NONE"
                     self.report({'INFO'}, 'TilaConfig : Force Disable Addon Done !')
-                    self.log_status.done('Force Disable Addon Done !')
+                    self.log_status.done_stage('Force Disable Addon Done !')
                     return {"FINISHED"}
 
         return {"PASS_THROUGH"}
@@ -228,7 +229,7 @@ class TILA_Config_RemoveConfig(Operator):
     bl_options = {'REGISTER'}
 
     def execute(self, context):
-        self.log_status = Log(
+        self.log_status = log_list(
             bpy.context.window_manager.tila_config_status_list, 'tila_config_status_list_idx')
         self.AM = addon_manager.AddonManager(AL)
 
@@ -239,7 +240,7 @@ class TILA_Config_RemoveConfig(Operator):
             0.01, window=context.window)
         bpy.context.window_manager.modal_handler_add(self)
         self.report({'INFO'}, 'TilaConfig : Remove Config Started !')
-        self.log_status.start('Remove Blender Setup Started !')
+        self.log_status.start_stage('Remove Blender Setup Started !')
         return {'RUNNING_MODAL'}
 
     def modal(self, context, event):
@@ -252,7 +253,7 @@ class TILA_Config_RemoveConfig(Operator):
                 case 'CLEAN_DONE':
                     context.window_manager.tila_setup_blender_progress = "NONE"
                     self.report({'INFO'}, 'TilaConfig : Remove Config Done !')
-                    self.log_status.done('Remove Config Done !')
+                    self.log_status.done_stage('Remove Config Done !')
                     return {"FINISHED"}
 
         return {"PASS_THROUGH"}
@@ -272,7 +273,7 @@ class TILA_Config_CleanAddonList(Operator):
     revert_to_factory: bpy.props.BoolProperty(name="Revert to Factory Settings", default=False, description='Revert to factory Settings')
 
     def execute(self, context):
-        self.log_status = Log(
+        self.log_status = log_list(
             bpy.context.window_manager.tila_config_status_list, 'tila_config_status_list_idx')
         self.wm = bpy.context.window_manager
         self.wm.tila_setup_blender_progress = "NONE"
@@ -292,7 +293,7 @@ class TILA_Config_CleanAddonList(Operator):
         if event.type == 'TIMER':
             if len(self.AM.queue_list) == 0:
                 self.report({'INFO'}, 'TilaConfig : Clean Done !')
-                self.log_status.done('Clean Done !')
+                self.log_status.done_stage('Clean Done !')
                 self.wm.tila_setup_blender_progress = "CLEAN_DONE"
                 bpy.context.window_manager.event_timer_remove(self._timer)
                 if self.revert_to_factory:
@@ -303,7 +304,7 @@ class TILA_Config_CleanAddonList(Operator):
             elif not self.AM.processing:
                 if self.wm.tila_setup_blender_progress == "NONE":
                     self.report({'INFO'}, 'TilaConfig : Start Clean !')
-                    self.log_status.start('Start Clean !')
+                    self.log_status.start_stage('Start Clean !')
                     self.wm.tila_setup_blender_progress = "CLEAN_STARTED"
                 self.AM.next_action()
 
@@ -326,7 +327,7 @@ class TILA_Config_SyncAddonList(Operator):
     _timer = None
 
     def execute(self, context):
-        self.log_status = Log(
+        self.log_status = log_list(
             bpy.context.window_manager.tila_config_status_list, 'tila_config_status_list_idx')
         self.wm = bpy.context.window_manager
         self.wm.tila_setup_blender_progress = "NONE"
@@ -350,7 +351,7 @@ class TILA_Config_SyncAddonList(Operator):
         if event.type == 'TIMER':
             if len(self.AM.queue_list) == 0:
                 self.report({'INFO'}, 'TilaConfig : Sync Done !')
-                self.log_status.done('Sync Done !')
+                self.log_status.done_stage('Sync Done !')
                 self.wm.tila_setup_blender_progress = "SYNC_DONE"
                 bpy.context.window_manager.event_timer_remove(self._timer)
                 return {"FINISHED"}
@@ -358,7 +359,7 @@ class TILA_Config_SyncAddonList(Operator):
             elif not self.AM.processing:
                 if self.wm.tila_setup_blender_progress == "NONE":
                     self.report({'INFO'}, 'TilaConfig : Start Sync')
-                    self.log_status.start('Start Sync !')
+                    self.log_status.start_stage('Start Sync !')
                     self.wm.tila_setup_blender_progress = "SYNC_STARTED"
                 self.AM.next_action()
 
@@ -379,7 +380,7 @@ class TILA_Config_LinkAddonList(Operator):
     overwrite: bpy.props.BoolProperty(name="Overwrite", default=False, description='Overwrite if destination path alerady exists')
 
     def execute(self, context):
-        self.log_status = Log(
+        self.log_status = log_list(
             bpy.context.window_manager.tila_config_status_list, 'tila_config_status_list_idx')
         self.wm = bpy.context.window_manager
         self.wm.tila_setup_blender_progress = "NONE"
@@ -387,7 +388,7 @@ class TILA_Config_LinkAddonList(Operator):
 
         self.wm.tila_setup_blender_progress = "LINK_STARTED"
         self.report({'INFO'}, 'TilaConfig : Start Link')
-        self.log_status.start('Start Link !')
+        self.log_status.start_stage('Start Link !')
 
         if self.name == '':
             self.AM.link(force=self.force, overwrite=self.overwrite)
@@ -401,7 +402,7 @@ class TILA_Config_LinkAddonList(Operator):
         self.wm.tila_setup_blender_progress = "LINK_DONE"
         
         self.report({'INFO'}, 'TilaConfig : Link Done !')
-        self.log_status.done('Link Done !')
+        self.log_status.done_stage('Link Done !')
 
         return {"FINISHED"}
 
@@ -419,7 +420,7 @@ class TILA_Config_EnableAddonList(Operator):
 
 
     def execute(self, context):
-        self.log_status = Log(
+        self.log_status = log_list(
             bpy.context.window_manager.tila_config_status_list, 'tila_config_status_list_idx')
         self.wm = bpy.context.window_manager
         self.wm.tila_setup_blender_progress = "NONE"
@@ -439,7 +440,7 @@ class TILA_Config_EnableAddonList(Operator):
         if event.type == 'TIMER':
             if len(self.AM.queue_list) == 0:
                 self.report({'INFO'}, 'TilaConfig : Enable Done !')
-                self.log_status.done('Enable Done !')
+                self.log_status.done_stage('Enable Done !')
                 self.wm.tila_setup_blender_progress = "ENABLE_DONE"
                 bpy.context.window_manager.event_timer_remove(self._timer)
                 return {"FINISHED"}
@@ -447,7 +448,7 @@ class TILA_Config_EnableAddonList(Operator):
             elif not self.AM.processing:
                 if self.wm.tila_setup_blender_progress == "NONE":
                     self.report({'INFO'}, 'TilaConfig : Start Enable')
-                    self.log_status.start('Start Enable !')
+                    self.log_status.start_stage('Start Enable !')
                     self.wm.tila_setup_blender_progress = "ENABLE_STARTED"
                 self.AM.next_action()
 
@@ -467,7 +468,7 @@ class TILA_Config_DisableAddonList(Operator):
         name="Force Disable", default=False, description='Disable all addons even for the one not set to Disable')
 
     def execute(self, context):
-        self.log_status = Log(
+        self.log_status = log_list(
             bpy.context.window_manager.tila_config_status_list, 'tila_config_status_list_idx')
         self.wm = bpy.context.window_manager
         self.wm.tila_setup_blender_progress = "NONE"
@@ -488,7 +489,7 @@ class TILA_Config_DisableAddonList(Operator):
         if event.type == 'TIMER':
             if len(self.AM.queue_list) == 0:
                 self.report({'INFO'}, 'TilaConfig : Disable Done !')
-                self.log_status.done('Disable Done !')
+                self.log_status.done_stage('Disable Done !')
                 self.wm.tila_setup_blender_progress = "DISABLE_DONE"
                 bpy.context.window_manager.event_timer_remove(self._timer)
                 return {"FINISHED"}
@@ -496,7 +497,7 @@ class TILA_Config_DisableAddonList(Operator):
             elif not self.AM.processing:
                 if self.wm.tila_setup_blender_progress == "NONE":
                     self.report({'INFO'}, 'TilaConfig : Start Disable')
-                    self.log_status.start('Start Disable !')
+                    self.log_status.start_stage('Start Disable !')
                     self.wm.tila_setup_blender_progress = "DISABLE_STARTED"
                 self.AM.next_action()
 
@@ -514,7 +515,7 @@ class TILA_Config_RegisterKeymaps(Operator):
     restore : bpy.props.BoolProperty(name='Restore Keymap', default=False, description='Restore Keymaps to default before reassigning it')
     
     def execute(self, context):
-        self.log_status = Log(
+        self.log_status = log_list(
             bpy.context.window_manager.tila_config_status_list, 'tila_config_status_list_idx')
         self.wm = bpy.context.window_manager
         self.wm.tila_setup_blender_progress = "NONE"
@@ -535,7 +536,7 @@ class TILA_Config_RegisterKeymaps(Operator):
         if event.type == 'TIMER':
             if len(self.AM.queue_list) == 0:
                 self.report({'INFO'}, 'TilaConfig : Register Keymaps Done !')
-                self.log_status.done('Register Keymaps Done !')
+                self.log_status.done_stage('Register Keymaps Done !')
                 self.wm.tila_setup_blender_progress = "REGISTER_KEYMAP_DONE"
                 bpy.context.window_manager.keyconfigs.update()
                 bpy.ops.wm.save_userpref()
@@ -546,7 +547,7 @@ class TILA_Config_RegisterKeymaps(Operator):
             elif not self.AM.processing:
                 if self.wm.tila_setup_blender_progress == "NONE":
                     self.report({'INFO'}, 'TilaConfig : Start Register Keymaps')
-                    self.log_status.start('Start Register Keymaps !')
+                    self.log_status.start_stage('Start Register Keymaps !')
                     self.wm.tila_setup_blender_progress = "REGISTER_KEYMAP_STARTED"
                 self.AM.next_action()
 
@@ -570,7 +571,7 @@ class TILA_Config_SetSettings(Operator):
     bl_options = {'REGISTER'}
 
     def execute(self, context):
-        self.log_status = Log(
+        self.log_status = log_list(
             bpy.context.window_manager.tila_config_status_list, 'tila_config_status_list_idx')
         self.wm = bpy.context.window_manager
 
@@ -578,13 +579,13 @@ class TILA_Config_SetSettings(Operator):
 
         self.wm.tila_setup_blender_progress = "SET_SETTINGS_STARTED"
         self.report({'INFO'}, 'TilaConfig : Start Set Setting')
-        self.log_status.start('Start Set Setting !')
+        self.log_status.start_stage('Start Set Setting !')
 
         settings.set_settings()
 
         self.wm.tila_setup_blender_progress = "SET_SETTINGS_DONE"
         self.report({'INFO'}, 'TilaConfig : Set Setting Done')
-        self.log_status.done('Set Setting Done !')
+        self.log_status.done_stage('Set Setting Done !')
         return {"FINISHED"}
 
 def import_addon_element(source_element, target_element):
@@ -648,7 +649,7 @@ class TILA_Config_ImportAddonList(Operator):
     bl_options = {'REGISTER'}
 
     def execute(self, context):
-        self.log_status = Log(
+        self.log_status = log_list(
             bpy.context.window_manager.tila_config_status_list, 'tila_config_status_list_idx')
         wm = context.window_manager
 
@@ -664,7 +665,7 @@ class TILA_Config_ImportAddonList(Operator):
             import_addon_element(e, addon_element)
 
         self.report({'INFO'}, 'TilaConfig : Addon List Imported')
-        self.log_status.done('Addon List Imported !')
+        self.log_status.done_stage('Addon List Imported !')
         return {"FINISHED"}
 
 
@@ -675,7 +676,7 @@ class TILA_Config_SaveAddonList(Operator):
     bl_options = {'REGISTER'}
 
     def execute(self, context):
-        self.log_status = Log(
+        self.log_status = log_list(
             bpy.context.window_manager.tila_config_status_list, 'tila_config_status_list_idx')
         wm = context.window_manager
 
@@ -688,7 +689,7 @@ class TILA_Config_SaveAddonList(Operator):
 
         AM.save_json(json_dict=json_dict)
         self.report({'INFO'}, 'TilaConfig : Addon List Saved')
-        self.log_status.done('Addon List Saved !')
+        self.log_status.done_stage('Addon List Saved !')
         return {"FINISHED"}
 
 def update_path_count(self, context):
@@ -790,7 +791,7 @@ class TILA_Config_AddAddon(bpy.types.Operator):
         return wm.invoke_props_dialog(self, width=800)
 
     def execute(self, context):
-        self.log_status = Log(
+        self.log_status = log_list(
             bpy.context.window_manager.tila_config_status_list, 'tila_config_status_list_idx')
         wm = context.window_manager
         json_dict = {}
@@ -812,7 +813,7 @@ class TILA_Config_AddAddon(bpy.types.Operator):
         import_addon_element(AM.elements[self.name], addon_element)
 
         self.report({'INFO'}, f'TilaConfig : {self.name} addon added')
-        self.log_status.done(f'{self.name} addon added')
+        self.log_status.done_stage(f'{self.name} addon added')
         return {'FINISHED'}
 
     def draw(self, context):
@@ -874,7 +875,7 @@ class TILA_Config_EditAddon(bpy.types.Operator):
         return wm.invoke_props_dialog(self, width=700)
 
     def execute(self, context):
-        self.log_status = Log(bpy.context.window_manager.tila_config_status_list, 'tila_config_status_list_idx')
+        self.log_status = log_list(bpy.context.window_manager.tila_config_status_list, 'tila_config_status_list_idx')
         wm = context.window_manager
         json_dict = {}
 
@@ -891,7 +892,7 @@ class TILA_Config_EditAddon(bpy.types.Operator):
         import_addon_element(AM.elements[self.name], wm.tila_config_addon_list[self.previous_name])
 
         self.report({'INFO'}, f'TilaConfig : {self.name} addon edited')
-        self.log_status.done(f'{self.name} addon edited')
+        self.log_status.done_stage(f'{self.name} addon edited')
         return {'FINISHED'}
 
     def draw(self, context):
@@ -927,7 +928,7 @@ class TILA_Config_RemoveAddon(bpy.types.Operator):
         return wm.invoke_confirm(self, event)
 
     def execute(self, context):
-        self.log_status = Log(bpy.context.window_manager.tila_config_status_list, 'tila_config_status_list_idx')
+        self.log_status = log_list(bpy.context.window_manager.tila_config_status_list, 'tila_config_status_list_idx')
         wm = context.window_manager
         json_dict = {}
         index = None
@@ -944,7 +945,7 @@ class TILA_Config_RemoveAddon(bpy.types.Operator):
         wm.tila_config_addon_list.remove(index)
 
         self.report({'INFO'}, f'TilaConfig : {self.name} addon removed')
-        self.log_status.done(f'{self.name} addon removed')
+        self.log_status.done_stage(f'{self.name} addon removed')
 
         return {'FINISHED'}
 

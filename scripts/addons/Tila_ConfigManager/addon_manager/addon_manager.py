@@ -8,8 +8,8 @@ import bpy
 from os import path
 from . import admin
 from ..config import keymaps
-from ..logger.logger import Logger
-from ..preferences.ui.log_list import TILA_Config_Log as Log
+from ..logger import LOG
+from ..preferences.ui.log_list import TILA_Config_Log as log_list
 
 root_folder = path.dirname(bpy.utils.script_path_user())
 
@@ -20,7 +20,7 @@ create_symbolic_link_file = path.join(path.dirname(path.realpath(__file__)), 'cr
 def install_dependencies():
     current_dir = path.dirname(path.realpath(__file__))
     dependencies_path = path.join(current_dir, 'dependencies')
-    print(dependencies_path)
+    LOG.debug("Dependency folder : " + dependencies_path)
     if dependencies_path not in sys.path:
         sys.path.append(dependencies_path)
 
@@ -50,36 +50,30 @@ def enable_addon(addon_name):
     if addon_name is None:
         return False
     
-    log_progress = Log(bpy.context.window_manager.tila_config_log_list,
+    log_progress = log_list(bpy.context.window_manager.tila_config_log_list,
                        'tila_config_log_list_idx')
     if addon_name in bpy.context.preferences.addons:
-        print(f'Addon already Enabled : {addon_name}')
         log_progress.start(f'Addon already Enabled : {addon_name}')
         return False
     
-    print(f'Enabling Addon : {addon_name}')
     log_progress.start(f'Enabling Addon : {addon_name}')
     bpy.ops.preferences.addon_enable(module=addon_name)
     bpy.context.window_manager.keyconfigs.update()	
-    print(f'Enable Done!')
     log_progress.done(f'Enable Done!')
 
     return True
 
 
 def disable_addon(addon_name):
-    log_progress = Log(bpy.context.window_manager.tila_config_log_list,
+    log_progress = log_list(bpy.context.window_manager.tila_config_log_list,
                        'tila_config_log_list_idx')
     if addon_name not in bpy.context.preferences.addons:
-        print(f'Addon already Disabled : {addon_name}')
         log_progress.start(f'Addon already Disabled : {addon_name}')
         return False
     
-    print(f'Disabling Addon : {addon_name}')
     log_progress.start(f'Disabling Addon : {addon_name}')
     bpy.ops.preferences.addon_disable(module=addon_name)
     bpy.context.window_manager.keyconfigs.update()
-    print(f'Disable Done!')
     log_progress.done(f'Disable Done!')
 
     return True
@@ -97,14 +91,14 @@ def file_acces_handler(func, path, exc_info):
 try:
     import git
 except (ModuleNotFoundError, ImportError) as e:
-    print(e)
+    LOG.error(e)
     install_dependencies()
     import git
 
 
 class File(object):
     def __init__(self, path):
-        self.log = Logger('LMFile')
+        self.log = LOG
         self.path = path
         self._name = None
         self._file = None
@@ -162,7 +156,7 @@ class File(object):
 class Json(File):
     def __init__(self, json_path):
         super(Json, self).__init__(json_path)
-        self.log = Logger('LMJson')
+        self.log = LOG
         self._json_data = None
 
 
@@ -209,7 +203,7 @@ class Json(File):
 class PathAM():
     def __init__(self, path):
         self._path = path
-        self.log_progress = Log(bpy.context.window_manager.tila_config_log_list,
+        self.log_progress = log_list(bpy.context.window_manager.tila_config_log_list,
                                 'tila_config_log_list_idx')
     
     def __str__(self):
@@ -251,11 +245,9 @@ class PathAM():
             target = 'Directory'
 
         if path.islink(self.path):
-            print(f'Unlink {target} {self.path}')
             self.log_progress.start(f'Unlink {target} {self.path}')
             os.unlink(self.path)
         else:
-            print(f'Remove {target} {self.path}')
             self.log_progress.start(f'Remove {target} {self.path}')
             if self.is_file:
                 os.remove(self.path)
@@ -267,7 +259,7 @@ class PathElementAM():
     def __init__(self, path_dict, local_path):
         self._path_dict = path_dict
         self.local_path = local_path
-        self.log_progress = Log(bpy.context.window_manager.tila_config_log_list,
+        self.log_progress = log_list(bpy.context.window_manager.tila_config_log_list,
                                 'tila_config_log_list_idx')
 
     @property
@@ -295,7 +287,6 @@ class PathElementAM():
                 return
 
             self.destination_path.remove()
-            print(f'Clean Done!')
             self.log_progress.done(f'Clean Done!')
 
     def link(self, overwrite=False, force=False):
@@ -312,7 +303,6 @@ class PathElementAM():
                 # print(f'Path Already Exists : Skipping {self.destination_path.path}')
                 return None
 
-        print(f'Linking {self.local_subpath_resolved.path} -> {self.destination_path.path}')
         self.log_progress.start(f'Linking {self.local_subpath_resolved.path} -> {self.destination_path.path}')
         return str([self.local_subpath_resolved.path, self.destination_path.path, self.local_subpath_resolved.is_dir])
     
@@ -349,11 +339,11 @@ class ElementAM():
         self.element_dict = element_dict
         self.name = name
         self.root_folder = root_folder
-        self.log_progress = Log(bpy.context.window_manager.tila_config_log_list,
+        self.log_progress = log_list(bpy.context.window_manager.tila_config_log_list,
                                 'tila_config_log_list_idx')
     
     def __str__(self):
-        print(self.name)
+        LOG.debug(self.name)
         s = ''
         s += f'----------------------------------------{self.name}----------------------------------------\n'
         s += f'is_enable = {self.is_enable}\n'
@@ -447,7 +437,6 @@ class ElementAM():
         if force and self.is_sync and not self.is_submodule:
             if self.local_path.exists:
                 self.local_path.remove()
-                print(f'Clean Done!')
                 self.log_progress.done(f'Clean Done!')
             
     def sync(self, overwrite=False, force=False):
@@ -468,7 +457,6 @@ class ElementAM():
                 # print(f'Path Already Exists : Skipping {self.local_path.path}')
                 return
         
-        print(f'Syncing {self.name} to {self.local_path.path}')
         self.log_progress.start(f'Syncing {self.name} to {self.local_path.path}')
         
         if self.is_submodule:
@@ -478,11 +466,9 @@ class ElementAM():
             if self.branch is not None:
                 message = f'Cheking out branch : {self.branch}'
                 self.log_progress.start(message)
-                print(message)
                 repo.git.checkout(self.branch)
             message = f'Pull from origin'
             self.log_progress.start(message)
-            print(message)
             o = repo.remotes.origin
             o.pull()
         else:
@@ -490,7 +476,6 @@ class ElementAM():
             # if self.branch is not None:
             git.Repo.clone_from(self.repository_url, self.local_path.path, **kwargs)
         
-        print(f'Syncing Done!')
         self.log_progress.done(f'Syncing Done!')
 
     def link(self, overwrite=False, force=False):
@@ -540,8 +525,7 @@ class ElementAM():
                 keymap_instance.set_keymaps()
             except AttributeError as e:
                 self.log_progress.warning(f'{self.name} Addon have no keymaps Set')
-                print(f'{self.name} Addon have no keymaps Set')
-                print(f'{e}')
+                LOG.error(f'{e}')
 
 class AddonManager():
     def __init__(self, json_path):
@@ -549,7 +533,7 @@ class AddonManager():
         self.json = Json(json_path)
         self.processing = False
         self.queue_list = []
-        self.log_progress = Log(bpy.context.window_manager.tila_config_log_list,
+        self.log_progress = log_list(bpy.context.window_manager.tila_config_log_list,
                                 'tila_config_log_list_idx')
 
     @property
@@ -694,7 +678,6 @@ class AddonManager():
 
     def next_action(self):
         if len(self.queue_list) == 0:
-            print('Queue Done !')
             self.log_progress.done('Queue Done !')
             return
         

@@ -1,25 +1,20 @@
 import tempfile
 import logging
-import os
+import time
 from os import path
 
 root_folder = __file__
 
 def get_log_file():
-	try:
-		filepath = root_folder
-	except AttributeError:
-		filepath = ''
-	if path.exists(filepath):
-		log_file = path.join(path.dirname(path.dirname(path.dirname(path.dirname(filepath)))), '{}.log'.format(
-			path.splitext(path.basename(filepath))[0]))
-	else:
-		tempf = tempfile.TemporaryFile().name
-		log_file = '{}.log'.format(tempf)
 
-	return log_file
+    log_file = "TilaConfig_" + time.strftime(f"%Y%m%d") + ".log"
+    log_file = path.join(tempfile.gettempdir(), log_file)
+    
+    print('Tila Config : Log file path :', log_file)
 
-class Logger(object):
+    return log_file
+
+class LOG(object):
 	def __init__(self, context='ROOT'):
 		self.context = context
 
@@ -34,31 +29,27 @@ class Logger(object):
 		self._pretty = '---------------------'
 
 	def info(self, message, print_log=True):
+		if print_log:
+			print(message)
 		self.set_basic_config()
-		# if print_log:
-		# 	self.message_list.append(message)
-		# 	print_progress(bpy.context, self.message_list, title=self.context, icon='NONE')
 		logging.info(message)
 
 	def debug(self, message, print_log=True):
+		if print_log:
+			print(message)
 		self.set_basic_config()
-		# if print_log:
-		# 	self.message_list.append(message)
-		# 	print_progress(bpy.context, self.message_list, title=self.context, icon='NONE')
 		logging.debug(message)
 
 	def warning(self, message, print_log=True):
+		if print_log:
+			print(message)
 		self.set_basic_config()
-		# if print_log:
-		# 	self.message_list.append(message)
-		# 	print_progress(bpy.context, self.message_list, title=self.context, icon='NONE')
 		logging.warning(message)
 
 	def error(self, message, print_log=True):
+		if print_log:
+			print(message)
 		self.set_basic_config()
-		# if print_log:
-		# 	self.message_list.append(message)
-		# 	print_progress(bpy.context, self.message_list, title=self.context, icon='NONE')
 		logging.error(message)
 
 	def set_basic_config(self):

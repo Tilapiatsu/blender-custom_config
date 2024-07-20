@@ -5,7 +5,7 @@ def get_latest_log_file():
     tempfiles = os.listdir(tempdir)
 
     assert len(tempfiles)
-    tempfiles = [f for f in tempfiles if os.path.basename(f).startswith('UMI_')]
+    tempfiles = [f for f in tempfiles if os.path.basename(f).startswith('TilaConfig_')]
     
     assert len(tempfiles)
     tempfiles = sorted(tempfiles)
