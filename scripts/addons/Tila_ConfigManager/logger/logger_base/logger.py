@@ -2,12 +2,13 @@ import tempfile
 import logging
 import time
 from os import path
+from ...config_const import LOG_PREFIX
 
 root_folder = __file__
 
 def get_log_file():
 
-    log_file = "TilaConfig_" + time.strftime(f"%Y%m%d") + ".log"
+    log_file = LOG_PREFIX + time.strftime(f"%Y%m%d") + ".log"
     log_file = path.join(tempfile.gettempdir(), log_file)
     
     print('Tila Config : Log file path :', log_file)

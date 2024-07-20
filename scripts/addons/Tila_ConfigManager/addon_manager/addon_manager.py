@@ -60,6 +60,7 @@ def enable_addon(addon_name):
     bpy.ops.preferences.addon_enable(module=addon_name)
     bpy.context.window_manager.keyconfigs.update()	
     log_progress.done(f'Enable Done!')
+    log_progress.separator(add_to_satus=True)
 
     return True
 
@@ -75,6 +76,7 @@ def disable_addon(addon_name):
     bpy.ops.preferences.addon_disable(module=addon_name)
     bpy.context.window_manager.keyconfigs.update()
     log_progress.done(f'Disable Done!')
+    log_progress.separator(add_to_satus=True)
 
     return True
     
@@ -438,6 +440,7 @@ class ElementAM():
             if self.local_path.exists:
                 self.local_path.remove()
                 self.log_progress.done(f'Clean Done!')
+                self.log_progress.separator(add_to_satus=True)
             
     def sync(self, overwrite=False, force=False):
         if not force and not self.is_sync:
@@ -477,6 +480,7 @@ class ElementAM():
             git.Repo.clone_from(self.repository_url, self.local_path.path, **kwargs)
         
         self.log_progress.done(f'Syncing Done!')
+        self.log_progress.separator(add_to_satus=True)
 
     def link(self, overwrite=False, force=False):
         if self.local_path.path is None:
@@ -523,6 +527,7 @@ class ElementAM():
                 if restore:
                     keymap_instance.keymap_restore(all=all)
                 keymap_instance.set_keymaps()
+                self.log_progress.separator(add_to_satus=True)
             except AttributeError as e:
                 self.log_progress.warning(f'{self.name} Addon have no keymaps Set')
                 LOG.error(f'{e}')

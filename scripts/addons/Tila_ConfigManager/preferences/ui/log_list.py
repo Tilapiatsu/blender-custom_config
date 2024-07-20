@@ -1,5 +1,6 @@
 import bpy
 from ...logger import LOG
+from ...config_const import LOG_FILENAME
 
 
 class TILA_Config_LogElement(bpy.types.PropertyGroup):
@@ -25,11 +26,20 @@ class TILA_Config_Log():
         self.log = log
         self.index_name = index_name
 
-    def append(self, name, icon='BLANK1'):
-        element = self.log.add()
-        element.name = name
-        element.icon = icon
+    def append(self, name, icon='BLANK1', add_to_satus=True):
+        if add_to_satus:
+            element = self.log.add()
+            element.name = name
+            element.icon = icon
+
         LOG.info(name)
+
+        if LOG_FILENAME not in bpy.data.texts:
+            bpy.data.texts.new(LOG_FILENAME)
+
+        text = bpy.data.texts[LOG_FILENAME]
+        text.write(name + "\n")
+
         setattr(bpy.context.window_manager, self.index_name, len(self.log)-1)
     
     def info(self, name):
@@ -47,15 +57,18 @@ class TILA_Config_Log():
     def done(self, name):
         self.append(name, icon='CHECKMARK')
 
+    def separator(self, add_to_satus=False):
+        self.append('-----------------------------------', add_to_satus=add_to_satus)
+
     def start_stage(self, name):
-        LOG.info('-----------------------------------')
+        self.separator()
         self.append(name, icon='TRIA_RIGHT')
-        LOG.info('-----------------------------------')
+        self.separator()
 
     def done_stage(self, name):
-        LOG.info('-----------------------------------')
+        self.separator()
         self.append(name, icon='CHECKMARK')
-        LOG.info('-----------------------------------')
+        self.separator()
 
 classes = (TILA_Config_LogElement,
            TILA_Config_LogList,

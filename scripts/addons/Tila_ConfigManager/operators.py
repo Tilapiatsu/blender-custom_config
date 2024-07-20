@@ -36,6 +36,7 @@ class TILA_Config_SetupBlender(Operator):
 
     def execute(self, context):
         self.AM = addon_manager.AddonManager(AL)
+        bpy.ops.tila.config_display_current_log()
 
         self.wm = bpy.context.window_manager
         self.log_status = log_list(self.wm.tila_config_status_list,
