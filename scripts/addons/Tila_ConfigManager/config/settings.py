@@ -1,17 +1,28 @@
 import bpy
 import os
 from ..blender_version.blender_version import bversion
+from ..preferences.ui.log_list import TILA_Config_Log as log_list
 
-class TILA_Config_Settings():
-    def __init__(self):
-        pass
+class TILA_Config_Settings:
+    addon_name = 'NONE'
+
     
-    def set_machin3tool_settings(self, context, setting_name, value):
-        if getattr(context.preferences.addons.get('MACHIN3tools').preferences, setting_name) == value:
-            return
-        
-        setattr(context.preferences.addons.get('MACHIN3tools').preferences, setting_name, value)
-    
+    def print_log(func):
+        def wrapper(self):
+            if self.addon_name in bpy.context.preferences.addons:
+                log_progress = log_list(bpy.context.window_manager.tila_config_log_list, 'tila_config_log_list_idx')
+                log_progress.start(f'Applying {self.addon_name} Settings')
+                func(self)
+                log_progress.done(f'{self.addon_name} Settings Applied')
+
+        return wrapper
+
+class TILA_Config_Settings_Global(TILA_Config_Settings):
+    addon_name = "Global"
+
+    def print_log(func):
+        return TILA_Config_Settings.print_log(func)
+
     @property
     def get_gpu_device(self):
         cycles_preferences = bpy.context.preferences.addons['cycles'].preferences
@@ -19,14 +30,10 @@ class TILA_Config_Settings():
         return devices
 
     def set_settings(self):
+        log_progress = log_list(bpy.context.window_manager.tila_config_log_list, 'tila_config_log_list_idx')
+        log_progress.start(f'Applying {self.addon_name} Settings')
+
         context = bpy.context
-
-        #########################
-        # Adjust addon Preference
-        #########################
-
-        print("Loading Tilapiatu's user preferences")
-
         # # Set Theme to Tila
         root_path = bpy.utils.resource_path('USER')
         theme_filepath = os.path.join(
@@ -97,24 +104,40 @@ class TILA_Config_Settings():
         context.preferences.inputs.use_zoom_to_mouse = True
         context.preferences.inputs.pressure_softness = -0.5
 
-        print("Loading Tilapiatu's user preferences Completed")
+        log_progress.done(f'{self.addon_name} Settings Applied')
+
+
+class TILA_Config_Settings_PolyQuilt(TILA_Config_Settings):
+    addon_name = 'PolyQuilt'
+
+    def print_log(func):
+        return TILA_Config_Settings.print_log(func)
+
+    @print_log
+    def set_settings(self):
+        context = bpy.context
         
-        #########################
-        # Adjust addon Preference
-        #########################
-
-        print("Loading Addon Preferences")
-
-        # # PolyQuilt
-        addon_name = 'PolyQuilt'
-        if addon_name in bpy.context.preferences.addons:
-            addon = context.preferences.addons.get(addon_name)
+        if self.addon_name in context.preferences.addons:
+            addon = context.preferences.addons.get(self.addon_name)
             addon.preferences.is_debug = False
 
-        # # Machin3Tools
-        addon_name = 'MACHIN3tools'
-        if addon_name in bpy.context.preferences.addons:
-            addon = context.preferences.addons.get(addon_name)
+class TILA_Config_Settings_MACHIN3tools(TILA_Config_Settings):
+    addon_name = 'MACHIN3tools'
+
+    def print_log(func):
+        return TILA_Config_Settings.print_log(func)
+
+    def set_machin3tool_settings(self, context, setting_name, value):
+        if getattr(context.preferences.addons.get('MACHIN3tools').preferences, setting_name) == value:
+            return
+        
+        setattr(context.preferences.addons.get('MACHIN3tools').preferences, setting_name, value)
+    
+    @print_log
+    def set_settings(self):
+        context = bpy.context
+        if self.addon_name in context.preferences.addons:
+            addon = context.preferences.addons.get(self.addon_name)
             
             self.set_machin3tool_settings(context, 'activate_smart_vert' , False)
             self.set_machin3tool_settings(context, 'activate_smart_edge' , False)
@@ -139,17 +162,32 @@ class TILA_Config_Settings():
             self.set_machin3tool_settings(context, 'activate_align_pie' , True)
             self.set_machin3tool_settings(context, 'activate_cursor_pie' , True)
 
-        # # object_collection_manager
-        addon_name = 'bl_ext.blender_org.collection_manager'
-        if addon_name in bpy.context.preferences.addons:
-            addon = context.preferences.addons.get(addon_name)
+class TILA_Config_Settings_collection_manager(TILA_Config_Settings):
+    addon_name = 'bl_ext.blender_org.collection_manager'
+    
+    def print_log(func):
+        return TILA_Config_Settings.print_log(func)
+
+    @print_log
+    def set_settings(self):
+        context = bpy.context
+        if self.addon_name in context.preferences.addons:
+            addon = context.preferences.addons.get(self.addon_name)
             addon.preferences.enable_qcd = False
             addon.preferences.enable_qcd_3dview_header_widget = False
 
+class TILA_Config_Settings_noodler(TILA_Config_Settings):
+    addon_name = 'noodler'
+    
+    def print_log(func):
+        return TILA_Config_Settings.print_log(func)
+
+    @print_log
+    def set_settings(self):
+        context = bpy.context
         # # noodler
-        addon_name = 'noodler'
-        if addon_name in bpy.context.preferences.addons:
-            addon = context.preferences.addons.get(addon_name)
+        if self.addon_name in context.preferences.addons:
+            addon = context.preferences.addons.get(self.addon_name)
             kmi = bpy.context.window_manager.keyconfigs.addon.keymaps['Node Editor'].keymap_items
             for k in kmi:
                 if k.idname == 'noodler.draw_route':
@@ -159,25 +197,46 @@ class TILA_Config_Settings():
                 if k.idname == 'noodler.draw_frame':
                     k.ctrl = True
 
-        # # mouselook_navigation
-        # addon_name = 'mouselook_navigation'
-        # if addon_name in bpy.context.preferences.addons:
-            # addon = context.preferences.addons.get('mouselook_navigation')
-            # addon.preferences.show_zbrush_border = False
-            # addon.preferences.show_crosshair = False
-            # addon.preferences.show_focus = False
-            # addon.preferences.rotation_snap_subdivs = 1
+class TILA_Config_Settings_mouselook_navigation(TILA_Config_Settings):
+    addon_name = 'mouselook_navigation'
+    
+    def print_log(func):
+        return TILA_Config_Settings.print_log(func)
 
-        # # kekit
-        # addon_name = 'kekit'
-        # if addon_name in bpy.context.preferences.addons:
-            # addon = context.preferences.addons.get(addon_name)
-            # addon.preferences.category = 'Tools'
+    @print_log
+    def set_settings(self):
+        context = bpy.context
+        if self.addon_name in context.preferences.addons:
+            addon = context.preferences.addons.get(self.addon_name)
+            addon.preferences.show_zbrush_border = False
+            addon.preferences.show_crosshair = False
+            addon.preferences.show_focus = False
+            addon.preferences.rotation_snap_subdivs = 1
 
-        # # greasepencil_tools
-        addon_name = 'bl_ext.blender_org.grease_pencil_tools'
-        if addon_name in bpy.context.preferences.addons:
-            addon = context.preferences.addons.get(addon_name)
+class TILA_Config_Settings_kekit(TILA_Config_Settings):
+    addon_name = 'kekit'
+    
+    def print_log(func):
+        return TILA_Config_Settings.print_log(func)
+
+    @print_log
+    def set_settings(self):
+        context = bpy.context
+        if self.addon_name in context.preferences.addons:
+            addon = context.preferences.addons.get(self.addon_name)
+            addon.preferences.category = 'Tools'
+
+class TILA_Config_Settings_grease_pencil_tools(TILA_Config_Settings):
+    addon_name = 'bl_ext.blender_org.grease_pencil_tools'
+    
+    def print_log(func):
+        return TILA_Config_Settings.print_log(func)
+
+    @print_log
+    def set_settings(self):
+        context = bpy.context
+        if self.addon_name in context.preferences.addons:
+            addon = context.preferences.addons.get(self.addon_name)
             addon.preferences.canvas_use_hud = False
             # addon.preferences.mouse_click = 'RIGHTMOUSE'
             addon.preferences.rc_angle_step = 45 * 0.0174533  # 45 deg to rad
@@ -190,28 +249,42 @@ class TILA_Config_Settings():
             addon.preferences.ts.use_shift = True
             addon.preferences.ts.keycode = 'SPACE'
 
-        # # Atomic Data Manager
-        addon_name = 'atomic_data_manager'
-        if addon_name in bpy.context.preferences.addons:
-            addon = context.preferences.addons.get(addon_name)
+class TILA_Config_Settings_atomic_data_manager(TILA_Config_Settings):
+    addon_name = 'atomic_data_manager'
+    
+    def print_log(func):
+        return TILA_Config_Settings.print_log(func)
+
+    @print_log
+    def set_settings(self):
+        context = bpy.context
+        if self.addon_name in context.preferences.addons:
+            addon = context.preferences.addons.get(self.addon_name)
             addon.preferences.enable_missing_file_warning = False
 
-        # # Auto Reload
-        addon_name = 'Auto_Reload'
-        if addon_name in bpy.context.preferences.addons:
-            addon = context.preferences.addons.get(addon_name)
+class TILA_Config_Settings_Auto_Reload(TILA_Config_Settings):
+    addon_name = 'Auto_Reload'
+    
+    def print_log(func):
+        return TILA_Config_Settings.print_log(func)
+
+    @print_log
+    def set_settings(self):
+        context = bpy.context
+        if self.addon_name in context.preferences.addons:
+            addon = context.preferences.addons.get(self.addon_name)
             addon.preferences.update_check_launch = False
-            
-        # # pin_verts
-        addon_name = 'pin_verts'
-        if addon_name in bpy.context.preferences.addons:
-            addon = context.preferences.addons.get(addon_name)
+
+class TILA_Config_Settings_pin_verts(TILA_Config_Settings):
+    addon_name = 'pin_verts'
+    
+    def print_log(func):
+        return TILA_Config_Settings.print_log(func)
+
+    @print_log
+    def set_settings(self):
+        context = bpy.context
+        if self.addon_name in context.preferences.addons:
+            addon = context.preferences.addons.get(self.addon_name)
             addon.preferences.sna_auto_enabledisable_falloff = False
             addon.preferences.sna_show_header_button_editmode = False
-
-
-
-        print("Loading Addon Preferences Done !")
-
-        # Save Preference
-        bpy.ops.wm.save_userpref()

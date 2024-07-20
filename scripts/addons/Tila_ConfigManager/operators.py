@@ -1,7 +1,6 @@
 import bpy
 import time
 from bpy.types import (Operator)
-from .config.settings import TILA_Config_Settings as S
 from .config import AL
 from .addon_manager import addon_manager
 from .preferences.ui.log_list import TILA_Config_Log as log_list
@@ -572,23 +571,44 @@ class TILA_Config_SetSettings(Operator):
     bl_label = "Tila Config : Set Settings"
     bl_options = {'REGISTER'}
 
+    name : bpy.props.StringProperty(name="Addon Name", default="", description='Name of the addon to enable')
+
     def execute(self, context):
         self.log_status = log_list(
             bpy.context.window_manager.tila_config_status_list, 'tila_config_status_list_idx')
         self.wm = bpy.context.window_manager
+        self.wm.tila_setup_blender_progress = "NONE"
+        self.AM = addon_manager.AddonManager(AL)
 
-        settings = S()
+        self.AM.flush_queue()
+        if self.name == '':
+            self.AM.queue_set_settings()
+        else:
+            self.AM.queue_set_settings(element_name=self.name)
 
-        self.wm.tila_setup_blender_progress = "SET_SETTINGS_STARTED"
-        self.report({'INFO'}, 'TilaConfig : Start Set Setting')
-        self.log_status.start_stage('Start Set Setting !')
+        self._timer = bpy.context.window_manager.event_timer_add(
+            0.01, window=context.window)
+        bpy.context.window_manager.modal_handler_add(self)
+        return {'RUNNING_MODAL'}
 
-        settings.set_settings()
+    def modal(self, context, event):
+        if event.type == 'TIMER':
+            if len(self.AM.queue_list) == 0:
+                self.report({'INFO'}, 'TilaConfig : Set Settings Done !')
+                self.log_status.done_stage('Set Settings Done !')
+                self.wm.tila_setup_blender_progress = "SET_SETTINGS_DONE"
+                bpy.context.window_manager.event_timer_remove(self._timer)
+                return {"FINISHED"}
 
-        self.wm.tila_setup_blender_progress = "SET_SETTINGS_DONE"
-        self.report({'INFO'}, 'TilaConfig : Set Setting Done')
-        self.log_status.done_stage('Set Setting Done !')
-        return {"FINISHED"}
+            elif not self.AM.processing:
+                if self.wm.tila_setup_blender_progress == "NONE":
+                    self.report({'INFO'}, 'TilaConfig : Start Set Settings')
+                    self.log_status.start_stage('Start Set Settings !')
+                    self.wm.tila_setup_blender_progress = "SET_SETTINGS_STARTED"
+                self.AM.next_action()
+
+        return {"PASS_THROUGH"}
+
 
 def import_addon_element(source_element, target_element):
     def get_valid_string(string, fallback):

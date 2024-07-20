@@ -7,7 +7,7 @@ import stat
 import bpy
 from os import path
 from . import admin
-from ..config import keymaps
+from ..config import keymaps, settings
 from ..logger import LOG
 from ..preferences.ui.log_list import TILA_Config_Log as log_list
 
@@ -80,6 +80,7 @@ def disable_addon(addon_name):
 
     return True
     
+
 def file_acces_handler(func, path, exc_info):
     # print('Handling Error for file ', path)
     # print(exc_info)
@@ -89,6 +90,7 @@ def file_acces_handler(func, path, exc_info):
         os.chmod(path, stat.S_IWUSR)
         # call the calling function again
         func(path)
+
 
 try:
     import git
@@ -161,7 +163,6 @@ class Json(File):
         self.log = LOG
         self._json_data = None
 
-
     # Properties
     @property
     def is_valid(self):
@@ -201,6 +202,7 @@ class Json(File):
         # Writing to output file
         with open(self.path, "w") as outfile:
             outfile.write(json_object)
+
 
 class PathAM():
     def __init__(self, path):
@@ -336,6 +338,7 @@ class PathElementAM():
         if not disable_addon(addon_name):
             return
             
+
 class ElementAM():
     def __init__(self, element_dict, name):
         self.element_dict = element_dict
@@ -366,6 +369,10 @@ class ElementAM():
             
 
         return s
+
+    @property
+    def safe_name(self):
+        return self.extension_id if self.is_extension else self.name.replace(' ', '_')
 
     @property
     def is_sync(self):
@@ -414,6 +421,15 @@ class ElementAM():
     @property
     def keymaps(self):
         return self.element_dict['keymaps']
+    
+    @property
+    def settings(self):
+        try:
+            addon_settings = eval(f'settings.TILA_Config_Settings_{self.safe_name}')
+            return True
+        
+        except AttributeError as e:
+            return False
     
     @property
     def paths(self):
@@ -534,6 +550,17 @@ class ElementAM():
             except AttributeError as e:
                 self.log_progress.warning(f'{self.name} Addon have no keymaps Set')
                 LOG.error(f'{e}')
+
+    def set_settings(self):
+        try:
+            addon_settings = eval(f'settings.TILA_Config_Settings_{self.safe_name}')
+            setting_instance = addon_settings()
+            setting_instance.set_settings()
+            self.log_progress.separator(add_to_satus=True)
+
+        except AttributeError as e:
+            self.log_progress.warning(f'{self.safe_name} Addon have no settings')
+            LOG.error(f'{e}')
 
 class AddonManager():
     def __init__(self, json_path):
@@ -677,13 +704,38 @@ class AddonManager():
             self.elements[element_name].set_keymaps(restore=restore, all=True)
 
         self.processing = False
+    
+    def queue_set_settings(self, element_name=None):
+        if element_name is None:
+            for e in self.elements.values():
+                if not e.settings:
+                    continue
 
+                self.queue([self.set_settings, {'element_name': e.name}])
+                
+        elif element_name in self.elements.keys():
+            if not self.elements[element_name].settings:
+                return
+            
+            self.queue([self.set_settings, {'element_name': element_name}])
+
+    def set_settings(self, element_name=None):
+        self.processing = True
+
+        if element_name is None:
+            for e in self.elements.values():
+                e.set_settings()
+        elif element_name in self.elements.keys():
+            self.elements[element_name].set_settings()
+
+        self.processing = False
+    
     def queue(self, action):
         self.queue_list.append(action)
 
     def flush_queue(self):
         self.queue_list = []
-
+    
     def next_action(self):
         if len(self.queue_list) == 0:
             self.log_progress.done('Queue Done !')
@@ -692,7 +744,6 @@ class AddonManager():
         action = self.queue_list.pop(0)
 
         action[0](**action[1])
-
 
     def __str__(self):
         s = ''
