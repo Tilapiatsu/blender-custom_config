@@ -447,7 +447,10 @@ class ElementAM():
             return
         
         if self.is_extension:
+            self.log_progress.start(f'Installing Extension {self.extension_id}')
             bpy.ops.extensions.package_install(repo_index=0, pkg_id=self.extension_id, enable_on_install=False)
+            self.log_progress.done(f'Extension Installtion Done!')
+            self.log_progress.separator(add_to_satus=True)
             return
 
         if self.repository_url is None or self.local_path.path is None:

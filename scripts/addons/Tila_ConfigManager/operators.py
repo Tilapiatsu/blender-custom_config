@@ -4,7 +4,6 @@ from bpy.types import (Operator)
 from .config.settings import TILA_Config_Settings as S
 from .config import AL
 from .addon_manager import addon_manager
-from .logger import LOG
 from .preferences.ui.log_list import TILA_Config_Log as log_list
 from .preferences.ui.addon_list import TILA_Config_PathElement
 
@@ -87,6 +86,7 @@ class TILA_Config_UpdateSetupBlender(Operator):
         self.log_status = log_list(bpy.context.window_manager.tila_config_status_list,
                        'tila_config_status_list_idx')
         self.AM = addon_manager.AddonManager(AL)
+        bpy.ops.tila.config_display_current_log()
 
         self.wm = bpy.context.window_manager
         self.wm.tila_setup_blender_progress = "NONE"
@@ -233,6 +233,7 @@ class TILA_Config_RemoveConfig(Operator):
         self.log_status = log_list(
             bpy.context.window_manager.tila_config_status_list, 'tila_config_status_list_idx')
         self.AM = addon_manager.AddonManager(AL)
+        bpy.ops.tila.config_display_current_log()
 
         self.wm = bpy.context.window_manager
         self.wm.tila_setup_blender_progress = "NONE"
