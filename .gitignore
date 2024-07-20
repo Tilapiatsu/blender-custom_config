@@ -9,7 +9,7 @@ extensions/*
 
 scripts/addon_library/GIT_Clones/*
 
-scripts/addons/Tila_ConfigManager/AddonManager/Dependencies/*
+scripts/addons/Tila_ConfigManager/addon_manager/dependencies/*
 
 scripts/addons/retopoflow-master/*
 scripts/addons/Capsule/*
