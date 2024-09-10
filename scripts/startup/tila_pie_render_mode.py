@@ -57,10 +57,22 @@ class TILA_OT_toggle_shading(bpy.types.Operator):
     bl_options = {'REGISTER', 'UNDO'}
 
     type : bpy.props.EnumProperty(name='type', items=(('RENDERED', 'Rendered', ''), ('MATERIAL', 'Material Preview', ''), ('SOLID', 'Solid', ''), ('WIREFRAME', 'Wireframe', ''), ('SOLID_TEXTURE', 'Solid Texture', ''), ('RANDOM', 'Random', ''), ('SOLID_VERTEX', 'Solid Vertex', ''), ('SILHOUETTE', 'Silhouette', '')), default='RENDERED')
-    
+    alt: bpy.props.BoolProperty(name='alt', default=False, options = {"HIDDEN", "SKIP_SAVE"})
+
+    def invoke(self, context, event):
+        if event.alt:
+            self.alt = True
+        return self.execute(context)
+
     def execute(self, context):
+        if self.alt:
+            bpy.context.space_data.overlay.show_face_orientation = True
+        else:
+            bpy.context.space_data.overlay.show_face_orientation = False
+            
         if self.type in ['RENDERED', 'MATERIAL', 'SOLID', 'WIREFRAME']:
             bpy.context.space_data.shading.type = self.type
+                
             if self.type == 'SOLID':
                 bpy.context.space_data.shading.light = 'STUDIO'
                 bpy.context.space_data.shading.background_type = 'THEME'
@@ -68,19 +80,22 @@ class TILA_OT_toggle_shading(bpy.types.Operator):
                 bpy.context.space_data.shading.studio_light = 'TilaSculpt.sl'
                 bpy.context.space_data.shading.wireframe_color_type = 'THEME'
                 bpy.context.space_data.shading.show_object_outline = True
-                bpy.context.space_data.overlay.show_face_orientation = True
             if self.type == 'WIREFRAME':
                 bpy.context.space_data.shading.wireframe_color_type = 'RANDOM'
                 bpy.context.space_data.shading.xray_alpha_wireframe = 0.75
                 bpy.context.space_data.shading.background_color = (0.007, 0.007, 0.007)
                 bpy.context.space_data.shading.background_type = 'VIEWPORT'
                 bpy.context.space_data.shading.show_object_outline = True
-                bpy.context.space_data.overlay.show_face_orientation = True
-            if self.type in ['WIREFRAME', 'MATERIAL']:
-                bpy.context.space_data.overlay.show_face_orientation = False
+            # if self.type in ['WIREFRAME', 'MATERIAL']:
+            #     bpy.context.space_data.overlay.show_face_orientation = False
 
         else:
             bpy.context.space_data.shading.type = 'SOLID'
+            if self.alt:
+                bpy.context.space_data.overlay.show_face_orientation = True
+            else:
+                bpy.context.space_data.overlay.show_face_orientation = False
+
             if self.type == 'SOLID_TEXTURE':
                 bpy.context.space_data.shading.color_type = 'TEXTURE'
                 bpy.context.space_data.shading.light = 'STUDIO'
@@ -88,7 +103,6 @@ class TILA_OT_toggle_shading(bpy.types.Operator):
                 bpy.context.space_data.shading.background_type = 'THEME'
                 bpy.context.space_data.shading.wireframe_color_type = 'THEME'
                 bpy.context.space_data.shading.show_object_outline = False
-                bpy.context.space_data.overlay.show_face_orientation = False
             elif self.type == 'RANDOM':
                 bpy.context.space_data.shading.color_type = 'RANDOM'
                 bpy.context.space_data.shading.wireframe_color_type = 'THEME'
@@ -96,7 +110,6 @@ class TILA_OT_toggle_shading(bpy.types.Operator):
                 bpy.context.space_data.shading.studio_light = 'TilaSculpt.sl'
                 bpy.context.space_data.shading.background_type = 'THEME'
                 bpy.context.space_data.shading.show_object_outline = True
-                bpy.context.space_data.overlay.show_face_orientation = True
             elif self.type == 'SOLID_VERTEX':
                 bpy.context.space_data.shading.color_type = 'VERTEX'
                 bpy.context.space_data.shading.light = 'STUDIO'
@@ -104,7 +117,6 @@ class TILA_OT_toggle_shading(bpy.types.Operator):
                 bpy.context.space_data.shading.background_type = 'THEME'
                 bpy.context.space_data.shading.wireframe_color_type = 'THEME'
                 bpy.context.space_data.shading.show_object_outline = True
-                bpy.context.space_data.overlay.show_face_orientation = False
             elif self.type == 'SILHOUETTE':
                 bpy.context.space_data.shading.color_type = 'SINGLE'
                 bpy.context.space_data.shading.light = 'FLAT'
@@ -112,9 +124,6 @@ class TILA_OT_toggle_shading(bpy.types.Operator):
                 bpy.context.space_data.shading.wireframe_color_type = 'THEME'
                 bpy.context.space_data.shading.background_color = (0, 0, 0)
                 bpy.context.space_data.shading.show_object_outline = False
-                bpy.context.space_data.overlay.show_face_orientation = False
-
-
 
         return {'FINISHED'}
 
