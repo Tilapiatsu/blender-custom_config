@@ -17,18 +17,18 @@ class TILA_SculptMaskFaceSet(bpy.types.Operator):
 
     def invoke(self, context, event):
         if self.mode == 'MASK':
-            bpy.ops.paint.hide_show(action='SHOW', area='ALL')
+            bpy.ops.paint.hide_show_all(action='SHOW')
             bpy.ops.paint.mask_flood_fill(mode='VALUE', value=0.0)
             bpy.ops.sculpt.face_set_change_visibility(mode='TOGGLE')
             bpy.ops.paint.mask_flood_fill(mode='INVERT')
-            bpy.ops.paint.hide_show(action='SHOW', area='ALL')
+            bpy.ops.paint.hide_show_all(action='SHOW')
             bpy.ops.paint.mask_flood_fill(mode='INVERT')
         elif self.mode == 'TOGGLE':
-            bpy.ops.paint.hide_show(action='SHOW', area='ALL')
+            bpy.ops.paint.hide_show_all(action='SHOW')
             bpy.ops.paint.mask_flood_fill(mode='INVERT')
             bpy.ops.sculpt.face_set_change_visibility(mode='TOGGLE')
             bpy.ops.paint.mask_flood_fill(mode='INVERT')
-            bpy.ops.paint.hide_show(action='SHOW', area='ALL')
+            bpy.ops.paint.hide_show_all(action='SHOW')
             bpy.ops.paint.mask_flood_fill(mode='INVERT')
             bpy.ops.sculpt.mask_filter(filter_type='GROW', auto_iteration_count=True)
             bpy.ops.sculpt.mask_filter(filter_type='SHRINK', auto_iteration_count=True)
