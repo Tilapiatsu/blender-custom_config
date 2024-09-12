@@ -727,6 +727,7 @@ class TILA_Config_Keymaps_Global(TILA_Config_Keymaps):
 		self.kmi_set_replace('mesh.fill', 'P', 'PRESS', shift=True, properties={'use_beauty': True})
 		self.kmi_set_replace('mesh.fill_grid', 'P', 'PRESS', alt=True, properties={'use_interp_simple': False})
 		self.kmi_set_replace('mesh.edge_face_add', 'P', 'PRESS', disable_double=True)
+		self.kmi_set_replace('mmesh.dissolve_faces', 'P', 'PRESS', alt=True, shift=True,  properties={'use_verts': False}, disable_double=True)
 		self.kmi_set_replace('mesh.flip_normals', 'F', 'PRESS', disable_double=True)
 		self.kmi_set_replace('mesh.subdivide', 'D', 'PRESS', disable_double=True)
 		self.kmi_set_replace('transform.shrink_fatten', 'E', 'PRESS', alt=True, shift=True, disable_double=True)
