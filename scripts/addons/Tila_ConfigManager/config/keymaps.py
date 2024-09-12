@@ -717,6 +717,8 @@ class TILA_Config_Keymaps_Global(TILA_Config_Keymaps):
 
 		self.tool_smooth()
 		self.kmi_set_active(False, 'view3d.select_box')
+		# Disable Shearing on this shortcut
+		self.kmi_set_active(False, ctrl=True, alt=True, shift=True, type='S')
 		self.kmi_set_replace('view3d.smart_bevel', 'B', 'PRESS', disable_double=True)
 		self.kmi_set_replace('mesh.hp_extrude', 'E', 'PRESS', disable_double=True)
 		self.kmi_set_replace('mesh.knife_tool', 'C', 'PRESS', disable_double=True)
