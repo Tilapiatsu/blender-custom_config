@@ -3610,5 +3610,24 @@
                 "destination_path": null
             }
         ]
+    },
+    "Align UV": {
+        "is_enable": false,
+        "is_sync": false,
+        "is_extension": false,
+        "extension_id": null,
+        "online_url": "https://kushiro.gumroad.com/l/align_uv",
+        "repository_url": null,
+        "branch": null,
+        "is_submodule": false,
+        "local_path": "#\\scripts\\addon_library\\local\\align_uv",
+        "keymaps": false,
+        "paths": [
+            {
+                "is_enable": false,
+                "local_subpath": null,
+                "destination_path": "#\\scripts\\addons\\align_uv"
+            }
+        ]
     }
 }
