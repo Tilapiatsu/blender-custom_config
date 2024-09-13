@@ -17,7 +17,7 @@ import bpy
 source_folder = bpy.path.abspath('c:\\path')
 source_image_format = '.png'
 max_destination_resolution = (6000, 6000)
-background_color = (1, 1, 1, 1)
+background_color = (0, 0, 0, 1)
 use_contains = True
 save_jpeg = True
 save_png = True
@@ -228,7 +228,9 @@ if save_png:
 if save_jpeg:
     destination = os.path.join(source_folder, output_filename + '_composite.jpg')
     print('saving Image : ', destination)
-    jpg = final_image.convert('RGB')
+    jpg = Image.new('RGBA', image_size, background_color)
+    jpg.alpha_composite(final_image)
+    jpg = jpg.convert('RGB')
     jpg.save(destination)
 
 print('Composite Done !!!')
