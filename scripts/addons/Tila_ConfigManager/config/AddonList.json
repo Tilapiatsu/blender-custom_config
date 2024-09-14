@@ -3629,5 +3629,24 @@
                 "destination_path": "#\\scripts\\addons\\align_uv"
             }
         ]
+    },
+    "Batch_UV_Maps": {
+        "is_enable": false,
+        "is_sync": false,
+        "is_extension": false,
+        "extension_id": null,
+        "online_url": "https://madllama.gumroad.com/l/Batch_UV_Operations_Blender",
+        "repository_url": null,
+        "branch": null,
+        "is_submodule": false,
+        "local_path": "#\\scripts\\addon_library\\local\\Batch_UV_Maps",
+        "keymaps": false,
+        "paths": [
+            {
+                "is_enable": false,
+                "local_subpath": null,
+                "destination_path": "#\\scripts\\addons\\Batch_UV_Maps"
+            }
+        ]
     }
 }
