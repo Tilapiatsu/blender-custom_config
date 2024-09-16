@@ -518,6 +518,7 @@ class TILA_Config_Keymaps_Global(TILA_Config_Keymaps):
         self.collection_visibility('object.hide_collection')
 
         self.kmi_set_replace('view3d.view_selected', 'A', 'PRESS', ctrl=True, shift=True)
+        self.kmi_set_replace('view3d.snap_cursor_to_center', 'NUMPAD_ASTERIX', 'PRESS', alt=True, shift=True, disable_double=True)
 
         self.tool_center(pivot='VIEW3D_PT_pivot_point', orientation='VIEW3D_PT_transform_orientations', action_center_context='VIEW3D')
 
@@ -673,6 +674,8 @@ class TILA_Config_Keymaps_Global(TILA_Config_Keymaps):
         self.kmi_set_replace('view2d.tila_action_center_2d_cursor_toggle', 'S', 'PRESS', ctrl=True, alt=True, shift=True, disable_double=True)
         self.kmi_set_replace('transform.translate', self.k_cursor, 'CLICK_DRAG', ctrl=True, alt=True, shift=True, properties={'cursor_transform': True}, disable_double=True)
         
+        self.kmi_set_replace('uv.snap_cursor', 'NUMPAD_ASTERIX', 'PRESS', alt=True, shift=True, properties={'target': 'ORIGIN'}, disable_double=True)
+
         # Machin3Tools
         # self.kmi_set_replace('wm.call_menu_pie', 'D', "PRESS", alt=True, shift=True, properties={'name': 'MACHIN3_MT_uv_align_pie'}, disable_double=True)
 
