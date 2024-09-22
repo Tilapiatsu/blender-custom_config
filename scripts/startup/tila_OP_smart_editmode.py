@@ -112,6 +112,10 @@ class TILA_smart_editmode(bpy.types.Operator):
 
             elif bpy.context.active_object.type == 'LATTICE':
                 bpy.ops.object.editmode_toggle()
+
+            elif bpy.context.active_object.type == 'EMPTY':
+                if bpy.context.active_object.instance_collection:
+                    bpy.ops.object.edit_instanced_collection()
                 
             else:
                 self.report({'ERROR'}, f'Object Type not Valid : {bpy.context.active_object.type}')
@@ -218,7 +222,7 @@ class TILA_smart_editmode(bpy.types.Operator):
         
         elif bpy.context.mode in ['META']:
             bpy.ops.object.editmode_toggle()
-
+        
         else:
             bpy.ops.object.mode_set(mode='OBJECT')
 
