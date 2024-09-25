@@ -5,6 +5,7 @@ import shutil
 import subprocess
 import stat
 import bpy
+import addon_utils
 from os import path
 from . import admin
 from ..config import keymaps, settings
@@ -16,6 +17,12 @@ root_folder = path.dirname(bpy.utils.script_path_user())
 dependencies = ['gitpython']
 
 create_symbolic_link_file = path.join(path.dirname(path.realpath(__file__)), 'create_symbolic_link.py')
+
+def get_installed_addons():
+    addons_fake_modules = {}
+    addon_utils.modules(module_cache=addons_fake_modules, refresh=False)
+    return addons_fake_modules.keys()
+
 
 def install_dependencies():
     current_dir = path.dirname(path.realpath(__file__))
@@ -55,7 +62,10 @@ def enable_addon(addon_name):
     if addon_name in bpy.context.preferences.addons:
         log_progress.start(f'Addon already Enabled : {addon_name}')
         return False
-    
+    elif addon_name in get_installed_addons():
+        log_progress.start(f'Addon not Installed : {addon_name}')
+        return False
+
     log_progress.start(f'Enabling Addon : {addon_name}')
     bpy.ops.preferences.addon_enable(module=addon_name)
     bpy.context.window_manager.keyconfigs.update()	
