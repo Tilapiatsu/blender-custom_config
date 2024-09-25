@@ -1,5 +1,4 @@
 import bpy
-from mathutils import Vector
 
 bl_info = {
 	"name": "Tila : Edit Instanced Collection",
@@ -33,7 +32,7 @@ class EditInstancedCollection(bpy.types.Operator):
         bpy.context.window.scene = new_scene
         new_scene.collection.children.link(coll)
 
-        # Select the collection and frame
+        # Select the collection and frame the opbject
         bpy.context.view_layer.active_layer_collection = bpy.context.view_layer.layer_collection.children[coll.name]
         bpy.ops.object.select_all(action='SELECT')
         bpy.ops.view3d.view_selected(use_all_regions=False)
