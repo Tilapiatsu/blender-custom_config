@@ -2242,9 +2242,9 @@
     "simple_renaming_panel": {
         "is_enable": true,
         "is_sync": true,
-        "is_extension": false,
-        "extension_id": null,
-        "online_url": null,
+        "is_extension": true,
+        "extension_id": "simple_renaming_panel",
+        "online_url": "https://extensions.blender.org/add-ons/simple-renaming-panel/",
         "repository_url": "https://github.com/Weisl/simple_renaming_panel.git",
         "branch": null,
         "is_submodule": false,
