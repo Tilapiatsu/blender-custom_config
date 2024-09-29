@@ -3648,5 +3648,24 @@
                 "destination_path": "#\\scripts\\addons\\Batch_UV_Maps"
             }
         ]
+    },
+    "3dgs-render": {
+        "is_enable": false,
+        "is_sync": false,
+        "is_extension": false,
+        "extension_id": null,
+        "online_url": null,
+        "repository_url": "https://github.com/Kiri-Innovation/3dgs-render-blender-addon.git",
+        "branch": null,
+        "is_submodule": false,
+        "local_path": "#\\scripts\\addon_library\\GIT_Clones\\3dgs-render",
+        "keymaps": false,
+        "paths": [
+            {
+                "is_enable": false,
+                "local_subpath": null,
+                "destination_path": "#\\scripts\\addons\\3dgs-render"
+            }
+        ]
     }
 }
