@@ -621,26 +621,11 @@ class TILA_Config_Keymaps_Global(TILA_Config_Keymaps):
         self.snap(snap_datapath='tool_settings.use_snap_uv', snap_element_panel='IMAGE_PT_snapping')
         self.tool_center(pivot='space_data.pivot_point')
 
-        self.kmi_set_replace('wm.tool_set_by_id', 'W', 'PRESS', ctrl=True, alt=True, shift=True, properties={'name': 'builtin_brush.Grab'})
-        self.tool_radial_control(radius={'data_path_primary': 'tool_settings.uv_sculpt.brush.size', 
-                                'data_path_secondary': 'tool_settings.unified_paint_settings.size', 
-                                'use_secondary': 'tool_settings.unified_paint_settings.use_unified_size', 
-                                'rotation_path': 'tool_settings.uv_sculpt.brush.texture_slot.angle', 
-                                'color_path': 'tool_settings.uv_sculpt.brush.cursor_color_add', 
-                                'image_id': 'tool_settings.uv_sculpt.brush',
+        self.kmi_set_replace('wm.tool_set_by_id', 'W', 'PRESS', ctrl=True, alt=True, shift=True, properties={'name': 'sculpt.uv_sculpt_grab'})
+        self.tool_radial_control(radius={'data_path_primary': 'tool_settings.uv_sculpt.size',
                                 'release_confirm': True},
-                                   opacity={'data_path_primary': 'tool_settings.uv_sculpt.brush.strength', 
-                                   'data_path_secondary': 'tool_settings.unified_paint_settings.strength', 
-                                   'use_secondary': 'tool_settings.unified_paint_settings.use_unified_strength', 
-                                   'rotation_path': 'tool_settings.uv_sculpt.brush.texture_slot.angle', 
-                                   'color_path': 'tool_settings.uv_sculpt.brush.cursor_color_add', 
-                                   'image_id': 'tool_settings.uv_sculpt.brush',
-                                    'release_confirm': True},
-                                   eraser_radius={'data_path_primary': 'tool_settings.uv_sculpt.brush.texture_slot.angle', 
-                                   'rotation_path': 'tool_settings.uv_sculpt.brush.texture_slot.angle', 
-                                   'color_path': 'tool_settings.uv_sculpt.brush.cursor_color_add', 
-                                   'image_id': 'tool_settings.uv_sculpt.brush',
-                                    'release_confirm': True})
+                                opacity={'data_path_primary': 'tool_settings.uv_sculpt.strength',
+                                'release_confirm': True})
 
 
         self.kmi_set_replace('uv.minimize_stretch', 'R', 'PRESS', ctrl=True, disable_double=True, properties={'iterations': 10})
