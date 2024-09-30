@@ -231,7 +231,7 @@ class TILA_Config_Keymaps_Global(TILA_Config_Keymaps):
         #  shortest Path Select / Deselect / Add
         if shortestpath_tool:
             self.kmi_remove(idname=shortestpath_tool)
-            use_topology_distance = self.km.name == 'UV Editor'
+            use_topology_distance = False
                 
             self.kmi_set_replace(shortestpath_tool, self.k_context, 'CLICK', shift=True, disable_double=True, properties={'use_fill': False, 'use_face_step': False, 'use_topology_distance': use_topology_distance})
             self.kmi_set_replace(shortestpath_tool, self.k_context, 'CLICK', ctrl=True, shift=True, disable_double=True, properties={'use_fill': True, 'use_face_step': False, 'use_topology_distance': use_topology_distance})
