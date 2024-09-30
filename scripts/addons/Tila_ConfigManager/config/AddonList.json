@@ -2245,7 +2245,7 @@
         "is_extension": true,
         "extension_id": "simple_renaming_panel",
         "online_url": "https://extensions.blender.org/add-ons/simple-renaming-panel/",
-        "repository_url": "https://github.com/Weisl/simple_renaming_panel.git",
+        "repository_url": null,
         "branch": null,
         "is_submodule": false,
         "local_path": "#\\scripts\\addon_library\\GIT_Clones\\simple_renaming_panel",
