@@ -2281,7 +2281,7 @@
         "branch": null,
         "is_submodule": false,
         "local_path": "#\\scripts\\addon_library\\GIT_Clones\\TextTools",
-        "keymaps": false,
+        "keymaps": true,
         "paths": [
             {
                 "is_enable": true,
@@ -2463,7 +2463,7 @@
             }
         ]
     },
-    "Extra Curve Objects": {
+    "extra_curve_objectes": {
         "is_enable": true,
         "is_sync": true,
         "is_extension": true,
@@ -2476,7 +2476,7 @@
         "keymaps": false,
         "paths": null
     },
-    "Extra Mesh Objects": {
+    "extra_mesh_objects": {
         "is_enable": true,
         "is_sync": true,
         "is_extension": true,
