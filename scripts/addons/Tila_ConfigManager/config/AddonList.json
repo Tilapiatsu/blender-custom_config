@@ -2765,7 +2765,7 @@
         "paths": [
             {
                 "is_enable": true,
-                "local_subpath": "Texel_Density_2023_2_Bl400",
+                "local_subpath": "Texel_Density_2024_1_Bl410",
                 "destination_path": "#\\scripts\\addons\\Texel_Density"
             }
         ]
@@ -3031,13 +3031,13 @@
         "repository_url": "https://projects.blender.org/studio/blender-studio-pipeline.git",
         "branch": null,
         "is_submodule": false,
-        "local_path": "#\\scripts\\addon_library\\GIT_Clones\\blender-studio-easy_weights\\",
+        "local_path": "#\\scripts\\addon_library\\GIT_Clones\\blender-studio-pipeline\\",
         "keymaps": false,
         "paths": [
             {
                 "is_enable": true,
-                "local_subpath": "scripts-blender\\addons\\easy_weights",
-                "destination_path": "#\\scripts\\addons\\easy_weights"
+                "local_subpath": "scripts-blender\\addons\\easy_weight",
+                "destination_path": "#\\scripts\\addons\\easy_weight"
             }
         ]
     },
