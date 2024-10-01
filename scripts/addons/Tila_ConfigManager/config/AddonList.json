@@ -2245,16 +2245,16 @@
         "is_extension": true,
         "extension_id": "simple_renaming_panel",
         "online_url": "https://extensions.blender.org/add-ons/simple-renaming-panel/",
-        "repository_url": null,
+        "repository_url": "blender_org",
         "branch": null,
         "is_submodule": false,
-        "local_path": "#\\scripts\\addon_library\\GIT_Clones\\simple_renaming_panel",
+        "local_path": null,
         "keymaps": false,
         "paths": [
             {
-                "is_enable": true,
+                "is_enable": false,
                 "local_subpath": null,
-                "destination_path": "#\\scripts\\addons\\simple_renaming_panel"
+                "destination_path": null
             }
         ]
     },
