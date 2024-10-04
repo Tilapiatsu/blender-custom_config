@@ -217,7 +217,7 @@ if save_png:
 if save_jpeg:
     destination = os.path.join(source_folder, output_filename + '_composite.jpg')
     print('saving Image : ', destination)
-    jpg = Image.new('RGBA', image_size, background_color)
+    jpg = Image.new('RGBA', resized_dimensions, background_color)
     jpg.alpha_composite(final_image)
     jpg = jpg.convert('RGB')
     jpg.save(destination)
