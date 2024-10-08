@@ -21,9 +21,9 @@ light[1].col.z 0.362655
 light[1].spec.x 1.000000
 light[1].spec.y 1.000000
 light[1].spec.z 1.000000
-light[1].vec.x -0.008130
-light[1].vec.y 0.796748
-light[1].vec.z 0.604257
+light[1].vec.x -0.075000
+light[1].vec.y 0.500000
+light[1].vec.z 0.862772
 light[2].flag 1
 light[2].smooth 0.150000
 light[2].col.x 0.000000
@@ -36,10 +36,10 @@ light[2].vec.x 0.000000
 light[2].vec.y 0.500000
 light[2].vec.z 0.866025
 light[3].flag 1
-light[3].smooth 0.420000
-light[3].col.x 0.060455
-light[3].col.y 0.060455
-light[3].col.z 0.060455
+light[3].smooth 0.000000
+light[3].col.x 0.024635
+light[3].col.y 0.024635
+light[3].col.z 0.024635
 light[3].spec.x 0.082565
 light[3].spec.y 0.082565
 light[3].spec.z 0.082565
