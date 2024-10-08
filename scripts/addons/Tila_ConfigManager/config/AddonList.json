@@ -459,7 +459,7 @@
         "branch": null,
         "is_submodule": false,
         "local_path": "#\\scripts\\addon_library\\local\\rotate_an_hdri",
-        "keymaps": true,
+        "keymaps": false,
         "paths": [
             {
                 "is_enable": true,

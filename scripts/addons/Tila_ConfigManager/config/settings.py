@@ -176,6 +176,20 @@ class TILA_Config_Settings_collection_manager(TILA_Config_Settings):
             addon.preferences.enable_qcd = False
             addon.preferences.enable_qcd_3dview_header_widget = False
 
+class TILA_Config_Settings_EasyHDRI(TILA_Config_Settings):
+    addon_name = 'EasyHDRI'
+    
+    def print_log(func):
+        return TILA_Config_Settings.print_log(func)
+
+    @print_log
+    def set_settings(self):
+        context = bpy.context
+        if self.addon_name in context.preferences.addons:
+            addon = context.preferences.addons.get(self.addon_name)
+            addon.preferences.default_folder = 'R:\\Mon Drive\\00_Blender_Asset_Library\\Hdri'
+            addon.preferences.rot_text_size = 12
+
 class TILA_Config_Settings_noodler(TILA_Config_Settings):
     addon_name = 'noodler'
     

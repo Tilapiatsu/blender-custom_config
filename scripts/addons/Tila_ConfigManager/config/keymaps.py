@@ -520,6 +520,8 @@ class TILA_Config_Keymaps_Global(TILA_Config_Keymaps):
         self.kmi_set_replace('view3d.view_selected', 'A', 'PRESS', ctrl=True, shift=True)
         self.kmi_set_replace('view3d.snap_cursor_to_center', 'NUMPAD_ASTERIX', 'PRESS', alt=True, shift=True, disable_double=True)
 
+        self.kmi_set_replace('view3d.tila_rotate_hdri', self.k_context, 'CLICK_DRAG', ctrl=True, alt=True, shift=False,  disable_double=True)
+
         self.tool_center(pivot='VIEW3D_PT_pivot_point', orientation='VIEW3D_PT_transform_orientations', action_center_context='VIEW3D')
 
         self.kmi_set_replace('wm.call_menu_pie', 'Q', 'PRESS', ctrl=True, alt=True, shift=True, properties={'name': 'HP_MT_pie_boolean'})
@@ -1707,21 +1709,36 @@ class TILA_Config_Keymaps_kekit(TILA_Config_Keymaps):
 
         self.print_status(f"Assignment of {self.addon_name} complete", start=False)
         
-class TILA_Config_Keymaps_rotate_an_hdri(TILA_Config_Keymaps):
-    addon_name = "rotate_an_hdri"
+# class TILA_Config_Keymaps_rotate_an_hdri(TILA_Config_Keymaps):
+#     addon_name = "rotate_an_hdri"
 
-    def __init__(self):
-        super(TILA_Config_Keymaps_rotate_an_hdri, self).__init__()
+#     def __init__(self):
+#         super(TILA_Config_Keymaps_rotate_an_hdri, self).__init__()
 
-    def set_keymaps(self):
-        self.print_status(f"Assigning {self.addon_name} Keymaps")
+#     def set_keymaps(self):
+#         self.print_status(f"Assigning {self.addon_name} Keymaps")
 
-        if self.kmi_init(name='3D View', space_type='VIEW_3D', region_type='WINDOW', addon=False, restore_to_default=False):
-            # self.kmi_set_active(enable=False, idname='rotate.hdri')
-            self.kmi_set_replace('rotate.hdri', self.k_context, 'CLICK_DRAG', ctrl=True, alt=True, shift=False,  disable_double=True)
+#         if self.kmi_init(name='3D View', space_type='VIEW_3D', region_type='WINDOW', addon=False, restore_to_default=False):
+#             # self.kmi_set_active(enable=False, idname='rotate.hdri')
+#             self.kmi_set_replace('rotate.hdri', self.k_context, 'CLICK_DRAG', ctrl=True, alt=True, shift=False,  disable_double=True)
 
-        self.print_status(f"Assignment of {self.addon_name} complete", start=False)
-        
+#         self.print_status(f"Assignment of {self.addon_name} complete", start=False)
+
+# class TILA_Config_Keymaps_EasyHDRI(TILA_Config_Keymaps):
+#     addon_name = "EasyHDRI"
+
+#     def __init__(self):
+#         super(TILA_Config_Keymaps_rotate_an_hdri, self).__init__()
+
+#     def set_keymaps(self):
+#         self.print_status(f"Assigning {self.addon_name} Keymaps")
+
+#         if self.kmi_init(name='3D View', space_type='VIEW_3D', region_type='WINDOW', addon=False, restore_to_default=False):
+#             # self.kmi_set_active(enable=False, idname='rotate.hdri')
+#             self.kmi_set_replace('easyhdr.rotate_hdri', self.k_context, 'CLICK_DRAG', ctrl=True, alt=True, shift=False,  disable_double=True)
+
+#         self.print_status(f"Assignment of {self.addon_name} complete", start=False)
+
 class TILA_Config_Keymaps_Poly_Source(TILA_Config_Keymaps):
     addon_name = "Poly_Source"
 
