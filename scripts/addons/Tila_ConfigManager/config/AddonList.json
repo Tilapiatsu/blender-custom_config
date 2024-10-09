@@ -640,7 +640,7 @@
         ]
     },
     "Blender_light_manager": {
-        "is_enable": true,
+        "is_enable": false,
         "is_sync": false,
         "is_extension": false,
         "extension_id": null,
@@ -652,7 +652,7 @@
         "keymaps": false,
         "paths": [
             {
-                "is_enable": true,
+                "is_enable": false,
                 "local_subpath": "Blender_light_manager.py",
                 "destination_path": "#\\scripts\\addons\\Blender_light_manager.py"
             }
@@ -773,7 +773,7 @@
         ]
     },
     "uvpackmaster3": {
-        "is_enable": true,
+        "is_enable": false,
         "is_sync": false,
         "is_extension": false,
         "extension_id": null,
@@ -785,7 +785,7 @@
         "keymaps": false,
         "paths": [
             {
-                "is_enable": true,
+                "is_enable": false,
                 "local_subpath": null,
                 "destination_path": "#\\scripts\\addons\\uvpackmaster3"
             }
@@ -2739,8 +2739,8 @@
         ]
     },
     "Grease Pencil Tools": {
-        "is_enable": true,
-        "is_sync": true,
+        "is_enable": false,
+        "is_sync": false,
         "is_extension": true,
         "extension_id": "grease_pencil_tools",
         "online_url": null,
@@ -2757,7 +2757,7 @@
         "is_extension": true,
         "extension_id": "texel_density_checker",
         "online_url": "https://extensions.blender.org/add-ons/texel-density-checker/",
-        "repository_url": null,
+        "repository_url": "blender_org",
         "branch": null,
         "is_submodule": false,
         "local_path": null,
