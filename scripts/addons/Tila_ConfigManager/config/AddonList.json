@@ -2335,22 +2335,22 @@
             }
         ]
     },
-    "Auto_Reload": {
+    "auto_reload": {
         "is_enable": true,
         "is_sync": true,
-        "is_extension": false,
-        "extension_id": null,
-        "online_url": null,
-        "repository_url": "https://github.com/samytichadou/Auto_Reload-Blender_addon.git",
+        "is_extension": true,
+        "extension_id": "auto_reload",
+        "online_url": "https://extensions.blender.org/add-ons/auto-reload/",
+        "repository_url": null,
         "branch": null,
         "is_submodule": false,
-        "local_path": "#\\scripts\\addon_library\\GIT_Clones\\Auto_Reload",
+        "local_path": null,
         "keymaps": false,
         "paths": [
             {
-                "is_enable": true,
+                "is_enable": false,
                 "local_subpath": null,
-                "destination_path": "#\\scripts\\addons\\Auto_Reload"
+                "destination_path": null
             }
         ]
     },
