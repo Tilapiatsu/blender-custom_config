@@ -30,8 +30,8 @@ class TILA_SculptMaskFaceSet(bpy.types.Operator):
             bpy.ops.paint.mask_flood_fill(mode='INVERT')
             bpy.ops.paint.hide_show_all(action='SHOW')
             bpy.ops.paint.mask_flood_fill(mode='INVERT')
-            bpy.ops.sculpt.mask_filter(filter_type='GROW', auto_iteration_count=True)
-            bpy.ops.sculpt.mask_filter(filter_type='SHRINK', auto_iteration_count=True)
+            # bpy.ops.sculpt.mask_filter(filter_type='GROW', auto_iteration_count=True)
+            # bpy.ops.sculpt.mask_filter(filter_type='SHRINK', auto_iteration_count=True)
         return{'FINISHED'}
 
 
