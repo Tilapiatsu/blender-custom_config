@@ -98,7 +98,7 @@ class TILA_Config_Keymaps_Global(TILA_Config_Keymaps):
         # Set global Keymap
         self.kmi_set_replace("wm.call_menu_pie", "TAB", "PRESS", ctrl=True, properties={'name': 'VIEW3D_MT_object_mode_pie'})
         self.kmi_set_replace("wm.window_fullscreen_toggle", "F11", "PRESS")
-        self.kmi_set_replace('screen.animation_play', self.k_menu, 'PRESS', shift=True)
+        self.kmi_set_replace('screen.animation_play', self.k_menu, 'PRESS', ctrl=True, shift=True)
         self.kmi_set_replace('screen.userpref_show', 'F4', 'PRESS')
         
         if self.km.name in ['3D View', 'Mesh']:
@@ -498,7 +498,7 @@ class TILA_Config_Keymaps_Global(TILA_Config_Keymaps):
         self.navigation_keys(pan='view3d.move',
                             orbit='view3d.rotate',
                             dolly='view3d.zoom',
-                               roll='view3d.rotate_canvas')
+                               roll='view3d.tila_rotate_canvas')
 
         self.selection_keys(select_tool='view3d.select', 
                             lasso_tool='view3d.select_lasso',
@@ -554,6 +554,7 @@ class TILA_Config_Keymaps_Global(TILA_Config_Keymaps):
         self.kmi_set_active(enable=False, idname='view3d.view_axis', type=self.k_cursor, value='CLICK_DRAG',  alt=True, direction='SOUTH')
         self.kmi_set_active(enable=False, idname='view3d.view_axis', type=self.k_cursor, value='CLICK_DRAG',  alt=True, direction='WEST')
         self.kmi_set_replace('transform.translate', self.k_cursor, 'CLICK_DRAG', ctrl=True, alt=True, shift=True, properties={'cursor_transform': True, 'release_confirm': True, 'orient_type': 'NORMAL', 'snap': True, 'snap_align': True}, disable_double=True)
+        self.kmi_set_replace('animation.tila_time_scrub', self.k_menu, 'PRESS', shift=True, disable_double=True)
 
         ##### View3D Walk Modal
         self.kmi_init(name='View3D Walk Modal', space_type='VIEW_3D', region_type='WINDOW', modal=True, addon=False)
@@ -1351,9 +1352,6 @@ class TILA_Config_Keymaps_Global(TILA_Config_Keymaps):
 
         self.isolate()
 
-        # Grease Pencil Tools
-        self.kmi_set_replace('animation.time_scrub', self.k_menu, 'PRESS', shift=True)
-
         ###### Grease Pencil Stroke Edit Mode
         self.kmi_init(name='Grease Pencil Stroke Edit Mode', space_type='EMPTY', region_type='WINDOW', addon=False)
         self.global_keys()
@@ -1625,7 +1623,6 @@ class TILA_Config_Keymaps_Global(TILA_Config_Keymaps):
         self.kmi_init(name='Frames', space_type='EMPTY', region_type='WINDOW', addon=False)
         self.global_keys()
         self.right_mouse()
-        self.kmi_set_replace('screen.animation_play', 'SPACE', 'PRESS', ctrl=True, shift=True,  properties={'reverse': False})
 
         ###### Screen
         self.kmi_init(name='Screen', space_type='EMPTY', region_type='WINDOW', addon=False)
