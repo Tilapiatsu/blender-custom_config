@@ -22,6 +22,8 @@ class TILA_smart_sculptmode(bpy.types.Operator):
     bl_label = "Smart Sculpt Mode"
     bl_options = {'REGISTER', 'UNDO'}
 
+    compatible_types = ['MESH', 'GPENCIL', 'CURVES']
+
     @classmethod
     def poll(cls, context):
         return context.space_data.type in ['VIEW_3D']
@@ -30,7 +32,7 @@ class TILA_smart_sculptmode(bpy.types.Operator):
     def execute(self, context):
                     
         if bpy.context.mode == 'OBJECT':
-            if bpy.context.active_object is None:
+            if bpy.context.active_object is None or bpy.context.active_object.type not in self.compatible_types:
                 return {'CANCELLED'}
             if bpy.context.active_object.type == 'MESH':
                 bpy.ops.sculpt.sculptmode_toggle()
