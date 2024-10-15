@@ -2341,7 +2341,7 @@
         "is_extension": true,
         "extension_id": "auto_reload",
         "online_url": "https://extensions.blender.org/add-ons/auto-reload/",
-        "repository_url": null,
+        "repository_url": "blender_org",
         "branch": null,
         "is_submodule": false,
         "local_path": null,
@@ -3665,6 +3665,44 @@
                 "is_enable": false,
                 "local_subpath": null,
                 "destination_path": "#\\scripts\\addons\\3dgs-render"
+            }
+        ]
+    },
+    "Mio3 UV": {
+        "is_enable": true,
+        "is_sync": true,
+        "is_extension": false,
+        "extension_id": "mio3_uv",
+        "online_url": "https://extensions.blender.org/mio3-uv/",
+        "repository_url": "https://github.com/mio3io/mio3_uv.git",
+        "branch": null,
+        "is_submodule": false,
+        "local_path": "#\\scripts\\addon_library\\GIT_Clones\\mio3d-uv",
+        "keymaps": false,
+        "paths": [
+            {
+                "is_enable": true,
+                "local_subpath": null,
+                "destination_path": "#\\scripts\\addons\\mio3d-uv"
+            }
+        ]
+    },
+    "Embroidery Importer": {
+        "is_enable": false,
+        "is_sync": false,
+        "is_extension": false,
+        "extension_id": "embroidery_importer",
+        "online_url": null,
+        "repository_url": "https://github.com/javl/blender-embroidery.git",
+        "branch": null,
+        "is_submodule": false,
+        "local_path": "#\\scripts\\addon_library\\GIT_Clones\\embroidery_importer",
+        "keymaps": false,
+        "paths": [
+            {
+                "is_enable": false,
+                "local_subpath": null,
+                "destination_path": "#\\scripts\\addons\\embroidery_importer"
             }
         ]
     }
