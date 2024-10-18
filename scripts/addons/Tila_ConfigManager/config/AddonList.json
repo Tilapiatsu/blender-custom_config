@@ -2757,7 +2757,7 @@
         "is_extension": true,
         "extension_id": "texel_density_checker",
         "online_url": "https://extensions.blender.org/add-ons/texel-density-checker/",
-        "repository_url": null,
+        "repository_url": "blender_org",
         "branch": null,
         "is_submodule": false,
         "local_path": null,
@@ -3665,6 +3665,25 @@
                 "is_enable": false,
                 "local_subpath": null,
                 "destination_path": "#\\scripts\\addons\\3dgs-render"
+            }
+        ]
+    },
+    "QRemeshify": {
+        "is_enable": false,
+        "is_sync": false,
+        "is_extension": false,
+        "extension_id": null,
+        "online_url": "https://github.com/ksami/QRemeshify.git",
+        "repository_url": null,
+        "branch": null,
+        "is_submodule": false,
+        "local_path": "#\\scripts\\addon_library\\local\\QRemeshify",
+        "keymaps": false,
+        "paths": [
+            {
+                "is_enable": false,
+                "local_subpath": null,
+                "destination_path": "#\\scripts\\addons\\QRemeshify"
             }
         ]
     }
