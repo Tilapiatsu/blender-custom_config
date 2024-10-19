@@ -3724,5 +3724,24 @@
                 "destination_path": "#\\scripts\\addons\\QRemeshify"
             }
         ]
+    },
+    "BakeMaster": {
+        "is_enable": false,
+        "is_sync": false,
+        "is_extension": false,
+        "extension_id": null,
+        "online_url": "https://blendermarket.com/products/bakemaster?search_id=33361682",
+        "repository_url": null,
+        "branch": null,
+        "is_submodule": false,
+        "local_path": "S:\\Mon Drive\\15_Blender\\00_INSTALLED_ADDONS\\BakeMaster",
+        "keymaps": false,
+        "paths": [
+            {
+                "is_enable": false,
+                "local_subpath": null,
+                "destination_path": "#\\scripts\\addons\\BakeMaster"
+            }
+        ]
     }
 }
