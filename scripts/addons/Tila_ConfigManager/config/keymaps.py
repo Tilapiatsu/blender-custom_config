@@ -888,7 +888,7 @@ class TILA_Config_Keymaps_Global(TILA_Config_Keymaps):
         
         # self.kmi_set_replace('paint.brush_select', self.k_menu, 'PRESS', ctrl=True, properties={'sculpt_tool': 'CLAY_STRIPS', 'toggle': True})
         # self.kmi_set_replace('paint.brush_select', self.k_menu, 'PRESS', alt=True, properties={'sculpt_tool': 'SNAKE_HOOK', 'toggle': True})
-        self.kmi_set_replace('brush.asset_activate', self.k_menu, 'PRESS', ctrl=True, properties={'relative_asset_identifier': 'brushes\essentials_brushes-mesh_sculpt.blend\Brush\Clay Strips', 'asset_library_type': 'ESSENTIALS', 'asset_library_identifier':''})
+        self.kmi_set_replace('brush.asset_activate', self.k_menu, 'PRESS', ctrl=True, properties={'relative_asset_identifier': 'brushes\essentials_brushes-mesh_sculpt.blend\Brush\Tila Clay Strips', 'asset_library_type': 'ESSENTIALS', 'asset_library_identifier':''})
         self.kmi_set_replace('brush.asset_activate', self.k_menu, 'PRESS', alt=True, properties={'relative_asset_identifier': 'brushes\essentials_brushes-mesh_sculpt.blend\Brush\Snake Hook', 'asset_library_type': 'ESSENTIALS', 'asset_library_identifier':''})
         self.kmi_set_replace('paint.mask_lasso_gesture', self.k_context, 'CLICK_DRAG', ctrl=True, alt=False, shift=False, properties={'value': 1.0, 'mode': 'VALUE'}, disable_double=True)
         self.kmi_set_replace('paint.mask_lasso_gesture', self.k_context, 'CLICK_DRAG', ctrl=False, alt=False, shift=True, properties={'value': 0.0, 'mode': 'VALUE'}, disable_double=True)
