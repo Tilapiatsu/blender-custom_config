@@ -307,12 +307,7 @@ class TILA_Config_Keymaps_Global(TILA_Config_Keymaps):
         # if select_tool:
         # 	self.kmi_prop_setattr(select_tool.properties, "name", 'Select')
         # 	self.kmi_prop_setattr(select_tool.properties, "cycle", False)
-        if self.km.name in ['Sculpt', 'Sculpt Curves']:
-            if self.km.name == 'Sculpt':
-                toolname = 'sculpt_tool'
-            elif self.km.name == 'Sculpt Curves':
-                toolname = 'curves_sculpt_tool'
-                
+        if self.km.name in ['Sculpt', 'Sculpt Curves', 'Weight Paint', 'Vertex Paint', 'Image Paint']: 
             self.kmi_set_replace('brush.tila_brush_toggle', self.k_menu, 'PRESS', properties={'relative_asset_identifier': tool, 'asset_library_type': 'ESSENTIALS', 'asset_library_identifier':'', 'force_strength':False, 'force_weight':False}, disable_double=True)
             if alt:
                 self.kmi_set_replace('brush.tila_brush_toggle', self.k_manip, 'PRESS', ctrl=True, shift=True, properties={'relative_asset_identifier': alt, 'asset_library_type': 'ESSENTIALS', 'asset_library_identifier':'', 'toggle_back_on_release':True, 'force_strength':False, 'force_weight':False}, disable_double=True)
@@ -1058,7 +1053,7 @@ class TILA_Config_Keymaps_Global(TILA_Config_Keymaps):
         self.kmi_init(name='Vertex Paint', space_type='EMPTY', region_type='WINDOW', addon=False)
         self.global_keys()
         self.right_mouse()
-        self.selection_tool(tool='builtin_brush.Draw')
+        self.selection_tool(tool='brushes\essentials_brushes-mesh_vertex.blend\Brush\Paint Hard')
 
         self.tool_radial_control(radius={   'data_path_primary': 'tool_settings.vertex_paint.brush.size', 
                                             'data_path_secondary': 'tool_settings.unified_paint_settings.size', 
@@ -1112,7 +1107,9 @@ class TILA_Config_Keymaps_Global(TILA_Config_Keymaps):
         self.kmi_init(name='Weight Paint', space_type='EMPTY', region_type='WINDOW', addon=False)
         self.global_keys()
         self.right_mouse()
-        self.selection_tool(tool='builtin_brush.Draw')
+        # self.selection_tool(tool='builtin.brush')
+        bpy.ops.brush.asset_activate(asset_library_type='ESSENTIALS', asset_library_identifier="", relative_asset_identifier="brushes\\essentials_brushes-mesh_weight.blend\\Brush\\Paint")
+        self.selection_tool(tool='brushes\essentials_brushes-mesh_weight.blend\Brush\Paint')
         
         self.tool_radial_control(radius={   'data_path_primary': 'tool_settings.weight_paint.brush.size', 
                                             'data_path_secondary': 'tool_settings.unified_paint_settings.size', 
@@ -1178,7 +1175,8 @@ class TILA_Config_Keymaps_Global(TILA_Config_Keymaps):
         self.kmi_init(name='Image Paint', space_type='EMPTY', region_type='WINDOW', addon=False)
         self.global_keys()
         self.right_mouse()
-        self.selection_tool(tool='builtin_brush.Draw')
+        
+        self.selection_tool(tool='brushes\essentials_brushes-mesh_texture.blend\Brush\Paint Hard')
 
         self.tool_radial_control(radius={   'data_path_primary': 'tool_settings.image_paint.brush.size', 
                                             'data_path_secondary': 'tool_settings.unified_paint_settings.size', 
