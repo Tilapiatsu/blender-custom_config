@@ -12,10 +12,14 @@ bl_info = {
 }
 
 class TILA_Brush:
-    def __init__(self, relative_asset_identifier:str, asset_library_type:str, asset_library_identifier:str):
+    def __init__(self, relative_asset_identifier:str, asset_library_type:str, asset_library_identifier:str, force_strength:bool=False, strength:float=-1.0, force_weight:bool=False, weight:float=-1.0):
         self.relative_asset_identifier = path.normpath(relative_asset_identifier)
         self.asset_library_type = asset_library_type
         self.asset_library_identifier = asset_library_identifier
+        self.force_strength = force_strength
+        self.strength = strength
+        self.force_weight = force_weight
+        self.weight = weight
     
     @property
     def name(self):
@@ -23,6 +27,7 @@ class TILA_Brush:
 
     def activate(self):
         bpy.ops.brush.asset_activate(relative_asset_identifier= self.relative_asset_identifier, asset_library_type= self.asset_library_type, asset_library_identifier=self.asset_library_identifier)
+
 
     def __eq__(self, other):
         if isinstance(other, TILA_Brush):
@@ -35,26 +40,57 @@ class TILA_PG_Brush(bpy.types.PropertyGroup):
     relative_asset_identifier : bpy.props.StringProperty(name='relative_asset_identifier', default='')
     asset_library_type :        bpy.props.StringProperty(name='asset_library_type', default='')
     asset_library_identifier :  bpy.props.StringProperty(name='asset_library_identifier', default='')
+    force_strength :            bpy.props.BoolProperty(name='force strength', default=False)
+    strength :                  bpy.props.FloatProperty(name='strength', default=1.0)
+    force_weight :              bpy.props.BoolProperty(name='force weight', default=False)
+    weight :                    bpy.props.FloatProperty(name='weight', default=1.0)
 
 
 class TILA_Brush_toggle(bpy.types.Operator):
     bl_idname = "brush.tila_brush_toggle"
     bl_label = "Brush Toggle"
 
-    mode : bpy.props.StringProperty(name="mode", default='SCULPT')
-    default_relative_asset_identifier : bpy.props.StringProperty(name="default brush", default='brushes\essentials_brushes-mesh_sculpt.blend\Brush\Grab')
-    default_asset_library_type : bpy.props.StringProperty(name="asset library type", default='ESSENTIALS')
-    default_asset_library_identifier : bpy.props.StringProperty(name="asset library identifier", default='')
-    relative_asset_identifier : bpy.props.StringProperty(name="brush", default='brushes\essentials_brushes-mesh_sculpt.blend\Brush\Grab')
-    asset_library_type : bpy.props.StringProperty(name="asset library type", default='ESSENTIALS')
-    asset_library_identifier : bpy.props.StringProperty(name="asset library identifier", default='')
-    toggle_back_on_release : bpy.props.BoolProperty(name='toggle back on release', default=False)
+    mode :                                  bpy.props.StringProperty(name="mode", default='SCULPT')
+    default_relative_asset_identifier :     bpy.props.StringProperty(name="default brush", default='brushes\essentials_brushes-mesh_sculpt.blend\Brush\Grab')
+    default_asset_library_type :            bpy.props.StringProperty(name="asset library type", default='ESSENTIALS')
+    default_asset_library_identifier :      bpy.props.StringProperty(name="asset library identifier", default='')
+    default_strength :                      bpy.props.FloatProperty(name='default strength', default=1.0)
+    default_weight :                        bpy.props.FloatProperty(name='default weight', default=1.0)
+    relative_asset_identifier :             bpy.props.StringProperty(name="brush", default='brushes\essentials_brushes-mesh_sculpt.blend\Brush\Grab')
+    asset_library_type :                    bpy.props.StringProperty(name="asset library type", default='ESSENTIALS')
+    asset_library_identifier :              bpy.props.StringProperty(name="asset library identifier", default='')
+    toggle_back_on_release :                bpy.props.BoolProperty(name='toggle back on release', default=False)
+    force_strength :                        bpy.props.BoolProperty(name='force strength', default=False)
+    strength :                              bpy.props.FloatProperty(name='strength', default=1.0)
+    force_weight :                          bpy.props.BoolProperty(name='force weight', default=False)
+    weight :                                bpy.props.FloatProperty(name='weight', default=1.0)
 
     compatible_modes = ['SCULPT', 'VERTEX', 'WEIGHT', 'IMAGE', 'GPENCIL']
 
     initial_brush = None
     brush_is_set = False
     press = False
+    _current_tool = None
+    
+    @property
+    def current_tool(self):
+        if self._current_tool is None:
+            if self.mode == 'SCULPT':
+                self._current_tool = bpy.context.tool_settings.sculpt
+
+            elif self.mode == 'VERTEX':
+                self._current_tool = bpy.context.tool_settings.vertex_paint
+
+            elif self.mode == 'WEIGHT':
+                self._current_tool = bpy.context.tool_settings.weight_paint
+
+            elif self.mode == 'IMAGE':
+                self._current_tool = bpy.context.tool_settings.image_paint
+
+            elif self.mode == 'GPENCIL':
+                self._current_tool = bpy.context.tool_settings.gpencil_paint
+        
+        return self._current_tool
     
     def get_release_condition(self, event):
         if bversion < 3.2:
@@ -69,81 +105,59 @@ class TILA_Brush_toggle(bpy.types.Operator):
             return event.type == 'MOUSEMOVE' and event.value == 'NOTHING' and not self.press
 
     def set_initial_brush(self):
-        if self.mode == 'SCULPT':
-            tools = bpy.context.tool_settings.sculpt
-            self.initial_brush = {'name':tools.brush.name, 'weight':tools.brush.weight, 'strength':tools.brush.strength}
-        elif self.mode == 'VERTEX':
-            tools = bpy.context.tool_settings.vertex_paint
-            self.initial_brush = {'name':tools.brush.name, 'weight':tools.brush.weight, 'strength':tools.brush.strength}
-        elif self.mode == 'WEIGHT':
-            tools = bpy.context.tool_settings.weight_paint
-            self.initial_brush = {'name':tools.brush.name, 'weight':tools.brush.weight, 'strength':tools.brush.strength}
-        elif self.mode == 'IMAGE':
-            tools = bpy.context.tool_settings.image_paint
-            self.initial_brush = {'name':tools.brush.name, 'weight':tools.brush.weight, 'strength':tools.brush.strength}
-        elif self.mode == 'GPENCIL':
-            tools = bpy.context.tool_settings.gpencil_paint
-            self.initial_brush = {'name':tools.brush.name, 'weight':tools.brush.weight, 'strength':tools.brush.strength}
-
-        self.target_brush = TILA_Brush(self.relative_asset_identifier, self.asset_library_type, self.asset_library_identifier)
-        self.default_brush = TILA_Brush(self.default_relative_asset_identifier, self.default_asset_library_type, self.default_asset_library_identifier)
+        self.target_brush = TILA_Brush(self.relative_asset_identifier, 
+                                       self.asset_library_type, 
+                                       self.asset_library_identifier,
+                                       force_strength = self.force_strength,
+                                       strength = self.strength if self.force_strength else -1.0,
+                                       force_weight = self.force_weight,
+                                       weight = self.weight if self.force_weight else -1.0)
+        
+        self.default_brush = TILA_Brush(self.default_relative_asset_identifier, 
+                                        self.default_asset_library_type, 
+                                        self.default_asset_library_identifier, 
+                                        strength = self.default_strength, 
+                                        weight = self.default_weight)
+        
         self.previous_brush = TILA_Brush(bpy.context.window_manager.tila_previous_brush.relative_asset_identifier, 
                                          bpy.context.window_manager.tila_previous_brush.asset_library_type,
-                                         bpy.context.window_manager.tila_previous_brush.asset_library_identifier)
-        self.current_brush = TILA_Brush(tools.brush_asset_reference.relative_asset_identifier,
-                                        tools.brush_asset_reference.asset_library_type,
-                                        tools.brush_asset_reference.asset_library_identifier)
+                                         bpy.context.window_manager.tila_previous_brush.asset_library_identifier,
+                                         strength = bpy.context.window_manager.tila_previous_brush.strength,
+                                         weight = bpy.context.window_manager.tila_previous_brush.weight)
+        
+        self.current_brush = TILA_Brush(self.current_tool.brush_asset_reference.relative_asset_identifier,
+                                        self.current_tool.brush_asset_reference.asset_library_type,
+                                        self.current_tool.brush_asset_reference.asset_library_identifier,
+                                        strength = self.current_tool.brush.strength,
+                                        weight = self.current_tool.brush.weight)
 
-    def store_previous_brush(self, relative_asset_identifier, asset_library_type, asset_library_identifier):
+    def store_previous_brush(self, relative_asset_identifier, asset_library_type, asset_library_identifier, strength, weight):
         bpy.context.window_manager.tila_previous_brush.relative_asset_identifier = relative_asset_identifier
         bpy.context.window_manager.tila_previous_brush.asset_library_type = asset_library_type
         bpy.context.window_manager.tila_previous_brush.asset_library_identifier = asset_library_identifier
+        bpy.context.window_manager.tila_previous_brush.strength = strength
+        bpy.context.window_manager.tila_previous_brush.weight = weight
 
     def set_brush_settings(self, brush:TILA_Brush):
-        if self.mode == 'SCULPT':
-            self.store_previous_brush(  bpy.context.tool_settings.sculpt.brush_asset_reference.relative_asset_identifier,
-                                        bpy.context.tool_settings.sculpt.brush_asset_reference.asset_library_type,
-                                        bpy.context.tool_settings.sculpt.brush_asset_reference.asset_library_identifier)
-            brush.activate()
-            bpy.context.tool_settings.sculpt.brush.weight = self.initial_brush['weight']
-            bpy.context.tool_settings.sculpt.brush.strength = self.initial_brush['strength']
-            self.brush_is_set = True
+        self.store_previous_brush(  self.current_tool.brush_asset_reference.relative_asset_identifier,
+                                    self.current_tool.brush_asset_reference.asset_library_type,
+                                    self.current_tool.brush_asset_reference.asset_library_identifier,
+                                    self.current_tool.brush.strength,
+                                    self.current_tool.brush.weight)
+        brush.activate()
 
-        elif self.mode == 'VERTEX':
-            self.store_previous_brush(  bpy.context.tool_settings.vertex_paint.brush_asset_reference.relative_asset_identifier,
-                                        bpy.context.tool_settings.vertex_paint.brush_asset_reference.asset_library_type,
-                                        bpy.context.tool_settings.vertex_paint.brush_asset_reference.asset_library_identifier)
-            brush.activate()
-            bpy.context.tool_settings.vertex_paint.brush.weight = self.initial_brush['weight']
-            bpy.context.tool_settings.vertex_paint.brush.strength = self.initial_brush['strength']
-            self.brush_is_set = True
+        if self.force_strength and brush.force_strength:
+            self.current_tool.brush.strength = self.strength
+        elif brush == self.default_brush and brush == self.current_brush:
+            self.current_tool.brush.strength = self.previous_brush.strength
 
-        elif self.mode == 'WEIGHT':
-            self.store_previous_brush(  bpy.context.tool_settings.weight_paint.brush_asset_reference.relative_asset_identifier,
-                                        bpy.context.tool_settings.weight_paint.brush_asset_reference.asset_library_type,
-                                        bpy.context.tool_settings.weight_paint.brush_asset_reference.asset_library_identifier)
-            brush.activate()
-            bpy.context.tool_settings.weight_paint.brush.weight = self.initial_brush['weight']
-            bpy.context.tool_settings.weight_paint.brush.strength = self.initial_brush['strength']
-            self.brush_is_set = True
+        if self.force_weight and brush.force_weight:
+            self.current_tool.brush.weight = self.weight
+        elif brush == self.default_brush and brush == self.current_brush:
+            self.current_tool.brush.weight = self.previous_brush.weight
 
-        elif self.mode == 'IMAGE':
-            self.store_previous_brush(  bpy.context.tool_settings.image_paint.brush_asset_reference.relative_asset_identifier,
-                                        bpy.context.tool_settings.image_paint.brush_asset_reference.asset_library_type,
-                                        bpy.context.tool_settings.image_paint.brush_asset_reference.asset_library_identifier)
-            brush.activate()
-            bpy.context.tool_settings.image_paint.brush.weight = self.initial_brush['weight']
-            bpy.context.tool_settings.image_paint.brush.strength = self.initial_brush['strength']
-            self.brush_is_set = True
 
-        elif self.mode == 'GPENCIL':
-            self.store_previous_brush(  bpy.context.tool_settings.gpencil_paint.brush_asset_reference.relative_asset_identifier,
-                                        bpy.context.tool_settings.gpencil_paint.brush_asset_reference.asset_library_type,
-                                        bpy.context.tool_settings.gpencil_paint.brush_asset_reference.asset_library_identifier)
-            brush.activate()
-            bpy.context.tool_settings.gpencil_paint.brush.weight = self.initial_brush['weight']
-            bpy.context.tool_settings.gpencil_paint.brush.strength = self.initial_brush['strength']
-            self.brush_is_set = True
+        self.brush_is_set = True
 
     def run_tool(self, brush:TILA_Brush):
         try:
@@ -198,6 +212,7 @@ class TILA_Brush_toggle(bpy.types.Operator):
         return {'RUNNING_MODAL'}
 
     def invoke(self, context, event):
+        self._current_tool = None
         if self.mode in self.compatible_modes:
             self.set_initial_brush()
             if self.toggle_back_on_release:

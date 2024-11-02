@@ -313,9 +313,9 @@ class TILA_Config_Keymaps_Global(TILA_Config_Keymaps):
             elif self.km.name == 'Sculpt Curves':
                 toolname = 'curves_sculpt_tool'
                 
-            self.kmi_set_replace('brush.tila_brush_toggle', self.k_menu, 'PRESS', properties={'relative_asset_identifier': tool, 'asset_library_type': 'ESSENTIALS', 'asset_library_identifier':''}, disable_double=True)
+            self.kmi_set_replace('brush.tila_brush_toggle', self.k_menu, 'PRESS', properties={'relative_asset_identifier': tool, 'asset_library_type': 'ESSENTIALS', 'asset_library_identifier':'', 'force_strength':False, 'force_weight':False}, disable_double=True)
             if alt:
-                self.kmi_set_replace('brush.tila_brush_toggle', self.k_manip, 'PRESS', ctrl=True, shift=True, properties={'relative_asset_identifier': alt, 'asset_library_type': 'ESSENTIALS', 'asset_library_identifier':'', 'toggle_back_on_release':True}, disable_double=True)
+                self.kmi_set_replace('brush.tila_brush_toggle', self.k_manip, 'PRESS', ctrl=True, shift=True, properties={'relative_asset_identifier': alt, 'asset_library_type': 'ESSENTIALS', 'asset_library_identifier':'', 'toggle_back_on_release':True, 'force_strength':False, 'force_weight':False}, disable_double=True)
         else:
             self.kmi_set_replace('wm.tool_set_by_id', self.k_menu, "PRESS", properties={'name': tool, 'cycle': False})
             if alt:
@@ -888,8 +888,8 @@ class TILA_Config_Keymaps_Global(TILA_Config_Keymaps):
         
         # self.kmi_set_replace('paint.brush_select', self.k_menu, 'PRESS', ctrl=True, properties={'sculpt_tool': 'CLAY_STRIPS', 'toggle': True})
         # self.kmi_set_replace('paint.brush_select', self.k_menu, 'PRESS', alt=True, properties={'sculpt_tool': 'SNAKE_HOOK', 'toggle': True})
-        self.kmi_set_replace('brush.tila_brush_toggle', self.k_menu, 'PRESS', ctrl=True, properties={'relative_asset_identifier': 'Saved\Brushes\Tila Clay Strips.asset.blend\Brush\Tila Clay Strips', 'asset_library_type': 'CUSTOM', 'asset_library_identifier':'Tilapiatsu'})
-        self.kmi_set_replace('brush.tila_brush_toggle', self.k_menu, 'PRESS', alt=True, properties={'relative_asset_identifier': 'Saved\Brushes\Tila Snake Hook.asset.blend\Brush\Tila Snake Hook', 'asset_library_type': 'CUSTOM', 'asset_library_identifier':'Tilapiatsu'})
+        self.kmi_set_replace('brush.tila_brush_toggle', self.k_menu, 'PRESS', ctrl=True, properties={'relative_asset_identifier': 'Saved\Brushes\Tila Clay Strips.asset.blend\Brush\Tila Clay Strips', 'asset_library_type': 'CUSTOM', 'asset_library_identifier':'Tilapiatsu', 'force_strength':True, 'force_weight':False, 'strength':3.0})
+        self.kmi_set_replace('brush.tila_brush_toggle', self.k_menu, 'PRESS', alt=True, properties={'relative_asset_identifier': 'Saved\Brushes\Tila Snake Hook.asset.blend\Brush\Tila Snake Hook', 'asset_library_type': 'CUSTOM', 'asset_library_identifier':'Tilapiatsu', 'force_strength':False, 'force_weight':False})
         self.kmi_set_replace('paint.mask_lasso_gesture', self.k_context, 'CLICK_DRAG', ctrl=True, alt=False, shift=False, properties={'value': 1.0, 'mode': 'VALUE'}, disable_double=True)
         self.kmi_set_replace('paint.mask_lasso_gesture', self.k_context, 'CLICK_DRAG', ctrl=False, alt=False, shift=True, properties={'value': 0.0, 'mode': 'VALUE'}, disable_double=True)
         self.kmi_set_replace('paint.mask_flood_fill', self.k_context, 'PRESS', ctrl=True, alt=True, shift=True, properties={'mode': 'INVERT'})
