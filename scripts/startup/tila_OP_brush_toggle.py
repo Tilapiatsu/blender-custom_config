@@ -36,6 +36,16 @@ class TILA_Brush:
                     self.asset_library_identifier == other.asset_library_identifier)
         return False
 
+compatible_modes = ['SCULPT', 'VERTEX', 'WEIGHT', 'IMAGE', 'GPENCIL_PAINT', 'GPENCIL_SCULPT', 'GPENCIL_WEIGHT', 'GPENCIL_VERTEX', 'CURVES_SCULPT']
+
+def mode_enum():
+    enum = []
+    for m in compatible_modes:
+        enum.append((m, m.lower(), ""))
+
+    return enum
+
+
 class TILA_PG_Brush(bpy.types.PropertyGroup):
     relative_asset_identifier : bpy.props.StringProperty(name='relative_asset_identifier', default='')
     asset_library_type :        bpy.props.StringProperty(name='asset_library_type', default='')
@@ -50,7 +60,7 @@ class TILA_Brush_toggle(bpy.types.Operator):
     bl_idname = "brush.tila_brush_toggle"
     bl_label = "Brush Toggle"
 
-    mode :                                  bpy.props.StringProperty(name="mode", default='SCULPT')
+    mode :                                  bpy.props.EnumProperty(name="mode", items=mode_enum(), default='SCULPT')
     default_relative_asset_identifier :     bpy.props.StringProperty(name="default brush", default='brushes\essentials_brushes-mesh_sculpt.blend\Brush\Grab')
     default_asset_library_type :            bpy.props.StringProperty(name="asset library type", default='ESSENTIALS')
     default_asset_library_identifier :      bpy.props.StringProperty(name="asset library identifier", default='')
@@ -64,8 +74,6 @@ class TILA_Brush_toggle(bpy.types.Operator):
     strength :                              bpy.props.FloatProperty(name='strength', default=1.0)
     force_weight :                          bpy.props.BoolProperty(name='force weight', default=False)
     weight :                                bpy.props.FloatProperty(name='weight', default=1.0)
-
-    compatible_modes = ['SCULPT', 'VERTEX', 'WEIGHT', 'IMAGE', 'GPENCIL']
 
     initial_brush = None
     brush_is_set = False
@@ -87,8 +95,20 @@ class TILA_Brush_toggle(bpy.types.Operator):
             elif self.mode == 'IMAGE':
                 self._current_tool = bpy.context.tool_settings.image_paint
 
-            elif self.mode == 'GPENCIL':
+            elif self.mode == 'GPENCIL_PAINT':
                 self._current_tool = bpy.context.tool_settings.gpencil_paint
+            
+            elif self.mode == 'GPENCIL_SCULPT':
+                self._current_tool = bpy.context.tool_settings.gpencil_sculpt_paint
+            
+            elif self.mode == 'GPENCIL_WEIGHT':
+                self._current_tool = bpy.context.tool_settings.gpencil_weight_paint
+
+            elif self.mode == 'GPENCIL_VERTEX':
+                self._current_tool = bpy.context.tool_settings.gpencil_vertex_paint
+            
+            elif self.mode == 'CURVES_SCULPT':
+                self._current_tool = bpy.context.tool_settings.curves_sculpt
         
         return self._current_tool
     
@@ -161,7 +181,7 @@ class TILA_Brush_toggle(bpy.types.Operator):
 
     def run_tool(self, brush:TILA_Brush):
         try:
-            if self.mode not in self.compatible_modes:
+            if self.mode not in compatible_modes:
                 return {'CANCELLED'}
             
             if not self.brush_is_set:
@@ -213,7 +233,7 @@ class TILA_Brush_toggle(bpy.types.Operator):
 
     def invoke(self, context, event):
         self._current_tool = None
-        if self.mode in self.compatible_modes:
+        if self.mode in compatible_modes:
             self.set_initial_brush()
             if self.toggle_back_on_release:
                 context.window_manager.modal_handler_add(self)

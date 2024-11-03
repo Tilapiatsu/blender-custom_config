@@ -94,9 +94,9 @@ class TILA_smart_editmode(bpy.types.Operator):
                 bpy.ops.object.editmode_toggle()
                 bpy.ops.curves.set_selection_domain(domain=self.curves_mode[min(self.mode, 1)])
 
-            elif bpy.context.active_object.type == 'GPENCIL':
+            elif bpy.context.active_object.type == 'GREASEPENCIL':
                 if self.alt_mode:
-                    bpy.ops.object.mode_set(mode='EDIT_GPENCIL')
+                    bpy.ops.object.mode_set(mode='EDIT')
                 else:
                     bpy.ops.gpencil.editmode_toggle()
                     bpy.context.scene.tool_settings.gpencil_selectmode_edit = self.gpencil_mode[self.mode]

@@ -22,7 +22,7 @@ class TILA_smart_sculptmode(bpy.types.Operator):
     bl_label = "Smart Sculpt Mode"
     bl_options = {'REGISTER', 'UNDO'}
 
-    compatible_types = ['MESH', 'GPENCIL', 'CURVES']
+    compatible_types = ['MESH', 'GREASEPENCIL', 'CURVES']
 
     @classmethod
     def poll(cls, context):
@@ -37,8 +37,8 @@ class TILA_smart_sculptmode(bpy.types.Operator):
             if bpy.context.active_object.type == 'MESH':
                 bpy.ops.sculpt.sculptmode_toggle()
 
-            elif bpy.context.active_object.type == 'GPENCIL':
-                bpy.ops.gpencil.sculptmode_toggle()
+            elif bpy.context.active_object.type == 'GREASEPENCIL':
+                bpy.ops.grease_pencil.sculptmode_toggle()
 
             elif bpy.context.active_object.type == 'CURVES':
                 bpy.ops.curves.sculptmode_toggle()

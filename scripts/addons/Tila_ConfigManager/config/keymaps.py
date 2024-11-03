@@ -302,15 +302,21 @@ class TILA_Config_Keymaps_Global(TILA_Config_Keymaps):
             self.kmi_set_replace(collection_tool, self.k_select, 'DOUBLE_CLICK', shift=False, properties={'type': 'COLLECTION', 'extend': False}, disable_double=True)
             self.kmi_set_replace(collection_tool, self.k_select, 'DOUBLE_CLICK', shift=True, properties={'type': 'COLLECTION', 'extend': True}, disable_double=True)
 
-    def selection_tool(self, tool='builtin.select', alt='builtin.select_box'):
-        # select_tool = self.kmi_find(idname='wm.tool_set_by_id', properties=KeymapManager.bProp([('name', 'builtin.select_box'}))
-        # if select_tool:
-        # 	self.kmi_prop_setattr(select_tool.properties, "name", 'Select')
-        # 	self.kmi_prop_setattr(select_tool.properties, "cycle", False)
-        if self.km.name in ['Sculpt', 'Sculpt Curves', 'Weight Paint', 'Vertex Paint', 'Image Paint']: 
-            self.kmi_set_replace('brush.tila_brush_toggle', self.k_menu, 'PRESS', properties={'relative_asset_identifier': tool, 'asset_library_type': 'ESSENTIALS', 'asset_library_identifier':'', 'force_strength':False, 'force_weight':False}, disable_double=True)
+    def selection_tool(self, tool='builtin.select', alt='builtin.select_box', mode=None):
+        brush_mode = ['Sculpt', 
+                      'Sculpt Curves', 
+                      'Weight Paint', 
+                      'Vertex Paint', 
+                      'Image Paint',
+                      'Grease Pencil Brush Stroke', 
+                      'Grease Pencil Sculpt Mode', 
+                      'Grease Pencil Vertex Paint',
+                      'Grease Pencil Weight Paint']
+        if self.km.name in brush_mode and mode is not None: 
+            self.kmi_set_replace('brush.tila_brush_toggle', self.k_menu, 'PRESS', properties={'mode':mode, 'relative_asset_identifier': tool, 'asset_library_type': 'ESSENTIALS', 'asset_library_identifier':'', 'force_strength':False, 'force_weight':False}, disable_double=True)
             if alt:
-                self.kmi_set_replace('brush.tila_brush_toggle', self.k_manip, 'PRESS', ctrl=True, shift=True, properties={'relative_asset_identifier': alt, 'asset_library_type': 'ESSENTIALS', 'asset_library_identifier':'', 'toggle_back_on_release':True, 'force_strength':False, 'force_weight':False}, disable_double=True)
+                self.kmi_set_replace('brush.tila_brush_toggle', self.k_manip, 'PRESS', ctrl=True, shift=True, properties={'mode':mode, 'relative_asset_identifier': alt, 'asset_library_type': 'ESSENTIALS', 'asset_library_identifier':'', 'toggle_back_on_release':True, 'force_strength':False, 'force_weight':False}, disable_double=True)
+
         else:
             self.kmi_set_replace('wm.tool_set_by_id', self.k_menu, "PRESS", properties={'name': tool, 'cycle': False})
             if alt:
@@ -829,8 +835,8 @@ class TILA_Config_Keymaps_Global(TILA_Config_Keymaps):
         self.kmi_init(name='Sculpt', space_type='EMPTY', region_type='WINDOW', addon=False)
         self.global_keys()
         self.right_mouse()
-        self.tool_sculpt('sculpt.sculptmode_toggle')
-        self.selection_tool(tool='brushes\essentials_brushes-mesh_sculpt.blend\Brush\Grab', alt='brushes\essentials_brushes-mesh_sculpt.blend\Brush\Mask')
+        self.tool_sculpt('view3d.tila_smart_sculptmode')
+        self.selection_tool(tool='brushes\essentials_brushes-mesh_sculpt.blend\Brush\Grab', alt='brushes\essentials_brushes-mesh_sculpt.blend\Brush\Mask', mode='SCULPT')
         self.tool_transform()
 
         self.tool_subdivision()
@@ -925,8 +931,9 @@ class TILA_Config_Keymaps_Global(TILA_Config_Keymaps):
             self.kmi_init(name='Sculpt Curves', space_type='EMPTY', region_type='WINDOW', addon=False)
             self.global_keys()
             self.right_mouse()
-            self.tool_sculpt(sculpt='curves.sculptmode_toggle')
-            self.selection_tool(tool='COMB', alt='SELECTION_PAINT')
+            self.tool_sculpt('view3d.tila_smart_sculptmode')
+            
+            self.selection_tool(tool='brushes\essentials_brushes-curve_sculpt.blend\Brush\Comb', alt='brushes\essentials_brushes-curve_sculpt.blend\Brush\Select', mode='CURVES_SCULPT')
 
             self.tool_radial_control(radius={   'data_path_primary': 'tool_settings.curves_sculpt.brush.size', 
                                             'data_path_secondary': 'tool_settings.unified_paint_settings.size', 
@@ -1053,7 +1060,7 @@ class TILA_Config_Keymaps_Global(TILA_Config_Keymaps):
         self.kmi_init(name='Vertex Paint', space_type='EMPTY', region_type='WINDOW', addon=False)
         self.global_keys()
         self.right_mouse()
-        self.selection_tool(tool='brushes\essentials_brushes-mesh_vertex.blend\Brush\Paint Hard')
+        self.selection_tool(tool='brushes\essentials_brushes-mesh_vertex.blend\Brush\Paint Hard', mode='VERTEX')
 
         self.tool_radial_control(radius={   'data_path_primary': 'tool_settings.vertex_paint.brush.size', 
                                             'data_path_secondary': 'tool_settings.unified_paint_settings.size', 
@@ -1107,9 +1114,7 @@ class TILA_Config_Keymaps_Global(TILA_Config_Keymaps):
         self.kmi_init(name='Weight Paint', space_type='EMPTY', region_type='WINDOW', addon=False)
         self.global_keys()
         self.right_mouse()
-        # self.selection_tool(tool='builtin.brush')
-        bpy.ops.brush.asset_activate(asset_library_type='ESSENTIALS', asset_library_identifier="", relative_asset_identifier="brushes\\essentials_brushes-mesh_weight.blend\\Brush\\Paint")
-        self.selection_tool(tool='brushes\essentials_brushes-mesh_weight.blend\Brush\Paint')
+        self.selection_tool(tool='brushes\essentials_brushes-mesh_weight.blend\Brush\Paint', mode='WEIGHT')
         
         self.tool_radial_control(radius={   'data_path_primary': 'tool_settings.weight_paint.brush.size', 
                                             'data_path_secondary': 'tool_settings.unified_paint_settings.size', 
@@ -1176,7 +1181,7 @@ class TILA_Config_Keymaps_Global(TILA_Config_Keymaps):
         self.global_keys()
         self.right_mouse()
         
-        self.selection_tool(tool='brushes\essentials_brushes-mesh_texture.blend\Brush\Paint Hard')
+        self.selection_tool(tool='brushes\essentials_brushes-mesh_texture.blend\Brush\Paint Hard', mode='IMAGE')
 
         self.tool_radial_control(radius={   'data_path_primary': 'tool_settings.image_paint.brush.size', 
                                             'data_path_secondary': 'tool_settings.unified_paint_settings.size', 
@@ -1334,6 +1339,7 @@ class TILA_Config_Keymaps_Global(TILA_Config_Keymaps):
         self.global_keys()
         self.right_mouse()
         self.mode_selection()
+        self.tool_sculpt('view3d.tila_smart_sculptmode')
         # self.selection_tool('builtin_brush.Draw')
         self.duplicate(duplicate='gpencil.duplicate_move')
         self.selection_keys(select_tool='gpencil.select',
@@ -1350,10 +1356,11 @@ class TILA_Config_Keymaps_Global(TILA_Config_Keymaps):
 
         self.isolate()
 
-        ###### Grease Pencil Stroke Edit Mode
-        self.kmi_init(name='Grease Pencil Stroke Edit Mode', space_type='EMPTY', region_type='WINDOW', addon=False)
+        ###### Grease Pencil Edit Mode
+        self.kmi_init(name='Grease Pencil Edit Mode', space_type='EMPTY', region_type='WINDOW', addon=False)
         self.global_keys()
         self.right_mouse()
+        self.tool_sculpt('view3d.tila_smart_sculptmode')
         self.tool_transform(cage_scale='builtin.scale_cage')
         self.duplicate(duplicate='gpencil.duplicate_move')
         self.collection_visibility('object.hide_collection')
@@ -1380,8 +1387,9 @@ class TILA_Config_Keymaps_Global(TILA_Config_Keymaps):
         self.right_mouse()
         self.duplicate(duplicate='gpencil.duplicate_move')
         self.collection_visibility('object.hide_collection')
+        self.tool_sculpt('view3d.tila_smart_sculptmode')
         self.mode_selection()
-        self.selection_tool(tool='builtin_brush.Draw')
+        self.selection_tool(tool='brushes\essentials_brushes-gp_draw.blend\Brush\Pencil', mode='GPENCIL_PAINT')
         self.tool_radial_control(radius={'data_path_primary': 'tool_settings.gpencil_paint.brush.size', 'release_confirm': True},
                                 opacity={'data_path_primary': 'tool_settings.gpencil_paint.brush.gpencil_settings.pen_strength', 'release_confirm': True})
         
@@ -1393,8 +1401,8 @@ class TILA_Config_Keymaps_Global(TILA_Config_Keymaps):
                             lasso_tool='gpencil.select_lasso',
                             )
 
-        ###### Grease Pencil Stroke Paint (Draw brush)
-        self.kmi_init(name='Grease Pencil Stroke Paint (Draw brush)', space_type='EMPTY', region_type='WINDOW', addon=False)
+        ###### Grease Pencil Paint Mode
+        self.kmi_init(name='Grease Pencil Paint Mode', space_type='EMPTY', region_type='WINDOW', addon=False)
         kmi = self.kmi_find(idname='gpencil.draw', ctrl=False, alt=True, shift=False)
         if kmi is not None:
             kmi.ctrl = True
@@ -1410,10 +1418,11 @@ class TILA_Config_Keymaps_Global(TILA_Config_Keymaps):
         self.tool_radial_control(radius={'data_path_primary': 'tool_settings.gpencil_paint.brush.size', 'release_confirm': True},
                                 opacity={ 'data_path_primary': 'tool_settings.gpencil_paint.brush.gpencil_settings.pen_strength', 'release_confirm': True})
 
-        # Grease Pencil Stroke Vertex Mode
-        self.kmi_init(name='Grease Pencil Stroke Vertex Mode', space_type='EMPTY', region_type='WINDOW', addon=False)
+        # Grease Pencil Vertex Paint
+        self.kmi_init(name='Grease Pencil Vertex Paint', space_type='EMPTY', region_type='WINDOW', addon=False)
         self.global_keys()
         self.right_mouse()
+        self.tool_sculpt('view3d.tila_smart_sculptmode')
 
         self.tool_radial_control(radius={   'data_path_primary': 'tool_settings.gpencil_vertex_paint.brush.size', 
                                             'data_path_secondary': 'tool_settings.unified_paint_settings.size', 
@@ -1466,12 +1475,13 @@ class TILA_Config_Keymaps_Global(TILA_Config_Keymaps):
 
         
 
-        ###### Grease Pencil Stroke Sculpt Mode
-        self.kmi_init(name='Grease Pencil Stroke Sculpt Mode', space_type='EMPTY', region_type='WINDOW', addon=False)
+        ###### Grease Pencil Sculpt Mode
+        self.kmi_init(name='Grease Pencil Sculpt Mode', space_type='EMPTY', region_type='WINDOW', addon=False)
         self.global_keys()
         self.right_mouse()
         self.mode_selection()
-        self.selection_tool(tool='builtin_brush.Grab')
+        self.tool_sculpt('view3d.tila_smart_sculptmode')
+        self.selection_tool(tool='brushes\essentials_brushes-gp_sculpt.blend\Brush\Grab', mode='GPENCIL_SCULPT')
         # self.kmi_set_replace('wm.tool_set_by_id', 'G', 'PRESS', properties={'name': 'builtin_brush.Grab'})
         
         self.tool_radial_control(radius={   'data_path_primary': 'tool_settings.gpencil_sculpt_paint.brush.size', 
@@ -1508,12 +1518,13 @@ class TILA_Config_Keymaps_Global(TILA_Config_Keymaps):
                             )
         
         
-        # Grease Pencil Stroke Vertex Mode
-        self.kmi_init(name='Grease Pencil Stroke Vertex Mode', space_type='EMPTY', region_type='WINDOW', addon=False)
+        # Grease Pencil Vertex Paint
+        self.kmi_init(name='Grease Pencil Vertex Paint', space_type='EMPTY', region_type='WINDOW', addon=False)
         self.global_keys()
         self.right_mouse()
         self.mode_selection()
-        self.selection_tool(tool='builtin_brush.Draw')
+        self.tool_sculpt('view3d.tila_smart_sculptmode')
+        self.selection_tool(tool='brushes\essentials_brushes-gp_vertex.blend\Brush\Paint', mode='GPENCIL_VERTEX')
         
         self.tool_radial_control(radius={   'data_path_primary': 'tool_settings.gpencil_vertex_paint.brush.size', 
                                             'data_path_secondary': 'tool_settings.unified_paint_settings.size', 
@@ -1549,12 +1560,13 @@ class TILA_Config_Keymaps_Global(TILA_Config_Keymaps):
                             lasso_tool='gpencil.select_lasso'
                             )
         
-        # Grease Pencil Stroke Weight Mode
-        self.kmi_init(name='Grease Pencil Stroke Weight Mode', space_type='EMPTY', region_type='WINDOW', addon=False)
+        # Grease Pencil Weight Paint
+        self.kmi_init(name='Grease Pencil Weight Paint', space_type='EMPTY', region_type='WINDOW', addon=False)
         self.global_keys()
         self.right_mouse()
         self.mode_selection()
-        self.selection_tool(tool='builtin_brush.Weight')
+        self.tool_sculpt('view3d.tila_smart_sculptmode')
+        self.selection_tool(tool='brushes\essentials_brushes-gp_weight.blend\Brush\Paint', mode='GPENCIL_WEIGHT')
         
         self.tool_radial_control(radius={   'data_path_primary': 'tool_settings.gpencil_weight_paint.brush.size', 
                                             'data_path_secondary': 'tool_settings.unified_paint_settings.size', 
