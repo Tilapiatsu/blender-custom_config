@@ -95,7 +95,9 @@ class TILA_Config_Settings_Global(TILA_Config_Settings):
         context.preferences.inputs.ndof_view_navigate_method = "FREE"
         context.preferences.inputs.view_rotate_method = "TRACKBALL"
         context.preferences.inputs.view_rotate_sensitivity_trackball = 2
+        context.preferences.inputs.drag_threshold_mouse = 1
         context.preferences.inputs.drag_threshold_tablet = 1
+        context.preferences.inputs.drag_threshold = 1
         context.preferences.inputs.ndof_view_rotate_method = "TRACKBALL"
         context.preferences.inputs.use_auto_perspective = True
         context.preferences.inputs.use_mouse_depth_navigate = True
