@@ -506,8 +506,6 @@ class TILA_Config_Keymaps_Global(TILA_Config_Keymaps):
         self.set_keymaps_knife_tool_modal_map()
         self.set_keymaps_gesture_box_modal_map()
 
-
-
     def set_keymaps_windows(self):
         ##### Window
         self.kmi_init(name='Window', space_type='EMPTY', region_type='WINDOW', addon=False)
