@@ -506,7 +506,13 @@ class ElementAM():
         else:
             kwargs = {'branch': self.branch} if self.branch is not None else {}
             # if self.branch is not None:
-            git.Repo.clone_from(self.repository_url, self.local_path.path, **kwargs)
+            try:
+                git.Repo.clone_from(self.repository_url, self.local_path.path, **kwargs)
+            except Exception as e:
+                print(e)
+                self.log_progress.done(f'Syncing Failed!')
+                self.log_progress.separator(add_to_satus=True)
+                return
         
         self.log_progress.done(f'Syncing Done!')
         self.log_progress.separator(add_to_satus=True)

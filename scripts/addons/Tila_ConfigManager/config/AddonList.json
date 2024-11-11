@@ -2657,30 +2657,6 @@
             }
         ]
     },
-    "oscurart_edit_split_normals": {
-        "is_enable": true,
-        "is_sync": true,
-        "is_extension": false,
-        "extension_id": null,
-        "online_url": null,
-        "repository_url": "https://github.com/oscurart/Blender-28-Addons.git",
-        "branch": null,
-        "is_submodule": false,
-        "local_path": "#\\scripts\\addon_library\\GIT_Clones\\oscuart",
-        "keymaps": false,
-        "paths": [
-            {
-                "is_enable": true,
-                "local_subpath": "oscurart_edit_split_normals.py",
-                "destination_path": "#\\scripts\\addons\\oscurart_edit_split_normals.py"
-            },
-            {
-                "is_enable": true,
-                "local_subpath": "oscurart_bake_pbr.py",
-                "destination_path": "#\\scripts\\addons\\oscurart_bake_pbr.py"
-            }
-        ]
-    },
     "vertex_color_master": {
         "is_enable": false,
         "is_sync": false,
@@ -3027,8 +3003,8 @@
         "is_sync": true,
         "is_extension": false,
         "extension_id": null,
-        "online_url": "https://projects.blender.org/studio/blender-studio-pipeline/src/branch/main",
-        "repository_url": "https://projects.blender.org/studio/blender-studio-pipeline.git",
+        "online_url": "https://projects.blender.org/studio/blender-studio-tools/",
+        "repository_url": "https://projects.blender.org/studio/blender-studio-tools.git",
         "branch": null,
         "is_submodule": false,
         "local_path": "#\\scripts\\addon_library\\GIT_Clones\\blender-studio-pipeline\\",
