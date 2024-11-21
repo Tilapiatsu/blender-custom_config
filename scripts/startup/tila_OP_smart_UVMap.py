@@ -33,6 +33,8 @@ class TILA_UVMap_Add(bpy.types.Operator):
         self.object_to_process = [o for o in bpy.context.selected_objects if o.type in self.compatible_type]
 
         for o in self.object_to_process:
+            if self.name in o.data.uv_layers:
+                continue
             o.data.uv_layers.new(name=self.name)
 
         return {'FINISHED'}
