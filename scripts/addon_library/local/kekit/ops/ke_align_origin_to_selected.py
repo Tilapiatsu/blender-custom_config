@@ -6,7 +6,7 @@ from bpy.types import Operator
 
 class KeAlignOriginToSelected(Operator):
     bl_idname = "view3d.ke_align_origin_to_selected"
-    bl_label = "Align Origin To Selected Elements"
+    bl_label = "Align Origin to Selected"
     bl_description = "Edit Mode: Places origin(s) at element selection + calculated orientation (curves: loc only)\n" \
                      "Object Mode (1 selected): Set Origin to geo Center\n" \
                      "Object Mode (2 selected): Set Origin to 2nd Obj Origin\n"

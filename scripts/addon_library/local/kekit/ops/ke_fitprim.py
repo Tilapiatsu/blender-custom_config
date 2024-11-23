@@ -41,19 +41,27 @@ class UIFitPrimModule(Panel):
     bl_parent_id = "UI_PT_M_GEO"
     bl_options = {'DEFAULT_CLOSED'}
 
+    def draw_header_preset(self, context):
+        layout = self.layout
+        layout.emboss = 'NONE'
+        row = layout.row(align=False)
+        row.label(icon="MOUSE_MOVE")
+
     def draw(self, context):
         k = get_prefs()
         layout = self.layout
-        col = layout.column(align=True)
+
+        col = layout.column_flow(columns=2, align=True)
         col.operator('VIEW3D_OT_ke_fitprim', text="Cube", icon="MESH_CUBE").ke_fitprim_option = "BOX"
         col.operator('VIEW3D_OT_ke_fitprim', text="Cylinder", icon="MESH_CYLINDER").ke_fitprim_option = "CYL"
         col.operator('VIEW3D_OT_ke_fitprim', text="Plane", icon="MESH_PLANE").ke_fitprim_option = "PLANE"
         col.operator('VIEW3D_OT_ke_fitprim', text="Sphere", icon="SHADING_WIRE").ke_fitprim_option = "SPHERE"
         col.operator('VIEW3D_OT_ke_fitprim', text="QuadSphere", icon="MESH_UVSPHERE").ke_fitprim_option = "QUADSPHERE"
-        col.separator()
+        col.operator('VIEW3D_OT_ke_fitprim', text="Empty", icon="EMPTY_AXIS").ke_fitprim_option = "EMPTY"
+
+        col = layout.column(align=True)
         col.label(text="Options")
         col.prop(k, "fitprim_unit", text="No-sel Unit Size")
-        col.separator()
         col.prop(k, "fitprim_sides", text="Cylinder Default Sides:")
         col.prop(k, "fitprim_modal", text="Modal Cylinder")
         col.prop(k, "fitprim_sphere_seg", text="Sphere Segments")
@@ -61,6 +69,7 @@ class UIFitPrimModule(Panel):
         col.prop(k, "fitprim_quadsphere_seg", text="QuadSphere Division")
         col.prop(k, "fitprim_select", text="Select Result (Edit Mesh)")
         col.prop(k, "fitprim_item", text="Make Object")
+
         col.label(text="FP Default Shading:")
         row = col.row(align=True)
         row.prop(k, "fitprim_shading", expand=True)
@@ -286,10 +295,11 @@ def get_sides(obj_mtx, vecs, vps):
 class KeFitPrim(Operator):
     bl_idname = "view3d.ke_fitprim"
     bl_label = "FitPrim"
-    bl_description = "Creates (unit or unit+height) box or cylinder primitve based on selection (or not = ground)\n" \
+    bl_description = "Creates (unit or unit+height) primitve based on selection or mouse-pointer (ground)\n" \
                      "VERTEX: Fits *along* 2 Selected verts\n" \
                      "EDGE: Fits *in* selection(s) \n" \
-                     "POLY: Fits *on* selection(s)"
+                     "POLY: Fits *on* selection(s)\n" \
+                     "Note: Assign to Shortcut! (or use pie-menu)"
     bl_options = {'REGISTER', 'UNDO'}
 
     ke_fitprim_option : EnumProperty(
@@ -297,7 +307,8 @@ class KeFitPrim(Operator):
                ("CYL", "Cylinder Mode", "", 2),
                ("SPHERE", "UV Sphere", "", 3),
                ("QUADSPHERE", "QuadSphere", "", 4),
-               ("PLANE", "Plane", "", 5)
+               ("PLANE", "Plane", "", 5),
+               ("EMPTY", "Empty", "", 6)
                ],
         name="FitPrim Options",
         default="BOX")
@@ -323,7 +334,8 @@ class KeFitPrim(Operator):
     _timer = None
     cyl_sides = 16
     circle = False
-    circle_pos = None
+    no_offset_pos = None
+    plane = False
     unit = .1
     is_modal = True
     select = True
@@ -344,6 +356,7 @@ class KeFitPrim(Operator):
     tock = 0
     input_nrs = []
     v4_1 = True
+    void_mode = False
 
     numbers = ('ZERO', 'ONE', 'TWO', 'THREE', 'FOUR', 'FIVE', 'SIX', 'SEVEN', 'EIGHT', 'NINE')
     numpad = ('NUMPAD_0', 'NUMPAD_1', 'NUMPAD_2', 'NUMPAD_3', 'NUMPAD_4', 'NUMPAD_5', 'NUMPAD_6', 'NUMPAD_7',
@@ -432,7 +445,7 @@ class KeFitPrim(Operator):
         non_mesh_clones = []
         side = []
         island_mode = False
-
+        obj = None
         cursor = context.scene.cursor
         self.og_cloc = cursor.location.copy()
         self.og_crot = cursor.rotation_euler.copy()
@@ -551,7 +564,7 @@ class KeFitPrim(Operator):
                 else:
                     offset = hit_normal * (side / 2)
                     setpos = center + offset
-                    self.circle_pos = setpos - offset
+                    self.no_offset_pos = setpos - offset
                     # setpos = mtx @ hit_obj.data.polygons[hit_face].center + offset
 
                 setrot = rotation_from_vector(hit_normal, start_vec)
@@ -582,6 +595,7 @@ class KeFitPrim(Operator):
                 view_vec = region_2d_to_vector_3d(context.region, context.space_data.region_3d, self.mouse_pos)
                 view_pos = context.space_data.region_3d.view_matrix.inverted().translation
                 raypos = []
+                snap = 0
 
                 if get_view_type() != "ORTHO":
                     ground = ((0, 0, 0), (0, 1, 0), (1, 0, 0))
@@ -595,9 +609,10 @@ class KeFitPrim(Operator):
                 if raypos:
                     setpos = Vector((round(raypos[0], snap), round(raypos[1], snap), self.unit / 2))
                 else:
-                    setpos = region_2d_to_location_3d(context.region, context.space_data.region_3d, self.mouse_pos,
-                                                      view_vec)
-                self.circle_pos = setpos
+                    setpos = region_2d_to_location_3d(context.region, context.space_data.region_3d,
+                                                              self.mouse_pos, view_vec)
+                self.no_offset_pos = setpos
+                self.void_mode = True
 
                 if non_mesh_clones and void_size_clone == 0:
                     bpy.ops.object.duplicate()
@@ -914,7 +929,7 @@ class KeFitPrim(Operator):
             if self.ke_fitprim_option == "PLANE" and self.edit_mode != "OBJECT":
                 if sel_mode[2]:
                     setpos = center
-                    self.circle_pos = setpos
+                    self.no_offset_pos = setpos
 
             elif len(sel_verts) == 0 or sel_mode[0] or sel_mode[1]:
                 side *= .5
@@ -939,7 +954,7 @@ class KeFitPrim(Operator):
                 if not island_mode and self.sphere:
                     setpos = setpos - offset
 
-                self.circle_pos = setpos - offset
+                self.no_offset_pos = setpos - offset
 
             # SET FINAL ROTATION
             if self.world:
@@ -949,8 +964,8 @@ class KeFitPrim(Operator):
             else:
                 setrot = setrot.to_euler()
 
-            if self.circle_pos is None:
-                self.circle_pos = setpos
+            if self.no_offset_pos is None:
+                self.no_offset_pos = setpos
 
             # RUN OP
             if not self.edit_mode == "OBJECT":
@@ -972,16 +987,36 @@ class KeFitPrim(Operator):
                     self.set_shading(context)
 
             #
+            # EMPTY
+            #
+            elif self.ke_fitprim_option == "EMPTY":
+                if context.mode != "OBJECT":
+                    bpy.ops.object.mode_set(mode="OBJECT")
+                if self.void_mode:
+                    self.no_offset_pos[2] = 0
+                empty = bpy.data.objects.new("Empty", None)
+                ouc = context.object.users_collection if context.object is not None else []
+                if ouc and len(ouc) > 0:
+                    coll = ouc[0]
+                else:
+                    coll = context.scene.collection
+                coll.objects.link(empty)
+                empty.location = self.no_offset_pos
+                empty.rotation_euler = setrot
+                empty.empty_display_size = side
+                bpy.ops.object.select_all(action="DESELECT")
+                empty.select_set(True)
+                context.view_layer.objects.active = empty
+                return {"FINISHED"}
+
+            #
             # PLANE
             #
             elif self.ke_fitprim_option == "PLANE":
-
                 # side *= 2
                 enter = True
-
                 if self.edit_mode == 'OBJECT' or self.itemize:
                     enter = False
-
                 bpy.ops.mesh.primitive_plane_add(enter_editmode=enter, align='WORLD', location=setpos,
                                                  rotation=setrot, size=side, scale=(1, 1, 1), calc_uvs=True)
                 if self.itemize or self.edit_mode == "OBJECT":
@@ -1064,10 +1099,11 @@ class KeFitPrim(Operator):
 
                     # UPDATE STATUS BAR
                     status_help = [
-                        "[WHEEL] Side Count",
+                        "[WHEEL/0-9] Side Count",
                         "[MMB, ALT-MBs] Navigation",
-                        "[C] Circle Mode (In Cylinder Modal)"
-                        "[ESC/ENTER/SPACEBAR LMB/RMB] Apply",
+                        "[C] Circle Mode",
+                        "[P/W] Plane Mode",
+                        "[ESC/ENTER/SPACEBAR/LMB] Apply",
                         "[ESC/RMB] Cancel"]
                     set_status_text(context, status_help)
 
@@ -1154,7 +1190,9 @@ class KeFitPrim(Operator):
             self.circle = not self.circle
             if self.circle:
                 self.settings[1] = 0
-                self.settings[2] = self.circle_pos
+                self.settings[2] = self.no_offset_pos
+                if self.void_mode:
+                    self.settings[2][2] = 0
                 bpy.ops.mesh.delete(type='FACE')
                 bpy.ops.mesh.primitive_cylinder_add(vertices=self.cyl_sides, radius=self.settings[0],
                                                     depth=self.settings[1], enter_editmode=False, align='WORLD',
@@ -1163,11 +1201,22 @@ class KeFitPrim(Operator):
             else:
                 self.settings = self.og_settings
 
-        elif event.type in {'LEFTMOUSE', 'RIGHTMOUSE', 'ESC', 'RET', 'SPACE'}:
+        elif event.type in {'P', 'W'} and event.value == 'RELEASE':
+            self.plane = True
+            self.settings[2] = self.no_offset_pos
+            if self.void_mode:
+                self.settings[2][2] = 0
+            bpy.ops.mesh.delete(type='FACE')
+            bpy.ops.mesh.primitive_plane_add(size=self.settings[0] * 2, enter_editmode=False, align='WORLD',
+                                             location=self.settings[2], rotation=self.settings[3])
+            bpy.ops.mesh.normals_make_consistent(inside=False)
+            context.area.tag_redraw()
+
+        elif event.type in {'LEFTMOUSE', 'RIGHTMOUSE', 'ESC', 'RET', 'SPACE'} or self.plane:
             if self.circle:
                 bpy.ops.mesh.select_linked()
-                bpy.ops.mesh.flip_normals()
                 bpy.ops.mesh.remove_doubles()
+                bpy.ops.mesh.flip_normals()
 
             context.area.tag_redraw()
             context.window_manager.event_timer_remove(self._timer)
@@ -1185,7 +1234,7 @@ class KeFitPrim(Operator):
                         asset_library_type='ESSENTIALS', asset_library_identifier='',
                         relative_asset_identifier='geometry_nodes/smooth_by_angle.blend/NodeTree/Smooth by Angle')
 
-                if self.circle:
+                if self.circle or self.plane:
                     bpy.ops.object.origin_set(type='ORIGIN_GEOMETRY', center='MEDIAN')
 
                 cursor = context.scene.cursor
@@ -1198,6 +1247,8 @@ class KeFitPrim(Operator):
             context.space_data.overlay.show_cursor = True
             self.ke_fitprim_itemize = False
             context.workspace.status_text_set(None)
+            self.plane = False
 
             return {'FINISHED'}
+
         return {'RUNNING_MODAL'}

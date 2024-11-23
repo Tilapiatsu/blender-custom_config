@@ -84,7 +84,7 @@ class KePrimitiveBoxAdd(Operator):
             bm.faces.new([bm.verts[i] for i in f_idx])
 
         # Add Uv's (centered)
-        uv_layer = bm.loops.layers.uv.verify()
+        uv_layer = bm.loops.layers.uv.new("UVMap")
         for face in bm.faces:
             for loop in face.loops:
                 loop_uv = loop[uv_layer]

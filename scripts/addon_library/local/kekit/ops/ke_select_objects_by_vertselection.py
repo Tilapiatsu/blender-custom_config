@@ -4,7 +4,7 @@ from bpy.types import Operator
 
 class KeVertObjectSelect(Operator):
     bl_idname = "object.ke_select_objects_by_vertselection"
-    bl_label = "Select Objects by VertSelection"
+    bl_label = "Select Objects with Verts Selected"
     bl_description = "In Multi-Object Edit Mode:\n" \
                      "Selects only objects that have vertices selected, and set object mode"
     bl_options = {'REGISTER', 'UNDO'}

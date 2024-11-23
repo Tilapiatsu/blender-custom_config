@@ -6,7 +6,7 @@ from mathutils import Vector, Quaternion
 
 class KeViewAlignToggle(Operator):
     bl_idname = "view3d.ke_view_align_toggle"
-    bl_label = "View Align Selected Toggle"
+    bl_label = "View Align Toggle"
     bl_options = {'REGISTER'}
 
     mode: EnumProperty(
@@ -23,8 +23,9 @@ class KeViewAlignToggle(Operator):
     @classmethod
     def description(cls, context, properties):
         if properties.mode == "SELECTION":
-            return "Align View to Active Face OR 3 Vertices OR 2 Edges (or, in Object-mode: Obj's Z axis)\n" \
-                   "Toggle (run again) to restore view from before alignment"
+            return ("Align View to: Active Face OR 3 Vertices OR 2 Edges\n"
+                    "- OR Obj's Z axis (in Object-mode\n"
+                    "Toggle (run again) to restore view from before alignment")
         else:
             return "Align View to Cursor Z-Axis Orientation\n" \
                    "Toggle (run again) to restore view from before alignment"

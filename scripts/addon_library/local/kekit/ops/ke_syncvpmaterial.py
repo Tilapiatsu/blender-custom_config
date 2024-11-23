@@ -4,6 +4,7 @@ from bpy.types import Operator
 from mathutils import Vector
 from .._utils import get_override_by_type
 
+
 def travel_back_nodes(node_in):
     found = []
 
@@ -46,7 +47,7 @@ def find_texture_average(c):
         src = np.reshape(src, (x, y, 4))
         # Very fast (& rough!) integer downscale
         src = src[::step, ::step]
-        # ONLY USE PIXELS *WITH* ALPHA (0-alpha colors usually "bad" average)
+        # ONLY USE PIXELS *WITH* ALPHA (or average will be "bad")
         rgba = np.reshape(src, (-1, 4))
         alpha_mask = np.where(rgba[:, 3] > alpha_tolerance, 1, 0)
         rgba = rgba[alpha_mask == 1]

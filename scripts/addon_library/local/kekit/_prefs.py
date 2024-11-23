@@ -168,6 +168,9 @@ class KeSavePrefs(Operator, ExportHelper):
         return {'RUNNING_MODAL'}
 
     def execute(self, context):
+        # QoL: to not miss unsaved...
+        bpy.ops.wm.save_userpref()
+        # then export:
         save_prefs(self.filepath)
         self.report({"INFO"}, "keKit Preferences Exported!")
         return {'FINISHED'}
@@ -268,21 +271,14 @@ class KeKitTempSession(PropertyGroup):
 class KeKitPropertiesTemp(PropertyGroup):
     # Per-Scene Stored Properties
     view_query: StringProperty(default=" N/A ")
-    toggle: BoolProperty(default=False)  # used by multicut - todo: rename
+    toggle: BoolProperty(default=False)  # used by many ops...
     cursorslot1: FloatVectorProperty(size=6)
     cursorslot2: FloatVectorProperty(size=6)
     cursorslot3: FloatVectorProperty(size=6)
     cursorslot4: FloatVectorProperty(size=6)
     cursorslot5: FloatVectorProperty(size=6)
     cursorslot6: FloatVectorProperty(size=6)
-    viewslot1: FloatVectorProperty(size=9)
-    viewslot2: FloatVectorProperty(size=9)
-    viewslot3: FloatVectorProperty(size=9)
-    viewslot4: FloatVectorProperty(size=9)
-    viewslot5: FloatVectorProperty(size=9)
-    viewslot6: FloatVectorProperty(size=9)
-    viewtoggle: FloatVectorProperty(size=9)
-    viewcycle: IntProperty(default=0, min=0, max=5)
+    viewcycle: IntProperty(default=1, min=1)
     kcm_axis: EnumProperty(items=[
         ("X", "X", "", 1),
         ("Y", "Y", "", 2),
@@ -296,6 +292,11 @@ class KeKitPropertiesTemp(PropertyGroup):
         name="Step Presets", default="90", description="Preset rotation values for step-rotate")
     kcm_custom_rot: FloatProperty(name="Custom Step", default=0, subtype="ANGLE", unit="ROTATION", precision=3,
                                   description="Custom rotation (non zero will override preset-use) for step-rotate")
+    omp_name: StringProperty(description="Preset Name (Change as needed)\n"
+                                         "Leave blank for auto-naming", default="", name="New")
+    view_name: StringProperty(description="Bookmark Name (Change as needed)\n"
+                                          "Leave blank for auto-naming", default="", name="New")
+    nr_toggle: IntProperty(default=0)
 
 
 def reload_extras(self, context):
@@ -313,13 +314,8 @@ class KeKitAddonPreferences(AddonPreferences):
         default="kekit",
         update=update_panel
     )
-    color_icons: BoolProperty(default=True, name="Color Icons",
-                              description="Use custom color icons for various modules -or- just numbers (if disabled)")
-    ext_tools: BoolProperty(default=False, name="Extend Tool Settings", update=reload_extras,
-                            description="Extend Tool Settings menu with additional buttons\n"
-                                        "Also displays buttons (but disabled) in Object Mode (to show state)")
-    ext_factor: FloatProperty(default=1.5, name="Separator factor", min=0, max=999,
-                          description="UI-separator value the Extend Tool Settings menu is offset (from the right)")
+    snapcombos_npanel_only: BoolProperty(default=False, name="SnapCombos N-Panel Only", update=reload_extras,
+                            description="Show/Hide SnapCombos from the snapping menu (if you don't use snapcombos)")
     obj_menu: BoolProperty(default=True, name="Object Context Menu", update=reload_extras,
                            description="Show the keKit Object Context Panel (RMB on object) Operators\n"
                                        "Req: Select & Align Module")
@@ -589,7 +585,7 @@ class KeKitAddonPreferences(AddonPreferences):
     # Subd Toggle
     vp_level: IntProperty(min=0, max=64, description="Viewport Levels to be used", default=2)
     render_level: IntProperty(min=0, max=64, description="Render Levels to be used", default=2)
-    flat_edit: BoolProperty(description="Set Flat Shading when Subd is Level 0", default=False)
+    flat_edit: BoolProperty(description="Set Flat Shading when Subd visibility is off", default=False)
     boundary_smooth: EnumProperty(items=[("PRESERVE_CORNERS", "Preserve Corners", ""), ("ALL", "All", "")],
                                   description="Controls how open boundaries are smoothed",
                                   default="PRESERVE_CORNERS")
@@ -600,6 +596,7 @@ class KeKitAddonPreferences(AddonPreferences):
     subd_autosmooth: BoolProperty(description="ON:Autosmooth is turned off by toggle when subd is on - and vice versa\n"
                                               "OFF:Autosmooth is not changed by toggle", name="Autosmooth Toggle",
                                   default=True)
+
     # Snapping Combos
     snap_combo1: FloatVectorProperty(size=30, precision=4, default=[0] * 30)
     snap_combo2: FloatVectorProperty(size=30, precision=4, default=[0] * 30)
@@ -792,6 +789,8 @@ class KeKitAddonPreferences(AddonPreferences):
                ],
         default="USELESS"
     )
+    # OMP - Object Modifier Presets
+    omp_presets: StringProperty(description="", default="", name="")
 
     def draw(self, context):
         layout = self.layout

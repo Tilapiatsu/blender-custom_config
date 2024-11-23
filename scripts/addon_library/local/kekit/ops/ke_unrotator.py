@@ -31,16 +31,19 @@ class UIUnrotatorModule(Panel):
     bl_parent_id = "UI_PT_M_GEO"
     bl_options = {'DEFAULT_CLOSED'}
 
+    def draw_header_preset(self, context):
+        layout = self.layout
+        layout.emboss = 'NONE'
+        row = layout.row(align=False)
+        row.label(icon="MOUSE_MOVE")
+
     def draw(self, context):
         k = get_prefs()
         layout = self.layout
         col = layout.column(align=True)
-        col.operator('VIEW3D_OT_ke_unrotator', text="Unrotator",
-                     icon="MOUSE_MOVE").ke_unrotator_option = "DEFAULT"
-        col.operator('VIEW3D_OT_ke_unrotator', text="Unrotator Duplicate",
-                     icon="MOUSE_MOVE").ke_unrotator_option = "DUPE"
-        col.operator('VIEW3D_OT_ke_unrotator', text="Unrotator RotOnly",
-                     icon="MOUSE_MOVE").ke_unrotator_option = "NO_LOC"
+        col.operator('VIEW3D_OT_ke_unrotator', text="Unrotator").ke_unrotator_option = "DEFAULT"
+        col.operator('VIEW3D_OT_ke_unrotator', text="Unrotator Duplicate").ke_unrotator_option = "DUPE"
+        col.operator('VIEW3D_OT_ke_unrotator', text="Unrotator RotOnly").ke_unrotator_option = "NO_LOC"
         col.separator()
         col.label(text="Options")
         col.prop(k, "unrotator_connect", text="Auto-Select Linked")
@@ -102,11 +105,8 @@ def calc_face_vectors(active, mtx, obj, vcount):
         vc2 = mtx @ obj.data.vertices[vp[1]].co
         vecs.append(vc1 - vc2)
     short_sort = sorted(vecs)
-    # tri is shortest exception
-    if vcount == 3:
-        vec = short_sort[0]
-    else:
-        vec = short_sort[-1]
+    # tri exception (shortest, not Hypot.)
+    vec = short_sort[0] if vcount == 3 else short_sort[-1]
     normal = correct_normal(mtx, active.normal)
     tangent = Vector(vec).normalized()
     return normal, tangent
@@ -166,6 +166,10 @@ class KeUnrotator(Operator):
     setrot = None
     temp_children = []
     og_sel = []
+    view_vec = Vector()
+    view_pos = Vector()
+    hit_wloc_bkp = Vector()
+    mouse_cast = []
 
     @classmethod
     def description(cls, context, properties):
@@ -197,8 +201,9 @@ class KeUnrotator(Operator):
             col.prop(k, "unrotator_invert", text="Invert Rotation", toggle=True)
             col.prop(k, "unrotator_center", text="Center on Face", toggle=True)
             col.prop(k, "unrotator_rndz", text="Randomize Dupe Z", toggle=True)
-            sub = col.column(align=True)
-            sub.label(text="Note: Redo requires unchanged viewport")
+            col.separator()
+            # sub = col.column(align=True)
+            # sub.label(text="Note: Redo requires unchanged viewport")
 
     def parent_tc(self, active, objects):
         parents = [o for o in objects if o.parent is not None]
@@ -213,6 +218,18 @@ class KeUnrotator(Operator):
     def invoke(self, context, event):
         self.mouse_pos[0] = event.mouse_region_x
         self.mouse_pos[1] = event.mouse_region_y
+        self.view_vec = region_2d_to_vector_3d(context.region, context.space_data.region_3d, self.mouse_pos)
+        self.view_pos = context.space_data.region_3d.view_matrix.inverted().translation
+        self.hit_wloc_bkp = region_2d_to_location_3d(context.region, context.space_data.region_3d,
+                                            self.mouse_pos, context.object.location)
+        toggle = False
+        if context.mode != "OBJECT":
+            bpy.ops.object.mode_set(mode="OBJECT")
+            toggle = True
+        self.mouse_cast = mouse_raycast(context, self.mouse_pos, evaluated=True)
+        if toggle:
+            bpy.ops.object.mode_set(mode="EDIT")
+
         return self.execute(context)
 
     def execute(self, context):
@@ -253,14 +270,17 @@ class KeUnrotator(Operator):
         #
         # Check mouse over target
         #
-        bpy.ops.object.mode_set(mode="OBJECT")
-        hit_obj, hit_wloc, hit_normal, hit_face = mouse_raycast(context, self.mouse_pos, evaluated=True)
+        # bpy.ops.object.mode_set(mode="OBJECT")
+        # hit_obj, hit_wloc, hit_normal, hit_face = mouse_raycast(context, self.mouse_pos, evaluated=True)
         # print("HIT:", hit_obj, hit_face, hit_normal)
+        hit_obj, hit_wloc, hit_normal, hit_face = self.mouse_cast
 
         # View placement compensation & Z0 drop
         if hit_obj is None and hit_face is None:
-            view_vec = region_2d_to_vector_3d(context.region, context.space_data.region_3d, self.mouse_pos)
-            view_pos = context.space_data.region_3d.view_matrix.inverted().translation
+            # view_vec = region_2d_to_vector_3d(context.region, context.space_data.region_3d, self.mouse_pos)
+            # view_pos = context.space_data.region_3d.view_matrix.inverted().translation
+            view_vec = self.view_vec
+            view_pos = self.view_pos
             raypos = []
             snap = 2
             if get_view_type() != "ORTHO":
@@ -269,8 +289,9 @@ class KeUnrotator(Operator):
             if raypos:
                 hit_wloc = Vector((round(raypos[0], snap), round(raypos[1], snap), 0))
             else:
-                hit_wloc = region_2d_to_location_3d(context.region, context.space_data.region_3d,
-                                                    self.mouse_pos, obj.location)
+                # hit_wloc = region_2d_to_location_3d(context.region, context.space_data.region_3d,
+                #                                     self.mouse_pos, obj.location)
+                hit_wloc = self.hit_wloc_bkp
             place = True
             hit_normal = Vector((0, 0, 1))
 
@@ -404,8 +425,8 @@ class KeUnrotator(Operator):
                 #
                 # VERT MODE
                 #
+                # print("Vert mode: Vectors from 3 points, hypoT ignored")
                 h = tri_points_order([sel_verts[0].co, sel_verts[1].co, sel_verts[2].co])
-                # Vectors from 3 points, hypoT ignored
                 p1, p2, p3 = obj_mtx @ sel_verts[h[0]].co, obj_mtx @ sel_verts[h[1]].co, obj_mtx @ sel_verts[
                     h[2]].co
                 v2 = p3 - p1
@@ -422,7 +443,7 @@ class KeUnrotator(Operator):
                 # EDGE MODE
                 #
                 bm.edges.ensure_lookup_table()
-                # Active edge is tangent
+                # print("Edge mode: Active edge is tangent")
                 ev = active_h.verts[:]
                 ev1, ev2 = ev[0].co, ev[1].co
                 tangent = correct_normal(obj_mtx, Vector((ev1 - ev2)).normalized())
@@ -439,8 +460,9 @@ class KeUnrotator(Operator):
 
             elif sel_mode[2]:
                 #
-                # POLY MODE
+                # FACE MODE
                 #
+                # print("Face mode: Longest vec is tangent, except for tris")
                 normal, tangent = calc_face_vectors(active_h, obj_mtx, obj, len(sel_verts))
 
             #
@@ -483,7 +505,7 @@ class KeUnrotator(Operator):
             npos = obj_mtx @ Vector(average_vector(nv))
 
             if place and not noloc:
-                # Move & offset placement
+                # Print("Move & offset placement")
                 d = distance_point_to_plane(obj_mtx @ active_point.co, npos, hit_normal)
                 offset = hit_normal * d
                 hit_vec = hit_wloc - (npos + offset)
@@ -492,7 +514,7 @@ class KeUnrotator(Operator):
                 bmesh.update_edit_mesh(obj.data)
 
             else:
-                # Compensate z pos to rot-in-place-ish
+                # print("Rotate in place: Compensate z pos to rot-in-place-ish")
                 comp = (npos - avg_pos) * -1
                 bpy.ops.transform.translate(value=comp)
                 bmesh.update_edit_mesh(obj.data)
@@ -584,7 +606,7 @@ class KeUnrotator(Operator):
                     ops_move(offset)
 
                     if not nosnap:
-                        # START MODAL w. SNAPPING
+                        # START MODAL w. SURFACE SNAPPING
                         obj.rotation_euler = self.setrot.to_euler()
                         self.f_center = hit_obj.matrix_world @ Vector(hit_obj.data.polygons[hit_face].center)
                         self.used_modal = True
@@ -634,6 +656,7 @@ class KeUnrotator(Operator):
 
         if event.type in {'RIGHTMOUSE', 'ESC'}:
             set_snap_settings(context, self.og_snaps)
+
             if context.mode == "OBJECT":
                 context.object.location = self.og_pos
                 context.object.rotation_euler = self.og_rot
@@ -643,13 +666,14 @@ class KeUnrotator(Operator):
                     if self.og_sel:
                         for o in self.og_sel:
                             o.select_set(True)
+
             context.workspace.status_text_set(None)
             context.area.tag_redraw()
             return {'CANCELLED'}
 
         elif event.shift and event.type == "LEFTMOUSE":
             set_snap_settings(context, self.og_snaps)
-            # need to hide the obj to not raycast on it...
+            # need to hide the obj to not block raycast...
             context.object.hide_viewport = True
             self.mouse_pos[0] = event.mouse_region_x
             self.mouse_pos[1] = event.mouse_region_y
@@ -657,6 +681,7 @@ class KeUnrotator(Operator):
             if hit_face:
                 self.f_center = hit_obj.matrix_world @ Vector(hit_obj.data.polygons[hit_face].center)
             context.object.hide_viewport = False
+
             if self.temp_children:
                 context.object.select_set(True)
                 context.object.location = self.f_center
@@ -664,14 +689,17 @@ class KeUnrotator(Operator):
                 unparent(self.temp_children)
             else:
                 context.object.location = self.f_center
+
             context.workspace.status_text_set(None)
             context.area.tag_redraw()
             return {"FINISHED"}
 
         elif event.type in {"LEFTMOUSE", "SPACE", "RETURN"}:
             set_snap_settings(context, self.og_snaps)
+
             if self.temp_children:
                 unparent(self.temp_children)
+
             context.workspace.status_text_set(None)
             context.area.tag_redraw()
             return {"FINISHED"}

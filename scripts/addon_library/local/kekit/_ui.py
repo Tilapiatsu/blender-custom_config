@@ -5,13 +5,17 @@ import rna_keymap_ui
 from bpy.props import StringProperty
 from bpy.types import Operator, Header, Panel
 from bpy.utils import previews
+
 from ._prefs import get_prefs
 from ._utils import get_kekit_keymap
 
 pcoll = {}
-icons = ["ke_bm1.png", "ke_bm2.png", "ke_bm3.png", "ke_bm4.png", "ke_bm5.png", "ke_bm6.png", "ke_check.png",
+icons = ["ke_bm1.png", "ke_bm2.png", "ke_bm3.png", "ke_bm4.png", "ke_bm5.png", "ke_bm6.png", "ke_bm7.png", "ke_bm8.png",
+         "ke_bm9.png", "ke_bm0.png", "ke_check.png",
          "ke_cursor1.png", "ke_cursor2.png", "ke_cursor3.png", "ke_cursor4.png", "ke_cursor5.png", "ke_cursor6.png",
-         "ke_dot1.png", "ke_dot2.png", "ke_dot3.png", "ke_dot4.png", "ke_dot5.png", "ke_dot6.png",
+         "ke_dot1.png", "ke_dot2.png", "ke_dot3.png", "ke_dot4.png", "ke_dot5.png", "ke_dot6.png", "ke_mod1.png",
+         "ke_mod2.png", "ke_mod3.png", "ke_mod4.png", "ke_mod5.png", "ke_mod6.png", "ke_mod7.png", "ke_mod8.png",
+         "ke_mod9.png", "ke_mod0.png",
          "ke_mono1.png", "ke_mono2.png", "ke_mono3.png", "ke_mono4.png", "ke_mono5.png", "ke_mono6.png",
          "ke_opc1.png", "ke_opc2.png", "ke_opc3.png", "ke_opc4.png", "ke_opc5.png", "ke_opc6.png",
          "ke_snap1.png", "ke_snap2.png", "ke_snap3.png", "ke_snap4.png", "ke_snap5.png", "ke_snap6.png",
@@ -62,7 +66,7 @@ def prefs_ui(self, layout):
     box = layout.box()
     col = box.column()
     col.emboss = "PULLDOWN_MENU"
-    # Todo: Replace with 4.1 "layout panels" (for submenus) ...at some point post 4.1 release
+    # Todo: Replace with 4.1 "layout panels" (for submenus) ...at some point post 4.1 release? nah
     # header, panel = layout.panel("my_panel_id", default_closed=False)
     #         header.label(text="Hello World")
     col.prop(self, "show_modules", icon='DISCLOSURE_TRI_DOWN' if self.show_modules else 'DISCLOSURE_TRI_RIGHT')
@@ -98,7 +102,7 @@ def prefs_ui(self, layout):
         row = box.row()
         row.label(text="keKit UI:")
         row = box.grid_flow(columns=4)
-        row.prop(self, "color_icons", toggle=True)
+        row.prop(self, "snapcombos_npanel_only", toggle=True)
         row.prop(self, "kcm", toggle=True)
         row.prop(self, "outliner_extras", toggle=True)
         row.prop(self, "material_extras", toggle=True)
@@ -113,14 +117,7 @@ def prefs_ui(self, layout):
             row = split.row(align=True)
             row.prop(self, "tt_icon_pos", expand=True)
 
-        row = box.row()
-        split = row.split(factor=0.2)
-        split.label(text="Tool Settings:")
-        row2 = split.row(align=True)
-        row2.prop(self, "ext_tools", toggle=True)
-        row2.prop(self, "ext_factor")
-
-        box.label(text="Modal Text:")
+        box.label(text="keKit Modal Text:")
         gf = box.grid_flow(row_major=True, columns=2)
         gf.use_property_split = True
         gf.prop(self, "ui_scale")
@@ -284,74 +281,6 @@ def draw_extras(self, context):
     row.operator("outliner.show_one_level", icon="ZOOM_OUT", text="").open = False
 
 
-def draw_tool_options(self, context):
-    k = get_prefs()
-    if k.ext_tools:
-        f = k.ext_factor
-        t = context.tool_settings
-        layout = self.layout
-        row = layout.row(align=True)
-
-        if context.mode == "OBJECT" and context.object:
-            if context.object.type == "MESH":
-                row.enabled = False
-                row.separator(factor=1)
-                row.label(icon='MOD_MIRROR')
-                sub = row.row(align=True)
-                sub.scale_x = 0.6
-                sub.prop(context.object, "use_mesh_mirror_x", text="X", toggle=True)
-                sub.prop(context.object, "use_mesh_mirror_y", text="Y", toggle=True)
-                sub.prop(context.object, "use_mesh_mirror_z", text="Z", toggle=True)
-                row.prop(t, "use_mesh_automerge", text="")
-                row.separator(factor=1)
-                row.prop(t, "use_transform_correct_face_attributes", text="", icon="MOD_UVPROJECT", toggle=True)
-                row.prop(t, "use_edge_path_live_unwrap", text="", icon="UV", toggle=True)
-            else:
-                row.separator(factor=1.8)
-                row.label(text="Affect Only")
-                row.prop(t, "use_transform_data_origin", text="", icon="PIVOT_INDIVIDUAL", toggle=True)
-                row.prop(t, "use_transform_pivot_point_align", text="", icon="ORIENTATION_LOCAL", toggle=True)
-                row.prop(t, "use_transform_skip_children", text="", icon="CON_CHILDOF", toggle=True)
-                row.separator(factor=1.8)
-
-        elif context.mode == "EDIT_MESH":
-            row.separator(factor=0.6)
-            row.prop(t, "use_transform_correct_face_attributes", text="", icon="MOD_UVPROJECT", toggle=True)
-            row.prop(t, "use_edge_path_live_unwrap", text="", icon="UV", toggle=True)
-
-        elif context.mode == "EDIT_ARMATURE":
-            # + disabled objmode settings to fill void
-            row.enabled = False
-            row.separator(factor=3)
-            row.prop(t, "use_transform_data_origin", text="", icon="PIVOT_INDIVIDUAL", toggle=True)
-            row.prop(t, "use_transform_pivot_point_align", text="", icon="ORIENTATION_LOCAL", toggle=True)
-            row.prop(t, "use_transform_skip_children", text="", icon="CON_CHILDOF", toggle=True)
-            row.separator(factor=3.8)
-
-        elif context.mode == "PAINT_TEXTURE":
-            row.separator(factor=11)
-
-        elif context.mode == "PAINT_VERTEX":
-            row.separator(factor=19.5)
-
-        elif context.mode == "PAINT_WEIGHT":
-            row.separator(factor=7.5)
-
-        else:
-            pass
-            # meh do nothing
-            # + disabled objmode settings to fill void
-            # row.enabled = False
-            # row.separator(factor=1)
-            # row.label(text="Affect Only")
-            # row.prop(t, "use_transform_data_origin", text="", icon="PIVOT_INDIVIDUAL", toggle=True)
-            # row.prop(t, "use_transform_pivot_point_align", text="", icon="ORIENTATION_LOCAL", toggle=True)
-            # row.prop(t, "use_transform_skip_children", text="", icon="CON_CHILDOF", toggle=True)
-            # row.separator(factor=14.2)
-
-        layout.separator(factor=f)
-
-
 class KeCursorMenuHeader(Header):
     bl_idname = "VIEW3D_HT_KCM"
     bl_region_type = 'HEADER'
@@ -372,20 +301,12 @@ class KeCursorMenuPanel(Panel):
     def draw(self, context):
         kt = context.scene.kekit_temp
         k = get_prefs()
-        if k.color_icons:
-            c1 = pcoll['kekit']['ke_cursor1'].icon_id
-            c2 = pcoll['kekit']['ke_cursor2'].icon_id
-            c3 = pcoll['kekit']['ke_cursor3'].icon_id
-            c4 = pcoll['kekit']['ke_cursor4'].icon_id
-            c5 = pcoll['kekit']['ke_cursor5'].icon_id
-            c6 = pcoll['kekit']['ke_cursor6'].icon_id
-        else:
-            c1 = pcoll['kekit']['ke_mono1'].icon_id
-            c2 = pcoll['kekit']['ke_mono2'].icon_id
-            c3 = pcoll['kekit']['ke_mono3'].icon_id
-            c4 = pcoll['kekit']['ke_mono4'].icon_id
-            c5 = pcoll['kekit']['ke_mono5'].icon_id
-            c6 = pcoll['kekit']['ke_mono6'].icon_id
+        c1 = pcoll['kekit']['ke_cursor1'].icon_id
+        c2 = pcoll['kekit']['ke_cursor2'].icon_id
+        c3 = pcoll['kekit']['ke_cursor3'].icon_id
+        c4 = pcoll['kekit']['ke_cursor4'].icon_id
+        c5 = pcoll['kekit']['ke_cursor5'].icon_id
+        c6 = pcoll['kekit']['ke_cursor6'].icon_id
 
         xp = k.experimental
         bookmarks = bool(k.m_bookmarks)
@@ -557,8 +478,6 @@ classes = (
 
 
 def add_extras(k):
-    if k.ext_tools:
-        bpy.types.VIEW3D_HT_tool_header.append(draw_tool_options)
     if k.outliner_extras:
         bpy.types.OUTLINER_HT_header.append(draw_extras)
     if k.m_tt:
@@ -581,7 +500,6 @@ def add_extras(k):
 def remove_extras():
     try:
         bpy.types.OUTLINER_HT_header.remove(draw_extras)
-        bpy.types.VIEW3D_HT_tool_header.remove(draw_tool_options)
         bpy.types.VIEW3D_MT_editor_menus.remove(KeCursorMenuHeader.draw)
         bpy.types.VIEW3D_MT_object_context_menu.remove(menu_set_active_collection)
         bpy.types.VIEW3D_MT_object_context_menu.remove(menu_show_in_outliner)

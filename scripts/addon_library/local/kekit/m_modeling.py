@@ -52,14 +52,12 @@ class UIModelingModule(Panel):
         col.operator('mesh.ke_quads')
         col.operator('view3d.ke_wonkify')
 
-        col.label(text="Merge To:")
         row = col.row(align=True)
-        row.operator('mesh.ke_merge_to_mouse', text="Mouse", icon="MOUSE_MOVE")
+        row.operator('mesh.ke_merge_to_mouse', text="Merge to Mouse", icon="MOUSE_MOVE")
         row.prop(k, "merge2mouse_ec", text="", toggle=True, icon_value=c if k.merge2mouse_ec else u)
-        col.operator('mesh.ke_merge_near_selected', text="Near Selected")
+        col.operator('mesh.ke_merge_near_selected', text="Merge Near Selected")
         col.operator('mesh.ke_merge_to_active')
 
-        col.label(text="Dimensional")
         col.operator('view3d.ke_fit2grid')
         row = col.row(align=True)
         split = row.split(factor=0.65, align=True)

@@ -144,59 +144,51 @@ class KePieOps(Operator):
         #
         # MODIFIERS
         #
-        # Note: Re-using 'VG' naming for EDGE GROUPS...
+        # Note: Re-using 'VG' naming for EDGE GROUPS...?
         elif self.op == "SUBD":
-            bpy.ops.object.modifier_add(type='SUBSURF')
-            s = active.modifiers[-1]
-            s.name = "SubD"
-            s.levels = 3
-            s.render_levels = 3
-            s.boundary_smooth = 'PRESERVE_CORNERS'
+            m = active.modifiers.new("SubD", "SUBSURF")
+            m.levels = 3
+            m.render_levels = 3
+            m.boundary_smooth = 'PRESERVE_CORNERS'
 
         elif self.op == "W_BEVEL":
-            bpy.ops.object.modifier_add(type='BEVEL')
-            b = active.modifiers[-1]
-            b.name = "WBevel"
-            b.width = 0.01
-            b.limit_method = 'WEIGHT'
-            b.miter_outer = 'MITER_ARC'
+            m = active.modifiers.new("WBevel", "BEVEL")
+            m.width = 0.01
+            m.limit_method = 'WEIGHT'
+            m.miter_outer = 'MITER_ARC'
             if k.korean:
-                b.profile = 1
-                b.segments = 2
+                m.profile = 1
+                m.segments = 2
             else:
-                b.segments = 3
-            bpy.ops.object.modifier_move_to_index(modifier=b.name, index=0)
+                m.segments = 3
 
         elif self.op == "ANGLE_BEVEL":
-            bpy.ops.object.modifier_add(type='BEVEL')
-            b = active.modifiers[-1]
-            b.name = "ABevel"
-            b.width = 0.005
-            b.limit_method = 'ANGLE'
-            b.angle_limit = 1.0472
-            b.miter_outer = 'MITER_ARC'
+            m = active.modifiers.new("ABevel", "BEVEL")
+            m.width = 0.005
+            m.limit_method = 'ANGLE'
+            m.angle_limit = 1.0472
+            m.miter_outer = 'MITER_ARC'
             if k.korean:
-                b.profile = 1
-                b.segments = 2
+                m.profile = 1
+                m.segments = 2
             else:
-                b.segments = 3
+                m.segments = 3
 
         elif "VG_BEVEL" in self.op:
             n = str(self.op).split("¤")[1]
-            bpy.ops.object.modifier_add(type='BEVEL')
-            b = active.modifiers[-1]
-            b.name = n
-            b.width = 0.005
-            b.miter_outer = 'MITER_ARC'
-            b.limit_method = 'VGROUP'
-            b.vertex_group = n
+            m = active.modifiers.new(n, "BEVEL")
+            m.width = 0.005
+            m.miter_outer = 'MITER_ARC'
+            m.limit_method = 'VGROUP'
+            m.vertex_group = n
             if k.korean:
-                b.profile = 1
-                b.segments = 2
+                m.profile = 1
+                m.segments = 2
             else:
-                b.segments = 3
+                m.segments = 3
 
         elif "ADD_VG" in self.op:
+            # TO-DO: TBD if vgroup ops can be less reliant on bpy.ops - macro-fest?
             assign_mode = False
 
             if "¤" in self.op:
@@ -293,8 +285,7 @@ class KePieOps(Operator):
                     else:
                         active_m.mirror_object = e
             else:
-                bpy.ops.object.modifier_add(type='MIRROR')
-                m = active.modifiers[-1]
+                m = active.modifiers.new("Mirror", "MIRROR")
                 if self.op == "MIRROR_Y":
                     m.use_axis = (False, True, False)
                 elif self.op == "MIRROR_Z":
@@ -309,16 +300,13 @@ class KePieOps(Operator):
                     m.use_bisect_axis = (False, False, True)
 
         elif self.op == "SOLIDIFY":
-            bpy.ops.object.modifier_add(type='SOLIDIFY')
-            m = active.modifiers[-1]
-            m.name = "kSolidify"
+            m = active.modifiers.new("kSolidify", "SOLIDIFY")
             m.thickness = -0.01
 
-        elif self.op == "WEIGHTED_NORMAL" and bpy.app.version < (4, 1):
-            context.object.data.use_auto_smooth = True
-            bpy.ops.object.modifier_add(type='WEIGHTED_NORMAL')
-            m = active.modifiers[-1]
-            m.name = "kWeightedN"
+        elif self.op == "WEIGHTED_NORMAL":
+            if bpy.app.version < (4, 1):
+                active.data.use_auto_smooth = True
+            m = active.modifiers.new("WeightedNormal", "WEIGHTED_NORMAL")
             m.keep_sharp = True
             # Set as bool:
             wmod = True
@@ -342,14 +330,13 @@ class KePieOps(Operator):
         # Auto Add WN if Bevel Added
         if self.op in {"W_BEVEL", "ANGLE_BEVEL", "VG_BEVEL"} and not wmod:
             if bpy.app.version < (4, 1):
-                context.object.data.use_auto_smooth = True
-                bpy.ops.object.modifier_add(type='WEIGHTED_NORMAL')
-                m = active.modifiers[-1]
-                m.name = "kWeightedN"
+                active.data.use_auto_smooth = True
+                m = active.modifiers.new("kWeightedN", "WEIGHTED_NORMAL")
                 m.keep_sharp = True
 
-        # AUTO SORT
-        bpy.ops.ke.mod_order(obj_name=active.name, mod_type='WEIGHTED_NORMAL', top=False)
+        # AUTO SORT (LEGACY)
+        if bpy.app.version < (4, 1):
+            bpy.ops.ke.mod_order(obj_name=active.name, mod_type='WEIGHTED_NORMAL', top=False)
 
         return {'FINISHED'}
 

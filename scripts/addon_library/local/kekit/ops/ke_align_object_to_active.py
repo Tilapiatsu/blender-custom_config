@@ -4,7 +4,7 @@ from bpy.types import Operator
 
 class KeAlignObjectToActive(Operator):
     bl_idname = "view3d.ke_align_object_to_active"
-    bl_label = "Align Object(s) To Active"
+    bl_label = "Align Object(s) to Active"
     bl_description = "Align selected object(s) to the Active Objects Transforms. (You may want to apply scale)"
     bl_space_type = 'VIEW_3D'
     bl_options = {'REGISTER', 'UNDO'}

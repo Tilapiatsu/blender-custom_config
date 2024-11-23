@@ -131,7 +131,7 @@ class KeMouseAxisMove(Operator):
             is_em = bool(self.obj.data.use_stroke_edit_mode)
         else:
             if self.obj.type in self.em_types:
-                is_em = bool(self.obj.data.is_editmode)
+                is_em = True if context.mode != "OBJECT" else False
 
         #
         # AXIS CONSTRAINT OR DEFAULT TF OPTION CHECK
@@ -205,7 +205,7 @@ class KeMouseAxisMove(Operator):
                 return {'CANCELLED'}
 
             # NORMAL / SELECTION
-            elif em != "OBJECT":
+            elif em != "OBJECT" and self.obj.type != "CURVE":
                 self.obj.update_from_editmode()
                 sel = [v for v in self.obj.data.vertices if v.select]
                 sel_co = average_vector([self.obj.matrix_world @ v.co for v in sel])

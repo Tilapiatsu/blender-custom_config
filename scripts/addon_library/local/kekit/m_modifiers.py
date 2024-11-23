@@ -1,6 +1,7 @@
 import bpy
 from bpy.props import StringProperty, BoolProperty
 from bpy.types import Panel, Operator
+
 from ._ui import pcoll
 from ._utils import get_prefs
 from .ops.ke_mod_vis import KeToggleModVis

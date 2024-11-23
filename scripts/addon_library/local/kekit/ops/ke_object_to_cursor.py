@@ -3,7 +3,7 @@ from bpy.types import Operator
 
 class KeObjectToCursor(Operator):
     bl_idname = "view3d.ke_object_to_cursor"
-    bl_label = "Align Object To Cursor"
+    bl_label = "Align Object to Cursor"
     bl_description = "Aligns selected object(s) to Cursor (Rotation & Location)"
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'UI'

@@ -1,7 +1,13 @@
 keops = [
     "ke.call_pie",
-    "ke.mcprefs"
+    "ke.mcprefs",
+    "ke.mod_order",
     "ke.pieops",
+    "ke.prop_toggle",
+    "ke_mouseover.info",
+    "kekit.prefs_export",
+    "kekit.prefs_import",
+    "kekit.prefs_reset",
     "mesh.ke_activeslice",
     "mesh.ke_bridge_or_fill",
     "mesh.ke_context_connect",
@@ -17,6 +23,7 @@ keops = [
     "mesh.ke_merge_near_selected",
     "mesh.ke_merge_to_active",
     "mesh.ke_merge_to_mouse",
+    "mesh.ke_mouse_select_mirror",
     "mesh.ke_mouse_side_of_active",
     "mesh.ke_multicut",
     "mesh.ke_primitive_box_add",
@@ -33,7 +40,6 @@ keops = [
     "object.ke_clean_unused_materials",
     "object.ke_local_by_distance",
     "object.ke_object_op",
-    "object.ke_polybrush",
     "object.ke_select_by_displaytype",
     "object.ke_select_objects_by_vertselection",
     "object.ke_showcuttermod",
@@ -57,17 +63,20 @@ keops = [
     "view3d.ke_copyplus",
     "view3d.ke_cursor_align_rot",
     "view3d.ke_cursor_bookmark",
+    "view3d.ke_cursor_clear_rot",
     "view3d.ke_cursor_fit_align",
-    "view3d.ke_cursor_ortho_snap"
-    "view3d.ke_cursor_rotation"
+    "view3d.ke_cursor_ortho_snap",
+    "view3d.ke_cursor_rotation",
     "view3d.ke_fit2grid",
     "view3d.ke_fitprim",
     "view3d.ke_get_set_editmesh",
     "view3d.ke_get_set_material",
     "view3d.ke_grid_toggle",
     "view3d.ke_ground",
+    "view3d.ke_id_material",
     "view3d.ke_lineararray",
     "view3d.ke_lock",
+    "view3d.ke_modifier_preset",
     "view3d.ke_mouse_axis_move",
     "view3d.ke_mouse_mirror_flip",
     "view3d.ke_nice_project",
@@ -84,7 +93,9 @@ keops = [
     "view3d.ke_select_invert_linked",
     "view3d.ke_select_occluded_verts",
     "view3d.ke_selected_to_origin",
+    "view3d.ke_set_active_collection",
     "view3d.ke_shading_toggle",
+    "view3d.ke_show_in_outliner",
     "view3d.ke_snap_combo",
     "view3d.ke_solo_cutter",
     "view3d.ke_subd",
@@ -106,8 +117,11 @@ keops = [
     "view3d.ke_vp_flip",
     "view3d.ke_vp_step_rotate",
     "view3d.ke_vptransform",
-    "view3d.ke_zerolocal"
+    "view3d.ke_wonkify",
+    "view3d.ke_zerolocal",
+    "view3d.origin_to_selected"
 ]
+
 kepies = [
     "BoolTool",
     "View & Cursor Bookmarks",
@@ -120,4 +134,5 @@ kepies = [
     "keSnapAlign",
     "keSnapping",
     "keSubd",
+    "Modifier Presets"
 ]

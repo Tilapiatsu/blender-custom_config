@@ -37,7 +37,7 @@ bl_info = {
     "name": "Align UV",
     "description": "Align UV",
     "author": "Kushiro",
-    "version": (1, 0, 0),
+    "version": (2, 4, 1),
     "blender": (2, 83, 0),
     "location": "UV Editing > Context Menu (right click)",
     "category": "UV",
@@ -52,6 +52,8 @@ def register():
     
     bpy.utils.register_class(align_uv.AlignUVOperator)
     bpy.utils.register_class(align_uv.SmoothUVOperator)
+    bpy.utils.register_class(align_uv.SmoothUVInnerOperator)
+    bpy.utils.register_class(align_uv.SmoothUVEdgeOperator)
     bpy.types.IMAGE_MT_uvs_context_menu.append(align_uv.menu_func)
 
 
@@ -60,6 +62,8 @@ def unregister():
     bpy.types.IMAGE_MT_uvs_context_menu.remove(align_uv.menu_func)
     bpy.utils.unregister_class(align_uv.AlignUVOperator)
     bpy.utils.unregister_class(align_uv.SmoothUVOperator)
+    bpy.utils.unregister_class(align_uv.SmoothUVInnerOperator)
+    bpy.utils.unregister_class(align_uv.SmoothUVEdgeOperator)
     
     
 if __name__ == "__main__":    

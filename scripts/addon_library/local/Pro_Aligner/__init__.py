@@ -1,8 +1,3 @@
-# Copyright (C) 2023 CG GALAXY
-# cggalaxy@hotmail.com
-
-# Created by CG GALAXY
-
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation; either version 3 of the License, or
@@ -21,7 +16,7 @@ bl_info = {
     "author" : "CG GALAXY", 
     "description" : "Align and restore object's rotation",
     "blender" : (3, 0, 0),
-    "version" : (1, 0, 0),
+    "version" : (1, 2, 0),
     "location" : "View 3D > Sidebar > Pro Aligner",
     "warning" : "",
     "doc_url": "", 
@@ -33,12 +28,12 @@ bl_info = {
 import bpy
 import bpy.utils.previews
 from bpy.app.handlers import persistent
-import mathutils
+import math
 
 
 addon_keymaps = {}
 _icons = None
-align_button = {'sna_x_trigger_checker': False, 'sna_y_trigger_checker': False, 'sna_z_trigger_checker': False, 'sna_active_object': None, }
+align_button = {'sna_x_trigger_checker': False, 'sna_y_trigger_checker': False, 'sna_z_trigger_checker': False, 'sna_active_object': None, 'sna_cursor_mode': '', }
 depsgraph_update = {'sna_depsgraph_update': False, }
 operator = {'sna_z_trigger': False, 'sna_x_trigger': False, 'sna_y_trigger': False, 'sna_if_x_true': False, 'sna_if_y_true': False, 'sna_z_empty_rot_x': 0.0, 'sna_z_empty_rot_y': 0.0, 'sna_z_empty_rot_z': 0.0, 'sna_x_empty_rot_x': 0.0, 'sna_x_empty_rot_y': 0.0, 'sna_x_empty_rot_z': 0.0, 'sna_y_empty_rot_x': 0.0, 'sna_y_empty_rot_y': 0.0, 'sna_y_empty_rot_z': 0.0, 'sna_in_which_mode': '', }
 save_cursor_location__rotation = {'sna_cursor_loc_x': 0.0, 'sna_cursor_loc_y': 0.0, 'sna_cursor_loc_z': 0.0, 'sna_cursor_rot_x': 0.0, 'sna_cursor_rot_y': 0.0, 'sna_cursor_rot_z': 0.0, }
@@ -209,11 +204,24 @@ def sna_add_empty_8A33C(Object_Name):
     Empty_Object = Object_Name
     # Create an empty object
     empty = bpy.data.objects.new(Empty_Object, None)
-    # Get the 3D cursor rotation
+    # Get the 3d cursor rotation
     cursor_rot = bpy.context.scene.cursor.rotation_euler
-    # Set the empty object's rotation to the 3D cursor rotation
+    # Set the empty object's rotation to the 3d cursor rotation
     empty.rotation_euler = cursor_rot
     sna_link_empty_to_scene_077C5(Object_Name)
+
+
+def sna_combine_1__align_button_91DC0(Object_Name, Constraint_Name):
+    Empty_Constraint_Apply = Constraint_Name
+    # Apply constraint
+    bpy.ops.constraint.apply(constraint=Empty_Constraint_Apply,)
+    sna_remove_object_ECF92(Object_Name)
+    sna_cursor_to_object_saved_location_FA0D9()
+    # Origin to cursor
+    bpy.ops.object.origin_set(type='ORIGIN_CURSOR', center='MEDIAN')
+    sna_return_cursor_location__rotation_08E90()
+    # Switch to edit mode
+    bpy.ops.object.mode_set(mode='EDIT')
 
 
 class SNA_OT_Align_3Ea9B(bpy.types.Operator):
@@ -232,6 +240,8 @@ class SNA_OT_Align_3Ea9B(bpy.types.Operator):
         align_button['sna_active_object'] = bpy.context.view_layer.objects.active
         sna_save_cursor_location__rotation_438BE()
         sna_save_object_location_3F045()
+        align_button['sna_cursor_mode'] = bpy.context.scene.cursor.rotation_mode
+        bpy.context.scene.cursor.rotation_mode = 'XYZ'
         if operator['sna_z_trigger']:
             align_button['sna_z_trigger_checker'] = True
         else:
@@ -327,23 +337,11 @@ class SNA_OT_Align_3Ea9B(bpy.types.Operator):
                     sna_object_rotation_combine_A460B('PA_Y_Axis_Store_Object', 'PA_Y_Axis_Store_Constraint', operator['sna_y_empty_rot_x'], operator['sna_y_empty_rot_y'], operator['sna_y_empty_rot_z'])
                     sna_align_y_1FE4D()
                     sna_combine_1__align_button_91DC0('PA_Y_Axis_Store_Object', 'PA_Y_Axis_Store_Constraint')
+        bpy.context.scene.cursor.rotation_mode = align_button['sna_cursor_mode']
         return {"FINISHED"}
 
     def invoke(self, context, event):
         return self.execute(context)
-
-
-def sna_combine_1__align_button_91DC0(Object_Name, Constraint_Name):
-    Empty_Constraint_Apply = Constraint_Name
-    # Apply constraint
-    bpy.ops.constraint.apply(constraint=Empty_Constraint_Apply,)
-    sna_remove_object_ECF92(Object_Name)
-    sna_cursor_to_object_saved_location_FA0D9()
-    # Origin to cursor
-    bpy.ops.object.origin_set(type='ORIGIN_CURSOR', center='MEDIAN')
-    sna_return_cursor_location__rotation_08E90()
-    # Switch to edit mode
-    bpy.ops.object.mode_set(mode='EDIT')
 
 
 def sna_align_x_A0848():
@@ -517,31 +515,34 @@ def sna_object_rotation_split_vector_EBB56(Object_Name):
 
 
 def sna_combine_2__operator_64983(Object_Name):
-    # Cursor rotation to face
+    # Get active scene
     scene = bpy.context.scene
-    bpy.ops.transform.create_orientation(use=False)
-    slot = scene.transform_orientation_slots[0]
-
-    def get_orientation_list(slot):
-        try: slot.type = ""
-        except Exception as inst:
-            s = str(inst)
-            s = s[50:]
-            return eval(s)
-    slots = get_orientation_list(slot)
-    old_type = slot.type
-    slot.type = slots[-1]
-    mat4x4 = slot.custom_orientation.matrix.to_4x4()
-    loc, rot, sca = mat4x4.decompose()
-    print(loc)
-    print(rot)
-    cursor = scene.cursor
-    old_mode = cursor.rotation_mode
-    cursor.rotation_mode = 'QUATERNION'
-    scene.cursor.rotation_quaternion = rot
-    cursor.rotation_mode = old_mode
+    # Get old slot type
+    old_slot_type = scene.transform_orientation_slots[0].type
+    # Create new transform orientation
+    bpy.ops.transform.create_orientation(use=True)
+    # Get new slot
+    new_slot = scene.transform_orientation_slots[0]
+    # Get new slot type
+    new_slot_type = new_slot.type
+    # Get mat4x4 rotation
+    mat4x4 = new_slot.custom_orientation.matrix.to_4x4()
+    # Get rotation value of mat4x4
+    mat4x4_rotation = mat4x4.decompose()[1]
+    # Get 3d cursor
+    cursor_var = scene.cursor
+    # Get 3d cursor old rotation mode
+    old_cursor_rot_mode = cursor_var.rotation_mode
+    # Set 3d cursor new rotation mode
+    cursor_var.rotation_mode = 'QUATERNION'
+    # Set 3d cursor rotation to mat4x4 rotation
+    scene.cursor.rotation_quaternion = mat4x4_rotation
+    # Set cursror rotation mode to old mode
+    cursor_var.rotation_mode = old_cursor_rot_mode
+    # Delete recently created transform orientation
     bpy.ops.transform.delete_orientation()
-    slot.type = old_type
+    # Set transform orientation to old type
+    new_slot.type = old_slot_type
     # Switch to object mode
     bpy.ops.object.mode_set(mode='OBJECT')
     sna_add_empty_8A33C(Object_Name)
@@ -620,7 +621,7 @@ class SNA_OT_X__On_5796E(bpy.types.Operator):
         sna_combine_2__operator_64983('PA_X_Axis_Store_Object')
         bpy.context.view_layer.update()
         Empty_Rotation = 'PA_X_Axis_Store_Object'
-        import math
+        import mathutils
         # Get the object named "gabo"
         obj = bpy.data.objects.get(Empty_Rotation)
         if obj is not None:
@@ -678,7 +679,7 @@ class SNA_OT_Y__On_B9C47(bpy.types.Operator):
         sna_combine_2__operator_64983('PA_Y_Axis_Store_Object')
         bpy.context.view_layer.update()
         Empty_Rotation = 'PA_Y_Axis_Store_Object'
-        import math
+        import mathutils
         # Get the object named "gabo"
         obj = bpy.data.objects.get(Empty_Rotation)
         if obj is not None:
@@ -873,184 +874,6 @@ def sna_transforms_8D074(Apply_Origin, Apply_Rotation, Move_to_Center):
     bpy.ops.object.mode_set(mode=saved_mode)
 
 
-class SNA_PT_PRO_ALIGNER_260B4(bpy.types.Panel):
-    bl_label = 'Pro Aligner'
-    bl_idname = 'SNA_PT_PRO_ALIGNER_260B4'
-    bl_space_type = 'VIEW_3D'
-    bl_region_type = 'UI'
-    bl_context = ''
-    bl_category = 'Pro Aligner'
-    bl_order = 0
-    bl_ui_units_x=0
-
-    @classmethod
-    def poll(cls, context):
-        return not (False)
-
-    def draw_header(self, context):
-        layout = self.layout
-
-    def draw(self, context):
-        layout = self.layout
-        col_F9049 = layout.column(heading='', align=True)
-        col_F9049.alert = False
-        col_F9049.enabled = True
-        col_F9049.active = True
-        col_F9049.use_property_split = False
-        col_F9049.use_property_decorate = False
-        col_F9049.scale_x = 1.0
-        col_F9049.scale_y = 1.0
-        col_F9049.alignment = 'Expand'.upper()
-        if not True: col_F9049.operator_context = "EXEC_DEFAULT"
-        col_7DCE6 = col_F9049.column(heading='', align=True)
-        col_7DCE6.alert = False
-        col_7DCE6.enabled = sna_in_mode_2C0C4()
-        col_7DCE6.active = sna_in_mode_2C0C4()
-        col_7DCE6.use_property_split = False
-        col_7DCE6.use_property_decorate = False
-        col_7DCE6.scale_x = 1.0
-        col_7DCE6.scale_y = 1.0
-        col_7DCE6.alignment = 'Expand'.upper()
-        if not True: col_7DCE6.operator_context = "EXEC_DEFAULT"
-        row_A9CD3 = col_7DCE6.row(heading='', align=False)
-        row_A9CD3.alert = False
-        row_A9CD3.enabled = True
-        row_A9CD3.active = True
-        row_A9CD3.use_property_split = False
-        row_A9CD3.use_property_decorate = False
-        row_A9CD3.scale_x = 1.0
-        row_A9CD3.scale_y = 1.0
-        row_A9CD3.alignment = 'Center'.upper()
-        if not True: row_A9CD3.operator_context = "EXEC_DEFAULT"
-        row_A9CD3.label(text='Align', icon_value=0)
-        col_7DCE6.separator(factor=1.0)
-        col_D937B = col_7DCE6.column(heading='', align=True)
-        col_D937B.alert = False
-        col_D937B.enabled = True
-        col_D937B.active = True
-        col_D937B.use_property_split = False
-        col_D937B.use_property_decorate = False
-        col_D937B.scale_x = 1.0
-        col_D937B.scale_y = 1.2000000476837158
-        col_D937B.alignment = 'Expand'.upper()
-        if not True: col_D937B.operator_context = "EXEC_DEFAULT"
-        if operator['sna_z_trigger']:
-            op = col_D937B.operator('sna.z__off_b57b8', text='Z', icon_value=0, emboss=True, depress=True)
-        else:
-            op = col_D937B.operator('sna.z__on_e1233', text='Z', icon_value=0, emboss=True, depress=False)
-        row_015A3 = col_7DCE6.row(heading='', align=True)
-        row_015A3.alert = False
-        row_015A3.enabled = True
-        row_015A3.active = True
-        row_015A3.use_property_split = False
-        row_015A3.use_property_decorate = False
-        row_015A3.scale_x = 1.600000023841858
-        row_015A3.scale_y = 1.0
-        row_015A3.alignment = 'Center'.upper()
-        if not False: row_015A3.operator_context = "EXEC_DEFAULT"
-        row_F6C98 = row_015A3.row(heading='', align=True)
-        row_F6C98.alert = False
-        row_F6C98.enabled = (not operator['sna_if_y_true'])
-        row_F6C98.active = (not operator['sna_if_y_true'])
-        row_F6C98.use_property_split = False
-        row_F6C98.use_property_decorate = False
-        row_F6C98.scale_x = 2.0
-        row_F6C98.scale_y = 1.2000000476837158
-        row_F6C98.alignment = 'Center'.upper()
-        if not False: row_F6C98.operator_context = "EXEC_DEFAULT"
-        if operator['sna_x_trigger']:
-            op = row_F6C98.operator('sna.x__off_501d5', text='X', icon_value=0, emboss=True, depress=True)
-        else:
-            op = row_F6C98.operator('sna.x__on_5796e', text='X', icon_value=0, emboss=True, depress=False)
-        row_81F22 = row_015A3.row(heading='', align=True)
-        row_81F22.alert = False
-        row_81F22.enabled = (not operator['sna_if_x_true'])
-        row_81F22.active = (not operator['sna_if_x_true'])
-        row_81F22.use_property_split = False
-        row_81F22.use_property_decorate = False
-        row_81F22.scale_x = 2.0
-        row_81F22.scale_y = 1.2000000476837158
-        row_81F22.alignment = 'Center'.upper()
-        if not False: row_81F22.operator_context = "EXEC_DEFAULT"
-        if operator['sna_y_trigger']:
-            op = row_81F22.operator('sna.y__off_af3c8', text='Y', icon_value=0, emboss=True, depress=True)
-        else:
-            op = row_81F22.operator('sna.y__on_b9c47', text='Y', icon_value=0, emboss=True, depress=False)
-        col_300E9 = col_7DCE6.column(heading='', align=True)
-        col_300E9.alert = False
-        col_300E9.enabled = sna_check_triggers_9CA3E()[0]
-        col_300E9.active = sna_check_triggers_9CA3E()[0]
-        col_300E9.use_property_split = True
-        col_300E9.use_property_decorate = True
-        col_300E9.scale_x = 1.0
-        col_300E9.scale_y = 2.5
-        col_300E9.alignment = 'Expand'.upper()
-        if not True: col_300E9.operator_context = "EXEC_DEFAULT"
-        op = col_300E9.operator('sna.align_3ea9b', text='Align', icon_value=0, emboss=True, depress=False)
-        col_F9049.separator(factor=1.0)
-        row_C3033 = col_F9049.row(heading='', align=False)
-        row_C3033.alert = False
-        row_C3033.enabled = sna_check_triggers_9CA3E()[1]
-        row_C3033.active = sna_check_triggers_9CA3E()[1]
-        row_C3033.use_property_split = False
-        row_C3033.use_property_decorate = False
-        row_C3033.scale_x = 1.0
-        row_C3033.scale_y = 1.0
-        row_C3033.alignment = 'Center'.upper()
-        if not True: row_C3033.operator_context = "EXEC_DEFAULT"
-        row_C3033.label(text='Invert Axis', icon_value=0)
-        col_F9049.separator(factor=1.0)
-        col_88ACB = col_F9049.column(heading='', align=True)
-        col_88ACB.alert = False
-        col_88ACB.enabled = sna_check_triggers_9CA3E()[1]
-        col_88ACB.active = sna_check_triggers_9CA3E()[1]
-        col_88ACB.use_property_split = False
-        col_88ACB.use_property_decorate = False
-        col_88ACB.scale_x = 1.0
-        col_88ACB.scale_y = 1.2000000476837158
-        col_88ACB.alignment = 'Expand'.upper()
-        if not True: col_88ACB.operator_context = "EXEC_DEFAULT"
-        row_6D559 = col_88ACB.row(heading='', align=True)
-        row_6D559.alert = False
-        row_6D559.enabled = True
-        row_6D559.active = True
-        row_6D559.use_property_split = False
-        row_6D559.use_property_decorate = False
-        row_6D559.scale_x = 1.600000023841858
-        row_6D559.scale_y = 1.0
-        row_6D559.alignment = 'Center'.upper()
-        if not False: row_6D559.operator_context = "EXEC_DEFAULT"
-        op = row_6D559.operator('sna.invert_z_2f7af', text='Z', icon_value=0, emboss=True, depress=False)
-        op = row_6D559.operator('sna.invert_x_3b1ab', text='X', icon_value=0, emboss=True, depress=False)
-        op = row_6D559.operator('sna.invert_y_7255a', text='Y', icon_value=0, emboss=True, depress=False)
-        col_F9049.separator(factor=1.0)
-        row_51678 = col_F9049.row(heading='', align=False)
-        row_51678.alert = False
-        row_51678.enabled = sna_check_triggers_9CA3E()[1]
-        row_51678.active = sna_check_triggers_9CA3E()[1]
-        row_51678.use_property_split = False
-        row_51678.use_property_decorate = False
-        row_51678.scale_x = 1.0
-        row_51678.scale_y = 1.0
-        row_51678.alignment = 'Center'.upper()
-        if not True: row_51678.operator_context = "EXEC_DEFAULT"
-        row_51678.label(text='Transforms', icon_value=0)
-        col_F9049.separator(factor=1.0)
-        col_1AFD3 = col_F9049.column(heading='', align=True)
-        col_1AFD3.alert = False
-        col_1AFD3.enabled = sna_check_triggers_9CA3E()[1]
-        col_1AFD3.active = sna_check_triggers_9CA3E()[1]
-        col_1AFD3.use_property_split = False
-        col_1AFD3.use_property_decorate = False
-        col_1AFD3.scale_x = 1.0
-        col_1AFD3.scale_y = 1.5
-        col_1AFD3.alignment = 'Expand'.upper()
-        if not True: col_1AFD3.operator_context = "EXEC_DEFAULT"
-        op = col_1AFD3.operator('sna.apply_origin_395fc', text='Apply Origin', icon_value=0, emboss=True, depress=False)
-        op = col_1AFD3.operator('sna.apply_rotation_b6323', text='Apply Rotation', icon_value=0, emboss=True, depress=False)
-        op = col_1AFD3.operator('sna.move_to_center_76ceb', text='Move to Center', icon_value=0, emboss=True, depress=False)
-
-
 def sna_remove_object_ECF92(Object_Name):
     bpy.data.objects.remove(object=bpy.data.objects[Object_Name], )
 
@@ -1082,6 +905,211 @@ def sna_save_object_location_3F045():
     save_object_location['sna_object_z'] = bpy.context.view_layer.objects.active.location[2]
 
 
+class SNA_PT_PRO_ALIGNER_01DAE(bpy.types.Panel):
+    bl_label = 'Pro Aligner'
+    bl_idname = 'SNA_PT_PRO_ALIGNER_01DAE'
+    bl_space_type = 'VIEW_3D'
+    bl_region_type = 'UI'
+    bl_context = ''
+    bl_category = 'Pro Aligner'
+    bl_order = 0
+    bl_ui_units_x=0
+
+    @classmethod
+    def poll(cls, context):
+        return not (False)
+
+    def draw_header(self, context):
+        layout = self.layout
+
+    def draw(self, context):
+        layout = self.layout
+        col_F9049 = layout.column(heading='', align=True)
+        col_F9049.alert = False
+        col_F9049.enabled = True
+        col_F9049.active = True
+        col_F9049.use_property_split = False
+        col_F9049.use_property_decorate = False
+        col_F9049.scale_x = 1.0
+        col_F9049.scale_y = 1.0
+        col_F9049.alignment = 'Expand'.upper()
+        col_F9049.operator_context = "INVOKE_DEFAULT" if True else "EXEC_DEFAULT"
+        box_E5473 = col_F9049.box()
+        box_E5473.alert = False
+        box_E5473.enabled = sna_in_mode_2C0C4()
+        box_E5473.active = sna_in_mode_2C0C4()
+        box_E5473.use_property_split = False
+        box_E5473.use_property_decorate = False
+        box_E5473.alignment = 'Expand'.upper()
+        box_E5473.scale_x = 1.0
+        box_E5473.scale_y = 1.0
+        if not True: box_E5473.operator_context = "EXEC_DEFAULT"
+        col_7DCE6 = box_E5473.column(heading='', align=False)
+        col_7DCE6.alert = False
+        col_7DCE6.enabled = True
+        col_7DCE6.active = True
+        col_7DCE6.use_property_split = False
+        col_7DCE6.use_property_decorate = False
+        col_7DCE6.scale_x = 1.0
+        col_7DCE6.scale_y = 1.0
+        col_7DCE6.alignment = 'Expand'.upper()
+        col_7DCE6.operator_context = "INVOKE_DEFAULT" if True else "EXEC_DEFAULT"
+        row_A9CD3 = col_7DCE6.row(heading='', align=False)
+        row_A9CD3.alert = False
+        row_A9CD3.enabled = True
+        row_A9CD3.active = True
+        row_A9CD3.use_property_split = False
+        row_A9CD3.use_property_decorate = False
+        row_A9CD3.scale_x = 1.0
+        row_A9CD3.scale_y = 1.0
+        row_A9CD3.alignment = 'Center'.upper()
+        row_A9CD3.operator_context = "INVOKE_DEFAULT" if True else "EXEC_DEFAULT"
+        row_A9CD3.label(text='Align', icon_value=0)
+        col_D937B = col_7DCE6.column(heading='', align=True)
+        col_D937B.alert = False
+        col_D937B.enabled = True
+        col_D937B.active = True
+        col_D937B.use_property_split = False
+        col_D937B.use_property_decorate = False
+        col_D937B.scale_x = 1.0
+        col_D937B.scale_y = 1.2000000476837158
+        col_D937B.alignment = 'Expand'.upper()
+        col_D937B.operator_context = "INVOKE_DEFAULT" if True else "EXEC_DEFAULT"
+        if operator['sna_z_trigger']:
+            op = col_D937B.operator('sna.z__off_b57b8', text='Z', icon_value=0, emboss=True, depress=True)
+        else:
+            op = col_D937B.operator('sna.z__on_e1233', text='Z', icon_value=0, emboss=True, depress=False)
+        row_015A3 = col_7DCE6.row(heading='', align=True)
+        row_015A3.alert = False
+        row_015A3.enabled = True
+        row_015A3.active = True
+        row_015A3.use_property_split = False
+        row_015A3.use_property_decorate = False
+        row_015A3.scale_x = 10.0
+        row_015A3.scale_y = 1.0
+        row_015A3.alignment = 'Center'.upper()
+        row_015A3.operator_context = "INVOKE_DEFAULT" if False else "EXEC_DEFAULT"
+        row_F6C98 = row_015A3.row(heading='', align=True)
+        row_F6C98.alert = False
+        row_F6C98.enabled = (not operator['sna_if_y_true'])
+        row_F6C98.active = (not operator['sna_if_y_true'])
+        row_F6C98.use_property_split = False
+        row_F6C98.use_property_decorate = False
+        row_F6C98.scale_x = 2.0
+        row_F6C98.scale_y = 1.2000000476837158
+        row_F6C98.alignment = 'Center'.upper()
+        row_F6C98.operator_context = "INVOKE_DEFAULT" if False else "EXEC_DEFAULT"
+        if operator['sna_x_trigger']:
+            op = row_F6C98.operator('sna.x__off_501d5', text='X', icon_value=0, emboss=True, depress=True)
+        else:
+            op = row_F6C98.operator('sna.x__on_5796e', text='X', icon_value=0, emboss=True, depress=False)
+        row_81F22 = row_015A3.row(heading='', align=True)
+        row_81F22.alert = False
+        row_81F22.enabled = (not operator['sna_if_x_true'])
+        row_81F22.active = (not operator['sna_if_x_true'])
+        row_81F22.use_property_split = False
+        row_81F22.use_property_decorate = False
+        row_81F22.scale_x = 2.0
+        row_81F22.scale_y = 1.2000000476837158
+        row_81F22.alignment = 'Center'.upper()
+        row_81F22.operator_context = "INVOKE_DEFAULT" if False else "EXEC_DEFAULT"
+        if operator['sna_y_trigger']:
+            op = row_81F22.operator('sna.y__off_af3c8', text='Y', icon_value=0, emboss=True, depress=True)
+        else:
+            op = row_81F22.operator('sna.y__on_b9c47', text='Y', icon_value=0, emboss=True, depress=False)
+        col_300E9 = col_7DCE6.column(heading='', align=True)
+        col_300E9.alert = False
+        col_300E9.enabled = sna_check_triggers_9CA3E()[0]
+        col_300E9.active = sna_check_triggers_9CA3E()[0]
+        col_300E9.use_property_split = True
+        col_300E9.use_property_decorate = True
+        col_300E9.scale_x = 1.0
+        col_300E9.scale_y = 2.5
+        col_300E9.alignment = 'Expand'.upper()
+        col_300E9.operator_context = "INVOKE_DEFAULT" if True else "EXEC_DEFAULT"
+        op = col_300E9.operator('sna.align_3ea9b', text='Align', icon_value=0, emboss=True, depress=False)
+        col_F9049.separator(factor=1.0)
+        box_3BFD5 = col_F9049.box()
+        box_3BFD5.alert = False
+        box_3BFD5.enabled = sna_check_triggers_9CA3E()[1]
+        box_3BFD5.active = sna_check_triggers_9CA3E()[1]
+        box_3BFD5.use_property_split = False
+        box_3BFD5.use_property_decorate = False
+        box_3BFD5.alignment = 'Expand'.upper()
+        box_3BFD5.scale_x = 1.0
+        box_3BFD5.scale_y = 1.0
+        if not True: box_3BFD5.operator_context = "EXEC_DEFAULT"
+        row_C3033 = box_3BFD5.row(heading='', align=False)
+        row_C3033.alert = False
+        row_C3033.enabled = True
+        row_C3033.active = True
+        row_C3033.use_property_split = False
+        row_C3033.use_property_decorate = False
+        row_C3033.scale_x = 1.0
+        row_C3033.scale_y = 1.0
+        row_C3033.alignment = 'Center'.upper()
+        row_C3033.operator_context = "INVOKE_DEFAULT" if True else "EXEC_DEFAULT"
+        row_C3033.label(text='Invert Axis', icon_value=0)
+        col_88ACB = box_3BFD5.column(heading='', align=False)
+        col_88ACB.alert = False
+        col_88ACB.enabled = True
+        col_88ACB.active = True
+        col_88ACB.use_property_split = False
+        col_88ACB.use_property_decorate = False
+        col_88ACB.scale_x = 1.0
+        col_88ACB.scale_y = 1.2000000476837158
+        col_88ACB.alignment = 'Expand'.upper()
+        col_88ACB.operator_context = "INVOKE_DEFAULT" if True else "EXEC_DEFAULT"
+        row_6D559 = col_88ACB.row(heading='', align=True)
+        row_6D559.alert = False
+        row_6D559.enabled = True
+        row_6D559.active = True
+        row_6D559.use_property_split = False
+        row_6D559.use_property_decorate = False
+        row_6D559.scale_x = 10.0
+        row_6D559.scale_y = 1.0
+        row_6D559.alignment = 'Center'.upper()
+        row_6D559.operator_context = "INVOKE_DEFAULT" if False else "EXEC_DEFAULT"
+        op = row_6D559.operator('sna.invert_z_2f7af', text='Z', icon_value=0, emboss=True, depress=False)
+        op = row_6D559.operator('sna.invert_x_3b1ab', text='X', icon_value=0, emboss=True, depress=False)
+        op = row_6D559.operator('sna.invert_y_7255a', text='Y', icon_value=0, emboss=True, depress=False)
+        col_F9049.separator(factor=1.0)
+        box_945E2 = col_F9049.box()
+        box_945E2.alert = False
+        box_945E2.enabled = sna_check_triggers_9CA3E()[1]
+        box_945E2.active = sna_check_triggers_9CA3E()[1]
+        box_945E2.use_property_split = False
+        box_945E2.use_property_decorate = False
+        box_945E2.alignment = 'Expand'.upper()
+        box_945E2.scale_x = 1.0
+        box_945E2.scale_y = 1.0
+        if not True: box_945E2.operator_context = "EXEC_DEFAULT"
+        row_51678 = box_945E2.row(heading='', align=False)
+        row_51678.alert = False
+        row_51678.enabled = True
+        row_51678.active = True
+        row_51678.use_property_split = False
+        row_51678.use_property_decorate = False
+        row_51678.scale_x = 1.0
+        row_51678.scale_y = 1.0
+        row_51678.alignment = 'Center'.upper()
+        row_51678.operator_context = "INVOKE_DEFAULT" if True else "EXEC_DEFAULT"
+        row_51678.label(text='Transforms', icon_value=0)
+        col_1AFD3 = box_945E2.column(heading='', align=True)
+        col_1AFD3.alert = False
+        col_1AFD3.enabled = True
+        col_1AFD3.active = True
+        col_1AFD3.use_property_split = False
+        col_1AFD3.use_property_decorate = False
+        col_1AFD3.scale_x = 1.0
+        col_1AFD3.scale_y = 1.5
+        col_1AFD3.alignment = 'Expand'.upper()
+        col_1AFD3.operator_context = "INVOKE_DEFAULT" if True else "EXEC_DEFAULT"
+        op = col_1AFD3.operator('sna.apply_origin_395fc', text='Apply Origin', icon_value=0, emboss=True, depress=False)
+        op = col_1AFD3.operator('sna.apply_rotation_b6323', text='Apply Rotation', icon_value=0, emboss=True, depress=False)
+        op = col_1AFD3.operator('sna.move_to_center_76ceb', text='Move to Center', icon_value=0, emboss=True, depress=False)
+
+
 def register():
     global _icons
     _icons = bpy.utils.previews.new()
@@ -1099,7 +1127,7 @@ def register():
     bpy.utils.register_class(SNA_OT_Apply_Origin_395Fc)
     bpy.utils.register_class(SNA_OT_Move_To_Center_76Ceb)
     bpy.utils.register_class(SNA_OT_Apply_Rotation_B6323)
-    bpy.utils.register_class(SNA_PT_PRO_ALIGNER_260B4)
+    bpy.utils.register_class(SNA_PT_PRO_ALIGNER_01DAE)
 
 
 def unregister():
@@ -1124,4 +1152,4 @@ def unregister():
     bpy.utils.unregister_class(SNA_OT_Apply_Origin_395Fc)
     bpy.utils.unregister_class(SNA_OT_Move_To_Center_76Ceb)
     bpy.utils.unregister_class(SNA_OT_Apply_Rotation_B6323)
-    bpy.utils.unregister_class(SNA_PT_PRO_ALIGNER_260B4)
+    bpy.utils.unregister_class(SNA_PT_PRO_ALIGNER_01DAE)

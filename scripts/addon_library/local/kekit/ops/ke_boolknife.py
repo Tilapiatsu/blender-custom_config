@@ -8,9 +8,12 @@ from .._utils import mesh_select_all, dupe, shred
 class KeBoolKnife(Operator):
     bl_idname = "view3d.ke_boolknife"
     bl_label = "Bool Knife"
-    bl_description = "Object Mode: Cuts the ACTIVE object with other SELECTED object(s)\n"\
-                     "Edit Mode: Selected mesh cuts unselected mesh (faces)\n"\
-                     "='Face/Intersect (knife)' + object mode support & cutter handling (redo panel)"
+    bl_description = (
+        "Simple Boolean Slice Operation:\n"
+        "Object Mode: Cuts the ACTIVE object with other SELECTED object(s)\n"
+        "Edit Mode: Selected mesh cuts unselected mesh (faces)\n"
+        "='Face/Intersect (knife)' + object mode support & cutter handling (redo panel)"
+    )
     bl_options = {'REGISTER', 'UNDO'}
 
     post_op: EnumProperty(
@@ -46,6 +49,9 @@ class KeBoolKnife(Operator):
 
     def execute(self, context):
         objmode = True if context.mode == "OBJECT" else False
+        if len(context.selected_objects) > 2:
+            self.report({"INFO"}, "Need 2 objects selected")
+            return {"CANCELLED"}
         # SETUP
         if objmode:
             active = context.active_object
@@ -88,7 +94,6 @@ class KeBoolKnife(Operator):
                 v.co.z -= 100000
 
         sel = [f for f in bm.faces if f.select]
-        # return {"FINISHED"}
         bpy.ops.mesh.intersect(mode="SELECT_UNSELECT", separate_mode="CUT")
 
         # SELECT REMAINING CONNECTED TENP-CUTTER MESH

@@ -1,6 +1,10 @@
+from math import ceil
+from random import randint
+
 import bpy
 from addon_utils import check
 from bpy.types import Panel, Menu
+
 from ._ui import pcoll
 from ._utils import get_prefs, is_registered
 from .ops.pie_operators import KePieOps, KeCallPie, KeObjectOp, KeOverlays
@@ -25,8 +29,19 @@ class UIPieMenusModule(Panel):
 
         layout = self.layout
         pie = layout.column()
+
+        # KE Menus (Not pies)
+        row = pie.row(align=True)
+        if m_bookmarks:
+            row.operator("wm.call_menu", text="Modifier Presets", icon="DOT").name = "VIEW3D_MT_ke_modifier_presets"
+        else:
+            row.enabled = False
+            row.label(text="Modifier Presets N/A")
+
+        # KE Custom Pie Loader
         pie.operator("ke.call_pie", text="keShading", icon="DOT").name = "KE_MT_shading_pie"
 
+        # KE PieMenus
         row = pie.row(align=True)
         if m_bookmarks:
             row.operator("wm.call_menu_pie", text="keSnapping", icon="DOT").name = "VIEW3D_MT_ke_pie_snapping"
@@ -143,147 +158,128 @@ class KePieBookmarks(Menu):
         return context.space_data.type == "VIEW_3D" and k.m_bookmarks
 
     def draw(self, context):
-        kp = get_prefs()
-        if kp.color_icons:
-            b1 = pcoll['kekit']['ke_bm1'].icon_id
-            b2 = pcoll['kekit']['ke_bm2'].icon_id
-            b3 = pcoll['kekit']['ke_bm3'].icon_id
-            b4 = pcoll['kekit']['ke_bm4'].icon_id
-            b5 = pcoll['kekit']['ke_bm5'].icon_id
-            b6 = pcoll['kekit']['ke_bm6'].icon_id
-            c1 = pcoll['kekit']['ke_cursor1'].icon_id
-            c2 = pcoll['kekit']['ke_cursor2'].icon_id
-            c3 = pcoll['kekit']['ke_cursor3'].icon_id
-            c4 = pcoll['kekit']['ke_cursor4'].icon_id
-            c5 = pcoll['kekit']['ke_cursor5'].icon_id
-            c6 = pcoll['kekit']['ke_cursor6'].icon_id
-        else:
-            b1 = pcoll['kekit']['ke_mono1'].icon_id
-            b2 = pcoll['kekit']['ke_mono2'].icon_id
-            b3 = pcoll['kekit']['ke_mono3'].icon_id
-            b4 = pcoll['kekit']['ke_mono4'].icon_id
-            b5 = pcoll['kekit']['ke_mono5'].icon_id
-            b6 = pcoll['kekit']['ke_mono6'].icon_id
-            c1 = b1
-            c2 = b2
-            c3 = b3
-            c4 = b4
-            c5 = b5
-            c6 = b6
+        layout = self.layout
+        kt = context.scene.kekit_temp
 
-        k = context.scene.kekit_temp
-        opv = 'view3d.ke_view_bookmark'
+        slots = [i for i in kt.keys() if i[:2] == "vb"]
+        slot_items = []
+        for i in slots:
+            idx, nm = i.split("\x1f")
+            slot_items.append((idx, nm))
+        slot_items.sort(key=lambda x: x[1])
+
+        c1 = pcoll['kekit']['ke_cursor1'].icon_id
+        c2 = pcoll['kekit']['ke_cursor2'].icon_id
+        c3 = pcoll['kekit']['ke_cursor3'].icon_id
+        c4 = pcoll['kekit']['ke_cursor4'].icon_id
+        c5 = pcoll['kekit']['ke_cursor5'].icon_id
+        c6 = pcoll['kekit']['ke_cursor6'].icon_id
+
         opb = 'view3d.ke_cursor_bookmark'
         layout = self.layout
         layout.operator_context = 'INVOKE_REGION_WIN'
         pie = layout.menu_pie()
 
-        # VIEW BOOKMARKS
         box = pie.box()
-        box.ui_units_x = 6.5
-        box.label(text="View Bookmarks")
-        row = box.grid_flow(row_major=True, columns=2, align=False)
-
-        row.operator(opv, text="", icon="IMPORT").mode = "SET1"
-        if sum(k.viewslot1) == 0:
-            row.operator(opv, icon_value=b1, text="Use Slot 1", depress=False).mode = "USE1"
-        else:
-            row.operator(opv, icon_value=b1, text="Use Slot 1", depress=True).mode = "USE1"
-
-        row.operator(opv, text="", icon="IMPORT").mode = "SET2"
-        if sum(k.viewslot2) == 0:
-            row.operator(opv, icon_value=b2, text="Use Slot 2", depress=False).mode = "USE2"
-        else:
-            row.operator(opv, icon_value=b2, text="Use Slot 2", depress=True).mode = "USE2"
-
-        row.operator(opv, text="", icon="IMPORT").mode = "SET3"
-        if sum(k.viewslot3) == 0:
-            row.operator(opv, icon_value=b3, text="Use Slot 3", depress=False).mode = "USE3"
-        else:
-            row.operator(opv, icon_value=b3, text="Use Slot 3", depress=True).mode = "USE3"
-
-        row.operator(opv, text="", icon="IMPORT").mode = "SET4"
-        if sum(k.viewslot4) == 0:
-            row.operator(opv, icon_value=b4, text="Use Slot 4", depress=False).mode = "USE4"
-        else:
-            row.operator(opv, icon_value=b4, text="Use Slot 4", depress=True).mode = "USE4"
-
-        row.operator(opv, text="", icon="IMPORT").mode = "SET5"
-        if sum(k.viewslot5) == 0:
-            row.operator(opv, icon_value=b5, text="Use Slot 5", depress=False).mode = "USE5"
-        else:
-            row.operator(opv, icon_value=b5, text="Use Slot 5", depress=True).mode = "USE5"
-
-        row.operator(opv, text="", icon="IMPORT").mode = "SET6"
-        if sum(k.viewslot6) == 0:
-            row.operator(opv, icon_value=b6, text="Use Slot 6", depress=False).mode = "USE6"
-        else:
-            row.operator(opv, icon_value=b6, text="Use Slot 6", depress=True).mode = "USE6"
-
-        # CURSOR BOOKMARKS
-        box = pie.box()
-        box.ui_units_x = 6.5
+        box.ui_units_x = 8
         box.label(text="Cursor Bookmarks")
-        row = box.grid_flow(row_major=True, columns=2, align=False)
+        col = box.column()
 
-        if sum(k.cursorslot1) == 0:
-            row.operator(opb, icon_value=c1, text="Use Slot 1", depress=False).mode = "USE1"
-        else:
-            row.operator(opb, icon_value=c1, text="Use Slot 1", depress=True).mode = "USE1"
-        row.operator(opb, text="", icon="IMPORT").mode = "SET1"
+        for i in range(1, 7):
+            row = col.row(align=True)
+            v = str(i)
+            iv = pcoll['kekit']['ke_cursor' + v].icon_id
+            if sum(kt.cursorslot1) == 0:
+                row.operator(opb, icon_value=iv, text="Use Slot " + v, depress=False).mode = "USE" + v
+            else:
+                row.operator(opb, icon_value=iv, text="Use Slot " + v, depress=True).mode = "USE" + v
+            row.separator()
+            row.operator(opb, text="", icon="IMPORT").mode = "SET" + v
+            col.separator(factor=0.25)
 
-        if sum(k.cursorslot2) == 0:
-            row.operator(opb, icon_value=c2, text="Use Slot 2", depress=False).mode = "USE2"
-        else:
-            row.operator(opb, icon_value=c2, text="Use Slot 2", depress=True).mode = "USE2"
-        row.operator(opb, text="", icon="IMPORT").mode = "SET2"
+        if slot_items:
+            box = pie.box()
+            box.label(text="View Bookmarks")
+            count = int(len(slot_items))
+            if count < 24:
+                cc = 1
+            else:
+                cc = ceil(count / 30)
+            box.ui_units_x = 11 * cc
+            col = box.column_flow(align=False, columns=cc)
 
-        if sum(k.cursorslot3) == 0:
-            row.operator(opb, icon_value=c3, text="Use Slot 3", depress=False).mode = "USE3"
-        else:
-            row.operator(opb, icon_value=c3, text="Use Slot 3", depress=True).mode = "USE3"
-        row.operator(opb, text="", icon="IMPORT").mode = "SET3"
+            for i, (idx, name) in enumerate(slot_items, 1):
+                row = col.row(align=True)
+                icon_idx = str(i) if i < 7 else str(randint(1, 6))
+                icon = pcoll['kekit']['ke_bm' + icon_idx].icon_id
+                loader = row.operator('view3d.ke_view_bookmark', text=name, icon_value=icon)
+                loader.op = "LOAD"
+                loader.preset_id = "vb" + idx + "\x1f" + name
+                row.separator()
 
-        if sum(k.cursorslot4) == 0:
-            row.operator(opb, icon_value=c4,  text="Use Slot 4", depress=False).mode = "USE4"
-        else:
-            row.operator(opb, icon_value=c4,  text="Use Slot 4", depress=True).mode = "USE4"
-        row.operator(opb, text="", icon="IMPORT").mode = "SET4"
+                saving = row.operator('view3d.ke_view_bookmark', text="", icon="IMPORT")
+                saving.op = "SAVE"
+                saving.preset_id = name
+                row.separator()
 
-        if sum(k.cursorslot5) == 0:
-            row.operator(opb, icon_value=c5,  text="Use Slot 5", depress=False).mode = "USE5"
-        else:
-            row.operator(opb, icon_value=c5,  text="Use Slot 5", depress=True).mode = "USE5"
-        row.operator(opb, text="", icon="IMPORT").mode = "SET5"
+                removing = row.operator('view3d.ke_view_bookmark', text="", icon="X")
+                removing.op = "DELETE"
+                removing.preset_id = name
+                col.separator(factor=0.25)
 
-        if sum(k.cursorslot6) == 0:
-            row.operator(opb, icon_value=c6,  text="Use Slot 6", depress=False).mode = "USE6"
-        else:
-            row.operator(opb, icon_value=c6,  text="Use Slot 6", depress=True).mode = "USE6"
-        row.operator(opb, text="", icon="IMPORT").mode = "SET6"
+            col.separator(factor=0.5)
+            row = col.row(align=True)
+            row.prop(kt, "view_name")
+            new = row.operator('view3d.ke_view_bookmark', text="", icon="ADD")
+            new.op = "SAVE"
+            new.preset_id = ""
 
 
-def is_canvas(_obj):
-    try:
-        if _obj["BoolToolRoot"]:
+def is_canvas(_obj, old_version):
+    if old_version:
+        try:
+            if _obj["BoolToolRoot"]:
+                return True
+        except KeyError:
+            return False
+    else:
+        if _obj.booleans.canvas:
             return True
-    except KeyError:
-        return False
 
 
-def is_brush(_obj):
-    try:
-        if _obj["BoolToolBrush"]:
+def is_brush(_obj, old_version):
+    if old_version:
+        try:
+            if _obj["BoolToolBrush"]:
+                return True
+        except KeyError:
+            return False
+    else:
+        if _obj.booleans.cutter:
             return True
-    except KeyError:
-        return False
+
+
+def list_canvas_cutters(canvases):
+    """List cutters that are used by specified canvases"""
+    cutters = []
+    modifiers = []
+    for canvas in canvases:
+        for mod in canvas.modifiers:
+            if mod.type == 'BOOLEAN' and "boolean_" in mod.name:
+                if mod.object:
+                    cutters.append(mod.object)
+                    modifiers.append(mod)
+    return cutters, modifiers
 
 
 def is_fast_transform():
-    preferences = bpy.context.preferences
-    addons = preferences.addons
-    addon_prefs = addons["object_boolean_tools"].preferences
-    if addon_prefs.fast_transform:
+    addons = bpy.context.preferences.addons
+    addon_prefs = False
+    if all(check("object_boolean_tools")):
+        addon_prefs = addons["object_boolean_tools"].preferences.fast_transform
+    elif all(check("bl_ext.blender_org.bool_tool")):
+        addon_prefs = addons["bl_ext.blender_org.bool_tool"].preferences.fast_transform
+    if addon_prefs:
         return True
     else:
         return False
@@ -302,9 +298,10 @@ class KePieBoolTool(Menu):
         layout = self.layout
         pie = layout.menu_pie()
         obj = context.active_object
+        is_old_version = True if bpy.app.version < (4, 2) else False
 
-        s1 = " \u2002"  # "auto", aka "destructive": default symbol = just invisible spacer
-        s2 = " \u2699"  # modifier, default symbol = cog icon
+        s1 = " \u2002"  # "auto" (aka "destructive") = invisible spacer (no unicode-icon)
+        s2 = " \u2699"  # modifier = cog (unicode-icon)
 
         bt_installed = False
         if all(check("object_boolean_tools")) or all(check("bl_ext.blender_org.bool_tool")):
@@ -313,10 +310,46 @@ class KePieBoolTool(Menu):
         if not bt_installed:
             pie.label(text="BoolTool Add-on not activated")
         else:
+            # ops naming change (since ext version in 4.2)
+            if is_old_version:
+                bt_auto_diff = 'object.booltool_auto_difference'
+                bt_auto_ints = 'object.booltool_auto_intersect'
+                bt_auto_slice = 'object.booltool_auto_slice'
+                bt_auto_union = 'object.booltool_auto_union'
+                bt_diff = 'btool.boolean_difference'
+                bt_ints = 'btool.boolean_inters'
+                bt_slice = 'btool.boolean_slice'
+                bt_union = 'btool.boolean_union'
+                # All:
+                bt_toggle = 'btool.enable_brush'
+                bt_apply = 'btool.to_mesh'
+                bt_remove = 'btool.remove'
+                # Cutter:
+                bt_toggle_cutter = 'btool.enable_this_brush'
+                bt_apply_cutter = 'btool.brush_to_mesh'
+                bt_remove_cutter = 'btool.remove'
+            else:
+                bt_auto_diff = 'object.boolean_auto_difference'
+                bt_auto_ints = 'object.boolean_auto_intersect'
+                bt_auto_slice = 'object.boolean_auto_slice'
+                bt_auto_union = 'object.boolean_auto_union'
+                bt_diff = 'object.boolean_brush_difference'
+                bt_ints = 'object.boolean_brush_intersect'
+                bt_slice = 'object.boolean_brush_slice'
+                bt_union = 'object.boolean_brush_union'
+                # All:
+                bt_toggle = 'object.boolean_toggle_all'
+                bt_apply = 'object.boolean_apply_all'
+                bt_remove = 'object.boolean_remove_all'
+                # Cutter:
+                bt_toggle_cutter = 'object.boolean_toggle_cutter'
+                bt_apply_cutter = 'object.boolean_apply_cutter'
+                bt_remove_cutter = 'object.boolean_remove_cutter'
+
             # W
-            pie.operator('object.booltool_auto_difference', text="Difference" + s1, icon="SELECT_SUBTRACT")
+            pie.operator(bt_auto_diff, text="Difference" + s1, icon="SELECT_SUBTRACT")
             # E
-            pie.operator('btool.boolean_diff', text="Difference" + s2, icon="SELECT_SUBTRACT")
+            pie.operator(bt_diff, text="Difference" + s2, icon="SELECT_SUBTRACT")
 
             # S - Big bottom menu
             col = pie.column()
@@ -325,124 +358,186 @@ class KePieBoolTool(Menu):
             srow.separator(factor=2)
             box = srow.box()
             scol = box.column(align=True)
-            scol.operator('object.booltool_auto_intersect', text="Intersect" + s1, icon="SELECT_INTERSECT")
-            scol.operator('btool.boolean_inters', text="Intersect" + s2, icon="SELECT_INTERSECT")
+            scol.operator(bt_auto_ints, text="Intersect" + s1, icon="SELECT_INTERSECT")
+            scol.operator(bt_ints, text="Intersect" + s2, icon="SELECT_INTERSECT")
 
             srow.separator(factor=2)
             col.separator(factor=1)
-            # srow.separator(factor=2)
+            srow.separator(factor=2)
 
-            if is_canvas(obj) or is_brush(obj):
+            # nomenclature:  'Brush' (aka 'cutter') obj affects 'Canvas' (target) obj
+            if is_canvas(obj, is_old_version) or is_brush(obj, is_old_version):
                 srow = col.row()
                 # srow.separator(factor=2)
                 box = srow.box()
 
-                if is_canvas(obj):
+                if is_canvas(obj, is_old_version):
                     subcol = box.row(align=True)
-                    subcol.prop(context.scene, "BoolHide", text="All", icon="RESTRICT_VIEW_OFF")
-                    # subcol.separator()
-                    subcol.operator('btool.to_mesh', icon="IMPORT", text="All")
-                    Rem = subcol.operator('btool.remove', icon="X", text="All")
-                    Rem.thisObj = ""
-                    Rem.Prop = "CANVAS"
+                    if is_old_version:
+                        subcol.prop(context.scene, "BoolHide", text="All", icon="RESTRICT_VIEW_OFF")
+                        subcol.operator(bt_apply, icon="IMPORT", text="All")
+                        Rem = subcol.operator(bt_remove, icon="X", text="All")
+                        Rem.thisObj = ""
+                        Rem.Prop = "CANVAS"
+                    else:
+                        subcol.operator(bt_toggle, text="All", icon="RESTRICT_VIEW_OFF")
+                        subcol.operator(bt_apply, icon="IMPORT", text="All")
+                        subcol.operator(bt_remove, icon="X", text="All")
 
-                # srow.separator(factor=2)
-
-                if is_canvas(obj):
-                    # col.separator(factor=1)
+                if is_canvas(obj, is_old_version):
                     box = col.box()
 
-                    for mod in obj.modifiers:
-                        row = box.row(align=True)
+                    if is_old_version:
+                        for mod in obj.modifiers:
+                            row = box.row(align=True)
 
-                        if "BTool_" in mod.name:
-                            op = mod.operation
+                            if "BTool_" in mod.name:
+                                op = mod.operation
 
-                            if op == "DIFFERENCE":
-                                icon = "SELECT_SUBTRACT"
-                            elif op == "UNION":
-                                icon = "SELECT_EXTEND"
-                            elif op == "INTERSECT":
-                                icon = "SELECT_INTERSECT"
+                                if op == "DIFFERENCE":
+                                    icon = "SELECT_SUBTRACT"
+                                elif op == "UNION":
+                                    icon = "SELECT_EXTEND"
+                                elif op == "INTERSECT":
+                                    icon = "SELECT_INTERSECT"
+                                else:
+                                    # Fallback: SLICE is same icon as subtract as there is no "slice" op
+                                    icon = "SELECT_DIFFERENCE"
+
+                                objSelect = row.operator("btool.find_brush", text=mod.object.name, icon=icon,
+                                                         emboss=False)
+                                objSelect.obj = mod.object.name
+
+                                EnableIcon = "RESTRICT_VIEW_ON"
+                                if mod.show_viewport:
+                                    EnableIcon = "RESTRICT_VIEW_OFF"
+                                Enable = row.operator('btool.enable_brush', icon=EnableIcon, emboss=False)
+                                Enable.thisObj = mod.object.name
+
+                                Remove = row.operator("btool.remove", text="", icon="X", emboss=False)
+                                Remove.thisObj = mod.object.name
+                                Remove.Prop = "THIS"
+
                             else:
-                                # Fallback: SLICE will always have the same icon as subtract as there is no "slice" op
-                                icon = "SELECT_DIFFERENCE"
+                                row.label(text=mod.name)
 
-                            objSelect = row.operator("btool.find_brush", text=mod.object.name, icon=icon, emboss=False)
-                            objSelect.obj = mod.object.name
+                            Up = row.operator("btool.move_stack", icon="TRIA_UP", emboss=False)
+                            Up.modif = mod.name
+                            Up.direction = "UP"
 
-                            EnableIcon = "RESTRICT_VIEW_ON"
-                            if mod.show_viewport:
-                                EnableIcon = "RESTRICT_VIEW_OFF"
-                            Enable = row.operator('btool.enable_brush', icon=EnableIcon, emboss=False)
-                            Enable.thisObj = mod.object.name
-
-                            Remove = row.operator("btool.remove", text="", icon="X", emboss=False)
-                            Remove.thisObj = mod.object.name
-                            Remove.Prop = "THIS"
-
-                        else:
-                            row.label(text=mod.name)
-
-                        Up = row.operator("btool.move_stack", icon="TRIA_UP", emboss=False)
-                        Up.modif = mod.name
-                        Up.direction = "UP"
-
-                        Dw = row.operator("btool.move_stack", icon="TRIA_DOWN", emboss=False)
-                        Dw.modif = mod.name
-                        Dw.direction = "DOWN"
-
-                elif is_brush(obj):
-                    col = box.column(align=False)
-                    btype = obj["BoolToolBrush"]
-
-                    if btype == "DIFFERENCE":
-                        icon = "SELECT_SUBTRACT"
-                    elif btype == "UNION":
-                        icon = "SELECT_EXTEND"
-                    elif btype == "INTERSECT":
-                        icon = "SELECT_INTERSECT"
-                    elif btype == "SLICE":
-                        icon = "SELECT_DIFFERENCE"
+                            Dw = row.operator("btool.move_stack", icon="TRIA_DOWN", emboss=False)
+                            Dw.modif = mod.name
+                            Dw.direction = "DOWN"
                     else:
-                        icon = "NONE"
+                        canvas = context.active_object
+                        __, modifiers = list_canvas_cutters([canvas])
 
-                    col.label(text=btype, icon=icon)
+                        for mod in modifiers:
+                            col = box.column(align=True)
+                            row = col.row(align=True)
+                            # icon
+                            if mod.operation == 'DIFFERENCE':
+                                icon = 'SELECT_SUBTRACT'
+                            elif mod.operation == 'UNION':
+                                icon = 'SELECT_EXTEND'
+                            elif mod.operation == 'INTERSECT':
+                                icon = 'SELECT_INTERSECT'
+                            else:
+                                icon = 'SELECT_SUBTRACT'
 
+                            row.label(icon=icon)
+                            row.prop(mod.object, "name", text="")
+                            # Toggle
+                            op_toggle = row.operator("object.boolean_toggle_cutter", text="",
+                                                     icon='HIDE_OFF' if mod.show_viewport else 'HIDE_ON')
+                            op_toggle.method = 'SPECIFIED'
+                            op_toggle.specified_cutter = mod.object.name
+                            op_toggle.specified_canvas = canvas.name
+                            # Apply
+                            op_apply = row.operator("object.boolean_apply_cutter", text="", icon='CHECKMARK')
+                            op_apply.method = 'SPECIFIED'
+                            op_apply.specified_cutter = mod.object.name
+                            op_apply.specified_canvas = canvas.name
+                            # Remove
+                            op_remove = row.operator("object.boolean_remove_cutter", text="", icon='X')
+                            op_remove.method = 'SPECIFIED'
+                            op_remove.specified_cutter = mod.object.name
+                            op_remove.specified_canvas = canvas.name
+
+                elif is_brush(obj, is_old_version):
+                    col = box.column(align=False)
+                    if is_old_version:
+                        btype = obj["BoolToolBrush"]
+                        if btype == "DIFFERENCE":
+                            icon = "SELECT_SUBTRACT"
+                        elif btype == "UNION":
+                            icon = "SELECT_EXTEND"
+                        elif btype == "INTERSECT":
+                            icon = "SELECT_INTERSECT"
+                        elif btype == "SLICE":
+                            icon = "SELECT_DIFFERENCE"
+                        else:
+                            icon = "NONE"
+                        col.label(text=btype, icon=icon)
+                    else:
+                        col.label(text=" Cutter/Brush Object", icon="MOD_BOOLEAN")
                     row = col.row(align=True)
                     row.operator('view3d.ke_solo_cutter', text="Solo").mode = "ALL"
                     row.operator('view3d.ke_solo_cutter', text="SoloP").mode = "PRE"
                     row.operator('object.ke_showcuttermod', text="ShowMod")
+                    srow.separator(factor=1)
 
-                    if obj["BoolTool_FTransform"] == "True":
-                        ft_icon = "PMARKER_ACT"
-                    else:
-                        ft_icon = "PMARKER"
+                    if is_old_version:
+                        if obj["BoolTool_FTransform"] == "True":
+                            ft_icon = "PMARKER_ACT"
+                        else:
+                            ft_icon = "PMARKER"
+                        srow = col.row(align=True)
+                        if not is_fast_transform():
+                            srow.enabled = False
+                        srow.operator('btool.enable_ftransf', text="Use FastTf", icon=ft_icon)
 
-                    srow = col.row(align=True)
-                    # split = row.split(align=True, factor=0.7)
-                    # row = split.row(align=True)
-                    if not is_fast_transform():
-                        srow.enabled = False
-                    srow.operator('btool.enable_ftransf', text="Use FastTf", icon=ft_icon)
-                    # row = split.row()
                     row = col.row(align=True)
-                    row.operator('btool.enable_this_brush', text="Hide", icon="HIDE_OFF")
-                    row.operator('btool.brush_to_mesh', icon="IMPORT", text="Apply")
-                    Rem = row.operator('btool.remove', icon="X", text="Del")
-                    Rem.thisObj = ""
-                    Rem.Prop = "BRUSH"
+                    if is_old_version:
+                        row.operator(bt_toggle_cutter, icon="HIDE_OFF", text="Vis")
+                        row.operator(bt_apply_cutter, icon="IMPORT", text="Apl")
+                        rem = row.operator(bt_remove_cutter, icon="X", text="Del")
+                        rem.thisObj = ""
+                        rem.Prop = "BRUSH"
+                    else:
+                        row.operator(bt_toggle_cutter, icon="HIDE_OFF", text="Vis")
+                        row.operator(bt_apply_cutter, icon="IMPORT", text="Apl")
+                        row.operator(bt_remove_cutter, icon="X", text="Del")
+                        # Todo: not bothering with 'specified vs all' for now
+                        # op_toggle.method = 'ALL'
+                        # op_toggle.specified_cutter = obj.name
+                        # op_toggle.specified_canvas = canvas.name
 
             # N
-            pie.operator('object.ke_polybrush')
+            if is_old_version:
+                pie.separator()
+            else:
+                # p.label(text="carve ops")
+                pcol = pie.column()
+                # pcol.ui_units_x = 5
+                col = pcol.box().column()
+                col.label(text=" Carve")
+                row = col.row(align=True)
+                carve_box = row.operator('object.carve', text="B", icon="MESH_PLANE", emboss=True)
+                carve_box.shape = 'BOX'
+                carve_circle = row.operator('object.carve', text="C", icon="MESH_CIRCLE", emboss=True)
+                carve_circle.shape = 'CIRCLE'
+                carve_pline = row.operator('object.carve', text="P", icon="GREASEPENCIL", emboss=True)
+                carve_pline.shape = 'POLYLINE'
+
             # NW
-            pie.operator('object.booltool_auto_difference', text="Slice" + s1, icon="SELECT_DIFFERENCE")
+            pie.operator(bt_auto_slice, text="Slice" + s1, icon="SELECT_DIFFERENCE")
             # NE
-            pie.operator('btool.boolean_slice', text="Slice" + s2, icon="SELECT_DIFFERENCE")
+            pie.operator(bt_slice, text="Slice" + s2, icon="SELECT_DIFFERENCE")
             # SW
-            pie.operator('object.booltool_auto_union', text="Union" + s1, icon="SELECT_EXTEND")
+            pie.operator(bt_auto_union, text="Union" + s1, icon="SELECT_EXTEND")
             # SE
-            pie.operator('btool.boolean_union', text="Union" + s2, icon="SELECT_EXTEND")
+            pie.operator(bt_union, text="Union" + s2, icon="SELECT_EXTEND")
 
 
 class KePieFit2Grid(Menu):
@@ -536,6 +631,9 @@ class KePieFitPrim(Menu):
             ne2.ke_fitprim_option = "QUADSPHERE"
             ne2.ke_fitprim_pieslot = "NE"
             ne2.ke_fitprim_itemize = True
+            ne3 = col.operator("view3d.ke_fitprim", text="Empty Obj", icon='EMPTY_AXIS')
+            ne3.ke_fitprim_option = "EMPTY"
+            ne3.ke_fitprim_pieslot = "NE"
 
             sw = pie.operator("view3d.ke_fitprim", text="Plane", icon='MESH_PLANE')
             sw.ke_fitprim_option = "PLANE"
@@ -554,8 +652,9 @@ class KePieFitPrim(Menu):
             e.ke_fitprim_option = "CYL"
             e.ke_fitprim_pieslot = "E"
 
-            # S
-            pie.separator()
+            n = pie.operator("view3d.ke_fitprim", text="Empty", icon='EMPTY_AXIS')
+            n.ke_fitprim_option = "EMPTY"
+            n.ke_fitprim_pieslot = "S"
 
             n = pie.operator("view3d.ke_fitprim", text="Cube", icon='MESH_CUBE')
             n.ke_fitprim_option = "BOX"
@@ -587,9 +686,12 @@ class KePieMaterials(Menu):
         return context.space_data.type == "VIEW_3D" and k.m_render
 
     def draw(self, context):
-        c = False
-        if all(check("materials_utils")) or all(check("bl_ext.blender_org.material_utilities")):
-            c = True
+        mu_prefs = None
+        if all(check("materials_utils")):
+            mu_prefs = context.preferences.addons["materials_utils"].preferences
+        elif all(check("bl_ext.blender_org.material_utilities")):
+            mu_prefs = context.preferences.addons["bl_ext.blender_org.material_utilities"].preferences
+
         k = get_prefs()
         op = "view3d.ke_id_material"
         layout = self.layout
@@ -600,46 +702,17 @@ class KePieMaterials(Menu):
         box.ui_units_x = 7
         col = box.column(align=True)
         col.label(text="Assign ID Material")
-        row = col.row(align=True)
-        row.template_node_socket(color=k.idm01)
-        row.operator(op, text=k.idm01_name).m_id = 1
-        row = col.row(align=True)
-        row.template_node_socket(color=k.idm02)
-        row.operator(op, text=k.idm02_name).m_id = 2
-        row = col.row(align=True)
-        row.template_node_socket(color=k.idm03)
-        row.operator(op, text=k.idm03_name).m_id = 3
-        row = col.row(align=True)
-        row.template_node_socket(color=k.idm04)
-        row.operator(op, text=k.idm04_name).m_id = 4
-        row = col.row(align=True)
-        row.template_node_socket(color=k.idm05)
-        row.operator(op, text=k.idm05_name).m_id = 5
-        row = col.row(align=True)
-        row.template_node_socket(color=k.idm06)
-        row.operator(op, text=k.idm06_name).m_id = 6
-        row = col.row(align=True)
-        row.template_node_socket(color=k.idm07)
-        row.operator(op, text=k.idm07_name).m_id = 7
-        row = col.row(align=True)
-        row.template_node_socket(color=k.idm08)
-        row.operator(op, text=k.idm08_name).m_id = 8
-        row = col.row(align=True)
-        row.template_node_socket(color=k.idm09)
-        row.operator(op, text=k.idm09_name).m_id = 9
-        row = col.row(align=True)
-        row.template_node_socket(color=k.idm10)
-        row.operator(op, text=k.idm10_name).m_id = 10
-        row = col.row(align=True)
-        row.template_node_socket(color=k.idm11)
-        row.operator(op, text=k.idm11_name).m_id = 11
-        row = col.row(align=True)
-        row.template_node_socket(color=k.idm12)
-        row.operator(op, text=k.idm12_name).m_id = 12
 
-        if c:
+        for i in range(1, 13):
+            row = col.row(align=True)
+            cid = "idm" + str(i).zfill(2)
+            cnm = cid + "_name"
+            row.template_node_socket(color=getattr(k, cid))
+            row.operator(op, text=getattr(k, cnm)).m_id = i
+
+
+        if mu_prefs is not None:
             # obj = context.object
-            mu_prefs = context.preferences.addons["materials_utils"].preferences
             limit = mu_prefs.search_show_limit
             if limit == 0:
                 limit = "Inf."
@@ -858,27 +931,6 @@ class KeMenuEditMesh(Menu):
         layout.operator('mesh.edge_roundifier', text="Edge Roundify")
 
 
-def get_props(p, preset="0"):
-    v1, v2, v3, v4 = 0, 0, 0, 0
-    if preset == "0":
-        v1, v2, v3, v4 = p[0], p[1], p[2], p[3]
-    elif preset == "1":
-        v1, v2, v3, v4 = p[4], p[5], p[6], p[7]
-    elif preset == "2":
-        v1, v2, v3, v4 = p[8], p[9], p[10], p[11]
-    elif preset == "3":
-        v1, v2, v3, v4 = p[12], p[13], p[14], p[15]
-    elif preset == "4":
-        v1, v2, v3, v4 = p[16], p[17], p[18], p[19]
-    elif preset == "5":
-        v1, v2, v3, v4 = p[20], p[21], p[22], p[23]
-    elif preset == "6":
-        v1, v2, v3, v4 = p[24], p[25], p[26], p[27]
-    elif preset == "7":
-        v1, v2, v3, v4 = p[28], p[29], p[30], p[31]
-    return v1, str(int(v2)), v3, bool(v4)
-
-
 class KePieMultiCut(Menu):
     bl_label = "keMultiCut"
     bl_idname = "VIEW3D_MT_ke_pie_multicut"
@@ -891,73 +943,21 @@ class KePieMultiCut(Menu):
     def draw(self, context):
         k = get_prefs()
         p = k.mc_prefs[:]
-        mc = 'mesh.ke_multicut'
+        props = [[p[0], p[1], p[2], p[3]], [p[4], p[5], p[6], p[7]], [p[8], p[9], p[10], p[11]],
+                 [p[12], p[13], p[14], p[15]], [p[16], p[17], p[18], p[19]], [p[20], p[21], p[22], p[23]],
+                 [p[24], p[25], p[26], p[27]], [p[28], p[29], p[30], p[31]]]
+
         layout = self.layout
         pie = layout.menu_pie()
 
-        op = pie.operator(mc, text="%s" % k.mc_name0)
-        v1, v2, v3, v4 = get_props(p, preset="0")
-        op.o_relative = v1
-        op.o_center = v2
-        op.o_fixed = v3
-        op.using_fixed = v4
-        op.preset = "SET"
-
-        op = pie.operator(mc, text="%s" % k.mc_name1)
-        v1, v2, v3, v4 = get_props(p, preset="1")
-        op.o_relative = v1
-        op.o_center = v2
-        op.o_fixed = v3
-        op.using_fixed = v4
-        op.preset = "SET"
-
-        op = pie.operator(mc, text="%s" % k.mc_name2)
-        v1, v2, v3, v4 = get_props(p, preset="2")
-        op.o_relative = v1
-        op.o_center = v2
-        op.o_fixed = v3
-        op.using_fixed = v4
-        op.preset = "SET"
-
-        op = pie.operator(mc, text="%s" % k.mc_name3)
-        v1, v2, v3, v4 = get_props(p, preset="3")
-        op.o_relative = v1
-        op.o_center = v2
-        op.o_fixed = v3
-        op.using_fixed = v4
-        op.preset = "SET"
-
-        op = pie.operator(mc, text="%s" % k.mc_name4)
-        v1, v2, v3, v4 = get_props(p, preset="4")
-        op.o_relative = v1
-        op.o_center = v2
-        op.o_fixed = v3
-        op.using_fixed = v4
-        op.preset = "SET"
-
-        op = pie.operator(mc, text="%s" % k.mc_name5)
-        v1, v2, v3, v4 = get_props(p, preset="5")
-        op.o_relative = v1
-        op.o_center = v2
-        op.o_fixed = v3
-        op.using_fixed = v4
-        op.preset = "SET"
-
-        op = pie.operator(mc, text="%s" % k.mc_name6)
-        v1, v2, v3, v4 = get_props(p, preset="6")
-        op.o_relative = v1
-        op.o_center = v2
-        op.o_fixed = v3
-        op.using_fixed = v4
-        op.preset = "SET"
-
-        op = pie.operator(mc, text="%s" % k.mc_name7)
-        v1, v2, v3, v4 = get_props(p, preset="7")
-        op.o_relative = v1
-        op.o_center = v2
-        op.o_fixed = v3
-        op.using_fixed = v4
-        op.preset = "SET"
+        for i in range(0, 8):
+            nm = getattr(k, "mc_name" + str(i))
+            op = pie.operator('mesh.ke_multicut', text="%s" % nm)
+            op.o_relative = props[i][0]
+            op.o_center = str(int(props[i][1]))
+            op.o_fixed = props[i][2]
+            op.using_fixed = bool(props[i][3])
+            op.preset = "SET"
 
 
 class KePieOrientPivot(Menu):
@@ -972,26 +972,12 @@ class KePieOrientPivot(Menu):
     def draw(self, context):
         k = get_prefs()
         ct = context.scene.tool_settings
-        name1 = k.opc1_name
-        name2 = k.opc2_name
-        name3 = k.opc3_name
-        name4 = k.opc4_name
-        name5 = k.opc5_name
-        name6 = k.opc6_name
-        if k.color_icons:
-            o1 = pcoll['kekit']['ke_opc1'].icon_id
-            o2 = pcoll['kekit']['ke_opc2'].icon_id
-            o3 = pcoll['kekit']['ke_opc3'].icon_id
-            o4 = pcoll['kekit']['ke_opc4'].icon_id
-            o5 = pcoll['kekit']['ke_opc5'].icon_id
-            o6 = pcoll['kekit']['ke_opc6'].icon_id
-        else:
-            o1 = pcoll['kekit']['ke_mono1'].icon_id
-            o2 = pcoll['kekit']['ke_mono2'].icon_id
-            o3 = pcoll['kekit']['ke_mono3'].icon_id
-            o4 = pcoll['kekit']['ke_mono4'].icon_id
-            o5 = pcoll['kekit']['ke_mono5'].icon_id
-            o6 = pcoll['kekit']['ke_mono6'].icon_id
+        o1 = pcoll['kekit']['ke_opc1'].icon_id
+        o2 = pcoll['kekit']['ke_opc2'].icon_id
+        o3 = pcoll['kekit']['ke_opc3'].icon_id
+        o4 = pcoll['kekit']['ke_opc4'].icon_id
+        o5 = pcoll['kekit']['ke_opc5'].icon_id
+        o6 = pcoll['kekit']['ke_opc6'].icon_id
 
         mode = context.mode
         obj = context.active_object
@@ -1001,12 +987,12 @@ class KePieOrientPivot(Menu):
 
         layout = self.layout
         pie = layout.menu_pie()
-        pie.operator("view3d.ke_opc", text="%s" % name5, icon_value=o5).combo = "5"
-        pie.operator("view3d.ke_opc", text="%s" % name3, icon_value=o3).combo = "3"
-        pie.operator("view3d.ke_opc", text="%s" % name4, icon_value=o4).combo = "4"
-        pie.operator("view3d.ke_opc", text="%s" % name1, icon_value=o1).combo = "1"
-        pie.operator("view3d.ke_opc", text="%s" % name6, icon_value=o6).combo = "6"
-        pie.operator("view3d.ke_opc", text="%s" % name2, icon_value=o2).combo = "2"
+        pie.operator("view3d.ke_opc", text="%s" % k.opc5_name, icon_value=o5).combo = "5"
+        pie.operator("view3d.ke_opc", text="%s" % k.opc3_name, icon_value=o3).combo = "3"
+        pie.operator("view3d.ke_opc", text="%s" % k.opc4_name, icon_value=o4).combo = "4"
+        pie.operator("view3d.ke_opc", text="%s" % k.opc1_name, icon_value=o1).combo = "1"
+        pie.operator("view3d.ke_opc", text="%s" % k.opc6_name, icon_value=o6).combo = "6"
+        pie.operator("view3d.ke_opc", text="%s" % k.opc2_name, icon_value=o2).combo = "2"
 
         c = pie.column()
         c.separator(factor=13)
@@ -1348,7 +1334,8 @@ class KePieShading(Menu):
             row = col.row()
             row.prop(shading, "render_pass", text="")
             if bpy.app.version >= (4, 2):
-                row.operator("screen.userpref_show", text="Preferences", emboss=False, icon='PREFERENCES').section = "LIGHTS"
+                row.operator("screen.userpref_show", text="Preferences", emboss=False,
+                             icon='PREFERENCES').section = "LIGHTS"
             else:
                 row.operator("preferences.studiolight_show", emboss=False, text="", icon='PREFERENCES')
             c.separator(factor=2.5)
@@ -1386,7 +1373,8 @@ class KePieShading(Menu):
                 p = sub2.column(align=False)
                 p.prop(shading, "use_world_space_lighting", text="World Space Lighting", icon='WORLD', toggle=True)
                 if bpy.app.version >= (4, 2):
-                    p.operator("screen.userpref_show", text="Preferences", emboss=False, icon='PREFERENCES').section = "LIGHTS"
+                    p.operator("screen.userpref_show", text="Preferences", emboss=False,
+                               icon='PREFERENCES').section = "LIGHTS"
                 else:
                     p.operator("preferences.studiolight_show", text="Preferences", emboss=False, icon='PREFERENCES')
                 p.separator(factor=0.3)
@@ -1403,7 +1391,8 @@ class KePieShading(Menu):
                 sub = sub.column()
                 sub.scale_y = 1.8
                 if bpy.app.version >= (4, 2):
-                    sub.operator("screen.userpref_show", text="Preferences", emboss=False, icon='PREFERENCES').section = "LIGHTS"
+                    sub.operator("screen.userpref_show", text="Preferences", emboss=False,
+                                 icon='PREFERENCES').section = "LIGHTS"
                 else:
                     sub.operator("preferences.studiolight_show", emboss=False, text="", icon='PREFERENCES')
                 sub.operator("view3d.toggle_matcap_flip", emboss=False, text="", icon='ARROW_LEFTRIGHT')
@@ -1448,7 +1437,8 @@ class KePieShading(Menu):
             row = col.row()
             row.prop(shading, "render_pass", text="")
             if bpy.app.version >= (4, 2):
-                row.operator("screen.userpref_show", text="Preferences", emboss=False, icon='PREFERENCES').section = "LIGHTS"
+                row.operator("screen.userpref_show", text="Preferences", emboss=False,
+                             icon='PREFERENCES').section = "LIGHTS"
             else:
                 row.operator("preferences.studiolight_show", emboss=False, text="", icon='PREFERENCES')
             r.separator(factor=2.4)
@@ -1587,42 +1577,23 @@ class KePieSnapping(Menu):
     def draw(self, context):
         k = get_prefs()
         ct = context.scene.tool_settings
-        name1 = k.snap_name1
-        name2 = k.snap_name2
-        name3 = k.snap_name3
-        name4 = k.snap_name4
-        name5 = k.snap_name5
-        name6 = k.snap_name6
-        if k.color_icons:
-            s1 = pcoll['kekit']['ke_snap1'].icon_id
-            s2 = pcoll['kekit']['ke_snap2'].icon_id
-            s3 = pcoll['kekit']['ke_snap3'].icon_id
-            s4 = pcoll['kekit']['ke_snap4'].icon_id
-            s5 = pcoll['kekit']['ke_snap5'].icon_id
-            s6 = pcoll['kekit']['ke_snap6'].icon_id
-        else:
-            s1 = pcoll['kekit']['ke_mono1'].icon_id
-            s2 = pcoll['kekit']['ke_mono2'].icon_id
-            s3 = pcoll['kekit']['ke_mono3'].icon_id
-            s4 = pcoll['kekit']['ke_mono4'].icon_id
-            s5 = pcoll['kekit']['ke_mono5'].icon_id
-            s6 = pcoll['kekit']['ke_mono6'].icon_id
+        s1 = pcoll['kekit']['ke_snap1'].icon_id
+        s2 = pcoll['kekit']['ke_snap2'].icon_id
+        s3 = pcoll['kekit']['ke_snap3'].icon_id
+        s4 = pcoll['kekit']['ke_snap4'].icon_id
+        s5 = pcoll['kekit']['ke_snap5'].icon_id
+        s6 = pcoll['kekit']['ke_snap6'].icon_id
 
         layout = self.layout
         pie = layout.menu_pie()
 
-        # W
-        pie.operator("view3d.ke_snap_combo", icon_value=s5, text="%s" % name5).mode = "SET5"
-        # E
-        pie.operator("view3d.ke_snap_combo", icon_value=s3, text="%s" % name3).mode = "SET3"
-        # S
-        pie.operator("view3d.ke_snap_combo", icon_value=s4, text="%s" % name4).mode = "SET4"
-        # N
-        pie.operator("view3d.ke_snap_combo", icon_value=s1, text="%s" % name1).mode = "SET1"
-        # NW
-        pie.operator("view3d.ke_snap_combo", icon_value=s6, text="%s" % name6).mode = "SET6"
-        # NE
-        pie.operator("view3d.ke_snap_combo", icon_value=s2, text="%s" % name2).mode = "SET2"
+        # W - E - S - N - NW - NE
+        pie.operator("view3d.ke_snap_combo", icon_value=s5, text="%s" % k.snap_name5).mode = "SET5"
+        pie.operator("view3d.ke_snap_combo", icon_value=s3, text="%s" % k.snap_name3).mode = "SET3"
+        pie.operator("view3d.ke_snap_combo", icon_value=s4, text="%s" % k.snap_name4).mode = "SET4"
+        pie.operator("view3d.ke_snap_combo", icon_value=s1, text="%s" % k.snap_name1).mode = "SET1"
+        pie.operator("view3d.ke_snap_combo", icon_value=s6, text="%s" % k.snap_name6).mode = "SET6"
+        pie.operator("view3d.ke_snap_combo", icon_value=s2, text="%s" % k.snap_name2).mode = "SET2"
 
         # SW
         c = pie.column()
@@ -1749,6 +1720,7 @@ class KePieSubd(Menu):
         layout = self.layout
         pie = layout.menu_pie()
         k = get_prefs()
+        old_version = True if bpy.app.version < (4, 1) else False
 
         if not k.experimental:
             pie.separator()
@@ -2096,7 +2068,7 @@ class KePieSubd(Menu):
             row.operator("object.ke_object_op", text="45").cmd = "AS_45"
             row.operator("object.ke_object_op", text="60").cmd = "AS_60"
             row.operator("object.ke_object_op", text="180").cmd = "AS_180"
-            if bpy.app.version < (4, 1):
+            if old_version:
                 split = col.split(align=True, factor=0.65)
                 split.prop(active.data, "use_auto_smooth", text="AutoSmooth", toggle=True)
                 split.prop(active.data, "auto_smooth_angle", text="")
@@ -2104,6 +2076,11 @@ class KePieSubd(Menu):
             row = col.row(align=True)
             row.operator("ke.pieops", text="Flat").op = "SHADE_FLAT"
             row.operator("ke.pieops", text="Smooth").op = "SHADE_SMOOTH"
+
+            if not old_version:
+                row = col.row(align=True)
+                row.enabled = False
+                row.label(text="WIP")
 
             col = boxsplit.column(align=True)
 
@@ -2126,6 +2103,45 @@ class KePieSubd(Menu):
             pie.separator()
 
 
+#
+# REGULAR MENUS
+#
+class KeModifierPresets(bpy.types.Menu):
+    bl_idname = "VIEW3D_MT_ke_modifier_presets"
+    bl_label = "Modifier Presets"
+
+    @classmethod
+    def poll(cls, context):
+        k = get_prefs()
+        return context.space_data.type == "VIEW_3D" and k.m_bookmarks
+
+    def draw(self, context):
+        layout = self.layout
+        k = get_prefs()
+        entries = sorted([i for i in k.omp_presets.split("\x1f") if i], key=str.casefold)
+        col = layout.column(align=False)
+
+        if entries:
+            mcheck = int(len(entries) / 10)
+            subcol = col.column_flow(columns=mcheck, align=False)
+            for i, name in enumerate(entries, 1):
+                row = subcol.row(align=False)
+
+                fname = "\u001f" + name
+                if "\x1e" in name:
+                    icon = 161  # "CURVE_DATA"
+                else:
+                    icon_idx = str(i) if i < 9 else str(randint(1, 8))
+                    icon = pcoll['kekit']['ke_mod' + icon_idx].icon_id
+                    # icon = 94  # "MODIFIER"
+
+                loading = row.operator('view3d.ke_modifier_preset', text=name, icon_value=icon)
+                loading.op = "LOAD"
+                loading.preset_id = fname
+        else:
+            col.label(text="No Modifier Presets found")
+
+
 classes = (
     KeCallPie,
     KeMenuEditMesh,
@@ -2145,6 +2161,7 @@ classes = (
     KePieSnapAlign,
     KePieSnapping,
     KePieStepRotate,
+    KeModifierPresets,
     KePieSubd,
     UIPieMenusModule,
     UIPieMenusBlender,

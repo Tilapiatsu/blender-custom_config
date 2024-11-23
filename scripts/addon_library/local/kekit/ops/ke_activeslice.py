@@ -21,10 +21,10 @@ def calc_plane(mtx, p1, p2):
 class KeActiveSlice(Operator):
     bl_idname = "mesh.ke_activeslice"
     bl_label = "Active Slice"
-    bl_description = "Slice selected elements by MODE:\n" \
+    bl_description = "Slice using selected elements as a SLICING PLANE by mode:\n" \
                      "VERTEX: Global Orientation using Active Vert + View for nearest Global Axis (90°)\n" \
                      "EDGE: Active Edge direction + calculated linked face orientation\n" \
-                     "FACE: Active Face as cutting plane"
+                     "FACE: Active Face as slicing plane"
     bl_options = {'REGISTER', 'UNDO'}
 
     axis : EnumProperty(items=[
@@ -41,7 +41,7 @@ class KeActiveSlice(Operator):
         default="SLICE"
     )
     edge_face_switch : BoolProperty(
-        name="Plane Toggle",
+        name="Edge Face Toggle",
         description="Toggles between the active edge's linked faces (if > 1) used for plane calculation\n"
                     "Note: Only useful if the linked faces have different orientation",
         default=False

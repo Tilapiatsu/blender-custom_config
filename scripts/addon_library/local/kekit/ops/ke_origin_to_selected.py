@@ -11,7 +11,7 @@ def restore_cursor(cursor, loc, rot, ogmode):
 
 class KeOriginToSelected(Operator):
     bl_idname = "view3d.origin_to_selected"
-    bl_label = "Origin To Selected Elements"
+    bl_label = "Origin Location to Selected"
     bl_description = "Places origin(s) at element selection average\n" \
                      "(Location Only, Apply rotation for world rotation)"
     bl_space_type = 'VIEW_3D'

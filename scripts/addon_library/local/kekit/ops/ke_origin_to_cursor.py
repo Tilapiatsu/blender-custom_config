@@ -5,7 +5,7 @@ from bpy.types import Operator
 
 class KeOriginToCursor(Operator):
     bl_idname = "view3d.ke_origin_to_cursor"
-    bl_label = "Align Origin To Cursor"
+    bl_label = "Align Origin to Cursor"
     bl_description = "Aligns selected object(s) origin(s) to Cursor (Rotation,Location or both)"
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'UI'

@@ -310,13 +310,6 @@ class KeIDMaterial(Operator):
         return {'FINISHED'}
 
 
-# def draw_syncvpbutton(self, context):
-#     layout = self.layout
-#     row = layout.row()
-#     row.use_property_split = True
-#     row.operator("view3d.ke_syncvpmaterial", icon="COLOR")
-
-
 classes = (
     KeBgSync,
     KeGetSetMaterial,
@@ -337,17 +330,8 @@ def register():
         for c in classes:
             bpy.utils.register_class(c)
 
-        # if k.material_extras:
-        #     bpy.types.EEVEE_MATERIAL_PT_surface.prepend(draw_syncvpbutton)
-        #
 
 def unregister():
-    # try:
-    #     bpy.types.EEVEE_MATERIAL_PT_surface.remove(draw_syncvpbutton)
-    # except Exception as e:
-    #     print('keKit Draw SyncVpMaterial Button Unregister: ', e)
-    #     pass
-
     if "bl_rna" in UIRenderModule.__dict__:
         for c in reversed(classes):
             bpy.utils.unregister_class(c)

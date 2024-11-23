@@ -34,8 +34,9 @@ def apply_og_materials():
     for o in bpy.context.selected_editable_objects:
         if o.material_slots == 0:
             continue
-        og_materials = o.data.get("copyplus")
-        if not og_materials:
+        try:
+            og_materials = o.data.get("copyplus")
+        except AttributeError:
             continue
         if len(og_materials) == len(o.material_slots) :
             for og, slot in zip(og_materials, o.material_slots):
@@ -49,8 +50,9 @@ def apply_og_materials_em():
     for o in bpy.context.selected_editable_objects:
         if o.material_slots == 0:
             continue
-        og_materials = o.data.get("copyplus")
-        if not og_materials:
+        try:
+            og_materials = o.data.get("copyplus")
+        except AttributeError:
             continue
         for i, og in enumerate(og_materials):
             o.data.materials[i] = bpy.data.materials[og]

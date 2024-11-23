@@ -10,6 +10,7 @@ class UISubDModule(Panel):
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'UI'
     bl_parent_id = "UI_PT_M_MODIFIERS"
+    bl_options = {'DEFAULT_CLOSED'}
 
     def draw(self, context):
         k = get_prefs()
@@ -24,7 +25,7 @@ class UISubDModule(Panel):
         col.separator()
         col = col.box().column(align=True)
         col.operator('view3d.ke_subd', text="SubD Toggle").level_mode = "TOGGLE"
-        # col.separator()
+        col.separator(factor=1)
         col.label(text="SubD Toggle Options")
         row = col.row(align=True)
         row.prop(k, "vp_level", text="VP Lv")
@@ -57,6 +58,8 @@ class KeSubd(Operator):
         options={'HIDDEN'},
         default="TOGGLE")
 
+    toggle_autosmooth = False
+
     @classmethod
     def poll(cls, context):
         return context.object is not None
@@ -70,6 +73,15 @@ class KeSubd(Operator):
         else:
             return "Toggles (add if none exist) SubD modifier(s) on selected object(s), as defined by options"
 
+    def autosmooth(self, obj, state):
+        if self.toggle_autosmooth:
+            if bpy.app.version < (4, 1):
+                obj.data.use_auto_smooth = state
+            else:
+                for m in obj.modifiers:
+                    if m.name in {"Auto Smooth", "Smooth by Angle"}:
+                        m.show_viewport = state
+
     def execute(self, context):
         k = get_prefs()
         vp_level = k.vp_level
@@ -80,9 +92,9 @@ class KeSubd(Operator):
         optimal_display = k.optimal_display
         on_cage = k.on_cage
         em_vis = k.em_vis
-        toggle_autosmooth = bool(k.subd_autosmooth)
-        if bpy.app.version >= (4, 1):
-            toggle_autosmooth = False
+        self.toggle_autosmooth = bool(k.subd_autosmooth)
+        # if bpy.app.version >= (4, 1):
+        #     toggle_autosmooth = False
 
         mode = context.mode[:]
         if mode == "EDIT_MESH":
@@ -116,9 +128,6 @@ class KeSubd(Operator):
                 mod.show_on_cage = on_cage
                 mod.show_in_editmode = em_vis
 
-                if toggle_autosmooth:
-                    obj.data.use_auto_smooth = False
-
                 if mode != "OBJECT":
                     bpy.ops.object.mode_set(mode="OBJECT")
                     bpy.ops.object.shade_smooth()
@@ -126,6 +135,8 @@ class KeSubd(Operator):
                 else:
                     bpy.ops.object.shade_smooth()
                 new_subd.append(obj)
+
+                self.autosmooth(obj, False)
 
         # MAIN
         for obj in sel_objects:
@@ -145,8 +156,7 @@ class KeSubd(Operator):
                             if mod.show_viewport:
                                 # TURN OFF
                                 mod.show_viewport = False
-                                if toggle_autosmooth:
-                                    obj.data.use_auto_smooth = True
+                                self.autosmooth(obj, True)
 
                                 # re-applying these for subd modifiers added by other means
                                 mod.boundary_smooth = boundary_smooth
@@ -161,8 +171,7 @@ class KeSubd(Operator):
                             elif not mod.show_viewport:
                                 # TURN ON
                                 mod.show_viewport = True
-                                if toggle_autosmooth:
-                                    obj.data.use_auto_smooth = False
+                                self.autosmooth(obj, False)
 
                 if self.level_mode == "TOGGLE":
                     if flat_edit and set_flat:
@@ -172,6 +181,7 @@ class KeSubd(Operator):
                             bpy.ops.object.mode_set(mode=mode)
                         else:
                             bpy.ops.object.shade_flat()
+                        self.autosmooth(obj, False)
                     elif flat_edit:
                         if mode != "OBJECT":
                             bpy.ops.object.mode_set(mode="OBJECT")
@@ -179,6 +189,7 @@ class KeSubd(Operator):
                             bpy.ops.object.mode_set(mode=mode)
                         else:
                             bpy.ops.object.shade_smooth()
+                        self.autosmooth(obj, False)
 
         return {"FINISHED"}
 

@@ -59,6 +59,7 @@ class KeNiceProject(Operator):
             me = obj.data
             bm = bmesh.from_edit_mesh(me)
             sel_faces = [f for f in bm.faces if f.select]
+            hidden_faces = [f for f in bm.faces if f.hide]
 
             if not sel_faces:
                 self.report({"INFO"}, "Invalid Selection")
@@ -108,6 +109,10 @@ class KeNiceProject(Operator):
                 if self.keep_selected:
                     bpy.ops.mesh.select_all(action='DESELECT')
                 bpy.ops.mesh.reveal(select=self.keep_selected)
+
+            if hidden_faces:
+                for f in hidden_faces:
+                    f.hide_set(True)
 
             bmesh.update_edit_mesh(obj.data)
             obj.select_set(True)

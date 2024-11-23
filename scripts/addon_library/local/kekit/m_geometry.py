@@ -12,7 +12,6 @@ from .ops.ke_grid_toggle import KeGridToggle
 from .ops.ke_linear_array import KeLinearArray
 from .ops.ke_local_by_distance import KeLocalByDistance
 from .ops.ke_mouse_mirror_flip import KeMouseMirrorFlip
-from .ops.ke_polybrush import KePolyBrush
 from .ops.ke_quickmeasure import KeQuickMeasure
 from .ops.ke_radial_array import KeRadialArray
 from .ops.ke_radial_instances import KeRadialInstances
@@ -72,7 +71,6 @@ class UIGeoModule(Panel):
         row = col.row(align=True)
         row.operator('view3d.ke_collision', text="BBox").col_type = "BOX"
         row.operator('view3d.ke_collision', text="Convex Hull").col_type = "CONVEX"
-        col.operator('object.ke_polybrush')
 
         col.separator(factor=0.5)
 
@@ -109,7 +107,6 @@ classes = (
     KeLinearArray,
     KeLocalByDistance,
     KeMouseMirrorFlip,
-    KePolyBrush,
     KeQuickMeasure,
     KeRadialArray,
     KeRadialInstances,

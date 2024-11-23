@@ -11,7 +11,7 @@ from .ops.ke_cursor_ortho_snap import KeCursorOrthoSnap
 from .ops.ke_cursor_rotation import KeCursorRotation
 from .ops.ke_frame_all_or_selected import KeFrameView
 from .ops.ke_lock import KeLock
-from .ops.ke_mouse_side_of_active import KeMouseSideofActive
+from .ops.ke_mouse_side_of_active import KeMouseSideofActive, KeMouseSelectMirror
 from .ops.ke_object_to_cursor import KeObjectToCursor
 from .ops.ke_origin_to_cursor import KeOriginToCursor
 from .ops.ke_origin_to_selected import KeOriginToSelected
@@ -24,7 +24,6 @@ from .ops.ke_selected_to_origin import KeSelectedToOrigin
 from .ops.ke_straighten import KeStraighten
 from .ops.ke_swap import KeSwap
 from .ops.ke_view_align import KeViewAlign
-from .ops.ke_view_align_snap import KeViewAlignSnap
 from .ops.ke_view_align_toggle import KeViewAlignToggle
 from .ops.ke_vp_step_rotate import KeStepRotate
 
@@ -49,47 +48,42 @@ class UISelectionModule(Panel):
         row.operator("view3d.ke_cursor_fit_align", text="Cursor Fit & Align", icon="CURSOR")
         row.prop(k, "cursorfit", text="", toggle=True, icon_value=c if k.cursorfit else u)
         row.prop(k, "cursor_gizmo", text="", icon="EMPTY_DATA")
-
         row = col.row(align=True)
         row.operator("view3d.ke_cursor_align_rot", icon="MOUSE_MOVE")
         row.prop(k, "cursorfit", text="", toggle=True, icon_value=c if k.cursorfit else u)
-
         row = col.row(align=True)
         row.operator("view3d.ke_vp_step_rotate", text="StepRotate 90").rot = 90
         row.operator("view3d.ke_vp_step_rotate", text="StepRotate -90").rot = -90
+        col.separator(factor=0.5)
 
-        col.label(text="Align View To")
-        row = col.row(align=True)
-        row.operator('view3d.ke_view_align_toggle', text="Cursor").mode = 'CURSOR'
-        row.operator('view3d.ke_view_align_toggle', text="Selected").mode = 'SELECTION'
-        row.operator('view3d.ke_view_align_snap', text="OrthoSnap").contextual = False
-
+        row = col.row(align=True).split(factor=0.9, align=True)
+        row.operator('view3d.ke_view_align_toggle').mode = 'SELECTION'
+        row.operator('view3d.ke_view_align_toggle', icon="CURSOR", text="View Align Toggle Cursor").mode = 'CURSOR'
         row = col.row(align=True)
         row.operator("screen.ke_frame_view", text="Frame All or Selected")
         row.prop(k, "frame_mo", text="", toggle=True, icon_value=c if k.frame_mo else u)
+        col.separator(factor=0.5)
 
-        col.label(text="Align Origin(s) To")
-        row = col.row(align=True)
-        row.operator('view3d.ke_origin_to_cursor', text="Cursor")
-        row.operator('view3d.ke_align_origin_to_selected', text="Selection")
-        row.operator('view3d.origin_to_selected', text="Sel.Loc")
+        row = col.row(align=True).split(factor=0.9, align=True)
+        row.operator('view3d.ke_align_origin_to_selected')
+        row.operator('view3d.ke_origin_to_cursor', icon="CURSOR")
+        col.operator('view3d.origin_to_selected')
+        col.separator(factor=0.5)
 
-        row = col.row(align=False)
-        split = row.split(factor=0.7, align=True)
-        split.operator("view3d.ke_quick_origin_move", icon="TRANSFORM_ORIGINS").mode = "MOVE"
-        split2 = split.row(align=True)
-        split2.operator("view3d.ke_quick_origin_move", icon="TRANSFORM_ORIGINS", text="AA").mode = "AUTOAXIS"
+        row = col.row(align=False).split(factor=0.9, align=True)
+        row.operator("view3d.ke_quick_origin_move", icon="TRANSFORM_ORIGINS").mode = "MOVE"
+        row.operator("view3d.ke_quick_origin_move", icon="TRANSFORM_ORIGINS", text="Quick Origin Move AutoAxis").mode = "AUTOAXIS"
+        col.separator(factor=0.5)
 
-        col.label(text="Align Object(s) To")
-        row = col.row(align=True)
-        row.operator('view3d.ke_object_to_cursor', text="Cursor")
-        row.operator('view3d.ke_align_object_to_active', text="Active Object").align = "BOTH"
-        row.operator('view3d.ke_selected_to_origin', text="Origin")
+        col.operator('view3d.ke_object_to_cursor')
+        col.operator('view3d.ke_align_object_to_active').align = "BOTH"
+        col.operator('view3d.ke_selected_to_origin')
         col.operator('object.ke_bbmatch')
 
         col.separator(factor=0.5)
-        col.operator('object.ke_straighten', icon="CON_ROTLIMIT")
-        col.operator('view3d.ke_swap', text="Swap Places", icon="CON_TRANSLIKE")
+        row = col.row(align=True)
+        row.operator('object.ke_straighten', icon="CON_ROTLIMIT")
+        row.operator('view3d.ke_swap', text="Swap Places", icon="CON_TRANSLIKE")
 
         # SELECT (leaning)
         col.label(text="Select")
@@ -100,6 +94,7 @@ class UISelectionModule(Panel):
         col.operator("mesh.ke_select_boundary", text="Select Boundary (+Active)")
         col.operator('view3d.ke_select_invert_linked')
         col.operator('mesh.ke_mouse_side_of_active', icon="MOUSE_MOVE")
+        col.operator('mesh.ke_mouse_select_mirror', icon="MOUSE_MOVE")
         col.operator('view3d.ke_show_in_outliner')
         col.operator('view3d.ke_set_active_collection')
         col.operator('object.ke_select_objects_by_vertselection')
@@ -228,6 +223,7 @@ classes = (
     KeFrameView,
     KeLock,
     KeMouseSideofActive,
+    KeMouseSelectMirror,
     KeObjectToCursor,
     KeOriginToCursor,
     KeOriginToSelected,
@@ -243,7 +239,6 @@ classes = (
     KeSwap,
     KeVertObjectSelect,
     KeViewAlign,
-    KeViewAlignSnap,
     KeViewAlignToggle,
     UISelectionModule,
     UIxSelectByDisplayType,
