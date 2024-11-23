@@ -564,7 +564,7 @@ class ElementAM():
                 keymap_instance.set_keymaps()
                 self.log_progress.separator(add_to_satus=True)
             except AttributeError as e:
-                self.log_progress.warning(f'{self.name} Addon have no keymaps Set')
+                self.log_progress.warning(f'{self.name} Addon was not assigned properly \n {e}')
                 LOG.error(f'{e}')
 
     def set_settings(self):

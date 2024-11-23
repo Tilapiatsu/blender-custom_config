@@ -1845,6 +1845,13 @@ class TILA_Config_Keymaps_MACHIN3tools(TILA_Config_Keymaps):
             self.kmi_set_replace('wm.call_menu_pie', 'D', "PRESS", alt=True, shift=True, properties={'name': 'MACHIN3_MT_align_pie'}, disable_double=True)
             self.kmi_set_active(False, 'machin3.select')
             self.kmi_set_active(False, 'machin3.symmetrize')
+        
+        if self.kmi_init(name='3D View Generic', space_type='EMPTY', region_type='WINDOW', addon=False, restore_to_default=False):
+            self.kmi_set_active(True, 'machin3.material_picker')
+            k = self.kmi_find('machin3.material_picker')
+            if k:
+                k.map_type = 'KEYBOARD'
+                k.type = 'M'
 
         if self.kmi_init(name='Object Mode', space_type='EMPTY', region_type='WINDOW', addon=False, restore_to_default=False):
             self.kmi_set_replace('machin3.align', 'A', "PRESS", alt=True, disable_double=False)
