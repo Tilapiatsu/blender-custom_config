@@ -216,8 +216,8 @@ class TILA_OT_area_split(bpy.types.Operator):
 				print(f'Splitting Area {area.type}')
 				bpy.ops.screen.area_split('EXEC_DEFAULT', direction=direction, factor=factor)
 			# bpy.ops.screen.area_move('INVOKE_REGION_WIN', x=offset[0], y=offset[1])
-			bpy.context.area.ui_type = self.ui_type
 			bpy.ops.wm.context_set_enum(data_path='area.type', value=self.editor_type)
+			bpy.context.area.ui_type = self.ui_type
 
 
 	def area_in_range(self, area_index):
