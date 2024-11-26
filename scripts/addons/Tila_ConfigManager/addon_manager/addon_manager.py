@@ -458,6 +458,10 @@ class ElementAM():
     def clean(self, force=False, clean_cloned=False):
         for p in self.paths:
             p.clean(force=force)
+        
+        if self.is_extension:
+            self.log_progress.done(f'Uninstalling Extension : {self.extension_id}')
+            bpy.ops.extensions.package_uninstall(repo_index=0, pkg_id=self.extension_id)
 
         if not clean_cloned:
             return
@@ -474,7 +478,9 @@ class ElementAM():
         
         if self.is_extension:
             self.log_progress.start(f'Installing Extension {self.extension_id}')
+            # print(os.listdir(bpy.context.preferences.extensions.repos[0].directory))
             bpy.ops.extensions.package_install(repo_index=0, pkg_id=self.extension_id, enable_on_install=False)
+            # print(os.listdir(bpy.context.preferences.extensions.repos[0].directory))
             self.log_progress.done(f'Extension Installtion Done!')
             self.log_progress.separator(add_to_satus=True)
             return

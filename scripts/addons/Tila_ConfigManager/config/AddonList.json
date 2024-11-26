@@ -3647,7 +3647,7 @@
     "Mio3 UV": {
         "is_enable": true,
         "is_sync": true,
-        "is_extension": false,
+        "is_extension": true,
         "extension_id": "mio3_uv",
         "online_url": "https://extensions.blender.org/mio3-uv/",
         "repository_url": "https://github.com/mio3io/mio3_uv.git",
@@ -3666,9 +3666,9 @@
     "Embroidery Importer": {
         "is_enable": false,
         "is_sync": false,
-        "is_extension": false,
+        "is_extension": true,
         "extension_id": "embroidery_importer",
-        "online_url": null,
+        "online_url": "https://extensions.blender.org/add-ons/embroidery-importer/",
         "repository_url": "https://github.com/javl/blender-embroidery.git",
         "branch": null,
         "is_submodule": false,
