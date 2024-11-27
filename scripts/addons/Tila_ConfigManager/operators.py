@@ -336,6 +336,8 @@ class TILA_Config_SyncAddonList(Operator):
 
         # Ensure online access is possible
         context.preferences.system.use_online_access = True
+        # Sync Repo
+        bpy.ops.extensions.repo_sync_all()
 
         self.AM.flush_queue()
         if self.name == '':
