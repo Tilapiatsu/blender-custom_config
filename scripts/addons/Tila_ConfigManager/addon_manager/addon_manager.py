@@ -110,7 +110,7 @@ except (ModuleNotFoundError, ImportError) as e:
     import git
 
 
-class File(object):
+class File:
     def __init__(self, path):
         self.log = LOG
         self.path = path
@@ -214,7 +214,7 @@ class Json(File):
             outfile.write(json_object)
 
 
-class PathAM():
+class PathAM:
     def __init__(self, path):
         self._path = path
         self.log_progress = log_list(bpy.context.window_manager.tila_config_log_list,
@@ -269,7 +269,7 @@ class PathAM():
                 shutil.rmtree(self.path, onerror=file_acces_handler)
 
 
-class PathElementAM():
+class PathElementAM:
     def __init__(self, path_dict, local_path):
         self._path_dict = path_dict
         self.local_path = local_path
@@ -349,7 +349,7 @@ class PathElementAM():
             return
             
 
-class ElementAM():
+class ElementAM:
     def __init__(self, element_dict, name):
         self.element_dict = element_dict
         self.name = name
@@ -367,11 +367,10 @@ class ElementAM():
         s += f'local_path = {self.local_path.path}\n'
         s += f'online_url = {self.online_url}\n'
         s += f'repository_url = {self.repository_url}\n'
-        for i in range(len(self.paths)):
-            p = self.paths[i]
-            s += f'--------------------------------------------------------------------------------\n'
+        for i,p in enumerate(len(self.paths)):
+            s += '--------------------------------------------------------------------------------\n'
             s += f'path{i}\n'
-            s += f'--------------------------------------------------------------------------------\n'
+            s += '--------------------------------------------------------------------------------\n'
             s += f'paths.is_enable = {p.is_enable}\n'
             s += f'paths.local_subpath_resolved = {p.local_subpath_resolved.path}\n'
             s += f'paths.destination_path = {p.destination_path.path}\n'
@@ -544,7 +543,7 @@ class ElementAM():
             enable_addon(self.module)
             return
 
-        if not len(self.paths):
+        if len(self.paths) == 0:
             enable_addon(self.module)
         else:
             for p in self.paths:
@@ -584,7 +583,7 @@ class ElementAM():
             self.log_progress.warning(f'{self.safe_name} Addon have no settings')
             LOG.error(f'{e}')
 
-class AddonManager():
+class AddonManager:
     def __init__(self, json_path):
         self._json_path = json_path
         self.json = Json(json_path)
