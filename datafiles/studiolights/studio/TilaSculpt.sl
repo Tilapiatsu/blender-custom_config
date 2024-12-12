@@ -15,9 +15,9 @@ light[0].vec.y 0.723577
 light[0].vec.z 0.686354
 light[1].flag 1
 light[1].smooth 0.000000
-light[1].col.x 0.362655
-light[1].col.y 0.362655
-light[1].col.z 0.362655
+light[1].col.x 0.219942
+light[1].col.y 0.219942
+light[1].col.z 0.219942
 light[1].spec.x 1.000000
 light[1].spec.y 1.000000
 light[1].spec.z 1.000000
