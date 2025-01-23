@@ -1,6 +1,6 @@
 import bmesh
 import bpy
-from bpy.props import BoolProperty
+from bpy.props import BoolProperty, EnumProperty
 from bpy.types import Operator
 from mathutils import Vector, Matrix
 from .._utils import average_vector, vertloops, correct_normal, tri_points_order
@@ -10,7 +10,7 @@ class KeExtractAndEdit(Operator):
     bl_idname = "mesh.ke_extract_and_edit"
     bl_label = "Extract & Edit"
     bl_description = "Separate element selection into a New Object & set as Active Object in Edit Mode\n" \
-                     "Tip: Customize extra shortcuts with option-combinations in Preferences"
+                     "Customize shortcut(s) with ADDITIONAL OPTIONS (not in redo-panel) in PREFS/KEYMAP"
     bl_options = {'REGISTER', 'UNDO'}
 
     expand: BoolProperty(
@@ -23,15 +23,21 @@ class KeExtractAndEdit(Operator):
         name="Duplicate",
         description="Duplicate selection before extraction"
     )
-    itemize: BoolProperty(
-        default=True,
-        name="Itemize",
-        description="Active Face or Active Edge(+2 connected edges) is used for rotation/position (the new 'bottom')"
+    origin: EnumProperty(
+        items=[("COPY", "Copy", "Extracted obj uses same origin (loc/rot) as source obj", 1),
+               ("ACTIVE", "Active", "Active Face or Edge(+2 connected edges) used for loc/rot origin placement", 2),
+               ("APPLY", "Apply", "Apply loc/rot (0,0,0) to extracted geo obj", 3)],
+        name="Origin", default="COPY"
     )
     datacopy: BoolProperty(
         default=True,
-        name="Itemize Data Copy",
-        description="Also copies original object's data: Normal settings & other attributes"
+        name="Mesh Data Copy",
+        description="Copy original object's mesh data: Normal settings & other attributes"
+    )
+    objcopy: BoolProperty(
+        default=True,
+        name="Object Properties Copy",
+        description="Copy original object's properties: Viewport visibility settings etc."
     )
     objmode: BoolProperty(
         default=False, name="Set Object Mode",
@@ -50,7 +56,6 @@ class KeExtractAndEdit(Operator):
         layout.use_property_split = True
         layout.prop(self, "expand", toggle=True)
         layout.prop(self, "dupe", toggle=True)
-        layout.prop(self, "itemize", toggle=True)
 
     def execute(self, context):
         obj = context.object
@@ -70,17 +75,20 @@ class KeExtractAndEdit(Operator):
         if self.expand:
             bpy.ops.mesh.select_linked()
 
-        if self.itemize:
-            bm = bmesh.from_edit_mesh(obj.data)
-            obj_mtx = obj.matrix_world.copy()
-            sel_mode = context.tool_settings.mesh_select_mode[:]
+        # Default + self.origin == "APPLY":
+        rot = loc = Vector()
 
-            sel_poly = [p for p in bm.faces if p.select]
-            active_face = bm.faces.active
+        # Check selections
+        bm = bmesh.from_edit_mesh(obj.data)
+        obj_mtx = obj.matrix_world.copy()
+        sel_mode = context.tool_settings.mesh_select_mode[:]
+
+        sel_poly = [p for p in bm.faces if p.select]
+        active_face = bm.faces.active
+
+        if self.origin == "ACTIVE":
             n_v, pos, vec_poslist = [], [], []
-            #
-            # Initial selection
-            #
+
             if sel_mode[1]:
                 # EDGE MODE
                 bm.edges.ensure_lookup_table()
@@ -130,11 +138,8 @@ class KeExtractAndEdit(Operator):
                     vec_poslist = [obj_mtx @ v.co for v in active_face.verts]
                     pos = obj_mtx @ active_face.calc_center_median()
 
-            #
             # Get settings & Make new item
-            #
             if pos and vec_poslist:
-
                 h = tri_points_order(vec_poslist)
                 vec_poslist = vec_poslist[h[0]], vec_poslist[h[1]], vec_poslist[h[2]]
 
@@ -160,67 +165,57 @@ class KeExtractAndEdit(Operator):
                 rot.y = round(rot.y, 4)
                 rot.z = round(rot.z, 4)
 
-                # Create new mesh and apply settings
-                if self.datacopy:
-                    new_mesh = obj.data.copy()
-                    new_mesh.clear_geometry()
-                else:
-                    new_mesh = bpy.data.meshes.new(obj.name + '_itemized_mesh')
-                new_obj = bpy.data.objects.new(obj.name + '_itemized', new_mesh)
-                coll.objects.link(new_obj)
+        # Create new mesh and apply settings
+        if self.datacopy:
+            new_mesh = obj.data.copy()
+            new_mesh.clear_geometry()
+        else:
+            new_mesh = bpy.data.meshes.new(obj.name + '_extracted_mesh')
 
-                new_obj.location = loc
-                new_obj.rotation_euler = rot
-                if bpy.app.version < (4, 1):
-                    new_obj.data.use_auto_smooth = True
+        if self.objcopy:
+            new_obj = obj.copy()
+            new_obj.name = obj.name + '_extracted'
+            new_obj.data = new_mesh
+        else:
+            new_obj = bpy.data.objects.new(obj.name + '_extracted', new_mesh)
 
-                if self.dupe:
-                    bpy.ops.mesh.duplicate()
+        if self.origin == "COPY":
+            rot = obj.rotation_euler
+            loc = obj.location
 
-                bpy.ops.mesh.separate(type='SELECTED')
-                temp_dupe = context.selected_objects[-1]
+        new_obj.location = loc
+        new_obj.rotation_euler = rot
 
-                bpy.ops.object.mode_set(mode='OBJECT')
-                bpy.ops.object.select_all(action="DESELECT")
+        coll.objects.link(new_obj)
 
-                temp_dupe.select_set(True)
-                new_obj.select_set(True)
+        if bpy.app.version < (4, 1):
+            new_obj.data.use_auto_smooth = True
 
-                context.view_layer.objects.active = temp_dupe
-                context.view_layer.objects.active = new_obj
-                bpy.ops.object.join('INVOKE_DEFAULT')
-
-                bpy.ops.object.mode_set(mode='EDIT')
-                bpy.ops.mesh.select_all(action="SELECT")
-                bm = bmesh.from_edit_mesh(context.object.data)
-                bm.faces.active = None
-                bmesh.update_edit_mesh(context.object.data)
-
-                if self.objmode:
-                    bpy.ops.object.mode_set(mode='OBJECT')
-                # bpy.ops.transform.select_orientation(orientation='LOCAL')
-                # bpy.context.tool_settings.transform_pivot_point = 'INDIVIDUAL_ORIGINS'
-                return {'FINISHED'}
-
-        # ELSE (GLOBAL, incl. itemize when no Active Element is found)
         if self.dupe:
-            bpy.ops.mesh.duplicate(mode=1)
+            bpy.ops.mesh.duplicate()
 
-        bpy.ops.mesh.separate(type="SELECTED")
-        new_obj = [o for o in context.selected_objects if o.type == 'MESH'][-1]
+        bpy.ops.mesh.separate(type='SELECTED')
+        temp_dupe = context.selected_objects[-1]
 
         bpy.ops.object.mode_set(mode='OBJECT')
         bpy.ops.object.select_all(action="DESELECT")
+
+        temp_dupe.select_set(True)
         new_obj.select_set(True)
 
-        view_layer = context.view_layer
-        view_layer.objects.active = new_obj
-        # coll.objects.link(new_obj)
+        context.view_layer.objects.active = temp_dupe
+        context.view_layer.objects.active = new_obj
+        bpy.ops.object.join('INVOKE_DEFAULT')
+
+        bpy.ops.object.mode_set(mode='EDIT')
+        bpy.ops.mesh.select_all(action="SELECT")
+        # bm = bmesh.from_edit_mesh(context.object.data)
+        # bm.faces.ensure_lookup_table()
+        # bm.faces.active = None
+        # bmesh.update_edit_mesh(context.object.data)
 
         if self.objmode:
             bpy.ops.object.mode_set(mode='OBJECT')
-        else:
-            bpy.ops.object.mode_set(mode='EDIT')
-            bpy.ops.mesh.select_all(action="SELECT")
-
-        return {"FINISHED"}
+        # bpy.ops.transform.select_orientation(orientation='LOCAL')
+        # bpy.context.tool_settings.transform_pivot_point = 'INDIVIDUAL_ORIGINS'
+        return {'FINISHED'}

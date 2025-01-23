@@ -43,151 +43,34 @@ class UIMultiCutModule(Panel):
 
         layout = self.layout
         col = layout.column(align=True)
-        row = col.row(align=True)
-        row.scale_x = 1
-        row.prop(k, "mc_relative", text="")
-        row.scale_x = 0.25
-        row.prop(k, "mc_center", text="")
-        row.scale_x = 1
-        row.prop(k, "mc_fixed", text="")
-
+        row = col.row(align=True).split(factor=0.15)
+        row.label(text="New:")
+        subrow = row.row(align=True)
+        subrow.scale_x = 1
+        subrow.prop(k, "mc_relative", text="")
+        subrow.scale_x = 0.25
+        subrow.prop(k, "mc_center", text="")
+        subrow.scale_x = 1
+        subrow.prop(k, "mc_fixed", text="")
         col = layout.column(align=False)
 
-        row = col.row(align=True)
-        if toggle:
-            row.prop(k, "mc_name0", text="")
-        else:
-            op = row.operator('MESH_OT_ke_multicut', text="%s" % k.mc_name0)
-            v1, v2, v3, v4 = get_props(preset="0")
-            op.o_relative = v1
-            op.o_center = v2
-            op.o_fixed = v3
-            op.using_fixed = v4
-            op.preset = "SET"
-
-        row.scale_x = 0.35
-        row.label(text=" MC1")
-        row.scale_x = 1
-        row.operator('ke.mcprefs', text="", icon="IMPORT").preset = 0
-
-        row = col.row(align=True)
-        if toggle:
-            row.prop(k, "mc_name1", text="")
-        else:
-            op = row.operator('MESH_OT_ke_multicut', text="%s" % k.mc_name1)
-            v1, v2, v3, v4 = get_props(preset="1")
-            op.o_relative = v1
-            op.o_center = v2
-            op.o_fixed = v3
-            op.using_fixed = v4
-            op.preset = "SET"
-
-        row.scale_x = 0.35
-        row.label(text=" MC2")
-        row.scale_x = 1
-        row.operator('ke.mcprefs', text="", icon="IMPORT").preset = 1
-
-        row = col.row(align=True)
-        if toggle:
-            row.prop(k, "mc_name2", text="")
-        else:
-            op = row.operator('MESH_OT_ke_multicut', text="%s" % k.mc_name2)
-            v1, v2, v3, v4 = get_props(preset="2")
-            op.o_relative = v1
-            op.o_center = v2
-            op.o_fixed = v3
-            op.using_fixed = v4
-            op.preset = "SET"
-
-        row.scale_x = 0.35
-        row.label(text=" MC3")
-        row.scale_x = 1
-        row.operator('ke.mcprefs', text="", icon="IMPORT").preset = 2
-
-        row = col.row(align=True)
-        if toggle:
-            row.prop(k, "mc_name3", text="")
-        else:
-            op = row.operator('MESH_OT_ke_multicut', text="%s" % k.mc_name3)
-            v1, v2, v3, v4 = get_props(preset="3")
-            op.o_relative = v1
-            op.o_center = v2
-            op.o_fixed = v3
-            op.using_fixed = v4
-            op.preset = "SET"
-
-        row.scale_x = 0.35
-        row.label(text=" MC4")
-        row.scale_x = 1
-        row.operator('ke.mcprefs', text="", icon="IMPORT").preset = 3
-
-        row = col.row(align=True)
-        if toggle:
-            row.prop(k, "mc_name4", text="")
-        else:
-            op = row.operator('MESH_OT_ke_multicut', text="%s" % k.mc_name4)
-            v1, v2, v3, v4 = get_props(preset="4")
-            op.o_relative = v1
-            op.o_center = v2
-            op.o_fixed = v3
-            op.using_fixed = v4
-            op.preset = "SET"
-
-        row.scale_x = 0.35
-        row.label(text=" MC5")
-        row.scale_x = 1
-        row.operator('ke.mcprefs', text="", icon="IMPORT").preset = 4
-
-        row = col.row(align=True)
-        if toggle:
-            row.prop(k, "mc_name5", text="")
-        else:
-            op = row.operator('MESH_OT_ke_multicut', text="%s" % k.mc_name5)
-            v1, v2, v3, v4 = get_props(preset="5")
-            op.o_relative = v1
-            op.o_center = v2
-            op.o_fixed = v3
-            op.using_fixed = v4
-            op.preset = "SET"
-
-        row.scale_x = 0.35
-        row.label(text=" MC6")
-        row.scale_x = 1
-        row.operator('ke.mcprefs', text="", icon="IMPORT").preset = 5
-
-        row = col.row(align=True)
-        if toggle:
-            row.prop(k, "mc_name6", text="")
-        else:
-            op = row.operator('MESH_OT_ke_multicut', text="%s" % k.mc_name6)
-            v1, v2, v3, v4 = get_props(preset="6")
-            op.o_relative = v1
-            op.o_center = v2
-            op.o_fixed = v3
-            op.using_fixed = v4
-            op.preset = "SET"
-
-        row.scale_x = 0.35
-        row.label(text=" MC7")
-        row.scale_x = 1
-        row.operator('ke.mcprefs', text="", icon="IMPORT").preset = 6
-
-        row = col.row(align=True)
-        if toggle:
-            row.prop(k, "mc_name7", text="")
-        else:
-            op = row.operator('MESH_OT_ke_multicut', text="%s" % k.mc_name7)
-            v1, v2, v3, v4 = get_props(preset="7")
-            op.o_relative = v1
-            op.o_center = v2
-            op.o_fixed = v3
-            op.using_fixed = v4
-            op.preset = "SET"
-
-        row.scale_x = 0.35
-        row.label(text=" MC8")
-        row.scale_x = 1
-        row.operator('ke.mcprefs', text="", icon="IMPORT").preset = 7
+        for i in range(0, 8):
+            hnr = str(i + 1)
+            name = "mc_name" + str(i)
+            row = col.row(align=False).split(factor=0.15)
+            row.label(text="MC" + hnr)
+            subrow = row.split(factor=0.85, align=False)
+            if toggle:
+                subrow.prop(k, name, text="")
+            else:
+                op = subrow.operator('MESH_OT_ke_multicut', text="%s" % k.__getattribute__(name))
+                v1, v2, v3, v4 = get_props(preset=str(i))
+                op.o_relative = v1
+                op.o_center = v2
+                op.o_fixed = v3
+                op.using_fixed = v4
+                op.preset = "SET"
+            subrow.operator('ke.mcprefs', text="", icon="IMPORT").preset = i
 
         row = col.row(align=True)
         row.prop(context.scene.kekit_temp, "toggle", text="Manual Rename", toggle=True)
@@ -209,6 +92,7 @@ def set_name(v1, v2, v3, v4):
                 u, v = 'cm', v * 100
             elif v < 0.01:
                 u, v = 'mm', v * 1000
+        v = round(v, 4)
         # de-floating whole nrs
         if v.is_integer():
             v = int(v)

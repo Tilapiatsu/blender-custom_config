@@ -33,18 +33,16 @@ from . import m_selection
 from . import m_tt
 
 bl_info = {
-    "name": "keKit",
+    "name": "keKit Pro",
     "author": "Kjell Emanuelsson",
     "category": "",
     "blender": (2, 80, 0),
-    "version": (3, 3, 3),
+    "version": (3, 4, 0),
     "location": "View3D > Sidebar",
     "warning": "",
     "description": "Extensive Script Collection - Pro Version",
     "doc_url": "https://ke-code.xyz/scripts/wiki.html",
 }
-
-kit_cat = "Pro"
 
 modules = (
     _prefs,
@@ -65,10 +63,11 @@ modules = (
 
 def register():
     # Format version/cat & assign variables
+    if "Pro" in bl_info['name']:
+        _ui.kit_cat = "Pro"
     bv = bl_info['version']
     v = "v" + str(bv[0]) + "." + str(bv[1]) + str(bv[2])
     _ui.kekit_version = v
-    _ui.kit_cat = kit_cat
     _prefs.kekit_version = v
     _prefs.kkv = v[1] + v[3] + v[4]
 

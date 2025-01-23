@@ -1,6 +1,8 @@
 import os
 from math import radians, sqrt
+
 import numpy as np
+
 import bmesh
 import bpy
 from bpy_extras.view3d_utils import (
@@ -9,6 +11,7 @@ from bpy_extras.view3d_utils import (
     location_3d_to_region_2d
 )
 from mathutils import Matrix, Vector
+from mathutils.kdtree import KDTree
 from .manifest import keops, kepies
 
 
@@ -305,16 +308,16 @@ def mesh_hide_all(obj, state):
     obj.data.polygons.foreach_set("hide", (state,) * len(obj.data.polygons))
 
 
-def mesh_world_coords(obj):
+def mesh_world_coords(mesh, mtx):
     """Calculate verts world space coords really fast (np.einsum)"""
-    n = len(obj.data.vertices)
+    n = len(mesh.vertices)
     coords = np.empty((n * 3), dtype=float)
-    obj.data.vertices.foreach_get("co", coords)
+    mesh.vertices.foreach_get("co", coords)
     coords = np.reshape(coords, (n, 3))
     coords4d = np.empty(shape=(n, 4), dtype=float)
     coords4d[::-1] = 1
     coords4d[:, :-1] = coords
-    return np.einsum('ij,aj->ai', obj.matrix_world,  coords4d)[:, :-1]
+    return np.einsum('ij,aj->ai', mtx, coords4d)[:, :-1]
 
 
 def mesh_selected_verts(obj):
@@ -651,11 +654,60 @@ def point_axis_raycast(context, vec_point, axis=2, targetcap=-10000):
         return None, None, None, None
 
 
+def get_edge_loop(e):
+    edges = []
+    for loop in e.link_loops:
+        if len(loop.vert.link_edges) == 4:
+            edges.append(e)
+            while len(loop.vert.link_edges) == 4:
+                loop = loop.link_loop_prev.link_loop_radial_prev.link_loop_prev
+                e_next = loop.edge
+                edges.append(e_next)
+    return edges
+
+
 #
-# Note: Island funcs are for separating/sorting selection into islands (except "expand_to_island")
+# Note: Island funcs are for separating/sorting selection into islands (except "expand to island")
 #
-def expand_to_island(single_vert):
-    return list(walk_island(single_vert))
+def clear_bmesh_tags(bm):
+    # TBD: need to clear tags from bmesh for editmode to avoid obj mode toggle??
+    for v in bm.verts:
+        v.tag = False
+    for e in bm.edges:
+        e.tag = False
+    for f in bm.faces:
+        f.tag = False
+
+
+def expand_to_island(bm, vert):
+    """Get linked elements (AKA the 'part')"""
+    clear_bmesh_tags(bm)
+    verts = [vert]
+    edges = []
+    faces = []
+    for vert in verts:
+        for link_face in vert.link_faces:
+            if link_face.tag:
+                continue
+            faces.append(link_face)
+            link_face.tag = True
+        for link_edge in vert.link_edges:
+            if link_edge.tag:
+                continue
+            link_edge.tag = True
+            edges.append(link_edge)
+            other_vert = link_edge.other_vert(vert)
+            if other_vert.tag:
+                continue
+            verts.append(other_vert)
+            other_vert.tag = True
+        vert.tag = True
+    return verts, edges, faces
+
+
+# def expand_to_island(bm, single_vert):
+#     clear_bmesh_tags(bm)
+#     return list(walk_island(single_vert))
 
 
 def walk_island(vert, sedges=None):
@@ -678,6 +730,8 @@ def walk_island(vert, sedges=None):
 
 
 def get_islands(bm, verts, same_part_edges=None):
+    clear_bmesh_tags(bm)
+
     def tag(vs, switch):
         for i in vs:
             i.tag = switch
@@ -960,6 +1014,24 @@ def pick_closest_edge(context, mtx, mousepos, edges):
         if dist < prev:
             pick, prev = e, dist
     return pick
+
+
+def find_closest_edge_kd(edges, vert_cos, pos):
+    """Finds closest edge to pos - returns nearest loc, (*list) index, distance"""
+    cos = [(vert_cos[e.vertices[0]] + vert_cos[e.vertices[1]]) * 0.5 for e in edges]
+    return find_closest_co_kd(cos, pos)
+
+
+def find_closest_co_kd(cos, pos):
+    """Finds closest co's to pos - returns loc list, (*list) index, distance"""
+    kd = KDTree(len(cos))
+    for i, co in enumerate(cos):
+        kd.insert(co, i)
+    kd.balance()
+    closest = []
+    for (co, index, dist) in kd.find_n(pos, 4):
+        closest.append(index)
+    return closest
 
 
 def get_scene_unit(value, nearest=False):

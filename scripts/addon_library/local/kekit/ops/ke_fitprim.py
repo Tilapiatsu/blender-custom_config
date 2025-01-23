@@ -10,7 +10,7 @@ from bpy_extras.view3d_utils import (
     region_2d_to_vector_3d,
     location_3d_to_region_2d
 )
-from bpy_types import Panel, Operator
+from bpy.types import Panel, Operator
 from mathutils import Vector, Matrix
 from mathutils.geometry import intersect_ray_tri
 from .._utils import (
@@ -383,9 +383,14 @@ class KeFitPrim(Operator):
         if self.shading_mode == "AUTO" and not self.v4_1:
             ctx.object.data.use_auto_smooth = True
         elif self.shading_mode == "AUTO" and self.v4_1:
-            bpy.ops.object.modifier_add_node_group(
-                asset_library_type='ESSENTIALS', asset_library_identifier='',
-                relative_asset_identifier='geometry_nodes/smooth_by_angle.blend/NodeTree/Smooth by Angle')
+            has_ng = bpy.data.node_groups.get("Smooth by Angle")
+            if has_ng:
+                new_mod = bpy.context.object.modifiers.new("Smooth by Angle", "NODES")
+                new_mod.node_group = has_ng
+            else:
+                bpy.ops.object.modifier_add_node_group(
+                    asset_library_type='ESSENTIALS', asset_library_identifier='',
+                    relative_asset_identifier='geometry_nodes/smooth_by_angle.blend/NodeTree/Smooth by Angle')
 
     def invoke(self, context, event):
         self.v4_1 = bool(bpy.app.version >= (4, 1))
@@ -1224,15 +1229,7 @@ class KeFitPrim(Operator):
 
             if self.itemize or self.edit_mode == "OBJECT":
                 bpy.ops.object.mode_set(mode='OBJECT')
-
-                if self.shading_mode in {"SMOOTH", "AUTO"}:
-                    bpy.ops.object.shade_smooth()
-                if self.shading_mode == "AUTO" and not self.v4_1:
-                    context.object.data.use_auto_smooth = True
-                elif self.shading_mode == "AUTO" and self.v4_1:
-                    bpy.ops.object.modifier_add_node_group(
-                        asset_library_type='ESSENTIALS', asset_library_identifier='',
-                        relative_asset_identifier='geometry_nodes/smooth_by_angle.blend/NodeTree/Smooth by Angle')
+                self.set_shading(context)
 
                 if self.circle or self.plane:
                     bpy.ops.object.origin_set(type='ORIGIN_GEOMETRY', center='MEDIAN')

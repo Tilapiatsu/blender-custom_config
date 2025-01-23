@@ -258,10 +258,6 @@ class KeCursorFitAlign(Operator):
                         z = shared[0].normal
                         y = edge_vec
                         x = z.cross(y).normalized()
-                    elif self.lfn and not [e for e in sel_edges if e.is_boundary]:
-                        x = edge_vec
-                        z = self.lfn
-                        y = x.cross(z).normalized()
                     else:
                         h_vert = [v for v in sel_verts if v not in active.verts][0]
                         h = (h_vert.co - active.verts[0].co).normalized()

@@ -2,25 +2,36 @@ from math import radians
 
 import bpy
 from bpy.types import Operator
-from bpy.props import IntProperty
+from bpy.props import IntProperty, BoolProperty
 from mathutils import Matrix, Vector
 
 
 class KeStepRotate(Operator):
-    bl_idname = "view3d.ke_vp_step_rotate"
+    bl_idname = "screen.ke_vp_step_rotate"
     bl_label = "VP Step Rotate"
     bl_description = "Rotate object or selected elements given angle, based on viewport relative to the object.\n" \
                      "Local, Cursor & View - else Global orientation."
-    bl_space_type = 'VIEW_3D'
     bl_options = {'REGISTER', 'UNDO', 'INTERNAL'}
 
     rot: IntProperty(min=-180, max=180, default=90)
+    neg: BoolProperty(default=False, options={"HIDDEN", "SKIP_SAVE"})
 
     @classmethod
     def poll(cls, context):
-        return context.object is not None and context.space_data.type == "VIEW_3D"
+        return context.space_data.type in {"IMAGE_EDITOR", "NODE_EDITOR", "VIEW_3D"}
 
     def execute(self, context):
+        if context.space_data.type == "VIEW_3D" and not context.object:
+            self.report({"INFO"}, "No Context Object?")
+            return {"CANCELLED"}
+
+        # 2D Mode:
+        if context.space_data.type in {"IMAGE_EDITOR", "NODE_EDITOR"}:
+            bpy.ops.transform.rotate(value=radians(self.rot), orient_axis='Z', orient_type='VIEW',
+                                     orient_matrix=((1, 0, 0), (0, 1, 0), (0, 0, 1)), orient_matrix_type='VIEW')
+            return {"FINISHED"}
+
+        # VIEW_3D Mode:
         obj = context.object
         val = self.rot
         tos = bpy.context.scene.transform_orientation_slots[0].type
@@ -59,6 +70,9 @@ class KeStepRotate(Operator):
 
         # check for axis inverse (to work with directions in pie menu (view) )
         if flip > 0:
+            val *= -1
+        if self.neg:
+            # pie menu override for "previous" val, but negated
             val *= -1
 
         bpy.ops.transform.rotate(value=radians(val), orient_axis=oa, orient_type=ot, orient_matrix_type=ot,

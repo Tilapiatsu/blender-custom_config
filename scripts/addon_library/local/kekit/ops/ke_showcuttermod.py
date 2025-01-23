@@ -15,6 +15,23 @@ class KeShowCutterMod(Operator):
         return context.object is not None
 
     def execute(self, context):
+        # Only open modifier tab if not already open
+        p_area = None
+        m_active = False
+        for window in context.window_manager.windows:
+            for area in window.screen.areas:
+                if area.ui_type == 'PROPERTIES':
+                    p_area = area
+                    if area.spaces.active.context == 'MODIFIER':
+                        m_active = True
+                        break
+
+        if not m_active and p_area:
+            p_area.spaces.active.context = 'MODIFIER'
+        elif not m_active and not p_area:
+            self.report({"INFO"}, "No Properties panel found in UI")
+            return {"CANCELLED"}
+
         cutter = context.object
         # cheezy re-select for cycling (which ofc does not work if cutters display are normal)
         if cutter not in context.selected_objects:
@@ -72,18 +89,7 @@ class KeShowCutterMod(Operator):
                     m.is_active = True
                     m.show_expanded = True
 
-        # Only open modifier tab if not already open
-        p_area = None
-        m_active = False
-        for window in context.window_manager.windows:
-            for area in window.screen.areas:
-                if area.ui_type == 'PROPERTIES':
-                    p_area = area
-                    if area.spaces.active.context == 'MODIFIER':
-                        m_active = True
-                        area.tag_redraw()
-        if not m_active and p_area:
-            p_area.spaces.active.context = 'MODIFIER'
-            p_area.tag_redraw()
+        for area in context.screen.areas:
+            area.tag_redraw()
 
         return {"FINISHED"}

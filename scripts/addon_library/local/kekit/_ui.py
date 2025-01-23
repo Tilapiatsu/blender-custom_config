@@ -66,7 +66,7 @@ def prefs_ui(self, layout):
     box = layout.box()
     col = box.column()
     col.emboss = "PULLDOWN_MENU"
-    # Todo: Replace with 4.1 "layout panels" (for submenus) ...at some point post 4.1 release? nah
+    # Todo: Could replace with 4.1+ "layout panels" (for submenus) ...when pre 4.1 back-compat dropped?
     # header, panel = layout.panel("my_panel_id", default_closed=False)
     #         header.label(text="Hello World")
     col.prop(self, "show_modules", icon='DISCLOSURE_TRI_DOWN' if self.show_modules else 'DISCLOSURE_TRI_RIGHT')
@@ -117,9 +117,12 @@ def prefs_ui(self, layout):
             row = split.row(align=True)
             row.prop(self, "tt_icon_pos", expand=True)
 
-        box.label(text="keKit Modal Text:")
+        box.label(text="keKit Modal Settings:")
         gf = box.grid_flow(row_major=True, columns=2)
         gf.use_property_split = True
+        gf.prop(self, "bt_multiplier")
+        gf.prop(self, "bt_multiplier_p")
+        gf.prop(self, "cb_seg")
         gf.prop(self, "ui_scale")
         gf.prop(self, 'modal_color_header')
         gf.prop(self, 'modal_color_text')

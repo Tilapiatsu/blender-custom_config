@@ -44,7 +44,7 @@ class KeCheckSnapping(Operator):
             if len(get_linked_objects(obj)) > 1:
                 linked += 1
             mesh_select_all(obj, False)
-            wcos = mesh_world_coords(obj)
+            wcos = mesh_world_coords(obj.data, obj.matrix_world)
             oac.append([obj, wcos])
 
         if linked:

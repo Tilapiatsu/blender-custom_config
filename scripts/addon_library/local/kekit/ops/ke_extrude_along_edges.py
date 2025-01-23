@@ -207,17 +207,8 @@ class KeExtrudeAlongEdges(Operator):
         shape_faces = []
 
         if is_boundary:
-            sel_island = set()
             for shape in shapeloops:
-                island = expand_to_island(shape[0])
-                for i in island:
-                    sel_island.add(i)
-            shape_faces = set()
-            for v in sel_island:
-                for f in v.link_faces:
-                    shape_faces.add(f)
-            shape_faces = list(shape_faces)
-
+                _v, _e, shape_faces = expand_to_island(bm, shape[0])
         if shape_faces:
             has_start_cap = True
 

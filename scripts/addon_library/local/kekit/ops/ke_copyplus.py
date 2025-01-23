@@ -38,7 +38,7 @@ def apply_og_materials():
             og_materials = o.data.get("copyplus")
         except AttributeError:
             continue
-        if len(og_materials) == len(o.material_slots) :
+        if og_materials and len(og_materials) == len(o.material_slots) :
             for og, slot in zip(og_materials, o.material_slots):
                 if slot.material and og in bpy.data.materials:
                     o.data.materials[slot.slot_index] = bpy.data.materials[og]
@@ -53,6 +53,8 @@ def apply_og_materials_em():
         try:
             og_materials = o.data.get("copyplus")
         except AttributeError:
+            continue
+        if og_materials is None:
             continue
         for i, og in enumerate(og_materials):
             o.data.materials[i] = bpy.data.materials[og]

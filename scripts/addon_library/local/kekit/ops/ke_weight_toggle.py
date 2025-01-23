@@ -1,8 +1,27 @@
 import bmesh
 import bpy
-from bpy.props import EnumProperty
+from bpy.props import EnumProperty, StringProperty
 from bpy.types import Operator
 from .._utils import refresh_ui, get_prefs, get_selected
+
+
+def dynamic_enum_callback(scene, context):
+    items = [("NONE", "NONE", "")]
+    active = None
+    if bpy.app.version >= (4, 3):
+        try:
+            active = context.active_object
+        except AttributeError:
+            pass
+        if active is not None:
+            if active.type == 'MESH':
+                edge_groups = [a for a in active.data.attributes.values() if
+                               a.domain == "EDGE" and a.data_type == "FLOAT"]
+                if edge_groups:
+                    items = []
+                for _idx, item in enumerate(edge_groups):
+                    items.append((item.name, item.name, ""))
+    return items
 
 
 class KeWeightToggle(Operator):
@@ -11,12 +30,18 @@ class KeWeightToggle(Operator):
     bl_description = "Toggles specified weighting on or off on selected elements"
     bl_options = {'REGISTER', 'UNDO'}
 
+    edge_group: EnumProperty(
+        items=dynamic_enum_callback,
+        name="Edge Group")
+
     wtype: EnumProperty(
         items=[("BEVEL", "Bevel Weight", "", 1),
                ("CREASE", "Crease Weight", "", 2),
                ("SEAM", "Seam", "", 3)],
         name="Weight Type",
         default="SEAM", options={"HIDDEN"})
+
+    eg: StringProperty(default="", options={"HIDDEN"})
 
     @classmethod
     def poll(cls, context):
@@ -38,16 +63,22 @@ class KeWeightToggle(Operator):
             bpy.ops.mesh.select_mode(use_extend=False, use_expand=False, type='EDGE')
 
         if self.wtype == "CREASE":
-            v_type = "crease_vert"
-            e_type = "crease_edge"
+            v_layer = "crease_vert"
+            e_layer = "crease_edge"
         else:
-            v_type = "bevel_weight_vert"
-            e_type = "bevel_weight_edge"
+            v_layer = "bevel_weight_vert"
+            self.eg = self.edge_group
+            if self.edge_group == "NONE":
+                self.eg = ""
+            if self.eg:
+                e_layer = str(self.eg)
+                self.eg = ""
+            else:
+                e_layer = "bevel_weight_edge"
 
         for o in sel_obj:
             mesh = o.data
             bm = bmesh.from_edit_mesh(mesh)
-
             if self.wtype == "SEAM":
                 # Sel & invert
                 sel = [e for e in bm.edges if e.select]
@@ -74,20 +105,22 @@ class KeWeightToggle(Operator):
 
             else:
                 if vertex_mode:
-                    bw = bm.verts.layers.float.get(v_type, None)
+                    w_layer = bm.verts.layers.float.get(v_layer, None)
                 else:
-                    bw = bm.edges.layers.float.get(e_type, None)
+                    w_layer = bm.edges.layers.float.get(e_layer, None)
 
-                if bw is not None:
+                if vertex_mode:
+                    sel = [v for v in bm.verts if v.select]
+                else:
+                    sel = [e for e in bm.edges if e.select]
+                if not sel:
+                    continue
+
+                if w_layer is not None:
                     vals = []
-                    if vertex_mode:
-                        sel = [v for v in bm.verts if v.select]
-                    else:
-                        sel = [e for e in bm.edges if e.select]
-
                     for element in sel:
                         # Inverting here
-                        val = float(not int(round(element[bw])))
+                        val = float(not int(round(element[w_layer])))
                         vals.append(val)
 
                     if k.toggle_same and len(vals) > 1:
@@ -105,16 +138,17 @@ class KeWeightToggle(Operator):
                         vals = [val] * len(vals)
 
                     for element, val in zip(sel, vals):
-                        element[bw] = float(val)
+                        element[w_layer] = float(val)
                 else:
+                    # Blank mesh, with sel: Need to create layer & THEN check edge sel, so re-doing sel:
                     if vertex_mode:
-                        bw = bm.verts.layers.float.new(v_type)
+                        w_layer = bm.verts.layers.float.new(v_layer)
                         sel = [v for v in bm.verts if v.select]
                     else:
-                        bw = bm.edges.layers.float.new(e_type)
+                        w_layer = bm.edges.layers.float.new(e_layer)
                         sel = [e for e in bm.edges if e.select]
                     for element in sel:
-                        element[bw] = 1.0
+                        element[w_layer] = 1.0
 
             bmesh.update_edit_mesh(mesh)
 
@@ -135,12 +169,13 @@ class KeWeightToggle(Operator):
                 if not bmod or not smod:
                     bpy.ops.object.editmode_toggle()
                     if not bmod and self.wtype == "BEVEL":
-                        mod = o.modifiers.new("Bevel", "BEVEL")
+                        mod = o.modifiers.new("WBevel", "BEVEL")
                         mod.width = 0.02
                         mod.limit_method = "WEIGHT"
                         mod.miter_outer = 'MITER_ARC'
                         mod.is_active = True
                         mod.show_expanded = True
+                        mod.edge_weight = e_layer
                         if k.korean:
                             mod.profile = 1
                             mod.segments = 2

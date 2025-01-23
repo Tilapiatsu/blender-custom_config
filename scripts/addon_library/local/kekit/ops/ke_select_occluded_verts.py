@@ -71,8 +71,8 @@ class KeSelectOccludedVerts(Operator):
 
             if len(imesh.data.vertices) != 0:
                 mesh_select_all(obj, False)
-                obj_cos = mesh_world_coords(obj)
-                imesh_cos = mesh_world_coords(imesh)
+                obj_cos = mesh_world_coords(obj.data, obj.matrix_world)
+                imesh_cos = mesh_world_coords(imesh.data, imesh.matrix_world)
 
                 # SETUP K-DIMENSIONAL TREE SPACE-PARTITIONING DATA STRUCTURE
                 size = len(imesh_cos)

@@ -7,7 +7,11 @@ from bpy.types import Panel, Menu
 
 from ._ui import pcoll
 from ._utils import get_prefs, is_registered
-from .ops.pie_operators import KePieOps, KeCallPie, KeObjectOp, KeOverlays
+from .ops.pie_operators import KePieOps, KeCallPie, KeObjectOp, KeOverlays, KeModFocus
+
+# note: homoglyphs (sometimes) used to "encourage" blender to not pick certain characters as shortcuts:
+# https://util.unicode.org/UnicodeJsps/confusables.jsp?a=Insert%20Text%20Here&r=None
+# https://gist.github.com/StevenACoffman/a5f6f682d94e38ed804182dc2693ed4b
 
 
 class UIPieMenusModule(Panel):
@@ -42,6 +46,9 @@ class UIPieMenusModule(Panel):
         pie.operator("ke.call_pie", text="keShading", icon="DOT").name = "KE_MT_shading_pie"
 
         # KE PieMenus
+        row = pie.row(align=True)
+        row.operator("wm.call_menu_pie", text="KeBevel", icon="DOT").name = "VIEW3D_MT_ke_pie_bevel"
+
         row = pie.row(align=True)
         if m_bookmarks:
             row.operator("wm.call_menu_pie", text="keSnapping", icon="DOT").name = "VIEW3D_MT_ke_pie_snapping"
@@ -158,32 +165,17 @@ class KePieBookmarks(Menu):
         return context.space_data.type == "VIEW_3D" and k.m_bookmarks
 
     def draw(self, context):
-        layout = self.layout
         kt = context.scene.kekit_temp
-
-        slots = [i for i in kt.keys() if i[:2] == "vb"]
-        slot_items = []
-        for i in slots:
-            idx, nm = i.split("\x1f")
-            slot_items.append((idx, nm))
-        slot_items.sort(key=lambda x: x[1])
-
-        c1 = pcoll['kekit']['ke_cursor1'].icon_id
-        c2 = pcoll['kekit']['ke_cursor2'].icon_id
-        c3 = pcoll['kekit']['ke_cursor3'].icon_id
-        c4 = pcoll['kekit']['ke_cursor4'].icon_id
-        c5 = pcoll['kekit']['ke_cursor5'].icon_id
-        c6 = pcoll['kekit']['ke_cursor6'].icon_id
-
-        opb = 'view3d.ke_cursor_bookmark'
         layout = self.layout
-        layout.operator_context = 'INVOKE_REGION_WIN'
         pie = layout.menu_pie()
 
         box = pie.box()
         box.ui_units_x = 8
         box.label(text="Cursor Bookmarks")
         col = box.column()
+
+        opb = 'view3d.ke_cursor_bookmark'
+        layout.operator_context = 'INVOKE_REGION_WIN'
 
         for i in range(1, 7):
             row = col.row(align=True)
@@ -197,42 +189,45 @@ class KePieBookmarks(Menu):
             row.operator(opb, text="", icon="IMPORT").mode = "SET" + v
             col.separator(factor=0.25)
 
-        if slot_items:
-            box = pie.box()
-            box.label(text="View Bookmarks")
-            count = int(len(slot_items))
-            if count < 24:
-                cc = 1
-            else:
-                cc = ceil(count / 30)
-            box.ui_units_x = 11 * cc
-            col = box.column_flow(align=False, columns=cc)
+        box = pie.box()
+        box.label(text="View Bookmarks")
 
+        slots = [i for i in kt.keys() if i[:2] == "vb"]
+        slot_items = []
+        for i in slots:
+            nr, nm = i[2:].split("\x1f")
+            slot_items.append((nr, nm))
+        slot_items.sort(key=lambda x: int(x[0]))
+
+        col = box.column(align=False)
+
+        if slot_items:
             for i, (idx, name) in enumerate(slot_items, 1):
                 row = col.row(align=True)
-                icon_idx = str(i) if i < 7 else str(randint(1, 6))
-                icon = pcoll['kekit']['ke_bm' + icon_idx].icon_id
-                loader = row.operator('view3d.ke_view_bookmark', text=name, icon_value=icon)
+                ico_idx = str(i)[-1]
+                ico = pcoll['kekit']['ke_bm' + ico_idx].icon_id
+                pid = "vb" + str(idx) + "\x1f" + name
+
+                loader = row.operator('view3d.ke_view_bookmark', text=name, icon_value=ico)
                 loader.op = "LOAD"
-                loader.preset_id = "vb" + idx + "\x1f" + name
-                row.separator()
+                loader.preset_id = pid
 
                 saving = row.operator('view3d.ke_view_bookmark', text="", icon="IMPORT")
                 saving.op = "SAVE"
-                saving.preset_id = name
+                saving.preset_id = pid
                 row.separator()
 
                 removing = row.operator('view3d.ke_view_bookmark', text="", icon="X")
                 removing.op = "DELETE"
-                removing.preset_id = name
-                col.separator(factor=0.25)
+                removing.preset_id = pid
 
-            col.separator(factor=0.5)
-            row = col.row(align=True)
-            row.prop(kt, "view_name")
-            new = row.operator('view3d.ke_view_bookmark', text="", icon="ADD")
-            new.op = "SAVE"
-            new.preset_id = ""
+        col.separator(factor=1.5)
+
+        row = col.row(align=True)
+        row.prop(kt, "view_name")
+        new = row.operator('view3d.ke_view_bookmark', text="", icon="ADD")
+        new.op = "SAVE"
+        new.preset_id = ""
 
 
 def is_canvas(_obj, old_version):
@@ -299,227 +294,21 @@ class KePieBoolTool(Menu):
         pie = layout.menu_pie()
         obj = context.active_object
         is_old_version = True if bpy.app.version < (4, 2) else False
+        k = get_prefs()
 
-        s1 = " \u2002"  # "auto" (aka "destructive") = invisible spacer (no unicode-icon)
-        s2 = " \u2699"  # modifier = cog (unicode-icon)
-
-        bt_installed = False
-        if all(check("object_boolean_tools")) or all(check("bl_ext.blender_org.bool_tool")):
-            bt_installed = True
-
-        if not bt_installed:
-            pie.label(text="BoolTool Add-on not activated")
-        else:
-            # ops naming change (since ext version in 4.2)
-            if is_old_version:
-                bt_auto_diff = 'object.booltool_auto_difference'
-                bt_auto_ints = 'object.booltool_auto_intersect'
-                bt_auto_slice = 'object.booltool_auto_slice'
-                bt_auto_union = 'object.booltool_auto_union'
-                bt_diff = 'btool.boolean_difference'
-                bt_ints = 'btool.boolean_inters'
-                bt_slice = 'btool.boolean_slice'
-                bt_union = 'btool.boolean_union'
-                # All:
-                bt_toggle = 'btool.enable_brush'
-                bt_apply = 'btool.to_mesh'
-                bt_remove = 'btool.remove'
-                # Cutter:
-                bt_toggle_cutter = 'btool.enable_this_brush'
-                bt_apply_cutter = 'btool.brush_to_mesh'
-                bt_remove_cutter = 'btool.remove'
-            else:
-                bt_auto_diff = 'object.boolean_auto_difference'
-                bt_auto_ints = 'object.boolean_auto_intersect'
-                bt_auto_slice = 'object.boolean_auto_slice'
-                bt_auto_union = 'object.boolean_auto_union'
-                bt_diff = 'object.boolean_brush_difference'
-                bt_ints = 'object.boolean_brush_intersect'
-                bt_slice = 'object.boolean_brush_slice'
-                bt_union = 'object.boolean_brush_union'
-                # All:
-                bt_toggle = 'object.boolean_toggle_all'
-                bt_apply = 'object.boolean_apply_all'
-                bt_remove = 'object.boolean_remove_all'
-                # Cutter:
-                bt_toggle_cutter = 'object.boolean_toggle_cutter'
-                bt_apply_cutter = 'object.boolean_apply_cutter'
-                bt_remove_cutter = 'object.boolean_remove_cutter'
-
+        if context.mode == "EDIT_MESH" and k.m_modeling:
+            mop = 'mesh.intersect_boolean'
             # W
-            pie.operator(bt_auto_diff, text="Difference" + s1, icon="SELECT_SUBTRACT")
+            pie.operator(mop, text="Union", icon="SELECT_EXTEND")
             # E
-            pie.operator(bt_diff, text="Difference" + s2, icon="SELECT_SUBTRACT")
-
-            # S - Big bottom menu
-            col = pie.column()
-            col.ui_units_x = 9
-            srow = col.row()
-            srow.separator(factor=2)
-            box = srow.box()
-            scol = box.column(align=True)
-            scol.operator(bt_auto_ints, text="Intersect" + s1, icon="SELECT_INTERSECT")
-            scol.operator(bt_ints, text="Intersect" + s2, icon="SELECT_INTERSECT")
-
-            srow.separator(factor=2)
-            col.separator(factor=1)
-            srow.separator(factor=2)
-
-            # nomenclature:  'Brush' (aka 'cutter') obj affects 'Canvas' (target) obj
-            if is_canvas(obj, is_old_version) or is_brush(obj, is_old_version):
-                srow = col.row()
-                # srow.separator(factor=2)
-                box = srow.box()
-
-                if is_canvas(obj, is_old_version):
-                    subcol = box.row(align=True)
-                    if is_old_version:
-                        subcol.prop(context.scene, "BoolHide", text="All", icon="RESTRICT_VIEW_OFF")
-                        subcol.operator(bt_apply, icon="IMPORT", text="All")
-                        Rem = subcol.operator(bt_remove, icon="X", text="All")
-                        Rem.thisObj = ""
-                        Rem.Prop = "CANVAS"
-                    else:
-                        subcol.operator(bt_toggle, text="All", icon="RESTRICT_VIEW_OFF")
-                        subcol.operator(bt_apply, icon="IMPORT", text="All")
-                        subcol.operator(bt_remove, icon="X", text="All")
-
-                if is_canvas(obj, is_old_version):
-                    box = col.box()
-
-                    if is_old_version:
-                        for mod in obj.modifiers:
-                            row = box.row(align=True)
-
-                            if "BTool_" in mod.name:
-                                op = mod.operation
-
-                                if op == "DIFFERENCE":
-                                    icon = "SELECT_SUBTRACT"
-                                elif op == "UNION":
-                                    icon = "SELECT_EXTEND"
-                                elif op == "INTERSECT":
-                                    icon = "SELECT_INTERSECT"
-                                else:
-                                    # Fallback: SLICE is same icon as subtract as there is no "slice" op
-                                    icon = "SELECT_DIFFERENCE"
-
-                                objSelect = row.operator("btool.find_brush", text=mod.object.name, icon=icon,
-                                                         emboss=False)
-                                objSelect.obj = mod.object.name
-
-                                EnableIcon = "RESTRICT_VIEW_ON"
-                                if mod.show_viewport:
-                                    EnableIcon = "RESTRICT_VIEW_OFF"
-                                Enable = row.operator('btool.enable_brush', icon=EnableIcon, emboss=False)
-                                Enable.thisObj = mod.object.name
-
-                                Remove = row.operator("btool.remove", text="", icon="X", emboss=False)
-                                Remove.thisObj = mod.object.name
-                                Remove.Prop = "THIS"
-
-                            else:
-                                row.label(text=mod.name)
-
-                            Up = row.operator("btool.move_stack", icon="TRIA_UP", emboss=False)
-                            Up.modif = mod.name
-                            Up.direction = "UP"
-
-                            Dw = row.operator("btool.move_stack", icon="TRIA_DOWN", emboss=False)
-                            Dw.modif = mod.name
-                            Dw.direction = "DOWN"
-                    else:
-                        canvas = context.active_object
-                        __, modifiers = list_canvas_cutters([canvas])
-
-                        for mod in modifiers:
-                            col = box.column(align=True)
-                            row = col.row(align=True)
-                            # icon
-                            if mod.operation == 'DIFFERENCE':
-                                icon = 'SELECT_SUBTRACT'
-                            elif mod.operation == 'UNION':
-                                icon = 'SELECT_EXTEND'
-                            elif mod.operation == 'INTERSECT':
-                                icon = 'SELECT_INTERSECT'
-                            else:
-                                icon = 'SELECT_SUBTRACT'
-
-                            row.label(icon=icon)
-                            row.prop(mod.object, "name", text="")
-                            # Toggle
-                            op_toggle = row.operator("object.boolean_toggle_cutter", text="",
-                                                     icon='HIDE_OFF' if mod.show_viewport else 'HIDE_ON')
-                            op_toggle.method = 'SPECIFIED'
-                            op_toggle.specified_cutter = mod.object.name
-                            op_toggle.specified_canvas = canvas.name
-                            # Apply
-                            op_apply = row.operator("object.boolean_apply_cutter", text="", icon='CHECKMARK')
-                            op_apply.method = 'SPECIFIED'
-                            op_apply.specified_cutter = mod.object.name
-                            op_apply.specified_canvas = canvas.name
-                            # Remove
-                            op_remove = row.operator("object.boolean_remove_cutter", text="", icon='X')
-                            op_remove.method = 'SPECIFIED'
-                            op_remove.specified_cutter = mod.object.name
-                            op_remove.specified_canvas = canvas.name
-
-                elif is_brush(obj, is_old_version):
-                    col = box.column(align=False)
-                    if is_old_version:
-                        btype = obj["BoolToolBrush"]
-                        if btype == "DIFFERENCE":
-                            icon = "SELECT_SUBTRACT"
-                        elif btype == "UNION":
-                            icon = "SELECT_EXTEND"
-                        elif btype == "INTERSECT":
-                            icon = "SELECT_INTERSECT"
-                        elif btype == "SLICE":
-                            icon = "SELECT_DIFFERENCE"
-                        else:
-                            icon = "NONE"
-                        col.label(text=btype, icon=icon)
-                    else:
-                        col.label(text=" Cutter/Brush Object", icon="MOD_BOOLEAN")
-                    row = col.row(align=True)
-                    row.operator('view3d.ke_solo_cutter', text="Solo").mode = "ALL"
-                    row.operator('view3d.ke_solo_cutter', text="SoloP").mode = "PRE"
-                    row.operator('object.ke_showcuttermod', text="ShowMod")
-                    srow.separator(factor=1)
-
-                    if is_old_version:
-                        if obj["BoolTool_FTransform"] == "True":
-                            ft_icon = "PMARKER_ACT"
-                        else:
-                            ft_icon = "PMARKER"
-                        srow = col.row(align=True)
-                        if not is_fast_transform():
-                            srow.enabled = False
-                        srow.operator('btool.enable_ftransf', text="Use FastTf", icon=ft_icon)
-
-                    row = col.row(align=True)
-                    if is_old_version:
-                        row.operator(bt_toggle_cutter, icon="HIDE_OFF", text="Vis")
-                        row.operator(bt_apply_cutter, icon="IMPORT", text="Apl")
-                        rem = row.operator(bt_remove_cutter, icon="X", text="Del")
-                        rem.thisObj = ""
-                        rem.Prop = "BRUSH"
-                    else:
-                        row.operator(bt_toggle_cutter, icon="HIDE_OFF", text="Vis")
-                        row.operator(bt_apply_cutter, icon="IMPORT", text="Apl")
-                        row.operator(bt_remove_cutter, icon="X", text="Del")
-                        # Todo: not bothering with 'specified vs all' for now
-                        # op_toggle.method = 'ALL'
-                        # op_toggle.specified_cutter = obj.name
-                        # op_toggle.specified_canvas = canvas.name
-
+            pie.operator(mop, text="Difference", icon="SELECT_SUBTRACT").operation = "DIFFERENCE"
+            # S
+            pie.operator('view3d.ke_nice_project', text="Nice Project", icon="AREA_JOIN_DOWN")
             # N
             if is_old_version:
                 pie.separator()
             else:
-                # p.label(text="carve ops")
                 pcol = pie.column()
-                # pcol.ui_units_x = 5
                 col = pcol.box().column()
                 col.label(text=" Carve")
                 row = col.row(align=True)
@@ -529,15 +318,260 @@ class KePieBoolTool(Menu):
                 carve_circle.shape = 'CIRCLE'
                 carve_pline = row.operator('object.carve', text="P", icon="GREASEPENCIL", emboss=True)
                 carve_pline.shape = 'POLYLINE'
-
             # NW
-            pie.operator(bt_auto_slice, text="Slice" + s1, icon="SELECT_DIFFERENCE")
+            pie.operator(mop, text="Intersect", icon="SELECT_INTERSECT")
             # NE
-            pie.operator(bt_slice, text="Slice" + s2, icon="SELECT_DIFFERENCE")
+            pie.operator('view3d.ke_boolknife', text="keBoolKnife", icon="SELECT_INTERSECT")
             # SW
-            pie.operator(bt_auto_union, text="Union" + s1, icon="SELECT_EXTEND")
+            pie.operator('mesh.ke_activeslice', icon="SPLIT_HORIZONTAL")
             # SE
-            pie.operator(bt_union, text="Union" + s2, icon="SELECT_EXTEND")
+            pie.operator('mesh.ke_extrude_along_edges', icon="LIGHT_AREA")
+
+        else:
+            s1 = " \u2002"  # "auto" (aka "destructive") = invisible spacer (no unicode-icon)
+            s2 = " \u2699"  # modifier = cog (unicode-icon)
+
+            bt_installed = False
+            if all(check("object_boolean_tools")) or all(check("bl_ext.blender_org.bool_tool")):
+                bt_installed = True
+
+            if not bt_installed:
+                pie.label(text="BoolTool Add-on not activated")
+            else:
+                # ops naming change (since ext version in 4.2)
+                if is_old_version:
+                    bt_auto_diff = 'object.booltool_auto_difference'
+                    bt_auto_ints = 'object.booltool_auto_intersect'
+                    bt_auto_slice = 'object.booltool_auto_slice'
+                    bt_auto_union = 'object.booltool_auto_union'
+                    bt_diff = 'btool.boolean_difference'
+                    bt_ints = 'btool.boolean_inters'
+                    bt_slice = 'btool.boolean_slice'
+                    bt_union = 'btool.boolean_union'
+                    # All:
+                    bt_toggle = 'btool.enable_brush'
+                    bt_apply = 'btool.to_mesh'
+                    bt_remove = 'btool.remove'
+                    # Cutter:
+                    bt_toggle_cutter = 'btool.enable_this_brush'
+                    bt_apply_cutter = 'btool.brush_to_mesh'
+                    bt_remove_cutter = 'btool.remove'
+                else:
+                    bt_auto_diff = 'object.boolean_auto_difference'
+                    bt_auto_ints = 'object.boolean_auto_intersect'
+                    bt_auto_slice = 'object.boolean_auto_slice'
+                    bt_auto_union = 'object.boolean_auto_union'
+                    bt_diff = 'object.boolean_brush_difference'
+                    bt_ints = 'object.boolean_brush_intersect'
+                    bt_slice = 'object.boolean_brush_slice'
+                    bt_union = 'object.boolean_brush_union'
+                    # All:
+                    bt_toggle = 'object.boolean_toggle_all'
+                    bt_apply = 'object.boolean_apply_all'
+                    bt_remove = 'object.boolean_remove_all'
+                    # Cutter:
+                    bt_toggle_cutter = 'object.boolean_toggle_cutter'
+                    bt_apply_cutter = 'object.boolean_apply_cutter'
+                    bt_remove_cutter = 'object.boolean_remove_cutter'
+
+                # W
+                pie.operator(bt_auto_diff, text="Difference" + s1, icon="SELECT_SUBTRACT")
+                # E
+                pie.operator(bt_diff, text="Difference" + s2, icon="SELECT_SUBTRACT")
+
+                # S - Big bottom menu
+                col = pie.column()
+                col.ui_units_x = 9
+                srow = col.row()
+                srow.separator(factor=2)
+                box = srow.box()
+                scol = box.column(align=True)
+                scol.operator(bt_auto_ints, text="Intersect" + s1, icon="SELECT_INTERSECT")
+                scol.operator(bt_ints, text="Intersect" + s2, icon="SELECT_INTERSECT")
+
+                srow.separator(factor=2)
+                col.separator(factor=1)
+                srow.separator(factor=2)
+
+                # nomenclature:  'Brush' (aka 'cutter') obj affects 'Canvas' (target) obj
+                if is_canvas(obj, is_old_version) or is_brush(obj, is_old_version):
+                    srow = col.row()
+                    # srow.separator(factor=2)
+                    box = srow.box()
+
+                    if is_canvas(obj, is_old_version):
+                        subcol = box.row(align=True)
+                        if is_old_version:
+                            subcol.prop(context.scene, "BoolHide", text="All", icon="RESTRICT_VIEW_OFF")
+                            subcol.operator(bt_apply, icon="IMPORT", text="All")
+                            Rem = subcol.operator(bt_remove, icon="X", text="All")
+                            Rem.thisObj = ""
+                            Rem.Prop = "CANVAS"
+                        else:
+                            subcol.operator(bt_toggle, text="All", icon="RESTRICT_VIEW_OFF")
+                            subcol.operator(bt_apply, icon="IMPORT", text="All")
+                            subcol.operator(bt_remove, icon="X", text="All")
+
+                    if is_canvas(obj, is_old_version):
+                        box = col.box()
+
+                        if is_old_version:
+                            for mod in obj.modifiers:
+                                row = box.row(align=True)
+
+                                if "BTool_" in mod.name:
+                                    op = mod.operation
+
+                                    if op == "DIFFERENCE":
+                                        icon = "SELECT_SUBTRACT"
+                                    elif op == "UNION":
+                                        icon = "SELECT_EXTEND"
+                                    elif op == "INTERSECT":
+                                        icon = "SELECT_INTERSECT"
+                                    else:
+                                        # Fallback: SLICE is same icon as subtract as there is no "slice" op
+                                        icon = "SELECT_DIFFERENCE"
+
+                                    objSelect = row.operator("btool.find_brush", text=mod.object.name, icon=icon,
+                                                             emboss=False)
+                                    objSelect.obj = mod.object.name
+
+                                    EnableIcon = "RESTRICT_VIEW_ON"
+                                    if mod.show_viewport:
+                                        EnableIcon = "RESTRICT_VIEW_OFF"
+                                    Enable = row.operator('btool.enable_brush', icon=EnableIcon, emboss=False)
+                                    Enable.thisObj = mod.object.name
+
+                                    Remove = row.operator("btool.remove", text="", icon="X", emboss=False)
+                                    Remove.thisObj = mod.object.name
+                                    Remove.Prop = "THIS"
+
+                                else:
+                                    row.label(text=mod.name)
+
+                                Up = row.operator("btool.move_stack", icon="TRIA_UP", emboss=False)
+                                Up.modif = mod.name
+                                Up.direction = "UP"
+
+                                Dw = row.operator("btool.move_stack", icon="TRIA_DOWN", emboss=False)
+                                Dw.modif = mod.name
+                                Dw.direction = "DOWN"
+                        else:
+                            canvas = context.active_object
+                            __, modifiers = list_canvas_cutters([canvas])
+
+                            for mod in modifiers:
+                                col = box.column(align=True)
+                                row = col.row(align=True)
+                                # icon
+                                if mod.operation == 'DIFFERENCE':
+                                    icon = 'SELECT_SUBTRACT'
+                                elif mod.operation == 'UNION':
+                                    icon = 'SELECT_EXTEND'
+                                elif mod.operation == 'INTERSECT':
+                                    icon = 'SELECT_INTERSECT'
+                                else:
+                                    icon = 'SELECT_SUBTRACT'
+
+                                row.label(icon=icon)
+                                row.prop(mod.object, "name", text="")
+                                # Toggle
+                                op_toggle = row.operator("object.boolean_toggle_cutter", text="",
+                                                         icon='HIDE_OFF' if mod.show_viewport else 'HIDE_ON')
+                                op_toggle.method = 'SPECIFIED'
+                                op_toggle.specified_cutter = mod.object.name
+                                op_toggle.specified_canvas = canvas.name
+                                # Apply
+                                op_apply = row.operator("object.boolean_apply_cutter", text="", icon='CHECKMARK')
+                                op_apply.method = 'SPECIFIED'
+                                op_apply.specified_cutter = mod.object.name
+                                op_apply.specified_canvas = canvas.name
+                                # Remove
+                                op_remove = row.operator("object.boolean_remove_cutter", text="", icon='X')
+                                op_remove.method = 'SPECIFIED'
+                                op_remove.specified_cutter = mod.object.name
+                                op_remove.specified_canvas = canvas.name
+
+                    elif is_brush(obj, is_old_version):
+                        col = box.column(align=False)
+                        if is_old_version:
+                            btype = obj["BoolToolBrush"]
+                            if btype == "DIFFERENCE":
+                                icon = "SELECT_SUBTRACT"
+                            elif btype == "UNION":
+                                icon = "SELECT_EXTEND"
+                            elif btype == "INTERSECT":
+                                icon = "SELECT_INTERSECT"
+                            elif btype == "SLICE":
+                                icon = "SELECT_DIFFERENCE"
+                            else:
+                                icon = "NONE"
+                            col.label(text=btype, icon=icon)
+                        else:
+                            col.label(text=" Cutter/Brush Object", icon="MOD_BOOLEAN")
+                        row = col.row(align=True)
+                        row.operator('view3d.ke_solo_cutter', text="Solo").mode = "ALL"
+                        row.operator('view3d.ke_solo_cutter', text="SoloP").mode = "PRE"
+                        row.operator('object.ke_showcuttermod', text="ShowMod")
+                        srow.separator(factor=1)
+
+                        if is_old_version:
+                            if obj["BoolTool_FTransform"] == "True":
+                                ft_icon = "PMARKER_ACT"
+                            else:
+                                ft_icon = "PMARKER"
+                            srow = col.row(align=True)
+                            if not is_fast_transform():
+                                srow.enabled = False
+                            srow.operator('btool.enable_ftransf', text="Use FastTf", icon=ft_icon)
+
+                        row = col.row(align=True)
+                        if is_old_version:
+                            row.operator(bt_toggle_cutter, icon="HIDE_OFF", text="Vis")
+                            row.operator(bt_apply_cutter, icon="IMPORT", text="Apl")
+                            rem = row.operator(bt_remove_cutter, icon="X", text="Del")
+                            rem.thisObj = ""
+                            rem.Prop = "BRUSH"
+                        else:
+                            row.operator(bt_toggle_cutter, icon="HIDE_OFF", text="Vis")
+                            row.operator(bt_apply_cutter, icon="IMPORT", text="Apl")
+                            row.operator(bt_remove_cutter, icon="X", text="Del")
+                            # Todo: not bothering with 'specified vs all' for now
+                            # op_toggle.method = 'ALL'
+                            # op_toggle.specified_cutter = obj.name
+                            # op_toggle.specified_canvas = canvas.name
+                else :
+                    box = col.box()
+                    col = box.column(align=False)
+                    col.label(text="Boolean Adjustment", icon="MOD_BOOLEAN")
+                    col.label(text="N/A - Select Brush or Canvas",)
+                    col.enabled = False
+
+                # N
+                if is_old_version:
+                    pie.separator()
+                else:
+                    # p.label(text="carve ops")
+                    pcol = pie.column()
+                    # pcol.ui_units_x = 5
+                    col = pcol.box().column()
+                    col.label(text=" Carve")
+                    row = col.row(align=True)
+                    carve_box = row.operator('object.carve', text="B", icon="MESH_PLANE", emboss=True)
+                    carve_box.shape = 'BOX'
+                    carve_circle = row.operator('object.carve', text="C", icon="MESH_CIRCLE", emboss=True)
+                    carve_circle.shape = 'CIRCLE'
+                    carve_pline = row.operator('object.carve', text="P", icon="GREASEPENCIL", emboss=True)
+                    carve_pline.shape = 'POLYLINE'
+
+                # NW
+                pie.operator(bt_auto_slice, text="Slice" + s1, icon="SELECT_DIFFERENCE")
+                # NE
+                pie.operator(bt_slice, text="Slice" + s2, icon="SELECT_DIFFERENCE")
+                # SW
+                pie.operator(bt_auto_union, text="Union" + s1, icon="SELECT_EXTEND")
+                # SE
+                pie.operator(bt_union, text="Union" + s2, icon="SELECT_EXTEND")
 
 
 class KePieFit2Grid(Menu):
@@ -710,7 +744,6 @@ class KePieMaterials(Menu):
             row.template_node_socket(color=getattr(k, cid))
             row.operator(op, text=getattr(k, cnm)).m_id = i
 
-
         if mu_prefs is not None:
             # obj = context.object
             limit = mu_prefs.search_show_limit
@@ -853,8 +886,15 @@ class KePieMisc(Menu):
             box.operator('wm.tool_set_by_id', text="Shrink/Fatten").name = 'builtin.shrink_fatten'
             box.separator(factor=f_val)
             box.operator('wm.tool_set_by_id', text="Shear").name = 'builtin.shear'
+            box.separator(factor=f_val)
+            box.operator('transform.tosphere')
+            if quickpipe:
+                box.separator(factor=f_val)
+                box.operator('object.quickpipe', text="զսick pipe")
         else:
-            box.operator('object.randomize_transform')
+            box.menu("VIEW3D_MT_object_convert")
+            box.operator('object.randomize_transform', text="RND Transforms")
+
         box.separator(factor=f_val)
         box.operator('view3d.ke_fit2grid')
         box.separator(factor=f_val)
@@ -863,28 +903,18 @@ class KePieMisc(Menu):
         box.operator('transform.bend')
         box.separator(factor=f_val)
         box.operator('transform.push_pull')
-        box.separator(factor=f_val)
-        box.operator('transform.tosphere')
 
         # POHJOINEN
         pie.operator('view3d.ke_nice_project', text="Nice Project")
 
         # LUODE
-        if mode != "OBJECT":
-            if quickpipe:
-                pie.operator('object.quickpipe')
-            else:
-                box = pie.box()
-                box.enabled = False
-                box.label(text="QuickPipe N/A")
-        else:
-            pie.operator('view3d.ke_quickmeasure').qm_start = "DEFAULT"
+        pie.operator('view3d.ke_quickmeasure').qm_start = "DEFAULT"
 
         # KOILINEN
         if mode != "OBJECT":
             pie.operator('mesh.ke_unbevel', text="Unbevel      ")
         else:
-            pie.menu("VIEW3D_MT_object_convert")
+            pie.operator('view3d.ke_zerolocal')
 
         # LOUNAS
         pie.operator('view3d.ke_quick_origin_move')
@@ -892,13 +922,14 @@ class KePieMisc(Menu):
         # KAAKKO
         if mode != "OBJECT":
             row = pie.row()
-            row.separator(factor=1.5)
+            row.separator(factor=3)
             p = row.column()
-            p.separator(factor=30)
+            p.separator(factor=35)
             p.ui_units_x = 7
             box = p.box()
             col = box.column(align=True)
             col.operator('mesh.ke_activeslice')
+            col.operator('view3d.ke_boolknife')
             col.operator('mesh.ke_extrude_along_edges')
             col.separator(factor=0.5)
             if meshtools:
@@ -910,7 +941,7 @@ class KePieMisc(Menu):
                 col.separator(factor=20)
 
         else:
-            pie.operator('view3d.ke_zerolocal')
+            pie.operator('view3d.ke_boolknife')
 
 
 class KeMenuEditMesh(Menu):
@@ -1515,29 +1546,26 @@ class KePieSnapAlign(Menu):
         layout = self.layout
         pie = layout.menu_pie()
         pie.operator("view3d.ke_cursor_fit_align", text="Cursor Fit&Align", icon="ORIENTATION_CURSOR")
-
-        pie.operator("mesh.ke_zeroscale", text="ZeroScale H", icon="NODE_SIDE").screen_axis = 0
-
-        pie.operator("mesh.ke_zeroscale", text="ZeroScale Cursor", icon="CURSOR").orient_type = "CURSOR"
-
-        pie.operator("mesh.ke_zeroscale", text="ZeroScale V", icon="NODE_TOP").screen_axis = 1
+        pie.operator("mesh.ke_zeroscale", text="𝖹е𝗋оՏ𝖼аӏе H", icon="NODE_SIDE").screen_axis = 0
+        pie.operator("mesh.ke_zeroscale", text="ZeroՏcale Cursor", icon="CURSOR").orient_type = "CURSOR"
+        pie.operator("mesh.ke_zeroscale", text="ZeroՏcale V", icon="NODE_TOP").screen_axis = 1
 
         c = pie.row()
         main = c.column()
         selbox = main.box().column()
-        selbox.operator("view3d.snap_selected_to_grid", text="Selection to Grid", icon='RESTRICT_SELECT_OFF')
-        selbox.operator("view3d.snap_selected_to_cursor", text="Selection to Cursor",
+        selbox.operator("view3d.snap_selected_to_grid", text="Տelection to Grid", icon='RESTRICT_SELECT_OFF')
+        selbox.operator("view3d.snap_selected_to_cursor", text="Տelection to Cursor",
                         icon='RESTRICT_SELECT_OFF').use_offset = False
-        selbox.operator("view3d.snap_selected_to_cursor", text="Sel.to Cursor w.Offset",
+        selbox.operator("view3d.snap_selected_to_cursor", text="Տel.to Cursor Offset",
                         icon='RESTRICT_SELECT_OFF').use_offset = True
-        selbox.operator("view3d.snap_selected_to_active", text="Selection to Active", icon='RESTRICT_SELECT_OFF')
-        selbox.operator("view3d.ke_selected_to_origin", text="Sel.to Origin (Set Origin)", icon='RESTRICT_SELECT_OFF')
+        selbox.operator("view3d.snap_selected_to_active", text="Տelection to Аctive", icon='RESTRICT_SELECT_OFF')
+        selbox.operator("view3d.ke_selected_to_origin", text="Տel.to Origin (Տet Origin)", icon='RESTRICT_SELECT_OFF')
         spacer = c.column()
         spacer.label(text="")
         main.label(text="")
         main.label(text="")
 
-        pie.operator("mesh.ke_zeroscale", text="ZeroScale Normal", icon="NORMALS_FACE").orient_type = "NORMAL"
+        pie.operator("mesh.ke_zeroscale", text="ZeroՏcale Normal", icon="NORMALS_FACE").orient_type = "NORMAL"
 
         c = pie.row()
         main = c.column()
@@ -1656,35 +1684,32 @@ class KePieStepRotate(Menu):
     @classmethod
     def poll(cls, context):
         k = get_prefs()
-        return context.space_data.type == "VIEW_3D" and k.m_selection
+        return context.object and context.space_data.type == "VIEW_3D" and k.m_selection
 
     def draw(self, context):
         k = get_prefs()
         xp = k.experimental
-        op = "view3d.ke_vp_step_rotate"
+        op = "screen.ke_vp_step_rotate"
         layout = self.layout
         pie = layout.menu_pie()
-        pie.operator(op, text="-90", icon="LOOP_BACK").rot = -90
-        pie.operator(op, text="90", icon="LOOP_FORWARDS").rot = 90
+        pie.operator(op, text="-90 (A)", icon="LOOP_BACK").rot = -90
+        pie.operator(op, text="90 (D)", icon="LOOP_FORWARDS").rot = 90
 
         s = pie.column()
         s.separator(factor=2.5)
         s.scale_x = 0.85
         row = s.row(align=True)
-        # row.scale_x = 0.5
-        # row.scale_y = 1.2
         row.label(text=" ")
         row.label(text=" ")
         row.operator("object.location_clear", text="LOC").clear_delta = False
         row.operator("object.scale_clear", text="SCL").clear_delta = False
-        row.operator("object.ke_object_op", text="CLR").cmd = "CLEAR_LR"
+        row.operator("object.rotation_clear", text="ROT").clear_delta = False
         row.label(text=" ")
         row.label(text=" ")
 
         box = s.box()
         box.scale_y = 1.1
         row = box.row(align=True)
-        # Removing due to "unsupported RNA type 2" errors, solution TBD
         split = row
         if xp:
             split = row.split(factor=0.4, align=True)
@@ -1699,11 +1724,20 @@ class KePieStepRotate(Menu):
         box = s.column(align=True)
         box.operator("object.ke_straighten", text="Straighten Object", icon="CON_ROTLIMIT").deg = 90
 
-        pie.operator("object.rotation_clear", text="Rotation (Clear)").clear_delta = False
+        if 3.0001 > sum(context.object.scale) > 2.9999:
+            text = "Scale Applied"
+            icon = "CHECKMARK"
+            depress = False
+        else:
+            text = "Scale Not Applied"
+            icon = "ERROR"
+            depress = True
+        pie.operator("object.ke_object_op", text=text, icon=icon, depress=depress).cmd = "SCL_APPLY"
+
         pie.operator(op, text="-45", icon="LOOP_BACK").rot = -45
         pie.operator(op, text=" 45", icon="LOOP_FORWARDS").rot = 45
-        pie.operator(op, text="-180", icon="LOOP_BACK").rot = -180
-        pie.operator(op, text=" 180", icon="LOOP_FORWARDS").rot = 180
+        pie.operator(op, text="(Q) -Op.Rot", icon="LOOP_BACK").neg = True
+        pie.operator(op, text="(E) Op.Rot", icon="LOOP_FORWARDS")
 
 
 class KePieSubd(Menu):
@@ -1720,7 +1754,9 @@ class KePieSubd(Menu):
         layout = self.layout
         pie = layout.menu_pie()
         k = get_prefs()
-        old_version = True if bpy.app.version < (4, 1) else False
+        pre_v4_1 = True if bpy.app.version < (4, 1) else False
+        v4_3 = True if bpy.app.version >= (4, 3) else False
+        bsize = 9.35
 
         if not k.experimental:
             pie.separator()
@@ -1738,6 +1774,11 @@ class KePieSubd(Menu):
 
             cat = {'MESH', 'CURVE', 'SURFACE', 'META', 'FONT', 'HAIR', 'GPENCIL'}
             active = context.active_object
+
+            vertex_groups = [i for i in active.vertex_groups]
+            vgicon = "GROUP_VERTEX"
+            edge_groups = [a for a in active.data.attributes.values() if a.domain == "EDGE" and a.data_type == "FLOAT"]
+            egicon = "EDGESEL"
 
             # Check existing modifiers
             if active and active.type in cat:
@@ -1758,26 +1799,22 @@ class KePieSubd(Menu):
                     elif m.type == "WEIGHTED_NORMAL":
                         wn_mods.append(m)
 
-            # Placeholder until Edge Groups actually introduced
-            edge_groups = [i for i in active.vertex_groups if i.name[:3] == "V_G"]
-            vgicon = "GROUP_VERTEX"
-
             # LEFT BOX - Bevel Weight & Crease Tools
             box = pie.box()
             box.ui_units_x = 8
             col = box.column(align=False)
             col.operator("transform.edge_crease", text="Crease Tool")
-            col.operator("ke.pieops", text="Set Crease 1").op = "CREASE_ON"
-            col.operator("ke.pieops", text="Set Crease -1").op = "CREASE_OFF"
-            col.operator("mesh.ke_toggle_weight", text="Toggle Crease").wtype = "CREASE"
+            col.operator("ke.pieops", text="Տet Crease 1").op = "CREASE_ON"
+            col.operator("ke.pieops", text="Տet Crease -1").op = "CREASE_OFF"
+            col.operator("mesh.ke_toggle_weight", text="Τoggle Crease").wtype = "CREASE"
 
             # RIGHT BOX - Bevel Weight & Crease Tools
             box = pie.box()
             box.ui_units_x = 8
             col = box.column(align=False)
             col.operator("transform.edge_bevelweight", text="Bevel Weight Tool")
-            col.operator("ke.pieops", text="Set Bevel Weight 1").op = "BWEIGHTS_ON"
-            col.operator("ke.pieops", text="Set Bevel Weight -1").op = "BWEIGHTS_OFF"
+            col.operator("ke.pieops", text="Տet Bevel Weight 1").op = "BWEIGHTS_ON"
+            col.operator("ke.pieops", text="Տet Bevel Weight -1").op = "BWEIGHTS_OFF"
             col.operator("mesh.ke_toggle_weight", text="Toggle Weight").wtype = "BEVEL"
 
             # MAIN BOX
@@ -1789,14 +1826,15 @@ class KePieSubd(Menu):
 
             # MIRROR & LATTICE
             col = main.column(align=False)
-            col.ui_units_x = 9
+            col.ui_units_x = 9.35
             col.scale_y = 0.9
 
             if subd_mods:
                 for m in subd_mods:
                     s = col.box().column()
                     sub = s.row(align=True)
-                    sub.label(text=m.name, icon="MOD_SUBSURF")
+                    sub.emboss = "NONE"
+                    sub.operator("view3d.ke_modfocus", text=m.name, icon="MOD_SUBSURF").modname = m.name
                     s.separator(factor=0.3)
                     sub.operator("ke.pieops", text="", icon="CHECKMARK").op = "APPLY¤" + str(m.name)
                     sub.operator("ke.pieops", text="", icon="X").op = "DELETE¤" + str(m.name)
@@ -1824,7 +1862,8 @@ class KePieSubd(Menu):
                 for m in mirror_mods:
                     s = col.box().column()
                     menu = s.row(align=True)
-                    menu.label(text=m.name, icon="MOD_MIRROR")
+                    menu.emboss = "NONE"
+                    menu.operator("view3d.ke_modfocus", text=m.name, icon="MOD_MIRROR").modname = m.name
                     menu.operator("ke.pieops", text="", icon="CHECKMARK").op = "APPLY¤" + str(m.name)
                     menu.operator("ke.pieops", text="", icon="X").op = "DELETE¤" + str(m.name)
                     s.separator(factor=0.5)
@@ -1851,7 +1890,7 @@ class KePieSubd(Menu):
             else:
                 sub = col.box().column(align=True)
                 sub.scale_y = 1.0
-                sub.label(text="Add Mirror [+Bisect]", icon="MOD_MIRROR")
+                sub.label(text="Add Mirror [+Bisect]")
                 row = sub.row(align=True)
                 row.operator("ke.pieops", text="X").op = "MIRROR_X"
                 row.operator("ke.pieops", text="", icon="EVENT_B").op = "SYM_X"
@@ -1870,7 +1909,8 @@ class KePieSubd(Menu):
                     # s = col
                     s = col.box().column(align=True)
                     sub = s.row(align=True)
-                    sub.label(text=m.name, icon="MOD_SOLIDIFY")
+                    sub.emboss = "NONE"
+                    sub.operator("view3d.ke_modfocus", text=m.name, icon="MOD_SOLIDIFY").modname = m.name
                     sub.operator("ke.pieops", text="", icon="CHECKMARK").op = "APPLY¤" + str(m.name)
                     sub.operator("ke.pieops", text="", icon="X").op = "DELETE¤" + str(m.name)
                     s.separator(factor=0.5)
@@ -1885,204 +1925,136 @@ class KePieSubd(Menu):
                 col.separator(factor=0.7)
                 col.operator("ke.pieops", text="Add Solidify").op = "SOLIDIFY"
 
+            col.separator(factor=0.7)
+
+            # MODIFIER PRESETS
+            entries = sorted([i for i in k.omp_presets.split("\x1f") if i], key=str.casefold)
+            box = col.box()
+            top = box.column(align=True)
+            # top.separator(factor=1.5)
+            # row = box.row()
+            # top.scale_y = .5
+            row = top.row()
+            row.label(text="Mod Presets")
+            row.prop(k, "modp_add", text="Add-Mode")
+
+            if entries:
+                mcheck = int(len(entries) / 10)
+                subcol = box.column_flow(columns=mcheck, align=False)
+                for i, name in enumerate(entries, 1):
+                    row = subcol.row(align=False)
+
+                    fname = "\u001f" + name
+                    if "\x1e" in name:
+                        icon = 161  # "CURVE_DATA"
+                    else:
+                        icon_idx = str(i) if i < 9 else str(randint(1, 8))
+                        icon = pcoll['kekit']['ke_mod' + icon_idx].icon_id
+                        # icon = 94  # "MODIFIER"
+
+                    loading = row.operator('view3d.ke_modifier_preset', text=name, icon_value=icon)
+                    loading.op = "LOAD"
+                    loading.preset_id = fname
+            else:
+                col.label(text="No Modifier Presets found")
+
             # MIDDLE
             main.separator(factor=2)
             col = main.column()
-            col.ui_units_x = 9
+            col.ui_units_x = 9.35
 
-            # VG Selection & Removal  (Re-using 'VG' naming for EDGE GROUPS...?)
-            if edge_groups:
+            if v4_3:
+                scol = col.column()
+                if context.mode != "EDIT_MESH":
+                    scol.enabled = False
+                if edge_groups:
+                    box = scol.box()
+                    if context.mode != "EDIT_MESH":
+                        box.enabled = False
+                    for group in edge_groups:
+                        sub_col = box.column(align=False)
+                        gn = group.name
+                        row = sub_col.row(align=True)
+                        row.operator("ke.pieops", text=gn, icon=egicon).op = "OPEG¤ADD¤" + gn
+                        row.operator("ke.pieops", text="", icon="LOOP_BACK").op = "OPEG¤REM¤" + gn
+                        row = sub_col.row(align=True)
+                        row.operator("ke.pieops", text="Select").op = "OPEG¤SEL¤" + gn
+                        row.operator("ke.pieops", text="Deselect").op = "OPEG¤DSEL¤" + gn
+                        row.operator("ke.pieops", text="", icon="PANEL_CLOSE").op = "OPEG¤DEL¤" + gn
+
+                    scol.separator(factor=0.7)
+                    scol.operator("ke.pieops", text="New Edge Attr.Group",
+                                 icon="MOD_BEVEL").op = "OPEG¤NEW¤E_G"
+                else:
+                    scol.operator("ke.pieops", text="New Edge Attr.Group",
+                                 icon="MOD_BEVEL").op = "OPEG¤NEW¤bevel_weight_edge"
+
+            # Legacy reasons still using VGrps?
+            col.separator(factor=0.7)
+            if vertex_groups:
                 box = col.box()
-                for group in edge_groups:
-                    gn = group.name[-3:]
+                for group in vertex_groups:
+                    gn = group.name
                     row = box.row(align=True)
                     split = row.split(factor=0.6)
-                    row = split.row(align=False)
+                    row = split.row(align=True)
                     row.operator("ke.pieops", text=gn, icon=vgicon).op = "ADD_VG¤" + group.name
                     row.operator("ke.pieops", text="", icon="LOOP_BACK").op = "OPVG¤REM¤" + gn
                     sub = split.row(align=True)
                     sub.operator("ke.pieops", text="", icon="ZOOM_IN").op = "OPVG¤SEL¤" + gn
                     sub.operator("ke.pieops", text="", icon="ZOOM_OUT").op = "OPVG¤DSEL¤" + gn
-                    # sub.operator("ke.pieops", text="", icon="LOOP_BACK").op = "OPVG¤REM¤" + gn
                     sub.operator("ke.pieops", text="", icon="PANEL_CLOSE").op = "OPVG¤DEL¤" + gn
 
                 box.operator("ke.pieops", text="New Vertex Group", icon=vgicon).op = "ADD_VG"
-            else:
+
+            # (needed) if not weight_mods and edgegroups:
+            # col.separator(factor=1)
+            col.operator("ke.pieops", text="Add Weight Bevel", icon="MOD_BEVEL").op = "W_BEVEL"
+            if not angle_mods:
+                col.separator(factor=0.7)
+                col.operator("ke.pieops", text="Add Angle Bevel", icon="MOD_BEVEL").op = "ANGLE_BEVEL"
+            if not vertex_groups:
+                col.separator(factor=0.7)
                 col.operator("ke.pieops", text="New Vertex Group", icon=vgicon).op = "ADD_VG"
-
-            # NORMAL WEIGHTING MOD
-            if wn_mods:
-                col.separator(factor=0.7)
-                for m in wn_mods:
-                    box = col.box()
-                    s = box.column(align=True)
-                    sub = s.row(align=True)
-                    sub.label(text=m.name, icon="MOD_NORMALEDIT")
-                    sub.operator("ke.pieops", text="", icon="CHECKMARK").op = "APPLY¤" + str(m.name)
-                    sub.operator("ke.pieops", text="", icon="X").op = "DELETE¤" + str(m.name)
-                    s.separator(factor=0.5)
-                    row = s.row(align=True)
-                    row.prop(m, "mode", text="")
-                    row.prop(m, "thresh", text="")
-                    row = s.row(align=True)
-                    row.prop(m, "keep_sharp", text="KeepSharp", toggle=False)
-                    row.prop(m, "use_face_influence", text="FaceInfl.", toggle=False)
-
-                    col.separator(factor=0.7)
-                    op = col.operator("ke.mod_order", text="Set WNormal Last", icon="SORT_ASC")
-                    op.obj_name = active.name
-                    op.mod_type = 'WEIGHTED_NORMAL'
-                    op.top = False
-            else:
-                col.separator(factor=0.7)
-                col.operator("ke.pieops", text="Add Weighted Normal").op = "WEIGHTED_NORMAL"
 
             main.separator(factor=2)
             col = main.column(align=True)
             col.ui_units_x = 8
 
-            # BEVEL MODS
-            b = main.column(align=True)
-            b.ui_units_x = 9
-            b.scale_y = 0.9
+            # RIGHT SIDE CENTER BOX
+            col = main.column()
+            col.ui_units_x = bsize
 
-            if edge_groups:
-                used = []
-
-                if vg_mods:
-                    for m in vg_mods:
-                        s = b.box().column(align=True)
-                        sub = s.row(align=True)
-                        sub.label(text=m.name, icon="MOD_BEVEL")
-                        s.separator(factor=0.5)
-                        sub.operator("ke.pieops", text="", icon="CHECKMARK").op = "APPLY¤" + str(m.name)
-                        sub.operator("ke.pieops", text="", icon="X").op = "DELETE¤" + str(m.name)
-
-                        row = s.row(align=True)
-                        row.prop_menu_enum(m, "offset_type", text="", icon="DOT")
-                        row.prop(m, "width", text="")
-                        row.prop(m, "segments", text="")
-
-                        row = s.row(align=True)
-                        row.prop(m, "use_clamp_overlap", text="", toggle=False)
-                        row.prop(m, "profile")
-
-                        row = s.row(align=True)
-                        row.prop(m, "loop_slide", text="", toggle=False)
-                        row.prop(m, "miter_outer", text="")
-                        row.prop(m, "miter_inner", text="")
-                        b.separator(factor=0.7)
-                        used.append(m.name)
-
-                for group in edge_groups:
-                    n = group.name
-                    if n[:3] == "V_G" and n not in used:
-                        b.operator("ke.pieops", text="Add " + group.name + " Bevel",
-                                   icon="MOD_BEVEL").op = "VG_BEVEL¤" + n
-                        b.separator(factor=0.7)
-            else:
-                b.separator(factor=0.7)
-                b.operator("ke.pieops", text="Add VG&Bevel",
-                           icon="MOD_BEVEL").op = "VG_BEVEL¤"
-                b.separator(factor=0.7)
-
-            b.separator(factor=0.7)
             if weight_mods:
                 for m in weight_mods:
-                    s = b.box().column(align=True)
-                    sub = s.row(align=True)
-                    sub.label(text=m.name, icon="MOD_BEVEL")
-                    s.separator(factor=0.5)
-                    sub.operator("ke.pieops", text="", icon="CHECKMARK").op = "APPLY¤" + str(m.name)
-                    sub.operator("ke.pieops", text="", icon="X").op = "DELETE¤" + str(m.name)
+                    draw_bevel_mod(self, context, m, col, egicon, grp="edge_weight")
 
-                    row = s.row(align=True)
-                    row.prop_menu_enum(m, "offset_type", text="", icon="DOT")
-                    row.prop(m, "width", text="")
-                    row.prop(m, "segments", text="")
+            if vg_mods:
+                for m in vg_mods:
+                    draw_bevel_mod(self, context, m, col, vgicon, grp="vertex_group")
 
-                    row = s.row(align=True)
-                    row.prop(m, "use_clamp_overlap", text="", toggle=False)
-                    row.prop(m, "profile")
-
-                    s.separator(factor=0.3)
-                    row = s.row(align=True)
-                    row.prop(m, "loop_slide", text="", toggle=False)
-                    row.prop(m, "miter_outer", text="")
-                    row.prop(m, "miter_inner", text="")
-                    b.separator(factor=0.7)
-
-                if not weight_mods:
-                    b.operator("ke.pieops", text="Add Weight Bevel", icon="MOD_BEVEL").op = "W_BEVEL"
-                    b.separator(factor=0.7)
-            else:
-                b.operator("ke.pieops", text="Add Weight Bevel", icon="MOD_BEVEL").op = "W_BEVEL"
-                b.separator(factor=0.7)
-
-            b.separator(factor=0.7)
             if angle_mods:
                 for m in angle_mods:
-                    s = b.box().column(align=True)
-                    sub = s.row(align=True)
-                    sub.label(text=m.name, icon="MOD_BEVEL")
-                    s.separator(factor=0.5)
-                    sub.operator("ke.pieops", text="", icon="CHECKMARK").op = "APPLY¤" + str(m.name)
-                    sub.operator("ke.pieops", text="", icon="X").op = "DELETE¤" + str(m.name)
-
-                    row = s.row(align=True)
-                    row.prop_menu_enum(m, "offset_type", text="", icon="DOT")
-                    row.prop(m, "width", text="")
-                    row.prop(m, "segments", text="")
-
-                    # no idea why I need to split here, but angle_limit freaks out ow
-                    row = s.row(align=True).split(factor=0.1, align=True)
-                    row.prop(m, "use_clamp_overlap", text="", toggle=False)
-                    row = row.row(align=True)
-                    row.prop(m, "profile", text="")
-                    row.prop(m, "angle_limit", text="")
-
-                    s.separator(factor=0.3)
-                    row = s.row(align=True)
-                    row.prop(m, "loop_slide", text="", toggle=False)
-                    row.prop(m, "miter_outer", text="")
-                    row.prop(m, "miter_inner", text="")
-                    b.separator(factor=0.7)
-
-                if not angle_mods:
-                    b.operator("ke.pieops", text="Add Angle Bevel", icon="MOD_BEVEL").op = "ANGLE_BEVEL"
-                    b.separator(factor=0.7)
-            else:
-                b.operator("ke.pieops", text="Add Angle Bevel", icon="MOD_BEVEL").op = "ANGLE_BEVEL"
-                b.separator(factor=0.7)
+                    draw_bevel_mod(self, context, m, col, None, grp="angle")
 
             # TOP MENU
-            m = pie.row(align=True)
-            m.ui_units_x = 13
-            box = m.box().row(align=True)
-            boxsplit = box.split(factor=0.475, align=True)
+            m = pie.column(align=True)
 
-            col = boxsplit.column(align=True)
-
-            row = col.row(align=True)
-            row.operator("object.ke_object_op", text="30").cmd = "AS_30"
-            row.operator("object.ke_object_op", text="45").cmd = "AS_45"
-            row.operator("object.ke_object_op", text="60").cmd = "AS_60"
-            row.operator("object.ke_object_op", text="180").cmd = "AS_180"
-            if old_version:
-                split = col.split(align=True, factor=0.65)
-                split.prop(active.data, "use_auto_smooth", text="AutoSmooth", toggle=True)
-                split.prop(active.data, "auto_smooth_angle", text="")
+            box = m.box()
+            box.ui_units_x = 8.5
+            col = box.column(align=False)
 
             row = col.row(align=True)
             row.operator("ke.pieops", text="Flat").op = "SHADE_FLAT"
             row.operator("ke.pieops", text="Smooth").op = "SHADE_SMOOTH"
 
-            if not old_version:
-                row = col.row(align=True)
-                row.enabled = False
-                row.label(text="WIP")
-
-            col = boxsplit.column(align=True)
+            row = col.row(align=True)
+            if pre_v4_1:
+                row.prop(k, "korean", text="K", toggle=True)
+                row.prop(active.data, "use_auto_smooth", text="AuS", toggle=True)
+                row.prop(active.data, "auto_smooth_angle", text="")
+            else:
+                row.prop(k, "korean")
 
             row = col.row(align=True)
             if is_registered("VIEW3D_OT_ke_solo_cutter"):
@@ -2091,16 +2063,234 @@ class KePieSubd(Menu):
             if is_registered("OBJECT_OT_ke_showcuttermod"):
                 row.operator('object.ke_showcuttermod', text="SCM")
 
-            col.prop(k, "korean")
-
             row = col.row(align=True)
             row.operator("ke.pieops", text="S", icon="EDITMODE_HLT").op = "SUBD_EDIT_VIS"
             row.operator("ke.pieops", text="E", icon="EDITMODE_HLT").op = "MOD_EDIT_VIS"
             row.operator("view3d.ke_toggle_mod_vis", text="V", icon="RESTRICT_VIEW_OFF")
 
-            # blanking diagonals for more panel space
+            if k.m_modifiers:
+                if context.mode != "OBJECT":
+                    col.operator("view3d.ke_bevel_tweaker", icon="MOD_BEVEL").skip_pie = True
+                else:
+                    col.operator("view3d.ke_bevel_tweaker", icon="MOD_BEVEL")
+
+
+# A bit too complex, but used many times shared between Subd & Bevel pie menus
+def draw_bevel_mod(self, context, m, ui, icon, grp):
+    s = ui.box().column(align=False)
+    sub = s.row(align=True)
+    sub.emboss = "NONE"
+    sub.operator("view3d.ke_modfocus", text=m.name, icon="MOD_BEVEL").modname = m.name
+    if grp == "angle":
+        sub.prop_menu_enum(m, "limit_method", text="", icon="DOWNARROW_HLT")
+        sub.prop_menu_enum(m, "offset_type", text="", icon="DOWNARROW_HLT")
+    sub.separator(factor=0.5)
+    sub.operator("ke.pieops", text="", icon="CHECKMARK").op = "APPLY¤" + str(m.name)
+    sub.separator(factor=0.5)
+    sub.operator("ke.pieops", text="", icon="X").op = "DELETE¤" + str(m.name)
+
+    if grp in {"vertex_group", "edge_weight"}:
+        row = s.row(align=True)
+        row.prop_menu_enum(m, "limit_method", text="", icon="DOWNARROW_HLT")
+        if grp == "vertex_group":
+            row.label(text="", icon=icon)
+            row.prop(m, grp, text="")
+        else:
+            row.prop(m, grp, text="", icon=icon)
+
+    row = s.row(align=True)
+    if grp == "angle":
+        subrow = row.split(factor=0.45, align=True)
+        subrow.prop(m, "width", text="")
+        subsub = subrow.split(factor=0.4, align=True)
+        subsub.prop(m, "segments", text="")
+        subsub.prop(m, "angle_limit", text="")
+    else:
+        row.prop_menu_enum(m, "offset_type", text="", icon="DOWNARROW_HLT")
+        row.separator(factor=0.4)
+        subrow = row.split(factor=0.65, align=True)
+        subrow.prop(m, "width", text="")
+        subrow.prop(m, "segments", text="")
+        row.separator(factor=0.3)
+
+    row = s.row(align=True)
+    row.separator(factor=0.5)
+    row.prop(m, "use_clamp_overlap", text="", toggle=False)
+    row.separator(factor=0.5)
+    row.prop(m, "profile", text="")
+    row.prop(m, "loop_slide", text="", toggle=False)
+    row.prop_menu_enum(m, "miter_outer", text="", icon="DOWNARROW_HLT")
+    row.prop_menu_enum(m, "miter_inner", text="", icon="DOWNARROW_HLT")
+
+
+class KePieBevel(Menu):
+    bl_idname = "VIEW3D_MT_ke_pie_bevel"
+    bl_label = "keBevel"
+
+    @classmethod
+    def poll(cls, context):
+        return (context.space_data.type == "VIEW_3D" and
+                context.active_object and bpy.app.version >= (4, 3))
+
+    def draw(self, context):
+        layout = self.layout
+        pie = layout.menu_pie()
+        k = get_prefs()
+        bsize = 9.35
+        active = context.active_object
+
+        if active.type != "MESH" and k.m_modifiers:
+            # Just show BT for now
             pie.separator()
             pie.separator()
+            pie.separator()
+            if context.mode != "OBJECT":
+                pie.operator("view3d.ke_bevel_tweaker", icon="MOD_BEVEL").skip_pie = True
+            else:
+                pie.operator("view3d.ke_bevel_tweaker", icon="MOD_BEVEL")
+            return None
+
+        edge_groups = [a for a in active.data.attributes.values() if a.domain == "EDGE" and a.data_type == "FLOAT"]
+        egicon = "EDGESEL"
+        # Legacy support? TBD if there is any purpose in keeping vertex groups?
+        vertex_groups = [i for i in active.vertex_groups]
+        vgicon = "GROUP_VERTEX"
+
+        # Check existing modifiers
+        angle_mods = []
+        weight_mods = []
+        vg_mods = []
+
+        if active and active.type == "MESH":
+            for m in active.modifiers:
+                if m.type == "BEVEL":
+                    if m.limit_method == "ANGLE":
+                        angle_mods.append(m)
+                    elif m.limit_method == "VGROUP":
+                        vg_mods.append(m)
+                    elif m.limit_method == "WEIGHT":
+                        weight_mods.append(m)
+
+        # LEFT BOX
+        col = pie.column().box()
+        col.ui_units_x = bsize
+        col.label(text="Remove selected from:")
+        box = col.box()
+        box.scale_y = 1.2
+        if context.mode != "EDIT_MESH":
+            box.enabled = False
+        if edge_groups:
+            for group in edge_groups:
+                gn = group.name
+                box.operator("ke.pieops", text=gn, icon=egicon).op = "OPEG¤REM¤" + gn
+        else:
+            box.label(text="N / A")
+
+        # RIGHT BOX
+        col = pie.column().box()
+        col.ui_units_x = bsize
+        col.label(text="Add selected to:")
+        box = col.box()
+        box.scale_y = 1.2
+        if context.mode != "EDIT_MESH":
+            box.enabled = False
+        if edge_groups:
+            for group in edge_groups:
+                gn = group.name
+                box.operator("ke.pieops", text=gn, icon=egicon).op = "OPEG¤ADD¤" + gn
+        else:
+            box.operator("ke.pieops", text="New Edge Group Bevel", icon=egicon).op = "OPEG¤NEW¤bevel_weight_edge"
+
+        # MAIN SOUTH BOX
+        main = pie.row()
+        main.alignment = "LEFT"
+
+        # LEFT SIDE CENTER BOX (OFFSET/PLACEHOLDER)
+        col = main.column()
+        col.ui_units_x = bsize
+        row = col.row()
+        row.separator(factor=bsize)
+
+        # CENTER BOX
+        col = main.column()
+        col.ui_units_x = bsize
+        if context.mode != "EDIT_MESH":
+            col.enabled = False
+
+        if edge_groups:
+            col.separator(factor=1)
+            col.label(text="Add selected to:")
+            box = col.box()
+            if context.mode != "EDIT_MESH":
+                box.enabled = False
+            box.operator("ke.pieops", text="New Edge Group Bevel", icon=egicon).op = "OPEG¤NEW¤E_G"
+            col.separator(factor=1)
+
+        if edge_groups:
+            for group in edge_groups:
+                gn = group.name
+                box = col.box().column(align=True)
+                row = box.row(align=True)
+                row.label(text=gn, icon=egicon)
+                row.operator("ke.pieops", text="", icon="ZOOM_IN").op = "OPEG¤SEL¤" + gn
+                row.separator(factor=0.5)
+                row.operator("ke.pieops", text="", icon="ZOOM_OUT").op = "OPEG¤DSEL¤" + gn
+                row.separator(factor=0.5)
+                subrow = row.row(align=False)
+                subrow.operator("ke.pieops", text="", icon="PANEL_CLOSE").op = "OPEG¤DEL¤" + gn
+
+        if vertex_groups:
+            box = col.box()
+            for group in vertex_groups:
+                gn = group.name
+                row = box.row(align=True)
+                split = row.split(factor=0.5)
+                row = split.row(align=True)
+                row.operator("ke.pieops", text=gn, icon=vgicon).op = "ADD_VG¤" + group.name
+                sub = split.row(align=True)
+                sub.operator("ke.pieops", text="", icon="LOOP_BACK").op = "OPVG¤REM¤" + gn
+                sub.separator(factor=0.5)
+                sub.operator("ke.pieops", text="", icon="ZOOM_IN").op = "OPVG¤SEL¤" + gn
+                sub.separator(factor=0.5)
+                sub.operator("ke.pieops", text="", icon="ZOOM_OUT").op = "OPVG¤DSEL¤" + gn
+                sub.separator(factor=0.5)
+                sub.operator("ke.pieops", text="", icon="PANEL_CLOSE").op = "OPVG¤DEL¤" + gn
+            box.operator("ke.pieops", text="New Vertex Group", icon=vgicon).op = "ADD_VG"
+
+        # (needed) if not weight_mods and edgegroups:
+        col.separator(factor=1)
+        col.operator("ke.pieops", text="Add Standard Weight Bevel", icon="MOD_BEVEL").op = "W_BEVEL"
+        if not angle_mods:
+            col.separator(factor=0.7)
+            col.operator("ke.pieops", text="Add Angle Bevel", icon="MOD_BEVEL").op = "ANGLE_BEVEL"
+            col.separator(factor=0.7)
+        if not vertex_groups:
+            col.separator(factor=0.7)
+            col.operator("ke.pieops", text="New Vertex Group", icon=vgicon).op = "ADD_VG"
+
+        # RIGHT SIDE CENTER BOX
+        col = main.column()
+        col.separator(factor=4.2)
+        col.ui_units_x = bsize
+
+        if weight_mods:
+            for m in weight_mods:
+                draw_bevel_mod(self, context, m, col, egicon, grp="edge_weight")
+
+        if vg_mods:
+            for m in vg_mods:
+                draw_bevel_mod(self, context, m, col, vgicon, grp="vertex_group")
+
+        if angle_mods:
+            for m in angle_mods:
+                draw_bevel_mod(self, context, m, col, None, grp="angle")
+
+        # TOP / NORTH
+        if k.m_modifiers:
+            if context.mode != "OBJECT":
+                pie.operator("view3d.ke_bevel_tweaker", icon="MOD_BEVEL").skip_pie = True
+            else:
+                pie.operator("view3d.ke_bevel_tweaker", icon="MOD_BEVEL")
 
 
 #
@@ -2138,6 +2328,11 @@ class KeModifierPresets(bpy.types.Menu):
                 loading = row.operator('view3d.ke_modifier_preset', text=name, icon_value=icon)
                 loading.op = "LOAD"
                 loading.preset_id = fname
+
+            # add last to be less in the way - todo: draw in regular menu header?
+            col.separator(type="LINE")
+            col.prop(k, "modp_add", text="Add/Replace", icon="ADD")
+
         else:
             col.label(text="No Modifier Presets found")
 
@@ -2161,8 +2356,10 @@ classes = (
     KePieSnapAlign,
     KePieSnapping,
     KePieStepRotate,
+    KePieBevel,
     KeModifierPresets,
     KePieSubd,
+    KeModFocus,
     UIPieMenusModule,
     UIPieMenusBlender,
 )

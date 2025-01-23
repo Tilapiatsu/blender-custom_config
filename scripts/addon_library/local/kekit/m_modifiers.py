@@ -1,9 +1,9 @@
 import bpy
 from bpy.props import StringProperty, BoolProperty
 from bpy.types import Panel, Operator
-
 from ._ui import pcoll
 from ._utils import get_prefs
+from .ops.ke_bevel_tweaker import KeBevelTweaker
 from .ops.ke_mod_vis import KeToggleModVis
 from .ops.ke_shading_toggle import KeShadingToggle
 from .ops.ke_showcuttermod import KeShowCutterMod
@@ -20,8 +20,8 @@ class UIModifiersModule(Panel):
 
     def draw(self, context):
         k = get_prefs()
-        u = pcoll['kekit']['ke_uncheck'].icon_id
-        c = pcoll['kekit']['ke_check'].icon_id
+        unchecked = pcoll['kekit']['ke_uncheck'].icon_id
+        checked = pcoll['kekit']['ke_check'].icon_id
         layout = self.layout
         col = layout.column(align=True)
 
@@ -33,17 +33,22 @@ class UIModifiersModule(Panel):
 
         row = col.row(align=True)
         row.operator('view3d.ke_shading_toggle', text="Flat/Smooth Toggle")
-        row.prop(k, "shading_tris", text="", toggle=True, icon_value=c if k.shading_tris else u)
+        row.prop(k, "shading_tris", text="", toggle=True, icon_value=checked if k.shading_tris else unchecked)
 
         row = col.row(align=True)
         row.operator('mesh.ke_toggle_weight', text="Toggle Bevel Weight").wtype = "BEVEL"
-        row.prop(k, "toggle_same", text="", toggle=True, icon_value=c if k.toggle_same else u)
+        row.prop(k, "toggle_same", text="", toggle=True, icon_value=checked if k.toggle_same else unchecked)
         row.prop(k, "toggle_add", text="", toggle=True, icon="ADD")
 
         row = col.row(align=True)
         row.operator('mesh.ke_toggle_weight', text="Toggle Crease Weight").wtype = "CREASE"
-        row.prop(k, "toggle_same", text="", toggle=True, icon_value=c if k.toggle_same else u)
+        row.prop(k, "toggle_same", text="", toggle=True, icon_value=checked if k.toggle_same else unchecked)
         row.prop(k, "toggle_add", text="", toggle=True, icon="ADD")
+
+        row = col.row(align=True)
+        row.operator('view3d.ke_bevel_tweaker', icon="MOUSE_MOVE")
+        row.prop(k, "bt_em_pie", text="", toggle=True, icon_value=checked if k.bt_em_pie else unchecked)
+        row.prop(k, "bt_auto", text="", icon="AUTO")
 
 
 class KeModOrder(Operator):
@@ -101,6 +106,7 @@ classes = (
     KeShadingToggle,
     KeToggleModVis,
     KeModOrder,
+    KeBevelTweaker,
 )
 
 

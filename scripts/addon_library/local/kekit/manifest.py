@@ -115,7 +115,7 @@ keops = [
     "view3d.ke_view_bookmark_cycle",
     "view3d.ke_viewpos",
     "view3d.ke_vp_flip",
-    "view3d.ke_vp_step_rotate",
+    "screen.ke_vp_step_rotate",
     "view3d.ke_vptransform",
     "view3d.ke_wonkify",
     "view3d.ke_zerolocal",

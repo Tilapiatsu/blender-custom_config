@@ -1,5 +1,6 @@
 from math import radians
 import bpy
+import bmesh
 from bpy.types import Operator
 from bpy.props import StringProperty, EnumProperty
 from .._utils import get_prefs, wempty
@@ -59,6 +60,18 @@ class KePieOps(Operator):
                 return "Add selected elements to group"
             else:
                 return "Add new group"
+        elif v[:4] == "OPEG":
+            egop = str(v).split("¤")[1]
+            if egop == "ADD":
+                return "Add elements to group"
+            if egop == "SEL":
+                return "Select elements in group"
+            elif egop == "DSEL":
+                return "Deselect elements in group"
+            elif egop == "REM":
+                return "Remove selected elements from group"
+            elif egop == "DEL":
+                return "Delete group"
         elif v in cls.mirror_ops:
             return "Mirror modifer ops (with bisect added presets)"
         else:
@@ -66,6 +79,8 @@ class KePieOps(Operator):
 
     def execute(self, context):
         k = get_prefs()
+        run_bevel_tweaker = k.bt_auto
+        new_bevel = False
         mode = str(context.mode)
         active = context.active_object
         # Check for Auto Add WN for Bevels
@@ -144,11 +159,10 @@ class KePieOps(Operator):
         #
         # MODIFIERS
         #
-        # Note: Re-using 'VG' naming for EDGE GROUPS...?
         elif self.op == "SUBD":
             m = active.modifiers.new("SubD", "SUBSURF")
-            m.levels = 3
-            m.render_levels = 3
+            m.levels = k.vp_level
+            m.render_levels = k.render_level
             m.boundary_smooth = 'PRESERVE_CORNERS'
 
         elif self.op == "W_BEVEL":
@@ -160,7 +174,8 @@ class KePieOps(Operator):
                 m.profile = 1
                 m.segments = 2
             else:
-                m.segments = 3
+                m.segments = k.cb_seg
+            new_bevel = True
 
         elif self.op == "ANGLE_BEVEL":
             m = active.modifiers.new("ABevel", "BEVEL")
@@ -172,7 +187,8 @@ class KePieOps(Operator):
                 m.profile = 1
                 m.segments = 2
             else:
-                m.segments = 3
+                m.segments = k.cb_seg
+            new_bevel = True
 
         elif "VG_BEVEL" in self.op:
             n = str(self.op).split("¤")[1]
@@ -185,10 +201,11 @@ class KePieOps(Operator):
                 m.profile = 1
                 m.segments = 2
             else:
-                m.segments = 3
+                m.segments = k.cb_seg
+            new_bevel = True
 
         elif "ADD_VG" in self.op:
-            # TO-DO: TBD if vgroup ops can be less reliant on bpy.ops - macro-fest?
+            # todo: TBD if vgroup ops can be less reliant on bpy.ops - macro-fest?
             assign_mode = False
 
             if "¤" in self.op:
@@ -223,6 +240,7 @@ class KePieOps(Operator):
                 bpy.ops.object.vertex_group_remove_from(use_all_groups=True)
 
         elif "OPVG" in self.op:
+            # Op Vertex Group
             op = str(self.op).split("¤")
             n = op[2]
             action = op[1]
@@ -241,6 +259,62 @@ class KePieOps(Operator):
                     bpy.ops.object.vertex_group_remove_from(use_all_groups=False)
             if action == "DEL":
                 bpy.ops.object.vertex_group_remove(all=False)
+
+        elif "OPEG" in self.op:
+            # Op Edge Group
+            _op, action, attr_name = str(self.op).split("¤")
+            bm = bmesh.from_edit_mesh(active.data)
+            eg_layer = bm.edges.layers.float.get(attr_name)
+
+            if action == "NEW":
+                new = active.data.attributes.new(name=attr_name, type="FLOAT", domain="EDGE")
+                eg_layer = bm.edges.layers.float.get(new.name)
+                m = active.modifiers.new("WBevel", "BEVEL")
+                m.width = 0.01
+                m.limit_method = 'WEIGHT'
+                m.miter_outer = 'MITER_ARC'
+
+                if k.korean:
+                    m.profile = 1
+                    m.segments = 2
+                else:
+                    m.segments = k.cb_seg
+                m.edge_weight = new.name
+
+                for e in (e for e in bm.edges if e.select):
+                    e[eg_layer] = 1
+                new_bevel = True
+
+            if mode == "EDIT_MESH":
+                if action == "ADD":
+                    for e in (e for e in bm.edges if e.select):
+                        e[eg_layer] = 1
+
+                elif action == "SEL":
+                    for e in bm.edges:
+                        if e[eg_layer]:
+                            e.select = True
+
+                elif action == "DSEL":
+                    for e in bm.edges:
+                        if e[eg_layer]:
+                            e.select = False
+
+                elif action == "REM":
+                    for e in (e for e in bm.edges if e.select):
+                        e[eg_layer] = 0
+
+                elif action == "DEL":
+                    attr = active.data.attributes[attr_name]
+                    try:
+                        active.data.attributes.remove(attr)
+                    except Exception as e:
+                        print("Error while removing edge attribute:", e)
+
+            bmesh.update_edit_mesh(active.data)
+
+        if new_bevel and run_bevel_tweaker:
+            bpy.ops.view3d.ke_bevel_tweaker('INVOKE_DEFAULT', skip_pie=True)
 
         # elif self.op == "LATTICE":
         #     print("WIP - Lattice" ??)
@@ -356,12 +430,12 @@ class KeObjectOp(Operator):
     @classmethod
     def description(cls, context, properties):
         v = properties.cmd
-        if "ROT" in v:
-            return "Clear Specified Rotation Axis"
-        elif "AS" in v:
+        if "AS" in v:
             return "Auto-smooth Angle"
-        elif v == "CLEAR_LR":
-            return "Clear both Location & Rotation"
+        elif "CLEAR" in v:
+            return "Clear Values"
+        elif v == "SCL_APPLY":
+            return "Apply Scale"
         else:
             return "Misc pie menu ops & such"
 
@@ -394,9 +468,8 @@ class KeObjectOp(Operator):
             else:
                 print("N/A - Only for pre 4.1")
 
-        elif self.cmd == "CLEAR_LR":
-            bpy.ops.object.location_clear(clear_delta=False)
-            bpy.ops.object.rotation_clear(clear_delta=False)
+        elif self.cmd == "SCL_APPLY":
+            bpy.ops.object.transform_apply(location=False, rotation=False, scale=True)
 
         return {"FINISHED"}
 
@@ -541,12 +614,60 @@ class KeOverlays(Operator):
             elif self.overlay == "WEIGHT":
                 o.show_weight = not o.show_weight
 
-        elif context.mode == "OBJECT":
+        # elif context.mode == "OBJECT":
+        if self.overlay == "WIRE":
+            o.show_wireframes = not o.show_wireframes
 
-            if self.overlay == "WIRE":
-                o.show_wireframes = not o.show_wireframes
+        elif self.overlay == "WIREFRAMES":
+            o.show_wireframes = not o.show_wireframes
 
-            elif self.overlay == "WIREFRAMES":
-                o.show_wireframes = not o.show_wireframes
+        return {'FINISHED'}
+
+
+class KeModFocus(Operator):
+    bl_idname = "view3d.ke_modfocus"
+    bl_label = "Modifier Focus"
+    bl_description = ("Opens Modifier Tab in Properties Panel\n"
+                      "& stacks all modifers except 'focus' modifier (set as Active + Expanded)")
+    bl_space_type = 'VIEW_3D'
+    bl_options = {'REGISTER'}
+
+    modname: StringProperty(default="", options={"HIDDEN", "SKIP_SAVE"})
+
+    def execute(self, context):
+        # Only open modifier tab if not already open
+        p_area = None
+        m_active = False
+        for window in context.window_manager.windows:
+            for area in window.screen.areas:
+                if area.ui_type == 'PROPERTIES':
+                    p_area = area
+                    if area.spaces.active.context == 'MODIFIER':
+                        m_active = True
+                        break
+
+        if not m_active and p_area:
+            p_area.spaces.active.context = 'MODIFIER'
+        elif not m_active and not p_area:
+            self.report({"INFO"}, "No Properties panel found in UI")
+            return {"CANCELLED"}
+
+        obj = context.active_object
+        modifiers = obj.modifiers
+        target_mod = modifiers.get(self.modname)
+
+        if len(modifiers) and target_mod:
+            for mod in modifiers:
+                if mod.name == target_mod.name:
+                    mod.show_expanded = True
+                    mod.is_active = True
+                else:
+                    mod.show_expanded = False
+        else:
+            print("No modifier to focus. Somehow.")
+            return {'CANCELLED'}
+
+        for area in context.screen.areas:
+            area.tag_redraw()
 
         return {'FINISHED'}

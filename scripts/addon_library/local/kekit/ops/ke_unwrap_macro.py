@@ -134,9 +134,7 @@ class KeUnwrapMacro(Operator):
         context.object.select_set(True)
         sel_obj = list(context.selected_objects)
 
-        # TT REQ CHECK
-        #  TexTools addon-name includes version nr(!) Not updated often(?), but could change,
-        #  so, to avoid version hassle:
+        # TexTools REQ CHECK: addon-name includes version nr(!) Not updated often(?), could change - to avoid  hassle:
         ttcheck = False
         for i in context.preferences.addons:
             name = str(i.module)
@@ -144,7 +142,6 @@ class KeUnwrapMacro(Operator):
                 if all(check(name)):
                     ttcheck = True
                     break
-
         if not ttcheck:
             self.report({"INFO"}, "Cancelled: TexTools Add-on not found")
             return {"CANCELLED"}

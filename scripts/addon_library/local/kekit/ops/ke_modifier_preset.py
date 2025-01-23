@@ -29,19 +29,17 @@ class UIOMPModule(Panel):
         layout = self.layout
         col = layout.column(align=False)
         k = get_prefs()
-        kt = context.scene.kekit_temp
-
         entries = sorted([i for i in k.omp_presets.split("\x1f") if i], key=str.casefold)
-        isolated_slot = int(context.scene.kekit_temp.nr_toggle)
 
         row = col.row(align=True)
         row.prop(context.scene.kekit_temp, "omp_name")
         new = row.operator('view3d.ke_modifier_preset', text="", icon="ADD")
         new.op = "SAVE"
         new.preset_id = ""
-        if isolated_slot != 0:
-            row.enabled = False
-        col.separator(factor=1.25)
+
+        row = col.row(align=True)
+        row.prop(k, "modp_add")
+        col.separator(factor=0.25)
 
         if entries:
             for i, name in enumerate(entries, 1):
@@ -54,37 +52,19 @@ class UIOMPModule(Panel):
                     icon_idx = str(i)[-1]
                     icon = pcoll['kekit']['ke_mod' + icon_idx].icon_id
 
-                if isolated_slot == i:
-                    row.label(icon_value=icon)
-                    row.prop(kt, "omp_name", text="")
-                    row.separator()
-                    rename = row.operator('view3d.ke_modifier_preset', text="", icon="IMPORT")
-                    rename.op = "RENAME"
-                    rename.preset_id = fname
-                    row.separator()
-                    rename = row.operator('view3d.ke_modifier_preset', text="", icon="LOOP_BACK")
-                    rename.op = "TOGGLE_RENAME"
-                    rename.preset_id = "0"
-                else:
-                    loading = row.operator('view3d.ke_modifier_preset', text=name, icon_value=icon)
-                    loading.op = "LOAD"
-                    loading.preset_id = fname
+                loading = row.operator('view3d.ke_modifier_preset', text=name, icon_value=icon)
+                loading.op = "LOAD"
+                loading.preset_id = fname
+                row.separator()
 
-                    rename = row.operator('view3d.ke_modifier_preset', text="", icon="OUTLINER_DATA_GP_LAYER")
-                    rename.op = "TOGGLE_RENAME"
-                    rename.preset_id = str(i)
-                    row.separator()
+                saving = row.operator('view3d.ke_modifier_preset', text="", icon="IMPORT")
+                saving.op = "SAVE"
+                saving.preset_id = fname
+                row.separator()
 
-                    saving = row.operator('view3d.ke_modifier_preset', text="", icon="IMPORT")
-                    saving.op = "SAVE"
-                    saving.preset_id = fname
-                    row.separator()
-
-                    removing = row.operator('view3d.ke_modifier_preset', text="", icon="X")
-                    removing.op = "DELETE"
-                    removing.preset_id = fname
-                    if isolated_slot != 0:
-                        row.enabled = False
+                removing = row.operator('view3d.ke_modifier_preset', text="", icon="X")
+                removing.op = "DELETE"
+                removing.preset_id = fname
 
 
 def json_serializable(attr):
@@ -97,24 +77,21 @@ def json_serializable(attr):
         return attr
     except (TypeError, OverflowError, RuntimeError):
         print("Attr. failed JSON converison: ", type(attr), attr)
-        return False
+        return None
 
 
 class KeOMP(Operator):
     bl_idname = "view3d.ke_modifier_preset"
     bl_label = "Modifier Preset"
-    bl_description = "LOAD / SAVE / DELETE the active object's modifiers as a preset"
+    bl_description = "LOAD / SAVE / DELETE the Active Object's modifiers as a preset"
     bl_options = {'REGISTER', 'UNDO'}
 
     op: EnumProperty(
-        items=[("SAVE", "", ""), ("LOAD", "", ""), ("DELETE", "", ""), ("RENAME", "", ""), ("TOGGLE_RENAME", "", "")],
+        items=[("SAVE", "", ""), ("LOAD", "", ""), ("DELETE", "", "")],
         default="LOAD", options={"HIDDEN"})
+
     preset_id : StringProperty(name="Preset", default="", options={"HIDDEN"})
     path = ""
-
-    @classmethod
-    def poll(cls, context):
-        return context.selected_objects and context.mode == "OBJECT"
 
     @classmethod
     def description(cls, context, properties):
@@ -124,6 +101,10 @@ class KeOMP(Operator):
             return "SAVE the Active Object's modifiers as a preset"
         else:
             return "DELETE the modifier preset"
+
+    @classmethod
+    def poll(cls, context):
+        return context.selected_objects and context.mode == "OBJECT"
 
     def update_json(self, preset):
         try:
@@ -148,8 +129,6 @@ class KeOMP(Operator):
 
     def execute(self, context):
         self.path = os.path.join(bpy.utils.user_resource('CONFIG'), "ke_modifier_presets.json")
-        mods = {}
-
         preset = self.read_json()
         kt = context.scene.kekit_temp
         kprop = get_prefs()
@@ -163,12 +142,8 @@ class KeOMP(Operator):
         # Note: ASCII Control Character \x1f (\u001f) ('Unit Separator') used for string separation:
         pref_names = [i for i in preset_names.split("\x1f") if i]
         preset_id = self.preset_id.split("\x1f")[-1]
-
+        add_mode = bool(kprop.modp_add)
         sel_obj = context.selected_objects[:]
-
-        if self.op == "TOGGLE_RENAME":
-            kt.nr_toggle = int(self.preset_id)
-            return {"FINISHED"}
 
         curve_props = [
             'bevel_depth', 'bevel_factor_end', 'bevel_factor_mapping_end', 'bevel_factor_mapping_start',
@@ -197,9 +172,8 @@ class KeOMP(Operator):
                 "EXPLODE", "OCEAN",
             ]  # TBD: maybe separately...
 
-            nodes_panel_props = [
-                "show_expanded", "show_in_editmode", "show_on_cage", "show_render", "show_viewport", "use_pin_to_last",
-                "show_group_selector"
+            panel_props = [
+                "show_expanded", "show_in_editmode", "show_on_cage", "show_render", "show_viewport", "use_pin_to_last"
             ]
 
             ao = context.active_object
@@ -240,11 +214,10 @@ class KeOMP(Operator):
                         attr = json_serializable(m[k])
                         if attr:
                             entry[k] = attr
-                    # + panel props
-                    for k in nodes_panel_props:
-                        attr = json_serializable(getattr(m, k))
-                        if attr:
-                            entry[k] = attr
+
+                    attr = json_serializable(getattr(m, "show_group_selector"))
+                    if attr is not None:
+                        entry["show_group_selector"] = attr
                 else:
                     for k in dir(m):
                         if "__" not in k and k not in ignored_props:
@@ -255,6 +228,12 @@ class KeOMP(Operator):
                             if k == "profile_type" and attr == "CUSTOM":
                                 cpf = getattr(m, "custom_profile")
                                 entry["custom_profile_preset"] = cpf.preset
+
+                # + panel props
+                for k in panel_props:
+                    attr = json_serializable(getattr(m, k))
+                    if attr is not None:
+                        entry[k] = attr
 
                 mods[i] = entry
 
@@ -294,39 +273,25 @@ class KeOMP(Operator):
             return {"CANCELLED"}
 
         #
-        # Rename preset
-        #
-        if self.op == "RENAME":
-            new_name = kt.omp_name
-            if new_name and preset:
-                pid = self.preset_id.split("\x1f")[1]
-                new_name = "\x1f" + new_name
-                # remove old
-                stored_presets.pop(self.preset_id)
-                # store new
-                stored_presets[new_name] = preset
-                self.update_json(stored_presets)
-                # update names list
-                new_prefs_names = "".join(["\x1f" + i for i in pref_names if i != pid]) + new_name
-                kprop.omp_presets = new_prefs_names
-                # reset nr toggle
-                kt.nr_toggle = 0
-                # refresh
-                bpy.ops.wm.save_userpref()
-                refresh_ui()
-            return {"FINISHED"}
-
-        #
         # Loading/restoring preset
         #
-        for obj in sel_obj:
-            for m in obj.modifiers:
-                obj.modifiers.remove(m)
+        if not add_mode:
+            for obj in sel_obj:
+                for m in obj.modifiers:
+                    obj.modifiers.remove(m)
 
         mods = [idx for idx in preset]
         if not mods:
-            print("Clean: No modifiers stored - removing all modifiers on active object!")
+            if not add_mode:
+                print("Clean: No modifiers stored - removing all modifiers on active object!")
+            print("No modifiers stored in preset?")
             return {"FINISHED"}
+
+        if add_mode:
+            # no pin-2-last if just adding
+            for mod in preset.keys():
+                if preset[mod].get("use_pin_to_last", None) is not None:
+                    preset[mod].pop("use_pin_to_last", None)
 
         # node_assets = ["smooth_by_angle.blend", "procedural_hair_node_assets.blend"]  # that's all for now I guess?
         # --> automatic listing for future additions:  e.g: /usr/share/blender/4.2/datafiles/assets/geometry_nodes/
@@ -364,34 +329,47 @@ class KeOMP(Operator):
                             #     obj.data["bevel_profile"].preset = mod[prop]
 
                 elif mod["type"] == "NODES":
+                    new_mod = None
                     node_group = mod["node_group"]
-                    n = node_group.replace(" ", "_").lower()
-                    for ast in node_assets:
-                        if n in ast:
-                            rai = os.path.join("geometry_nodes/", ast, "NodeTree/", node_group)
-                            bpy.ops.object.modifier_add_node_group(
-                                asset_library_type='ESSENTIALS', asset_library_identifier="",
-                                relative_asset_identifier=rai)
-                            found = True
+                    # check if exists 1st to re-use
+                    has_ng = bpy.data.node_groups.get(node_group)
+                    if has_ng:
+                        new_mod = obj.modifiers.new(mod["name"], mod["type"])
+                        new_mod.node_group = has_ng
+                        found = True
+                    else:
+                        # this method S U C K S
+                        n = node_group.replace(" ", "_").lower()
+                        for ast in node_assets:
+                            if n in ast:
+                                rai = os.path.join("geometry_nodes/", ast, "NodeTree/", node_group)
+                                bpy.ops.object.modifier_add_node_group(
+                                    asset_library_type='ESSENTIALS', asset_library_identifier="",
+                                    relative_asset_identifier=rai)
+                                found = True
 
-                    if not found and custom_node_assets:
-                        for key in custom_node_assets:
-                            for ast in custom_node_assets[key]:
-                                if ast and n in ast:
-                                    rai = os.path.join(ast, "NodeTree/", node_group)
-                                    bpy.ops.object.modifier_add_node_group(
-                                        asset_library_type='CUSTOM', asset_library_identifier=key,
-                                        relative_asset_identifier=rai)
-                                    found = True
+                        if not found and custom_node_assets:
+                            for key in custom_node_assets:
+                                for ast in custom_node_assets[key]:
+                                    if ast and n in ast:
+                                        rai = os.path.join(ast, "NodeTree/", node_group)
+                                        bpy.ops.object.modifier_add_node_group(
+                                            asset_library_type='CUSTOM', asset_library_identifier=key,
+                                            relative_asset_identifier=rai)
+                                        found = True
+                        if found:
+                            # Find the new modifier (sigh)
+                            new_mod = []
+                            for m in obj.modifiers:
+                                if m.type == "NODES" and m.node_group.name == node_group:
+                                    new_mod.append(m)
+                            if new_mod:
+                                new_mod = new_mod[-1]
+                            else:
+                                print("Could not find new modifier")
+                                found = False
 
-                    if found:
-                        # Find the new modifier (sigh)
-                        new_mod = []
-                        for m in obj.modifiers:
-                            if m.type == "NODES" and m.node_group.name == node_group:
-                                new_mod.append(m)
-                        new_mod = new_mod[-1]
-
+                    if found and new_mod is not None:
                         # Apply node mod props
                         for prop in mod:
                             if prop not in ["name", "type", "node_group"]:
@@ -415,6 +393,10 @@ class KeOMP(Operator):
                                 setattr(new_mod, prop, mod[prop])
                             except Exception as e:
                                 print(f"Setting {modname} {prop} failed:", e)
+
+                if mod.get("use_pin_to_last") is not None:
+                    # to make sure the pin-order is correct
+                    bpy.ops.object.modifier_move_to_index(modifier=mod["name"], index=int(mod_idx))
 
             obj.select_set(False)
 

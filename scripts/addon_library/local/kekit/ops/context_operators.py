@@ -30,7 +30,7 @@ class KeContextBevel(Operator):
             if k.korean:
                 bpy.ops.mesh.bevel('INVOKE_DEFAULT', segments=2, profile=1, affect='EDGES')
             else:
-                bpy.ops.mesh.bevel('INVOKE_DEFAULT', affect='EDGES')
+                bpy.ops.mesh.bevel('INVOKE_DEFAULT', segments=k.cb_seg, affect='EDGES')
         elif sel_mode[2]:
             bpy.ops.mesh.inset('INVOKE_DEFAULT', use_outset=False)
         return {'FINISHED'}

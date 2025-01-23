@@ -260,7 +260,26 @@ class KePropToggle(Operator):
         return {"FINISHED"}
 
 
-# TBD:
+def update_view_name(self, context):
+    txt = context.scene.kekit_temp["view_name"]
+    if txt:
+        bpy.ops.view3d.ke_view_bookmark(op='SAVE', preset_id="")
+    context.scene.kekit_temp["view_name"] = ""
+
+
+def update_omp_name(self, context):
+    txt = context.scene.kekit_temp["omp_name"]
+    if txt:
+        bpy.ops.view3d.ke_modifier_preset(op='SAVE', preset_id="")
+    context.scene.kekit_temp["omp_name"] = ""
+
+
+def reload_extras(self, context):
+    k = get_prefs()
+    remove_extras()
+    add_extras(k)
+
+
 class KeKitTempSession(PropertyGroup):
     # Session (WM) Stored "temp"
     qm_running : BoolProperty(default=False)
@@ -270,7 +289,6 @@ class KeKitTempSession(PropertyGroup):
 
 class KeKitPropertiesTemp(PropertyGroup):
     # Per-Scene Stored Properties
-    view_query: StringProperty(default=" N/A ")
     toggle: BoolProperty(default=False)  # used by many ops...
     cursorslot1: FloatVectorProperty(size=6)
     cursorslot2: FloatVectorProperty(size=6)
@@ -278,7 +296,12 @@ class KeKitPropertiesTemp(PropertyGroup):
     cursorslot4: FloatVectorProperty(size=6)
     cursorslot5: FloatVectorProperty(size=6)
     cursorslot6: FloatVectorProperty(size=6)
+    view_query: StringProperty(default=" N/A ")
     viewcycle: IntProperty(default=1, min=1)
+    viewtoggle: FloatVectorProperty(size=9)
+    view_name: StringProperty(
+        description="Bookmark Name (Change as needed)\nLeave blank for auto-naming", default="", name="New",
+        update=update_view_name)
     kcm_axis: EnumProperty(items=[
         ("X", "X", "", 1),
         ("Y", "Y", "", 2),
@@ -293,16 +316,7 @@ class KeKitPropertiesTemp(PropertyGroup):
     kcm_custom_rot: FloatProperty(name="Custom Step", default=0, subtype="ANGLE", unit="ROTATION", precision=3,
                                   description="Custom rotation (non zero will override preset-use) for step-rotate")
     omp_name: StringProperty(description="Preset Name (Change as needed)\n"
-                                         "Leave blank for auto-naming", default="", name="New")
-    view_name: StringProperty(description="Bookmark Name (Change as needed)\n"
-                                          "Leave blank for auto-naming", default="", name="New")
-    nr_toggle: IntProperty(default=0)
-
-
-def reload_extras(self, context):
-    k = get_prefs()
-    remove_extras()
-    add_extras(k)
+                                         "Leave blank for auto-naming", default="", name="New", update=update_omp_name)
 
 
 class KeKitAddonPreferences(AddonPreferences):
@@ -597,14 +611,14 @@ class KeKitAddonPreferences(AddonPreferences):
                                               "OFF:Autosmooth is not changed by toggle", name="Autosmooth Toggle",
                                   default=True)
 
-    # Snapping Combos
+    # Snapping Combos  (4.2+)
     snap_combo1: FloatVectorProperty(size=30, precision=4, default=[0] * 30)
     snap_combo2: FloatVectorProperty(size=30, precision=4, default=[0] * 30)
     snap_combo3: FloatVectorProperty(size=30, precision=4, default=[0] * 30)
     snap_combo4: FloatVectorProperty(size=30, precision=4, default=[0] * 30)
     snap_combo5: FloatVectorProperty(size=30, precision=4, default=[0] * 30)
     snap_combo6: FloatVectorProperty(size=30, precision=4, default=[0] * 30)
-    # Snapping Combos (Old, pre 4.2:)
+    # Snapping Combos (Old, pre 4.2: backcompat)
     snap_elements1: StringProperty(description="Snapping Element Combo 1", default="INCREMENT")
     snap_elements2: StringProperty(description="Snapping Element Combo 2", default="FACE,EDGE,EDGE_MIDPOINT,VERTEX")
     snap_elements3: StringProperty(description="Snapping Element Combo 3", default="FACE")
@@ -727,11 +741,14 @@ class KeKitAddonPreferences(AddonPreferences):
     mam_scl: BoolProperty(name="MAS",
                           description="Mouse Axis Scale - Uncheck for default (unlocked) Scale behaviour for "
                                       "TT Scale MouseAxis", default=True)
-    # korean toggle
+    # korean toggle - context bevel
     korean: BoolProperty(
         name="Flat Profile Bevels", default=False,
         description="Toggles flat profile (aka 'Korean/Solid/Square bevels') bevel preset (2-seg, 1-profile)\n"
                     "for Context Bevel and keKit SubD pie menu bevels")
+    cb_seg: IntProperty(name="Context Bevel Segments", default=1, min=1)
+    # Auto-Apply Scale
+    apply_scale: BoolProperty(name="Auto-Apply Scale", description="Apply Scale before operation", default=True)
     # select by display type active collection only toggle
     sel_type_coll: BoolProperty(name="Active Collection Only",
                                 description="Select by display type in active collection only",
@@ -751,8 +768,6 @@ class KeKitAddonPreferences(AddonPreferences):
     context_select_c: BoolProperty(name="Collection Select", default=False,
                                    description="Context Select - Select All Objects in selected object's Collection\n"
                                                "(in OBJECT MODE)")
-    # Auto-Apply Scale
-    apply_scale: BoolProperty(name="Auto-Apply Scale", description="Apply Scale before operation", default=True)
     # Mouse Axis Scale Mode
     mam_scale_mode: BoolProperty(
         name="No Constrain Over", default=False,
@@ -791,6 +806,24 @@ class KeKitAddonPreferences(AddonPreferences):
     )
     # OMP - Object Modifier Presets
     omp_presets: StringProperty(description="", default="", name="")
+    # Bevel Tweaker
+    bt_auto: BoolProperty(
+        name="Auto Bevel Tweaker", default=True,
+        description="Bevel Pie Menu behaviour for BT:\nRun BT automatically after adding a new Bevel Group")
+    bt_em_pie: BoolProperty(
+        name="Edit Mode Pie Menu", default=False,
+        description="Open Bevel Manager Pie Menu in Edit Mode\ninstead of Bevel Tweaker's standard Edit Mode")
+    bt_multiplier: FloatProperty(
+        name="Bevel Tweaker Multiplier", min=0.001, max=100, default=1,
+        description="Sensitivity multiplier affecting modal movement\n(e.g: 0.5 to halve, 2 to double)")
+    bt_multiplier_p: FloatProperty(
+        name="Bevel Tweaker Precision Multiplier", min=0.001, max=100, default=1,
+        description="Sensitivity multiplier affecting modal Precision Mode movement\n(e.g: 0.5 to halve, 2 to double)")
+    # Modifier Presets - ADD mode
+    modp_add: BoolProperty(
+        name="Add (or Replace Modifiers)", default=False,
+        description="ADD mode (checked ON) will ADD the preset modifers when LOADING, instead of REPLACING.\n"
+                    "ADD: Presets 'Pin to Last' settings will NOT be loaded")
 
     def draw(self, context):
         layout = self.layout

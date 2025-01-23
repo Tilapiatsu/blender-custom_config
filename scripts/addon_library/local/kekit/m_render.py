@@ -60,95 +60,17 @@ class UIIDMaterialsSubModule(Panel):
     def draw(self, context):
         k = get_prefs()
         layout = self.layout
-        col = layout.column(align=True)
+        col = layout.column(align=False)
         row = col.row(align=True)
-        row.label(text="Apply")
-        row.label(text="Set Name")
-        row.label(text="Set Color")
-        row = col.row(align=True)
-        row.scale_x = 0.5
-        row.operator('view3d.ke_id_material', text="Apply").m_id = 1
-        row.scale_x = 1
-        row.prop(k, "idm01_name", text="")
-        row.scale_x = 0.5
-        row.prop(k, "idm01", text="")
-        row = col.row(align=True)
-        row.scale_x = 0.5
-        row.operator('view3d.ke_id_material', text="Apply").m_id = 2
-        row.scale_x = 1
-        row.prop(k, "idm02_name", text="")
-        row.scale_x = 0.5
-        row.prop(k, "idm02", text="")
-        row = col.row(align=True)
-        row.scale_x = 0.5
-        row.operator('view3d.ke_id_material', text="Apply").m_id = 3
-        row.scale_x = 1
-        row.prop(k, "idm03_name", text="")
-        row.scale_x = 0.5
-        row.prop(k, "idm03", text="")
-        row = col.row(align=True)
-        row.scale_x = 0.5
-        row.operator('view3d.ke_id_material', text="Apply").m_id = 4
-        row.scale_x = 1
-        row.prop(k, "idm04_name", text="")
-        row.scale_x = 0.5
-        row.prop(k, "idm04", text="")
-        row = col.row(align=True)
-        row.scale_x = 0.5
-        row.operator('view3d.ke_id_material', text="Apply").m_id = 5
-        row.scale_x = 1
-        row.prop(k, "idm05_name", text="")
-        row.scale_x = 0.5
-        row.prop(k, "idm05", text="")
-        row = col.row(align=True)
-        row.scale_x = 0.5
-        row.operator('view3d.ke_id_material', text="Apply").m_id = 6
-        row.scale_x = 1
-        row.prop(k, "idm06_name", text="")
-        row.scale_x = 0.5
-        row.prop(k, "idm06", text="")
-        row = col.row(align=True)
-        row.scale_x = 0.5
-        row.operator('view3d.ke_id_material', text="Apply").m_id = 7
-        row.scale_x = 1
-        row.prop(k, "idm07_name", text="")
-        row.scale_x = 0.5
-        row.prop(k, "idm07", text="")
-        row = col.row(align=True)
-        row.scale_x = 0.5
-        row.operator('view3d.ke_id_material', text="Apply").m_id = 8
-        row.scale_x = 1
-        row.prop(k, "idm08_name", text="")
-        row.scale_x = 0.5
-        row.prop(k, "idm08", text="")
-        row = col.row(align=True)
-        row.scale_x = 0.5
-        row.operator('view3d.ke_id_material', text="Apply").m_id = 9
-        row.scale_x = 1
-        row.prop(k, "idm09_name", text="")
-        row.scale_x = 0.5
-        row.prop(k, "idm09", text="")
-        row = col.row(align=True)
-        row.scale_x = 0.5
-        row.operator('view3d.ke_id_material', text="Apply").m_id = 10
-        row.scale_x = 1
-        row.prop(k, "idm10_name", text="")
-        row.scale_x = 0.5
-        row.prop(k, "idm10", text="")
-        row = col.row(align=True)
-        row.scale_x = 0.5
-        row.operator('view3d.ke_id_material', text="Apply").m_id = 11
-        row.scale_x = 1
-        row.prop(k, "idm11_name", text="")
-        row.scale_x = 0.5
-        row.prop(k, "idm11", text="")
-        row = col.row(align=True)
-        row.scale_x = 0.5
-        row.operator('view3d.ke_id_material', text="Apply").m_id = 12
-        row.scale_x = 1
-        row.prop(k, "idm12_name", text="")
-        row.scale_x = 0.5
-        row.prop(k, "idm12", text="")
+        row.label(text=" Use/Customize:")
+
+        for i in range(1, 13):
+            idm = f"idm{i:02}"
+            row = col.row(align=True)
+            row.operator('view3d.ke_id_material', text="", icon="IMPORT").m_id = i
+            split = row.split(factor=0.75, align=True)
+            split.prop(k, idm + "_name", text="")
+            split.prop(k, idm, text="")
 
 
 def clamp_color(values, low=0.1, high=0.9):
@@ -184,42 +106,9 @@ class KeIDMaterial(Operator):
         k = get_prefs()
         object_color = k.object_color
 
-        if self.m_id == 1:
-            m_col = k.idm01
-            m_name = k.idm01_name
-        elif self.m_id == 2:
-            m_col = k.idm02
-            m_name = k.idm02_name
-        elif self.m_id == 3:
-            m_col = k.idm03
-            m_name = k.idm03_name
-        elif self.m_id == 4:
-            m_col = k.idm04
-            m_name = k.idm04_name
-        elif self.m_id == 5:
-            m_col = k.idm05
-            m_name = k.idm05_name
-        elif self.m_id == 6:
-            m_col = k.idm06
-            m_name = k.idm06_name
-        elif self.m_id == 7:
-            m_col = k.idm07
-            m_name = k.idm07_name
-        elif self.m_id == 8:
-            m_col = k.idm08
-            m_name = k.idm08_name
-        elif self.m_id == 9:
-            m_col = k.idm09
-            m_name = k.idm09_name
-        elif self.m_id == 10:
-            m_col = k.idm10
-            m_name = k.idm10_name
-        elif self.m_id == 11:
-            m_col = k.idm11
-            m_name = k.idm11_name
-        else:
-            m_col = k.idm12
-            m_name = k.idm12_name
+        idm = f"idm{self.m_id:02}"
+        m_col = k[idm]
+        m_name = k[idm + "_name"]
 
         # Assign ID Mat
         sel_mode = str(context.mode)
@@ -301,11 +190,6 @@ class KeIDMaterial(Operator):
                 if area.ui_type == 'PROPERTIES':
                     area.spaces.active.context = 'MATERIAL'
                     area.tag_redraw()
-
-        # bpy.ops.ed.undo_push()
-        # if context.view_layer.objects.active.type == "MESH":
-        #     bpy.ops.object.editmode_toggle()
-        #     bpy.ops.object.editmode_toggle()
 
         return {'FINISHED'}
 
