@@ -2586,7 +2586,7 @@
         "is_extension": true,
         "extension_id": "EdgeFlow",
         "online_url": "https://extensions.blender.org/add-ons/edgeflow/",
-        "repository_url": null,
+        "repository_url": "blender_org",
         "branch": null,
         "is_submodule": false,
         "local_path": "#\\scripts\\addon_library\\GIT_Clones\\EdgeFlow",
@@ -3717,6 +3717,25 @@
                 "is_enable": false,
                 "local_subpath": null,
                 "destination_path": "#\\scripts\\addons\\BakeMaster"
+            }
+        ]
+    },
+    "deep_bump": {
+        "is_enable": false,
+        "is_sync": false,
+        "is_extension": false,
+        "extension_id": null,
+        "online_url": null,
+        "repository_url": "https://github.com/HugoTini/DeepBump.git",
+        "branch": "master",
+        "is_submodule": false,
+        "local_path": "#\\scripts\\addon_library\\GIT_Clones\\deep_bump",
+        "keymaps": false,
+        "paths": [
+            {
+                "is_enable": false,
+                "local_subpath": null,
+                "destination_path": "#\\scripts\\addons\\deep_bump"
             }
         ]
     }
