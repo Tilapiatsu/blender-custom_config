@@ -65,7 +65,8 @@ class MergeTool(bpy.types.Operator):
     bl_label = "Merge Tool Operator"
     bl_options = {'REGISTER', 'UNDO'}
 
-    def __init__(self):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
         self.started = None
         self.start_vertex = None
         self.end_vertex = None
