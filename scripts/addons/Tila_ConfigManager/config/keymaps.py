@@ -1990,7 +1990,7 @@ class TILA_Config_Keymaps_Non_Destructive_Primitives(TILA_Config_Keymaps):
     def set_keymaps(self):
         self.print_status(f"Assigning {self.addon_name} Keymaps")
 
-        if self.kmi_init(name='Object', space_type='EMPTY', region_type='WINDOW', addon=False, restore_to_default=False):
+        if self.kmi_init(name='Object Mode', space_type='EMPTY', region_type='WINDOW', addon=True, restore_to_default=False):
             self.kmi_set_active(False, idname='wm.call_menu_pie', type='A', shift=True, properties={'name':'ND_PRIMITIVES_MT_add_objects_pie_menu'})
 
         self.print_status(f"Assignment of {self.addon_name} complete", start=False)
