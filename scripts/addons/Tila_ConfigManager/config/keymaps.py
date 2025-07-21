@@ -1981,11 +1981,11 @@ class TILA_Config_Keymaps_pin_verts(TILA_Config_Keymaps):
 
         self.print_status(f"Assignment of {self.addon_name} complete", start=False)
 
-class TILA_Config_Keymaps_Non_Destructive_Primitive(TILA_Config_Keymaps):
-    addon_name = "Non_Destructive_Primitive"
+class TILA_Config_Keymaps_Non_Destructive_Primitives(TILA_Config_Keymaps):
+    addon_name = "Non_Destructive_Primitives"
 
     def __init__(self):
-        super(TILA_Config_Keymaps_pin_verts, self).__init__()
+        super(TILA_Config_Keymaps_Non_Destructive_Primitives, self).__init__()
 
     def set_keymaps(self):
         self.print_status(f"Assigning {self.addon_name} Keymaps")
