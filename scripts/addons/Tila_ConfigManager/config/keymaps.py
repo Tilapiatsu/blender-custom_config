@@ -5,7 +5,7 @@ from ..blender_version.blender_version import bversion
 from ..preferences.ui.log_list import TILA_Config_Log as log_list
 
 
-# TODO  
+# TODO
 #  Need to read : https://wiki.blender.org/wiki/Source/Depsgraph
 # - Create an action center pie menu : https://blenderartists.org/t/modo-me-the-modo-action-centers-in-blender-and-more-2-80-2-79/1145899
 # 		- Automatic
@@ -100,16 +100,16 @@ class TILA_Config_Keymaps_Global(TILA_Config_Keymaps):
         self.kmi_set_replace("wm.window_fullscreen_toggle", "F11", "PRESS")
         self.kmi_set_replace('screen.animation_play', self.k_menu, 'PRESS', ctrl=True, shift=True)
         self.kmi_set_replace('screen.userpref_show', 'F4', 'PRESS')
-        
+
         if self.km.name in ['3D View', 'Mesh']:
             # self.kmi_set_replace("popup.hp_properties", 'Q', 'PRESS', disable_double=True)
             self.kmi_set_replace('popup.hp_materials', 'M', 'PRESS', disable_double=True)
             self.kmi_set_replace('popup.hp_render', 'EQUAL', 'PRESS', disable_double=True)
             # self.kmi_set_replace('wm.call_menu_pie', 'D', 'PRESS', alt=True, shift=True, properties={'name': 'HP_MT_pie_rotate90'})
-   
+
         # self.kmi_set_replace('wm.call_menu_pie', 'A', 'PRESS', ctrl=True, alt=True, shift=True, properties={'name': 'HP_MT_pie_add'})
         self.kmi_set_replace('wm.call_menu_pie', 'TAB', 'PRESS', ctrl=True, shift=True, properties={'name': 'TILA_MT_pie_areas'})
-        
+
     def navigation_keys(self, pan=None, orbit=None, dolly=None, roll=None):
         # if self.km.name in ['3D View', 'Image']:
         # 	Value = "PRESS"
@@ -140,7 +140,7 @@ class TILA_Config_Keymaps_Global(TILA_Config_Keymaps):
         self.kmi_set_replace('view3d.tila_smart_editmode', self.k_vert_mode, 'PRESS', ctrl=True, shift=True, properties={'mode': 0, 'use_extend': True, 'use_expand': True, 'alt_mode': False, 'get_border': False}, disable_double=True)
         self.kmi_set_replace('view3d.tila_smart_editmode', self.k_edge_mode, 'PRESS', ctrl=True, shift=True, properties={'mode': 1, 'use_extend': True, 'use_expand': True, 'alt_mode': False, 'get_border': False}, disable_double=True)
         self.kmi_set_replace('view3d.tila_smart_editmode', self.k_face_mode, 'PRESS', ctrl=True, shift=True, properties={'mode': 2, 'use_extend': True, 'use_expand': True, 'alt_mode': False, 'get_border': False}, disable_double=True)
-        
+
         self.kmi_set_replace('view3d.tila_smart_editmode', self.k_vert_mode, 'PRESS', alt=True, properties={'mode': 0, 'use_extend': False, 'use_expand': False, 'get_border': True}, disable_double=True)
         self.kmi_set_replace('view3d.tila_smart_editmode', self.k_edge_mode, 'PRESS', alt=True, properties={'mode': 1, 'use_extend': False, 'use_expand': False, 'get_border': True}, disable_double=True)
         self.kmi_set_replace('view3d.tila_smart_editmode', self.k_face_mode, 'PRESS', alt=True, properties={'mode': 2, 'use_extend': False, 'use_expand': False, 'get_border': True}, disable_double=True)
@@ -159,7 +159,7 @@ class TILA_Config_Keymaps_Global(TILA_Config_Keymaps):
         self.kmi_set_active(False, idname=collection_visibility_tool, type='ZERO')
 
     def selection_keys(self,
-                        select_tool=None, 
+                        select_tool=None,
                         lasso_tool=None, select_through_tool=None,
                         box_tool=None, box_through_tool=None, node_box_tool=None,
                         circle_tool=None, gp_circle_tool=None,
@@ -167,7 +167,7 @@ class TILA_Config_Keymaps_Global(TILA_Config_Keymaps):
                         loop_tool=None, ring_tool=None,
                         loop_multiselect_tool=None, ring_multiselect_tool=None,
                         more_tool=None, less_tool=None,
-                        next_tool=None, previous_tool=None, 
+                        next_tool=None, previous_tool=None,
                         linked_tool=None, linked_pick_tool=None,
                         invert_tool=None, inner_tool=None,
                         collection_tool=None):
@@ -184,7 +184,7 @@ class TILA_Config_Keymaps_Global(TILA_Config_Keymaps):
             self.kmi_set_replace(select_tool, self.k_select, value, shift=True, properties={'deselect_all': False, 'deselect': False, 'extend': True, 'center':False, 'toggle': False, 'object': False}, disable_double=True)
             self.kmi_set_active(False ,select_tool, self.k_select, ctrl=True, shift=False)
             self.kmi_set_replace(select_tool, self.k_select, value, ctrl=True, properties={'deselect_all': False, 'deselect': True, 'extend': False, 'center':False, 'toggle': False, 'object': False}, disable_double=True)
-        
+
         # Lasso Select / Deselect / Add
         if lasso_tool:
             self.kmi_set_replace(lasso_tool, self.k_lasso, 'CLICK_DRAG', properties={'mode': 'SET'}, disable_double=True)
@@ -196,13 +196,13 @@ class TILA_Config_Keymaps_Global(TILA_Config_Keymaps):
             self.kmi_set_replace(select_through_tool, self.k_lasso_through, 'CLICK_DRAG', properties={'type': 'LASSO', 'mode': 'SET'}, disable_double=True)
             self.kmi_set_replace(select_through_tool, self.k_lasso_through, 'CLICK_DRAG', shift=True, properties={'type': 'LASSO', 'mode': 'ADD'}, disable_double=True)
             self.kmi_set_replace(select_through_tool, self.k_lasso_through, 'CLICK_DRAG', ctrl=True, properties={'type': 'LASSO', 'mode': 'SUB'}, disable_double=True)
-        
+
         # Box Select / Deselect / Add
         if box_tool:
             self.kmi_set_replace(box_tool, self.k_box, 'CLICK_DRAG', properties={'mode': 'SET', 'wait_for_input': False, 'tweak': False}, disable_double=True)
             self.kmi_set_replace(box_tool, self.k_box, 'CLICK_DRAG', shift=True, properties={'mode': 'ADD', 'wait_for_input': False, 'tweak': False}, disable_double=True)
             self.kmi_set_replace(box_tool, self.k_box, 'CLICK_DRAG', ctrl=True, properties={'mode': 'SUB', 'wait_for_input': False, 'tweak': False}, disable_double=True)
-        
+
         if node_box_tool:
             self.kmi_set_replace(node_box_tool, self.k_select, 'CLICK_DRAG', properties={'mode': 'SET', 'wait_for_input': False, 'tweak': True}, disable_double=True)
             self.kmi_set_replace(node_box_tool, self.k_box, 'CLICK_DRAG', shift=True, properties={'mode': 'ADD', 'wait_for_input': False, 'tweak': False}, disable_double=True)
@@ -213,7 +213,7 @@ class TILA_Config_Keymaps_Global(TILA_Config_Keymaps):
             self.kmi_set_replace(box_through_tool, self.k_box_through, 'CLICK_DRAG', properties={'type': 'BOX', 'mode': 'SET'}, disable_double=True)
             self.kmi_set_replace(box_through_tool, self.k_box_through, 'CLICK_DRAG', shift=True, properties={'type': 'BOX', 'mode': 'ADD'}, disable_double=True)
             self.kmi_set_replace(box_through_tool, self.k_box_through, 'CLICK_DRAG', ctrl=True, properties={'type': 'BOX', 'mode': 'SUB'}, disable_double=True)
-        
+
         # Circle
         if circle_tool:
             if self.km.name in ['Weight Paint', 'Vertex Paint', 'Image Paint', 'Grease Pencil Stroke Weight Mode', 'Grease Pencil Stroke Sculpt Mode', 'Paint Face Mask (Weight, Vertex, Texture)', 'Grease Pencil Stroke Paint Mode', 'Grease Pencil Stroke Vertex Mode']:
@@ -232,7 +232,7 @@ class TILA_Config_Keymaps_Global(TILA_Config_Keymaps):
         if shortestpath_tool:
             self.kmi_remove(idname=shortestpath_tool)
             use_topology_distance = True
-                
+
             self.kmi_set_replace(shortestpath_tool, self.k_context, 'CLICK', shift=True, disable_double=True, properties={'use_fill': False, 'use_face_step': False, 'use_topology_distance': use_topology_distance})
             self.kmi_set_replace(shortestpath_tool, self.k_context, 'CLICK', ctrl=True, shift=True, disable_double=True, properties={'use_fill': True, 'use_face_step': False, 'use_topology_distance': use_topology_distance})
 
@@ -254,7 +254,7 @@ class TILA_Config_Keymaps_Global(TILA_Config_Keymaps):
         # Loop multiselect
         if loop_multiselect_tool:
             self.kmi_set_replace(loop_multiselect_tool, 'L', 'PRESS', properties={'ring': False}, disable_double=True)
-        
+
         # Ring multiselect
         if ring_multiselect_tool:
             self.kmi_set_replace(ring_multiselect_tool, 'L', 'PRESS', alt=True, properties={'ring': True}, disable_double=True)
@@ -265,7 +265,7 @@ class TILA_Config_Keymaps_Global(TILA_Config_Keymaps):
 
         if less_tool:
             self.kmi_set_replace(less_tool, self.k_less, 'PRESS', shift=True, repeat=True)
-        
+
         # Select Next / Previous
         if next_tool:
             self.kmi_set_replace(next_tool, self.k_more, 'PRESS')
@@ -276,7 +276,7 @@ class TILA_Config_Keymaps_Global(TILA_Config_Keymaps):
         # Linked
         if linked_tool:
             self.kmi_set_replace(linked_tool, self.k_linked, 'DOUBLE_CLICK', ctrl=False, properties={'deselect': False, 'delimit': {'SEAM'}})
-        
+
         if linked_pick_tool:
             if self.km.name in ['Curve', 'Lattice', 'Grease Pencil', 'Particle', 'UV Editor']:
                 self.kmi_set_replace(linked_pick_tool, self.k_linked, 'PRESS', ctrl=False, properties={'deselect': False, 'extend': True}, disable_double=True)
@@ -303,17 +303,17 @@ class TILA_Config_Keymaps_Global(TILA_Config_Keymaps):
             self.kmi_set_replace(collection_tool, self.k_select, 'DOUBLE_CLICK', shift=True, properties={'type': 'COLLECTION', 'extend': True}, disable_double=True)
 
     def selection_tool(self, tool='builtin.select', alt='builtin.select_box', mode=None):
-        brush_mode = ['Sculpt', 
-                      'Sculpt Curves', 
-                      'Weight Paint', 
-                      'Vertex Paint', 
+        brush_mode = ['Sculpt',
+                      'Sculpt Curves',
+                      'Weight Paint',
+                      'Vertex Paint',
                       'Image Paint',
-                      'Grease Pencil Brush Stroke', 
-                      'Grease Pencil Sculpt Mode', 
+                      'Grease Pencil Brush Stroke',
+                      'Grease Pencil Sculpt Mode',
                       'Grease Pencil Vertex Paint',
                       'Grease Pencil Weight Paint']
-        
-        if self.km.name in brush_mode and mode is not None: 
+
+        if self.km.name in brush_mode and mode is not None:
             self.kmi_set_replace('brush.tila_brush_toggle', self.k_menu, 'PRESS', properties={'mode':mode, 'relative_asset_identifier': tool, 'asset_library_type': 'ESSENTIALS', 'asset_library_identifier':'', 'force_strength':False, 'force_weight':False}, disable_double=True)
             if alt:
                 self.kmi_set_replace('brush.tila_brush_toggle', self.k_manip, 'PRESS', ctrl=True, shift=True, properties={'mode':mode, 'relative_asset_identifier': alt, 'asset_library_type': 'ESSENTIALS', 'asset_library_identifier':'', 'toggle_back_on_release':True, 'force_strength':False, 'force_weight':False}, disable_double=True)
@@ -328,7 +328,7 @@ class TILA_Config_Keymaps_Global(TILA_Config_Keymaps):
 
         if kmi is not None:
             kmi.value = 'RELEASE'
-        
+
         kmi = self.kmi_find(idname='wm.call_panel', type='RIGHTMOUSE', value='PRESS')
 
         if kmi is not None:
@@ -362,10 +362,10 @@ class TILA_Config_Keymaps_Global(TILA_Config_Keymaps):
 
     def tool_smooth(self):
         self.kmi_set_replace('mesh.vertices_smooth', 'S', 'PRESS', ctrl=True, alt=True, shift=False, properties={'repeat': 50})
-    
+
     def tool_proportional(self):
         self.modal_set_replace('PROPORTIONAL_SIZE', 'MOUSEMOVE', 'ANY', alt=True)
-    
+
     def tool_smart_delete(self):
         self.kmi_set_active(False, type='DEL')
         self.kmi_set_replace('object.tila_smartdelete', 'DEL', 'PRESS', properties={'menu': False}, disable_double=True)
@@ -405,7 +405,7 @@ class TILA_Config_Keymaps_Global(TILA_Config_Keymaps):
         self.kmi_set_replace('sculpt.tila_multires_subdiv_level', 'NUMPAD_PLUS', 'PRESS', ctrl=True, shift=True, properties={'subd': 1, 'mode': 'RELATIVE', 'force_subd': True, 'algorithm': 'LINEAR'}, disable_double=True)
         self.kmi_set_replace('sculpt.tila_multires_subdiv_level', 'NUMPAD_PLUS', 'PRESS', ctrl=False, alt=True, shift=True, properties={'mode': 'MAX', 'force_subd': False}, disable_double=True)
         self.kmi_set_replace('sculpt.tila_multires_delete_subdiv', 'NUMPAD_PLUS', 'PRESS', ctrl=True, alt=True, shift=True, properties={'delete_target': 'HIGHER'}, disable_double=True)
-        
+
 
         self.kmi_set_replace('sculpt.tila_multires_subdiv_level', 'NUMPAD_MINUS', 'PRESS', properties={'subd': -1, 'mode': 'RELATIVE', 'force_subd': False, 'algorithm': 'CATMULL_CLARK'}, disable_double=True)
         self.kmi_set_replace('sculpt.tila_multires_subdiv_level', 'NUMPAD_MINUS', 'PRESS', shift=True, properties={'subd': -1, 'mode': 'RELATIVE', 'force_subd': True, 'algorithm': 'CATMULL_CLARK'}, disable_double=True)
@@ -424,7 +424,7 @@ class TILA_Config_Keymaps_Global(TILA_Config_Keymaps):
             self.kmi_set_replace('sculpt.tila_multires_subdiv_level', 'D', 'PRESS', properties={'subd': 1, 'mode': 'RELATIVE', 'force_subd': False, 'algorithm': 'CATMULL_CLARK'})
             self.kmi_set_replace('sculpt.tila_multires_subdiv_level', 'D', 'PRESS', ctrl=True,  properties={'subd': 1, 'mode': 'RELATIVE', 'force_subd': True, 'algorithm': 'CATMULL_CLARK'})
             self.kmi_set_replace('sculpt.tila_multires_subdiv_level', 'D', 'PRESS', shift=True,  properties={'subd': -1, 'mode': 'RELATIVE', 'force_subd': False, 'algorithm': 'CATMULL_CLARK'})
-        
+
     def tool_center(self, pivot=None, orientation=None, action_center_context=None):
         print(pivot, orientation)
         # if pivot:
@@ -436,7 +436,7 @@ class TILA_Config_Keymaps_Global(TILA_Config_Keymaps):
             self.kmi_set_replace('wm.call_panel', 'Q', 'PRESS', ctrl=True, shift=True, properties={'name': orientation, 'keep_open': False}, disable_double=True)
         if action_center_context:
             self.kmi_set_replace('wm.call_menu', 'X', 'PRESS', alt=True, properties={'name': 'TILA_MT_action_center'}, disable_double=True)
-    
+
     def tool_transform(self, cage_scale=None):
         self.kmi_set_replace('wm.tool_set_by_id', self.k_move, 'PRESS', properties={'name': 'builtin.move'}, disable_double=True)
         self.kmi_set_replace('wm.tool_set_by_id', self.k_rotate, 'PRESS', properties={'name': 'builtin.rotate'}, disable_double=True)
@@ -447,7 +447,7 @@ class TILA_Config_Keymaps_Global(TILA_Config_Keymaps):
     def isolate(self):
         self.kmi_set_replace('view3d.tila_isolate', 'X', 'PRESS', ctrl=True, alt=True, properties={'force_object_isolate': False})
         self.kmi_set_replace('view3d.tila_isolate', 'X', 'PRESS', ctrl=True, alt=True, shift=True, properties={'force_object_isolate': True})
-    
+
     def join(self):
         self.kmi_set_replace('object.tila_smart_join', 'J', 'PRESS', ctrl=True, shift=False, alt=False, properties={'apply_modifiers': False, 'duplicate': False}, disable_double=True)
         self.kmi_set_replace('object.tila_smart_join', 'J', 'PRESS', ctrl=True, shift=True, alt=False, properties={'apply_modifiers': True, 'duplicate': False}, disable_double=True)
@@ -513,11 +513,11 @@ class TILA_Config_Keymaps_Global(TILA_Config_Keymaps):
         self.right_mouse()
         # self.kmi_set_replace("wm.call_menu_pie", self.k_menu, "PRESS", ctrl=True, shift=True, alt=True)
         # self.kmi_set_replace("wm.revert_without_prompt", "N", "PRESS", shift=True)
-        
+
         self.kmi_set_active(False, idname='wm.call_menu', type='F2')
         self.kmi_set_active(False, idname='wm.toolbar')
         self.selection_tool(tool='builtin.select_box')
-        
+
         self.kmi_init(name='Window', space_type='EMPTY', region_type='WINDOW', addon=False)
         self.kmi_set_active(False, 'wm.save_as_mainfile', type='S', value='PRESS', ctrl=True, shift=True)
         self.kmi_set_replace('import_scene.tila_universal_multi_importer', 'I', 'PRESS', ctrl=True, alt=False, shift=False, properties={'filter_folder':False})
@@ -525,10 +525,10 @@ class TILA_Config_Keymaps_Global(TILA_Config_Keymaps):
 
         # MACHINE3tools
         # self.kmi_set_replace('wm.call_menu_pie', 'S', "PRESS", ctrl=True, shift=True, properties={'name': 'MACHIN3_MT_save_pie'}, disable_double=True)
-        
+
         # Atomic Data Manager
         # self.kmi_set_replace('atomic.invoke_pie_menu_ui', 'DEL', "PRESS", ctrl=True, shift=True, disable_double=True)
-    
+
     def set_keymaps_3dview(self):
         ##### 3D View
         self.kmi_init(name='3D View', space_type='VIEW_3D', region_type='WINDOW', addon=False)
@@ -536,7 +536,7 @@ class TILA_Config_Keymaps_Global(TILA_Config_Keymaps):
         self.right_mouse()
         self.selection_tool()
         self.tool_smart_delete()
-    
+
         self.kmi_set_active(False, idname='view3d.select_circle', type="C")
         self.kmi_set_active(False, idname='view3d.cursor3d', type="RIGHTMOUSE")
         self.kmi_set_active(False, idname='view3d.rotate', type="MIDDLEMOUSE")
@@ -549,7 +549,7 @@ class TILA_Config_Keymaps_Global(TILA_Config_Keymaps):
                             dolly='view3d.zoom',
                                roll='view3d.tila_rotate_canvas')
 
-        self.selection_keys(select_tool='view3d.select', 
+        self.selection_keys(select_tool='view3d.select',
                             lasso_tool='view3d.select_lasso',
                             select_through_tool='view3d.tila_select_through',
                               circle_tool='view3d.select_circle',
@@ -561,7 +561,7 @@ class TILA_Config_Keymaps_Global(TILA_Config_Keymaps):
         self.kmi_set_replace('object.tila_emptymesh', 'N', 'PRESS', ctrl=True, alt=True, shift=True)
 
         self.mode_selection()
-        
+
         self.kmi_set_replace('view3d.toggle_symetry', 'X', 'PRESS', disable_double=True)
         # self.kmi_set_replace('wm.context_toggle', 'X', 'PRESS', alt=True, shift=True, properties={'data_path': 'tool_settings.use_snap'}, disable_double=True)
 
@@ -585,7 +585,7 @@ class TILA_Config_Keymaps_Global(TILA_Config_Keymaps):
         self.kmi_set_replace('view3d.toggle_wireframe', 'F5', 'PRESS', ctrl=True, alt=True, shift=True, properties={'mode': 'RETOPO', 'selected': False}, disable_double=True)
 
         self.kmi_set_replace('wm.call_menu_pie', 'F', 'PRESS', alt=True, shift=True, properties={'name': 'UVTOOLKIT_MT_pie_3dview'})
-        
+
         self.kmi_set_active(False, 'wm.call_menu_pie', type='Z')
         self.kmi_set_replace('wm.call_menu_pie', 'Z', 'PRESS', properties={'name':'TILA_MT_pie_render_mode'}, disable_double=True)
 
@@ -657,7 +657,7 @@ class TILA_Config_Keymaps_Global(TILA_Config_Keymaps):
         self.right_mouse()
         self.kmi_set_active(False, 'image.view_pan', self.k_cursor, 'PRESS', shift=True)
         self.navigation_keys(pan='image.view_pan', orbit=None, dolly='image.view_zoom')
-        
+
     def set_keymaps_uv_editor(self):
         ###### UV Editor
         self.kmi_init(name='UV Editor', space_type='EMPTY', region_type='WINDOW', addon=False)
@@ -676,7 +676,7 @@ class TILA_Config_Keymaps_Global(TILA_Config_Keymaps):
                               linked_tool='uv.select_linked',
                             linked_pick_tool='uv.select_linked_pick',
                             invert_tool='uv.select_all')
-        
+
         self.kmi_set_replace('image.view_selected', 'A', 'PRESS', ctrl=True, shift=True, disable_double=True)
         self.kmi_set_replace('uv.cursor_set', self.k_cursor, 'PRESS', ctrl=True, alt=True, shift=True)
         self.tool_smooth()
@@ -721,7 +721,7 @@ class TILA_Config_Keymaps_Global(TILA_Config_Keymaps):
 
         self.kmi_set_replace('view2d.tila_action_center_2d_cursor_toggle', 'S', 'PRESS', ctrl=True, alt=True, shift=True, disable_double=True)
         self.kmi_set_replace('transform.translate', self.k_cursor, 'CLICK_DRAG', ctrl=True, alt=True, shift=True, properties={'cursor_transform': True}, disable_double=True)
-        
+
         self.kmi_set_replace('uv.snap_cursor', 'NUMPAD_ASTERIX', 'PRESS', alt=True, shift=True, properties={'target': 'ORIGIN'}, disable_double=True)
 
         # Machin3Tools
@@ -729,7 +729,7 @@ class TILA_Config_Keymaps_Global(TILA_Config_Keymaps):
 
         # UV Toolkit
         # self.kmi_set_replace('uv.toolkit_orient_to_edge', 'D', "PRESS", ctrl=True, alt=True, shift=True, disable_double=True)
-        
+
     def set_keymaps_mesh(self):
         ###### Mesh
         self.kmi_init(name='Mesh', space_type='EMPTY', region_type='WINDOW', addon=False)
@@ -785,7 +785,7 @@ class TILA_Config_Keymaps_Global(TILA_Config_Keymaps):
         self.kmi_set_replace('mesh.subdivide', 'D', 'PRESS', disable_double=True)
         self.kmi_set_replace('transform.shrink_fatten', 'E', 'PRESS', alt=True, shift=True, disable_double=True)
         self.kmi_set_replace('transform.edge_bevelweight', 'E', 'PRESS', ctrl=True, shift=True, disable_double=True)
-        
+
         # self.kmi_set_replace('transform.vert_slide', 'S', 'PRESS', ctrl=True, alt=True, properties={'correct_uv': True})
 
         # self.kmi_set_replace('wm.tool_set_by_id', 'F', 'PRESS', shift=True, properties={'name': 'mesh_tool.poly_quilt'}, disable_double=True)
@@ -797,7 +797,7 @@ class TILA_Config_Keymaps_Global(TILA_Config_Keymaps):
         self.tool_subdivision()
 
         self.tool_sculpt('view3d.tila_smart_sculptmode')
-        
+
         self.tool_center(pivot='VIEW3D_PT_pivot_point', orientation='VIEW3D_PT_transform_orientations')
 
         self.isolate()
@@ -865,15 +865,15 @@ class TILA_Config_Keymaps_Global(TILA_Config_Keymaps):
         self.isolate()
 
         self.join()
-        
+
         self.kmi_set_replace('object.move_to_collection', 'M', 'PRESS', ctrl=True, alt=True, disable_double=True)
         self.kmi_set_replace('view3d.collection_manager', 'M', 'PRESS', shift=True, disable_double=True)
         self.kmi_set_replace('object.apply_all_modifiers', 'PAGE_DOWN', 'PRESS', ctrl=True, alt=True, shift=True, disable_double=True)
-        
+
         # Set collection visibility shortcut
         self.collection_visibility('object.hide_collection')
         self.mode_selection()
-        
+
         self.tool_sculpt('view3d.tila_smart_sculptmode')
         self.kmi_set_replace('wm.call_menu_pie', 'S', 'PRESS', alt=True, shift=True, properties={'name': 'TILA_MT_pie_normal'}, disable_double=True)
 
@@ -904,45 +904,45 @@ class TILA_Config_Keymaps_Global(TILA_Config_Keymaps):
 
         self.kmi_set_replace('object.tila_duplicate', self.k_manip, 'CLICK_DRAG', ctrl=True, alt=True, shift=True, properties={'linked': False, 'move': True})
 
-        self.tool_radial_control(radius={   'data_path_primary': 'tool_settings.sculpt.brush.size', 
-                                            'data_path_secondary': 'tool_settings.unified_paint_settings.size', 
-                                            'use_secondary': 'tool_settings.unified_paint_settings.use_unified_size', 
-                                            'rotation_path': 'tool_settings.sculpt.brush.texture_slot.angle', 
-                                            'color_path': 'tool_settings.sculpt.brush.cursor_color_add', 
+        self.tool_radial_control(radius={   'data_path_primary': 'tool_settings.sculpt.brush.size',
+                                            'data_path_secondary': 'tool_settings.unified_paint_settings.size',
+                                            'use_secondary': 'tool_settings.unified_paint_settings.use_unified_size',
+                                            'rotation_path': 'tool_settings.sculpt.brush.texture_slot.angle',
+                                            'color_path': 'tool_settings.sculpt.brush.cursor_color_add',
                                             'image_id': 'tool_settings.sculpt.brush',
-                                            'fill_color_path': '', 
-                                            'fill_color_override_path': '', 
+                                            'fill_color_path': '',
+                                            'fill_color_override_path': '',
                                             'fill_color_override_test_path': '',
                                             'zoom_path': '',
                                             'secondary_tex': False,
                                             'release_confirm': True},
-                                opacity={   'data_path_primary': 'tool_settings.sculpt.brush.strength', 
-                                            'data_path_secondary': 'tool_settings.unified_paint_settings.strength', 
-                                            'use_secondary': 'tool_settings.unified_paint_settings.use_unified_strength', 
-                                            'rotation_path': 'tool_settings.sculpt.brush.texture_slot.angle', 
-                                            'color_path': 'tool_settings.sculpt.brush.cursor_color_add', 
+                                opacity={   'data_path_primary': 'tool_settings.sculpt.brush.strength',
+                                            'data_path_secondary': 'tool_settings.unified_paint_settings.strength',
+                                            'use_secondary': 'tool_settings.unified_paint_settings.use_unified_strength',
+                                            'rotation_path': 'tool_settings.sculpt.brush.texture_slot.angle',
+                                            'color_path': 'tool_settings.sculpt.brush.cursor_color_add',
                                             'image_id': 'tool_settings.sculpt.brush',
-                                            'fill_color_path': '', 
-                                            'fill_color_override_path': '', 
+                                            'fill_color_path': '',
+                                            'fill_color_override_path': '',
                                             'fill_color_override_test_path': '',
                                             'zoom_path': '',
                                             'secondary_tex': False,
                                             'release_confirm': True},
-                                weight={   'data_path_primary': 'tool_settings.sculpt.brush.texture_slot.angle', 
-                                            'data_path_secondary': '', 
-                                            'use_secondary': '', 
-                                            'rotation_path': 'tool_settings.sculpt.brush.texture_slot.angle', 
-                                            'color_path': 'tool_settings.sculpt.brush.cursor_color_add', 
+                                weight={   'data_path_primary': 'tool_settings.sculpt.brush.texture_slot.angle',
+                                            'data_path_secondary': '',
+                                            'use_secondary': '',
+                                            'rotation_path': 'tool_settings.sculpt.brush.texture_slot.angle',
+                                            'color_path': 'tool_settings.sculpt.brush.cursor_color_add',
                                             'image_id': 'tool_settings.sculpt.brush',
-                                            'fill_color_path': '', 
-                                            'fill_color_override_path': '', 
+                                            'fill_color_path': '',
+                                            'fill_color_override_path': '',
                                             'fill_color_override_test_path': '',
                                             'zoom_path': '',
                                             'secondary_tex': False,
                                             'release_confirm': True})
 
         self.kmi_set_replace('sculpt.dynamic_topology_toggle', 'D', 'PRESS', ctrl=True, alt=True, shift=True)
-        
+
         # self.kmi_set_replace('paint.brush_select', self.k_menu, 'PRESS', ctrl=True, properties={'sculpt_tool': 'CLAY_STRIPS', 'toggle': True})
         # self.kmi_set_replace('paint.brush_select', self.k_menu, 'PRESS', alt=True, properties={'sculpt_tool': 'SNAKE_HOOK', 'toggle': True})
         self.kmi_set_replace('brush.tila_brush_toggle', self.k_menu, 'PRESS', ctrl=True, properties={'relative_asset_identifier': 'Saved\Brushes\Tila Clay Strips.asset.blend\Brush\Tila Clay Strips', 'asset_library_type': 'CUSTOM', 'asset_library_identifier':'Tilapiatsu', 'force_strength':True, 'force_weight':False, 'strength':3.0})
@@ -959,7 +959,7 @@ class TILA_Config_Keymaps_Global(TILA_Config_Keymaps):
         self.kmi_set_replace('paint.hide_show', self.k_nav, 'PRESS', ctrl=True, alt=True, shift=True, properties={'action': 'SHOW', 'wait_for_input': False, 'area': 'ALL'}, disable_double=True)
         self.kmi_set_replace('sculpt.face_set_change_visibility', self.k_nav, 'PRESS', ctrl=False, shift=False, alt=False, properties={'mode': 'TOGGLE'}, disable_double=True)
         self.kmi_set_replace('sculpt.face_set_change_visibility', self.k_nav, 'RELEASE', ctrl=True, shift=False, alt=False, properties={'mode': 'HIDE_ACTIVE'}, disable_double=True)
-        
+
 
         self.kmi_set_replace('sculpt.face_sets_create', 'W', 'PRESS', properties={'mode': 'MASKED'}, disable_double=True)
         self.kmi_set_replace('sculpt.face_sets_create', 'W', 'PRESS', alt=True, properties={'mode': 'VISIBLE'}, disable_double=True)
@@ -975,7 +975,7 @@ class TILA_Config_Keymaps_Global(TILA_Config_Keymaps):
         self.kmi_set_replace('sculpt.sculpt.sample_color', 'S', 'PRESS', disable_double=True)
 
     def set_keymaps_sculpt_curve(self):
-        if bversion >= 3.2: 
+        if bversion >= 3.2:
             # Curves
             self.kmi_init(name='Curves', space_type='EMPTY', region_type='WINDOW', addon=False)
             self.global_keys()
@@ -983,35 +983,35 @@ class TILA_Config_Keymaps_Global(TILA_Config_Keymaps):
             self.kmi_set_active(False, type='X', idname='curves.delete')
 
             self.selection_keys(more_tool='curves.select_more', less_tool='curves.select_less')
-            
+
             ###### Sculpt Curves
             self.kmi_init(name='Sculpt Curves', space_type='EMPTY', region_type='WINDOW', addon=False)
             self.global_keys()
             self.right_mouse()
             self.tool_sculpt('view3d.tila_smart_sculptmode')
-            
+
             self.selection_tool(tool='brushes\essentials_brushes-curve_sculpt.blend\Brush\Comb', alt='brushes\essentials_brushes-curve_sculpt.blend\Brush\Select', mode='CURVES_SCULPT')
 
-            self.tool_radial_control(radius={   'data_path_primary': 'tool_settings.curves_sculpt.brush.size', 
-                                            'data_path_secondary': 'tool_settings.unified_paint_settings.size', 
-                                            'use_secondary': 'tool_settings.unified_paint_settings.use_unified_size', 
-                                            'rotation_path': 'tool_settings.curves_sculpt.brush.texture_slot.angle', 
-                                            'color_path': 'tool_settings.curves_sculpt.brush.cursor_color_add', 
+            self.tool_radial_control(radius={   'data_path_primary': 'tool_settings.curves_sculpt.brush.size',
+                                            'data_path_secondary': 'tool_settings.unified_paint_settings.size',
+                                            'use_secondary': 'tool_settings.unified_paint_settings.use_unified_size',
+                                            'rotation_path': 'tool_settings.curves_sculpt.brush.texture_slot.angle',
+                                            'color_path': 'tool_settings.curves_sculpt.brush.cursor_color_add',
                                             'image_id': 'tool_settings.curves_sculpt.brush',
-                                            'fill_color_path': '', 
-                                            'fill_color_override_path': '', 
+                                            'fill_color_path': '',
+                                            'fill_color_override_path': '',
                                             'fill_color_override_test_path': '',
                                             'zoom_path': '',
                                             'secondary_tex': False,
                                             'release_confirm': True},
-                                    opacity={   'data_path_primary': 'tool_settings.curves_sculpt.brush.strength', 
-                                            'data_path_secondary': 'tool_settings.unified_paint_settings.strength', 
-                                            'use_secondary': 'tool_settings.unified_paint_settings.use_unified_strength', 
-                                            'rotation_path': 'tool_settings.curves_sculpt.brush.texture_slot.angle', 
-                                            'color_path': 'tool_settings.curves_sculpt.brush.cursor_color_add', 
+                                    opacity={   'data_path_primary': 'tool_settings.curves_sculpt.brush.strength',
+                                            'data_path_secondary': 'tool_settings.unified_paint_settings.strength',
+                                            'use_secondary': 'tool_settings.unified_paint_settings.use_unified_strength',
+                                            'rotation_path': 'tool_settings.curves_sculpt.brush.texture_slot.angle',
+                                            'color_path': 'tool_settings.curves_sculpt.brush.cursor_color_add',
                                             'image_id': 'tool_settings.curves_sculpt.brush',
-                                            'fill_color_path': '', 
-                                            'fill_color_override_path': '', 
+                                            'fill_color_path': '',
+                                            'fill_color_override_path': '',
                                             'fill_color_override_test_path': '',
                                             'zoom_path': '',
                                             'secondary_tex': False,
@@ -1120,7 +1120,7 @@ class TILA_Config_Keymaps_Global(TILA_Config_Keymaps):
         self.global_keys()
         self.right_mouse()
         self.navigation_keys(pan='view2d.pan', orbit=None, dolly='view2d.zoom')
-    
+
     def set_keymaps_vertex_paint(self):
         ###### Vertex Paint
         self.kmi_init(name='Vertex Paint', space_type='EMPTY', region_type='WINDOW', addon=False)
@@ -1129,38 +1129,38 @@ class TILA_Config_Keymaps_Global(TILA_Config_Keymaps):
         self.selection_tool(tool='brushes\essentials_brushes-mesh_vertex.blend\Brush\Paint Hard', mode='VERTEX')
         self.tool_sculpt('view3d.tila_smart_sculptmode')
 
-        self.tool_radial_control(radius={   'data_path_primary': 'tool_settings.vertex_paint.brush.size', 
-                                            'data_path_secondary': 'tool_settings.unified_paint_settings.size', 
-                                            'use_secondary': 'tool_settings.unified_paint_settings.use_unified_size', 
-                                            'rotation_path': 'tool_settings.vertex_paint.brush.texture_slot.angle', 
-                                            'color_path': 'tool_settings.vertex_paint.brush.cursor_color_add', 
+        self.tool_radial_control(radius={   'data_path_primary': 'tool_settings.vertex_paint.brush.size',
+                                            'data_path_secondary': 'tool_settings.unified_paint_settings.size',
+                                            'use_secondary': 'tool_settings.unified_paint_settings.use_unified_size',
+                                            'rotation_path': 'tool_settings.vertex_paint.brush.texture_slot.angle',
+                                            'color_path': 'tool_settings.vertex_paint.brush.cursor_color_add',
                                             'image_id': 'tool_settings.vertex_paint.brush',
-                                            'fill_color_path': '', 
-                                            'fill_color_override_path': '', 
+                                            'fill_color_path': '',
+                                            'fill_color_override_path': '',
                                             'fill_color_override_test_path': '',
                                             'zoom_path': '',
                                             'secondary_tex': False,
                                             'release_confirm': True},
-                                opacity={   'data_path_primary': 'tool_settings.vertex_paint.brush.strength', 
-                                            'data_path_secondary': 'tool_settings.unified_paint_settings.strength', 
-                                            'use_secondary': 'tool_settings.unified_paint_settings.use_unified_strength', 
-                                            'rotation_path': 'tool_settings.vertex_paint.brush.texture_slot.angle', 
-                                            'color_path': 'tool_settings.vertex_paint.brush.cursor_color_add', 
+                                opacity={   'data_path_primary': 'tool_settings.vertex_paint.brush.strength',
+                                            'data_path_secondary': 'tool_settings.unified_paint_settings.strength',
+                                            'use_secondary': 'tool_settings.unified_paint_settings.use_unified_strength',
+                                            'rotation_path': 'tool_settings.vertex_paint.brush.texture_slot.angle',
+                                            'color_path': 'tool_settings.vertex_paint.brush.cursor_color_add',
                                             'image_id': 'tool_settings.vertex_paint.brush',
-                                            'fill_color_path': '', 
-                                            'fill_color_override_path': '', 
+                                            'fill_color_path': '',
+                                            'fill_color_override_path': '',
                                             'fill_color_override_test_path': '',
                                             'zoom_path': '',
                                             'secondary_tex': False,
                                             'release_confirm': True},
-                                weight={'data_path_primary': 'tool_settings.vertex_paint.brush.texture_slot.angle', 
-                                            'data_path_secondary': '', 
-                                            'use_secondary': '', 
-                                            'rotation_path': 'tool_settings.vertex_paint.brush.texture_slot.angle', 
-                                            'color_path': 'tool_settings.vertex_paint.brush.cursor_color_add', 
+                                weight={'data_path_primary': 'tool_settings.vertex_paint.brush.texture_slot.angle',
+                                            'data_path_secondary': '',
+                                            'use_secondary': '',
+                                            'rotation_path': 'tool_settings.vertex_paint.brush.texture_slot.angle',
+                                            'color_path': 'tool_settings.vertex_paint.brush.cursor_color_add',
                                             'image_id': 'tool_settings.vertex_paint.brush',
-                                            'fill_color_path': 'tool_settings.vertex_paint.brush.color', 
-                                            'fill_color_override_path': 'tool_settings.unified_paint_settings.color', 
+                                            'fill_color_path': 'tool_settings.vertex_paint.brush.color',
+                                            'fill_color_override_path': 'tool_settings.unified_paint_settings.color',
                                             'fill_color_override_test_path': 'tool_settings.unified_paint_settings.use_unified_color',
                                             'zoom_path': '',
                                             'secondary_tex': False,
@@ -1181,56 +1181,56 @@ class TILA_Config_Keymaps_Global(TILA_Config_Keymaps):
         self.right_mouse()
         self.selection_tool(tool='brushes\essentials_brushes-mesh_weight.blend\Brush\Paint', mode='WEIGHT')
         self.tool_sculpt('view3d.tila_smart_sculptmode')
-        
-        self.tool_radial_control(radius={   'data_path_primary': 'tool_settings.weight_paint.brush.size', 
-                                            'data_path_secondary': 'tool_settings.unified_paint_settings.size', 
-                                            'use_secondary': 'tool_settings.unified_paint_settings.use_unified_size', 
-                                            'rotation_path': 'tool_settings.weight_paint.brush.texture_slot.angle', 
-                                            'color_path': 'tool_settings.weight_paint.brush.cursor_color_add', 
+
+        self.tool_radial_control(radius={   'data_path_primary': 'tool_settings.weight_paint.brush.size',
+                                            'data_path_secondary': 'tool_settings.unified_paint_settings.size',
+                                            'use_secondary': 'tool_settings.unified_paint_settings.use_unified_size',
+                                            'rotation_path': 'tool_settings.weight_paint.brush.texture_slot.angle',
+                                            'color_path': 'tool_settings.weight_paint.brush.cursor_color_add',
                                             'image_id': 'tool_settings.weight_paint.brush',
-                                            'fill_color_path': '', 
-                                            'fill_color_override_path': '', 
+                                            'fill_color_path': '',
+                                            'fill_color_override_path': '',
                                             'fill_color_override_test_path': '',
                                             'zoom_path': '',
                                             'secondary_tex': False,
                                             'release_confirm': True},
-                                opacity={   'data_path_primary': 'tool_settings.weight_paint.brush.strength', 
-                                            'data_path_secondary': 'tool_settings.unified_paint_settings.strength', 
-                                            'use_secondary': 'tool_settings.unified_paint_settings.use_unified_strength', 
-                                            'rotation_path': 'tool_settings.weight_paint.brush.texture_slot.angle', 
-                                            'color_path': 'tool_settings.weight_paint.brush.cursor_color_add', 
+                                opacity={   'data_path_primary': 'tool_settings.weight_paint.brush.strength',
+                                            'data_path_secondary': 'tool_settings.unified_paint_settings.strength',
+                                            'use_secondary': 'tool_settings.unified_paint_settings.use_unified_strength',
+                                            'rotation_path': 'tool_settings.weight_paint.brush.texture_slot.angle',
+                                            'color_path': 'tool_settings.weight_paint.brush.cursor_color_add',
                                             'image_id': 'tool_settings.weight_paint.brush',
-                                            'fill_color_path': '', 
-                                            'fill_color_override_path': '', 
+                                            'fill_color_path': '',
+                                            'fill_color_override_path': '',
                                             'fill_color_override_test_path': '',
                                             'zoom_path': '',
                                             'secondary_tex': False,
                                             'release_confirm': True},
-                                weight={    'data_path_primary': 'tool_settings.weight_paint.brush.weight', 
-                                            'data_path_secondary': 'tool_settings.unified_paint_settings.weight', 
-                                            'use_secondary': 'tool_settings.unified_paint_settings.use_unified_weight', 
-                                            'rotation_path': 'tool_settings.weight_paint.brush.texture_slot.angle', 
-                                            'color_path': 'tool_settings.weight_paint.brush.cursor_color_add', 
+                                weight={    'data_path_primary': 'tool_settings.weight_paint.brush.weight',
+                                            'data_path_secondary': 'tool_settings.unified_paint_settings.weight',
+                                            'use_secondary': 'tool_settings.unified_paint_settings.use_unified_weight',
+                                            'rotation_path': 'tool_settings.weight_paint.brush.texture_slot.angle',
+                                            'color_path': 'tool_settings.weight_paint.brush.cursor_color_add',
                                             'image_id': 'tool_settings.weight_paint.brush',
-                                            'fill_color_path': '', 
-                                            'fill_color_override_path': '', 
+                                            'fill_color_path': '',
+                                            'fill_color_override_path': '',
                                             'fill_color_override_test_path': '',
                                             'zoom_path': '',
                                             'secondary_tex': False,
                                             'release_confirm': True})
-        
+
         self.kmi_set_active(enable=False, idname='paint.weight_set')
 
         self.selection_keys(more_tool='paint.vert_select_more', less_tool='paint.vert_select_less',
                             lasso_tool='view3d.select_lasso', circle_tool='view3d.select_circle', linked_tool='paint.face_select_linked')
-    
+
         self.tool_sample_color('paint.weight_sample')
 
         self.kmi_set_replace('paint.weight_gradient', self.k_manip, 'PRESS', ctrl=True, shift=True, properties={'type': 'LINEAR'})
         self.kmi_set_replace('paint.weight_gradient', self.k_manip, 'PRESS', ctrl=True, shift=True, alt=True, properties={'type': 'RADIAL'})
 
         self.kmi_set_replace('paint.weight_sample_group', self.k_context, 'RELEASE', disable_double=True)
-        
+
         self.kmi_set_replace('paint.tila_brush_select_and_paint', self.k_manip, 'PRESS', shift=True, properties={'tool': 'WEIGHT', 'mode': 'AVERAGE', 'brush': 'Average'})
         self.kmi_set_replace('paint.tila_brush_select_and_paint', self.k_manip, 'PRESS', ctrl=True, properties={'tool': 'WEIGHT', 'mode': 'DRAW', 'brush': 'Subtract'})
 
@@ -1239,60 +1239,60 @@ class TILA_Config_Keymaps_Global(TILA_Config_Keymaps):
         self.kmi_set_replace('paint.toggle_brushweight', 'X', 'PRESS')
 
         self.kmi_set_replace('view3D.toggle_symetry', 'X', 'PRESS', shift=True)
-        
+
     def set_keymaps_image_paint(self):
         ###### Image Paint
         self.kmi_init(name='Image Paint', space_type='EMPTY', region_type='WINDOW', addon=False)
         self.global_keys()
         self.right_mouse()
-        
+
         self.selection_tool(tool='brushes\essentials_brushes-mesh_texture.blend\Brush\Paint Hard', mode='IMAGE')
         self.tool_sculpt('view3d.tila_smart_sculptmode')
 
-        self.tool_radial_control(radius={   'data_path_primary': 'tool_settings.image_paint.brush.size', 
-                                            'data_path_secondary': 'tool_settings.unified_paint_settings.size', 
-                                            'use_secondary': 'tool_settings.unified_paint_settings.use_unified_size', 
-                                            'rotation_path': 'tool_settings.image_paint.brush.texture_slot.angle', 
-                                            'color_path': 'tool_settings.image_paint.brush.cursor_color_add', 
+        self.tool_radial_control(radius={   'data_path_primary': 'tool_settings.image_paint.brush.size',
+                                            'data_path_secondary': 'tool_settings.unified_paint_settings.size',
+                                            'use_secondary': 'tool_settings.unified_paint_settings.use_unified_size',
+                                            'rotation_path': 'tool_settings.image_paint.brush.texture_slot.angle',
+                                            'color_path': 'tool_settings.image_paint.brush.cursor_color_add',
                                             'image_id': 'tool_settings.image_paint.brush',
-                                            'fill_color_path': 'tool_settings.image_paint.brush.color', 
-                                            'fill_color_override_path': 'tool_settings.unified_paint_settings.color', 
+                                            'fill_color_path': 'tool_settings.image_paint.brush.color',
+                                            'fill_color_override_path': 'tool_settings.unified_paint_settings.color',
                                             'fill_color_override_test_path': 'tool_settings.unified_paint_settings.use_unified_color',
                                             'zoom_path': 'space_data.zoom',
                                             'secondary_tex': True,
                                             'release_confirm': True},
-                                opacity={   'data_path_primary': 'tool_settings.image_paint.brush.strength', 
-                                            'data_path_secondary': 'tool_settings.unified_paint_settings.strength', 
-                                            'use_secondary': 'tool_settings.unified_paint_settings.use_unified_strength', 
-                                            'rotation_path': 'tool_settings.image_paint.brush.texture_slot.angle', 
-                                            'color_path': 'tool_settings.image_paint.brush.cursor_color_add', 
+                                opacity={   'data_path_primary': 'tool_settings.image_paint.brush.strength',
+                                            'data_path_secondary': 'tool_settings.unified_paint_settings.strength',
+                                            'use_secondary': 'tool_settings.unified_paint_settings.use_unified_strength',
+                                            'rotation_path': 'tool_settings.image_paint.brush.texture_slot.angle',
+                                            'color_path': 'tool_settings.image_paint.brush.cursor_color_add',
                                             'image_id': 'tool_settings.image_paint.brush',
-                                            'fill_color_path': 'tool_settings.image_paint.brush.color', 
-                                            'fill_color_override_path': 'tool_settings.unified_paint_settings.color', 
+                                            'fill_color_path': 'tool_settings.image_paint.brush.color',
+                                            'fill_color_override_path': 'tool_settings.unified_paint_settings.color',
                                             'fill_color_override_test_path': 'tool_settings.unified_paint_settings.use_unified_color',
                                             'zoom_path': '',
                                             'secondary_tex': True,
                                             'release_confirm': True},
-                                weight={    'data_path_primary': 'tool_settings.image_paint.brush.texture_slot.angle', 
-                                            'data_path_secondary': '', 
-                                            'use_secondary': '', 
-                                            'rotation_path': 'tool_settings.image_paint.brush.texture_slot.angle', 
-                                            'color_path': 'tool_settings.image_paint.brush.cursor_color_add', 
+                                weight={    'data_path_primary': 'tool_settings.image_paint.brush.texture_slot.angle',
+                                            'data_path_secondary': '',
+                                            'use_secondary': '',
+                                            'rotation_path': 'tool_settings.image_paint.brush.texture_slot.angle',
+                                            'color_path': 'tool_settings.image_paint.brush.cursor_color_add',
                                             'image_id': 'tool_settings.image_paint.brush',
-                                            'fill_color_path': 'tool_settings.image_paint.brush.color', 
-                                            'fill_color_override_path': 'tool_settings.unified_paint_settings.color', 
+                                            'fill_color_path': 'tool_settings.image_paint.brush.color',
+                                            'fill_color_override_path': 'tool_settings.unified_paint_settings.color',
                                             'fill_color_override_test_path': 'tool_settings.unified_paint_settings.use_unified_color',
                                             'zoom_path': '',
                                             'secondary_tex': False,
                                             'release_confirm': True},
-                                mask={      'data_path_primary': 'tool_settings.image_paint.brush.texture_slot.angle', 
-                                            'data_path_secondary': '', 
-                                            'use_secondary': '', 
-                                            'rotation_path': 'tool_settings.image_paint.brush.texture_slot.angle', 
-                                            'color_path': 'tool_settings.image_paint.brush.cursor_color_add', 
+                                mask={      'data_path_primary': 'tool_settings.image_paint.brush.texture_slot.angle',
+                                            'data_path_secondary': '',
+                                            'use_secondary': '',
+                                            'rotation_path': 'tool_settings.image_paint.brush.texture_slot.angle',
+                                            'color_path': 'tool_settings.image_paint.brush.cursor_color_add',
                                             'image_id': 'tool_settings.image_paint.brush',
-                                            'fill_color_path': 'tool_settings.image_paint.brush.color', 
-                                            'fill_color_override_path': 'tool_settings.unified_paint_settings.color', 
+                                            'fill_color_path': 'tool_settings.image_paint.brush.color',
+                                            'fill_color_override_path': 'tool_settings.unified_paint_settings.color',
                                             'fill_color_override_test_path': 'tool_settings.unified_paint_settings.use_unified_color',
                                             'zoom_path': '',
                                             'secondary_tex': True,
@@ -1300,9 +1300,9 @@ class TILA_Config_Keymaps_Global(TILA_Config_Keymaps):
 
         self.selection_keys(more_tool='paint.vert_select_more', less_tool='paint.vert_select_less',
                             lasso_tool='view3d.select_lasso', circle_tool='view3d.select_circle', linked_tool='paint.face_select_linked')
-        
+
         self.tool_sample_color('paint.sample_color')
-        
+
         self.kmi_set_replace('paint.toggle_brushweight', 'X', 'PRESS')
 
         self.kmi_set_replace('view3D.toggle_symetry', 'X', 'PRESS', shift=True)
@@ -1331,14 +1331,14 @@ class TILA_Config_Keymaps_Global(TILA_Config_Keymaps):
         self.snap(snap_datapath='tool_settings.use_snap_node')
         self.kmi_set_replace('node.view_selected', 'A', 'PRESS', ctrl=True, shift=True)
         self.kmi_set_replace('wm.call_menu', self.k_menu, 'PRESS', properties={'name': 'NODE_MT_add'}, disable_double=True)
-        
+
         self.kmi_set_replace('node.backimage_move', self.k_cursor, 'PRESS', disable_double=True)
         self.kmi_set_replace('node.backimage_zoom', self.k_lasso_through, 'CLICK_DRAG', direction='EAST', alt=True, properties={'factor': 1.2}, disable_double=True)
         self.kmi_set_replace('node.backimage_zoom', self.k_lasso_through, 'CLICK_DRAG', direction='WEST', alt=True, properties={'factor': 0.8}, disable_double=True)
 
         self.kmi_set_replace('node.node_copy_color', 'C', 'PRESS', ctrl=True, shift=True, disable_double=True)
         self.kmi_set_replace('node.detach', 'J', 'PRESS', alt=True, disable_double=True)
-        
+
     def set_keymaps_animation(self):
         ###### Animation
         self.kmi_init(name='Animation', space_type='EMPTY', region_type='WINDOW', addon=False)
@@ -1386,19 +1386,19 @@ class TILA_Config_Keymaps_Global(TILA_Config_Keymaps):
         self.right_mouse()
         self.kmi_set_active(False, type='X', idname='nla.delete')
         self.duplicate(duplicate='nla.duplicate', duplicate_link='nla.duplicate', duplicate_link_prop={'linked': True})
-    
+
     def set_keymaps_lattice(self):
         ###### Lattice
         self.kmi_init(name='Lattice', space_type='EMPTY', region_type='WINDOW')
         self.global_keys()
         self.right_mouse()
         self.tool_transform(cage_scale='builtin.scale_cage')
-        self.selection_keys(select_tool='view3d.select', 
+        self.selection_keys(select_tool='view3d.select',
                             lasso_tool='view3d.select_lasso',
                             select_through_tool='view3d.tila_select_through',
                               circle_tool='view3d.select_circle',
                             invert_tool='lattice.select_all',
-                            more_tool='lattice.select_more', 
+                            more_tool='lattice.select_more',
                               less_tool='lattice.select_less')
 
     def set_keymaps_grease_pencil(self):
@@ -1448,7 +1448,7 @@ class TILA_Config_Keymaps_Global(TILA_Config_Keymaps):
         self.kmi_set_replace('gpencil.stroke_subdivide', 'D', 'PRESS',  properties={'only_selected': False}, disable_double=True)
         self.isolate()
         self.tool_center(pivot='VIEW3D_PT_pivot_point', orientation='VIEW3D_PT_transform_orientations', action_center_context='VIEW3D')
-        
+
     def set_keymaps_grease_pencil_brush_stroke(self):
         ###### Grease Pencil Brush Stroke
         self.kmi_init(name='Grease Pencil Brush Stroke', space_type='EMPTY', region_type='WINDOW', addon=False)
@@ -1461,7 +1461,7 @@ class TILA_Config_Keymaps_Global(TILA_Config_Keymaps):
         self.selection_tool(tool='brushes\essentials_brushes-gp_draw.blend\Brush\Pencil', mode='GPENCIL_PAINT')
         self.tool_radial_control(radius={'data_path_primary': 'tool_settings.gpencil_paint.brush.size', 'release_confirm': True},
                                 opacity={'data_path_primary': 'tool_settings.gpencil_paint.brush.gpencil_settings.pen_strength', 'release_confirm': True})
-        
+
         self.selection_keys(circle_tool='gpencil.select_circle',
                             linked_pick_tool='gpencil.select_linked',
                             more_tool='gpencil.select_more',
@@ -1484,7 +1484,7 @@ class TILA_Config_Keymaps_Global(TILA_Config_Keymaps):
             kmi.ctrl = True
             kmi.alt = True
             kmi.shift = True
-        
+
         self.tool_sculpt('view3d.tila_smart_sculptmode')
         self.tool_radial_control(radius={'data_path_primary': 'tool_settings.gpencil_paint.brush.size', 'release_confirm': True},
                                 opacity={ 'data_path_primary': 'tool_settings.gpencil_paint.brush.gpencil_settings.pen_strength', 'release_confirm': True})
@@ -1496,38 +1496,38 @@ class TILA_Config_Keymaps_Global(TILA_Config_Keymaps):
         self.right_mouse()
         self.tool_sculpt('view3d.tila_smart_sculptmode')
 
-        self.tool_radial_control(radius={   'data_path_primary': 'tool_settings.gpencil_vertex_paint.brush.size', 
-                                            'data_path_secondary': 'tool_settings.unified_paint_settings.size', 
-                                            'use_secondary': 'tool_settings.unified_paint_settings.use_unified_size', 
-                                            'rotation_path': 'tool_settings.gpencil_vertex_paint.brush.texture_slot.angle', 
-                                            'color_path': 'tool_settings.gpencil_vertex_paint.brush.cursor_color_add', 
+        self.tool_radial_control(radius={   'data_path_primary': 'tool_settings.gpencil_vertex_paint.brush.size',
+                                            'data_path_secondary': 'tool_settings.unified_paint_settings.size',
+                                            'use_secondary': 'tool_settings.unified_paint_settings.use_unified_size',
+                                            'rotation_path': 'tool_settings.gpencil_vertex_paint.brush.texture_slot.angle',
+                                            'color_path': 'tool_settings.gpencil_vertex_paint.brush.cursor_color_add',
                                             'image_id': 'tool_settings.gpencil_vertex_paint.brush',
-                                            'fill_color_path': '', 
-                                            'fill_color_override_path': '', 
+                                            'fill_color_path': '',
+                                            'fill_color_override_path': '',
                                             'fill_color_override_test_path': '',
                                             'zoom_path': '',
                                             'secondary_tex': False,
                                             'release_confirm': True},
-                                opacity={   'data_path_primary': 'tool_settings.gpencil_vertex_paint.brush.strength', 
-                                            'data_path_secondary': 'tool_settings.unified_paint_settings.strength', 
-                                            'use_secondary': 'tool_settings.unified_paint_settings.use_unified_strength', 
-                                            'rotation_path': 'tool_settings.gpencil_vertex_paint.brush.texture_slot.angle', 
-                                            'color_path': 'tool_settings.gpencil_vertex_paint.brush.cursor_color_add', 
+                                opacity={   'data_path_primary': 'tool_settings.gpencil_vertex_paint.brush.strength',
+                                            'data_path_secondary': 'tool_settings.unified_paint_settings.strength',
+                                            'use_secondary': 'tool_settings.unified_paint_settings.use_unified_strength',
+                                            'rotation_path': 'tool_settings.gpencil_vertex_paint.brush.texture_slot.angle',
+                                            'color_path': 'tool_settings.gpencil_vertex_paint.brush.cursor_color_add',
                                             'image_id': 'tool_settings.gpencil_vertex_paint.brush',
-                                            'fill_color_path': '', 
-                                            'fill_color_override_path': '', 
+                                            'fill_color_path': '',
+                                            'fill_color_override_path': '',
                                             'fill_color_override_test_path': '',
                                             'zoom_path': '',
                                             'secondary_tex': False,
                                             'release_confirm': True},
-                                weight={   'data_path_primary': 'tool_settings.gpencil_vertex_paint.brush.weight', 
-                                            'data_path_secondary': 'tool_settings.unified_paint_settings.weight', 
-                                            'use_secondary': 'tool_settings.unified_paint_settings.use_unified_weight', 
-                                            'rotation_path': 'tool_settings.gpencil_vertex_paint.brush.texture_slot.angle', 
-                                            'color_path': 'tool_settings.gpencil_vertex_paint.brush.cursor_color_add', 
+                                weight={   'data_path_primary': 'tool_settings.gpencil_vertex_paint.brush.weight',
+                                            'data_path_secondary': 'tool_settings.unified_paint_settings.weight',
+                                            'use_secondary': 'tool_settings.unified_paint_settings.use_unified_weight',
+                                            'rotation_path': 'tool_settings.gpencil_vertex_paint.brush.texture_slot.angle',
+                                            'color_path': 'tool_settings.gpencil_vertex_paint.brush.cursor_color_add',
                                             'image_id': 'tool_settings.gpencil_vertex_paint.brush',
-                                            'fill_color_path': '', 
-                                            'fill_color_override_path': '', 
+                                            'fill_color_path': '',
+                                            'fill_color_override_path': '',
                                             'fill_color_override_test_path': '',
                                             'zoom_path': '',
                                             'secondary_tex': False,
@@ -1542,32 +1542,32 @@ class TILA_Config_Keymaps_Global(TILA_Config_Keymaps):
         self.tool_sculpt('view3d.tila_smart_sculptmode')
         self.selection_tool(tool='brushes\essentials_brushes-gp_sculpt.blend\Brush\Grab', mode='GPENCIL_SCULPT')
         # self.kmi_set_replace('wm.tool_set_by_id', 'G', 'PRESS', properties={'name': 'builtin_brush.Grab'})
-        
-        self.tool_radial_control(radius={   'data_path_primary': 'tool_settings.gpencil_sculpt_paint.brush.size', 
-                                            'data_path_secondary': 'tool_settings.unified_paint_settings.size', 
-                                            'use_secondary': 'tool_settings.unified_paint_settings.use_unified_size', 
-                                            'rotation_path': 'tool_settings.gpencil_sculpt_paint.brush.texture_slot.angle', 
-                                            'color_path': 'tool_settings.gpencil_sculpt_paint.brush.cursor_color_add', 
+
+        self.tool_radial_control(radius={   'data_path_primary': 'tool_settings.gpencil_sculpt_paint.brush.size',
+                                            'data_path_secondary': 'tool_settings.unified_paint_settings.size',
+                                            'use_secondary': 'tool_settings.unified_paint_settings.use_unified_size',
+                                            'rotation_path': 'tool_settings.gpencil_sculpt_paint.brush.texture_slot.angle',
+                                            'color_path': 'tool_settings.gpencil_sculpt_paint.brush.cursor_color_add',
                                             'image_id': 'tool_settings.gpencil_sculpt_paint.brush',
-                                            'fill_color_path': '', 
-                                            'fill_color_override_path': '', 
+                                            'fill_color_path': '',
+                                            'fill_color_override_path': '',
                                             'fill_color_override_test_path': '',
                                             'zoom_path': '',
                                             'secondary_tex': False,
                                             'release_confirm': True},
-                                opacity={   'data_path_primary': 'tool_settings.gpencil_sculpt_paint.brush.strength', 
-                                            'data_path_secondary': 'tool_settings.unified_paint_settings.strength', 
-                                            'use_secondary': 'tool_settings.unified_paint_settings.use_unified_strength', 
-                                            'rotation_path': 'tool_settings.gpencil_sculpt_paint.brush.texture_slot.angle', 
-                                            'color_path': 'tool_settings.gpencil_sculpt_paint.brush.cursor_color_add', 
+                                opacity={   'data_path_primary': 'tool_settings.gpencil_sculpt_paint.brush.strength',
+                                            'data_path_secondary': 'tool_settings.unified_paint_settings.strength',
+                                            'use_secondary': 'tool_settings.unified_paint_settings.use_unified_strength',
+                                            'rotation_path': 'tool_settings.gpencil_sculpt_paint.brush.texture_slot.angle',
+                                            'color_path': 'tool_settings.gpencil_sculpt_paint.brush.cursor_color_add',
                                             'image_id': 'tool_settings.gpencil_sculpt_paint.brush',
-                                            'fill_color_path': '', 
-                                            'fill_color_override_path': '', 
+                                            'fill_color_path': '',
+                                            'fill_color_override_path': '',
                                             'fill_color_override_test_path': '',
                                             'zoom_path': '',
                                             'secondary_tex': False,
                                             'release_confirm': True})
-        
+
         self.selection_keys(circle_tool='gpencil.select_circle',
                             linked_pick_tool='gpencil.select_linked',
                             more_tool='gpencil.select_more',
@@ -1575,7 +1575,7 @@ class TILA_Config_Keymaps_Global(TILA_Config_Keymaps):
                             invert_tool='gpencil.select_all',
                             lasso_tool='gpencil.select_lasso'
                             )
-        
+
     def set_keymaps_grease_pencil_vertex_paint(self):
         # Grease Pencil Vertex Paint
         self.kmi_init(name='Grease Pencil Vertex Paint', space_type='EMPTY', region_type='WINDOW', addon=False)
@@ -1584,32 +1584,32 @@ class TILA_Config_Keymaps_Global(TILA_Config_Keymaps):
         self.mode_selection()
         self.tool_sculpt('view3d.tila_smart_sculptmode')
         self.selection_tool(tool='brushes\essentials_brushes-gp_vertex.blend\Brush\Paint', mode='GPENCIL_VERTEX')
-        
-        self.tool_radial_control(radius={   'data_path_primary': 'tool_settings.gpencil_vertex_paint.brush.size', 
-                                            'data_path_secondary': 'tool_settings.unified_paint_settings.size', 
-                                            'use_secondary': 'tool_settings.unified_paint_settings.use_unified_size', 
-                                            'rotation_path': 'tool_settings.gpencil_vertex_paint.brush.texture_slot.angle', 
-                                            'color_path': 'tool_settings.gpencil_vertex_paint.brush.cursor_color_add', 
+
+        self.tool_radial_control(radius={   'data_path_primary': 'tool_settings.gpencil_vertex_paint.brush.size',
+                                            'data_path_secondary': 'tool_settings.unified_paint_settings.size',
+                                            'use_secondary': 'tool_settings.unified_paint_settings.use_unified_size',
+                                            'rotation_path': 'tool_settings.gpencil_vertex_paint.brush.texture_slot.angle',
+                                            'color_path': 'tool_settings.gpencil_vertex_paint.brush.cursor_color_add',
                                             'image_id': 'tool_settings.gpencil_vertex_paint.brush',
-                                            'fill_color_path': '', 
-                                            'fill_color_override_path': '', 
+                                            'fill_color_path': '',
+                                            'fill_color_override_path': '',
                                             'fill_color_override_test_path': '',
                                             'zoom_path': '',
                                             'secondary_tex': False,
                                             'release_confirm': True},
-                                opacity={   'data_path_primary': 'tool_settings.gpencil_vertex_paint.brush.strength', 
-                                            'data_path_secondary': 'tool_settings.unified_paint_settings.strength', 
-                                            'use_secondary': 'tool_settings.unified_paint_settings.use_unified_strength', 
-                                            'rotation_path': 'tool_settings.gpencil_vertex_paint.brush.texture_slot.angle', 
-                                            'color_path': 'tool_settings.gpencil_vertex_paint.brush.cursor_color_add', 
+                                opacity={   'data_path_primary': 'tool_settings.gpencil_vertex_paint.brush.strength',
+                                            'data_path_secondary': 'tool_settings.unified_paint_settings.strength',
+                                            'use_secondary': 'tool_settings.unified_paint_settings.use_unified_strength',
+                                            'rotation_path': 'tool_settings.gpencil_vertex_paint.brush.texture_slot.angle',
+                                            'color_path': 'tool_settings.gpencil_vertex_paint.brush.cursor_color_add',
                                             'image_id': 'tool_settings.gpencil_vertex_paint.brush',
-                                            'fill_color_path': '', 
-                                            'fill_color_override_path': '', 
+                                            'fill_color_path': '',
+                                            'fill_color_override_path': '',
                                             'fill_color_override_test_path': '',
                                             'zoom_path': '',
                                             'secondary_tex': False,
                                             'release_confirm': True})
-        
+
 
         self.selection_keys(circle_tool='gpencil.select_circle',
                             linked_pick_tool='gpencil.select_linked',
@@ -1618,7 +1618,7 @@ class TILA_Config_Keymaps_Global(TILA_Config_Keymaps):
                             invert_tool='gpencil.select_all',
                             lasso_tool='gpencil.select_lasso'
                             )
-        
+
     def set_keymaps_grease_pencil_weight_paint(self):
         # Grease Pencil Weight Paint
         self.kmi_init(name='Grease Pencil Weight Paint', space_type='EMPTY', region_type='WINDOW', addon=False)
@@ -1627,55 +1627,55 @@ class TILA_Config_Keymaps_Global(TILA_Config_Keymaps):
         self.mode_selection()
         self.tool_sculpt('view3d.tila_smart_sculptmode')
         self.selection_tool(tool='brushes\essentials_brushes-gp_weight.blend\Brush\Paint', mode='GPENCIL_WEIGHT')
-        
-        self.tool_radial_control(radius={   'data_path_primary': 'tool_settings.gpencil_weight_paint.brush.size', 
-                                            'data_path_secondary': 'tool_settings.unified_paint_settings.size', 
-                                            'use_secondary': 'tool_settings.unified_paint_settings.use_unified_size', 
-                                            'rotation_path': 'tool_settings.gpencil_weight_paint.brush.texture_slot.angle', 
-                                            'color_path': 'tool_settings.gpencil_weight_paint.brush.cursor_color_add', 
+
+        self.tool_radial_control(radius={   'data_path_primary': 'tool_settings.gpencil_weight_paint.brush.size',
+                                            'data_path_secondary': 'tool_settings.unified_paint_settings.size',
+                                            'use_secondary': 'tool_settings.unified_paint_settings.use_unified_size',
+                                            'rotation_path': 'tool_settings.gpencil_weight_paint.brush.texture_slot.angle',
+                                            'color_path': 'tool_settings.gpencil_weight_paint.brush.cursor_color_add',
                                             'image_id': 'tool_settings.gpencil_weight_paint.brush',
-                                            'fill_color_path': '', 
-                                            'fill_color_override_path': '', 
+                                            'fill_color_path': '',
+                                            'fill_color_override_path': '',
                                             'fill_color_override_test_path': '',
                                             'zoom_path': '',
                                             'secondary_tex': False,
                                             'release_confirm': True},
-                                opacity={   'data_path_primary': 'tool_settings.gpencil_weight_paint.brush.strength', 
-                                            'data_path_secondary': 'tool_settings.unified_paint_settings.strength', 
-                                            'use_secondary': 'tool_settings.unified_paint_settings.use_unified_strength', 
-                                            'rotation_path': 'tool_settings.gpencil_weight_paint.brush.texture_slot.angle', 
-                                            'color_path': 'tool_settings.gpencil_weight_paint.brush.cursor_color_add', 
+                                opacity={   'data_path_primary': 'tool_settings.gpencil_weight_paint.brush.strength',
+                                            'data_path_secondary': 'tool_settings.unified_paint_settings.strength',
+                                            'use_secondary': 'tool_settings.unified_paint_settings.use_unified_strength',
+                                            'rotation_path': 'tool_settings.gpencil_weight_paint.brush.texture_slot.angle',
+                                            'color_path': 'tool_settings.gpencil_weight_paint.brush.cursor_color_add',
                                             'image_id': 'tool_settings.gpencil_weight_paint.brush',
-                                            'fill_color_path': '', 
-                                            'fill_color_override_path': '', 
+                                            'fill_color_path': '',
+                                            'fill_color_override_path': '',
                                             'fill_color_override_test_path': '',
                                             'zoom_path': '',
                                             'secondary_tex': False,
                                             'release_confirm': True},
-                                weight={'data_path_primary': 'tool_settings.gpencil_weight_paint.brush.weight', 
-                                            'data_path_secondary': 'tool_settings.unified_paint_settings.weight', 
-                                            'use_secondary': 'tool_settings.unified_paint_settings.use_unified_weight', 
-                                            'rotation_path': 'tool_settings.gpencil_weight_paint.brush.texture_slot.angle', 
-                                            'color_path': 'tool_settings.gpencil_weight_paint.brush.cursor_color_add', 
+                                weight={'data_path_primary': 'tool_settings.gpencil_weight_paint.brush.weight',
+                                            'data_path_secondary': 'tool_settings.unified_paint_settings.weight',
+                                            'use_secondary': 'tool_settings.unified_paint_settings.use_unified_weight',
+                                            'rotation_path': 'tool_settings.gpencil_weight_paint.brush.texture_slot.angle',
+                                            'color_path': 'tool_settings.gpencil_weight_paint.brush.cursor_color_add',
                                             'image_id': 'tool_settings.gpencil_weight_paint.brush',
-                                            'fill_color_path': '', 
-                                            'fill_color_override_path': '', 
+                                            'fill_color_path': '',
+                                            'fill_color_override_path': '',
                                             'fill_color_override_test_path': '',
                                             'zoom_path': '',
                                             'secondary_tex': False,
                                             'release_confirm': True})
-        
+
         self.selection_keys(gp_circle_tool='gpencil.select_circle',
                             linked_pick_tool='gpencil.select_linked',
                             more_tool='gpencil.select_more',
                             less_tool='gpencil.select_less',
                             invert_tool='gpencil.select_all'
                             )
-        
+
         self.kmi_set_replace('wm.tool_set_by_id', self.k_manip, 'PRESS', ctrl=True, shift=True, alt=True, properties={'name': 'builtin_brush.Weight'})
         self.kmi_set_replace('paint.tila_brush_select_and_paint', self.k_manip, 'PRESS', shift=True, properties={'tool': 'WEIGHT', 'mode': 'AVERAGE', 'brush': 'Average'})
         self.kmi_set_replace('paint.tila_brush_select_and_paint', self.k_manip, 'PRESS', ctrl=True, properties={'tool': 'WEIGHT', 'mode': 'DRAW', 'brush': 'Subtract'})
-        
+
     def set_keymaps_3d_paint_face_mash(self):
         # Paint Face Mask (Weight, Vertex, Texture)
         self.kmi_init(name='Paint Face Mask (Weight, Vertex, Texture)', space_type='EMPTY', region_type='WINDOW', addon=False)
@@ -1683,14 +1683,14 @@ class TILA_Config_Keymaps_Global(TILA_Config_Keymaps):
         self.selection_keys(more_tool='paint.face_select_more',
                             less_tool='paint.face_select_less',
                             linked_pick_tool='paint.face_select_linked_pick')
-    
+
     def set_keymaps_paint_vertex_selection(self):
         # Paint Vertex Selection (Weight, Vertex)
         self.kmi_init(name='Paint Vertex Selection (Weight, Vertex)', space_type='EMPTY', region_type='WINDOW', addon=False)
 
         self.selection_keys(more_tool='paint.vert_select_more',
                             less_tool='paint.vert_select_less')
-    
+
     def set_keymaps_frames(self):
         ###### Frames
         self.kmi_init(name='Frames', space_type='EMPTY', region_type='WINDOW', addon=False)
@@ -1724,13 +1724,13 @@ class TILA_Config_Keymaps_Global(TILA_Config_Keymaps):
                               linked_tool='particle.select_linked',
                             linked_pick_tool='particle.select_linked_pick',
                             invert_tool='particle.select_all')
-        
+
     def set_keymaps_transform_modal_map(self):
         ###### Transform Modal Map
         self.kmi_init(name='Transform Modal Map', space_type='EMPTY', region_type='WINDOW', addon=False)
         self.tool_proportional()
 
-    def set_keymaps_knife_tool_modal_map(self):   
+    def set_keymaps_knife_tool_modal_map(self):
         ###### Knife Tool Modal Map
         self.kmi_init(name='Knife Tool Modal Map', space_type='EMPTY', region_type='WINDOW', addon=False)
         panning = self.kmi_find(propvalue='PANNING')
@@ -1753,10 +1753,10 @@ class TILA_Config_Keymaps_Global(TILA_Config_Keymaps):
         ###### Gesture Box Modal Map
         self.kmi_init(name='Gesture Box', space_type='EMPTY', region_type='WINDOW', addon=False)
         self.modal_set_replace('SELECT', self.k_cursor, 'RELEASE', any=True)
-        
+
         self.print_status(f"Assignment of {self.addon_name} complete", start=False)
 
-        
+
 class TILA_Config_Keymaps_Empty(TILA_Config_Keymaps):
     addon_name = "Empty"
 
@@ -1801,7 +1801,7 @@ class TILA_Config_Keymaps_tila_polyquilt(TILA_Config_Keymaps):
 
     def __init__(self):
         super(TILA_Config_Keymaps_tila_polyquilt, self).__init__()
-    
+
     def set_keymaps(self):
         self.print_status(f"Assigning {self.addon_name} Keymaps")
 
@@ -1845,7 +1845,7 @@ class TILA_Config_Keymaps_MACHIN3tools(TILA_Config_Keymaps):
             self.kmi_set_replace('wm.call_menu_pie', 'D', "PRESS", alt=True, shift=True, properties={'name': 'MACHIN3_MT_align_pie'}, disable_double=True)
             self.kmi_set_active(False, 'machin3.select')
             self.kmi_set_active(False, 'machin3.symmetrize')
-        
+
         if self.kmi_init(name='3D View Generic', space_type='EMPTY', region_type='WINDOW', addon=False, restore_to_default=False):
             self.kmi_set_active(True, 'machin3.material_picker')
             k = self.kmi_find('machin3.material_picker')
@@ -1860,7 +1860,7 @@ class TILA_Config_Keymaps_MACHIN3tools(TILA_Config_Keymaps):
 
         if self.kmi_init(name='Pose', space_type='EMPTY', region_type='WINDOW', addon=False, restore_to_default=False):
             self.kmi_set_replace('machin3.align', 'A', "PRESS", alt=True, disable_double=False)
-            
+
         self.print_status(f"Assignment of {self.addon_name} complete", start=False)
 
 class TILA_Config_Keymaps_noodler(TILA_Config_Keymaps):
@@ -1923,7 +1923,7 @@ class TILA_Config_Keymaps_kekit(TILA_Config_Keymaps):
             self.kmi_set_replace('mesh.ke_direct_loop_cut', 'C', "PRESS", alt=True, shift=True, properties={'mode': 'SLIDE'}, disable_double=True)
 
         self.print_status(f"Assignment of {self.addon_name} complete", start=False)
-        
+
 class TILA_Config_Keymaps_Poly_Source(TILA_Config_Keymaps):
     addon_name = "Poly_Source"
 
@@ -1937,7 +1937,7 @@ class TILA_Config_Keymaps_Poly_Source(TILA_Config_Keymaps):
             self.kmi_set_active(enable=False, idname='wm.call_menu_pie', type=self.k_menu, value='PRESS', properties={'name': 'PS_MT_tk_menu'})
 
         self.print_status(f"Assignment of {self.addon_name} complete", start=False)
-        
+
 class TILA_Config_Keymaps_uv_toolkit(TILA_Config_Keymaps):
     addon_name = "uv_toolkit"
 
@@ -1980,7 +1980,21 @@ class TILA_Config_Keymaps_pin_verts(TILA_Config_Keymaps):
             self.kmi_set_replace('mesh.pin_unselected', 'P', "PRESS", ctrl=True, alt=True, shift=True, disable_double=True)
 
         self.print_status(f"Assignment of {self.addon_name} complete", start=False)
-        
+
+class TILA_Config_Keymaps_Non_Destructive_Primitive(TILA_Config_Keymaps):
+    addon_name = "Non_Destructive_Primitive"
+
+    def __init__(self):
+        super(TILA_Config_Keymaps_pin_verts, self).__init__()
+
+    def set_keymaps(self):
+        self.print_status(f"Assigning {self.addon_name} Keymaps")
+
+        if self.kmi_init(name='Object', space_type='EMPTY', region_type='WINDOW', addon=False, restore_to_default=False):
+            self.kmi_set_active(False, idname='wm.call_menu_pie', type='A', shift=True, properties={'name':'ND_PRIMITIVES_MT_add_objects_pie_menu'})
+
+        self.print_status(f"Assignment of {self.addon_name} complete", start=False)
+
 # class TILA_Config_Keymaps_EdgeFlow(TILA_Config_Keymaps):
 # 	addon_name = "EdgeFlow"
 
@@ -1995,4 +2009,3 @@ class TILA_Config_Keymaps_pin_verts(TILA_Config_Keymaps):
 
 # 		self.print_status(f"Assignment of {self.addon_name} complete", start=False)
 
-        

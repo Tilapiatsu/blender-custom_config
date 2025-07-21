@@ -3738,5 +3738,24 @@
                 "destination_path": "#\\scripts\\addons\\deep_bump"
             }
         ]
+    },
+    "Non_Destructive_Primitives": {
+        "is_enable": true,
+        "is_sync": true,
+        "is_extension": true,
+        "extension_id": "Non_Destructive_Primitives",
+        "online_url": "https://extensions.blender.org/add-ons/non-destructive-primitives/",
+        "repository_url": "blender_org",
+        "branch": null,
+        "is_submodule": false,
+        "local_path": null,
+        "keymaps": true,
+        "paths": [
+            {
+                "is_enable": false,
+                "local_subpath": null,
+                "destination_path": null
+            }
+        ]
     }
 }
