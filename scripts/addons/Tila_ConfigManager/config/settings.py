@@ -6,7 +6,7 @@ from ..preferences.ui.log_list import TILA_Config_Log as log_list
 class TILA_Config_Settings:
     addon_name = 'NONE'
 
-    
+
     def print_log(func):
         def wrapper(self):
             if self.addon_name in bpy.context.preferences.addons:
@@ -40,7 +40,7 @@ class TILA_Config_Settings_Global(TILA_Config_Settings):
             root_path, 'scripts', 'presets', 'interface_theme', 'Tila_Ide.xml')
         bpy.ops.script.execute_preset(
             filepath=theme_filepath, menu_idname='USERPREF_MT_interface_theme_presets')
-        
+
         # # Set Asset Library
         if 'Tilapiatsu' not in context.preferences.filepaths.asset_libraries:
             library_name = '00_Blender_Asset_Library'
@@ -92,13 +92,13 @@ class TILA_Config_Settings_Global(TILA_Config_Settings):
 
         # Input Settings
         context.preferences.inputs.view_zoom_axis = "HORIZONTAL"
-        context.preferences.inputs.ndof_view_navigate_method = "FREE"
+        # context.preferences.inputs.ndof_view_navigate_method = "FREE"
         context.preferences.inputs.view_rotate_method = "TRACKBALL"
         context.preferences.inputs.view_rotate_sensitivity_trackball = 2
         context.preferences.inputs.drag_threshold_mouse = 1
         context.preferences.inputs.drag_threshold_tablet = 1
         context.preferences.inputs.drag_threshold = 1
-        context.preferences.inputs.ndof_view_rotate_method = "TRACKBALL"
+        # context.preferences.inputs.ndof_view_rotate_method = "TRACKBALL"
         context.preferences.inputs.use_auto_perspective = True
         context.preferences.inputs.use_mouse_depth_navigate = True
         context.preferences.inputs.use_numeric_input_advanced = True
@@ -118,7 +118,7 @@ class TILA_Config_Settings_PolyQuilt(TILA_Config_Settings):
     @print_log
     def set_settings(self):
         context = bpy.context
-        
+
         if self.addon_name in context.preferences.addons:
             addon = context.preferences.addons.get(self.addon_name)
             addon.preferences.is_debug = False
@@ -132,15 +132,15 @@ class TILA_Config_Settings_MACHIN3tools(TILA_Config_Settings):
     def set_machin3tool_settings(self, context, setting_name, value):
         if getattr(context.preferences.addons.get('MACHIN3tools').preferences, setting_name) == value:
             return
-        
+
         setattr(context.preferences.addons.get('MACHIN3tools').preferences, setting_name, value)
-    
+
     @print_log
     def set_settings(self):
         context = bpy.context
         if self.addon_name in context.preferences.addons:
             addon = context.preferences.addons.get(self.addon_name)
-            
+
             self.set_machin3tool_settings(context, 'activate_smart_vert' , False)
             self.set_machin3tool_settings(context, 'activate_smart_edge' , False)
             self.set_machin3tool_settings(context, 'activate_smart_face' , False)
@@ -166,7 +166,7 @@ class TILA_Config_Settings_MACHIN3tools(TILA_Config_Settings):
 
 class TILA_Config_Settings_collection_manager(TILA_Config_Settings):
     addon_name = 'bl_ext.blender_org.collection_manager'
-    
+
     def print_log(func):
         return TILA_Config_Settings.print_log(func)
 
@@ -180,7 +180,7 @@ class TILA_Config_Settings_collection_manager(TILA_Config_Settings):
 
 class TILA_Config_Settings_EasyHDRI(TILA_Config_Settings):
     addon_name = 'EasyHDRI'
-    
+
     def print_log(func):
         return TILA_Config_Settings.print_log(func)
 
@@ -194,7 +194,7 @@ class TILA_Config_Settings_EasyHDRI(TILA_Config_Settings):
 
 class TILA_Config_Settings_noodler(TILA_Config_Settings):
     addon_name = 'noodler'
-    
+
     def print_log(func):
         return TILA_Config_Settings.print_log(func)
 
@@ -215,7 +215,7 @@ class TILA_Config_Settings_noodler(TILA_Config_Settings):
 
 class TILA_Config_Settings_mouselook_navigation(TILA_Config_Settings):
     addon_name = 'mouselook_navigation'
-    
+
     def print_log(func):
         return TILA_Config_Settings.print_log(func)
 
@@ -231,7 +231,7 @@ class TILA_Config_Settings_mouselook_navigation(TILA_Config_Settings):
 
 class TILA_Config_Settings_kekit(TILA_Config_Settings):
     addon_name = 'kekit'
-    
+
     def print_log(func):
         return TILA_Config_Settings.print_log(func)
 
@@ -244,7 +244,7 @@ class TILA_Config_Settings_kekit(TILA_Config_Settings):
 
 class TILA_Config_Settings_grease_pencil_tools(TILA_Config_Settings):
     addon_name = 'bl_ext.blender_org.grease_pencil_tools'
-    
+
     def print_log(func):
         return TILA_Config_Settings.print_log(func)
 
@@ -267,7 +267,7 @@ class TILA_Config_Settings_grease_pencil_tools(TILA_Config_Settings):
 
 class TILA_Config_Settings_atomic_data_manager(TILA_Config_Settings):
     addon_name = 'atomic_data_manager'
-    
+
     def print_log(func):
         return TILA_Config_Settings.print_log(func)
 
@@ -280,7 +280,7 @@ class TILA_Config_Settings_atomic_data_manager(TILA_Config_Settings):
 
 class TILA_Config_Settings_Auto_Reload(TILA_Config_Settings):
     addon_name = 'Auto_Reload'
-    
+
     def print_log(func):
         return TILA_Config_Settings.print_log(func)
 
@@ -293,7 +293,7 @@ class TILA_Config_Settings_Auto_Reload(TILA_Config_Settings):
 
 class TILA_Config_Settings_pin_verts(TILA_Config_Settings):
     addon_name = 'pin_verts'
-    
+
     def print_log(func):
         return TILA_Config_Settings.print_log(func)
 
