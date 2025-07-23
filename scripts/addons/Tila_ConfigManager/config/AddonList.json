@@ -3226,12 +3226,12 @@
             }
         ]
     },
-    "Super_Batch_Export": {
+    "SuperDuperBatchExporter": {
         "is_enable": true,
         "is_sync": true,
-        "is_extension": false,
-        "extension_id": null,
-        "online_url": null,
+        "is_extension": true,
+        "extension_id": "SuperDuperBatchExporter",
+        "online_url": "https://extensions.blender.org/add-ons/superduperbatchexporter/",
         "repository_url": "https://github.com/mrtripie/Blender-Super-Batch-Export.git",
         "branch": null,
         "is_submodule": false,
