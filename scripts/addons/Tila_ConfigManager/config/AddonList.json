@@ -3232,7 +3232,7 @@
         "is_extension": true,
         "extension_id": "SuperDuperBatchExporter",
         "online_url": "https://extensions.blender.org/add-ons/superduperbatchexporter/",
-        "repository_url": "https://github.com/mrtripie/Blender-Super-Batch-Export.git",
+        "repository_url": null,
         "branch": null,
         "is_submodule": false,
         "local_path": "#\\scripts\\addon_library\\GIT_Clones\\Super_Batch_Export",
