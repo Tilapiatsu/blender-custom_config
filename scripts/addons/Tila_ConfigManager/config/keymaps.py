@@ -30,6 +30,15 @@ from ..preferences.ui.log_list import TILA_Config_Log as log_list
 # - Script to visualize Texture checker in all objects in the viewport
 # - Fix the smart edit mode in UV context
 
+def print_assigning_keymap(func):
+    def print_message(self):
+        self.print_status(f"Assigning {self.addon_name} Keymaps")
+        func(self)
+        self.print_status(f"Assignment of {self.addon_name} Keymaps complete", start=False)
+
+    return print_message
+
+
 class TILA_Config_Keymaps(ABC, KeymapManager.KeymapManager):
     k_viewfit = 'MIDDLEMOUSE'
     k_manip = 'LEFTMOUSE'
@@ -64,10 +73,10 @@ class TILA_Config_Keymaps(ABC, KeymapManager.KeymapManager):
         pass
 
     def print_status(self, message, start=True):
-        print("----------------------------------------------------------------")
-        print(f"{message}")
-        print("----------------------------------------------------------------")
-        print("")
+        # print("----------------------------------------------------------------")
+        # print(f"{message}")
+        # print("----------------------------------------------------------------")
+        # print("")
         if start:
             self.log_progress.start(f"{message}")
         else:
@@ -356,6 +365,12 @@ class TILA_Config_Keymaps_Global(TILA_Config_Keymaps):
         if snap_element_panel is not None :
             self.kmi_set_replace('wm.call_panel', type, 'PRESS', ctrl=True, shift=True, properties={'name':snap_element_panel}, disable_double=True)
 
+    def color_swap_sample(self):
+        self.kmi_set_replace('paint.brush_colors_flip', 'C', 'PRESS', disable_double=True)
+
+    def toggle_x_symetry(self):
+        self.kmi_set_replace('view3D.toggle_symetry', 'X', 'PRESS', disable_double=True)
+
     def tool_sculpt(self, sculpt=None):
         if sculpt:
             self.kmi_set_replace(sculpt, 'W', 'PRESS', ctrl=True, alt=True, shift=True)
@@ -388,7 +403,7 @@ class TILA_Config_Keymaps_Global(TILA_Config_Keymaps):
 
     def tool_sample_color(self, tool):
         if tool:
-            self.kmi_set_replace(tool, 'C', 'PRESS', disable_double=True)
+            self.kmi_set_replace(tool, 'C', 'PRESS', shift=True, disable_double=True)
 
     def tool_subdivision(self):
         #  Disabling subdivision_set shortcut
@@ -454,9 +469,8 @@ class TILA_Config_Keymaps_Global(TILA_Config_Keymaps):
         self.kmi_set_replace('object.tila_smart_join', 'J', 'PRESS', ctrl=True, shift=True, alt=True, properties={'apply_modifiers': True, 'duplicate': True}, disable_double=True)
 
     # Keymap define
+    @print_assigning_keymap
     def set_keymaps(self):
-        self.print_status(f"Assigning {self.addon_name} Keymaps")
-
         self.set_keymaps_windows()
         self.set_keymaps_3dview()
         self.set_keymaps_view3d_walk_modal()
@@ -473,6 +487,7 @@ class TILA_Config_Keymaps_Global(TILA_Config_Keymaps):
         self.set_keymaps_curve()
         self.set_keymaps_outliner()
         self.set_keymaps_file_browser()
+        self.set_keymaps_mask_editing()
         self.set_keymaps_dopesheet()
         self.set_keymaps_sequencer()
         self.set_keymaps_graph_editor()
@@ -895,6 +910,8 @@ class TILA_Config_Keymaps_Global(TILA_Config_Keymaps):
         self.selection_tool(tool='brushes\essentials_brushes-mesh_sculpt.blend\Brush\Grab', alt='brushes\essentials_brushes-mesh_sculpt.blend\Brush\Mask', mode='SCULPT')
         self.tool_transform()
 
+        self.color_swap_sample()
+        self.toggle_x_symetry()
         self.tool_subdivision()
 
         self.kmi_set_active(False, idname='object.switch_object')
@@ -903,6 +920,9 @@ class TILA_Config_Keymaps_Global(TILA_Config_Keymaps):
         self.kmi_set_replace('object.quadriflow_remesh', 'R', 'PRESS', ctrl=True, disable_double=True)
 
         self.kmi_set_replace('object.tila_duplicate', self.k_manip, 'CLICK_DRAG', ctrl=True, alt=True, shift=True, properties={'linked': False, 'move': True})
+
+        self.kmi_set_replace('wm.call_asset_shelf_popover', 'B', 'PRESS', disable_double=True, properties={'name':'VIEW3D_AST_brush_sculpt'})
+        self.kmi_set_active(False, 'paint.mask_box_gesture', 'B')
 
         self.tool_radial_control(radius={   'data_path_primary': 'tool_settings.sculpt.brush.size',
                                             'data_path_secondary': 'tool_settings.unified_paint_settings.size',
@@ -980,6 +1000,8 @@ class TILA_Config_Keymaps_Global(TILA_Config_Keymaps):
             self.kmi_init(name='Curves', space_type='EMPTY', region_type='WINDOW', addon=False)
             self.global_keys()
             self.right_mouse()
+            self.color_swap_sample()
+            self.toggle_x_symetry()
             self.kmi_set_active(False, type='X', idname='curves.delete')
 
             self.selection_keys(more_tool='curves.select_more', less_tool='curves.select_less')
@@ -991,6 +1013,8 @@ class TILA_Config_Keymaps_Global(TILA_Config_Keymaps):
             self.tool_sculpt('view3d.tila_smart_sculptmode')
 
             self.selection_tool(tool='brushes\essentials_brushes-curve_sculpt.blend\Brush\Comb', alt='brushes\essentials_brushes-curve_sculpt.blend\Brush\Select', mode='CURVES_SCULPT')
+
+            self.kmi_set_replace('wm.call_asset_shelf_popover', 'B', 'PRESS', disable_double=True, properties={'name':'VIEW3D_AST_brush_sculpt_curves'})
 
             self.tool_radial_control(radius={   'data_path_primary': 'tool_settings.curves_sculpt.brush.size',
                                             'data_path_secondary': 'tool_settings.unified_paint_settings.size',
@@ -1029,6 +1053,8 @@ class TILA_Config_Keymaps_Global(TILA_Config_Keymaps):
         self.right_mouse()
         self.duplicate(duplicate='curve.duplicate_move')
         self.tool_smart_delete()
+        self.color_swap_sample()
+        self.toggle_x_symetry()
         self.kmi_set_replace('curve.reveal', 'H', 'PRESS', ctrl=True, shift=True)
         self.kmi_set_replace('curve.shortest_path_pick', self.k_select, 'PRESS', ctrl=True, shift=True)
         self.kmi_set_replace('curve.draw', 'LEFTMOUSE', 'PRESS', alt=True, ctrl=True, shift=True, properties={'wait_for_input': False})
@@ -1089,7 +1115,7 @@ class TILA_Config_Keymaps_Global(TILA_Config_Keymaps):
         self.duplicate(duplicate='action.duplicate_move')
         self.selection_keys(more_tool='action.select_more', less_tool='action.select_less')
 
-    def set_keymaps_3d_view_generic(self):
+    def set_keymaps_mask_editing(self):
         ###### Mask Editing
         self.kmi_init(name='Mask Editing', space_type='EMPTY', region_type='WINDOW', addon=False)
         self.global_keys()
@@ -1128,6 +1154,8 @@ class TILA_Config_Keymaps_Global(TILA_Config_Keymaps):
         self.right_mouse()
         self.selection_tool(tool='brushes\essentials_brushes-mesh_vertex.blend\Brush\Paint Hard', mode='VERTEX')
         self.tool_sculpt('view3d.tila_smart_sculptmode')
+        self.color_swap_sample()
+        self.toggle_x_symetry()
 
         self.tool_radial_control(radius={   'data_path_primary': 'tool_settings.vertex_paint.brush.size',
                                             'data_path_secondary': 'tool_settings.unified_paint_settings.size',
@@ -1167,7 +1195,6 @@ class TILA_Config_Keymaps_Global(TILA_Config_Keymaps):
                                             'release_confirm': True})
 
         self.tool_sample_color('paint.sample_color')
-        self.kmi_set_replace('view3D.toggle_symetry', 'X', 'PRESS', shift=True)
         self.selection_keys(more_tool='paint.vert_select_more', less_tool='paint.vert_select_less',
                             lasso_tool='view3d.select_lasso', circle_tool='view3d.select_circle', linked_tool='paint.face_select_linked')
 
@@ -1236,9 +1263,9 @@ class TILA_Config_Keymaps_Global(TILA_Config_Keymaps):
 
         self.kmi_set_replace('paint.weight_set', self.k_linked, 'PRESS')
 
-        self.kmi_set_replace('paint.toggle_brushweight', 'X', 'PRESS')
+        self.kmi_set_replace('paint.toggle_brushweight', 'C', 'PRESS')
 
-        self.kmi_set_replace('view3D.toggle_symetry', 'X', 'PRESS', shift=True)
+        self.kmi_set_replace('view3D.toggle_symetry', 'X', 'PRESS', disable_double=True)
 
     def set_keymaps_image_paint(self):
         ###### Image Paint
@@ -1303,9 +1330,9 @@ class TILA_Config_Keymaps_Global(TILA_Config_Keymaps):
 
         self.tool_sample_color('paint.sample_color')
 
-        self.kmi_set_replace('paint.toggle_brushweight', 'X', 'PRESS')
+        self.kmi_set_replace('paint.toggle_brushweight', 'C', 'PRESS')
 
-        self.kmi_set_replace('view3D.toggle_symetry', 'X', 'PRESS', shift=True)
+        self.kmi_set_replace('view3D.toggle_symetry', 'X', 'PRESS', disable_double=True)
 
     def set_keymaps_node_tool_tweak(self):
         ###### Node Tool: Tweak
@@ -1495,6 +1522,10 @@ class TILA_Config_Keymaps_Global(TILA_Config_Keymaps):
         self.global_keys()
         self.right_mouse()
         self.tool_sculpt('view3d.tila_smart_sculptmode')
+        self.mode_selection()
+        self.tool_sculpt('view3d.tila_smart_sculptmode')
+
+        self.selection_tool(tool='brushes\essentials_brushes-gp_vertex.blend\Brush\Paint', mode='GPENCIL_VERTEX')
 
         self.tool_radial_control(radius={   'data_path_primary': 'tool_settings.gpencil_vertex_paint.brush.size',
                                             'data_path_secondary': 'tool_settings.unified_paint_settings.size',
@@ -1533,6 +1564,14 @@ class TILA_Config_Keymaps_Global(TILA_Config_Keymaps):
                                             'secondary_tex': False,
                                             'release_confirm': True})
 
+        self.selection_keys(circle_tool='gpencil.select_circle',
+                            linked_pick_tool='gpencil.select_linked',
+                            more_tool='gpencil.select_more',
+                            less_tool='gpencil.select_less',
+                            invert_tool='gpencil.select_all',
+                            lasso_tool='gpencil.select_lasso'
+                            )
+
     def set_keymaps_grease_pencil_sculpt_mode(self):
         ###### Grease Pencil Sculpt Mode
         self.kmi_init(name='Grease Pencil Sculpt Mode', space_type='EMPTY', region_type='WINDOW', addon=False)
@@ -1567,49 +1606,6 @@ class TILA_Config_Keymaps_Global(TILA_Config_Keymaps):
                                             'zoom_path': '',
                                             'secondary_tex': False,
                                             'release_confirm': True})
-
-        self.selection_keys(circle_tool='gpencil.select_circle',
-                            linked_pick_tool='gpencil.select_linked',
-                            more_tool='gpencil.select_more',
-                            less_tool='gpencil.select_less',
-                            invert_tool='gpencil.select_all',
-                            lasso_tool='gpencil.select_lasso'
-                            )
-
-    def set_keymaps_grease_pencil_vertex_paint(self):
-        # Grease Pencil Vertex Paint
-        self.kmi_init(name='Grease Pencil Vertex Paint', space_type='EMPTY', region_type='WINDOW', addon=False)
-        self.global_keys()
-        self.right_mouse()
-        self.mode_selection()
-        self.tool_sculpt('view3d.tila_smart_sculptmode')
-        self.selection_tool(tool='brushes\essentials_brushes-gp_vertex.blend\Brush\Paint', mode='GPENCIL_VERTEX')
-
-        self.tool_radial_control(radius={   'data_path_primary': 'tool_settings.gpencil_vertex_paint.brush.size',
-                                            'data_path_secondary': 'tool_settings.unified_paint_settings.size',
-                                            'use_secondary': 'tool_settings.unified_paint_settings.use_unified_size',
-                                            'rotation_path': 'tool_settings.gpencil_vertex_paint.brush.texture_slot.angle',
-                                            'color_path': 'tool_settings.gpencil_vertex_paint.brush.cursor_color_add',
-                                            'image_id': 'tool_settings.gpencil_vertex_paint.brush',
-                                            'fill_color_path': '',
-                                            'fill_color_override_path': '',
-                                            'fill_color_override_test_path': '',
-                                            'zoom_path': '',
-                                            'secondary_tex': False,
-                                            'release_confirm': True},
-                                opacity={   'data_path_primary': 'tool_settings.gpencil_vertex_paint.brush.strength',
-                                            'data_path_secondary': 'tool_settings.unified_paint_settings.strength',
-                                            'use_secondary': 'tool_settings.unified_paint_settings.use_unified_strength',
-                                            'rotation_path': 'tool_settings.gpencil_vertex_paint.brush.texture_slot.angle',
-                                            'color_path': 'tool_settings.gpencil_vertex_paint.brush.cursor_color_add',
-                                            'image_id': 'tool_settings.gpencil_vertex_paint.brush',
-                                            'fill_color_path': '',
-                                            'fill_color_override_path': '',
-                                            'fill_color_override_test_path': '',
-                                            'zoom_path': '',
-                                            'secondary_tex': False,
-                                            'release_confirm': True})
-
 
         self.selection_keys(circle_tool='gpencil.select_circle',
                             linked_pick_tool='gpencil.select_linked',
@@ -1754,19 +1750,15 @@ class TILA_Config_Keymaps_Global(TILA_Config_Keymaps):
         self.kmi_init(name='Gesture Box', space_type='EMPTY', region_type='WINDOW', addon=False)
         self.modal_set_replace('SELECT', self.k_cursor, 'RELEASE', any=True)
 
-        self.print_status(f"Assignment of {self.addon_name} complete", start=False)
-
-
 class TILA_Config_Keymaps_Empty(TILA_Config_Keymaps):
     addon_name = "Empty"
 
     def __init__(self):
         super(TILA_Config_Keymaps_Empty, self).__init__()
 
+    @print_assigning_keymap
     def set_keymaps(self):
-        self.print_status(f"Assigning {self.addon_name} Keymaps")
-
-        self.print_status(f"Assignment of {self.addon_name} complete", start=False)
+        pass
 
 class TILA_Config_Keymaps_PolyQuilt(TILA_Config_Keymaps):
     addon_name = "PolyQuilt"
@@ -1774,9 +1766,8 @@ class TILA_Config_Keymaps_PolyQuilt(TILA_Config_Keymaps):
     def __init__(self):
         super(TILA_Config_Keymaps_PolyQuilt, self).__init__()
 
+    @print_assigning_keymap
     def set_keymaps(self):
-        self.print_status(f"Assigning {self.addon_name} Keymaps")
-
         if self.kmi_init(name='Mesh', space_type='EMPTY', region_type='WINDOW', addon=False, restore_to_default=False):
             self.kmi_set_replace('wm.tool_set_by_id', 'F', 'PRESS', shift=True, properties={'name': 'mesh_tool.poly_quilt'}, disable_double=True)
 
@@ -1793,8 +1784,6 @@ class TILA_Config_Keymaps_PolyQuilt(TILA_Config_Keymaps):
             self.kmi_set_replace('mesh.poly_quilt', self.k_cursor, 'PRESS', ctrl=True, properties={'tool_mode': 'KNIFE'}, disable_double=True)
             self.kmi_set_replace('mesh.poly_quilt', self.k_context, 'PRESS', ctrl=True, shift=True, properties={'tool_mode': 'LOOPCUT'}, disable_double=True)
             self.kmi_set_replace('mesh.poly_quilt', self.k_manip, 'PRESS', ctrl=True, alt=True, shift=True, properties={'tool_mode': 'DELETE'}, disable_double=True)
-
-        self.print_status(f"Assignment of {self.addon_name} complete", start=False)
 
 class TILA_Config_Keymaps_tila_polyquilt(TILA_Config_Keymaps):
     addon_name = "tila_polyquilt"
@@ -1802,8 +1791,8 @@ class TILA_Config_Keymaps_tila_polyquilt(TILA_Config_Keymaps):
     def __init__(self):
         super(TILA_Config_Keymaps_tila_polyquilt, self).__init__()
 
+    @print_assigning_keymap
     def set_keymaps(self):
-        self.print_status(f"Assigning {self.addon_name} Keymaps")
 
         if self.kmi_init(name='Mesh', space_type='EMPTY', region_type='WINDOW', addon=False, restore_to_default=False):
             self.kmi_set_replace('wm.tool_set_by_id', 'F', 'PRESS', shift=True, properties={'name': 'mesh_tool.poly_quilt'}, disable_double=True)
@@ -1822,17 +1811,14 @@ class TILA_Config_Keymaps_tila_polyquilt(TILA_Config_Keymaps):
             self.kmi_set_replace('mesh.poly_quilt', self.k_context, 'PRESS', ctrl=True, shift=True, properties={'tool_mode': 'LOOPCUT'}, disable_double=True)
             self.kmi_set_replace('mesh.poly_quilt', self.k_manip, 'PRESS', ctrl=True, alt=True, shift=True, properties={'tool_mode': 'DELETE'}, disable_double=True)
 
-        self.print_status(f"Assignment of {self.addon_name} complete", start=False)
-
 class TILA_Config_Keymaps_MACHIN3tools(TILA_Config_Keymaps):
     addon_name = "MACHIN3tools"
 
     def __init__(self):
         super(TILA_Config_Keymaps_MACHIN3tools, self).__init__()
 
+    @print_assigning_keymap
     def set_keymaps(self):
-        self.print_status(f"Assigning {self.addon_name} Keymaps")
-
         if self.kmi_init(name='Window', space_type='EMPTY', region_type='WINDOW', addon=False, restore_to_default=False):
             self.kmi_set_replace('wm.call_menu_pie', 'S', "PRESS", ctrl=True, shift=True, properties={'name': 'MACHIN3_MT_save_pie'}, disable_double=True)
 
@@ -1861,17 +1847,14 @@ class TILA_Config_Keymaps_MACHIN3tools(TILA_Config_Keymaps):
         if self.kmi_init(name='Pose', space_type='EMPTY', region_type='WINDOW', addon=False, restore_to_default=False):
             self.kmi_set_replace('machin3.align', 'A', "PRESS", alt=True, disable_double=False)
 
-        self.print_status(f"Assignment of {self.addon_name} complete", start=False)
-
 class TILA_Config_Keymaps_noodler(TILA_Config_Keymaps):
     addon_name = "noodler"
 
     def __init__(self):
         super(TILA_Config_Keymaps_noodler, self).__init__()
 
+    @print_assigning_keymap
     def set_keymaps(self):
-        self.print_status(f"Assigning {self.addon_name} Keymaps")
-
         self.kmi_init(name='Node Editor', space_type='NODE_EDITOR', region_type='WINDOW', addon=False, restore_to_default=False)
         self.kmi_set_replace('noodler.draw_route', 'E', 'PRESS', disable_double=True)
         self.kmi_set_replace('noodler.chamfer', 'B', 'PRESS', disable_double=True)
@@ -1879,21 +1862,16 @@ class TILA_Config_Keymaps_noodler(TILA_Config_Keymaps):
         self.kmi_set_replace('noodler.dependency_select', self.k_manip, 'DOUBLE_CLICK', shift=True, properties={'mode': "downstream", 'repsel': True}, disable_double=True)
         self.kmi_set_replace('noodler.dependency_select', self.k_manip, 'DOUBLE_CLICK', ctrl=True, properties={'mode': "upstream", 'repsel': True}, disable_double=True)
 
-        self.print_status(f"Assignment of {self.addon_name} complete", start=False)
-
 class TILA_Config_Keymaps_atomic_data_manager(TILA_Config_Keymaps):
     addon_name = "atomic_data_manager"
 
     def __init__(self):
         super(TILA_Config_Keymaps_atomic_data_manager, self).__init__()
 
+    @print_assigning_keymap
     def set_keymaps(self):
-        self.print_status(f"Assigning {self.addon_name} Keymaps")
-
         if self.kmi_init(name='Window', space_type='EMPTY', region_type='WINDOW', addon=False, restore_to_default=False):
             self.kmi_set_replace('atomic.invoke_pie_menu_ui', 'DEL', "PRESS", ctrl=True, shift=True, disable_double=True)
-
-        self.print_status(f"Assignment of {self.addon_name} complete", start=False)
 
 class TILA_Config_Keymaps_kekit(TILA_Config_Keymaps):
     addon_name = "kekit"
@@ -1901,9 +1879,8 @@ class TILA_Config_Keymaps_kekit(TILA_Config_Keymaps):
     def __init__(self):
         super(TILA_Config_Keymaps_kekit, self).__init__()
 
+    @print_assigning_keymap
     def set_keymaps(self):
-        self.print_status(f"Assigning {self.addon_name} Keymaps")
-
         if self.kmi_init(name='3D View', space_type='VIEW_3D', region_type='WINDOW', addon=False, restore_to_default=False):
             self.kmi_set_replace('view3d.ke_get_set_material', 'M', 'PRESS', shift=True)
 
@@ -1922,21 +1899,16 @@ class TILA_Config_Keymaps_kekit(TILA_Config_Keymaps):
 
             self.kmi_set_replace('mesh.ke_direct_loop_cut', 'C', "PRESS", alt=True, shift=True, properties={'mode': 'SLIDE'}, disable_double=True)
 
-        self.print_status(f"Assignment of {self.addon_name} complete", start=False)
-
 class TILA_Config_Keymaps_Poly_Source(TILA_Config_Keymaps):
     addon_name = "Poly_Source"
 
     def __init__(self):
         super(TILA_Config_Keymaps_Poly_Source, self).__init__()
 
+    @print_assigning_keymap
     def set_keymaps(self):
-        self.print_status(f"Assigning {self.addon_name} Keymaps")
-
         if self.kmi_init(name='3D View', space_type='VIEW_3D', region_type='WINDOW', addon=False, restore_to_default=False):
             self.kmi_set_active(enable=False, idname='wm.call_menu_pie', type=self.k_menu, value='PRESS', properties={'name': 'PS_MT_tk_menu'})
-
-        self.print_status(f"Assignment of {self.addon_name} complete", start=False)
 
 class TILA_Config_Keymaps_uv_toolkit(TILA_Config_Keymaps):
     addon_name = "uv_toolkit"
@@ -1944,13 +1916,10 @@ class TILA_Config_Keymaps_uv_toolkit(TILA_Config_Keymaps):
     def __init__(self):
         super(TILA_Config_Keymaps_uv_toolkit, self).__init__()
 
+    @print_assigning_keymap
     def set_keymaps(self):
-        self.print_status(f"Assigning {self.addon_name} Keymaps")
-
         if self.kmi_init(name='UV Editor', space_type='EMPTY', region_type='WINDOW', addon=False, restore_to_default=False):
             self.kmi_set_replace('uv.toolkit_orient_to_edge', 'D', "PRESS", ctrl=True, alt=True, shift=True, disable_double=True)
-
-        self.print_status(f"Assignment of {self.addon_name} complete", start=False)
 
 class TILA_Config_Keymaps_TexTools(TILA_Config_Keymaps):
     addon_name = "TexTools"
@@ -1958,14 +1927,11 @@ class TILA_Config_Keymaps_TexTools(TILA_Config_Keymaps):
     def __init__(self):
         super(TILA_Config_Keymaps_TexTools, self).__init__()
 
+    @print_assigning_keymap
     def set_keymaps(self):
-        self.print_status(f"Assigning {self.addon_name} Keymaps")
-
         if self.kmi_init(name='UV Editor', space_type='EMPTY', region_type='WINDOW', addon=False, restore_to_default=False):
             self.kmi_set_replace('uv.textools_uv_unwrap', 'U', "PRESS", ctrl=True, alt=False, shift=False, disable_double=True, properties={'axis': "x"})
             self.kmi_set_replace('uv.textools_uv_unwrap', 'V', "PRESS", ctrl=True, alt=False, shift=False, disable_double=True, properties={'axis': "y"})
-
-        self.print_status(f"Assignment of {self.addon_name} complete", start=False)
 
 class TILA_Config_Keymaps_pin_verts(TILA_Config_Keymaps):
     addon_name = "pin_verts"
@@ -1973,13 +1939,10 @@ class TILA_Config_Keymaps_pin_verts(TILA_Config_Keymaps):
     def __init__(self):
         super(TILA_Config_Keymaps_pin_verts, self).__init__()
 
+    @print_assigning_keymap
     def set_keymaps(self):
-        self.print_status(f"Assigning {self.addon_name} Keymaps")
-
         if self.kmi_init(name='Mesh', space_type='EMPTY', region_type='WINDOW', addon=False, restore_to_default=False):
             self.kmi_set_replace('mesh.pin_unselected', 'P', "PRESS", ctrl=True, alt=True, shift=True, disable_double=True)
-
-        self.print_status(f"Assignment of {self.addon_name} complete", start=False)
 
 class TILA_Config_Keymaps_Non_Destructive_Primitives(TILA_Config_Keymaps):
     addon_name = "Non_Destructive_Primitives"
@@ -1987,13 +1950,10 @@ class TILA_Config_Keymaps_Non_Destructive_Primitives(TILA_Config_Keymaps):
     def __init__(self):
         super(TILA_Config_Keymaps_Non_Destructive_Primitives, self).__init__()
 
+    @print_assigning_keymap
     def set_keymaps(self):
-        self.print_status(f"Assigning {self.addon_name} Keymaps")
-
-        if self.kmi_init(name='Object Mode', space_type='EMPTY', region_type='WINDOW', addon=True, restore_to_default=False):
+        if self.kmi_init(name='Object Mode', space_type='EMPTY', region_type='WINDOW', addon=False, restore_to_default=False):
             self.kmi_set_active(False, idname='wm.call_menu_pie', type='A', shift=True, properties={'name':'ND_PRIMITIVES_MT_add_objects_pie_menu'})
-
-        self.print_status(f"Assignment of {self.addon_name} complete", start=False)
 
 # class TILA_Config_Keymaps_EdgeFlow(TILA_Config_Keymaps):
 # 	addon_name = "EdgeFlow"

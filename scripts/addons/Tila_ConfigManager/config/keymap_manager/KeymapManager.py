@@ -81,7 +81,7 @@ class KeymapManager():
                         # TODO if multiple keymap is assigned to the same command, how to replace the proper one ?
 
                         if self.debug : print("{} : '{}' tool found, replace keymap '{}' to '{}'".format(self.km.name, k.idname, k.to_string(), new_kmi.to_string()))
-                        
+
                         k_old = bKeymap(k)
 
                         keymlap_List['old_kmi'] = k_old
@@ -95,9 +95,9 @@ class KeymapManager():
 
                         # Store keymap in class variable
                         self.keymap_List["replaced"].append(keymlap_List)
-                        
+
                         self.kmi_set_active(True, type=type, value=value, direction=direction, alt=alt, any=any, ctrl=ctrl, shift=shift, oskey=oskey, key_modifier=key_modifier, properties=properties, repeat=repeat)
-                        
+
                         return k
                 return new_kmi
         return func_wrapper
@@ -299,7 +299,7 @@ class KeymapManager():
 
             if self.prop_compare(k.properties, properties) is False:
                 continue
-            
+
             if attr_compare(k.repeat, repeat) is False:
                 continue
 
@@ -317,7 +317,7 @@ class KeymapManager():
                 return False
         if restore_to_default:
             self.kcu.keymaps[name].restore_to_default()
-        
+
         self.ukmis = self.kcu.keymaps[name].keymap_items
 
         try:
@@ -331,7 +331,7 @@ class KeymapManager():
             self.km = self.kca.keymaps.new(name, space_type=space_type, region_type=region_type, modal=modal, tool=tool)
         else:
             self.km = self.kcu.keymaps.new(name, space_type=space_type, region_type=region_type, modal=modal, tool=tool)
-        
+
         self.kmis = self.ukmis
         return True
 
@@ -346,7 +346,10 @@ class KeymapManager():
 
     def kmi_prop_getattr(self, kmi_props, attr):
         try:
-            return getattr(kmi_props, attr)
+            if isinstance(kmi_props, dict):
+                return kmi_props[attr]
+            elif isinstance(kmi_props, bpy.types.bpy_struct):
+                return getattr(kmi_props, attr)
         except AttributeError:
             if self.debug : print("Warning: property '%s' not found in keymap item '%s'" % (attr, kmi_props.__class__.__name__))
         except Exception as e:
@@ -354,14 +357,14 @@ class KeymapManager():
 
     def kmi_prop_list(self, kmi_props):
         if isinstance(kmi_props, dict):
-            prop = kmi_props.keys()
+            prop = list(kmi_props.keys())
         elif not isinstance(kmi_props, list):
             prop = dir(kmi_props)[3:]
         else:
             prop = []
             for p in kmi_props:
                 prop.append(p[0])
-        skip = ['path', 'constraint_axis']
+        skip = ['path', 'constraint_axis', 'bl_rna', 'rna_type']
         for s in skip:
             if s in prop:
                 prop.remove(s)
