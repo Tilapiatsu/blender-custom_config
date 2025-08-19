@@ -21,6 +21,10 @@ class TILA_EmptyMeshOperator(bpy.types.Operator):
         mesh = bpy.data.meshes.new(name=self.emptymesh_name)
         obj = bpy.data.objects.new(name=self.emptymesh_name, object_data=mesh)
         bpy.context.collection.objects.link(obj)
+        if context.mode == 'OBJECT':
+            bpy.ops.object.select_all(action='DESELECT')
+            bpy.context.view_layer.objects.active = obj
+            bpy.data.objects[obj.name].select_set(True)
         return {'FINISHED'}
 
 
