@@ -123,13 +123,6 @@ class TILA_Config_Keymaps_Global(TILA_Config_Keymaps):
         self.kmi_set_replace('screen.animation_play', self.k_menu, 'PRESS', ctrl=True, shift=True)
         self.kmi_set_replace('screen.userpref_show', 'F4', 'PRESS')
 
-        if self.km.name in ['3D View', 'Mesh']:
-            # self.kmi_set_replace("popup.hp_properties", 'Q', 'PRESS', disable_double=True)
-            self.kmi_set_replace('popup.hp_materials', 'M', 'PRESS', disable_double=True)
-            self.kmi_set_replace('popup.hp_render', 'EQUAL', 'PRESS', disable_double=True)
-            # self.kmi_set_replace('wm.call_menu_pie', 'D', 'PRESS', alt=True, shift=True, properties={'name': 'HP_MT_pie_rotate90'})
-
-        # self.kmi_set_replace('wm.call_menu_pie', 'A', 'PRESS', ctrl=True, alt=True, shift=True, properties={'name': 'HP_MT_pie_add'})
         self.kmi_set_replace('wm.call_menu_pie', 'TAB', 'PRESS', ctrl=True, shift=True, properties={'name': 'TILA_MT_pie_areas'})
 
     def navigation_keys(self, pan=None, orbit=None, dolly=None, roll=None):
@@ -300,7 +293,7 @@ class TILA_Config_Keymaps_Global(TILA_Config_Keymaps):
             self.kmi_set_replace(linked_tool, self.k_linked, 'DOUBLE_CLICK', ctrl=False, properties={'deselect': False, 'delimit': {'SEAM'}})
 
         if linked_pick_tool:
-            if self.km.name in ['Curve', 'Lattice', 'Grease Pencil', 'Particle', 'UV Editor']:
+            if self.km.name in ['Curve', 'Curves', 'Lattice', 'Grease Pencil', 'Particle', 'UV Editor']:
                 self.kmi_set_replace(linked_pick_tool, self.k_linked, 'PRESS', ctrl=False, properties={'deselect': False, 'extend': True}, disable_double=True)
                 self.kmi_set_replace(linked_pick_tool, self.k_linked, 'PRESS', ctrl=True, properties={'deselect': True, 'extend': True}, disable_double=True)
             elif self.km.name in ['Weight Paint', 'Vertex Paint', 'Image Paint', 'Paint Face Mask (Weight, Vertex, Texture)', 'Grease Pencil Stroke Weight Mode', 'Grease Pencil Stroke Sculpt Mode', 'Grease Pencil Stroke Paint Mode']:
@@ -703,14 +696,15 @@ class TILA_Config_Keymaps_Global(TILA_Config_Keymaps):
         self.selection_tool()
         self.tool_transform(cage_scale='builtin.transform')
         self.selection_keys(select_tool='uv.select',
-                              lasso_tool='uv.select_lasso',
+                            lasso_tool='uv.select_lasso',
                             box_through_tool='uv.select_box',
-                              circle_tool='uv.select_circle',
-                              loop_tool='uv.select_loop',
-                              more_tool='uv.select_more',
-                              less_tool='uv.select_less',
+                            circle_tool='uv.select_circle',
+                            loop_tool='uv.select_loop',
+                            ring_tool='uv.select_edge_ring',
+                            more_tool='uv.select_more',
+                            less_tool='uv.select_less',
                             shortestpath_tool='uv.shortest_path_pick',
-                              linked_tool='uv.select_linked',
+                            linked_tool='uv.select_linked',
                             linked_pick_tool='uv.select_linked_pick',
                             invert_tool='uv.select_all')
 
@@ -733,7 +727,7 @@ class TILA_Config_Keymaps_Global(TILA_Config_Keymaps):
 
         self.kmi_set_replace('uv.stitch', 'V', 'PRESS',  disable_double=True)
         self.kmi_set_replace('uv.select_split', 'V', 'PRESS', shift=True, disable_double=True)
-        self.kmi_set_replace('uv.uv_face_rip', 'V', 'PRESS', ctrl=True, disable_double=True)
+        self.kmi_set_replace('uv.rip_move', 'V', 'PRESS', ctrl=True, disable_double=True)
 
 
         self.kmi_set_replace('uv.toolkit_straighten', 'G', 'PRESS', ctrl=True, disable_double=True, properties={'gridify': False})
@@ -1029,7 +1023,9 @@ class TILA_Config_Keymaps_Global(TILA_Config_Keymaps):
             self.toggle_x_symetry()
             self.kmi_set_active(False, type='X', idname='curves.delete')
 
-            self.selection_keys(more_tool='curves.select_more', less_tool='curves.select_less')
+            self.selection_keys(more_tool='curves.select_more', less_tool='curves.select_less',
+                                linked_tool='curves.select_linked', linked_pick_tool='curves.select_linked_pick',
+                                invert_tool='curves.select_all')
 
             ###### Sculpt Curves
             self.kmi_init(name='Sculpt Curves', space_type='EMPTY', region_type='WINDOW', addon=False)
@@ -1065,8 +1061,6 @@ class TILA_Config_Keymaps_Global(TILA_Config_Keymaps):
                                             'zoom_path': '',
                                             'secondary_tex': False,
                                             'release_confirm': True})
-
-            self.kmi_set_replace('sculpt_curves.select_all', self.k_context, 'PRESS', ctrl=True, alt=True, shift=True, properties={'action': 'INVERT'})
 
     @print_assigning_keymap('Global Curve')
     def set_keymaps_curve(self):
@@ -1230,7 +1224,9 @@ class TILA_Config_Keymaps_Global(TILA_Config_Keymaps):
 
         self.tool_sample_color('paint.sample_color')
         self.selection_keys(more_tool='paint.vert_select_more', less_tool='paint.vert_select_less',
-                            lasso_tool='view3d.select_lasso', circle_tool='view3d.select_circle', linked_tool='paint.face_select_linked')
+                            lasso_tool='view3d.select_lasso', circle_tool='view3d.select_circle',
+                            linked_tool='paint.face_select_linked', linked_pick_tool='paint.face_select_linked_pick',
+                            invert_tool='paint.face_select_all')
 
         self.kmi_set_replace('paint.tila_brush_select_and_paint', self.k_manip, 'PRESS', shift=True, properties={'tool': 'VERTEX', 'mode': 'BLUR', 'brush': 'Blur'})
         self.kmi_set_replace('paint.tila_brush_select_and_paint', self.k_manip, 'PRESS', ctrl=True, properties={'tool': 'VERTEX', 'mode': 'DRAW', 'brush': 'Multiply'})

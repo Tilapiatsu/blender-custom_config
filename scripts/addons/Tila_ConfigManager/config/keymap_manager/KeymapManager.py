@@ -211,7 +211,22 @@ class KeymapManager():
         kmi = self.modal_set(propvalue, type, value, direction=direction, alt=alt, any=any, ctrl=ctrl, shift=shift, oskey=oskey, key_modifier=key_modifier, disable_double=disable_double, properties=properties, repeat=repeat)
         return kmi
 
+    def is_operator_exist(self, operator:str) -> bool:
+        modules = operator.split('.')
+
+        operator_string = 'bpy.ops'
+        for m in modules:
+            if m in dir(eval(operator_string)):
+                operator_string += '.' + m
+            else:
+                return False
+
+        return True
+
     def kmi_set(self, idname, type, value, direction='ANY', alt=False, any=False, ctrl=False, shift=False, oskey=False, key_modifier=None, disable_double=None, properties={}, repeat=False, head=False):
+        if not self.is_operator_exist(idname):
+            self.log_progress.error(f"Error: operator 'bpy.ops.{idname}' does not exists")
+
         if disable_double:
             self.kmi_set_active(False, type=type, value=value, direction=direction, alt=alt, any=any, ctrl=ctrl, shift=shift,
                                 oskey=oskey, key_modifier=key_modifier, properties=properties)
