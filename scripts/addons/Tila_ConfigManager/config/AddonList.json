@@ -943,22 +943,22 @@
             }
         ]
     },
-    "noodler": {
+    "node_booster": {
         "is_enable": true,
         "is_sync": true,
         "is_extension": false,
         "extension_id": null,
         "online_url": null,
-        "repository_url": "https://github.com/DB3D/Noodler.git",
+        "repository_url": "https://github.com/DB3D/Node-Booster.git",
         "branch": null,
         "is_submodule": false,
-        "local_path": "#\\scripts\\addon_library\\GIT_Clones\\noodler",
+        "local_path": "#\\scripts\\addon_library\\GIT_Clones\\node_booster",
         "keymaps": true,
         "paths": [
             {
                 "is_enable": true,
-                "local_subpath": "noodler.py",
-                "destination_path": "#\\scripts\\addons\\noodler.py"
+                "local_subpath": null,
+                "destination_path": "#\\scripts\\addons\\node_booster"
             }
         ]
     },
@@ -3232,7 +3232,7 @@
         "is_extension": true,
         "extension_id": "SuperDuperBatchExporter",
         "online_url": "https://extensions.blender.org/add-ons/superduperbatchexporter/",
-        "repository_url": null,
+        "repository_url": "blender_org",
         "branch": null,
         "is_submodule": false,
         "local_path": "#\\scripts\\addon_library\\GIT_Clones\\Super_Batch_Export",

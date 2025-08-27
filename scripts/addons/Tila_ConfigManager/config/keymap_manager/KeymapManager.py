@@ -1,4 +1,5 @@
 import bpy, re
+from ...preferences.ui.log_list import TILA_Config_Log as log_list
 
 bversion_string = bpy.app.version_string
 bversion_reg = re.match("^(\d\.\d?\d)", bversion_string)
@@ -55,6 +56,7 @@ class KeymapManager():
 
     def __init__(self):
         self.debug = False
+        self.log_progress = log_list(bpy.context.window_manager.tila_config_log_list, 'tila_config_log_list_idx')
         # Define global variables
         self.wm = bpy.context.window_manager
         self.kca = self.wm.keyconfigs.addon
@@ -145,7 +147,7 @@ class KeymapManager():
                 prop_list = self.kmi_prop_list(properties)
                 if kmi_src_props[i] in prop_list:
                     src_prop = self.kmi_prop_getattr(kmi_src.properties, kmi_src_props[i])
-                    self.kmi_prop_setattr(kmi_dest.properties, kmi_src_props[i], src_prop)
+                    self.kmi_prop_setattr(kmi_dest.properties, kmi_src_props[i], src_prop, kmi_dest.idname)
                     if self.debug : print('{} : replacing property : {} to {}'.format(self.km.name, src_prop, kmi_dest.properties))
 
     def tool_compare(self, kmi1, kmi2):
@@ -222,8 +224,10 @@ class KeymapManager():
         kmi.active = True
         if properties:
             for k,v in properties.items():
-                self.kmi_prop_setattr(kmi.properties, k, v)
+                self.kmi_prop_setattr(kmi.properties, k, v, kmi.idname)
         if self.debug : print("{} : assigning new tool '{}' to keymap '{}'".format(self.km.name, kmi.idname, kmi.to_string()))
+
+        # self.log_progress.info("{} : assigning new tool '{}' to keymap '{}'".format(self.km.name, kmi.idname, kmi.to_string()))
 
         # Store keymap in class variable
         self.keymap_List["new"].append((self.km, kmi))
@@ -245,7 +249,7 @@ class KeymapManager():
         kmi.active = True
         if properties:
             for k, v in properties.items():
-                self.kmi_prop_setattr(kmi.properties, k, v)
+                self.kmi_prop_setattr(kmi.properties, k, v, kmi.idname)
         if self.debug : print("{} : assigning new tool '{}' to keymap '{}'".format(self.km.name, kmi.idname, kmi.to_string()))
 
         # Store keymap in class variable
@@ -335,14 +339,17 @@ class KeymapManager():
         self.kmis = self.ukmis
         return True
 
-    def kmi_prop_setattr(self, kmi_props, attr, value):
+    def kmi_prop_setattr(self, kmi_props, attr, value, idname):
         try:
             setattr(kmi_props, attr, value)
         except AttributeError:
             if self.debug : print("Warning: property '%s' not found in keymap item '%s'" %
-                  (attr, kmi_props.__class__.__name__))
+                  (attr, idname))
+            self.log_progress.warning("Warning: property '%s' not found in keymap item '%s'" %
+                  (attr, idname))
         except Exception as e:
             if self.debug : print("Warning: %r" % e)
+            self.log_progress.warning("Warning: %r" % e)
 
     def kmi_prop_getattr(self, kmi_props, attr):
         try:
@@ -352,8 +359,10 @@ class KeymapManager():
                 return getattr(kmi_props, attr)
         except AttributeError:
             if self.debug : print("Warning: property '%s' not found in keymap item '%s'" % (attr, kmi_props.__class__.__name__))
+            self.log_progress.warning("Warning: property '%s' not found in keymap item '%s'" % (attr, kmi_props.__class__.__name__))
         except Exception as e:
             if self.debug : print("Warning: %r" % e)
+            self.log_progress.warning("Warning: %r" % e)
 
     def kmi_prop_list(self, kmi_props):
         if isinstance(kmi_props, dict):
@@ -378,4 +387,8 @@ class KeymapManager():
             return enable
         else:
             if self.debug : print('Unable to find : {} assigned to \'{}\''.format(idname, type))
+            # if idname is None:
+            #     self.log_progress.warning('Unable to find keymap assigned to \'{}\''.format(type))
+            # else:
+            #     self.log_progress.warning('Unable to find : "{}" assigned to \'{}\''.format(idname, type))
         return None

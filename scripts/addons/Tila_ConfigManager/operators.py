@@ -68,8 +68,8 @@ class TILA_Config_SetupBlender(Operator):
                     return {"FINISHED"}
 
         return {"PASS_THROUGH"}
-    
-    
+
+
 class TILA_Config_UpdateSetupBlender(Operator):
     """Update Blender setup, to match the changes made in the Json file. It will :
     - disable and unlink the addons that are not enable anymore
@@ -208,7 +208,7 @@ class TILA_Config_ForceDisableAddon(Operator):
                     return {"FINISHED"}
 
         return {"PASS_THROUGH"}
-    
+
 
 class TILA_Config_PrintAddonList(Operator):
     """Print all addons list and all its settings and paths"""
@@ -267,7 +267,7 @@ class TILA_Config_CleanAddonList(Operator):
     bl_idname = "tila.config_clean_addon_list"
     bl_label = "Tila Config : clean Addon List"
     bl_options = {'REGISTER'}
-    
+
     name : bpy.props.StringProperty(name="Addon Name", default="", description='Name of the addon to Clean')
     force: bpy.props.BoolProperty(name="Force Clean", default=False, description='remove all addons from destination folder')
     clean_cloned : bpy.props.BoolProperty(name="Clean Cloned", default=False, description='remove all Cloned addon from repository')
@@ -349,7 +349,7 @@ class TILA_Config_SyncAddonList(Operator):
         self._timer = bpy.context.window_manager.event_timer_add(0.01, window=context.window)
         bpy.context.window_manager.modal_handler_add(self)
         return {'RUNNING_MODAL'}
-    
+
     def modal(self, context, event):
         if event.type == 'TIMER':
             if len(self.AM.queue_list) == 0:
@@ -358,7 +358,7 @@ class TILA_Config_SyncAddonList(Operator):
                 self.wm.tila_setup_blender_progress = "SYNC_DONE"
                 bpy.context.window_manager.event_timer_remove(self._timer)
                 return {"FINISHED"}
-        
+
             elif not self.AM.processing:
                 if self.wm.tila_setup_blender_progress == "NONE":
                     self.report({'INFO'}, 'TilaConfig : Start Sync')
@@ -399,11 +399,11 @@ class TILA_Config_LinkAddonList(Operator):
             self.AM.link(element_name=self.name, force=self.force, overwrite=self.overwrite)
 
         time.sleep(1)
-        
+
         bpy.ops.preferences.addon_refresh('EXEC_DEFAULT')
 
         self.wm.tila_setup_blender_progress = "LINK_DONE"
-        
+
         self.report({'INFO'}, 'TilaConfig : Link Done !')
         self.log_status.done_stage('Link Done !')
 
@@ -456,7 +456,7 @@ class TILA_Config_EnableAddonList(Operator):
                 self.AM.next_action()
 
         return {"PASS_THROUGH"}
-    
+
 
 class TILA_Config_DisableAddonList(Operator):
     """Disable Addons that are not set as enable.
@@ -465,7 +465,7 @@ class TILA_Config_DisableAddonList(Operator):
     bl_idname = "tila.config_disable_addon_list"
     bl_label = "Tila Config : Disable Addon List"
     bl_options = {'REGISTER'}
-    
+
     name : bpy.props.StringProperty(name="Addon Name", default="", description='Name of the addon to enable')
     force: bpy.props.BoolProperty(
         name="Force Disable", default=False, description='Disable all addons even for the one not set to Disable')
@@ -516,7 +516,7 @@ class TILA_Config_RegisterKeymaps(Operator):
 
     name : bpy.props.StringProperty(name="Addon Name", default="", description='Name of the addon to register Keymaps for')
     restore : bpy.props.BoolProperty(name='Restore Keymap', default=False, description='Restore Keymaps to default before reassigning it')
-    
+
     def execute(self, context):
         self.log_status = log_list(
             bpy.context.window_manager.tila_config_status_list, 'tila_config_status_list_idx')
@@ -565,7 +565,7 @@ class TILA_Config_UnregisterKeymaps(Operator):
     def execute(self, context):
         # keymaps.unregister()
         return {'FINISHED'}
-    
+
 
 class TILA_Config_SetSettings(Operator):
     """Apply Custom Settings to blender"""
@@ -615,7 +615,7 @@ class TILA_Config_SetSettings(Operator):
 def import_addon_element(source_element, target_element):
     def get_valid_string(string, fallback):
         return fallback if string is None else string
-    
+
     target_element.name = source_element.name
     target_element.is_enable = source_element.is_enable
     target_element.is_repository = source_element.is_repository
@@ -639,7 +639,7 @@ def import_addon_element(source_element, target_element):
 def get_addon_element_dict(element, path_fallback):
     def get_valid_string(string, fallback):
         return fallback if string == '' else string
-        
+
     addon_element_dict = {}
 
     addon_element_dict['is_enable'] = element.is_enable
@@ -750,30 +750,30 @@ def draw_addon_layout(self, context):
         col.separator()
         col.label(text='Paths :   ')
 
-        
+
 
     col = row.column(align=True)
     col.alignment='LEFT'
 
     col.prop(self, 'name', text='')
-    col.prop(self, 'is_extension', text=f'')
-    col.prop(self, 'online_url', text=f'')
+    col.prop(self, 'is_extension', text='')
+    col.prop(self, 'online_url', text='')
     if self.is_extension:
-        col.prop(self, 'extension_id', text=f'')
-        col.prop(self, 'is_sync', text=f'')
-        col.prop(self, 'is_enable', text=f'')
-        col.prop(self, 'keymaps', text=f'')
+        col.prop(self, 'extension_id', text='')
+        col.prop(self, 'is_sync', text='')
+        col.prop(self, 'is_enable', text='')
+        col.prop(self, 'keymaps', text='')
     else:
-        col.prop(self, 'is_sync', text=f'')
-        col.prop(self, 'is_enable', text=f'')
-        col.prop(self, 'repository_url', text=f'')
-        col.prop(self, 'branch', text=f'')
-        col.prop(self, 'is_submodule', text=f'')
-        col.prop(self, 'local_path', text=f'')
-        col.prop(self, 'keymaps', text=f'')
+        col.prop(self, 'is_sync', text='')
+        col.prop(self, 'is_enable', text='')
+        col.prop(self, 'repository_url', text='')
+        col.prop(self, 'branch', text='')
+        col.prop(self, 'is_submodule', text='')
+        col.prop(self, 'local_path', text='')
+        col.prop(self, 'keymaps', text='')
         col.separator()
-    
-        col.prop(self, 'path_count', text=f'')
+
+        col.prop(self, 'path_count', text='')
         for p in range(self.path_count):
             col.label(text=f'Path {p+1}')
             row = col.split(align=True, factor=0.2)
@@ -804,7 +804,7 @@ class TILA_Config_AddAddon(bpy.types.Operator):
     keymaps: bpy.props.BoolProperty(default=False)
     path_count: bpy.props.IntProperty(default=1, update=update_path_count)
     paths: bpy.props.CollectionProperty(type=TILA_Config_PathElement)
-    
+
     def invoke(self, context, event):
         for p in range(self.path_count):
             self.paths.add()
@@ -819,7 +819,7 @@ class TILA_Config_AddAddon(bpy.types.Operator):
             bpy.context.window_manager.tila_config_status_list, 'tila_config_status_list_idx')
         wm = context.window_manager
         json_dict = {}
-        
+
         for e in wm.tila_config_addon_list:
             json_dict[e.name] = get_addon_element_dict(wm.tila_config_addon_list[e.name], None)
 
@@ -833,7 +833,7 @@ class TILA_Config_AddAddon(bpy.types.Operator):
             addon_element = wm.tila_config_addon_list.add()
         else:
             addon_element = wm.tila_config_addon_list[self.name]
-        
+
         import_addon_element(AM.elements[self.name], addon_element)
 
         self.report({'INFO'}, f'TilaConfig : {self.name} addon added')
@@ -842,7 +842,7 @@ class TILA_Config_AddAddon(bpy.types.Operator):
 
     def draw(self, context):
         draw_addon_layout(self, context)
-            
+
     def draw_path(self, row,  path):
         col = row.column(align=True)
         col.alignment='RIGHT'
@@ -887,7 +887,7 @@ class TILA_Config_EditAddon(bpy.types.Operator):
         if self.name not in wm.tila_config_addon_list:
             self.report({'CANCELLED'}, f'TilaConfig : {self.name} not in the list')
             self.log_status.error(f'{self.name} not in the list')
-        
+
         self.previous_name = self.name
         self.element = wm.tila_config_addon_list[self.name]
         self.path_count = len(self.element.paths)
@@ -921,7 +921,7 @@ class TILA_Config_EditAddon(bpy.types.Operator):
 
     def draw(self, context):
         draw_addon_layout(self, context)
-            
+
     def draw_path(self, row,  path):
         col = row.column(align=True)
         col.alignment='RIGHT'
@@ -999,7 +999,7 @@ class TILA_Config_ClearLogList(Operator):
         return {"FINISHED"}
 
 
-classes = (	
+classes = (
             TILA_Config_ClearStatusList,
             TILA_Config_ClearLogList,
             TILA_Config_PrintAddonList,
@@ -1036,7 +1036,7 @@ def unregister():
     from bpy.utils import unregister_class
     for cls in reversed(classes):
         unregister_class(cls)
-    
+
     del bpy.types.WindowManager.tila_path_count
     del bpy.types.WindowManager.tila_setup_blender_progress
     del bpy.types.WindowManager.tila_config_keymap_restored

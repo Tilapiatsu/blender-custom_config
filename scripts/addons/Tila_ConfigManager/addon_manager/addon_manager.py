@@ -43,24 +43,25 @@ def install_dependencies():
             for s in dependency_subfolder:
                 if d.lower() in s.lower():
                     found = True
-                
+
             if not found:
                 install = True
                 break
 
     if not install:
-        return 
+        return
     subprocess.check_call([sys.executable, '-m', 'pip', 'install',
                           *dependencies, '--target', dependencies_path])
 
 def enable_addon(addon_name):
     if addon_name is None:
         return False
-    
+
     log_progress = log_list(bpy.context.window_manager.tila_config_log_list,
                        'tila_config_log_list_idx')
     if addon_name in bpy.context.preferences.addons:
-        log_progress.start(f'Addon already Enabled : {addon_name}')
+        log_progress.warning(f'Addon already Enabled : {addon_name}, skipping')
+        log_progress.separator(add_to_satus=True)
         return False
     elif addon_name in get_installed_addons():
         log_progress.start(f'Addon not Installed : {addon_name}')
@@ -68,7 +69,7 @@ def enable_addon(addon_name):
 
     log_progress.start(f'Enabling Addon : {addon_name}')
     bpy.ops.preferences.addon_enable(module=addon_name)
-    bpy.context.window_manager.keyconfigs.update()	
+    bpy.context.window_manager.keyconfigs.update()
     log_progress.done(f'Enable Done!')
     log_progress.separator(add_to_satus=True)
 
@@ -81,7 +82,7 @@ def disable_addon(addon_name):
     if addon_name not in bpy.context.preferences.addons:
         log_progress.start(f'Addon already Disabled : {addon_name}')
         return False
-    
+
     log_progress.start(f'Disabling Addon : {addon_name}')
     bpy.ops.preferences.addon_disable(module=addon_name)
     bpy.context.window_manager.keyconfigs.update()
@@ -89,7 +90,7 @@ def disable_addon(addon_name):
     log_progress.separator(add_to_satus=True)
 
     return True
-    
+
 
 def file_acces_handler(func, path, exc_info):
     # print('Handling Error for file ', path)
@@ -204,11 +205,11 @@ class Json(File):
             json_data = data
 
         return json_data
-    
+
     def save(self, json_dict):
         # Serializing json
         json_object = json.dumps(json_dict, indent=4)
-        
+
         # Writing to output file
         with open(self.path, "w") as outfile:
             outfile.write(json_object)
@@ -219,10 +220,10 @@ class PathAM:
         self._path = path
         self.log_progress = log_list(bpy.context.window_manager.tila_config_log_list,
                                 'tila_config_log_list_idx')
-    
+
     def __str__(self):
         return self._path if self._path is not None else ''
-    
+
     @property
     def is_set(self):
         return self._path is not None
@@ -239,19 +240,19 @@ class PathAM:
         if not self.is_set:
             return False
         return path.exists(self.path)
-    
+
     @property
     def is_file(self):
         if not self.is_set:
             return None
         return path.isfile(self.path)
-    
+
     @property
     def is_dir(self):
         if self.path is None:
             return None
         return path.isdir(self.path)
-    
+
     def remove(self):
         if self.is_file:
             target = 'File'
@@ -290,11 +291,11 @@ class PathElementAM:
             return self.local_path
         else:
             return PathAM(path.join(self.local_path.path, self._path_dict['local_subpath']))
-    
+
     @property
     def destination_path(self):
         return PathAM(self._path_dict['destination_path'])
-    
+
     def clean(self, force=False):
         if self.destination_path.exists:
             if not force and self.is_enable:
@@ -306,10 +307,10 @@ class PathElementAM:
     def link(self, overwrite=False, force=False):
         if not force and not self.is_enable:
             return None
-        
+
         if self.local_subpath_resolved.path is None or self.destination_path.path is None:
             return None
-        
+
         if self.destination_path.exists:
             if overwrite:
                 self.destination_path.remove()
@@ -319,7 +320,7 @@ class PathElementAM:
 
         self.log_progress.start(f'Linking {self.local_subpath_resolved.path} -> {self.destination_path.path}')
         return str([self.local_subpath_resolved.path, self.destination_path.path, self.local_subpath_resolved.is_dir])
-    
+
     def enable(self, force=False):
         if not force and not self.is_enable:
             return
@@ -335,19 +336,19 @@ class PathElementAM:
 
             if not enable_addon(addon_name):
                 return
-        
+
     def disable(self, force=False):
         if not force:
             if self.is_enable:
                 return
         if not self.destination_path.is_set:
             return
-        
+
         addon_name = path.splitext(path.basename(self.destination_path.path))[0]
-        
+
         if not disable_addon(addon_name):
             return
-            
+
 
 class ElementAM:
     def __init__(self, element_dict, name):
@@ -356,7 +357,7 @@ class ElementAM:
         self.root_folder = root_folder
         self.log_progress = log_list(bpy.context.window_manager.tila_config_log_list,
                                 'tila_config_log_list_idx')
-    
+
     def __str__(self):
         LOG.debug(self.name)
         s = ''
@@ -367,15 +368,14 @@ class ElementAM:
         s += f'local_path = {self.local_path.path}\n'
         s += f'online_url = {self.online_url}\n'
         s += f'repository_url = {self.repository_url}\n'
-        for i,p in enumerate(len(self.paths)):
+        for i,p in enumerate(self.paths):
             s += '--------------------------------------------------------------------------------\n'
-            s += f'path{i}\n'
+            s += f'path {i}\n'
             s += '--------------------------------------------------------------------------------\n'
             s += f'paths.is_enable = {p.is_enable}\n'
             s += f'paths.local_subpath_resolved = {p.local_subpath_resolved.path}\n'
             s += f'paths.destination_path = {p.destination_path.path}\n'
             s += ''
-            
 
         return s
 
@@ -390,15 +390,15 @@ class ElementAM:
     @property
     def is_enable(self):
         return self.element_dict['is_enable']
-    
+
     @property
     def is_extension(self):
         return self.element_dict['is_extension'] and self.extension_id is not None
-    
+
     @property
     def is_repository(self):
         return self.repository_url is not None
-    
+
     @property
     def extension_id(self):
         return self.element_dict['extension_id']
@@ -406,7 +406,7 @@ class ElementAM:
     @property
     def branch(self):
         return self.element_dict['branch']
-    
+
     @property
     def is_submodule(self):
         return self.element_dict['is_submodule']
@@ -414,67 +414,67 @@ class ElementAM:
     @property
     def online_url(self):
         return self.element_dict['online_url']
-    
+
     @property
     def repository_url(self):
-        return self.element_dict['repository_url'] if ( not self.is_extension or (self.is_extension and self.element_dict['repository_url'] is not None)) else 'blender_org' 
-    
+        return self.element_dict['repository_url'] if ( not self.is_extension or (self.is_extension and self.element_dict['repository_url'] is not None)) else 'blender_org'
+
     @property
     def module(self):
         return ('bl_ext.' + self.repository_url + '.' + self.extension_id) if self.is_extension else self.name
-    
+
     @property
     def local_path(self):
         return PathAM(self.element_dict['local_path'])
-    
+
     @property
     def keymaps(self):
         return self.element_dict['keymaps']
-    
+
     @property
     def settings(self):
         try:
             addon_settings = eval(f'settings.TILA_Config_Settings_{self.safe_name}')
             return True
-        
+
         except AttributeError as e:
             return False
-    
+
     @property
     def paths(self):
         if self.element_dict['paths'] is None:
             return []
         else:
             return [PathElementAM(x, self.local_path) for x in self.element_dict['paths']]
-    
+
     def ensure_repo_init(self):
         subdir = os.listdir(self.local_path.path)
 
         if '.git' not in subdir:
             repo = git.Repo(root_folder)
             repo.git.submodule('update', '--init')
-    
+
     def clean(self, force=False, clean_cloned=False):
         for p in self.paths:
             p.clean(force=force)
-        
+
         if self.is_extension:
             self.log_progress.done(f'Uninstalling Extension : {self.extension_id}')
             bpy.ops.extensions.package_uninstall(repo_index=0, pkg_id=self.extension_id)
 
         if not clean_cloned:
             return
-        
+
         if force and self.is_sync and not self.is_submodule:
             if self.local_path.exists:
                 self.local_path.remove()
                 self.log_progress.done(f'Clean Done!')
                 self.log_progress.separator(add_to_satus=True)
-            
+
     def sync(self, overwrite=False, force=False):
         if not force and not self.is_sync:
             return
-        
+
         if self.is_extension:
             self.log_progress.start(f'Installing Extension {self.extension_id}')
             # print(os.listdir(bpy.context.preferences.extensions.repos[0].directory))
@@ -486,16 +486,16 @@ class ElementAM:
 
         if self.repository_url is None or self.local_path.path is None:
             return
-        
+
         if self.local_path.exists and not self.is_submodule:
             if overwrite:
                 self.local_path.remove()
             else:
                 # print(f'Path Already Exists : Skipping {self.local_path.path}')
                 return
-        
+
         self.log_progress.start(f'Syncing {self.name} to {self.local_path.path}')
-        
+
         if self.is_submodule:
             self.ensure_repo_init()
             repo = git.Repo(self.local_path.path)
@@ -518,27 +518,27 @@ class ElementAM:
                 self.log_progress.done(f'Syncing Failed!')
                 self.log_progress.separator(add_to_satus=True)
                 return
-        
+
         self.log_progress.done(f'Syncing Done!')
         self.log_progress.separator(add_to_satus=True)
 
     def link(self, overwrite=False, force=False):
         if self.local_path.path is None:
             return []
-        
+
         link_commands = []
         for p in self.paths:
             command = p.link(overwrite=overwrite, force=force)
             if command is None:
                 continue
             link_commands.append(command)
-        
+
         return link_commands
-    
+
     def enable(self, force=False):
         if not force and not self.is_enable:
             return
-        
+
         if self.is_extension:
             enable_addon(self.module)
             return
@@ -580,8 +580,7 @@ class ElementAM:
             self.log_progress.separator(add_to_satus=True)
 
         except AttributeError as e:
-            self.log_progress.warning(f'{self.safe_name} Addon have no settings')
-            LOG.error(f'{e}')
+            self.log_progress.warning(f'{self.safe_name} : {e}')
 
 class AddonManager:
     def __init__(self, json_path):
@@ -595,10 +594,10 @@ class AddonManager:
     @property
     def elements(self):
         return {k: ElementAM(v, k) for k,v in self.json.json_data.items() if k[0] != '_'}
-    
+
     def save_json(self, json_dict):
         self.json.save(json_dict)
-    
+
     def queue_clean(self, element_name=None, force=False, clean_cloned=False):
         if element_name is None:
             for e in self.elements.values():
@@ -607,7 +606,7 @@ class AddonManager:
         elif element_name in self.elements.keys():
             self.queue([self.clean, {'element_name': element_name,
                        'force': force, 'clean_cloned': clean_cloned}])
-            
+
     def clean(self, element_name=None, force=False, clean_cloned=False):
         self.processing = True
 
@@ -618,7 +617,7 @@ class AddonManager:
             self.elements[element_name].clean(force=force, clean_cloned=clean_cloned)
 
         self.processing = False
-    
+
     def queue_sync(self, element_name=None, overwrite=False, force=False):
         if element_name is None:
             for e in self.elements.values():
@@ -635,7 +634,7 @@ class AddonManager:
                 e.sync(overwrite=overwrite, force=force)
         elif element_name in self.elements.keys():
             self.elements[element_name].sync(overwrite=overwrite, force=force)
-        
+
         self.processing = False
 
     def queue_link(self, element_name=None, overwrite=False):
@@ -682,7 +681,7 @@ class AddonManager:
             self.elements[element_name].enable(force=force)
 
         self.processing = False
-    
+
     def queue_disable(self, element_name=None, force=False):
         if element_name is None:
             for e in self.elements.values():
@@ -708,11 +707,11 @@ class AddonManager:
                     continue
 
                 self.queue([self.set_keymaps, {'element_name': e.name, 'restore':restore}])
-                
+
         elif element_name in self.elements.keys():
             if not self.elements[element_name].keymaps:
                 return
-            
+
             self.queue([self.set_keymaps, {'element_name': element_name, 'restore':restore}])
 
     def set_keymaps(self, element_name=None, restore=False):
@@ -725,7 +724,7 @@ class AddonManager:
             self.elements[element_name].set_keymaps(restore=restore, all=True)
 
         self.processing = False
-    
+
     def queue_set_settings(self, element_name=None):
         if element_name is None:
             for e in self.elements.values():
@@ -733,11 +732,11 @@ class AddonManager:
                     continue
 
                 self.queue([self.set_settings, {'element_name': e.name}])
-                
+
         elif element_name in self.elements.keys():
             if not self.elements[element_name].settings:
                 return
-            
+
             self.queue([self.set_settings, {'element_name': element_name}])
 
     def set_settings(self, element_name=None):
@@ -750,18 +749,18 @@ class AddonManager:
             self.elements[element_name].set_settings()
 
         self.processing = False
-    
+
     def queue(self, action):
         self.queue_list.append(action)
 
     def flush_queue(self):
         self.queue_list = []
-    
+
     def next_action(self):
         if len(self.queue_list) == 0:
             self.log_progress.done('Queue Done !')
             return
-        
+
         action = self.queue_list.pop(0)
 
         action[0](**action[1])
@@ -770,5 +769,5 @@ class AddonManager:
         s = ''
         for _,v in self.elements.items():
             s += f'{v}\n'
-        
+
         return s

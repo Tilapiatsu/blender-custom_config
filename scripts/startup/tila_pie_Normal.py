@@ -63,19 +63,19 @@ class TILA_MT_pie_normal(Menu):
         else:
             pie.split()
             pie.split()
-                
+
 
         # Bottom Right
         split = pie.split()
-        split = pie.split() 
+        split = pie.split()
         split = pie.split()
         col = split.column()
         col.scale_y = 3
         col.scale_x = 1
         col.prop(view.overlay, "show_split_normals", text="Show Vertex Normal", icon='NORMALS_VERTEX_FACE')
         col.prop(view.overlay, "normals_length", text="Size")
-        
-        
+
+
 
 
 def element_is_selected(object):
@@ -183,7 +183,7 @@ class TILA_OT_normalflatten(bpy.types.Operator):
     def update_customnormals(self, mesh, normalslist):
         if len(normalslist) > 0:
             newnormslist = ()
-            
+
             for f in mesh.polygons:
                 for i in range(len(f.vertices)):
                     if f.select:
@@ -235,7 +235,7 @@ class TILA_OT_normalflatten(bpy.types.Operator):
                     normalsdata_proc[f_index].append(sum)
                 else:
                     normalsdata_proc[f_index].append((i.normal.copy().normalized()))
-        
+
         bmesh.update_edit_mesh(mesh, loop_triangles=False, destructive=False)
 
         if (self.update_customnormals(mesh, normalsdata_proc)):
@@ -304,7 +304,7 @@ class TILA_OT_normalflatten(bpy.types.Operator):
 
 def get_mesh_select_mode():
     return (bpy.context.scene.tool_settings.mesh_select_mode[0], bpy.context.scene.tool_settings.mesh_select_mode[1], bpy.context.scene.tool_settings.mesh_select_mode[2])
-    
+
 def set_mesh_select_mode(mode):
     print(mode)
     i=0
@@ -362,7 +362,7 @@ class TILA_OT_normalsmooth(bpy.types.Operator):
 
 class TILA_OT_smartsplit(bpy.types.Operator):
     bl_idname = "view3d.tila_normalsmartsplit"
-    bl_label = "Tilapiatsu Smartly Split vertex normal"
+    bl_label = "Smart Split vertex normal"
     bl_options = {'REGISTER', 'UNDO'}
 
     func = {'VERT': ((bpy.ops.mesh.normals_tools, {'mode': 'RESET'}), (bpy.ops.view3d.tila_splitnormal, None)),
