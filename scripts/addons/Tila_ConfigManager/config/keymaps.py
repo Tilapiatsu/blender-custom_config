@@ -737,7 +737,7 @@ class TILA_Config_Keymaps_Global(TILA_Config_Keymaps):
 
 
         self.kmi_set_replace('uv.toolkit_straighten', 'G', 'PRESS', ctrl=True, disable_double=True, properties={'gridify': False})
-        self.kmi_set_replace('uv.toolkit_unwrap_selected', 'E', 'PRESS', ctrl=True, disable_double=True, properties={'gridify': False, 'method': 'ANGLE_BASED'})
+        self.kmi_set_replace('uv.toolkit_unwrap_selected', 'E', 'PRESS', ctrl=True, disable_double=True, properties={'method': 'ANGLE_BASED'})
         kmi = self.kmi_find('uv.toolkit_distribute')
         if kmi is not None:
             kmi.active = False

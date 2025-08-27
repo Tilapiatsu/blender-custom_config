@@ -6,6 +6,7 @@ import subprocess
 import stat
 import bpy
 import addon_utils
+import importlib
 from os import path
 from . import admin
 from ..config import keymaps, settings
@@ -562,6 +563,7 @@ class ElementAM:
     def set_keymaps(self, restore=False, all=False):
         if self.keymaps:
             try:
+                importlib.reload(keymaps)
                 km = eval(f'keymaps.TILA_Config_Keymaps_{self.name}')
                 keymap_instance = km()
                 if restore:
