@@ -1,9 +1,6 @@
-import bpy, re
-from ...preferences.ui.log_list import TILA_Config_Log as log_list
-
-bversion_string = bpy.app.version_string
-bversion_reg = re.match("^(\d\.\d?\d)", bversion_string)
-bversion = float(bversion_reg.group(0))
+import bpy
+from ..preferences.ui.log_list import TILA_Config_Log as log_list
+from ..bversion import BVERSION
 
 class bKeymap():
     def __init__(self, kmi):
@@ -45,7 +42,6 @@ class bKeymap():
 
 class bProp():
     def __init__(self, prop):
-
         for p in prop:
             setattr(self, p[0], p[1])
 
@@ -111,7 +107,7 @@ class KeymapManager():
         km_dest.map_type = km_src.map_type
         km_dest.type = km_src.type
         km_dest.value = km_src.value
-        if bversion > 3.2:
+        if BVERSION > 3.2:
             km_dest.direction = km_src.direction
 
         if km_src.any != km_dest.any:
@@ -212,27 +208,24 @@ class KeymapManager():
         return kmi
 
     def is_operator_exist(self, operator:str) -> bool:
-        modules = operator.split('.')
-
-        operator_string = 'bpy.ops'
-        for m in modules:
-            if m in dir(eval(operator_string)):
-                operator_string += '.' + m
-            else:
-                return False
+        try:
+            eval(f'bpy.ops.{operator}.poll()')
+        except AttributeError:
+            return False
 
         return True
 
     def kmi_set(self, idname, type, value, direction='ANY', alt=False, any=False, ctrl=False, shift=False, oskey=False, key_modifier=None, disable_double=None, properties={}, repeat=False, head=False):
         if not self.is_operator_exist(idname):
             self.log_progress.error(f"Error: operator 'bpy.ops.{idname}' does not exists")
+            return
 
         if disable_double:
             self.kmi_set_active(False, type=type, value=value, direction=direction, alt=alt, any=any, ctrl=ctrl, shift=shift,
                                 oskey=oskey, key_modifier=key_modifier, properties=properties)
         if key_modifier is None:
             key_modifier = 'NONE'
-        if bversion > 3.2:
+        if BVERSION > 3.2:
             kmi = self.km.keymap_items.new(idname=idname, type=type, value=value, direction=direction, alt=alt, any=any, ctrl=ctrl, shift=shift, oskey=oskey, key_modifier=key_modifier, repeat=repeat, head=head)
         else:
             kmi = self.km.keymap_items.new(idname=idname, type=type, value=value, alt=alt, any=any, ctrl=ctrl, shift=shift, oskey=oskey, key_modifier=key_modifier, repeat=repeat, head=head)
@@ -255,7 +248,7 @@ class KeymapManager():
                                 oskey=oskey, key_modifier=key_modifier, properties=properties, repeat=repeat)
         if key_modifier is None:
             key_modifier = 'NONE'
-        if bversion > 3.2:
+        if BVERSION > 3.2:
             kmi = self.km.keymap_items.new_modal(propvalue, type, value, direction=direction, alt=alt,
                                                  any=any, ctrl=ctrl, shift=shift, oskey=oskey, key_modifier=key_modifier, repeat=repeat)
         else:
@@ -294,7 +287,7 @@ class KeymapManager():
 
             if attr_compare(k.value, value) is False:
                 continue
-            if bversion > 3.2:
+            if BVERSION > 3.2:
                 if attr_compare(k.direction, direction) is False:
                     continue
 

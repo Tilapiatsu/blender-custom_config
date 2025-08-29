@@ -1,6 +1,6 @@
-import os
+def get_addon_list() -> str:
+    from pathlib import Path
+    path = str(Path(__file__).parent/'AddonList.json')
+    return path
 
-def get_path():
-    return os.path.dirname(os.path.realpath(__file__))
-
-AL = os.path.join(get_path(), 'AddonList.json')
+AL = get_addon_list()

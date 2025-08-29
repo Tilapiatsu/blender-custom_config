@@ -773,19 +773,19 @@
         ]
     },
     "uvpackmaster3": {
-        "is_enable": false,
-        "is_sync": false,
+        "is_enable": true,
+        "is_sync": true,
         "is_extension": false,
         "extension_id": null,
         "online_url": "https://glukoz.gumroad.com/l/uvpackmaster3",
         "repository_url": null,
         "branch": null,
         "is_submodule": false,
-        "local_path": "S:\\Mon Drive\\15_Blender\\00_INSTALLED_ADDONS\\uvpackmaster3",
-        "keymaps": false,
+        "local_path": "S:\\Mon Drive\\15_Blender\\00_INSTALLED_ADDONS\\uvpackmaster",
+        "keymaps": true,
         "paths": [
             {
-                "is_enable": false,
+                "is_enable": true,
                 "local_subpath": null,
                 "destination_path": "#\\scripts\\addons\\uvpackmaster3"
             }
@@ -2489,19 +2489,6 @@
         "keymaps": false,
         "paths": null
     },
-    "io_scene_fbx": {
-        "is_enable": true,
-        "is_sync": true,
-        "is_extension": false,
-        "extension_id": null,
-        "online_url": null,
-        "repository_url": null,
-        "branch": null,
-        "is_submodule": false,
-        "local_path": null,
-        "keymaps": false,
-        "paths": null
-    },
     "Web3D X3D/VRML2": {
         "is_enable": true,
         "is_sync": true,
@@ -2509,45 +2496,6 @@
         "extension_id": "web3d_x3d_vrml2_format",
         "online_url": null,
         "repository_url": "blender_org",
-        "branch": null,
-        "is_submodule": false,
-        "local_path": null,
-        "keymaps": false,
-        "paths": null
-    },
-    "io_scene_gltf2": {
-        "is_enable": true,
-        "is_sync": true,
-        "is_extension": false,
-        "extension_id": null,
-        "online_url": null,
-        "repository_url": null,
-        "branch": null,
-        "is_submodule": false,
-        "local_path": null,
-        "keymaps": false,
-        "paths": null
-    },
-    "io_curve_svg": {
-        "is_enable": true,
-        "is_sync": true,
-        "is_extension": false,
-        "extension_id": null,
-        "online_url": null,
-        "repository_url": null,
-        "branch": null,
-        "is_submodule": false,
-        "local_path": null,
-        "keymaps": false,
-        "paths": null
-    },
-    "io_mesh_uv_layout": {
-        "is_enable": true,
-        "is_sync": true,
-        "is_extension": false,
-        "extension_id": null,
-        "online_url": null,
-        "repository_url": null,
         "branch": null,
         "is_submodule": false,
         "local_path": null,
@@ -2612,19 +2560,6 @@
         "keymaps": false,
         "paths": null
     },
-    "cycles": {
-        "is_enable": true,
-        "is_sync": false,
-        "is_extension": false,
-        "extension_id": null,
-        "online_url": null,
-        "repository_url": null,
-        "branch": null,
-        "is_submodule": false,
-        "local_path": null,
-        "keymaps": false,
-        "paths": null
-    },
     "maxivz_tools": {
         "is_enable": false,
         "is_sync": false,
@@ -2677,8 +2612,8 @@
         ]
     },
     "atomic_data_manager": {
-        "is_enable": true,
-        "is_sync": true,
+        "is_enable": false,
+        "is_sync": false,
         "is_extension": false,
         "extension_id": null,
         "online_url": null,
@@ -2686,10 +2621,10 @@
         "branch": null,
         "is_submodule": false,
         "local_path": "#\\scripts\\addon_library\\GIT_Clones\\atomic_data_manager",
-        "keymaps": true,
+        "keymaps": false,
         "paths": [
             {
-                "is_enable": true,
+                "is_enable": false,
                 "local_subpath": null,
                 "destination_path": "#\\scripts\\addons\\atomic_data_manager"
             }
@@ -2981,7 +2916,7 @@
     },
     "pin_verts": {
         "is_enable": true,
-        "is_sync": false,
+        "is_sync": true,
         "is_extension": false,
         "extension_id": null,
         "online_url": "https://coreycorza.gumroad.com/l/pinvertsaddon",
@@ -3169,7 +3104,7 @@
             }
         ]
     },
-    "Universal Multi Importer": {
+    "universal_multi_importer": {
         "is_enable": true,
         "is_sync": true,
         "is_extension": false,
@@ -3179,7 +3114,7 @@
         "branch": "develop",
         "is_submodule": true,
         "local_path": "#\\scripts\\addon_library\\GIT_Submodules\\tila_universal_multi_importer",
-        "keymaps": false,
+        "keymaps": true,
         "paths": [
             {
                 "is_enable": true,

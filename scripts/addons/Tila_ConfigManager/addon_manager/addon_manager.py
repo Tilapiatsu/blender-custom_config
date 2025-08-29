@@ -58,8 +58,7 @@ def enable_addon(addon_name):
     if addon_name is None:
         return False
 
-    log_progress = log_list(bpy.context.window_manager.tila_config_log_list,
-                       'tila_config_log_list_idx')
+    log_progress = log_list(bpy.context.window_manager.tila_config_log_list, 'tila_config_log_list_idx')
     if addon_name in bpy.context.preferences.addons:
         log_progress.warning(f'Addon already Enabled : {addon_name}, skipping')
         log_progress.separator(add_to_satus=True)
@@ -69,7 +68,10 @@ def enable_addon(addon_name):
         return False
 
     log_progress.start(f'Enabling Addon : {addon_name}')
-    bpy.ops.preferences.addon_enable(module=addon_name)
+    try:
+        bpy.ops.preferences.addon_enable(module=addon_name)
+    except RuntimeError:
+        log_progress.error(f'Addon {addon_name} is not loaded, skipping')
     bpy.context.window_manager.keyconfigs.update()
     log_progress.done(f'Enable Done!')
     log_progress.separator(add_to_satus=True)
@@ -316,7 +318,7 @@ class PathElementAM:
             if overwrite:
                 self.destination_path.remove()
             else:
-                # print(f'Path Already Exists : Skipping {self.destination_path.path}')
+                self.log_progress.warning(f'Path Already Exists : Skipping {self.destination_path.path}')
                 return None
 
         self.log_progress.start(f'Linking {self.local_subpath_resolved.path} -> {self.destination_path.path}')
@@ -434,12 +436,7 @@ class ElementAM:
 
     @property
     def settings(self):
-        try:
-            addon_settings = eval(f'settings.TILA_Config_Settings_{self.safe_name}')
-            return True
-
-        except AttributeError as e:
-            return False
+        return self.module in settings.settings.keys()
 
     @property
     def paths(self):
@@ -524,7 +521,7 @@ class ElementAM:
         self.log_progress.separator(add_to_satus=True)
 
     def link(self, overwrite=False, force=False):
-        if self.local_path.path is None:
+        if self.local_path.path is None or self.is_extension:
             return []
 
         link_commands = []
@@ -564,7 +561,7 @@ class ElementAM:
         if self.keymaps:
             try:
                 importlib.reload(keymaps)
-                km = eval(f'keymaps.TILA_Config_Keymaps_{self.name}')
+                km = keymaps.keymaps[self.module].TILA_Config_Keymaps
                 keymap_instance = km()
                 if restore:
                     keymap_instance.keymap_restore(all=all)
@@ -576,7 +573,7 @@ class ElementAM:
 
     def set_settings(self):
         try:
-            addon_settings = eval(f'settings.TILA_Config_Settings_{self.safe_name}')
+            addon_settings = settings.settings[self.module].TILA_Config_Settings
             setting_instance = addon_settings()
             setting_instance.set_settings()
             self.log_progress.separator(add_to_satus=True)
