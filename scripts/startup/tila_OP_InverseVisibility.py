@@ -11,7 +11,7 @@ bl_info = {
 
 
 class TILA_InverseVisibility(bpy.types.Operator):
-    bl_idname = "view3d.tila_inverse_visibility"
+    bl_idname = "mesh.tila_inverse_visibility"
     bl_label = "TILA: Inverse Visibility"
     bl_options = {'REGISTER', 'UNDO'}
 

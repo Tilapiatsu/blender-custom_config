@@ -222,6 +222,7 @@ class TILA_Config_Keymaps(TILA_Config_Keymaps_Base):
                       'Weight Paint',
                       'Vertex Paint',
                       'Image Paint',
+                      'Grease Pencil Paint Mode',
                       'Grease Pencil Brush Stroke',
                       'Grease Pencil Sculpt Mode',
                       'Grease Pencil Vertex Paint',
@@ -455,7 +456,7 @@ class TILA_Config_Keymaps(TILA_Config_Keymaps_Base):
         self.kmi_init(name='3D View', space_type='VIEW_3D', region_type='WINDOW', addon=False)
         self.global_keys()
         self.right_mouse()
-        self.selection_tool()
+        # self.selection_tool()
         self.tool_smart_delete()
 
         self.kmi_set_active(False, idname='view3d.select_circle', type="C")
@@ -684,7 +685,7 @@ class TILA_Config_Keymaps(TILA_Config_Keymaps_Base):
         self.kmi_set_active(False, idname='ls.select', type=self.k_select, value='DOUBLE_CLICK', shift=False)
 
         self.duplicate(duplicate='mesh.duplicate_move')
-        self.hide_reveal(hide='mesh.hide', unhide='mesh.reveal', inverse='view3d.inverse_visibility')
+        self.hide_reveal(hide='mesh.hide', unhide='mesh.reveal', inverse='mesh.tila_inverse_visibility')
         self.tool_smart_delete()
 
         self.tool_smooth()
@@ -694,7 +695,6 @@ class TILA_Config_Keymaps(TILA_Config_Keymaps_Base):
         self.kmi_set_replace('view3d.smart_bevel', 'B', 'PRESS', disable_double=True)
         self.kmi_set_replace('mesh.hp_extrude', 'E', 'PRESS', disable_double=True)
         self.kmi_set_replace('mesh.knife_tool', 'C', 'PRESS', disable_double=True)
-        # self.kmi_set_replace('wm.tool_set_by_id', 'C', 'PRESS', alt=True, shift=True, properties={'name': 'builtin.loop_cut'})
         self.kmi_set_replace('mesh.bridge_edge_loops', 'B', 'PRESS', shift=True)
         self.kmi_set_replace('mesh.edge_collapse', 'DEL', 'PRESS', shift=True)
         self.kmi_set_replace('mesh.merge', 'DEL', 'PRESS', alt=True, shift=True, properties={'type': 'LAST'},  disable_double=True)
@@ -864,7 +864,7 @@ class TILA_Config_Keymaps(TILA_Config_Keymaps_Base):
         self.kmi_set_replace('wm.context_toggle', 'F', 'PRESS', shift=True, properties={'data_path': 'space_data.overlay.show_sculpt_face_sets'}, disable_double=True)
 
         self.kmi_set_replace('paint.visibility_invert', self.k_nav, 'PRESS', ctrl=True, alt=True, shift=True, disable_double=True)
-        self.kmi_set_replace('sculpt.sculpt.sample_color', 'S', 'PRESS', disable_double=True)
+        self.kmi_set_replace('sculpt.sample_color', 'S', 'PRESS', disable_double=True)
 
     @TILA_Config_Keymaps_Base.print_assigning_keymap('Global Sculpt Curve')
     def set_keymaps_sculpt_curve(self):
@@ -937,13 +937,9 @@ class TILA_Config_Keymaps(TILA_Config_Keymaps_Base):
         kmi = self.kmi_set_replace('transform.tilt', 'T', 'PRESS', shift=True)
         kmi.active = True
 
-        self.selection_keys(select_tool='curve.select',
-                              lasso_tool='curve.select_lasso',
-                              circle_tool='curve.select_circle',
-                              loop_tool='curve.select_loop',
-                              more_tool='curve.select_more',
-                              less_tool='curve.select_less',
-                              linked_tool='curve.select_linked',
+        self.selection_keys(more_tool='curve.select_more',
+                            less_tool='curve.select_less',
+                            linked_tool='curve.select_linked',
                             linked_pick_tool='curve.select_linked_pick',
                             invert_tool='curve.select_all')
 
@@ -1332,18 +1328,13 @@ class TILA_Config_Keymaps(TILA_Config_Keymaps_Base):
         self.mode_selection()
         self.tool_sculpt('view3d.tila_smart_sculptmode')
         # self.selection_tool('builtin_brush.Draw')
-        self.duplicate(duplicate='gpencil.duplicate_move')
-        self.selection_keys(select_tool='gpencil.select',
-                            lasso_tool='gpencil.select_lasso',
-                              gp_circle_tool='gpencil.select_circle',
-                            more_tool='gpencil.select_more',
-                              less_tool='gpencil.select_less',
-                              next_tool='gpencil.select_first',
-                              previous_tool='gpencil.select_last',
-                              linked_tool='gpencil.select_linked',
-                            linked_pick_tool='gpencil.select_linked_pick')
+        self.duplicate(duplicate='grease_pencil.duplicate_move')
+        self.selection_keys(
+                            more_tool='grease_pencil.select_more',
+                            less_tool='grease_pencil.select_less',
+                            linked_tool='grease_pencil.select_linked')
 
-        self.tool_sculpt('gpencil.sculptmode_toggle')
+        self.tool_sculpt('grease_pencil.sculptmode_toggle')
 
         self.isolate()
 
@@ -1355,21 +1346,18 @@ class TILA_Config_Keymaps(TILA_Config_Keymaps_Base):
         self.right_mouse()
         self.tool_sculpt('view3d.tila_smart_sculptmode')
         self.tool_transform(cage_scale='builtin.scale_cage')
-        self.duplicate(duplicate='gpencil.duplicate_move')
         self.collection_visibility('object.hide_collection')
         self.mode_selection()
         self.tool_smart_delete()
-        self.kmi_set_active(False, idname='gpencil.dissolve')
-        self.kmi_set_active(False, idname='gpencil.active_frames_delete_all')
-        self.kmi_set_replace('gpencil.dissolve', 'DEL', 'PRESS', shift=True, properties={'type': 'POINTS'}, disable_double=True)
-        self.kmi_set_replace('gpencil.active_frames_delete_all', 'DEL', 'PRESS', ctrl=True, alt=True, shift=True)
-        self.selection_keys(gp_circle_tool='gpencil.select_circle',
-                            more_tool='gpencil.select_more',
-                              less_tool='gpencil.select_less',
-                            invert_tool='gpencil.select_all',
-                            linked_tool='gpencil.select_linked',
-                            linked_pick_tool='gpencil.select_linked')
-        self.kmi_set_replace('gpencil.stroke_subdivide', 'D', 'PRESS',  properties={'only_selected': False}, disable_double=True)
+        self.selection_tool(tool='builtin.select')
+        self.duplicate(duplicate='grease_pencil.duplicate_move')
+        self.kmi_set_active(False, idname='grease_pencil.dissolve')
+        self.kmi_set_replace('grease_pencil.dissolve', 'DEL', 'PRESS', shift=True, properties={'type': 'POINTS'}, disable_double=True)
+        self.selection_keys(more_tool='grease_pencil.select_more',
+                            less_tool='grease_pencil.select_less',
+                            invert_tool='grease_pencil.select_all',
+                            linked_tool='grease_pencil.select_linked')
+        self.kmi_set_replace('grease_pencil.stroke_subdivide', 'D', 'PRESS',  properties={'only_selected': False}, disable_double=True)
         self.isolate()
         self.tool_center(pivot='VIEW3D_PT_pivot_point', orientation='VIEW3D_PT_transform_orientations', action_center_context='VIEW3D')
 
@@ -1379,20 +1367,18 @@ class TILA_Config_Keymaps(TILA_Config_Keymaps_Base):
         self.kmi_init(name='Grease Pencil Brush Stroke', space_type='EMPTY', region_type='WINDOW', addon=False)
         self.global_keys()
         self.right_mouse()
-        self.duplicate(duplicate='gpencil.duplicate_move')
+        self.duplicate(duplicate='grease_pencil.duplicate_move')
         self.collection_visibility('object.hide_collection')
         self.tool_sculpt('view3d.tila_smart_sculptmode')
         self.mode_selection()
-        self.selection_tool(tool='brushes\essentials_brushes-gp_draw.blend\Brush\Pencil', mode='GPENCIL_PAINT')
+
         self.tool_radial_control(radius={'data_path_primary': 'tool_settings.gpencil_paint.brush.size', 'release_confirm': True},
                                 opacity={'data_path_primary': 'tool_settings.gpencil_paint.brush.gpencil_settings.pen_strength', 'release_confirm': True})
 
-        self.selection_keys(circle_tool='gpencil.select_circle',
-                            linked_pick_tool='gpencil.select_linked',
-                            more_tool='gpencil.select_more',
-                            less_tool='gpencil.select_less',
-                            invert_tool='gpencil.select_all',
-                            lasso_tool='gpencil.select_lasso',
+        self.selection_keys(linked_pick_tool='grease_pencil.select_linked',
+                            more_tool='grease_pencil.select_more',
+                            less_tool='grease_pencil.select_less',
+                            invert_tool='grease_pencil.select_all'
                             )
 
     @TILA_Config_Keymaps_Base.print_assigning_keymap('Global Grease Pencil Paint Mode')
@@ -1412,6 +1398,8 @@ class TILA_Config_Keymaps(TILA_Config_Keymaps_Base):
             kmi.shift = True
 
         self.tool_sculpt('view3d.tila_smart_sculptmode')
+        self.selection_tool(tool='brushes\essentials_brushes-gp_draw.blend\Brush\Pencil', mode='GPENCIL_PAINT')
+        # self.selection_tool(tool='builtin.brush')
         self.tool_radial_control(radius={'data_path_primary': 'tool_settings.gpencil_paint.brush.size', 'release_confirm': True},
                                 opacity={ 'data_path_primary': 'tool_settings.gpencil_paint.brush.gpencil_settings.pen_strength', 'release_confirm': True})
 
@@ -1464,12 +1452,10 @@ class TILA_Config_Keymaps(TILA_Config_Keymaps_Base):
                                             'secondary_tex': False,
                                             'release_confirm': True})
 
-        self.selection_keys(circle_tool='gpencil.select_circle',
-                            linked_pick_tool='gpencil.select_linked',
-                            more_tool='gpencil.select_more',
-                            less_tool='gpencil.select_less',
-                            invert_tool='gpencil.select_all',
-                            lasso_tool='gpencil.select_lasso'
+        self.selection_keys(linked_pick_tool='grease_pencil.select_linked',
+                            more_tool='grease_pencil.select_more',
+                            less_tool='grease_pencil.select_less',
+                            invert_tool='grease_pencil.select_all'
                             )
 
     @TILA_Config_Keymaps_Base.print_assigning_keymap('Global Grease Pencil Sculpt Mode')
@@ -1508,12 +1494,10 @@ class TILA_Config_Keymaps(TILA_Config_Keymaps_Base):
                                             'secondary_tex': False,
                                             'release_confirm': True})
 
-        self.selection_keys(circle_tool='gpencil.select_circle',
-                            linked_pick_tool='gpencil.select_linked',
-                            more_tool='gpencil.select_more',
-                            less_tool='gpencil.select_less',
-                            invert_tool='gpencil.select_all',
-                            lasso_tool='gpencil.select_lasso'
+        self.selection_keys(linked_pick_tool='grease_pencil.select_linked',
+                            more_tool='grease_pencil.select_more',
+                            less_tool='grease_pencil.select_less',
+                            invert_tool='grease_pencil.select_all',
                             )
 
     @TILA_Config_Keymaps_Base.print_assigning_keymap('Global Grease Pencil Weight Paint')
@@ -1563,11 +1547,9 @@ class TILA_Config_Keymaps(TILA_Config_Keymaps_Base):
                                             'secondary_tex': False,
                                             'release_confirm': True})
 
-        self.selection_keys(gp_circle_tool='gpencil.select_circle',
-                            linked_pick_tool='gpencil.select_linked',
-                            more_tool='gpencil.select_more',
-                            less_tool='gpencil.select_less',
-                            invert_tool='gpencil.select_all'
+        self.selection_keys(linked_pick_tool='grease_pencil.select_linked',
+                            more_tool='grease_pencil.select_more',
+                            less_tool='grease_pencil.select_less'
                             )
 
         self.kmi_set_replace('wm.tool_set_by_id', self.k_manip, 'PRESS', ctrl=True, shift=True, alt=True, properties={'name': 'builtin_brush.Weight'})

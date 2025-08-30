@@ -51,7 +51,7 @@ class TILA_smart_editmode(bpy.types.Operator):
 
         def switch_gpencil_mode(self, current_mode):
             if self.gpencil_mode[self.mode] == current_mode and self.toggle_mode:
-                bpy.ops.gpencil.editmode_toggle()
+                bpy.ops.object.editmode_toggle()
             else:
                 bpy.context.scene.tool_settings.gpencil_selectmode_edit = self.gpencil_mode[self.mode]
 
@@ -60,7 +60,7 @@ class TILA_smart_editmode(bpy.types.Operator):
                 switch_mesh_mode(self, self.mesh_mode[mesh_mode_link(self, current_mode)])
             else:
                 bpy.context.scene.tool_settings.uv_select_mode = self.uv_mode[self.mode]
-        
+
         def mesh_mode_link(self, mode):
             for m in self.mesh_mode:
                 if mode in m:
@@ -77,8 +77,8 @@ class TILA_smart_editmode(bpy.types.Operator):
                 pass
 
         def switch_particle_mode(self):
-                bpy.context.scene.tool_settings.particle_edit.select_mode = self.particle_mode[self.mode] 
-                    
+                bpy.context.scene.tool_settings.particle_edit.select_mode = self.particle_mode[self.mode]
+
 
         if bpy.context.mode == 'OBJECT':
             if bpy.context.active_object is None:
@@ -89,7 +89,7 @@ class TILA_smart_editmode(bpy.types.Operator):
 
             elif bpy.context.active_object.type == 'CURVE':
                 bpy.ops.object.editmode_toggle()
-            
+
             elif bpy.context.active_object.type == 'CURVES':
                 bpy.ops.object.editmode_toggle()
                 bpy.ops.curves.set_selection_domain(domain=self.curves_mode[min(self.mode, 1)])
@@ -98,7 +98,7 @@ class TILA_smart_editmode(bpy.types.Operator):
                 if self.alt_mode:
                     bpy.ops.object.mode_set(mode='EDIT')
                 else:
-                    bpy.ops.gpencil.editmode_toggle()
+                    bpy.ops.object.editmode_toggle()
                     bpy.context.scene.tool_settings.gpencil_selectmode_edit = self.gpencil_mode[self.mode]
 
             elif bpy.context.active_object.type == 'FONT':
@@ -116,7 +116,7 @@ class TILA_smart_editmode(bpy.types.Operator):
             elif bpy.context.active_object.type == 'EMPTY':
                 if bpy.context.active_object.instance_collection:
                     bpy.ops.object.edit_instanced_collection()
-                
+
             else:
                 self.report({'ERROR'}, f'Object Type not Valid : {bpy.context.active_object.type}')
 
@@ -125,7 +125,7 @@ class TILA_smart_editmode(bpy.types.Operator):
                 bpy.ops.object.mode_set(mode='OBJECT')
             else:
                 pass
-        
+
         elif bpy.context.mode == 'EDIT_MESH':
             if self.alt_mode:
                 bpy.ops.object.mode_set(mode='OBJECT')
@@ -170,7 +170,7 @@ class TILA_smart_editmode(bpy.types.Operator):
             if self.alt_mode:
                 bpy.ops.object.mode_set(mode='OBJECT')
             else:
-                if self.mode == 0 and not bpy.context.scene.tool_settings.use_gpencil_vertex_select_mask_point:                   
+                if self.mode == 0 and not bpy.context.scene.tool_settings.use_gpencil_vertex_select_mask_point:
                     bpy.context.scene.tool_settings.use_gpencil_vertex_select_mask_point = True
                 elif self.mode == 1 and not bpy.context.scene.tool_settings.use_gpencil_vertex_select_mask_stroke:
                     bpy.context.scene.tool_settings.use_gpencil_vertex_select_mask_stroke = True
@@ -185,7 +185,7 @@ class TILA_smart_editmode(bpy.types.Operator):
             if self.alt_mode:
                 bpy.ops.object.mode_set(mode='OBJECT')
             else:
-                if self.mode == 0 and not bpy.context.scene.tool_settings.use_gpencil_select_mask_point:                   
+                if self.mode == 0 and not bpy.context.scene.tool_settings.use_gpencil_select_mask_point:
                     bpy.context.scene.tool_settings.use_gpencil_select_mask_point = True
                 elif self.mode == 1 and not bpy.context.scene.tool_settings.use_gpencil_select_mask_stroke:
                     bpy.context.scene.tool_settings.use_gpencil_select_mask_stroke = True
@@ -201,7 +201,7 @@ class TILA_smart_editmode(bpy.types.Operator):
             if self.alt_mode:
                 bpy.ops.object.mode_set(mode='OBJECT')
             else:
-                if self.mode == 0 and not bpy.context.object.data.use_paint_mask_vertex:                   
+                if self.mode == 0 and not bpy.context.object.data.use_paint_mask_vertex:
                     bpy.context.object.data.use_paint_mask_vertex = True
                 elif self.mode == 2 and not bpy.context.object.data.use_paint_mask:
                     bpy.context.object.data.use_paint_mask = True
@@ -210,19 +210,19 @@ class TILA_smart_editmode(bpy.types.Operator):
                 else:
                     bpy.context.object.data.use_paint_mask_vertex = False
                     bpy.context.object.data.use_paint_mask = False
-        
+
         elif bpy.context.mode in ['PARTICLE']:
             if self.alt_mode:
                 bpy.ops.object.mode_set(mode='OBJECT')
             else:
                 switch_particle_mode(self)
-            
+
         elif bpy.context.mode in ['CURVES']:
             pass
-        
+
         elif bpy.context.mode in ['META']:
             bpy.ops.object.editmode_toggle()
-        
+
         else:
             bpy.ops.object.mode_set(mode='OBJECT')
 
