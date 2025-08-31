@@ -728,57 +728,77 @@ def draw_addon_layout(self, context):
     layout = self.layout
     row = layout.split(align=True, factor=0.2)
     row.alignment='LEFT'
-    col = row.column(align=True)
-    col.alignment='RIGHT'
+    col_a = row.column(align=True)
+    col_a.alignment='RIGHT'
+    col_b = row.column(align=True)
+    col_b.alignment='LEFT'
 
-    col.label(text=f'Name :  ')
-    col.label(text=f'Extension :  ')
-    col.label(text=f'Online URL :  ')
+    col_a.label(text='Name :  ')
+    col_b.prop(self, 'name', text='')
+
+    col_a.label(text='Extension :  ')
+    col_b.prop(self, 'is_extension', text='')
+
+    col_a.separator(type='LINE')
+    col_b.separator(type='LINE')
+
+    col_a.label(text='Online URL :  ')
+    col_b.prop(self, 'online_url', text='')
+
     if self.is_extension:
-        col.label(text='Extension ID :   ')
-        col.label(text=f'Sync :  ')
-        col.label(text=f'Enable :  ')
-        col.label(text=f'Keymaps :  ')
+        col_a.label(text='Extension ID :   ')
+        col_b.prop(self, 'extension_id', text='')
+
+        col_a.label(text='Install :  ')
+        col_b.prop(self, 'is_sync', text='')
+
+        col_a.label(text='Enable :  ')
+        col_b.prop(self, 'is_enable', text='')
+
+        col_a.label(text='Keymaps :  ')
+        col_b.prop(self, 'keymaps', text='')
     else:
-        col.label(text=f'Sync :  ')
-        col.label(text=f'Enable :  ')
-        col.label(text=f'Repository URL :  ')
-        col.label(text=f'Branch :  ')
-        col.label(text=f'Submodule :  ')
-        col.label(text=f'Local Path :  ')
-        col.label(text=f'Keymaps :  ')
-        col.separator()
-        col.label(text='Paths :   ')
+        col_a.label(text='Sync :  ')
+        col_b.prop(self, 'is_sync', text='')
 
+        col_a.label(text='Enable :  ')
+        col_b.prop(self, 'is_enable', text='')
 
+        col_a.label(text='Local Path :  ')
+        col_b.prop(self, 'local_path', text='')
 
-    col = row.column(align=True)
-    col.alignment='LEFT'
+        col_a.label(text='Keymaps :  ')
+        col_b.prop(self, 'keymaps', text='')
 
-    col.prop(self, 'name', text='')
-    col.prop(self, 'is_extension', text='')
-    col.prop(self, 'online_url', text='')
-    if self.is_extension:
-        col.prop(self, 'extension_id', text='')
-        col.prop(self, 'is_sync', text='')
-        col.prop(self, 'is_enable', text='')
-        col.prop(self, 'keymaps', text='')
-    else:
-        col.prop(self, 'is_sync', text='')
-        col.prop(self, 'is_enable', text='')
-        col.prop(self, 'repository_url', text='')
-        col.prop(self, 'branch', text='')
-        col.prop(self, 'is_submodule', text='')
-        col.prop(self, 'local_path', text='')
-        col.prop(self, 'keymaps', text='')
-        col.separator()
+        col_a.separator(type='LINE')
+        col_b.separator(type='LINE')
 
-        col.prop(self, 'path_count', text='')
+        col_a.label(text='Repository URL :  ')
+        col_b.prop(self, 'repository_url', text='')
+
+        col_a.label(text='Branch :  ')
+        col_b.prop(self, 'branch', text='')
+
+        col_a.label(text='Submodule :  ')
+        col_b.prop(self, 'is_submodule', text='')
+
+        col_a.separator()
+        col_b.separator()
+
+        col_a.label(text='Paths :   ')
+        col_b.prop(self, 'path_count', text='')
+
+        col_a.separator(type='LINE')
+        col_b.separator(type='LINE')
+
         for p in range(self.path_count):
-            col.label(text=f'Path {p+1}')
-            row = col.split(align=True, factor=0.2)
+            row = col_b.row(align = True)
+            row.label(text=f'Path {p+1}')
+            row = col_b.split(align=True, factor=0.2)
             self.draw_path(row, self.paths[p])
-            col.separator()
+            col_b.separator()
+            col_b.separator(type='LINE')
+
 
 class TILA_Config_AddAddon(bpy.types.Operator):
     """Add addon to addon list. Changes will be added to Json"""
