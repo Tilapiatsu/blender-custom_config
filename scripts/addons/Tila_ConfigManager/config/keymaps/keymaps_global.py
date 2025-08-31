@@ -633,7 +633,8 @@ class TILA_Config_Keymaps(TILA_Config_Keymaps_Base):
         kmi = self.kmi_find('uv.toolkit_distribute')
         if kmi is not None:
             kmi.active = False
-        self.kmi_set_replace('uv.toolkit_distribute', 'D', 'PRESS', disable_double=True, properties={'preserve_edge_length': True})
+        self.kmi_set_replace('uv.tila_uv_straighten_and_relax', 'D', 'PRESS', disable_double=True, properties={'straighten': True, 'relax': True, 'align_to_nearest_axis': False})
+        self.kmi_set_replace('uv.tila_uv_straighten_and_relax', 'D', 'PRESS', shift=True, disable_double=True, properties={'straighten': True, 'relax': True, 'align_to_nearest_axis':True})
 
         self.kmi_set_replace('transform.translate', 'UP_ARROW', 'PRESS', ctrl=True, alt=True, shift=True, disable_double=True, properties={'value': (0.0,1.0,0.0), 'release_confirm': True, 'orient_matrix': ((1, 0, 0), (0, 1, 0), (0, 0, 1)), 'orient_matrix_type': 'GLOBAL'})
         self.kmi_set_replace('transform.translate', 'DOWN_ARROW', 'PRESS', ctrl=True, alt=True, shift=True, disable_double=True, properties={'value': (0.0,-1.0,0.0), 'release_confirm': True, 'orient_matrix': ((1, 0, 0), (0, 1, 0), (0, 0, 1)), 'orient_matrix_type': 'GLOBAL'})

@@ -3692,5 +3692,24 @@
                 "destination_path": null
             }
         ]
+    },
+    "gret_relax_uv_loop": {
+        "is_enable": true,
+        "is_sync": false,
+        "is_extension": false,
+        "extension_id": null,
+        "online_url": "https://github.com/greisane/gret/blob/master/uv/relax_loops.py",
+        "repository_url": null,
+        "branch": null,
+        "is_submodule": false,
+        "local_path": "#\\scripts\\addon_library\\local\\gret_relax_uv_loop",
+        "keymaps": false,
+        "paths": [
+            {
+                "is_enable": true,
+                "local_subpath": null,
+                "destination_path": "#\\scripts\\addons\\gret_relax_uv_loop"
+            }
+        ]
     }
 }
