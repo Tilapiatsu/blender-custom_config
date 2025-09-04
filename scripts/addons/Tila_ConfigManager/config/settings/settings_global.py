@@ -89,3 +89,6 @@ class TILA_Config_Settings(TILA_Config_Settings_Base):
         self.set_setting(context, 'inputs.use_numeric_input_advanced', True)
         self.set_setting(context, 'inputs.use_zoom_to_mouse', True)
         self.set_setting(context, 'inputs.pressure_softness', -0.5)
+
+        # System
+        self.set_setting(context, 'system.gpu_backend', 'VULKAN')

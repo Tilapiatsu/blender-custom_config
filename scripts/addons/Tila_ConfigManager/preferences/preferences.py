@@ -94,7 +94,7 @@ class TILA_Config_Preferences(bpy.types.AddonPreferences):
 
         installed_header, installed_panel = addon_box.panel(idname="InstalledAddons", default_closed=False)
         addon_box.separator(type='LINE')
-        uninstalled_header, uninstalled_panel = addon_box.panel(idname="UninstalledAddons", default_closed=True)
+        uninstalled_header, uninstalled_panel = addon_box.panel(idname="UninstalledAddons", default_closed=False)
 
         installed_header.label(text='Installed')
         uninstalled_header.label(text='Available')
