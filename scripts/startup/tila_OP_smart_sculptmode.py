@@ -1,7 +1,6 @@
 
 from bpy.props import IntProperty, BoolProperty, EnumProperty
 from mathutils import Vector
-import bgl
 import bpy
 
 bl_info = {
@@ -30,18 +29,18 @@ class TILA_smart_sculptmode(bpy.types.Operator):
 
 
     def execute(self, context):
-                    
-        if bpy.context.mode in ['OBJECT', 
-                                'EDIT_MESH', 
-                                'EDIT_MESH', 
-                                'PAINT_VERTEX', 
-                                'PAINT_TEXTURE', 
-                                'EDIT_CURVES',  
-                                'PAINT_GREASE_PENCIL', 
-                                'WEIGHT_GREASE_PENCIL', 
-                                'VERTEX_GREASE_PENCIL', 
+
+        if bpy.context.mode in ['OBJECT',
+                                'EDIT_MESH',
+                                'EDIT_MESH',
+                                'PAINT_VERTEX',
+                                'PAINT_TEXTURE',
+                                'EDIT_CURVES',
+                                'PAINT_GREASE_PENCIL',
+                                'WEIGHT_GREASE_PENCIL',
+                                'VERTEX_GREASE_PENCIL',
                                 'EDIT_GREASE_PENCIL']:
-            
+
             if bpy.context.active_object is None or bpy.context.active_object.type not in self.compatible_types:
                 return {'CANCELLED'}
             if bpy.context.active_object.type == 'MESH':
@@ -56,11 +55,11 @@ class TILA_smart_sculptmode(bpy.types.Operator):
             else:
                 bpy.ops.object.editmode_toggle()
 
-        elif bpy.context.mode in ['SCULPT', 
-                                  'SCULPT_CURVES', 
+        elif bpy.context.mode in ['SCULPT',
+                                  'SCULPT_CURVES',
                                   'SCULPT_GREASE_PENCIL']:
             bpy.ops.object.editmode_toggle()
-        
+
         return {'FINISHED'}
 
 

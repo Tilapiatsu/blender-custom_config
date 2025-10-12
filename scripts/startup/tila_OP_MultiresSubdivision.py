@@ -1,4 +1,4 @@
-import bpy, bpy_extras, gpu, bgl, blf, math
+import bpy, blf
 
 bl_info = {
 	"name": "Tila : Multires Subdivision",
@@ -220,7 +220,7 @@ class TILA_multires_subdiv_level(bpy.types.Operator):
 
 	def invoke(self, context, event):
 		self.object_to_process = [o for o in bpy.context.selected_objects if o.type in self.compatible_type and o.library is None]
-		
+
 		if not len(self.object_to_process):
 			self.report({'ERROR'}, 'Tila Multires subdiv : no valid objects found')
 			return {'CANCELLED'}
@@ -284,7 +284,7 @@ class TILA_multires_rebuild_subdiv(bpy.types.Operator):
 			multires_modifier = ob.modifiers.new(name=self.modifier_name, type=self.modifier_type)
 		else:
 			multires_modifier = multires_modifier[0]
-		
+
 		multires_modifier.uv_smooth = 'NONE'
 		multires_modifier.boundary_smooth = 'PRESERVE_CORNERS'
 
@@ -324,7 +324,7 @@ class TILA_multires_delete_subdiv(bpy.types.Operator):
 
 		if not len(self.object_to_process) or self.delete_target not in self.targets:
 			return {'CANCELLED'}
-		
+
 		for o in self.object_to_process:
 			self.multires_modifier = [m for m in o.modifiers if m.type == self.modifier_type]
 
@@ -416,7 +416,7 @@ class TILA_multires_project_subdivide(bpy.types.Operator):
 		if self.projected.type not in self. compatible_projected_type:
 			self.report({'ERROR'}, f'TILA Project Subdivide : Projected object {self.projected.name} not compatible')
 			return {'CANCELLED'}
-		
+
 		if self.target.type not in self. compatible_target_type:
 			self.report({'ERROR'}, f'TILA Project Subdivide : Target object {self.target.name} not compatible')
 			return {'CANCELLED'}
@@ -427,7 +427,7 @@ class TILA_multires_project_subdivide(bpy.types.Operator):
 
 		if context.space_data.local_view:
 			self.toggle_isolate()
-		
+
 		if self.isolate_projected:
 			self.toggle_isolate()
 
@@ -435,10 +435,10 @@ class TILA_multires_project_subdivide(bpy.types.Operator):
 		bpy.context.window_manager.modal_handler_add(self)
 
 		return {"RUNNING_MODAL"}
-	
+
 	def revert_initial_values(self):
 		pass
-	
+
 	def modal(self, context, event):
 		# print(event.value, event.type)l
 		context.area.tag_redraw()
@@ -456,7 +456,7 @@ class TILA_multires_project_subdivide(bpy.types.Operator):
 				self.remove_post_smooth_modifier()
 			if self.isolate_projected:
 				self.toggle_isolate()
-			
+
 			self.target.select_set(state=True)
 			context.view_layer.objects.active = self.target
 
@@ -494,10 +494,10 @@ class TILA_multires_project_subdivide(bpy.types.Operator):
 
 			elif event.type == 'S' and event.value == "PRESS":
 				self.tweak_iteration = not self.tweak_iteration
-			
+
 			elif event.type == 'L' and event.value == "PRESS":
 				self.tweak_limit = not self.tweak_limit
-			
+
 			elif event.type == 'I' and event.value == "PRESS":
 				self.isolate_projected = not self.isolate_projected
 				self.tweak_isolate = True
@@ -509,7 +509,7 @@ class TILA_multires_project_subdivide(bpy.types.Operator):
 					self.post_smooth_iteration += 1
 				elif event.alt:
 					self.iter_subdiv_level += 1
-			
+
 			elif event.type == 'WHEELDOWNMOUSE' and event.value == "PRESS":
 				if event.ctrl:
 					if self.pre_subdiv_level > 0 :
@@ -520,7 +520,7 @@ class TILA_multires_project_subdivide(bpy.types.Operator):
 				elif event.alt:
 					if self.iter_subdiv_level > 0:
 						self.iter_subdiv_level -= 1
-			
+
 			self.last_mouse_x = event.mouse_x
 			return {"RUNNING_MODAL"}
 
@@ -534,7 +534,7 @@ class TILA_multires_project_subdivide(bpy.types.Operator):
 			if not success:
 				return {"FINISHED"}
 
-			
+
 		except Exception as e:
 			print(e)
 			pass
@@ -577,7 +577,7 @@ class TILA_multires_project_subdivide(bpy.types.Operator):
 
 			# Set Subdiv Levels
 			self.pre_subdiv_modifier.levels = self.pre_subdiv_levels = self.pre_subdiv_level
-		
+
 		# Remove Pre Subdiv Modifier
 		elif self.pre_subdiv_level == 0 and self.pre_subdiv_modifier is not None:
 			self.projected.modifiers.remove(self.pre_subdiv_modifier)
@@ -650,7 +650,7 @@ class TILA_multires_project_subdivide(bpy.types.Operator):
 			self.post_smooth_modifier = None
 
 		return True
-	
+
 	def remove_pre_subdiv_modifier(self):
 		self.projected.modifiers.remove(self.pre_subdiv_modifier)
 		self.pre_subdiv_modifier = None
@@ -725,14 +725,14 @@ def sculpt_menu_func(self, context):
 	op.force_subd = False
 
 	op = self.layout.operator(TILA_multires_rebuild_subdiv.bl_idname, text="Multires Rebuild Subdivision")
-	
+
 	op = self.layout.operator(TILA_multires_delete_subdiv.bl_idname, text="Multires Delete Higher Subdivision")
 	op.delete_target='HIGHER'
 	op = self.layout.operator(TILA_multires_delete_subdiv.bl_idname, text="Multires Delete Lower Subdivision")
 	op.delete_target='LOWER'
 
 	op = self.layout.operator(TILA_multires_apply_base.bl_idname, text="Multires Apply Base Shape")
-	
+
 def obj_menu_func(self, context):
 	self.layout.separator()
 	op = self.layout.operator(TILA_multires_project_subdivide.bl_idname, text="Project and Subdivide")

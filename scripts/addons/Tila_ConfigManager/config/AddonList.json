@@ -1478,32 +1478,32 @@
         "keymaps": false,
         "paths": [
             {
-                "is_enable": true,
+                "is_enable": false,
                 "local_subpath": "scripts\\startup\\HEAVYPOLY_OPERATORS.py",
                 "destination_path": "#\\scripts\\startup\\HEAVYPOLY_OPERATORS.py"
             },
             {
-                "is_enable": true,
+                "is_enable": false,
                 "local_subpath": "scripts\\startup\\HEAVYPOLY_pie_rotate_90.py",
                 "destination_path": "#\\scripts\\startup\\HEAVYPOLY_pie_rotate_90.py"
             },
             {
-                "is_enable": true,
+                "is_enable": false,
                 "local_subpath": "scripts\\startup\\HEAVYPOLY_pie_areas.py",
                 "destination_path": "#\\scripts\\startup\\HEAVYPOLY_pie_areas.py"
             },
             {
-                "is_enable": true,
+                "is_enable": false,
                 "local_subpath": "scripts\\startup\\HEAVYPOLY_pie_symmetry.py",
                 "destination_path": "#\\scripts\\startup\\HEAVYPOLY_pie_symmetry.py"
             },
             {
-                "is_enable": true,
+                "is_enable": false,
                 "local_subpath": "scripts\\startup\\HEAVYPOLY_pie_add.py",
                 "destination_path": "#\\scripts\\startup\\HEAVYPOLY_pie_add.py"
             },
             {
-                "is_enable": true,
+                "is_enable": false,
                 "local_subpath": "scripts\\startup\\HEAVYPOLY_pie_boolean.py",
                 "destination_path": "#\\scripts\\startup\\HEAVYPOLY_pie_boolean.py"
             }

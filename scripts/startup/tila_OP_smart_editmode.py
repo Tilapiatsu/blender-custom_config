@@ -1,7 +1,6 @@
 
 from bpy.props import IntProperty, BoolProperty, EnumProperty
 from mathutils import Vector
-import bgl
 import bpy
 
 bl_info = {

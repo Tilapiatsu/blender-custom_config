@@ -693,8 +693,8 @@ class TILA_Config_Keymaps(TILA_Config_Keymaps_Base):
         self.kmi_set_active(False, 'view3d.select_box')
         # Disable Shearing on this shortcut
         self.kmi_set_active(False, ctrl=True, alt=True, shift=True, type='S')
-        self.kmi_set_replace('view3d.smart_bevel', 'B', 'PRESS', disable_double=True)
-        self.kmi_set_replace('mesh.hp_extrude', 'E', 'PRESS', disable_double=True)
+        self.kmi_set_replace('mesh.smart_bevel', 'B', 'PRESS', disable_double=True)
+        self.kmi_set_replace('mesh.smart_extrude', 'E', 'PRESS', disable_double=True)
         self.kmi_set_replace('mesh.knife_tool', 'C', 'PRESS', disable_double=True)
         self.kmi_set_replace('mesh.bridge_edge_loops', 'B', 'PRESS', shift=True)
         self.kmi_set_replace('mesh.edge_collapse', 'DEL', 'PRESS', shift=True)
