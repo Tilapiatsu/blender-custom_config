@@ -13,15 +13,15 @@
 
 bl_info = {
     "name" : "Pin Verts",
-    "author" : "Corza", 
+    "author" : "Corza",
     "description" : "",
     "blender" : (3, 0, 0),
     "version" : (2, 0, 0),
     "location" : "",
     "warning" : "",
-    "doc_url": "", 
-    "tracker_url": "", 
-    "category" : "Mesh" 
+    "doc_url": "",
+    "tracker_url": "",
+    "category" : "Mesh"
 }
 
 
@@ -156,7 +156,7 @@ class SNA_OT_Modal_Operator_5F468(bpy.types.Operator):
             context.window_manager.modal_handler_add(self)
             _5F468_running = True
             return {'RUNNING_MODAL'}
-        
+
     def hide_only_verts(self):
         act_obj = bpy.context.object
         old_mode = act_obj.mode
@@ -212,46 +212,53 @@ class SNA_OT_Modal_Operator_5F468(bpy.types.Operator):
 
         bpy.ops.object.mode_set(mode=old_mode)
 
-vs_uni = '''
-    uniform mat4 ModelViewProjectionMatrix;
-    uniform float offset;
-    in vec3 pos;
 
-    vec4 project = ModelViewProjectionMatrix * vec4(pos, 1.0);
-    vec4 vecOffset = vec4(0.0,0.0,offset,0.0);
+shader_uni = gpu.types.GPUStageInterfaceInfo("my_interface")
+shader_uni.smooth('VEC3', "pos")
 
-    void main() {
-        gl_Position = project + vecOffset;
-    }
-'''
+shader_info = gpu.types.GPUShaderCreateInfo()
+shader_info.push_constant('MAT4', "modelViewProjectionMatrix")
+shader_info.push_constant('FLOAT', "offset")
+shader_info.push_constant('VEC4', "color")
+shader_info.vertex_in(0, 'VEC3', "position")
+shader_info.vertex_out(shader_uni)
+shader_info.fragment_out(0, 'VEC4', "fragColor")
 
-fs_uni = '''
-    uniform vec4 color;
-    out vec4 fragColor;
+shader_info.vertex_source(
+    "void main()"
+    "{"
+    "  gl_Position = modelViewProjectionMatrix * vec4(position, 1.0) + vec4(0.0,0.0,offset,0.0);"
+    "}"
+)
 
-    void main()
-    {
-        fragColor = vec4(color.xyz, color.w);
-    }
+shader_info.fragment_source(
+    "void main()"
+    "{"
+    "  fragColor = vec4(color.xyz, color.w);"
+    "}"
+)
 
-'''
-
-shader_uni = gpu.types.GPUShader(vs_uni, fs_uni)
+shader = gpu.shader.create_from_info(shader_info)
+del shader_uni
+del shader_info
 
 def sna_function_execute_F1DF2(Input):
     coords = tuple(Input)
-    # shader = gpu.shader.from_builtin('3D_UNIFORM_COLOR')
-    shader = shader_uni
-    batch = gpu_extras.batch.batch_for_shader(shader, 'POINTS', {"pos": coords})
-    shader.bind()
-    shader.uniform_float("color", (1.0, 0.0, 0.0, 0.43))
-    retopo_offset = bpy.context.space_data.overlay.retopology_offset * bpy.context.space_data.overlay.show_retopology 
 
-    shader.uniform_float("offset", -0.001 - retopo_offset/10)
+    matrix = bpy.context.region_data.perspective_matrix
+    print(coords)
+    batch = gpu_extras.batch.batch_for_shader(shader, 'POINTS', {"position": coords})
+
+    shader.uniform_float("modelViewProjectionMatrix", matrix)
+    shader.uniform_float("color", (1.0, 0.0, 0.0, 0.43))
+    # retopo_offset = bpy.context.space_data.overlay.retopology_offset * bpy.context.space_data.overlay.show_retopology
+    # shader.uniform_float("offset", -0.001 - retopo_offset/10)
+    shader.uniform_float("offset", -0.001)
     gpu.state.point_size_set(5.0)
     gpu.state.depth_test_set('LESS')
     gpu.state.depth_mask_set(True)
     gpu.state.blend_set('ALPHA')
+
     batch.draw(shader)
 
 
@@ -262,7 +269,7 @@ class SNA_AddonPreferences_B8AF5(bpy.types.AddonPreferences):
 
     def draw(self, context):
         if not (False):
-            layout = self.layout 
+            layout = self.layout
             layout.prop(self, 'sna_auto_enabledisable_falloff', text='Auto Enable/Disable Proportional Editing', icon_value=0, emboss=True)
             layout.prop(self, 'sna_show_header_button_editmode', text='Show Buttin in Header (Editmode)', icon_value=0, emboss=True)
 
@@ -278,7 +285,7 @@ def sna_add_to_view3d_ht_tool_header_8CF9B(self, context):
 def register():
     global _icons
     _icons = bpy.utils.previews.new()
-    
+
     bpy.utils.register_class(SNA_OT_Modal_Operator_5F468)
     bpy.utils.register_class(SNA_AddonPreferences_B8AF5)
     bpy.types.VIEW3D_HT_tool_header.append(sna_add_to_view3d_ht_tool_header_8CF9B)
