@@ -36,7 +36,7 @@ class TILA_Config_Settings(TILA_Config_Settings_Base):
             if BVERSION < 3.2:
                 library_name = ''
 
-            context.preferences.filepaths.asset_libraries[library_name].import_method = 'LINK'
+            context.preferences.filepaths.asset_libraries[library_name].import_method = 'PACK'
             context.preferences.filepaths.asset_libraries[library_name].name = 'Tilapiatsu'
 
         # View Settings
