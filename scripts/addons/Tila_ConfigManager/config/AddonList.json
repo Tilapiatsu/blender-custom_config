@@ -3762,5 +3762,24 @@
                 "destination_path": "#\\scripts\\addons\\Vertex_Color_Tool"
             }
         ]
+    },
+    "outset_boundary": {
+        "is_enable": false,
+        "is_sync": false,
+        "is_extension": false,
+        "extension_id": null,
+        "online_url": "https://kushiro.gumroad.com/l/outset_boundary",
+        "repository_url": null,
+        "branch": null,
+        "is_submodule": false,
+        "local_path": "S:\\Mon Drive\\15_Blender\\00_INSTALLED_ADDONS\\outset_boundary",
+        "keymaps": false,
+        "paths": [
+            {
+                "is_enable": true,
+                "local_subpath": null,
+                "destination_path": "#\\scripts\\addons\\outset_broundary"
+            }
+        ]
     }
 }
