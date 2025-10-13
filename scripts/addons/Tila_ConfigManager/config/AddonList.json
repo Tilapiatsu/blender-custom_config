@@ -3743,5 +3743,24 @@
                 "destination_path": null
             }
         ]
+    },
+    "Vertex_Color_Tool": {
+        "is_enable": true,
+        "is_sync": true,
+        "is_extension": false,
+        "extension_id": null,
+        "online_url": "https://tarmunds.gumroad.com/l/EnhancedVertexColorTool",
+        "repository_url": null,
+        "branch": null,
+        "is_submodule": false,
+        "local_path": "S:\\Mon Drive\\15_Blender\\00_INSTALLED_ADDONS\\Vertex_Color_Tool",
+        "keymaps": false,
+        "paths": [
+            {
+                "is_enable": true,
+                "local_subpath": null,
+                "destination_path": "#\\scripts\\addons\\Vertex_Color_Tool"
+            }
+        ]
     }
 }
