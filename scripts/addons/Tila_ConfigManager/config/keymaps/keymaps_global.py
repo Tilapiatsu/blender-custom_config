@@ -463,6 +463,10 @@ class TILA_Config_Keymaps(TILA_Config_Keymaps_Base):
         self.kmi_set_active(False, idname='view3d.cursor3d', type="RIGHTMOUSE")
         self.kmi_set_active(False, idname='view3d.rotate', type="MIDDLEMOUSE")
         self.kmi_set_active(False, idname='view3d.dolly', type="MIDDLEMOUSE")
+        self.kmi_set_active(False, idname='view3d.zoom', type="MIDDLEMOUSE")
+        self.kmi_set_active(False, idname='view3d.move', type="MIDDLEMOUSE")
+        self.kmi_set_active(False, idname='view3d.select_lasso', type="RIGHTMOUSE")
+
         self.kmi_set_active(False, idname='wm.tool_set_by_id', type="W")
         self.kmi_set_replace('view3d.navigate', 'NUMPAD_SLASH', 'PRESS', ctrl=True, alt=True, shift=True, disable_double=True)
 

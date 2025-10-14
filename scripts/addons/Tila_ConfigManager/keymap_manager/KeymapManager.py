@@ -217,7 +217,7 @@ class KeymapManager():
 
     def kmi_set(self, idname, type, value, direction='ANY', alt=False, any=False, ctrl=False, shift=False, oskey=False, key_modifier=None, disable_double=None, properties={}, repeat=False, head=False):
         if not self.is_operator_exist(idname):
-            self.log_progress.error(f"Error: operator 'bpy.ops.{idname}' does not exists")
+            self.log_progress.error(f"ERROR : operator 'bpy.ops.{idname}' does not exists")
             return
 
         if disable_double:
@@ -287,23 +287,24 @@ class KeymapManager():
 
             if attr_compare(k.value, value) is False:
                 continue
+
             if BVERSION > 3.2:
                 if attr_compare(k.direction, direction) is False:
                     continue
 
-            if attr_compare(k.alt, alt) is False:
+            if attr_compare(k.alt_ui, alt) is False:
                 continue
 
             if attr_compare(k.any, any) is False:
                 continue
 
-            if attr_compare(k.ctrl, ctrl) is False:
+            if attr_compare(k.ctrl_ui, ctrl) is False:
                 continue
 
-            if attr_compare(k.shift, shift) is False:
+            if attr_compare(k.shift_ui, shift) is False:
                 continue
 
-            if attr_compare(k.oskey, oskey) is False:
+            if attr_compare(k.oskey_ui, oskey) is False:
                 continue
 
             if attr_compare(k.key_modifier, key_modifier) is False:
@@ -351,13 +352,13 @@ class KeymapManager():
         try:
             setattr(kmi_props, attr, value)
         except AttributeError:
-            if self.debug : print("Warning: property '%s' not found in keymap item '%s'" %
+            if self.debug : print("WARNING : property '%s' not found in keymap item '%s'" %
                   (attr, idname))
-            self.log_progress.warning("Warning: property '%s' not found in keymap item '%s'" %
+            self.log_progress.warning("WARNING : property '%s' not found in keymap item '%s'" %
                   (attr, idname))
         except Exception as e:
-            if self.debug : print("Warning: %r" % e)
-            self.log_progress.warning("Warning: %r" % e)
+            if self.debug : print("WARNING : %r" % e)
+            self.log_progress.warning("WARNING : %r" % e)
 
     def kmi_prop_getattr(self, kmi_props, attr):
         try:
@@ -366,11 +367,11 @@ class KeymapManager():
             elif isinstance(kmi_props, bpy.types.bpy_struct):
                 return getattr(kmi_props, attr)
         except AttributeError:
-            if self.debug : print("Warning: property '%s' not found in keymap item '%s'" % (attr, kmi_props.__class__.__name__))
-            self.log_progress.warning("Warning: property '%s' not found in keymap item '%s'" % (attr, kmi_props.__class__.__name__))
+            if self.debug : print("WARNING : property '%s' not found in keymap item '%s'" % (attr, kmi_props.__class__.__name__))
+            self.log_progress.warning("WARNING : property '%s' not found in keymap item '%s'" % (attr, kmi_props.__class__.__name__))
         except Exception as e:
-            if self.debug : print("Warning: %r" % e)
-            self.log_progress.warning("Warning: %r" % e)
+            if self.debug : print("WARNING : %r" % e)
+            self.log_progress.warning("WARNING : %r" % e)
 
     def kmi_prop_list(self, kmi_props):
         if isinstance(kmi_props, dict):
@@ -394,9 +395,9 @@ class KeymapManager():
             kmi.active = enable
             return enable
         else:
-            if self.debug : print('Unable to find : {} assigned to \'{}\''.format(idname, type))
+            if self.debug : print(f'WARNING : Unable to find : {idname} assigned to \'{type}\'')
             # if idname is None:
-            #     self.log_progress.warning('Unable to find keymap assigned to \'{}\''.format(type))
+            #     self.log_progress.warning(f'WARNING : Unable to find keymap assigned to \'{type}\'')
             # else:
-            #     self.log_progress.warning('Unable to find : "{}" assigned to \'{}\''.format(idname, type))
+            #     self.log_progress.warning(f'WARNING : Unable to find : "{idname}" assigned to \'{type}\'')
         return None

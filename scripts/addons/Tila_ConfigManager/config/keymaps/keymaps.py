@@ -90,8 +90,8 @@ class TILA_Config_Keymaps_Base(KeymapManager.KeymapManager):
     def keymap_restore(self, all=True):
         if all:
             if not bpy.context.window_manager.tila_config_keymap_restored:
-                for i in range(100):
-                    bpy.ops.preferences.keymap_restore(all=all)
+                # for i in range(100):
+                bpy.ops.preferences.keymap_restore(all=all)
                 bpy.context.window_manager.tila_config_keymap_restored = True
         else:
             pass
