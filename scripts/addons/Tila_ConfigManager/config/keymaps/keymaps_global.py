@@ -672,7 +672,7 @@ class TILA_Config_Keymaps(TILA_Config_Keymaps_Base):
 
         self.selection_keys(shortestpath_tool='mesh.shortest_path_pick',
                             shortestring_tool='mesh.shortest_path_pick',
-                            loop_tool='view3d.tila_smart_loopselect',
+                            loop_tool='mesh.tila_smart_loopselect',
                             ring_tool='mesh.edgering_select',
                             loop_multiselect_tool='mesh.loop_multi_select',
                             ring_multiselect_tool='mesh.loop_multi_select',
