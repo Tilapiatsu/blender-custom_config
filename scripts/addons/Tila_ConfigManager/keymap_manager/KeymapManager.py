@@ -154,7 +154,9 @@ class KeymapManager():
             return False
         else:
             for i in range(len(kmi1_props)):
-                if kmi1_props[i] != kmi2_props[i]:
+                if kmi1_props[i] == 'bl_system_properties_get' or kmi2_props[i] == 'bl_system_properties_get':
+                    continue
+                elif kmi1_props[i] != kmi2_props[i]:
                     return False
                 else:
                     prop1 = self.kmi_prop_getattr(kmi1.properties, kmi1_props[i])
