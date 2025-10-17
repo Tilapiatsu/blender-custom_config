@@ -156,9 +156,12 @@ class TILA_Config_Keymaps(TILA_Config_Keymaps_Base):
 
         # Loop Select / Deselect / Add
         if loop_tool:
-            self.kmi_set_replace(loop_tool, self.k_select, 'DOUBLE_CLICK', disable_double=True, properties={'extend': False, 'deselect': False})
-            self.kmi_set_replace(loop_tool, self.k_select, 'DOUBLE_CLICK', shift=True, properties={'extend': True, 'ring': False, 'deselect': False}, disable_double=True)
-            if self.km.name not in ['UV Editor']:
+            if self.km.name in ['UV Editor']:
+                self.kmi_set_replace(loop_tool, self.k_select, 'DOUBLE_CLICK', disable_double=True, properties={'extend': False, 'loop': True})
+                self.kmi_set_replace(loop_tool, self.k_select, 'DOUBLE_CLICK', shift=True, properties={'extend': True, 'loop': True}, disable_double=True)
+            else:
+                self.kmi_set_replace(loop_tool, self.k_select, 'DOUBLE_CLICK', disable_double=True, properties={'extend': False, 'deselect': False})
+                self.kmi_set_replace(loop_tool, self.k_select, 'DOUBLE_CLICK', shift=True, properties={'extend': True, 'ring': False, 'deselect': False}, disable_double=True)
                 self.kmi_set_replace(loop_tool, self.k_select, 'DOUBLE_CLICK', ctrl=True, properties={'extend': False, 'deselect': True}, disable_double=True)
 
         # Ring Select / Deselect / Add
@@ -599,11 +602,11 @@ class TILA_Config_Keymaps(TILA_Config_Keymaps_Base):
         self.right_mouse()
         self.selection_tool()
         self.tool_transform(cage_scale='builtin.transform')
-        self.selection_keys(select_tool='uv.select',
+        self.selection_keys(select_tool='uv.tila_uv_select',
                             lasso_tool='uv.select_lasso',
                             box_through_tool='uv.select_box',
                             circle_tool='uv.select_circle',
-                            loop_tool='uv.select_loop',
+                            loop_tool='uv.tila_uv_select',
                             ring_tool='uv.select_edge_ring',
                             more_tool='uv.select_more',
                             less_tool='uv.select_less',
