@@ -65,6 +65,7 @@ class TILA_Config_SetupBlender(Operator):
                     context.window_manager.tila_setup_blender_progress = "NONE"
                     self.report({'INFO'}, 'TilaConfig : Blender Setup Done !')
                     self.log_status.done_stage('Blender Setup Done !')
+                    self.log_status.log_failure()
                     return {"FINISHED"}
 
         return {"PASS_THROUGH"}

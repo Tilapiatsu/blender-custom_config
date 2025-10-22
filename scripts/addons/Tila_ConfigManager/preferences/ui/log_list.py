@@ -1,7 +1,16 @@
 import bpy
+from enum import StrEnum
 from ...logger import LOG
 from ...config_const import LOG_FILENAME
 
+class MessageType(StrEnum):
+    NONE = 'BLANK1'
+    INFO = 'INFO'
+    DEBUG = 'ALIGN_JUSTIFY'
+    WARNING = 'ERROR'
+    ERROR = 'CANCEL'
+    START = 'TRIA_RIGHT'
+    DONE = 'CHECKMARK'
 
 class TILA_Config_LogElement(bpy.types.PropertyGroup):
     name: bpy.props.StringProperty(default='')
@@ -22,17 +31,23 @@ class TILA_Config_SatusList(bpy.types.UIList):
         row.label(text=item.name, icon=item.icon)
 
 class TILA_Config_Log():
-    def __init__(self, log, index_name):
-        self.log = log
+    def __init__(self, log_list, index_name):
+        self.log_list = log_list
         self.index_name = index_name
 
-    def append(self, name:str, icon='BLANK1', add_to_satus=True):
+    def append(self, name:str, message_type:MessageType = MessageType.NONE, add_to_satus=True):
         if add_to_satus:
-            element = self.log.add()
+            element = self.log_list.add()
             element.name = name
-            element.icon = icon
+            element.icon = str(message_type)
 
-        LOG.info(name)
+        if message_type in [MessageType.INFO, MessageType.START, MessageType.DONE]:
+            LOG.info(name)
+        if message_type in [MessageType.ERROR, MessageType.WARNING]:
+            if message_type == MessageType.ERROR:
+                LOG.error(name)
+            elif message_type == MessageType.WARNING:
+                LOG.warning(name)
 
         if LOG_FILENAME not in bpy.data.texts:
             bpy.data.texts.new(LOG_FILENAME)
@@ -40,35 +55,43 @@ class TILA_Config_Log():
         text = bpy.data.texts[LOG_FILENAME]
         text.write(name + "\n")
 
-        setattr(bpy.context.window_manager, self.index_name, len(self.log)-1)
+        setattr(bpy.context.window_manager, self.index_name, len(self.log_list)-1)
 
     def info(self, name:str):
-        self.append(name, icon='INFO')
+        self.append(name, message_type=MessageType.INFO)
 
     def warning(self, name:str):
-        self.append(name, icon='ERROR')
+        self.append(name, message_type=MessageType.WARNING)
 
     def error(self, name:str):
-        self.append(name, icon='CANCEL')
+        self.append(name, message_type=MessageType.ERROR)
 
     def start(self, name:str):
-        self.append(name, icon='TRIA_RIGHT')
+        self.append(name, message_type=MessageType.START)
 
     def done(self, name:str):
-        self.append(name, icon='CHECKMARK')
+        self.append(name, message_type=MessageType.DONE)
 
     def separator(self, add_to_satus=False):
-        self.append('-----------------------------------', add_to_satus=add_to_satus)
+        self.append('-----------------------------------', message_type=MessageType.NONE, add_to_satus=add_to_satus)
 
     def start_stage(self, name:str):
         self.separator()
-        self.append(name, icon='TRIA_RIGHT')
+        self.append(name, message_type=MessageType.START)
         self.separator()
 
     def done_stage(self, name:str):
         self.separator()
-        self.append(name, icon='CHECKMARK')
+        self.append(name, message_type=MessageType.DONE)
         self.separator()
+    
+    def log_failure(self):
+        if len(LOG.failure):
+            LOG.info(f'{len(LOG.failure)} issue(s) occures durring the process :')
+        for l in LOG.failure:
+            LOG.info(l)
+        LOG.failure = []
+        
 
 classes = (TILA_Config_LogElement,
            TILA_Config_LogList,

@@ -29,28 +29,38 @@ class LOG(object):
 
 		self._pretty = '---------------------'
 
-	def info(self, message, print_log=True):
+	def info(self, message:str, print_log=True):
 		if print_log:
 			print(message)
 		self.set_basic_config()
 		logging.info(message)
 
-	def debug(self, message, print_log=True):
+	def debug(self, message:str, print_log=True):
 		if print_log:
 			print(message)
 		self.set_basic_config()
 		logging.debug(message)
 
-	def warning(self, message, print_log=True):
+	def warning(self, message:str, print_log=True, store_failure=True):
+		message = 'WARNING : ' + str(message)
 		if print_log:
 			print(message)
 		self.set_basic_config()
+
+		if store_failure:
+			self.store_failure(message)
+
 		logging.warning(message)
 
-	def error(self, message, print_log=True):
+	def error(self, message:str, print_log=True, store_failure=True):
+		message = 'ERROR : ' + str(message)
 		if print_log:
 			print(message)
 		self.set_basic_config()
+
+		if store_failure:
+			self.store_failure(message)
+
 		logging.error(message)
 
 	def set_basic_config(self):

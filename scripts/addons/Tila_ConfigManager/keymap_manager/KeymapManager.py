@@ -219,7 +219,7 @@ class KeymapManager():
 
     def kmi_set(self, idname, type, value, direction='ANY', alt=False, any=False, ctrl=False, shift=False, oskey=False, key_modifier=None, disable_double=None, properties={}, repeat=False, head=False):
         if not self.is_operator_exist(idname):
-            self.log_progress.error(f"ERROR : operator 'bpy.ops.{idname}' does not exists")
+            self.log_progress.error(f"operator 'bpy.ops.{idname}' does not exists")
             return
 
         if disable_double:
@@ -356,11 +356,11 @@ class KeymapManager():
         except AttributeError:
             if self.debug : print("WARNING : property '%s' not found in keymap item '%s'" %
                   (attr, idname))
-            self.log_progress.warning("WARNING : property '%s' not found in keymap item '%s'" %
+            self.log_progress.warning("property '%s' not found in keymap item '%s'" %
                   (attr, idname))
         except Exception as e:
             if self.debug : print("WARNING : %r" % e)
-            self.log_progress.warning("WARNING : %r" % e)
+            self.log_progress.warning("%r" % e)
 
     def kmi_prop_getattr(self, kmi_props, attr):
         try:
@@ -370,10 +370,10 @@ class KeymapManager():
                 return getattr(kmi_props, attr)
         except AttributeError:
             if self.debug : print("WARNING : property '%s' not found in keymap item '%s'" % (attr, kmi_props.__class__.__name__))
-            self.log_progress.warning("WARNING : property '%s' not found in keymap item '%s'" % (attr, kmi_props.__class__.__name__))
+            self.log_progress.warning("property '%s' not found in keymap item '%s'" % (attr, kmi_props.__class__.__name__))
         except Exception as e:
             if self.debug : print("WARNING : %r" % e)
-            self.log_progress.warning("WARNING : %r" % e)
+            self.log_progress.warning("%r" % e)
 
     def kmi_prop_list(self, kmi_props):
         if isinstance(kmi_props, dict):

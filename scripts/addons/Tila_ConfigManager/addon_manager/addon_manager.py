@@ -109,7 +109,7 @@ def file_acces_handler(func, path, exc_info):
 try:
     import git
 except (ModuleNotFoundError, ImportError) as e:
-    LOG.error(e)
+    LOG.error(e, store_failure=False)
     install_dependencies()
     import git
 
