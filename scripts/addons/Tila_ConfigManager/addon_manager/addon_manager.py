@@ -58,7 +58,7 @@ def enable_addon(addon_name):
     if addon_name is None:
         return False
 
-    log_progress = log_list(bpy.context.window_manager.tila_config_log_list, 'tila_config_log_list_idx')
+    log_progress = log_list(bpy.context.window_manager.tila_config_log_list, 'tila_config_log_list_idx', 'ENABLE_ADDON')
     if addon_name in bpy.context.preferences.addons:
         log_progress.warning(f'Addon already Enabled : {addon_name}, skipping')
         log_progress.separator(add_to_satus=True)
@@ -81,7 +81,7 @@ def enable_addon(addon_name):
 
 def disable_addon(addon_name):
     log_progress = log_list(bpy.context.window_manager.tila_config_log_list,
-                       'tila_config_log_list_idx')
+                       'tila_config_log_list_idx', 'DISABLE_ADDON')
     if addon_name not in bpy.context.preferences.addons:
         log_progress.start(f'Addon already Disabled : {addon_name}')
         return False
@@ -222,7 +222,7 @@ class PathAM:
     def __init__(self, path):
         self._path = path
         self.log_progress = log_list(bpy.context.window_manager.tila_config_log_list,
-                                'tila_config_log_list_idx')
+                                'tila_config_log_list_idx', 'PATH')
 
     def __str__(self):
         return self._path if self._path is not None else ''
@@ -278,7 +278,7 @@ class PathElementAM:
         self._path_dict = path_dict
         self.local_path = local_path
         self.log_progress = log_list(bpy.context.window_manager.tila_config_log_list,
-                                'tila_config_log_list_idx')
+                                'tila_config_log_list_idx', 'PATH_ELEMENT')
 
     @property
     def is_enable(self):
@@ -359,7 +359,7 @@ class ElementAM:
         self.name = name
         self.root_folder = root_folder
         self.log_progress = log_list(bpy.context.window_manager.tila_config_log_list,
-                                'tila_config_log_list_idx')
+                                'tila_config_log_list_idx', 'ELEMENT')
 
     def __str__(self):
         LOG.debug(self.name)
@@ -588,7 +588,7 @@ class AddonManager:
         self.processing = False
         self.queue_list = []
         self.log_progress = log_list(bpy.context.window_manager.tila_config_log_list,
-                                'tila_config_log_list_idx')
+                                'tila_config_log_list_idx', 'ADDON_MANAGER')
 
     @property
     def elements(self):

@@ -10,76 +10,92 @@ def get_log_file():
 
     log_file = LOG_PREFIX + time.strftime(f"%Y%m%d") + ".log"
     log_file = path.join(tempfile.gettempdir(), log_file)
-    
+
     print('Tila Config : Log file path :', log_file)
 
     return log_file
 
 class LOG(object):
-	def __init__(self, context='ROOT'):
-		self.context = context
+    def __init__(self, context='ROOT'):
+        self.context = context
 
-		self.log_file = get_log_file()
-		self.timeformat = '%m/%d/%Y %I:%M:%S %p'
-		self.set_basic_config()
+        self.log_file = get_log_file()
+        self.timeformat = '%m/%d/%Y %I:%M:%S %p'
+        self.set_basic_config()
 
-		self.success = []
-		self.failure = []
-		# self.message_list = []
+        self.success = {}
+        self.failure = {}
+        self.success_count = 0
+        self.failure_count = 0
 
-		self._pretty = '---------------------'
+        self._pretty = '---------------------'
 
-	def info(self, message:str, print_log=True):
-		if print_log:
-			print(message)
-		self.set_basic_config()
-		logging.info(message)
+    def info(self, message:str, print_log=True):
+        if print_log:
+            print(message)
+        self.set_basic_config()
+        logging.info(message)
 
-	def debug(self, message:str, print_log=True):
-		if print_log:
-			print(message)
-		self.set_basic_config()
-		logging.debug(message)
+    def debug(self, message:str, print_log=True):
+        if print_log:
+            print(message)
+        self.set_basic_config()
+        logging.debug(message)
 
-	def warning(self, message:str, print_log=True, store_failure=True):
-		message = 'WARNING : ' + str(message)
-		if print_log:
-			print(message)
-		self.set_basic_config()
+    def warning(self, message:str, print_log=True, store_failure=True):
+        message = 'WARNING : ' + str(message)
+        if print_log:
+            print(message)
+        self.set_basic_config()
 
-		if store_failure:
-			self.store_failure(message)
+        if store_failure:
+            self.store_failure(message)
 
-		logging.warning(message)
+        logging.warning(message)
 
-	def error(self, message:str, print_log=True, store_failure=True):
-		message = 'ERROR : ' + str(message)
-		if print_log:
-			print(message)
-		self.set_basic_config()
+    def error(self, message:str, print_log=True, store_failure=True):
+        message = 'ERROR : ' + str(message)
+        if print_log:
+            print(message)
+        self.set_basic_config()
 
-		if store_failure:
-			self.store_failure(message)
+        if store_failure:
+            self.store_failure(message)
 
-		logging.error(message)
+        logging.error(message)
 
-	def set_basic_config(self):
-		self.format = '%(asctime)s - %(levelname)s : {} :    %(message)s'.format(
-			self.context)
-		logging.basicConfig(filename=self.log_file, level=logging.DEBUG,
+    def set_basic_config(self):
+        self.format = '%(asctime)s - %(levelname)s : {} :    %(message)s'.format(
+            self.context)
+        logging.basicConfig(filename=self.log_file, level=logging.DEBUG,
                       datefmt=self.timeformat, filemode='w', format=self.format)
 
-	def store_success(self, success):
-		self.success.append(success)
+    def store_success(self, success):
+        if self.context not in self.success.keys():
+            self.success[self.context] = [success]
+        else:
+            self.success[self.context].append(success)
+        self.success_count += 1
 
-	def store_failure(self, failure):
-		self.failure.append(failure)
+    def store_failure(self, failure):
+        if self.context not in self.failure.keys():
+            self.failure[self.context] = [failure]
+        else:
+            self.failure[self.context].append(failure)
 
-	def pretty(self, str):
+        self.failure_count += 1
 
-		p = self._pretty
+    def pretty(self, str):
 
-		for c in str:
-			p += '-'
+        p = self._pretty
 
-		return p
+        for c in str:
+            p += '-'
+
+        return p
+
+    def reset_log(self):
+        self.success = {}
+        self.failure = {}
+        self.success_count = 0
+        self.failure_count = 0

@@ -31,9 +31,11 @@ class TILA_Config_SatusList(bpy.types.UIList):
         row.label(text=item.name, icon=item.icon)
 
 class TILA_Config_Log():
-    def __init__(self, log_list, index_name):
+    def __init__(self, log_list, index_name, context:str=None):
         self.log_list = log_list
         self.index_name = index_name
+        if context is not None:
+            LOG.context = context
 
     def append(self, name:str, message_type:MessageType = MessageType.NONE, add_to_satus=True):
         if add_to_satus:
@@ -84,17 +86,18 @@ class TILA_Config_Log():
         self.separator()
         self.append(name, message_type=MessageType.DONE)
         self.separator()
-    
+
     def log_failure(self):
-        if len(LOG.failure):
-            self.separator(add_to_satus=True)
-            self.separator(add_to_satus=True)
-            self.append(f'{len(LOG.failure)} issue(s) occures durring the process :', message_type=MessageType.NONE)
-            self.separator(add_to_satus=True)
-        for l in LOG.failure:
-            self.append(l, message_type=MessageType.NONE)
-        LOG.failure = []
-        
+        if LOG.failure_count > 0:
+            self.separator()
+            self.append('Summary :', message_type=MessageType.NONE, add_to_satus=False)
+            self.append(f'{LOG.failure_count} issue(s) occures durring the process :', message_type=MessageType.NONE, add_to_satus=False)
+            self.separator()
+        for key, messages in LOG.failure.items():
+            for message in messages:
+                self.append(f'{key} : {message}', message_type=MessageType.NONE, add_to_satus=False)
+        LOG.reset_log()
+
 
 classes = (TILA_Config_LogElement,
            TILA_Config_LogList,

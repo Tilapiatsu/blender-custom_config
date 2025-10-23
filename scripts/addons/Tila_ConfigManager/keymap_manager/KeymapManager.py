@@ -52,7 +52,7 @@ class KeymapManager():
 
     def __init__(self):
         self.debug = False
-        self.log_progress = log_list(bpy.context.window_manager.tila_config_log_list, 'tila_config_log_list_idx')
+        self.log_progress = log_list(bpy.context.window_manager.tila_config_log_list, 'tila_config_log_list_idx', 'KEYMAP_MANAGER')
         # Define global variables
         self.wm = bpy.context.window_manager
         self.kca = self.wm.keyconfigs.addon
