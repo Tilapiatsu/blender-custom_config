@@ -19,7 +19,8 @@ class KeTT(Operator):
                ("DUPE", "TT Dupe (Toggle)", "", "DUPE", 8),
                ("TOGGLE_DUPE", "TT Dupe Mode", "", "TOGGLE_DUPE", 9),
                ("F_DUPE", "TT Dupe Unlinked", "", "F_DUPE", 10),
-               ("F_LINKDUPE", "TT Dupe Linked", "", "F_LINKDUPE", 11)
+               ("F_LINKDUPE", "TT Dupe Linked", "", "F_LINKDUPE", 11),
+               ("TOGGLE_CYCLE_REV", "TT Reverse Cycle Modes", "", "TOGGLE_CYCLE_REV", 12),
                ],
         name="Level Mode",
         options={'HIDDEN'},
@@ -45,8 +46,12 @@ class KeTT(Operator):
             return "TT Dupe Unlinked - Unlinked duplication with TT move (disregards dupe toggle)"
         elif properties.mode == "F_LINKDUPE":
             return "TT Dupe Linked - Linked duplication with TT move (disregards dupe toggle)"
+        elif properties.mode == "TOGGLE_CYCLE_REV":
+            return "Reverse Cycles TT Move/Rotate/Scale modes: DEFAULT | MOUSEAXIS | VIEWPLANE\n" \
+                   "Note: Preferred default state can be set by saving kit settings\n" \
+                   "Icons visibility: keKit/Context Tools/TT Toggle/Hide Icons"
         else:
-            return "Toggles TT Move/Rotate/Scale between using Default Transform / MouseAxis / Viewplane\n" \
+            return "Cycle TT Move/Rotate/Scale modes: DEFAULT | MOUSEAXIS | VIEWPLANE\n" \
                    "Note: Preferred default state can be set by saving kit settings\n" \
                    "Icons visibility: keKit/Context Tools/TT Toggle/Hide Icons"
 
@@ -159,7 +164,15 @@ class KeTT(Operator):
             else:
                 tt_mode[0], tt_mode[1], tt_mode[2] = True, False, False
 
-        # Note: These actually set the TT mode : not type...naming sux
+        elif self.mode == "TOGGLE_CYCLE_REV":
+            if tt_mode[0]:
+                tt_mode[0], tt_mode[1], tt_mode[2] = False, False, True
+            elif tt_mode[1]:
+                tt_mode[0], tt_mode[1], tt_mode[2] = True, False, False
+            else:
+                tt_mode[0], tt_mode[1], tt_mode[2] = False, True, False
+
+        # Note: These actually set the TT mode : not type...the naming sux
         elif self.mode == "TOGGLE_MOVE":
             # tt_mode[0] = not tt_mode[0]
             tt_mode[0] = True
@@ -182,8 +195,8 @@ class KeTT(Operator):
             tt_mode[0], tt_mode[1], tt_mode[2] = True, False, False
 
         context.area.tag_redraw()
-
-        if k.tt_select and self.mode in {'TOGGLE_MOVE', 'TOGGLE_SCALE', 'TOGGLE_ROTATE', 'TOGGLE_CYCLE'}:
+        toggle_modes = {'TOGGLE_MOVE', 'TOGGLE_SCALE', 'TOGGLE_ROTATE', 'TOGGLE_CYCLE', 'TOGGLE_CYCLE_REV'}
+        if k.tt_select and self.mode in toggle_modes:
             active = context.workspace.tools.from_space_view3d_mode(context.mode, create=False).idname
             builtins = ["builtin.move", "builtin.rotate", "builtin.scale"]
             if active in builtins and not tt_mode[0] or not tt_handles:

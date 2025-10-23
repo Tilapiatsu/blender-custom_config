@@ -54,11 +54,10 @@ def apply_og_materials_em():
             og_materials = o.data.get("copyplus")
         except AttributeError:
             continue
-        if og_materials is None:
-            continue
-        for i, og in enumerate(og_materials):
-            o.data.materials[i] = bpy.data.materials[og]
-        bpy.ops.object.material_slot_remove_unused()
+        if og_materials:
+            for i, og in enumerate(og_materials):
+                o.data.materials[i] = bpy.data.materials[og]
+            bpy.ops.object.material_slot_remove_unused()
     refresh_ui()
 
 

@@ -23,8 +23,6 @@ class UIViewBookmarksModule(Panel):
     def draw(self, context):
         layout = self.layout
         kt = context.scene.kekit_temp
-        isolated_slot = int(kt.nr_toggle)
-        # name_toggle = kt.toggle
 
         slots = [i for i in kt.keys() if i[:2] == "vb"]
         slot_items = []
@@ -35,15 +33,6 @@ class UIViewBookmarksModule(Panel):
 
         col = layout.column(align=False)
 
-        row = col.row(align=True)
-        row.prop(kt, "view_name")
-        new = row.operator('view3d.ke_view_bookmark', text="", icon="ADD")
-        new.op = "SAVE"
-        new.preset_id = ""
-        if isolated_slot != 0:
-            row.enabled = False
-        col.separator(factor=1.25)
-
         if slot_items:
             for i, (idx, name) in enumerate(slot_items, 1):
                 row = col.row(align=True)
@@ -51,40 +40,26 @@ class UIViewBookmarksModule(Panel):
                 ico = pcoll['kekit']['ke_bm' + ico_idx].icon_id
                 pid = "vb" + str(idx) + "\x1f" + name
 
-                if isolated_slot == i:
-                    row.label(icon_value=ico)
-                    row.prop(kt, "view_name", text="")
-                    row.separator()
-                    rename = row.operator('view3d.ke_view_bookmark', text="", icon="IMPORT")
-                    rename.op = "RENAME"
-                    rename.preset_id = pid
-                    row.separator()
-                    rename = row.operator('view3d.ke_view_bookmark', text="", icon="LOOP_BACK")
-                    rename.op = "TOGGLE_RENAME"
-                    rename.preset_id = "0"
+                loader = row.operator('view3d.ke_view_bookmark', text=name, icon_value=ico)
+                loader.op = "LOAD"
+                loader.preset_id = pid
 
-                else:
-                    loader = row.operator('view3d.ke_view_bookmark', text=name, icon_value=ico)
-                    loader.op = "LOAD"
-                    loader.preset_id = pid
+                saving = row.operator('view3d.ke_view_bookmark', text="", icon="IMPORT")
+                saving.op = "SAVE"
+                saving.preset_id = pid
+                row.separator()
 
-                    rename = row.operator('view3d.ke_view_bookmark', text="", icon="OUTLINER_DATA_GP_LAYER")
-                    rename.op = "TOGGLE_RENAME"
-                    rename.preset_id = str(i)
-                    row.separator()
+                removing = row.operator('view3d.ke_view_bookmark', text="", icon="X")
+                removing.op = "DELETE"
+                removing.preset_id = pid
 
-                    saving = row.operator('view3d.ke_view_bookmark', text="", icon="IMPORT")
-                    saving.op = "SAVE"
-                    saving.preset_id = pid
-                    row.separator()
+        row = col.row(align=True)
+        row.prop(kt, "view_name")
+        new = row.operator('view3d.ke_view_bookmark', text="", icon="ADD")
+        new.op = "SAVE"
+        new.preset_id = ""
 
-                    removing = row.operator('view3d.ke_view_bookmark', text="", icon="X")
-                    removing.op = "DELETE"
-                    removing.preset_id = pid
-                    if isolated_slot != 0:
-                        row.enabled = False
-
-            col.separator(factor=1.25)
+        col.separator(factor=1.25)
 
         row = col.row()
         row.enabled = True if slot_items else False
@@ -96,10 +71,6 @@ class UIViewBookmarksModule(Panel):
         sub.operator('view3d.ke_viewpos', text="Get").mode = "GET"
         sub.prop(kt, "view_query", text="")
         sub.operator('view3d.ke_viewpos', text="Set").mode = "SET"
-
-        if isolated_slot != 0:
-            row.enabled = False
-            sub.enabled = False
 
 
 def assign_slot_nr(slot_items):

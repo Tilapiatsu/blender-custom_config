@@ -212,7 +212,7 @@ class KeOMP(Operator):
 
                     for k in m.keys():
                         attr = json_serializable(m[k])
-                        if attr:
+                        if attr is not None:
                             entry[k] = attr
 
                     attr = json_serializable(getattr(m, "show_group_selector"))
@@ -222,7 +222,7 @@ class KeOMP(Operator):
                     for k in dir(m):
                         if "__" not in k and k not in ignored_props:
                             attr = json_serializable(getattr(m, k))
-                            if attr:
+                            if attr is not None:
                                 entry[k] = attr
                             # custom profile special case - only storing preset (name)
                             if k == "profile_type" and attr == "CUSTOM":

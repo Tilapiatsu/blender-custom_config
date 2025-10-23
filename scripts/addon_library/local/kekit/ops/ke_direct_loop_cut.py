@@ -2,7 +2,7 @@ import bmesh
 import bpy
 from bpy.props import EnumProperty
 from bpy_extras.view3d_utils import location_3d_to_region_2d, region_2d_to_location_3d
-from bpy_types import Operator, Panel
+from bpy.types import Operator, Panel
 from mathutils import Vector
 from mathutils.geometry import intersect_point_line
 from .._utils import (

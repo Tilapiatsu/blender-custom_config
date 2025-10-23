@@ -1,4 +1,4 @@
-from math import ceil
+# from math import ceil
 from random import randint
 
 import bpy
@@ -9,7 +9,7 @@ from ._ui import pcoll
 from ._utils import get_prefs, is_registered
 from .ops.pie_operators import KePieOps, KeCallPie, KeObjectOp, KeOverlays, KeModFocus
 
-# note: homoglyphs (sometimes) used to "encourage" blender to not pick certain characters as shortcuts:
+# note: homoglyphs (sometimes) used to "encourage" blender to pick the "right" characters as shortcuts:
 # https://util.unicode.org/UnicodeJsps/confusables.jsp?a=Insert%20Text%20Here&r=None
 # https://gist.github.com/StevenACoffman/a5f6f682d94e38ed804182dc2693ed4b
 
@@ -756,10 +756,10 @@ class KePieMaterials(Menu):
             # ASSIGN MATERIALS BOX - RIGHT -------------------------------------------------
             box = pie.box()
             if col_count < 2:
-                box.ui_units_x = 7.5
+                box.ui_units_x = 10
             box.label(text="Assign Material  [%s / %s]" % (mat_count, limit))
             col = box.column_flow(align=False, columns=col_count)
-            col.ui_units_x = 6 * col_count
+            col.ui_units_x = 10 * col_count
             col.menu_contents("VIEW3D_MT_materialutilities_assign_material")
 
             # MATERIALS UTILS MAIN BOX - BOTTOM --------------------------------------------
@@ -2296,7 +2296,7 @@ class KePieBevel(Menu):
 #
 # REGULAR MENUS
 #
-class KeModifierPresets(bpy.types.Menu):
+class KeModifierPresets(Menu):
     bl_idname = "VIEW3D_MT_ke_modifier_presets"
     bl_label = "Modifier Presets"
 

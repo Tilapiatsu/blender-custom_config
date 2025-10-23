@@ -5,51 +5,48 @@ from bpy.types import Operator
 class KeAlignObjectToActive(Operator):
     bl_idname = "view3d.ke_align_object_to_active"
     bl_label = "Align Object(s) to Active"
-    bl_description = "Align selected object(s) to the Active Objects Transforms. (You may want to apply scale)"
+    bl_description = "Copy ACTIVE Object's Location, Rotation or Scale (or all) to all other SELECTED objects"
     bl_space_type = 'VIEW_3D'
     bl_options = {'REGISTER', 'UNDO'}
 
-    align: EnumProperty(
-        items=[("LOCATION", "Location", "", 1),
-               ("ROTATION", "Rotation", "", 2),
-               ("BOTH", "Location & Rotation", "", 3)],
-        name="Align", default="BOTH")
+    op: EnumProperty(
+        items=[("LOC", "Location", "Copy ACTIVE Object's Location to all other SELECTED objects)", 1),
+               ("ROT", "Rotation", "Copy ACTIVE Object's Rotation to all other SELECTED objects))", 2),
+               ("SCL", "Scale", "Copy ACTIVE Object's Scale to all other SELECTED objects)", 3),
+               ("ALL", "All", "Copy ACTIVE Object's Transforms to all other SELECTED objects)", 4)
+               ],
+        name="Align", default="ROT")
 
     def draw(self, context):
         layout = self.layout
         layout.use_property_split = True
         column = layout.column()
-        column.prop(self, "align", expand=True)
+        column.prop(self, "op", expand=True)
 
     @classmethod
     def poll(cls, context):
-        return context.object is not None and context.mode != "EDIT_MESH"
+        return context.mode != "EDIT_MESH"
 
     def execute(self, context):
-        target_obj = None
-        sel_obj = [o for o in context.selected_objects]
-        if context.active_object:
-            target_obj = context.active_object
-        if target_obj is None and sel_obj:
-            target_obj = sel_obj[-1]
-        if not target_obj or len(sel_obj) < 2:
-            print("Insufficent selection: Need at least 2 objects.")
-            return {'CANCELLED'}
+        sel = context.selected_objects
+        active = context.active_object
+        if not sel or not active:
+            self.report({"WARNING"}, "Op Cancelled: Invalid Selection.")
+            return {"CANCELLED"}
 
-        sel_obj = [o for o in sel_obj if o != target_obj]
-
-        for o in sel_obj:
-
-            if self.align == "LOCATION":
-                o.matrix_world.translation = target_obj.matrix_world.translation
-            elif self.align == "ROTATION":
-                og_pos = o.matrix_world.translation.copy()
-                o.matrix_world = target_obj.matrix_world
-                o.matrix_world.translation = og_pos
-            elif self.align == "BOTH":
-                o.matrix_world = target_obj.matrix_world
-
-        target_obj.select_set(False)
-        context.view_layer.objects.active = sel_obj[0]
+        if self.op == "LOC":
+            for o in sel:
+                o.location = active.location
+        elif self.op == "ROT":
+            for o in sel:
+                o.rotation_euler = active.rotation_euler
+        elif self.op == "SCL":
+            for o in sel:
+                o.scale = active.scale
+        elif self.op == "ALL":
+            for o in sel:
+                o.location = active.location
+                o.rotation_euler = active.rotation_euler
+                o.scale = active.scale
 
         return {"FINISHED"}

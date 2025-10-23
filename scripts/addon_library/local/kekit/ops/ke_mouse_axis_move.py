@@ -66,6 +66,7 @@ class KeMouseAxisMove(Operator):
     def invoke(self, context, event):
         k = get_prefs()
         self.constrain = k.mam_scale_mode
+
         self.linkdupe = bool(k.tt_linkdupe)
         # self.constrain =
 
@@ -85,13 +86,6 @@ class KeMouseAxisMove(Operator):
         # mouse track start
         self.mouse_pos[0] = int(event.mouse_region_x)
         self.mouse_pos[1] = int(event.mouse_region_y)
-
-        # Proportional Edit Support
-        ct = context.scene.tool_settings
-        self.pe_use = ct.use_proportional_edit
-        self.pe_connected = ct.use_proportional_connected
-        self.pe_proj = ct.use_proportional_projected
-        self.pe_falloff = ct.proportional_edit_falloff
 
         if context.space_data.type in {"IMAGE_EDITOR", "NODE_EDITOR"}:
             self.is_editor2d = True
@@ -132,6 +126,16 @@ class KeMouseAxisMove(Operator):
         else:
             if self.obj.type in self.em_types:
                 is_em = True if context.mode != "OBJECT" else False
+
+        # Proportional Edit Support
+        ct = context.scene.tool_settings
+        self.pe_falloff = ct.proportional_edit_falloff
+        if is_em:
+            self.pe_use = ct.use_proportional_edit
+            self.pe_connected = ct.use_proportional_connected
+            self.pe_proj = ct.use_proportional_projected
+        else:
+            self.pe_use = ct.use_proportional_edit_objects
 
         #
         # AXIS CONSTRAINT OR DEFAULT TF OPTION CHECK

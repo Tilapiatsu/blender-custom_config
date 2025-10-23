@@ -31,6 +31,10 @@ def is_registered(idname_c):
 
 
 def get_kekit_keymap():
+    # Notes:
+    # manifest.py previously used 'i.name' (the LABEL) for the 'wm.call_menu' property (not idname as seen in shortcut)!
+    # this is why pies WERE listed by label in manifest.py - now (>343) using 'i.properties.name', matching the usage
+    # + there's just one ke.call_pie-pie: shortcut added in m_pie_menus - not handled here
     wm = bpy.context.window_manager
     kc = wm.keyconfigs.user
     kk_entries = []
@@ -39,8 +43,9 @@ def get_kekit_keymap():
         for i in km.keymap_items:
             if i.idname in keops:
                 entry.append(i)
-            elif i.idname == "wm.call_menu_pie" and i.name in kepies:
-                entry.append(i)
+            elif i.idname == "wm.call_menu_pie":
+                if i.properties.name in kepies:
+                    entry.append(i)
         if entry:
             kk_entries.append((km, entry))
     return kk_entries

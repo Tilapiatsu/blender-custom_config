@@ -94,18 +94,13 @@ class KeClean(Operator):
                 bm_dissolve.extend(lv)
 
             if degenerate:
-                de = flattened([e.verts for e in bm.edges if e.calc_length() < doubles_val])
-                df = flattened([f.verts for f in bm.faces if f.calc_area() < doubles_val])
-                dv = list(set(de + df))
-                bm_select.extend(dv)
-                if not self.select_only and dv:
-                    result = bmesh.ops.find_doubles(bm, verts=dv, dist=doubles_val)
-                    verts = [i for i in result['targetmap'] if isinstance(i, bmesh.types.BMVert)]
-                    if verts:
-                        bmesh.ops.weld_verts(bm, targetmap=result['targetmap'])
-                        bm.verts.ensure_lookup_table()
-                    else:
-                        bm_delete.extend(dv)
+                degenerate_verts = set()
+                for e in bm.edges:
+                    if e.calc_length() < doubles_val:
+                        for v in e.verts:
+                            degenerate_verts.add(v)
+                bm_select.extend(degenerate_verts)
+                mes.extend(degenerate_verts)
 
             if collinear:
                 cvs = [v for v in bm.verts if is_bmvert_collinear(v, tolerance=tv)]
@@ -113,8 +108,9 @@ class KeClean(Operator):
                 bm_dissolve.extend(cvs)
 
             if tinyedges:
-                mes = flattened([e.verts for e in bm.edges if e.calc_length() < tinyedges_val])
-                bm_select.extend(mes)
+                tmes = flattened([e.verts for e in bm.edges if e.calc_length() < tinyedges_val])
+                mes.extend(tmes)
+                bm_select.extend(tmes)
 
             # PROCESS
             if not self.select_only:
@@ -124,10 +120,10 @@ class KeClean(Operator):
                 bm_delete = [v for v in bm_delete if v.is_valid]
                 bm_delete = list(set(bm_delete))
                 bmesh.ops.delete(bm, geom=bm_delete)
-                if tinyedges:
-                    mes = [v for v in mes if v.is_valid]
+                if mes:
+                    mes = [v for v in bm_select if v.is_valid]
                     if len(mes) > 1:
-                        mes_found = "-Tiny Edges (sel only) Found & Selected!-"
+                        mes_found = "Select Only Items: Tiny and/or Degenerate Edges Found & Selected!-"
                         for v in mes:
                             v.select_set(True)
             else:

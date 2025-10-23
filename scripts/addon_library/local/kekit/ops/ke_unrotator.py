@@ -4,7 +4,7 @@ from random import randint
 import bmesh
 import bpy
 from bpy_extras.view3d_utils import region_2d_to_location_3d, region_2d_to_vector_3d
-from bpy_types import Operator, Panel
+from bpy.types import Operator, Panel
 from bpy.props import EnumProperty, FloatProperty, BoolProperty
 from mathutils import Vector, Quaternion
 from mathutils.geometry import distance_point_to_plane

@@ -107,8 +107,11 @@ class KeIDMaterial(Operator):
         object_color = k.object_color
 
         idm = f"idm{self.m_id:02}"
-        m_col = k[idm]
-        m_name = k[idm + "_name"]
+        # using getattr due to 4.2 error (+which other versions...) ?
+        # m_col = k[idm]
+        # m_name = k[idm + "_name"]
+        m_col = getattr(k, idm)
+        m_name = getattr(k, idm + "_name")
 
         # Assign ID Mat
         sel_mode = str(context.mode)

@@ -1,10 +1,11 @@
 import bmesh
 import bpy
 from bpy.types import Operator
+from mathutils import Matrix
 from .._utils import find_parents, get_prefs
 
-
 # BASIC / SIMPLE CONTEXT OPERATORS
+
 
 class KeContextBevel(Operator):
     bl_idname = "mesh.ke_contextbevel"

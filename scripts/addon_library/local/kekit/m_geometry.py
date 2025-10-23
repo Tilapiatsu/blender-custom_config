@@ -17,7 +17,6 @@ from .ops.ke_radial_array import KeRadialArray
 from .ops.ke_radial_instances import KeRadialInstances
 from .ops.ke_unhide_or_local import KeUnhideOrLocal
 from .ops.ke_unrotator import KeUnrotator, UIUnrotatorModule
-from .ops.ke_vp_flip import KeVPFlip
 from .ops.ke_zerolocal import KeZeroLocal
 
 
@@ -56,7 +55,6 @@ class UIGeoModule(Panel):
         split = row.split(factor=m, align=True)
         split.operator('view3d.ke_mouse_mirror_flip', icon="MOUSE_MOVE", text="Mouse Mirror").mode = "MIRROR"
         split.operator('view3d.ke_mouse_mirror_flip', icon="MOUSE_MOVE", text="Flip").mode = "FLIP"
-        col.operator('view3d.ke_vp_flip')
 
         row = col.row(align=True)
         split = row.split(factor=s, align=True)
@@ -112,7 +110,6 @@ classes = (
     KeRadialInstances,
     KeUnhideOrLocal,
     KeUnrotator,
-    KeVPFlip,
     KeZeroLocal,
     UIGeoModule,
     UIFitPrimModule,

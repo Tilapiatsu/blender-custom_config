@@ -29,6 +29,7 @@ class KeVPTransform(Operator):
 
     tm = None
     obj = None
+    em_types = {'MESH', 'CURVE', 'SURFACE', 'META', 'FONT', 'HAIR', 'GPENCIL'}
 
     @classmethod
     def poll(cls, context):
@@ -57,11 +58,25 @@ class KeVPTransform(Operator):
         self.loc_got = k.loc_got
         self.scl_got = k.scl_got
 
+        # Proportional Edit Support
         ct = context.scene.tool_settings
-        pe_use = ct.use_proportional_edit
-        pe_connected = ct.use_proportional_connected
-        pe_proj = ct.use_proportional_projected
         pe_falloff = ct.proportional_edit_falloff
+        pe_connected = False
+        pe_proj = False
+
+        is_em = False
+        if self.obj.type == "GPENCIL":
+            is_em = bool(self.obj.data.use_stroke_edit_mode)
+        else:
+            if self.obj.type in self.em_types:
+                is_em = True if context.mode != "OBJECT" else False
+
+        if is_em:
+            pe_use = ct.use_proportional_edit
+            pe_connected = ct.use_proportional_connected
+            pe_proj = ct.use_proportional_projected
+        else:
+            pe_use = ct.use_proportional_edit_objects
 
         linkdupe = bool(k.tt_linkdupe)
 

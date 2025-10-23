@@ -24,6 +24,7 @@ def has_rgb_img(nodes):
             if n.image is not None:
                 if n.image.colorspace_settings.name == "sRGB":
                     return n.image
+    return None
 
 
 def find_texture_average(c):
@@ -56,6 +57,7 @@ def find_texture_average(c):
         # sRGB Gamma haxxors & add an alpha element for vp col
         avg = [(((i * i) + vsn) / 0.4546) * 0.4546 for i in avg] + [1.0]
         return avg
+    return None
 
 
 def update_vpshading(m):
@@ -69,7 +71,7 @@ def update_vpshading(m):
     # Grab Active Material values
     if shader is not None:
         m_node_c, m_node_m, m_node_r = None, None, None
-        m_node_c = Vector(shader.inputs[0].default_value)
+        m_node_c = Vector(shader.inputs["Base Color"].default_value)
         # Check if sRGB texture is used
         c = shader.inputs[0]
         if c.is_linked:
@@ -79,12 +81,12 @@ def update_vpshading(m):
         # Check rgb box values
         st = shader.type
         if st == "BSDF_PRINCIPLED":
-            m_node_m = float(shader.inputs[6].default_value)
-            m_node_r = float(shader.inputs[9].default_value)
+            m_node_m = float(shader.inputs["Metallic"].default_value)
+            m_node_r = float(shader.inputs["Roughness"].default_value)
         elif st in {"BSDF_GLASS", "BSDF_ANISOTROPIC", "BSDF_DIFFUSE", "BSDF_GLOSSY", "BSDF_REFRACTION"}:
-            m_node_r = float(shader.inputs[1].default_value)
+            m_node_r = float(shader.inputs["Roughness"].default_value)
         elif st == "EEVEE_SPECULAR":
-            m_node_r = float(shader.inputs[2].default_value)
+            m_node_r = float(shader.inputs["Roughness"].default_value)
         # Apply to Viewport shading
         if m_node_c is not None:
             m.diffuse_color = m_node_c

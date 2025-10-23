@@ -23,7 +23,10 @@ class UITTModule(Panel):
         row = col.row(align=True)
         row.label(text="TT Toggle")
         row = col.row(align=True)
-        row.operator('view3d.ke_tt', text="TT Mode Cycle").mode = "TOGGLE_CYCLE"
+        row.operator('view3d.ke_tt', text="", icon="PLAY_REVERSE").mode = "TOGGLE_CYCLE_REV"
+        # row.separator()
+        row.operator('view3d.ke_tt', text="TT Mode Cycle", icon="PLAY").mode = "TOGGLE_CYCLE"
+        # row.separator()
         row.operator("view3d.ke_tt", text="", icon='OBJECT_ORIGIN', depress=tt_mode[0]).mode = "TOGGLE_MOVE"
         row.operator("view3d.ke_tt", text="", icon='EMPTY_AXIS', depress=tt_mode[1]).mode = "TOGGLE_ROTATE"
         row.operator("view3d.ke_tt", text="", icon='AXIS_SIDE', depress=tt_mode[2]).mode = "TOGGLE_SCALE"

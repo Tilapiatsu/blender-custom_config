@@ -28,10 +28,11 @@ class KeUnhideOrLocal(Operator):
             keys = []
             if context.object is not None:
                 keys = context.object.keys()
-            if "ZeroLocal" in keys:
-                bpy.ops.view3d.ke_zerolocal()
-            else:
-                bpy.ops.view3d.localview(frame_selected=False)
+            for k in keys:
+                if "ZeroLocal" in k:
+                    bpy.ops.view3d.ke_zerolocal()
+                    return {"FINISHED"}
+            bpy.ops.view3d.localview(frame_selected=False)
         else:
             bpy.ops.object.hide_view_clear(select=False)
         return {"FINISHED"}

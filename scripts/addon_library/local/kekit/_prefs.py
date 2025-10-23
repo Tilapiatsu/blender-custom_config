@@ -51,7 +51,7 @@ def operator_exists(idname):
     for prop in names:
         a = getattr(a, prop)
     try:
-        name = a.__repr__()
+        _name = a.__repr__()
     except Exception as e:
         print(e)
         return False
@@ -59,6 +59,7 @@ def operator_exists(idname):
 
 
 def save_prefs(inputpath):
+    # see notes on get_kekit_shortcuts in _prefs reg. pie menus
     ap = get_prefs()
     prefs = {
         "kekit": get_kekit_prefs(ap),
@@ -317,6 +318,7 @@ class KeKitPropertiesTemp(PropertyGroup):
                                   description="Custom rotation (non zero will override preset-use) for step-rotate")
     omp_name: StringProperty(description="Preset Name (Change as needed)\n"
                                          "Leave blank for auto-naming", default="", name="New", update=update_omp_name)
+    nr_toggle: IntProperty(default=0)
 
 
 class KeKitAddonPreferences(AddonPreferences):
@@ -550,7 +552,7 @@ class KeKitAddonPreferences(AddonPreferences):
     clean_tinyedge: BoolProperty(name="Tiny Edges", default=True,
                                  description="Edges that are shorter than the Tiny-Edge Value set\n"
                                              "Selection only - will select also in Clean Mode")
-    clean_tinyedge_val: FloatProperty(name="Tiny Edge Limit", default=0.002, precision=4,
+    clean_tinyedge_val: FloatProperty(name="Tiny Edge Limit", default=0.002, precision=4, subtype="DISTANCE",
                                       description="Shortest allowed Edge length for Tiny Edge Selection")
     clean_collinear: BoolProperty(name="Collinear Verts", default=True,
                                   description="Additional(Superfluous) verts in a straight line on an edge")
@@ -737,10 +739,6 @@ class KeKitAddonPreferences(AddonPreferences):
     # Frame All Mesh Only
     frame_mo: BoolProperty(name="Geo Only", default=False,
                            description="Ignore non-geo objects (lights, cameras etc) for Frame All (not selected)")
-    # Mouse Axis Move - Scale ignore
-    mam_scl: BoolProperty(name="MAS",
-                          description="Mouse Axis Scale - Uncheck for default (unlocked) Scale behaviour for "
-                                      "TT Scale MouseAxis", default=True)
     # korean toggle - context bevel
     korean: BoolProperty(
         name="Flat Profile Bevels", default=False,
@@ -774,6 +772,10 @@ class KeKitAddonPreferences(AddonPreferences):
         description="When mouse is OVER selected object(s): start non-constrained (like standard tools)\n"
                     "Else, constrain axis relative to mouse direction (default mouse axis)\n"
                     "Note: Does not affect Rotate (always axis constrained)")
+    # # Mouse Axis Move - Scale ignore
+    mam_scl: BoolProperty(name="MAS",
+                          description="Mouse Axis Scale - Uncheck for default (unlocked) Scale behaviour for "
+                                      "TT Scale MouseAxis", default=True)
     # Show / Hide SubMenus
     show_modules: BoolProperty(name="keKit Modules", default=False)
     show_ui: BoolProperty(name="keKit UI Settings", default=False)

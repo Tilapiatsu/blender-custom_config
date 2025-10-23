@@ -123,7 +123,7 @@ class KeCollision(Operator):
                 bpy.ops.mesh.select_all(action="SELECT")
                 bpy.ops.mesh.convex_hull(delete_unused=True, use_existing_faces=True, make_holes=False,
                                          join_triangles=True, face_threshold=0.10472, shape_threshold=0.698132,
-                                         uvs=False, vcols=False, seam=False, sharp=False, materials=False)
+                                         uvs=True, vcols=False, seam=False, sharp=False, materials=False)
                 bpy.ops.object.mode_set(mode='OBJECT')
 
             elif self.col_type == "BOX":
@@ -146,6 +146,10 @@ class KeCollision(Operator):
 
                 bpy.ops.mesh.ke_primitive_box_add(width=side_x / 2, depth=side_y / 2, height=side_z / 2,
                                                   align='WORLD', location=avg_pos, rotation=(0, 0, 0))
+
+                bpy.ops.object.mode_set(mode='EDIT')
+                bpy.ops.uv.reset()
+                bpy.ops.object.mode_set(mode='OBJECT')
 
                 col_obj = [o for o in context.scene.objects if o.type == "MESH"][-1]
                 if og_obj:
@@ -188,7 +192,8 @@ class KeCollision(Operator):
                         bpy.ops.mesh.select_all(action="SELECT")
                         bpy.ops.mesh.convex_hull(delete_unused=True, use_existing_faces=False, make_holes=False,
                                                  join_triangles=True, face_threshold=0.10472, shape_threshold=0.698132,
-                                                 uvs=False, vcols=False, seam=False, sharp=False, materials=False)
+                                                 uvs=True, vcols=False, seam=False, sharp=False, materials=False)
+                        bpy.ops.uv.smart_project()
                         bpy.ops.object.mode_set(mode='OBJECT')
 
                         new_sel.append(col_obj)
@@ -219,7 +224,8 @@ class KeCollision(Operator):
                     bpy.ops.mesh.select_all(action="SELECT")
                     bpy.ops.mesh.convex_hull(delete_unused=True, use_existing_faces=False, make_holes=False,
                                              join_triangles=True, face_threshold=0.10472, shape_threshold=0.698132,
-                                             uvs=False, vcols=False, seam=False, sharp=False, materials=False)
+                                             uvs=True, vcols=False, seam=False, sharp=False, materials=False)
+                    bpy.ops.uv.smart_project()
                     bpy.ops.object.mode_set(mode='OBJECT')
 
                     new_sel.append(col_obj)
@@ -255,7 +261,6 @@ class KeCollision(Operator):
 
                         bpy.ops.mesh.ke_primitive_box_add(width=side_x / 2, depth=side_y / 2, height=side_z / 2,
                                                           align='WORLD', location=avg_pos, rotation=(0, 0, 0))
-
                         new_obj = context.view_layer.objects.active
                         new_obj.name = o.name + '_col'
                         new_sel.append(new_obj)
@@ -287,11 +292,14 @@ class KeCollision(Operator):
 
                     bpy.ops.mesh.ke_primitive_box_add(width=side_x / 2, depth=side_y / 2, height=side_z / 2,
                                                       align='WORLD', location=avg_pos, rotation=(0, 0, 0))
-
                     new_obj = context.view_layer.objects.active
                     new_obj.name = sel_obj[0].name + '_col'
                     new_sel.append(new_obj)
                     self.set_shading(new_obj)
+
+                bpy.ops.object.mode_set(mode='EDIT')
+                bpy.ops.uv.reset()
+                bpy.ops.object.mode_set(mode='OBJECT')
 
             for i in new_sel:
                 i.select_set(True)
