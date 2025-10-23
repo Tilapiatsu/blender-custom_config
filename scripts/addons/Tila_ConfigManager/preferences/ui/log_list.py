@@ -87,9 +87,12 @@ class TILA_Config_Log():
     
     def log_failure(self):
         if len(LOG.failure):
-            LOG.info(f'{len(LOG.failure)} issue(s) occures durring the process :')
+            self.separator(add_to_satus=True)
+            self.separator(add_to_satus=True)
+            self.append(f'{len(LOG.failure)} issue(s) occures durring the process :', message_type=MessageType.NONE)
+            self.separator(add_to_satus=True)
         for l in LOG.failure:
-            LOG.info(l)
+            self.append(l, message_type=MessageType.NONE)
         LOG.failure = []
         
 
