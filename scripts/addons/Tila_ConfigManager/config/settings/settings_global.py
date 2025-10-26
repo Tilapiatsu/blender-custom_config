@@ -84,7 +84,7 @@ class TILA_Config_Settings(TILA_Config_Settings_Base):
         self.set_setting(context, 'inputs.drag_threshold_mouse', 1)
         self.set_setting(context, 'inputs.drag_threshold_tablet', 1)
         self.set_setting(context, 'inputs.drag_threshold', 1)
-        self.set_setting(context, 'inputs.tablet_api', 'WINDOWS_INK')
+        self.set_setting(context, 'inputs.tablet_api', 'WINTAB')
         self.set_setting(context, 'inputs.use_auto_perspective', True)
         self.set_setting(context, 'inputs.use_mouse_depth_navigate', True)
         self.set_setting(context, 'inputs.use_numeric_input_advanced', True)

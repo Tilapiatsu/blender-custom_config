@@ -18,7 +18,7 @@
         panel_back="#1c2025ff"
         panel_sub_back="#00000041"
         panel_outline="#ffffff0d"
-        panel_active="#4772b3ff"
+        panel_active="#4796b3ff"
         transparent_checker_primary="#282c34"
         transparent_checker_secondary="#21252b"
         transparent_checker_size="8"
@@ -793,6 +793,7 @@
     <node_editor>
       <ThemeNodeEditor
         grid="#3e4450"
+        node_outline="#ffffff26"
         node_selected="#ffffff"
         node_active="#3fd3e3"
         wire="#282c34ff"
