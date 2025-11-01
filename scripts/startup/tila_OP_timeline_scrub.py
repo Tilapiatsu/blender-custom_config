@@ -2,7 +2,7 @@
 #
 # SPDX-License-Identifier: GPL-2.0-or-later
 
-# Extracted from Grease Pencil Tools : 
+# Extracted from Grease Pencil Tools :
 # https://extensions.blender.org/add-ons/grease-pencil-tools/
 
 '''Based on viewport_timeline_scrub standalone addon - Samuel Bernou'''
@@ -151,7 +151,7 @@ class GPTS_OT_time_scrub(bpy.types.Operator):
             ob = None  # do not consider any key
 
         if ob:  # condition to allow empty scrubing
-            if ob.type != 'GPENCIL' or self.evaluate_gp_obj_key:
+            if ob.type != 'GREASEPENCIL' or self.evaluate_gp_obj_key:
                 # Get object keyframe position
                 anim_data = ob.animation_data
                 action = None
@@ -159,12 +159,12 @@ class GPTS_OT_time_scrub(bpy.types.Operator):
                 if anim_data:
                     action = anim_data.action
                 if action:
-                    for fcu in action.fcurves:
-                        for kf in fcu.keyframe_points:
-                            if kf.co.x not in self.pos:
-                                self.pos.append(kf.co.x)
+                    fcurve = action.fcurve_ensure_for_datablock(ob, action.__repr__())
+                    for kf in fcurve.keyframe_points:
+                        if kf.co.x not in self.pos:
+                            self.pos.append(kf.co.x)
 
-            if ob.type == 'GPENCIL':
+            if ob.type == 'GREASEPENCIL':
                 # Get GP frame position
                 gpl = ob.data.layers
                 layer = gpl.active
