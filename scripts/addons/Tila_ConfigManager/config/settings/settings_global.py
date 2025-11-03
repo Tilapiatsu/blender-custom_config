@@ -46,6 +46,10 @@ class TILA_Config_Settings(TILA_Config_Settings_Base):
         self.set_setting(context, 'view.use_weight_color_range', True)
         self.set_setting(context, 'view.show_developer_ui', True)
         self.set_setting(context, 'view.show_statusbar_memory', True)
+        self.set_setting(context, 'view.show_statusbar_vram', True)
+        self.set_setting(context, 'view.use_fresnel_edit', True)
+        self.set_setting(context, 'view.show_navigate_ui', False)
+
         if self.get_gpu_device is not None:
             self.set_setting(context, 'view.show_statusbar_vram', True)
 
