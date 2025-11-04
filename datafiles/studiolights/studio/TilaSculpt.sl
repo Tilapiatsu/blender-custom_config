@@ -37,9 +37,9 @@ light[2].vec.y 0.776471
 light[2].vec.z 0.629906
 light[3].flag 1
 light[3].smooth 0.000000
-light[3].col.x 0.024635
-light[3].col.y 0.024635
-light[3].col.z 0.024635
+light[3].col.x 0.073239
+light[3].col.y 0.073239
+light[3].col.z 0.073239
 light[3].spec.x 0.000000
 light[3].spec.y 0.000000
 light[3].spec.z 0.000000
