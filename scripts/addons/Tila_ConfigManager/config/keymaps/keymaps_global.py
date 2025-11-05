@@ -378,6 +378,9 @@ class TILA_Config_Keymaps(TILA_Config_Keymaps_Base):
         self.kmi_set_replace('object.tila_smart_join', 'J', 'PRESS', ctrl=True, shift=True, alt=False, properties={'apply_modifiers': True, 'duplicate': False}, disable_double=True)
         self.kmi_set_replace('object.tila_smart_join', 'J', 'PRESS', ctrl=True, shift=True, alt=True, properties={'apply_modifiers': True, 'duplicate': True}, disable_double=True)
 
+    def asset_shelf_popover(self, shelf_name, disable_double=True):
+        self.kmi_set_replace('wm.call_asset_shelf_popover', 'B', 'PRESS', properties={'name': shelf_name}, disable_double=disable_double)
+
     # Keymap define
     @TILA_Config_Keymaps_Base.print_assigning_keymap()
     def set_keymaps(self):
@@ -806,7 +809,7 @@ class TILA_Config_Keymaps(TILA_Config_Keymaps_Base):
 
         self.kmi_set_replace('object.tila_duplicate', self.k_manip, 'CLICK_DRAG', ctrl=True, alt=True, shift=True, properties={'linked': False, 'move': True})
 
-        self.kmi_set_replace('wm.call_asset_shelf_popover', 'B', 'PRESS', disable_double=True, properties={'name':'VIEW3D_AST_brush_sculpt'})
+        self.asset_shelf_popover(shelf_name='VIEW3D_AST_brush_sculpt')
         self.kmi_set_active(False, 'paint.mask_box_gesture', 'B')
 
         self.tool_radial_control(radius={   'data_path_primary': 'tool_settings.sculpt.brush.size',
@@ -898,7 +901,7 @@ class TILA_Config_Keymaps(TILA_Config_Keymaps_Base):
 
             self.selection_tool(tool='brushes\essentials_brushes-curve_sculpt.blend\Brush\Comb', alt='brushes\essentials_brushes-curve_sculpt.blend\Brush\Select', mode='CURVES_SCULPT')
 
-            self.kmi_set_replace('wm.call_asset_shelf_popover', 'B', 'PRESS', disable_double=True, properties={'name':'VIEW3D_AST_brush_sculpt_curves'})
+            self.asset_shelf_popover(shelf_name='VIEW3D_AST_brush_sculpt_curves')
 
             self.tool_radial_control(radius={   'data_path_primary': 'tool_settings.curves_sculpt.brush.size',
                                             'data_path_secondary': 'tool_settings.curves_sculpt.unified_paint_settings.size',
@@ -1081,6 +1084,8 @@ class TILA_Config_Keymaps(TILA_Config_Keymaps_Base):
                                             'secondary_tex': False,
                                             'release_confirm': True})
 
+        self.asset_shelf_popover(shelf_name='VIEW3D_AST_brush_vertex_paint')
+
         self.tool_sample_color('paint.sample_color')
         self.selection_keys(more_tool='paint.vert_select_more', less_tool='paint.vert_select_less',
                             lasso_tool='view3d.select_lasso', circle_tool='view3d.select_circle',
@@ -1135,6 +1140,8 @@ class TILA_Config_Keymaps(TILA_Config_Keymaps_Base):
                                             'zoom_path': '',
                                             'secondary_tex': False,
                                             'release_confirm': True})
+
+        self.asset_shelf_popover(shelf_name='VIEW3D_AST_brush_weight_paint')
 
         self.kmi_set_active(enable=False, idname='paint.weight_set')
 
@@ -1215,6 +1222,9 @@ class TILA_Config_Keymaps(TILA_Config_Keymaps_Base):
                                             'zoom_path': '',
                                             'secondary_tex': True,
                                             'release_confirm': True})
+
+        self.asset_shelf_popover(shelf_name='VIEW3D_AST_brush_texture_paint')
+        self.asset_shelf_popover(shelf_name='IMAGE_AST_brush_paint', disable_double=False)
 
         self.selection_keys(more_tool='paint.vert_select_more', less_tool='paint.vert_select_less',
                             lasso_tool='view3d.select_lasso', circle_tool='view3d.select_circle', linked_tool='paint.face_select_linked')
@@ -1412,6 +1422,8 @@ class TILA_Config_Keymaps(TILA_Config_Keymaps_Base):
         self.tool_radial_control(radius={'data_path_primary': 'tool_settings.gpencil_paint.brush.size', 'release_confirm': True},
                                 opacity={ 'data_path_primary': 'tool_settings.gpencil_paint.brush.gpencil_settings.pen_strength', 'release_confirm': True})
 
+        self.asset_shelf_popover(shelf_name='VIEW3D_AST_brush_gpencil_paint')
+
     @TILA_Config_Keymaps_Base.print_assigning_keymap('Global Grease Pencil Vertex Paint')
     def set_keymaps_grease_pencil_vertex_paint(self):
         ##### Grease Pencil Vertex Paint
@@ -1467,6 +1479,8 @@ class TILA_Config_Keymaps(TILA_Config_Keymaps_Base):
                             invert_tool='grease_pencil.select_all'
                             )
 
+        self.asset_shelf_popover(shelf_name='VIEW3D_AST_brush_gpencil_vertex')
+
     @TILA_Config_Keymaps_Base.print_assigning_keymap('Global Grease Pencil Sculpt Mode')
     def set_keymaps_grease_pencil_sculpt_mode(self):
         ###### Grease Pencil Sculpt Mode
@@ -1508,6 +1522,8 @@ class TILA_Config_Keymaps(TILA_Config_Keymaps_Base):
                             less_tool='grease_pencil.select_less',
                             invert_tool='grease_pencil.select_all',
                             )
+        
+        self.asset_shelf_popover(shelf_name='VIEW3D_AST_brush_gpencil_sculpt')
 
     @TILA_Config_Keymaps_Base.print_assigning_keymap('Global Grease Pencil Weight Paint')
     def set_keymaps_grease_pencil_weight_paint(self):
@@ -1560,6 +1576,8 @@ class TILA_Config_Keymaps(TILA_Config_Keymaps_Base):
                             more_tool='grease_pencil.select_more',
                             less_tool='grease_pencil.select_less'
                             )
+        
+        self.asset_shelf_popover(shelf_name='VIEW3D_AST_brush_gpencil_weight')
 
         self.kmi_set_replace('wm.tool_set_by_id', self.k_manip, 'PRESS', ctrl=True, shift=True, alt=True, properties={'name': 'builtin_brush.Weight'})
         self.kmi_set_replace('paint.tila_brush_select_and_paint', self.k_manip, 'PRESS', shift=True, properties={'tool': 'WEIGHT', 'mode': 'AVERAGE', 'brush': 'Average'})
@@ -1580,7 +1598,7 @@ class TILA_Config_Keymaps(TILA_Config_Keymaps_Base):
         self.kmi_init(name='Paint Vertex Selection (Weight, Vertex)', space_type='EMPTY', region_type='WINDOW', addon=False)
 
         self.selection_keys(more_tool='paint.vert_select_more',
-                            less_tool='paint.vert_select_less')
+                            less_tool='paint.vert_select_less')                         
 
     @TILA_Config_Keymaps_Base.print_assigning_keymap('Global Frames')
     def set_keymaps_frames(self):
