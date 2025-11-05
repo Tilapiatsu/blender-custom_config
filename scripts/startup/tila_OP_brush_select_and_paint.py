@@ -20,14 +20,36 @@ class TILA_brush_select_and_paint(bpy.types.Operator):
 	brush : bpy.props.StringProperty(name="brush", default='Mix')
 
 	compatible_tools = ['SCULPT', 'VERTEX', 'WEIGHT', 'IMAGE', 'GPENCIL']
+	tool_settings = {'GPENCIL': {'SCULPT'}}
 
 	initial_brush = None
 	brush_is_set = False
 	press = False
 
+	# @property
+	# def compatible_brushes(self):
+	# 	return [b.name for b in bpy.data.brushes]
+
 	@property
-	def compatible_brushes(self):
-		return [b.name for b in bpy.data.brushes]
+	def brush(self):
+		if bpy.context.mode == 'PAINT_WEIGHT':
+			return bpy.context.tool_settings.weight_paint.brush
+		elif bpy.context.mode == 'PAINT_VERTEX':
+			return bpy.context.tool_settings.vertex_paint.brush
+		elif bpy.context.mode == 'PAINT_TEXTURE':
+			return bpy.context.tool_settings.image_paint.brush
+		elif bpy.context.mode == 'SCULPT':
+			return bpy.context.tool_settings.sculpt.brush
+		elif bpy.context.mode == 'SCULPT_CURVES':
+			return bpy.context.tool_settings.curves_sculpt.brush
+		elif bpy.context.mode == 'SCULPT_GREASE_PENCIL':
+			return bpy.context.tool_settings.gpencil_sculpt.brush
+		elif bpy.context.mode == 'VERTEX_GREASE_PENCIL':
+			return bpy.context.tool_settings.gpencil_vertex_paint.brush
+		elif bpy.context.mode == 'PAINT_GREASE_PENCIL':
+			return bpy.context.tool_settings.gpencil_paint.brush
+		elif bpy.context.mode == 'WEIGHT_GREASE_PENCIL':
+			return bpy.context.tool_settings.gpencil_weight_paint.brush
 	
 	def get_release_condition(self, event):
 		if bversion < 3.2:
@@ -42,24 +64,36 @@ class TILA_brush_select_and_paint(bpy.types.Operator):
 			return event.type == 'MOUSEMOVE' and event.value == 'NOTHING' and not self.press
 
 	def set_initial_brush(self):
+		if self.brush is None:
+			return
+		brush = self.brush
+
 		if self.tool == 'SCULPT':
-			brush = bpy.context.tool_settings.sculpt.brush
 			self.initial_brush = {'name':brush.name, 'weight':brush.weight, 'strength':brush.strength}
 		if self.tool == 'VERTEX':
-			brush = bpy.context.tool_settings.vertex_paint.brush
 			self.initial_brush = {'name':brush.name, 'weight':brush.weight, 'strength':brush.strength}
 		if self.tool == 'WEIGHT':
-			brush = bpy.context.tool_settings.weight_paint.brush
 			self.initial_brush = {'name':brush.name, 'weight':brush.weight, 'strength':brush.strength}
 		if self.tool == 'IMAGE':
-			brush = bpy.context.tool_settings.image_paint.brush
 			self.initial_brush = {'name':brush.name, 'weight':brush.weight, 'strength':brush.strength}
 		if self.tool == 'GPENCIL':
 			pass
 
 	def set_brush_settings(self, mode, brush):
+		if self.brush is None:
+			return
+		brush = self.brush
+		
 		if self.tool == 'SCULPT':
 			bpy.ops.paint.brush_select('INVOKE_DEFAULT', sculpt_tool=mode, toggle=False)
+			# bpy.ops.brush.tila_brush_toggle('INVOKE_DEFAULT', 
+			# 					   			mode='SCULPT', 
+			# 								relative_asset_identifier= 'brushes\essentials_brushes-mesh_sculpt.blend\Brush\Grab', 
+			# 								asset_library_type= 'ESSENTIALS', 
+			# 								asset_library_identifier='', 
+			# 								force_strength=False, 
+			# 								force_weight=False)
+			
 			bpy.context.tool_settings.sculpt.brush = bpy.data.brushes[brush]
 			bpy.context.tool_settings.sculpt.brush.weight = self.initial_brush['weight']
 			bpy.context.tool_settings.sculpt.brush.strength = self.initial_brush['strength']
@@ -135,7 +169,7 @@ class TILA_brush_select_and_paint(bpy.types.Operator):
 		return {'RUNNING_MODAL'}
 
 	def invoke(self, context, event):
-		if self.tool in self.compatible_tools and self.brush in self.compatible_brushes:
+		if self.tool in self.compatible_tools:
 			self.set_initial_brush()
 			context.window_manager.modal_handler_add(self)
 		else:
