@@ -198,18 +198,38 @@ class TILA_Brush_toggle(bpy.types.Operator):
                 if self.mode == 'SCULPT':
                     if brush != self.default_brush:
                         bpy.ops.sculpt.brush_stroke('INVOKE_DEFAULT')
+
                 elif self.mode == 'VERTEX':
                     if brush != self.default_brush:
                         bpy.ops.paint.vertex_paint('INVOKE_DEFAULT')
+
                 elif self.mode == 'WEIGHT':
                     if brush != self.default_brush:
                         bpy.ops.paint.weight_paint('INVOKE_DEFAULT')
+
                 elif self.mode == 'IMAGE':
                     if brush != self.default_brush:
                         bpy.ops.paint.image_paint('INVOKE_DEFAULT')
-                elif self.mode == 'GPENCIL':
+
+                elif self.mode == 'GPENCIL_PAINT':
                     if brush != self.default_brush:
-                        bpy.ops.gpencil.draw('INVOKE_DEFAULT')
+                        bpy.ops.grease_pencil.brush_stroke('INVOKE_DEFAULT')
+    
+                elif self.mode == 'GPENCIL_SCULPT':
+                    if brush != self.default_brush:
+                        bpy.ops.grease_pencil.sculpt_paint('INVOKE_DEFAULT')
+                
+                elif self.mode == 'GPENCIL_WEIGHT':
+                    if brush != self.default_brush:
+                        bpy.ops.grease_pencil.weight_brush_stroke('INVOKE_DEFAULT')
+
+                elif self.mode == 'GPENCIL_VERTEX':
+                    if brush != self.default_brush:
+                        bpy.ops.grease_pencil.vertex_brush_stroke('INVOKE_DEFAULT')
+                
+                elif self.mode == 'CURVES_SCULPT':
+                    if brush != self.default_brush:
+                        bpy.ops.sculpt_curves.brush_stroke('INVOKE_DEFAULT')
 
         except RuntimeError as e:
             print('Runtime Error :\n{}'.format(e))

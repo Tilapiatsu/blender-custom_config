@@ -1046,6 +1046,7 @@ class TILA_Config_Keymaps(TILA_Config_Keymaps_Base):
         self.tool_sculpt('view3d.tila_smart_sculptmode')
         self.color_swap_sample()
         self.toggle_x_symetry()
+        self.kmi_set_active(enable=False, idname='view3d.select', type=self.k_manip, alt=True)
 
         self.tool_radial_control(radius={   'data_path_primary': 'tool_settings.vertex_paint.brush.size',
                                             'data_path_secondary': 'tool_settings.vertex_paint.unified_paint_settings.size',
@@ -1092,8 +1093,8 @@ class TILA_Config_Keymaps(TILA_Config_Keymaps_Base):
                             linked_tool='paint.face_select_linked', linked_pick_tool='paint.face_select_linked_pick',
                             invert_tool='paint.face_select_all')
 
-        self.kmi_set_replace('paint.tila_brush_select_and_paint', self.k_manip, 'PRESS', shift=True, properties={'tool': 'VERTEX', 'mode': 'BLUR', 'brush': 'Blur'})
-        self.kmi_set_replace('paint.tila_brush_select_and_paint', self.k_manip, 'PRESS', ctrl=True, properties={'tool': 'VERTEX', 'mode': 'DRAW', 'brush': 'Multiply'})
+        # self.kmi_set_replace('paint.tila_brush_select_and_paint', self.k_manip, 'PRESS', shift=True, properties={'tool': 'VERTEX', 'mode': 'BLUR', 'brush': 'Blur'})
+        # self.kmi_set_replace('paint.tila_brush_select_and_paint', self.k_manip, 'PRESS', ctrl=True, properties={'tool': 'VERTEX', 'mode': 'DRAW', 'brush': 'Multiply'})
 
     @TILA_Config_Keymaps_Base.print_assigning_keymap('Global Weight Paint')
     def set_keymaps_weight_paint(self):
@@ -1103,6 +1104,7 @@ class TILA_Config_Keymaps(TILA_Config_Keymaps_Base):
         self.right_mouse()
         self.selection_tool(tool='brushes\essentials_brushes-mesh_weight.blend\Brush\Paint', mode='WEIGHT')
         self.tool_sculpt('view3d.tila_smart_sculptmode')
+        self.toggle_x_symetry()
 
         self.tool_radial_control(radius={   'data_path_primary': 'tool_settings.weight_paint.brush.size',
                                             'data_path_secondary': 'tool_settings.weight_paint.unified_paint_settings.size',
@@ -1144,6 +1146,7 @@ class TILA_Config_Keymaps(TILA_Config_Keymaps_Base):
         self.asset_shelf_popover(shelf_name='VIEW3D_AST_brush_weight_paint')
 
         self.kmi_set_active(enable=False, idname='paint.weight_set')
+        self.kmi_set_active(enable=False, idname='view3d.select', type=self.k_manip, alt=True)
 
         self.selection_keys(more_tool='paint.vert_select_more', less_tool='paint.vert_select_less',
                             lasso_tool='view3d.select_lasso', circle_tool='view3d.select_circle', linked_tool='paint.face_select_linked')
@@ -1155,14 +1158,12 @@ class TILA_Config_Keymaps(TILA_Config_Keymaps_Base):
 
         self.kmi_set_replace('paint.weight_sample_group', self.k_context, 'RELEASE', disable_double=True)
 
-        self.kmi_set_replace('paint.tila_brush_select_and_paint', self.k_manip, 'PRESS', shift=True, properties={'tool': 'WEIGHT', 'mode': 'AVERAGE', 'brush': 'Average'})
-        self.kmi_set_replace('paint.tila_brush_select_and_paint', self.k_manip, 'PRESS', ctrl=True, properties={'tool': 'WEIGHT', 'mode': 'DRAW', 'brush': 'Subtract'})
+        # self.kmi_set_replace('paint.tila_brush_select_and_paint', self.k_manip, 'PRESS', shift=True, properties={'tool': 'WEIGHT', 'mode': 'AVERAGE', 'brush': 'Average'})
+        # self.kmi_set_replace('paint.tila_brush_select_and_paint', self.k_manip, 'PRESS', ctrl=True, properties={'tool': 'WEIGHT', 'mode': 'DRAW', 'brush': 'Subtract'})
 
         self.kmi_set_replace('paint.weight_set', self.k_linked, 'PRESS')
 
         self.kmi_set_replace('paint.toggle_brushweight', 'C', 'PRESS')
-
-        self.kmi_set_replace('view3D.toggle_symetry', 'X', 'PRESS', disable_double=True)
 
     @TILA_Config_Keymaps_Base.print_assigning_keymap('Global Image Paint')
     def set_keymaps_image_paint(self):
@@ -1172,6 +1173,7 @@ class TILA_Config_Keymaps(TILA_Config_Keymaps_Base):
         self.right_mouse()
 
         self.selection_tool(tool='brushes\essentials_brushes-mesh_texture.blend\Brush\Paint Hard', mode='IMAGE')
+        self.kmi_set_active(enable=False, idname='view3d.select', type=self.k_manip, alt=True)
         self.tool_sculpt('view3d.tila_smart_sculptmode')
 
         self.tool_radial_control(radius={   'data_path_primary': 'tool_settings.image_paint.brush.size',
@@ -1181,8 +1183,8 @@ class TILA_Config_Keymaps(TILA_Config_Keymaps_Base):
                                             'color_path': 'tool_settings.image_paint.brush.cursor_color_add',
                                             'image_id': 'tool_settings.image_paint.brush',
                                             'fill_color_path': 'tool_settings.image_paint.brush.color',
-                                            'fill_color_override_path': 'tool_settings.unified_paint_settings.color',
-                                            'fill_color_override_test_path': 'tool_settings.unified_paint_settings.use_unified_color',
+                                            'fill_color_override_path': 'tool_settings.image_paint.unified_paint_settings.color',
+                                            'fill_color_override_test_path': 'tool_settings.image_paint.unified_paint_settings.use_unified_color',
                                             'zoom_path': 'space_data.zoom',
                                             'secondary_tex': True,
                                             'release_confirm': True},
@@ -1193,8 +1195,8 @@ class TILA_Config_Keymaps(TILA_Config_Keymaps_Base):
                                             'color_path': 'tool_settings.image_paint.brush.cursor_color_add',
                                             'image_id': 'tool_settings.image_paint.brush',
                                             'fill_color_path': 'tool_settings.image_paint.brush.color',
-                                            'fill_color_override_path': 'tool_settings.unified_paint_settings.color',
-                                            'fill_color_override_test_path': 'tool_settings.unified_paint_settings.use_unified_color',
+                                            'fill_color_override_path': 'tool_settings.image_paint.unified_paint_settings.color',
+                                            'fill_color_override_test_path': 'tool_settings.image_paint.unified_paint_settings.use_unified_color',
                                             'zoom_path': '',
                                             'secondary_tex': True,
                                             'release_confirm': True},
@@ -1205,8 +1207,8 @@ class TILA_Config_Keymaps(TILA_Config_Keymaps_Base):
                                             'color_path': 'tool_settings.image_paint.brush.cursor_color_add',
                                             'image_id': 'tool_settings.image_paint.brush',
                                             'fill_color_path': 'tool_settings.image_paint.brush.color',
-                                            'fill_color_override_path': 'tool_settings.unified_paint_settings.color',
-                                            'fill_color_override_test_path': 'tool_settings.unified_paint_settings.use_unified_color',
+                                            'fill_color_override_path': 'tool_settings.image_paint.unified_paint_settings.color',
+                                            'fill_color_override_test_path': 'tool_settings.image_paint.unified_paint_settings.use_unified_color',
                                             'zoom_path': '',
                                             'secondary_tex': False,
                                             'release_confirm': True},
@@ -1217,8 +1219,8 @@ class TILA_Config_Keymaps(TILA_Config_Keymaps_Base):
                                             'color_path': 'tool_settings.image_paint.brush.cursor_color_add',
                                             'image_id': 'tool_settings.image_paint.brush',
                                             'fill_color_path': 'tool_settings.image_paint.brush.color',
-                                            'fill_color_override_path': 'tool_settings.unified_paint_settings.color',
-                                            'fill_color_override_test_path': 'tool_settings.unified_paint_settings.use_unified_color',
+                                            'fill_color_override_path': 'tool_settings.image_paint.unified_paint_settings.color',
+                                            'fill_color_override_test_path': 'tool_settings.image_paint.unified_paint_settings.use_unified_color',
                                             'zoom_path': '',
                                             'secondary_tex': True,
                                             'release_confirm': True})
@@ -1418,7 +1420,7 @@ class TILA_Config_Keymaps(TILA_Config_Keymaps_Base):
 
         self.tool_sculpt('view3d.tila_smart_sculptmode')
         self.selection_tool(tool='brushes\essentials_brushes-gp_draw.blend\Brush\Pencil', mode='GPENCIL_PAINT')
-        # self.selection_tool(tool='builtin.brush')
+
         self.tool_radial_control(radius={'data_path_primary': 'tool_settings.gpencil_paint.brush.size', 'release_confirm': True},
                                 opacity={ 'data_path_primary': 'tool_settings.gpencil_paint.brush.gpencil_settings.pen_strength', 'release_confirm': True})
 
@@ -1478,6 +1480,8 @@ class TILA_Config_Keymaps(TILA_Config_Keymaps_Base):
                             less_tool='grease_pencil.select_less',
                             invert_tool='grease_pencil.select_all'
                             )
+        
+        self.kmi_set_replace('paint.tila_brush_select_and_paint', self.k_manip, 'PRESS', shift=True, properties={'tool': 'GPENCIL_PAINT', 'mode':'BLUR', 'brush':'Blur', 'brush_asset_id' : 'brushes\essentials_brushes-gp_vertex.blend\Brush\Blur', 'brush_asset_library_type':'ESSENTIALS' }, disable_double=True)
 
         self.asset_shelf_popover(shelf_name='VIEW3D_AST_brush_gpencil_vertex')
 
@@ -1580,8 +1584,11 @@ class TILA_Config_Keymaps(TILA_Config_Keymaps_Base):
         self.asset_shelf_popover(shelf_name='VIEW3D_AST_brush_gpencil_weight')
 
         self.kmi_set_replace('wm.tool_set_by_id', self.k_manip, 'PRESS', ctrl=True, shift=True, alt=True, properties={'name': 'builtin_brush.Weight'})
-        self.kmi_set_replace('paint.tila_brush_select_and_paint', self.k_manip, 'PRESS', shift=True, properties={'tool': 'WEIGHT', 'mode': 'AVERAGE', 'brush': 'Average'})
-        self.kmi_set_replace('paint.tila_brush_select_and_paint', self.k_manip, 'PRESS', ctrl=True, properties={'tool': 'WEIGHT', 'mode': 'DRAW', 'brush': 'Subtract'})
+
+        self.kmi_set_replace('paint.tila_brush_select_and_paint', self.k_manip, 'PRESS', shift=True, properties={'tool': 'GPENCIL_WEIGHT', 'mode':'BLUR', 'brush':'Blur', 'brush_asset_id' : 'brushes\essentials_brushes-gp_weight.blend\Brush\Blur', 'brush_asset_library_type':'ESSENTIALS' }, disable_double=True)
+    
+        # self.kmi_set_replace('paint.tila_brush_select_and_paint', self.k_manip, 'PRESS', shift=True, properties={'tool': 'WEIGHT', 'mode': 'AVERAGE', 'brush': 'Average'})
+        # self.kmi_set_replace('paint.tila_brush_select_and_paint', self.k_manip, 'PRESS', ctrl=True, properties={'tool': 'WEIGHT', 'mode': 'DRAW', 'brush': 'Subtract'})
 
     @TILA_Config_Keymaps_Base.print_assigning_keymap('Global 3D Paint Face Mask')
     def set_keymaps_3d_paint_face_mask(self):

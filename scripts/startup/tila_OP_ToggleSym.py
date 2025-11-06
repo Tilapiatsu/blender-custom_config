@@ -47,7 +47,7 @@ class TILA_ToggleSymOperator(bpy.types.Operator):
                 context.object.use_mesh_mirror_z = not context.object.use_mesh_mirror_z
                 self.report({'INFO'}, 'Z Symetry {}'.format('ON' if context.object.use_mesh_mirror_z else 'OFF'))
 
-        bpy.ops.wm.redraw_timer(type='DRAW_WIN_SWAP', iterations=1)
+        # bpy.ops.wm.redraw_timer(type='DRAW_WIN_SWAP', iterations=1)
         return {'FINISHED'}
 
 classes = (TILA_ToggleSymOperator,)
