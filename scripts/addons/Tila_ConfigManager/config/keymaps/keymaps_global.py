@@ -312,8 +312,10 @@ class TILA_Config_Keymaps(TILA_Config_Keymaps_Base):
             self.kmi_set_replace('wm.radial_control', self.k_lasso, 'ANY', properties=fill_color, disable_double=True)
 
     def tool_sample_color(self, tool):
-        if tool:
-            self.kmi_set_replace(tool, 'C', 'PRESS', shift=True, disable_double=True)
+        self.kmi_set_replace(tool, 'C', 'PRESS', shift=True, disable_double=True)
+
+    def tool_toggle_color(self, tool):
+        self.kmi_set_replace(tool, 'C', 'PRESS', disable_double=True)
 
     def tool_subdivision(self):
         #  Disabling subdivision_set shortcut
@@ -495,8 +497,7 @@ class TILA_Config_Keymaps(TILA_Config_Keymaps_Base):
 
         self.mode_selection()
 
-        self.kmi_set_replace('view3d.toggle_symetry', 'X', 'PRESS', disable_double=True)
-        # self.kmi_set_replace('wm.context_toggle', 'X', 'PRESS', alt=True, shift=True, properties={'data_path': 'tool_settings.use_snap'}, disable_double=True)
+        self.toggle_x_symetry()
 
         self.kmi_set_replace('view3d.view_persportho', 'NUMPAD_ASTERIX', 'PRESS')
         self.kmi_set_replace('view3d.collection_manager', 'M', 'PRESS',  ctrl=True, alt=True, shift=True, disable_double=True)
@@ -798,7 +799,7 @@ class TILA_Config_Keymaps(TILA_Config_Keymaps_Base):
         self.selection_tool(tool='brushes\essentials_brushes-mesh_sculpt.blend\Brush\Grab', alt='brushes\essentials_brushes-mesh_sculpt.blend\Brush\Mask', mode='SCULPT')
         self.tool_transform()
 
-        self.color_swap_sample()
+        self.tool_toggle_color('paint.brush_colors_flip')
         self.toggle_x_symetry()
         self.tool_subdivision()
 
@@ -876,7 +877,7 @@ class TILA_Config_Keymaps(TILA_Config_Keymaps_Base):
         self.kmi_set_replace('wm.context_toggle', 'F', 'PRESS', shift=True, properties={'data_path': 'space_data.overlay.show_sculpt_face_sets'}, disable_double=True)
 
         self.kmi_set_replace('paint.visibility_invert', self.k_nav, 'PRESS', ctrl=True, alt=True, shift=True, disable_double=True)
-        self.kmi_set_replace('sculpt.sample_color', 'C', 'PRESS', disable_double=True)
+        self.tool_sample_color('sculpt.sample_color')
 
     @TILA_Config_Keymaps_Base.print_assigning_keymap('Global Sculpt Curve')
     def set_keymaps_sculpt_curve(self):
@@ -885,7 +886,7 @@ class TILA_Config_Keymaps(TILA_Config_Keymaps_Base):
             self.kmi_init(name='Curves', space_type='EMPTY', region_type='WINDOW', addon=False)
             self.global_keys()
             self.right_mouse()
-            self.color_swap_sample()
+            self.tool_toggle_color('paint.brush_colors_flip')
             self.toggle_x_symetry()
             self.kmi_set_active(False, type='X', idname='curves.delete')
 
@@ -939,7 +940,7 @@ class TILA_Config_Keymaps(TILA_Config_Keymaps_Base):
         self.right_mouse()
         self.duplicate(duplicate='curve.duplicate_move')
         self.tool_smart_delete()
-        self.color_swap_sample()
+        self.tool_toggle_color('paint.brush_colors_flip')
         self.toggle_x_symetry()
         self.kmi_set_replace('curve.reveal', 'H', 'PRESS', ctrl=True, shift=True)
         self.kmi_set_replace('curve.shortest_path_pick', self.k_select, 'PRESS', ctrl=True, shift=True)
@@ -1044,7 +1045,7 @@ class TILA_Config_Keymaps(TILA_Config_Keymaps_Base):
         self.right_mouse()
         self.selection_tool(tool='brushes\essentials_brushes-mesh_vertex.blend\Brush\Paint Hard', mode='VERTEX')
         self.tool_sculpt('view3d.tila_smart_sculptmode')
-        self.color_swap_sample()
+        self.tool_toggle_color('paint.brush_colors_flip')
         self.toggle_x_symetry()
         self.kmi_set_active(enable=False, idname='view3d.select', type=self.k_manip, alt=True)
 
@@ -1163,7 +1164,7 @@ class TILA_Config_Keymaps(TILA_Config_Keymaps_Base):
 
         self.kmi_set_replace('paint.weight_set', self.k_linked, 'PRESS')
 
-        self.kmi_set_replace('paint.toggle_brushweight', 'C', 'PRESS')
+        self.tool_toggle_color('paint.toggle_brushweight')
 
     @TILA_Config_Keymaps_Base.print_assigning_keymap('Global Image Paint')
     def set_keymaps_image_paint(self):
@@ -1232,10 +1233,9 @@ class TILA_Config_Keymaps(TILA_Config_Keymaps_Base):
                             lasso_tool='view3d.select_lasso', circle_tool='view3d.select_circle', linked_tool='paint.face_select_linked')
 
         self.tool_sample_color('paint.sample_color')
+        self.tool_toggle_color('paint.brush_colors_flip')
 
-        self.kmi_set_replace('paint.toggle_brushweight', 'C', 'PRESS')
-
-        self.kmi_set_replace('view3D.toggle_symetry', 'X', 'PRESS', disable_double=True)
+        self.toggle_x_symetry()
 
     @TILA_Config_Keymaps_Base.print_assigning_keymap('Global Node Tool Tweak')
     def set_keymaps_node_tool_tweak(self):
@@ -1484,6 +1484,10 @@ class TILA_Config_Keymaps(TILA_Config_Keymaps_Base):
         self.kmi_set_replace('paint.tila_brush_select_and_paint', self.k_manip, 'PRESS', shift=True, properties={'mode': 'GPENCIL_PAINT', 'relative_asset_identifier' : 'brushes\essentials_brushes-gp_vertex.blend\Brush\Blur', 'asset_library_type':'ESSENTIALS','asset_library_identifier': '' }, disable_double=True)
 
         self.asset_shelf_popover(shelf_name='VIEW3D_AST_brush_gpencil_vertex')
+
+        self.tool_toggle_color('paint.toggle_brushweight')
+
+        self.toggle_x_symetry()
 
     @TILA_Config_Keymaps_Base.print_assigning_keymap('Global Grease Pencil Sculpt Mode')
     def set_keymaps_grease_pencil_sculpt_mode(self):
