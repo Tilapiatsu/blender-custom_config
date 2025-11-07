@@ -1,6 +1,5 @@
 from bpy.types import Menu
 import bpy
-import re
 
 bl_info = {
     "name": "Tila : Distribute Pie",
@@ -14,9 +13,6 @@ bl_info = {
     "category": "Pie Menu"
 }
 
-bversion_string = bpy.app.version_string
-bversion_reg = re.match("^(\d\.\d?\d)", bversion_string)
-bversion = float(bversion_reg.group(0))
 
 
 class TILA_MT_pie_distribute(Menu):
@@ -31,7 +27,7 @@ class TILA_MT_pie_distribute(Menu):
 
         # Right
         pie.operator("mesh.looptools_circle", icon='MESH_CIRCLE', text="Circle")
-        
+
         # Bottom
         pie.operator("mesh.set_edge_flow", icon='IPO_EASE_IN_OUT', text="Set Flow")
 

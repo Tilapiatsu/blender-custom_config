@@ -1,6 +1,5 @@
-from bpy.types import Menu
 import bpy
-import re
+from bpy.types import Menu
 
 bl_info = {
     "name": "Tila : Render Mode Pie",
@@ -13,10 +12,6 @@ bl_info = {
     "doc_url": "",
     "category": "Pie Menu"
 }
-
-bversion_string = bpy.app.version_string
-bversion_reg = re.match("^(\d\.\d?\d)", bversion_string)
-bversion = float(bversion_reg.group(0))
 
 
 class TILA_MT_pie_render_mode(Menu):
@@ -31,7 +26,7 @@ class TILA_MT_pie_render_mode(Menu):
 
         # Right
         pie.operator("view3d.tila_toggle_shading", icon='SHADING_SOLID', text="Solid").type = 'SOLID'
-        
+
         # Bottom
         pie.operator("view3d.tila_toggle_shading", icon='SHADING_TEXTURE', text="Material Preview").type = 'MATERIAL'
 
@@ -69,10 +64,10 @@ class TILA_OT_toggle_shading(bpy.types.Operator):
             bpy.context.space_data.overlay.show_face_orientation = True
         else:
             bpy.context.space_data.overlay.show_face_orientation = False
-            
+
         if self.type in ['RENDERED', 'MATERIAL', 'SOLID', 'WIREFRAME']:
             bpy.context.space_data.shading.type = self.type
-                
+
             if self.type == 'SOLID':
                 bpy.context.space_data.shading.light = 'STUDIO'
                 bpy.context.space_data.shading.background_type = 'THEME'

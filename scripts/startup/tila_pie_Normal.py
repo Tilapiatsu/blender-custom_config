@@ -1,10 +1,9 @@
-from mathutils import Matrix, Vector
-from bpy.props import BoolProperty
-from bpy.types import Operator
-from bpy.types import Menu
 import bpy
 import bmesh
-import re
+from mathutils import Vector
+from bpy.types import Menu
+from bversion import BVERSION
+
 
 bl_info = {
     "name": "Tila : Pie Normal",
@@ -18,9 +17,6 @@ bl_info = {
     "category": "Pie Menu"
 }
 
-bversion_string = bpy.app.version_string
-bversion_reg = re.match("^(\d\.\d?\d)", bversion_string)
-bversion = float(bversion_reg.group(0))
 
 
 class TILA_MT_pie_normal(Menu):
@@ -384,7 +380,7 @@ class TILA_OT_normalsmartmerge(bpy.types.Operator):
     bl_options = {'REGISTER', 'UNDO'}
 
     def get_shade_smooth(self):
-        if bversion < 3.2:
+        if BVERSION < 3.2:
                 print('< 3.2')
                 return {'VERT': ((bpy.ops.mesh.smooth_normals, {'factor': 1}), (bpy.ops.view3d.tila_smoothnormal, None)),
                     'EDGE': ((bpy.ops.view3d.tila_smoothnormal, None),),

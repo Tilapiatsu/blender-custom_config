@@ -1,7 +1,6 @@
 
-from bpy.props import IntProperty, BoolProperty, EnumProperty
-from mathutils import Vector
-import math, re
+
+from bversion import BVERSION
 import bpy
 bl_info = {
     "name": "Tila : Othographic navigation",
@@ -16,10 +15,6 @@ bl_info = {
 }
 # Need to add a mode to align Orthographic view based on the current face selection
 
-bversion_string = bpy.app.version_string
-bversion_reg = re.match("^(\d\.\d?\d)", bversion_string)
-bversion = float(bversion_reg.group(0))
-
 class TILA_OrthographicNavigation(bpy.types.Operator):
     bl_idname = "view3d.tila_orthographic_navigation"
     bl_label = "Othographic Navigation"
@@ -32,13 +27,13 @@ class TILA_OrthographicNavigation(bpy.types.Operator):
     dir = {'UP': 'ORBITUP', 'DOWN': 'ORBITDOWN', 'LEFT': 'ORBITLEFT', 'RIGHT': 'ORBITRIGHT'}
 
     def get_release_condition(self, event):
-        if bversion > 3.2:
+        if BVERSION > 3.2:
             return event.value == 'RELEASE'
         else:
             return event.type in ['MOUSEMOVE', 'LEFTMOUSE', 'RIGHTMOUSE', 'WINDOW_DEACTIVATE'] and event.value in ['RELEASE', 'NOTHING']
-    
+
     def get_run_condition(self, event) :
-        if bversion < 3.2:
+        if BVERSION < 3.2:
             return event.type == 'MOUSEMOVE' and event.value == 'PRESS'
         else:
             return event.type == event.type == 'MOUSEMOVE' and event.value == 'NOTHING'
@@ -98,7 +93,7 @@ class TILA_OrthographicNavigation(bpy.types.Operator):
 
         self.set_initial_position(event)
         return {'RUNNING_MODAL'}
-    
+
     @property
     def use_relatrive_to_selected_element(self):
         return self.relative_to_selected_element and self.object and self.object.type == 'MESH' and self.object.data.is_editmode

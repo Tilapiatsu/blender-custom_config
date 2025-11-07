@@ -1,6 +1,6 @@
 import bpy
 from os import path
-from blender_version import bversion
+from bversion import BVERSION
 
 bl_info = {
     "name": "Tila : Brush toggle",
@@ -121,13 +121,13 @@ class TILA_Brush_toggle(bpy.types.Operator):
         return self._current_tool
 
     def get_release_condition(self, event):
-        if bversion < 3.2:
+        if BVERSION < 3.2:
             return event.type == 'MOUSEMOVE' and event.value == 'RELEASE'
         else:
             return event.type in ['MOUSEMOVE', 'LEFTMOUSE', 'RIGHTMOUSE', 'WINDOW_DEACTIVATE'] and event.value in ['RELEASE', 'NOTHING'] and self.press
 
     def get_run_condition(self, event) :
-        if bversion < 3.2:
+        if BVERSION < 3.2:
             return event.type == 'MOUSEMOVE' and event.value == 'PRESS'
         else:
             return event.type == 'MOUSEMOVE' and event.value == 'NOTHING' and not self.press
