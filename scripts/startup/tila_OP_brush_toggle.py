@@ -20,7 +20,7 @@ class TILA_Brush:
         self.strength = strength
         self.force_weight = force_weight
         self.weight = weight
-    
+
     @property
     def name(self):
         return path.basename(self.relative_asset_identifier)
@@ -32,7 +32,7 @@ class TILA_Brush:
     def __eq__(self, other):
         if isinstance(other, TILA_Brush):
             return (self.relative_asset_identifier == other.relative_asset_identifier and
-                    self.asset_library_type == other.asset_library_type and 
+                    self.asset_library_type == other.asset_library_type and
                     self.asset_library_identifier == other.asset_library_identifier)
         return False
 
@@ -41,10 +41,18 @@ compatible_modes = ['SCULPT', 'VERTEX', 'WEIGHT', 'IMAGE', 'GPENCIL_PAINT', 'GPE
 def mode_enum():
     enum = []
     for m in compatible_modes:
-        enum.append((m, m.lower(), ""))
+        enum.append((m, m.lower().replace('_', ' '), ""))
 
     return enum
 
+compatible_asset_library_types = ['ALL', 'LOCAL', 'ESSENTIALS', 'CUSTOM']
+
+def asset_library_types_enum():
+    enum = []
+    for m in compatible_asset_library_types:
+        enum.append((m, m.lower().replace('_', ' '), ""))
+
+    return enum
 
 class TILA_PG_Brush(bpy.types.PropertyGroup):
     relative_asset_identifier : bpy.props.StringProperty(name='relative_asset_identifier', default='')
@@ -67,7 +75,7 @@ class TILA_Brush_toggle(bpy.types.Operator):
     default_strength :                      bpy.props.FloatProperty(name='default strength', default=1.0)
     default_weight :                        bpy.props.FloatProperty(name='default weight', default=1.0)
     relative_asset_identifier :             bpy.props.StringProperty(name="brush", default='brushes\essentials_brushes-mesh_sculpt.blend\Brush\Grab')
-    asset_library_type :                    bpy.props.StringProperty(name="asset library type", default='ESSENTIALS')
+    asset_library_type :                    bpy.props.EnumProperty(name="asset library type", default='ESSENTIALS', items=asset_library_types_enum())
     asset_library_identifier :              bpy.props.StringProperty(name="asset library identifier", default='')
     toggle_back_on_release :                bpy.props.BoolProperty(name='toggle back on release', default=False)
     force_strength :                        bpy.props.BoolProperty(name='force strength', default=False)
@@ -79,7 +87,7 @@ class TILA_Brush_toggle(bpy.types.Operator):
     brush_is_set = False
     press = False
     _current_tool = None
-    
+
     @property
     def current_tool(self):
         if self._current_tool is None:
@@ -97,27 +105,27 @@ class TILA_Brush_toggle(bpy.types.Operator):
 
             elif self.mode == 'GPENCIL_PAINT':
                 self._current_tool = bpy.context.tool_settings.gpencil_paint
-            
+
             elif self.mode == 'GPENCIL_SCULPT':
                 self._current_tool = bpy.context.tool_settings.gpencil_sculpt_paint
-            
+
             elif self.mode == 'GPENCIL_WEIGHT':
                 self._current_tool = bpy.context.tool_settings.gpencil_weight_paint
 
             elif self.mode == 'GPENCIL_VERTEX':
                 self._current_tool = bpy.context.tool_settings.gpencil_vertex_paint
-            
+
             elif self.mode == 'CURVES_SCULPT':
                 self._current_tool = bpy.context.tool_settings.curves_sculpt
-        
+
         return self._current_tool
-    
+
     def get_release_condition(self, event):
         if bversion < 3.2:
             return event.type == 'MOUSEMOVE' and event.value == 'RELEASE'
         else:
             return event.type in ['MOUSEMOVE', 'LEFTMOUSE', 'RIGHTMOUSE', 'WINDOW_DEACTIVATE'] and event.value in ['RELEASE', 'NOTHING'] and self.press
-    
+
     def get_run_condition(self, event) :
         if bversion < 3.2:
             return event.type == 'MOUSEMOVE' and event.value == 'PRESS'
@@ -125,26 +133,26 @@ class TILA_Brush_toggle(bpy.types.Operator):
             return event.type == 'MOUSEMOVE' and event.value == 'NOTHING' and not self.press
 
     def set_initial_brush(self):
-        self.target_brush = TILA_Brush(self.relative_asset_identifier, 
-                                       self.asset_library_type, 
+        self.target_brush = TILA_Brush(self.relative_asset_identifier,
+                                       self.asset_library_type,
                                        self.asset_library_identifier,
                                        force_strength = self.force_strength,
                                        strength = self.strength if self.force_strength else -1.0,
                                        force_weight = self.force_weight,
                                        weight = self.weight if self.force_weight else -1.0)
-        
-        self.default_brush = TILA_Brush(self.default_relative_asset_identifier, 
-                                        self.default_asset_library_type, 
-                                        self.default_asset_library_identifier, 
-                                        strength = self.default_strength, 
+
+        self.default_brush = TILA_Brush(self.default_relative_asset_identifier,
+                                        self.default_asset_library_type,
+                                        self.default_asset_library_identifier,
+                                        strength = self.default_strength,
                                         weight = self.default_weight)
-        
-        self.previous_brush = TILA_Brush(bpy.context.window_manager.tila_previous_brush.relative_asset_identifier, 
+
+        self.previous_brush = TILA_Brush(bpy.context.window_manager.tila_previous_brush.relative_asset_identifier,
                                          bpy.context.window_manager.tila_previous_brush.asset_library_type,
                                          bpy.context.window_manager.tila_previous_brush.asset_library_identifier,
                                          strength = bpy.context.window_manager.tila_previous_brush.strength,
                                          weight = bpy.context.window_manager.tila_previous_brush.weight)
-        
+
         self.current_brush = TILA_Brush(self.current_tool.brush_asset_reference.relative_asset_identifier,
                                         self.current_tool.brush_asset_reference.asset_library_type,
                                         self.current_tool.brush_asset_reference.asset_library_identifier,
@@ -183,7 +191,7 @@ class TILA_Brush_toggle(bpy.types.Operator):
         try:
             if self.mode not in compatible_modes:
                 return {'CANCELLED'}
-            
+
             if not self.brush_is_set:
                 if brush == self.current_brush:
                     brush = self.previous_brush
@@ -193,7 +201,7 @@ class TILA_Brush_toggle(bpy.types.Operator):
                     brush == self.default_brush
 
                 self.set_brush_settings(brush)
-            
+
             if self.toggle_back_on_release:
                 if self.mode == 'SCULPT':
                     if brush != self.default_brush:
@@ -214,11 +222,11 @@ class TILA_Brush_toggle(bpy.types.Operator):
                 elif self.mode == 'GPENCIL_PAINT':
                     if brush != self.default_brush:
                         bpy.ops.grease_pencil.brush_stroke('INVOKE_DEFAULT')
-    
+
                 elif self.mode == 'GPENCIL_SCULPT':
                     if brush != self.default_brush:
                         bpy.ops.grease_pencil.sculpt_paint('INVOKE_DEFAULT')
-                
+
                 elif self.mode == 'GPENCIL_WEIGHT':
                     if brush != self.default_brush:
                         bpy.ops.grease_pencil.weight_brush_stroke('INVOKE_DEFAULT')
@@ -226,7 +234,7 @@ class TILA_Brush_toggle(bpy.types.Operator):
                 elif self.mode == 'GPENCIL_VERTEX':
                     if brush != self.default_brush:
                         bpy.ops.grease_pencil.vertex_brush_stroke('INVOKE_DEFAULT')
-                
+
                 elif self.mode == 'CURVES_SCULPT':
                     if brush != self.default_brush:
                         bpy.ops.sculpt_curves.brush_stroke('INVOKE_DEFAULT')
@@ -275,13 +283,13 @@ classes = (
 def register():
     for c in classes:
         bpy.utils.register_class(c)
-    
+
     bpy.types.WindowManager.tila_previous_brush = bpy.props.PointerProperty(name='Previous Brush', type=TILA_PG_Brush)
 
 
 def unregister():
 
-    del bpy.types.WindowManager.previous_brush 
+    del bpy.types.WindowManager.previous_brush
 
     for c in classes:
         bpy.utils.unregister_class(c)

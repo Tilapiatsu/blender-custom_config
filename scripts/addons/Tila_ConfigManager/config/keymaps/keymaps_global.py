@@ -1480,8 +1480,8 @@ class TILA_Config_Keymaps(TILA_Config_Keymaps_Base):
                             less_tool='grease_pencil.select_less',
                             invert_tool='grease_pencil.select_all'
                             )
-        
-        self.kmi_set_replace('paint.tila_brush_select_and_paint', self.k_manip, 'PRESS', shift=True, properties={'tool': 'GPENCIL_PAINT', 'mode':'BLUR', 'brush':'Blur', 'brush_asset_id' : 'brushes\essentials_brushes-gp_vertex.blend\Brush\Blur', 'brush_asset_library_type':'ESSENTIALS' }, disable_double=True)
+
+        self.kmi_set_replace('paint.tila_brush_select_and_paint', self.k_manip, 'PRESS', shift=True, properties={'mode': 'GPENCIL_PAINT', 'relative_asset_identifier' : 'brushes\essentials_brushes-gp_vertex.blend\Brush\Blur', 'asset_library_type':'ESSENTIALS','asset_library_identifier': '' }, disable_double=True)
 
         self.asset_shelf_popover(shelf_name='VIEW3D_AST_brush_gpencil_vertex')
 
@@ -1526,7 +1526,7 @@ class TILA_Config_Keymaps(TILA_Config_Keymaps_Base):
                             less_tool='grease_pencil.select_less',
                             invert_tool='grease_pencil.select_all',
                             )
-        
+
         self.asset_shelf_popover(shelf_name='VIEW3D_AST_brush_gpencil_sculpt')
 
     @TILA_Config_Keymaps_Base.print_assigning_keymap('Global Grease Pencil Weight Paint')
@@ -1580,13 +1580,13 @@ class TILA_Config_Keymaps(TILA_Config_Keymaps_Base):
                             more_tool='grease_pencil.select_more',
                             less_tool='grease_pencil.select_less'
                             )
-        
+
         self.asset_shelf_popover(shelf_name='VIEW3D_AST_brush_gpencil_weight')
 
         self.kmi_set_replace('wm.tool_set_by_id', self.k_manip, 'PRESS', ctrl=True, shift=True, alt=True, properties={'name': 'builtin_brush.Weight'})
 
-        self.kmi_set_replace('paint.tila_brush_select_and_paint', self.k_manip, 'PRESS', shift=True, properties={'tool': 'GPENCIL_WEIGHT', 'mode':'BLUR', 'brush':'Blur', 'brush_asset_id' : 'brushes\essentials_brushes-gp_weight.blend\Brush\Blur', 'brush_asset_library_type':'ESSENTIALS' }, disable_double=True)
-    
+        self.kmi_set_replace('paint.tila_brush_select_and_paint', self.k_manip, 'PRESS', shift=True, properties={'mode': 'GPENCIL_WEIGHT', 'relative_asset_identifier' : 'brushes\essentials_brushes-gp_weight.blend\Brush\Blur', 'asset_library_type':'ESSENTIALS', 'asset_library_identifier': '' }, disable_double=True)
+
         # self.kmi_set_replace('paint.tila_brush_select_and_paint', self.k_manip, 'PRESS', shift=True, properties={'tool': 'WEIGHT', 'mode': 'AVERAGE', 'brush': 'Average'})
         # self.kmi_set_replace('paint.tila_brush_select_and_paint', self.k_manip, 'PRESS', ctrl=True, properties={'tool': 'WEIGHT', 'mode': 'DRAW', 'brush': 'Subtract'})
 
@@ -1605,7 +1605,7 @@ class TILA_Config_Keymaps(TILA_Config_Keymaps_Base):
         self.kmi_init(name='Paint Vertex Selection (Weight, Vertex)', space_type='EMPTY', region_type='WINDOW', addon=False)
 
         self.selection_keys(more_tool='paint.vert_select_more',
-                            less_tool='paint.vert_select_less')                         
+                            less_tool='paint.vert_select_less')
 
     @TILA_Config_Keymaps_Base.print_assigning_keymap('Global Frames')
     def set_keymaps_frames(self):
