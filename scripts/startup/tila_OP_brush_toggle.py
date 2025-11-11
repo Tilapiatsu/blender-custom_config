@@ -91,31 +91,31 @@ class TILA_Brush_toggle(bpy.types.Operator):
     @property
     def current_tool(self):
         if self._current_tool is None:
-            if self.mode == 'SCULPT':
+            if bpy.context.mode == 'SCULPT':
                 self._current_tool = bpy.context.tool_settings.sculpt
 
-            elif self.mode == 'VERTEX':
+            elif bpy.context.mode == 'VERTEX':
                 self._current_tool = bpy.context.tool_settings.vertex_paint
 
-            elif self.mode == 'WEIGHT':
+            elif bpy.context.mode == 'WEIGHT':
                 self._current_tool = bpy.context.tool_settings.weight_paint
 
-            elif self.mode == 'IMAGE':
+            elif bpy.context.mode == 'IMAGE':
                 self._current_tool = bpy.context.tool_settings.image_paint
 
-            elif self.mode == 'GPENCIL_PAINT':
+            elif bpy.context.mode == 'GPENCIL_PAINT':
                 self._current_tool = bpy.context.tool_settings.gpencil_paint
 
-            elif self.mode == 'GPENCIL_SCULPT':
+            elif bpy.context.mode == 'GPENCIL_SCULPT':
                 self._current_tool = bpy.context.tool_settings.gpencil_sculpt_paint
 
-            elif self.mode == 'GPENCIL_WEIGHT':
+            elif bpy.context.mode == 'GPENCIL_WEIGHT':
                 self._current_tool = bpy.context.tool_settings.gpencil_weight_paint
 
-            elif self.mode == 'GPENCIL_VERTEX':
+            elif bpy.context.mode == 'GPENCIL_VERTEX':
                 self._current_tool = bpy.context.tool_settings.gpencil_vertex_paint
 
-            elif self.mode == 'SCULPT_CURVES':
+            elif bpy.context.mode == 'SCULPT_CURVES':
                 self._current_tool = bpy.context.tool_settings.curves_sculpt
 
         return self._current_tool
