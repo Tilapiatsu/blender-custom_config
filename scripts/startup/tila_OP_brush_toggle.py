@@ -36,7 +36,7 @@ class TILA_Brush:
                     self.asset_library_identifier == other.asset_library_identifier)
         return False
 
-compatible_modes = ['SCULPT', 'VERTEX', 'WEIGHT', 'IMAGE', 'GPENCIL_PAINT', 'GPENCIL_SCULPT', 'GPENCIL_WEIGHT', 'GPENCIL_VERTEX', 'CURVES_SCULPT']
+compatible_modes = ['SCULPT', 'VERTEX', 'WEIGHT', 'IMAGE', 'GPENCIL_PAINT', 'GPENCIL_SCULPT', 'GPENCIL_WEIGHT', 'GPENCIL_VERTEX', 'SCULPT_CURVES']
 
 def mode_enum():
     enum = []
@@ -115,7 +115,7 @@ class TILA_Brush_toggle(bpy.types.Operator):
             elif self.mode == 'GPENCIL_VERTEX':
                 self._current_tool = bpy.context.tool_settings.gpencil_vertex_paint
 
-            elif self.mode == 'CURVES_SCULPT':
+            elif self.mode == 'SCULPT_CURVES':
                 self._current_tool = bpy.context.tool_settings.curves_sculpt
 
         return self._current_tool
@@ -235,7 +235,7 @@ class TILA_Brush_toggle(bpy.types.Operator):
                     if brush != self.default_brush:
                         bpy.ops.grease_pencil.vertex_brush_stroke('INVOKE_DEFAULT')
 
-                elif self.mode == 'CURVES_SCULPT':
+                elif self.mode == 'SCULPT_CURVES':
                     if brush != self.default_brush:
                         bpy.ops.sculpt_curves.brush_stroke('INVOKE_DEFAULT')
 

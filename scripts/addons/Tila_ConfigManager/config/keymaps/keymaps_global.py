@@ -914,6 +914,7 @@ class TILA_Config_Keymaps(TILA_Config_Keymaps_Base):
             self.kmi_init(name='Sculpt Curves', space_type='EMPTY', region_type='WINDOW', addon=False)
             self.global_keys()
             self.right_mouse()
+            self.kmi_set_active(False, idname='sculpt_curves.brush_stroke', properties={'mode': 'SMOOTH'})
             self.tool_sculpt('view3d.tila_smart_sculptmode')
 
             self.selection_tool(tool='brushes\essentials_brushes-curve_sculpt.blend\Brush\Comb', alt='brushes\essentials_brushes-curve_sculpt.blend\Brush\Select', mode='CURVES_SCULPT')
@@ -944,6 +945,8 @@ class TILA_Config_Keymaps(TILA_Config_Keymaps_Base):
                                             'zoom_path': '',
                                             'secondary_tex': False,
                                             'release_confirm': True})
+
+            self.kmi_set_replace('paint.tila_brush_select_and_paint', self.k_manip, 'PRESS', shift=True, properties={'mode': 'SCULPT_CURVES', 'relative_asset_identifier' : 'brushes\essentials_brushes-curve_sculpt.blend\Brush\Smooth', 'asset_library_type':'ESSENTIALS','asset_library_identifier': '' }, disable_double=True)
 
     @TILA_Config_Keymaps_Base.print_assigning_keymap('Global Curve')
     def set_keymaps_curve(self):

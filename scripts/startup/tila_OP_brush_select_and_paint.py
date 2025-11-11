@@ -10,7 +10,7 @@ bl_info = {
     "category": "Mesh",
 }
 
-compatible_modes = ['SCULPT', 'VERTEX', 'WEIGHT', 'IMAGE', 'GPENCIL_PAINT', 'GPENCIL_SCULPT', 'GPENCIL_WEIGHT', 'GPENCIL_VERTEX', 'CURVES_SCULPT']
+compatible_modes = ['SCULPT', 'VERTEX', 'WEIGHT', 'IMAGE', 'GPENCIL_PAINT', 'GPENCIL_SCULPT', 'GPENCIL_WEIGHT', 'GPENCIL_VERTEX', 'SCULPT_CURVES']
 
 def modes_enum():
     enum = [(t, t.lower().replace('_', ' '), '') for t in compatible_modes]
@@ -176,7 +176,7 @@ class TILA_brush_select_and_paint(bpy.types.Operator):
                     bpy.ops.grease_pencil.weight_brush_stroke('INVOKE_DEFAULT')
                 elif self.mode == 'GPENCIL_VERTEX':
                     bpy.ops.grease_pencil.vertex_brush_stroke('INVOKE_DEFAULT')
-                elif self.mode == 'CURVES_SCULPT':
+                elif self.mode == 'SCULPT_CURVES':
                     bpy.ops.sculpt_curves.brush_stroke('INVOKE_DEFAULT')
 
         except RuntimeError as e:
