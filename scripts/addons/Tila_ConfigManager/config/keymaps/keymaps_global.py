@@ -895,6 +895,7 @@ class TILA_Config_Keymaps(TILA_Config_Keymaps_Base):
             self.global_keys()
             self.right_mouse()
             self.tool_transform()
+            self.selection_tool()
             self.tool_toggle_color('paint.brush_colors_flip')
             self.toggle_x_symetry()
             self.kmi_set_active(False, type='X', idname='curves.delete')
