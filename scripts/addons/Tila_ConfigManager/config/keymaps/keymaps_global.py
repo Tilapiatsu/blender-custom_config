@@ -383,6 +383,12 @@ class TILA_Config_Keymaps(TILA_Config_Keymaps_Base):
     def asset_shelf_popover(self, shelf_name, disable_double=True):
         self.kmi_set_replace('wm.call_asset_shelf_popover', 'B', 'PRESS', properties={'name': shelf_name}, disable_double=disable_double)
 
+    def separate(self, separate_selected=True, separate_by_loose_parts=False):
+        if separate_selected:
+            self.kmi_set_replace('view3d.separate_and_select', 'D', 'PRESS', ctrl=True, shift=True, properties={'by_loose_parts': False}, disable_double=True)
+        if separate_by_loose_parts:
+            self.kmi_set_replace('view3d.separate_and_select', 'D', 'PRESS', ctrl=True, alt=True, shift=True, properties={'by_loose_parts': True}, disable_double=True)
+
     # Keymap define
     @TILA_Config_Keymaps_Base.print_assigning_keymap()
     def set_keymaps(self):
@@ -398,6 +404,7 @@ class TILA_Config_Keymaps(TILA_Config_Keymaps_Base):
         self.set_keymaps_mesh()
         self.set_keymaps_object_mode()
         self.set_keymaps_sculpt()
+        self.set_keymaps_curves()
         self.set_keymaps_sculpt_curve()
         self.set_keymaps_curve()
         self.set_keymaps_outliner()
@@ -475,6 +482,7 @@ class TILA_Config_Keymaps(TILA_Config_Keymaps_Base):
         self.kmi_set_active(False, idname='view3d.zoom', type="MIDDLEMOUSE")
         self.kmi_set_active(False, idname='view3d.move', type="MIDDLEMOUSE")
         self.kmi_set_active(False, idname='view3d.select_lasso', type="RIGHTMOUSE")
+        self.kmi_set_active(False, idname='view3d.view_center_pick', type='MIDDLEMOUSE')
 
         self.kmi_set_active(False, idname='wm.tool_set_by_id', type="W")
         self.kmi_set_replace('view3d.navigate', 'NUMPAD_SLASH', 'PRESS', ctrl=True, alt=True, shift=True, disable_double=True)
@@ -539,6 +547,7 @@ class TILA_Config_Keymaps(TILA_Config_Keymaps_Base):
         self.kmi_set_replace('transform.translate', self.k_cursor, 'CLICK_DRAG', ctrl=True, alt=True, shift=True, properties={'cursor_transform': True, 'release_confirm': True, 'orient_type': 'NORMAL', 'snap': True, 'snap_align': True}, disable_double=True)
         self.kmi_set_replace('animation.tila_time_scrub', self.k_menu, 'PRESS', shift=True, disable_double=True)
         self.kmi_set_active(False, idname='transform.translate', shift=True, ctrl=False, alt=False, type="RIGHTMOUSE")
+        self.join()
 
     @TILA_Config_Keymaps_Base.print_assigning_keymap('Global View3D Walk Modal')
     def set_keymaps_view3d_walk_modal(self):
@@ -725,8 +734,7 @@ class TILA_Config_Keymaps(TILA_Config_Keymaps_Base):
         # self.kmi_set_replace('wm.tool_set_by_id', 'F', 'PRESS', shift=True, properties={'name': 'mesh_tool.poly_quilt'}, disable_double=True)
 
         self.kmi_set_replace('mesh.remove_doubles', 'M', 'PRESS', ctrl=True, shift=True, disable_double=True)
-        self.kmi_set_replace('mesh.separate_and_select', 'D', 'PRESS', ctrl=True, shift=True, properties={'by_loose_parts': False})
-        self.kmi_set_replace('mesh.separate_and_select', 'D', 'PRESS', ctrl=True, alt=True, shift=True, properties={'by_loose_parts': True})
+        self.separate(separate_selected=True, separate_by_loose_parts=True)
 
         self.tool_subdivision()
 
@@ -879,8 +887,8 @@ class TILA_Config_Keymaps(TILA_Config_Keymaps_Base):
         self.kmi_set_replace('paint.visibility_invert', self.k_nav, 'PRESS', ctrl=True, alt=True, shift=True, disable_double=True)
         self.tool_sample_color('sculpt.sample_color')
 
-    @TILA_Config_Keymaps_Base.print_assigning_keymap('Global Sculpt Curve')
-    def set_keymaps_sculpt_curve(self):
+    @TILA_Config_Keymaps_Base.print_assigning_keymap('Global Curves')
+    def set_keymaps_curves(self):
         if BVERSION >= 3.2:
             # Curves
             self.kmi_init(name='Curves', space_type='EMPTY', region_type='WINDOW', addon=False)
@@ -894,6 +902,14 @@ class TILA_Config_Keymaps(TILA_Config_Keymaps_Base):
                                 linked_tool='curves.select_linked', linked_pick_tool='curves.select_linked_pick',
                                 invert_tool='curves.select_all')
 
+            self.kmi_set_replace('curves.subdivide', 'D', 'PRESS', disable_double=True)
+            self.kmi_set_replace('curves.switch_direction', 'F', 'PRESS', disable_double=True)
+            self.duplicate(duplicate='curves.duplicate_move')
+            self.separate()
+
+    @TILA_Config_Keymaps_Base.print_assigning_keymap('Global Sculpt Curve')
+    def set_keymaps_sculpt_curve(self):
+        if BVERSION >= 3.2:
             ###### Sculpt Curves
             self.kmi_init(name='Sculpt Curves', space_type='EMPTY', region_type='WINDOW', addon=False)
             self.global_keys()
@@ -945,7 +961,7 @@ class TILA_Config_Keymaps(TILA_Config_Keymaps_Base):
         self.kmi_set_replace('curve.reveal', 'H', 'PRESS', ctrl=True, shift=True)
         self.kmi_set_replace('curve.shortest_path_pick', self.k_select, 'PRESS', ctrl=True, shift=True)
         self.kmi_set_replace('curve.draw', 'LEFTMOUSE', 'PRESS', alt=True, ctrl=True, shift=True, properties={'wait_for_input': False})
-        self.kmi_set_replace('curve.separate', 'D', 'PRESS', ctrl=True, shift=True)
+        self.separate()
         self.kmi_set_replace('curve.subdivide', 'D', 'PRESS')
         kmi = self.kmi_set_replace('transform.tilt', 'T', 'PRESS', shift=True)
         kmi.active = True

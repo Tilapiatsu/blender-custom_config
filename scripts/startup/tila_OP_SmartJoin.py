@@ -21,12 +21,12 @@ class TILA_smart_join(bpy.types.Operator):
 	apply_modifiers : bpy.props.BoolProperty(name='Apply Modifiers', default=False)
 	duplicate : bpy.props.BoolProperty(name='Duplicate Objects', default=False)
 
-	compatible_type = ['MESH', 'CURVE']
+	compatible_type = ['MESH', 'CURVE', 'CURVES', 'GPENCIL']
 
 	@classmethod
 	def poll(cls, context):
 		return context.mode == 'OBJECT'
-		
+
 	def invoke(self, context, event):
 
 		self.object_to_process = [o for o in bpy.context.selected_objects if o.type in self.compatible_type]
@@ -48,7 +48,7 @@ class TILA_smart_join(bpy.types.Operator):
 						bpy.ops.object.convert(target='MESH')
 
 				bpy.ops.object.apply_all_modifiers()
-		
+
 		bpy.ops.object.join()
 
 		return {'FINISHED'}
