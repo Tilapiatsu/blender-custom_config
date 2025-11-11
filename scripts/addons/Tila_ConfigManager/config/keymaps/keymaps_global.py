@@ -365,6 +365,9 @@ class TILA_Config_Keymaps(TILA_Config_Keymaps_Base):
             self.kmi_set_replace('wm.call_menu', 'X', 'PRESS', alt=True, properties={'name': 'TILA_MT_action_center'}, disable_double=True)
 
     def tool_transform(self, cage_scale=None):
+        self.kmi_set_active(False, type=self.k_move, ctrl=False, shift=False, alt=False)
+        self.kmi_set_active(False, type=self.k_rotate, ctrl=False, shift=False, alt=False)
+        self.kmi_set_active(False, type=self.k_scale, ctrl=False, shift=False, alt=False)
         self.kmi_set_replace('wm.tool_set_by_id', self.k_move, 'PRESS', properties={'name': 'builtin.move'}, disable_double=True)
         self.kmi_set_replace('wm.tool_set_by_id', self.k_rotate, 'PRESS', properties={'name': 'builtin.rotate'}, disable_double=True)
         self.kmi_set_replace('wm.tool_set_by_id', self.k_scale, 'PRESS', properties={'name': 'builtin.scale'}, disable_double=True)
@@ -920,7 +923,7 @@ class TILA_Config_Keymaps(TILA_Config_Keymaps_Base):
             self.kmi_set_active(False, idname='sculpt_curves.brush_stroke', properties={'mode': 'SMOOTH'})
             self.tool_sculpt('view3d.tila_smart_sculptmode')
 
-            self.selection_tool(tool='brushes\essentials_brushes-curve_sculpt.blend\Brush\Comb', alt='brushes\essentials_brushes-curve_sculpt.blend\Brush\Select', mode='CURVES_SCULPT')
+            self.selection_tool(tool='brushes\essentials_brushes-curve_sculpt.blend\Brush\Comb', alt='brushes\essentials_brushes-curve_sculpt.blend\Brush\Select', mode='SCULPT_CURVES')
 
             self.asset_shelf_popover(shelf_name='VIEW3D_AST_brush_sculpt_curves')
 
