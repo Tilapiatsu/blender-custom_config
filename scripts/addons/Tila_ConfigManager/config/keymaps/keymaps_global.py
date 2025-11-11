@@ -894,6 +894,7 @@ class TILA_Config_Keymaps(TILA_Config_Keymaps_Base):
             self.kmi_init(name='Curves', space_type='EMPTY', region_type='WINDOW', addon=False)
             self.global_keys()
             self.right_mouse()
+            self.tool_transform()
             self.tool_toggle_color('paint.brush_colors_flip')
             self.toggle_x_symetry()
             self.kmi_set_active(False, type='X', idname='curves.delete')
@@ -914,6 +915,7 @@ class TILA_Config_Keymaps(TILA_Config_Keymaps_Base):
             self.kmi_init(name='Sculpt Curves', space_type='EMPTY', region_type='WINDOW', addon=False)
             self.global_keys()
             self.right_mouse()
+            self.tool_transform()
             self.kmi_set_active(False, idname='sculpt_curves.brush_stroke', properties={'mode': 'SMOOTH'})
             self.tool_sculpt('view3d.tila_smart_sculptmode')
 
