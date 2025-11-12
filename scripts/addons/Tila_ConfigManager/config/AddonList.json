@@ -3781,5 +3781,48 @@
                 "destination_path": "#\\scripts\\addons\\outset_broundary"
             }
         ]
+    },
+    "datablock_utils": {
+        "is_enable": true,
+        "is_sync": true,
+        "is_extension": true,
+        "extension_id": "datablock_utils",
+        "online_url": "https://extensions.blender.org/add-ons/datablock-utils/",
+        "repository_url": "blender_org",
+        "branch": null,
+        "is_submodule": false,
+        "local_path": null,
+        "keymaps": false,
+        "paths": [
+            {
+                "is_enable": false,
+                "local_subpath": null,
+                "destination_path": null
+            }
+        ]
+    },
+    "node_arrange": {
+        "is_enable": true,
+        "is_sync": true,
+        "is_extension": true,
+        "extension_id": "node_arrange",
+        "online_url": "https://extensions.blender.org/add-ons/node-arrange/",
+        "repository_url": null,
+        "branch": null,
+        "is_submodule": false,
+        "local_path": null,
+        "keymaps": false,
+        "paths": [
+            {
+                "is_enable": false,
+                "local_subpath": null,
+                "destination_path": null
+            },
+            {
+                "is_enable": false,
+                "local_subpath": null,
+                "destination_path": null
+            }
+        ]
     }
 }
