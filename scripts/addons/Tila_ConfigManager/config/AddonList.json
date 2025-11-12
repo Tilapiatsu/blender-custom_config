@@ -1467,7 +1467,7 @@
     },
     "HEAVYPOLY": {
         "is_enable": false,
-        "is_sync": true,
+        "is_sync": false,
         "is_extension": false,
         "extension_id": null,
         "online_url": null,
