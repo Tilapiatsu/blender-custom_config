@@ -289,7 +289,7 @@ def register():
 
 def unregister():
 
-    del bpy.types.WindowManager.previous_brush
+    del bpy.types.WindowManager.tila_previous_brush
 
     for c in classes:
         bpy.utils.unregister_class(c)
