@@ -3131,7 +3131,7 @@
         "paths": [
             {
                 "is_enable": true,
-                "local_subpath": null,
+                "local_subpath": "src\\universal_multi_importer",
                 "destination_path": "#\\scripts\\addons\\universal_multi_importer"
             }
         ]
