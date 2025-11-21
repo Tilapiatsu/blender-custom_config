@@ -1,6 +1,6 @@
 import bpy
 from os import path
-from ...bversion import BVERSION
+from Tila_ConfigManager.bversion import BVERSION
 
 class TILA_Config_PathElement(bpy.types.PropertyGroup):
     is_enable       : bpy.props.BoolProperty(default=False)

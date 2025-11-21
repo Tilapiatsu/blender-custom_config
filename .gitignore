@@ -4,6 +4,8 @@ config/userpref.blend
 *__pycache__*
 
 dependencies/*
+site_package
+modules
 
 extensions/*
 

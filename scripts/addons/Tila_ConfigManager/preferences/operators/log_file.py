@@ -1,5 +1,5 @@
 import bpy, os, tempfile
-from ...config_const import LOG_FILENAME, LOG_PREFIX
+from Tila_ConfigManager.config_const import LOG_FILENAME, LOG_PREFIX
 
 def get_latest_log_file():
     tempdir = tempfile.gettempdir()

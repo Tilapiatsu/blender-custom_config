@@ -2,7 +2,7 @@ import tempfile
 import logging
 import time
 from os import path
-from ...config_const import LOG_PREFIX
+from Tila_ConfigManager.config_const import LOG_PREFIX
 
 root_folder = __file__
 

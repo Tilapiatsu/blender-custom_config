@@ -1,21 +1,18 @@
 import os
-import sys
 import json
 import shutil
-import subprocess
 import stat
 import bpy
 import addon_utils
 import importlib
+import git
 from os import path
 from . import admin
-from ..config import keymaps, settings
-from ..logger import LOG
-from ..preferences.ui.log_list import TILA_Config_Log as log_list
+from Tila_ConfigManager.config import keymaps, settings
+from Tila_ConfigManager.logger import LOG
+from Tila_ConfigManager.preferences.ui.log_list import TILA_Config_Log as log_list
 
 root_folder = path.dirname(bpy.utils.script_path_user())
-
-dependencies = ['gitpython']
 
 create_symbolic_link_file = path.join(path.dirname(path.realpath(__file__)), 'create_symbolic_link.py')
 
@@ -24,35 +21,6 @@ def get_installed_addons():
     addon_utils.modules(module_cache=addons_fake_modules, refresh=False)
     return addons_fake_modules.keys()
 
-
-def install_dependencies():
-    current_dir = path.dirname(path.realpath(__file__))
-    dependencies_path = path.join(current_dir, 'dependencies')
-    LOG.debug("Dependency folder : " + dependencies_path)
-    if dependencies_path not in sys.path:
-        sys.path.append(dependencies_path)
-
-    if not path.exists(dependencies_path):
-        os.mkdir(dependencies_path)
-        install = True
-    else:
-        install = False
-        dependency_subfolder = os.listdir(dependencies_path)
-
-        for d in dependencies:
-            found = False
-            for s in dependency_subfolder:
-                if d.lower() in s.lower():
-                    found = True
-
-            if not found:
-                install = True
-                break
-
-    if not install:
-        return
-    subprocess.check_call([sys.executable, '-m', 'pip', 'install',
-                          *dependencies, '--target', dependencies_path])
 
 def enable_addon(addon_name):
     if addon_name is None:
@@ -104,14 +72,6 @@ def file_acces_handler(func, path, exc_info):
         os.chmod(path, stat.S_IWUSR)
         # call the calling function again
         func(path)
-
-
-try:
-    import git
-except (ModuleNotFoundError, ImportError) as e:
-    LOG.error(e, store_failure=False)
-    install_dependencies()
-    import git
 
 
 class File:

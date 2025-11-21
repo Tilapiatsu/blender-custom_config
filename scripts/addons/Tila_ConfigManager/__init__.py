@@ -21,22 +21,25 @@ bl_info = {
     "category" : "Preferences"
 }
 
-from . import preferences
-from . import operators
-
-
-
-
-modules =   (	preferences,
-                operators
-            )
+from .dependencies.dependencies import Dependencies
 
 def register():
+    Dependencies.install()
+    from Tila_ConfigManager import preferences
+    from Tila_ConfigManager import operators
+    modules =   (	preferences,
+                    operators
+                )
     for m in modules:
         m.register()
 
 
 def unregister():
+    from Tila_ConfigManager import preferences
+    from Tila_ConfigManager import operators
+    modules =   (	preferences,
+                    operators
+                )
     for m in reversed(modules):
         m.unregister()
     

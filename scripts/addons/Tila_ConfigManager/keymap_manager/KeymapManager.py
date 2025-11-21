@@ -1,6 +1,6 @@
 import bpy
-from ..preferences.ui.log_list import TILA_Config_Log as log_list
-from ..bversion import BVERSION
+from Tila_ConfigManager.preferences.ui.log_list import TILA_Config_Log as log_list
+from Tila_ConfigManager.bversion import BVERSION
 
 class bKeymap():
     def __init__(self, kmi):

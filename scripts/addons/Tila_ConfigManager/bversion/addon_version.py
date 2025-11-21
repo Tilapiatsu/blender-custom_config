@@ -1,6 +1,6 @@
 import addon_utils, bpy
 from . import BVERSION
-from .version import Version
+from .version.version import Version
 
 class AddonVersion:
     '''

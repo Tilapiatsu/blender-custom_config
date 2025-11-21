@@ -1,7 +1,7 @@
 import bpy
 from enum import StrEnum
-from ...logger import LOG
-from ...config_const import LOG_FILENAME
+from Tila_ConfigManager.logger import LOG
+from Tila_ConfigManager.config_const import LOG_FILENAME
 
 class MessageType(StrEnum):
     NONE = 'BLANK1'

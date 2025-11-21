@@ -3824,5 +3824,24 @@
                 "destination_path": null
             }
         ]
+    },
+    "deep_asset_exporter": {
+        "is_enable": true,
+        "is_sync": true,
+        "is_extension": false,
+        "extension_id": null,
+        "online_url": null,
+        "repository_url": null,
+        "branch": null,
+        "is_submodule": false,
+        "local_path": "#\\scripts\\addon_library\\GIT_Submodules\\tila_deep_asset_exporter",
+        "keymaps": false,
+        "paths": [
+            {
+                "is_enable": true,
+                "local_subpath": "src\\deep_asset_exporter",
+                "destination_path": "#\\scripts\\addons\\deep_asset_exporter"
+            }
+        ]
     }
 }

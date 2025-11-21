@@ -1,5 +1,5 @@
 from bpy.app import version as blender_version
-from .version import Version
+from .version.version import Version
 
 def get_bversion():
     '''
