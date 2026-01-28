@@ -245,8 +245,12 @@ class Json(File):
 
 
 class PathAM:
-    def __init__(self, path: Path):
+    def __init__(self, path: Optional[Path] = None):
         self._path = path
+
+        if not self.is_set:
+            self._path = Path("")
+
         self.log_progress = log_list(
             bpy.context.window_manager.tila_config_log_list,
             "tila_config_log_list_idx",
@@ -261,31 +265,23 @@ class PathAM:
         return self._path is not None
 
     @property
-    def path(self) -> Optional[Path]:
-        if self._path is None:
-            return
-        else:
-            return Path(str(self._path).replace("#", str(root_folder)))
+    def path(self) -> Path:
+        return Path(str(self._path).replace("#", str(root_folder)))
 
     @property
     def exists(self):
-        if not self.is_set:
-            return False
         return self.path.exists()
 
     @property
     def is_file(self):
-        if not self.is_set:
-            return None
         return self.path.is_file()
 
     @property
     def is_dir(self):
-        if self.path is None:
-            return None
         return self.path.is_dir()
 
     def remove(self):
+        target = "undefined"
         if self.is_file:
             target = "File"
         elif self.is_dir:
@@ -303,7 +299,7 @@ class PathAM:
 
 
 class PathElementAM:
-    def __init__(self, path_dict, local_path):
+    def __init__(self, path_dict, local_path: PathAM):
         self._path_dict = path_dict
         self.local_path = local_path
         self.log_progress = log_list(
@@ -329,7 +325,7 @@ class PathElementAM:
         if self._path_dict["local_subpath"] is None:
             return self.local_path
         else:
-            return PathAM(self.local_path.path / self._path_dict["local_subpath"])
+            return PathAM(self.local_path.path / Path(self._path_dict["local_subpath"]))
 
     @property
     def destination_path(self):
@@ -496,10 +492,32 @@ class ElementAM:
         )
 
     @property
+    def windows_drive(self) -> Path:
+        p = self.element_dict["windows_drive"]
+        return Path(p) if p is not None else Path("")
+
+    @property
+    def linux_drive(self) -> Path:
+        p = self.element_dict["linux_drive"]
+        return Path(p) if p is not None else Path("")
+
+    @property
+    def os_drive(self) -> Path:
+        match platform.system():
+            case "Windows":
+                return self.windows_drive
+            case "Linux":
+                return self.linux_drive
+            case _:
+                return Path("")
+
+    @property
     def local_path(self):
-        if self.element_dict["local_path"] is None:
-            return PathAM(self.element_dict["local_path"])
-        return PathAM(Path(self.element_dict["local_path"]))
+        local_path = self.element_dict["local_path"]
+        if local_path is None:
+            return PathAM()
+
+        return PathAM(self.os_drive.joinpath(Path(self.element_dict["local_path"])))
 
     @property
     def keymaps(self):
@@ -799,7 +817,6 @@ class AddonManager:
             case "Windows":
                 admin.elevate(sp_command)
             case "Linux":
-                print(link_command)
                 for l in link_command:
                     os.symlink(l[0], l[1], target_is_directory=l[2])
                 # os.symlink()
