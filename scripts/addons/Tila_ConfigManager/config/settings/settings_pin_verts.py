@@ -1,7 +1,9 @@
 import bpy
-from .settings import TILA_Config_Settings_Base
+from Tila_ConfigManager.config.settings.settings import TILA_Config_Settings_Base
 
-addon_name = 'pin_verts'
+addon_name = "pin_verts"
+
+
 class TILA_Config_Settings(TILA_Config_Settings_Base):
     addon_name = addon_name
 
@@ -12,5 +14,6 @@ class TILA_Config_Settings(TILA_Config_Settings_Base):
     def set_settings(self):
         context = bpy.context
         addon = context.preferences.addons.get(self.addon_name)
-        self.set_setting(addon, 'sna_auto_enabledisable_falloff', False)
-        self.set_setting(addon, 'sna_show_header_button_editmode', False)
+        self.set_setting(addon, "sna_auto_enabledisable_falloff", False)
+        self.set_setting(addon, "sna_show_header_button_editmode", False)
+

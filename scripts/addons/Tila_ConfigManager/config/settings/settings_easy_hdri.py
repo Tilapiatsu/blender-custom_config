@@ -1,7 +1,9 @@
 import bpy
-from .settings import TILA_Config_Settings_Base
+from Tila_ConfigManager.config.settings.settings import TILA_Config_Settings_Base
 
-addon_name = 'EasyHDRI'
+addon_name = "EasyHDRI"
+
+
 class TILA_Config_Settings(TILA_Config_Settings_Base):
     addon_name = addon_name
 
@@ -12,5 +14,8 @@ class TILA_Config_Settings(TILA_Config_Settings_Base):
     def set_settings(self):
         context = bpy.context
         addon = context.preferences.addons.get(self.addon_name)
-        self.set_setting(addon, 'default_folder', 'R:\\Mon Drive\\00_Blender_Asset_Library\\Hdri')
-        self.set_setting(addon, 'rot_text_size', 12)
+        self.set_setting(
+            addon, "default_folder", "R:\\Mon Drive\\00_Blender_Asset_Library\\Hdri"
+        )
+        self.set_setting(addon, "rot_text_size", 12)
+
