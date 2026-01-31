@@ -1,21 +1,10 @@
 import bpy
 
-bl_info = {
-    "name": "Tila : Straighten and Relax UV",
-    "description": "This operator Relies on two other operators, one to straighten on UV Toolkit addon, and one to relax on Gret Addon",
-    "author": ("Tilapiatsu"),
-    "version": (0, 1, 0),
-    "blender": (4, 5, 0),
-    "location": "",
-    "warning": "",
-    "doc_url": "",
-    "category": "3D View",
-}
-
 
 class TILA_uv_select(bpy.types.Operator):
-    bl_idname = "uv.tila_uv_select"
     bl_label = "TILA: UV select"
+    bl_idname = "uv.tila_uv_select"
+    bl_options = {"REGISTER", "UNDO"}
 
     extend: bpy.props.BoolProperty(name="Extend", default=False)
     loop: bpy.props.BoolProperty(name="Loop", default=False)
@@ -28,21 +17,23 @@ class TILA_uv_select(bpy.types.Operator):
         return context.mode == "EDIT_MESH"
 
     def execute(self, context):
-        command = bpy.ops.uv.select
         if self.loop:
             command = bpy.ops.uv.select_loop
-            command("INVOKE_DEFAULT", extend=self.extend)
+            args = {"extend": self.extend}
         else:
-            command(
-                "INVOKE_DEFAULT",
-                extend=self.extend,
-                deselect=self.deselect,
-                deselect_all=self.deselect_all,
-                toggle=self.toggle,
-            )
+            command = bpy.ops.uv.select
+            args = {
+                "extend": self.extend,
+                "deselect": self.deselect,
+                "deselect_all": self.deselect_all,
+                "toggle": self.toggle,
+            }
+
+        command("INVOKE_DEFAULT", **args)
 
         if self.loop and bpy.context.scene.tool_settings.uv_select_mode != "VERTEX":
-            command("INVOKE_DEFAULT", extend=self.extend)
+            command("INVOKE_DEFAULT", **args)
+
         return {"FINISHED"}
 
 
