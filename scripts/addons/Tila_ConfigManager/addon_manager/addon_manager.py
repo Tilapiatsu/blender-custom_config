@@ -21,9 +21,7 @@ root_folder: Path = Path(bpy.utils.script_path_user()).parent
 
 dependencies = ["gitpython"]
 
-create_symbolic_link_file = path.join(
-    path.dirname(path.realpath(__file__)), "create_symbolic_link.py"
-)
+create_symbolic_link_file = path.join(path.dirname(path.realpath(__file__)), "create_symbolic_link.py")
 
 
 def get_installed_addons():
@@ -219,9 +217,7 @@ class Json(File):
             if attr in self.json_data:
                 return self.json_data[attr]
             else:
-                self.log.warning(
-                    'Attribute "{}" doesn\'t exist in json data'.format(attr)
-                )
+                self.log.warning('Attribute "{}" doesn\'t exist in json data'.format(attr))
                 return ""
 
     def get_json_data(self):
@@ -247,9 +243,11 @@ class Json(File):
 class PathAM:
     def __init__(self, path: Optional[Path] = None):
         self._path = path
+        self._is_set = True
 
         if not self.is_set:
-            self._path = Path("")
+            self._is_set = False
+            self._path = Path()
 
         self.log_progress = log_list(
             bpy.context.window_manager.tila_config_log_list,
@@ -262,25 +260,33 @@ class PathAM:
 
     @property
     def is_set(self) -> bool:
-        return self._path is not None
+        if self._is_set:
+            return self._path is not None
+        return self._is_set
 
     @property
     def path(self) -> Path:
         return Path(str(self._path).replace("#", str(root_folder)))
 
     @property
-    def exists(self):
-        return self.path.exists()
+    def exists(self) -> bool:
+        if self.is_set:
+            return self.path.exists()
+        return False
 
     @property
-    def is_file(self):
-        return self.path.is_file()
+    def is_file(self) -> bool:
+        if self.is_set:
+            return self.path.is_file()
+        return False
 
     @property
-    def is_dir(self):
-        return self.path.is_dir()
+    def is_dir(self) -> bool:
+        if self.is_set:
+            return self.path.is_dir()
+        return False
 
-    def remove(self):
+    def remove(self) -> None:
         target = "undefined"
         if self.is_file:
             target = "File"
@@ -289,7 +295,7 @@ class PathAM:
 
         if path.islink(self.path):
             self.log_progress.start(f"Unlink {target} {self.path}")
-            os.unlink(self.path)
+            self.path.unlink()
         else:
             self.log_progress.start(f"Remove {target} {self.path}")
             if self.is_file:
@@ -314,11 +320,7 @@ class PathElementAM:
 
     @property
     def local_subpath(self):
-        return (
-            ""
-            if self._path_dict["local_subpath"] is None
-            else self._path_dict["local_subpath"]
-        )
+        return "" if self._path_dict["local_subpath"] is None else self._path_dict["local_subpath"]
 
     @property
     def local_subpath_resolved(self):
@@ -330,7 +332,7 @@ class PathElementAM:
     @property
     def destination_path(self):
         if self._path_dict["destination_path"] is None:
-            return PathAM(self._path_dict["destination_path"])
+            return PathAM()
         return PathAM(Path(self._path_dict["destination_path"]))
 
     def clean(self, force=False):
@@ -345,24 +347,17 @@ class PathElementAM:
         if not force and not self.is_enable:
             return None
 
-        if (
-            self.local_subpath_resolved.path is None
-            or self.destination_path.path is None
-        ):
+        if self.local_subpath_resolved.path is None or self.destination_path.path is None:
             return None
 
         if self.destination_path.exists:
             if overwrite:
                 self.destination_path.remove()
             else:
-                self.log_progress.warning(
-                    f"Path Already Exists : Skipping {self.destination_path.path}"
-                )
+                self.log_progress.warning(f"Path Already Exists : Skipping {self.destination_path.path}")
                 return None
 
-        self.log_progress.start(
-            f"Linking {self.local_subpath_resolved.path} -> {self.destination_path.path}"
-        )
+        self.log_progress.start(f"Linking {self.local_subpath_resolved.path} -> {self.destination_path.path}")
 
         result = [
             self.local_subpath_resolved.path,
@@ -473,23 +468,13 @@ class ElementAM:
     def repository_url(self):
         return (
             self.element_dict["repository_url"]
-            if (
-                not self.is_extension
-                or (
-                    self.is_extension
-                    and self.element_dict["repository_url"] is not None
-                )
-            )
+            if (not self.is_extension or (self.is_extension and self.element_dict["repository_url"] is not None))
             else "blender_org"
         )
 
     @property
     def module(self):
-        return (
-            ("bl_ext." + self.repository_url + "." + self.extension_id)
-            if self.is_extension
-            else self.name
-        )
+        return ("bl_ext." + self.repository_url + "." + self.extension_id) if self.is_extension else self.name
 
     @property
     def windows_drive(self) -> Path:
@@ -532,12 +517,10 @@ class ElementAM:
         if self.element_dict["paths"] is None:
             return []
         else:
-            return [
-                PathElementAM(x, self.local_path) for x in self.element_dict["paths"]
-            ]
+            return [PathElementAM(x, self.local_path) for x in self.element_dict["paths"]]
 
     def ensure_repo_init(self):
-        if self.local_path.path is None:
+        if not self.local_path.is_set:
             return
 
         subdir = list(self.local_path.path.iterdir())
@@ -572,15 +555,13 @@ class ElementAM:
         if self.is_extension:
             self.log_progress.start(f"Installing Extension {self.extension_id}")
             # print(os.listdir(bpy.context.preferences.extensions.repos[0].directory))
-            bpy.ops.extensions.package_install(
-                repo_index=0, pkg_id=self.extension_id, enable_on_install=False
-            )
+            bpy.ops.extensions.package_install(repo_index=0, pkg_id=self.extension_id, enable_on_install=False)
             # print(os.listdir(bpy.context.preferences.extensions.repos[0].directory))
             self.log_progress.done("Extension Installtion Done!")
             self.log_progress.separator(add_to_satus=True)
             return
 
-        if self.repository_url is None or self.local_path.path is None:
+        if self.repository_url is None or not self.local_path.is_set:
             return
 
         if self.local_path.exists and not self.is_submodule:
@@ -608,9 +589,7 @@ class ElementAM:
             kwargs = {"branch": self.branch} if self.branch is not None else {}
             # if self.branch is not None:
             try:
-                git.Repo.clone_from(
-                    self.repository_url, str(self.local_path.path), **kwargs
-                )
+                git.Repo.clone_from(self.repository_url, str(self.local_path.path), **kwargs)
             except Exception as e:
                 print(e)
                 self.log_progress.done("Syncing Failed!")
@@ -621,7 +600,7 @@ class ElementAM:
         self.log_progress.separator(add_to_satus=True)
 
     def link(self, overwrite=False, force=False, as_string=True):
-        if self.local_path.path is None or self.is_extension:
+        if not self.local_path.is_set or self.is_extension:
             return []
 
         link_commands = []
@@ -668,9 +647,7 @@ class ElementAM:
                 keymap_instance.set_keymaps()
                 self.log_progress.separator(add_to_satus=True)
             except AttributeError as e:
-                self.log_progress.warning(
-                    f"{self.name} Addon was not assigned properly \n {e}"
-                )
+                self.log_progress.warning(f"{self.name} Addon was not assigned properly \n {e}")
                 LOG.error(f"{e}")
 
     def set_settings(self):
@@ -698,9 +675,7 @@ class AddonManager:
 
     @property
     def elements(self):
-        return {
-            k: ElementAM(v, k) for k, v in self.json.json_data.items() if k[0] != "_"
-        }
+        return {k: ElementAM(v, k) for k, v in self.json.json_data.items() if k[0] != "_"}
 
     def save_json(self, json_dict):
         self.json.save(json_dict)
@@ -780,13 +755,9 @@ class AddonManager:
     def queue_link(self, element_name=None, overwrite=False):
         if element_name is None:
             for e in self.elements.values():
-                self.queue(
-                    [self.link, {"element_name": e.name, "overwrite": overwrite}]
-                )
+                self.queue([self.link, {"element_name": e.name, "overwrite": overwrite}])
         elif element_name in self.elements.keys():
-            self.queue(
-                [self.link, {"element_name": element_name, "overwrite": overwrite}]
-            )
+            self.queue([self.link, {"element_name": element_name, "overwrite": overwrite}])
 
     def link(self, element_name=None, overwrite=False, force=False):
         self.processing = True
@@ -817,9 +788,8 @@ class AddonManager:
             case "Windows":
                 admin.elevate(sp_command)
             case "Linux":
-                for l in link_command:
-                    os.symlink(l[0], l[1], target_is_directory=l[2])
-                # os.symlink()
+                for command in link_command:
+                    os.symlink(command[0], command[1], target_is_directory=command[2])
 
         self.processing = False
 
@@ -865,17 +835,13 @@ class AddonManager:
                 if not e.keymaps:
                     continue
 
-                self.queue(
-                    [self.set_keymaps, {"element_name": e.name, "restore": restore}]
-                )
+                self.queue([self.set_keymaps, {"element_name": e.name, "restore": restore}])
 
         elif element_name in self.elements.keys():
             if not self.elements[element_name].keymaps:
                 return
 
-            self.queue(
-                [self.set_keymaps, {"element_name": element_name, "restore": restore}]
-            )
+            self.queue([self.set_keymaps, {"element_name": element_name, "restore": restore}])
 
     def set_keymaps(self, element_name=None, restore=False):
         self.processing = True

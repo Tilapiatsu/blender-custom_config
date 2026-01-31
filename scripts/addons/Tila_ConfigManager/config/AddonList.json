@@ -3450,7 +3450,7 @@
     "paths": [
       {
         "is_enable": true,
-        "local_subpath": "addons/PolyQuilt",
+        "local_subpath": "Addons/PolyQuilt",
         "destination_path": "#/scripts/addons/tila_polyquilt"
       }
     ]

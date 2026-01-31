@@ -1,5 +1,7 @@
 import bpy
 import os
+import platform
+from pathlib import Path
 from Tila_ConfigManager.config.settings.settings import TILA_Config_Settings_Base
 from Tila_ConfigManager.bversion import BVERSION
 
@@ -24,29 +26,29 @@ class TILA_Config_Settings(TILA_Config_Settings_Base):
         context = bpy.context
         # # Set Theme to Tila
         root_path = bpy.utils.resource_path("USER")
-        theme_filepath = os.path.join(
-            root_path, "scripts", "presets", "interface_theme", "Tila_Ide.xml"
-        )
-        bpy.ops.script.execute_preset(
-            filepath=theme_filepath, menu_idname="USERPREF_MT_interface_theme_presets"
-        )
+        theme_filepath = os.path.join(root_path, "scripts", "presets", "interface_theme", "Tila_Ide.xml")
+        bpy.ops.script.execute_preset(filepath=theme_filepath, menu_idname="USERPREF_MT_interface_theme_presets")
 
         # # Set Asset Library
         if "Tilapiatsu" not in context.preferences.filepaths.asset_libraries:
             library_name = "00_Blender_Asset_Library"
-            asset_library_path = os.path.join("R:\\", "Mon Drive", library_name)
-            bpy.ops.preferences.asset_library_add(
-                "EXEC_DEFAULT", directory=asset_library_path
-            )
+
+            library_root = Path("")
+            match platform.system():
+                case "Windows":
+                    library_root = Path("R:/Mon Drive")
+                case "Linux":
+                    library_root = Path("/mnt/ressources")
+                case _:
+                    return Path("")
+
+            asset_library_path = library_root / library_name
+            bpy.ops.preferences.asset_library_add("EXEC_DEFAULT", directory=str(asset_library_path))
             if BVERSION < 3.2:
                 library_name = ""
 
-            context.preferences.filepaths.asset_libraries[
-                library_name
-            ].import_method = "PACK"
-            context.preferences.filepaths.asset_libraries[
-                library_name
-            ].name = "Tilapiatsu"
+            context.preferences.filepaths.asset_libraries[library_name].import_method = "PACK"
+            context.preferences.filepaths.asset_libraries[library_name].name = "Tilapiatsu"
 
         # View Settings
         self.set_setting(context, "view.show_tooltips", True)
@@ -107,4 +109,3 @@ class TILA_Config_Settings(TILA_Config_Settings_Base):
 
         # System
         self.set_setting(context, "system.gpu_backend", "VULKAN")
-
