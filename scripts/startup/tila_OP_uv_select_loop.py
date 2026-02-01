@@ -8,9 +8,9 @@ class TILA_uv_select(bpy.types.Operator):
 
     extend: bpy.props.BoolProperty(name="Extend", default=False)
     loop: bpy.props.BoolProperty(name="Loop", default=False)
-    deselect: bpy.props.BoolProperty(name="Deselect", defaul=False)
+    deselect: bpy.props.BoolProperty(name="Deselect", default=False)
     deselect_all: bpy.props.BoolProperty(name="Deselect All", default=False)
-    toggle: bpy.props.BoolProperty(name="Toggle", defaul=False)
+    toggle: bpy.props.BoolProperty(name="Toggle", default=False)
 
     @classmethod
     def poll(cls, context):

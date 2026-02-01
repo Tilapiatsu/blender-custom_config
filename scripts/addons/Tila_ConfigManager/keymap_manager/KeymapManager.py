@@ -2,7 +2,8 @@ import bpy
 from ..preferences.ui.log_list import TILA_Config_Log as log_list
 from ..bversion import BVERSION
 
-class bKeymap():
+
+class bKeymap:
     def __init__(self, kmi):
         self.kmi = kmi
         self.idname = kmi.idname
@@ -22,7 +23,7 @@ class bKeymap():
         self.idname = kmi.idname
 
     def to_string(self):
-        string = ''
+        string = ""
         if self.any:
             string += "Any "
         if self.ctrl:
@@ -40,19 +41,20 @@ class bKeymap():
         return string
 
 
-class bProp():
+class bProp:
     def __init__(self, prop):
         for p in prop:
             setattr(self, p[0], p[1])
 
 
-class KeymapManager():
-    keymap_List = {"new": [],
-                   "replaced": []}
+class KeymapManager:
+    keymap_List = {"new": [], "replaced": []}
 
     def __init__(self):
         self.debug = False
-        self.log_progress = log_list(bpy.context.window_manager.tila_config_log_list, 'tila_config_log_list_idx', 'KEYMAP_MANAGER')
+        self.log_progress = log_list(
+            bpy.context.window_manager.tila_config_log_list, "tila_config_log_list_idx", "KEYMAP_MANAGER"
+        )
         # Define global variables
         self.wm = bpy.context.window_manager
         self.kca = self.wm.keyconfigs.addon
@@ -66,24 +68,60 @@ class KeymapManager():
     # Decorators
 
     def replace_km_dec(func):
-        def func_wrapper(self, idname, type, value, direction='ANY', alt=False, any=False, ctrl=False, shift=False, oskey=False, key_modifier=None, disable_double=None, properties={}, repeat=False, head=False):
-
+        def func_wrapper(
+            self,
+            idname,
+            type,
+            value,
+            direction="ANY",
+            alt=False,
+            any=False,
+            ctrl=False,
+            shift=False,
+            oskey=False,
+            key_modifier=None,
+            disable_double=None,
+            properties={},
+            repeat=False,
+            head=False,
+        ):
             duplicates = [k for k in self.kmis if k.idname == idname]
-            new_kmi = func(self, idname, type, value, direction=direction, alt=alt, any=any, ctrl=ctrl, shift=shift, oskey=oskey, key_modifier=key_modifier, disable_double=disable_double, properties=properties, repeat=repeat, head=head)
+            new_kmi = func(
+                self,
+                idname,
+                type,
+                value,
+                direction=direction,
+                alt=alt,
+                any=any,
+                ctrl=ctrl,
+                shift=shift,
+                oskey=oskey,
+                key_modifier=key_modifier,
+                disable_double=disable_double,
+                properties=properties,
+                repeat=repeat,
+                head=head,
+            )
 
-            keymlap_List = {'km': self.km, 'kmis': self.kmis, 'new_kmi': new_kmi}
+            keymlap_List = {"km": self.km, "kmis": self.kmis, "new_kmi": new_kmi}
 
             if len(duplicates):
                 for k in duplicates:
                     if self.tool_compare(new_kmi, k):
                         # TODO if multiple keymap is assigned to the same command, how to replace the proper one ?
 
-                        if self.debug : print("{} : '{}' tool found, replace keymap '{}' to '{}'".format(self.km.name, k.idname, k.to_string(), new_kmi.to_string()))
+                        if self.debug:
+                            print(
+                                "{} : '{}' tool found, replace keymap '{}' to '{}'".format(
+                                    self.km.name, k.idname, k.to_string(), new_kmi.to_string()
+                                )
+                            )
 
                         k_old = bKeymap(k)
 
-                        keymlap_List['old_kmi'] = k_old
-                        keymlap_List['old_kmi_id'] = k.id
+                        keymlap_List["old_kmi"] = k_old
+                        keymlap_List["old_kmi_id"] = k.id
 
                         # Replace keymap attribute
                         self.kmi_replace(new_kmi, k, properties)
@@ -94,10 +132,24 @@ class KeymapManager():
                         # Store keymap in class variable
                         self.keymap_List["replaced"].append(keymlap_List)
 
-                        self.kmi_set_active(True, type=type, value=value, direction=direction, alt=alt, any=any, ctrl=ctrl, shift=shift, oskey=oskey, key_modifier=key_modifier, properties=properties, repeat=repeat)
+                        self.kmi_set_active(
+                            True,
+                            type=type,
+                            value=value,
+                            direction=direction,
+                            alt=alt,
+                            any=any,
+                            ctrl=ctrl,
+                            shift=shift,
+                            oskey=oskey,
+                            key_modifier=key_modifier,
+                            properties=properties,
+                            repeat=repeat,
+                        )
 
                         return k
                 return new_kmi
+
         return func_wrapper
 
     # Functions
@@ -120,17 +172,43 @@ class KeymapManager():
 
         self.kmi_prop_replace(km_src, km_dest, properties)
 
-    def kmi_remove(self, idname=None, type=None, value=None, alt=None, any=None, ctrl=None, shift=None, oskey=None, key_modifier=None, propvalue=None, properties=None, repeat=False, head=False):
+    def kmi_remove(
+        self,
+        idname=None,
+        type=None,
+        value=None,
+        alt=None,
+        any=None,
+        ctrl=None,
+        shift=None,
+        oskey=None,
+        key_modifier=None,
+        propvalue=None,
+        properties=None,
+        repeat=False,
+        head=False,
+    ):
         kmi = self.kmi_find(idname, type, value, alt, any, ctrl, shift, oskey, key_modifier, propvalue, properties)
         if kmi:
-            if self.debug : print('{} : Removing kmi : {} mapped to {}'.format(self.km.name, kmi.idname, kmi.to_string()))
+            if self.debug:
+                print("{} : Removing kmi : {} mapped to {}".format(self.km.name, kmi.idname, kmi.to_string()))
             self.km.keymap_items.remove(kmi)
             return True
         else:
             return False
 
     def kmi_compare(self, kmi1, kmi2):
-        return kmi1.type == kmi2.type and kmi1.ctrl == kmi2.ctrl and kmi1.alt == kmi2.alt and kmi1.shift == kmi2.shift and kmi1.any == kmi2.any and kmi1.oskey == kmi2.oskey and kmi1.key_modifier == kmi2.key_modifier and kmi1.map_type == kmi2.map_type and kmi1.value == kmi2.value
+        return (
+            kmi1.type == kmi2.type
+            and kmi1.ctrl == kmi2.ctrl
+            and kmi1.alt == kmi2.alt
+            and kmi1.shift == kmi2.shift
+            and kmi1.any == kmi2.any
+            and kmi1.oskey == kmi2.oskey
+            and kmi1.key_modifier == kmi2.key_modifier
+            and kmi1.map_type == kmi2.map_type
+            and kmi1.value == kmi2.value
+        )
 
     def kmi_prop_replace(self, kmi_src, kmi_dest, properties):
         kmi_src_props = self.kmi_prop_list(kmi_src.properties)
@@ -144,7 +222,8 @@ class KeymapManager():
                 if kmi_src_props[i] in prop_list:
                     src_prop = self.kmi_prop_getattr(kmi_src.properties, kmi_src_props[i])
                     self.kmi_prop_setattr(kmi_dest.properties, kmi_src_props[i], src_prop, kmi_dest.idname)
-                    if self.debug : print('{} : replacing property : {} to {}'.format(self.km.name, src_prop, kmi_dest.properties))
+                    if self.debug:
+                        print("{} : replacing property : {} to {}".format(self.km.name, src_prop, kmi_dest.properties))
 
     def tool_compare(self, kmi1, kmi2):
         kmi1_props = self.kmi_prop_list(kmi1.properties)
@@ -154,7 +233,7 @@ class KeymapManager():
             return False
         else:
             for i in range(len(kmi1_props)):
-                if kmi1_props[i] == 'bl_system_properties_get' or kmi2_props[i] == 'bl_system_properties_get':
+                if kmi1_props[i] == "bl_system_properties_get" or kmi2_props[i] == "bl_system_properties_get":
                     continue
                 elif kmi1_props[i] != kmi2_props[i]:
                     return False
@@ -200,42 +279,157 @@ class KeymapManager():
                     return True
 
     @replace_km_dec
-    def kmi_set_replace(self, idname, type, value, direction='ANY', alt=False, any=False, ctrl=False, shift=False, oskey=False, key_modifier=None, disable_double=None, properties={}, repeat=False, head=False):
-        kmi = self.kmi_set(idname, type, value, direction=direction, alt=alt, any=any, ctrl=ctrl, shift=shift, oskey=oskey, key_modifier=key_modifier, disable_double=disable_double, properties=properties, repeat=repeat, head=head)
+    def kmi_set_replace(
+        self,
+        idname,
+        type,
+        value,
+        direction="ANY",
+        alt=False,
+        any=False,
+        ctrl=False,
+        shift=False,
+        oskey=False,
+        key_modifier=None,
+        disable_double=None,
+        properties={},
+        repeat=False,
+        head=False,
+    ):
+        kmi = self.kmi_set(
+            idname,
+            type,
+            value,
+            direction=direction,
+            alt=alt,
+            any=any,
+            ctrl=ctrl,
+            shift=shift,
+            oskey=oskey,
+            key_modifier=key_modifier,
+            disable_double=disable_double,
+            properties=properties,
+            repeat=repeat,
+            head=head,
+        )
+        kmi.active = True
         return kmi
 
     @replace_km_dec
-    def modal_set_replace(self, propvalue, type, value, direction='ANY', alt=False, any=False, ctrl=False, shift=False, oskey=False, key_modifier=None, disable_double=None, properties={}, repeat=False, head=False):
-        kmi = self.modal_set(propvalue, type, value, direction=direction, alt=alt, any=any, ctrl=ctrl, shift=shift, oskey=oskey, key_modifier=key_modifier, disable_double=disable_double, properties=properties, repeat=repeat)
+    def modal_set_replace(
+        self,
+        propvalue,
+        type,
+        value,
+        direction="ANY",
+        alt=False,
+        any=False,
+        ctrl=False,
+        shift=False,
+        oskey=False,
+        key_modifier=None,
+        disable_double=None,
+        properties={},
+        repeat=False,
+        head=False,
+    ):
+        kmi = self.modal_set(
+            propvalue,
+            type,
+            value,
+            direction=direction,
+            alt=alt,
+            any=any,
+            ctrl=ctrl,
+            shift=shift,
+            oskey=oskey,
+            key_modifier=key_modifier,
+            disable_double=disable_double,
+            properties=properties,
+            repeat=repeat,
+        )
         return kmi
 
-    def is_operator_exist(self, operator:str) -> bool:
+    def is_operator_exist(self, operator: str) -> bool:
         try:
-            eval(f'bpy.ops.{operator}.poll()')
+            eval(f"bpy.ops.{operator}.poll()")
         except AttributeError:
             return False
 
         return True
 
-    def kmi_set(self, idname, type, value, direction='ANY', alt=False, any=False, ctrl=False, shift=False, oskey=False, key_modifier=None, disable_double=None, properties={}, repeat=False, head=False):
+    def kmi_set(
+        self,
+        idname,
+        type,
+        value,
+        direction="ANY",
+        alt=False,
+        any=False,
+        ctrl=False,
+        shift=False,
+        oskey=False,
+        key_modifier=None,
+        disable_double=None,
+        properties={},
+        repeat=False,
+        head=False,
+    ):
         if not self.is_operator_exist(idname):
             self.log_progress.error(f"operator 'bpy.ops.{idname}' does not exists")
             return
 
         if disable_double:
-            self.kmi_set_active(False, type=type, value=value, direction=direction, alt=alt, any=any, ctrl=ctrl, shift=shift,
-                                oskey=oskey, key_modifier=key_modifier, properties=properties)
+            self.kmi_set_active(
+                False,
+                type=type,
+                value=value,
+                direction=direction,
+                alt=alt,
+                any=any,
+                ctrl=ctrl,
+                shift=shift,
+                oskey=oskey,
+                key_modifier=key_modifier,
+                properties=properties,
+            )
         if key_modifier is None:
-            key_modifier = 'NONE'
+            key_modifier = "NONE"
         if BVERSION > 3.2:
-            kmi = self.km.keymap_items.new(idname=idname, type=type, value=value, direction=direction, alt=alt, any=any, ctrl=ctrl, shift=shift, oskey=oskey, key_modifier=key_modifier, repeat=repeat, head=head)
+            kmi = self.km.keymap_items.new(
+                idname=idname,
+                type=type,
+                value=value,
+                direction=direction,
+                alt=alt,
+                any=any,
+                ctrl=ctrl,
+                shift=shift,
+                oskey=oskey,
+                key_modifier=key_modifier,
+                repeat=repeat,
+                head=head,
+            )
         else:
-            kmi = self.km.keymap_items.new(idname=idname, type=type, value=value, alt=alt, any=any, ctrl=ctrl, shift=shift, oskey=oskey, key_modifier=key_modifier, repeat=repeat, head=head)
+            kmi = self.km.keymap_items.new(
+                idname=idname,
+                type=type,
+                value=value,
+                alt=alt,
+                any=any,
+                ctrl=ctrl,
+                shift=shift,
+                oskey=oskey,
+                key_modifier=key_modifier,
+                repeat=repeat,
+                head=head,
+            )
         kmi.active = True
         if properties:
-            for k,v in properties.items():
+            for k, v in properties.items():
                 self.kmi_prop_setattr(kmi.properties, k, v, kmi.idname)
-        if self.debug : print("{} : assigning new tool '{}' to keymap '{}'".format(self.km.name, kmi.idname, kmi.to_string()))
+        if self.debug:
+            print("{} : assigning new tool '{}' to keymap '{}'".format(self.km.name, kmi.idname, kmi.to_string()))
 
         # self.log_progress.info("{} : assigning new tool '{}' to keymap '{}'".format(self.km.name, kmi.idname, kmi.to_string()))
 
@@ -244,30 +438,94 @@ class KeymapManager():
 
         return kmi
 
-    def modal_set(self, propvalue, type, value, direction=None, alt=False, any=False, ctrl=False, shift=False, oskey=False, key_modifier=None, disable_double=None, properties={}, repeat=False):
+    def modal_set(
+        self,
+        propvalue,
+        type,
+        value,
+        direction=None,
+        alt=False,
+        any=False,
+        ctrl=False,
+        shift=False,
+        oskey=False,
+        key_modifier=None,
+        disable_double=None,
+        properties={},
+        repeat=False,
+    ):
         if disable_double:
-            self.kmi_set_active(False, type=type, value=value, direction=direction, alt=alt, any=any, ctrl=ctrl, shift=shift,
-                                oskey=oskey, key_modifier=key_modifier, properties=properties, repeat=repeat)
+            self.kmi_set_active(
+                False,
+                type=type,
+                value=value,
+                direction=direction,
+                alt=alt,
+                any=any,
+                ctrl=ctrl,
+                shift=shift,
+                oskey=oskey,
+                key_modifier=key_modifier,
+                properties=properties,
+                repeat=repeat,
+            )
         if key_modifier is None:
-            key_modifier = 'NONE'
+            key_modifier = "NONE"
         if BVERSION > 3.2:
-            kmi = self.km.keymap_items.new_modal(propvalue, type, value, direction=direction, alt=alt,
-                                                 any=any, ctrl=ctrl, shift=shift, oskey=oskey, key_modifier=key_modifier, repeat=repeat)
+            kmi = self.km.keymap_items.new_modal(
+                propvalue,
+                type,
+                value,
+                direction=direction,
+                alt=alt,
+                any=any,
+                ctrl=ctrl,
+                shift=shift,
+                oskey=oskey,
+                key_modifier=key_modifier,
+                repeat=repeat,
+            )
         else:
             kmi = self.km.keymap_items.new_modal(
-                propvalue, type, value, alt=alt, any=any, ctrl=ctrl, shift=shift, oskey=oskey, key_modifier=key_modifier, repeat=repeat)
+                propvalue,
+                type,
+                value,
+                alt=alt,
+                any=any,
+                ctrl=ctrl,
+                shift=shift,
+                oskey=oskey,
+                key_modifier=key_modifier,
+                repeat=repeat,
+            )
         kmi.active = True
         if properties:
             for k, v in properties.items():
                 self.kmi_prop_setattr(kmi.properties, k, v, kmi.idname)
-        if self.debug : print("{} : assigning new tool '{}' to keymap '{}'".format(self.km.name, kmi.idname, kmi.to_string()))
+        if self.debug:
+            print("{} : assigning new tool '{}' to keymap '{}'".format(self.km.name, kmi.idname, kmi.to_string()))
 
         # Store keymap in class variable
         self.keymap_List["new"].append((self.km, kmi))
 
         return kmi
 
-    def kmi_find(self, idname=None, type=None, value=None, direction='ANY', alt=None, any=None, ctrl=None, shift=None, oskey=None, key_modifier=None, propvalue=None, properties=None, repeat=False):
+    def kmi_find(
+        self,
+        idname=None,
+        type=None,
+        value=None,
+        direction="ANY",
+        alt=None,
+        any=None,
+        ctrl=None,
+        shift=None,
+        oskey=None,
+        key_modifier=None,
+        propvalue=None,
+        properties=None,
+        repeat=False,
+    ):
         def attr_compare(src_attr, comp_attr):
             if comp_attr is not None:
                 if comp_attr != src_attr:
@@ -323,7 +581,16 @@ class KeymapManager():
         else:
             return None
 
-    def kmi_init(self, name, space_type='EMPTY', region_type='WINDOW', modal=False, tool=False, addon=False, restore_to_default=False):
+    def kmi_init(
+        self,
+        name,
+        space_type="EMPTY",
+        region_type="WINDOW",
+        modal=False,
+        tool=False,
+        addon=False,
+        restore_to_default=False,
+    ):
         if addon:
             if name in self.kca.keymaps:
                 return False
@@ -354,12 +621,12 @@ class KeymapManager():
         try:
             setattr(kmi_props, attr, value)
         except AttributeError:
-            if self.debug : print("WARNING : property '%s' not found in keymap item '%s'" %
-                  (attr, idname))
-            self.log_progress.warning("property '%s' not found in keymap item '%s'" %
-                  (attr, idname))
+            if self.debug:
+                print("WARNING : property '%s' not found in keymap item '%s'" % (attr, idname))
+            self.log_progress.warning("property '%s' not found in keymap item '%s'" % (attr, idname))
         except Exception as e:
-            if self.debug : print("WARNING : %r" % e)
+            if self.debug:
+                print("WARNING : %r" % e)
             self.log_progress.warning("%r" % e)
 
     def kmi_prop_getattr(self, kmi_props, attr):
@@ -369,10 +636,14 @@ class KeymapManager():
             elif isinstance(kmi_props, bpy.types.bpy_struct):
                 return getattr(kmi_props, attr)
         except AttributeError:
-            if self.debug : print("WARNING : property '%s' not found in keymap item '%s'" % (attr, kmi_props.__class__.__name__))
-            self.log_progress.warning("property '%s' not found in keymap item '%s'" % (attr, kmi_props.__class__.__name__))
+            if self.debug:
+                print("WARNING : property '%s' not found in keymap item '%s'" % (attr, kmi_props.__class__.__name__))
+            self.log_progress.warning(
+                "property '%s' not found in keymap item '%s'" % (attr, kmi_props.__class__.__name__)
+            )
         except Exception as e:
-            if self.debug : print("WARNING : %r" % e)
+            if self.debug:
+                print("WARNING : %r" % e)
             self.log_progress.warning("%r" % e)
 
     def kmi_prop_list(self, kmi_props):
@@ -384,20 +655,50 @@ class KeymapManager():
             prop = []
             for p in kmi_props:
                 prop.append(p[0])
-        skip = ['path', 'constraint_axis', 'bl_rna', 'rna_type']
+        skip = ["path", "constraint_axis", "bl_rna", "rna_type"]
         for s in skip:
             if s in prop:
                 prop.remove(s)
         return prop
 
-    def kmi_set_active(self, enable, idname=None, type=None, value=None, direction='ANY', alt=None, any=None, ctrl=None, shift=None, oskey=None, key_modifier=None, propvalue=None, properties=None, repeat=False):
-        kmi = self.kmi_find(idname=idname, type=type, value=value, direction=direction, alt=alt, any=any, ctrl=ctrl,
-                            shift=shift, oskey=oskey, key_modifier=key_modifier, propvalue=propvalue, properties=properties, repeat=repeat)
+    def kmi_set_active(
+        self,
+        enable,
+        idname=None,
+        type=None,
+        value=None,
+        direction="ANY",
+        alt=None,
+        any=None,
+        ctrl=None,
+        shift=None,
+        oskey=None,
+        key_modifier=None,
+        propvalue=None,
+        properties=None,
+        repeat=False,
+    ):
+        kmi = self.kmi_find(
+            idname=idname,
+            type=type,
+            value=value,
+            direction=direction,
+            alt=alt,
+            any=any,
+            ctrl=ctrl,
+            shift=shift,
+            oskey=oskey,
+            key_modifier=key_modifier,
+            propvalue=propvalue,
+            properties=properties,
+            repeat=repeat,
+        )
         if kmi:
             kmi.active = enable
             return enable
         else:
-            if self.debug : print(f'WARNING : Unable to find : {idname} assigned to \'{type}\'')
+            if self.debug:
+                print(f"WARNING : Unable to find : {idname} assigned to '{type}'")
             # if idname is None:
             #     self.log_progress.warning(f'WARNING : Unable to find keymap assigned to \'{type}\'')
             # else:
