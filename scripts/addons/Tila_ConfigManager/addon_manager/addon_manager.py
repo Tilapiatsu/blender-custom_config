@@ -8,6 +8,7 @@ from typing import Optional
 import bpy
 import addon_utils
 import importlib
+import git
 from pathlib import Path
 from os import path
 from . import admin
@@ -17,8 +18,6 @@ from Tila_ConfigManager.preferences.ui.log_list import TILA_Config_Log as log_li
 
 root_folder: Path = Path(bpy.utils.script_path_user()).parent
 
-dependencies = ["gitpython"]
-
 create_symbolic_link_file = path.join(path.dirname(path.realpath(__file__)), "create_symbolic_link.py")
 
 
@@ -26,45 +25,6 @@ def get_installed_addons():
     addons_fake_modules = {}
     addon_utils.modules(module_cache=addons_fake_modules, refresh=False)
     return addons_fake_modules.keys()
-
-
-def install_dependencies():
-    current_dir = Path(path.realpath(__file__)).parent
-    dependencies_path = current_dir / "dependencies"
-    LOG.debug("Dependency folder : " + str(dependencies_path))
-    if dependencies_path not in sys.path:
-        sys.path.append(str(dependencies_path))
-
-    if not dependencies_path.exists():
-        dependencies_path.mkdir(parents=True, exist_ok=True)
-        install = True
-    else:
-        install = False
-        dependency_subfolder = list(dependencies_path.iterdir())
-
-        for d in dependencies:
-            found = False
-            for s in dependency_subfolder:
-                if d.lower() in str(s).lower():
-                    found = True
-
-            if not found:
-                install = True
-                break
-
-    if not install:
-        return
-    subprocess.check_call(
-        [
-            sys.executable,
-            "-m",
-            "pip",
-            "install",
-            *dependencies,
-            "--target",
-            dependencies_path,
-        ]
-    )
 
 
 def enable_addon(addon_name):
