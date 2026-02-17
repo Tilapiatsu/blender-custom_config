@@ -1,6 +1,7 @@
 import tempfile
 import logging
 import time
+from logging.handlers import RotatingFileHandler
 from os import path
 from Tila_ConfigManager.config_const import LOG_PREFIX
 
@@ -16,8 +17,11 @@ def get_log_file():
     return log_file
 
 class LOG(object):
-    def __init__(self, context='ROOT'):
-        self.context = context
+    def __init__(self, log_name='ROOT'):
+        self.log_name = log_name
+
+        self.logger = logging.getLogger(log_name)
+        self.logger.setLevel(logging.DEBUG)
 
         self.log_file = get_log_file()
         self.timeformat = '%m/%d/%Y %I:%M:%S %p'
@@ -34,13 +38,13 @@ class LOG(object):
         if print_log:
             print(message)
         self.set_basic_config()
-        logging.info(message)
+        self.logger.info(message)
 
     def debug(self, message:str, print_log=True):
         if print_log:
             print(message)
         self.set_basic_config()
-        logging.debug(message)
+        self.logger.debug(message)
 
     def warning(self, message:str, print_log=True, store_failure=True):
         message = 'WARNING : ' + str(message)
@@ -51,7 +55,7 @@ class LOG(object):
         if store_failure:
             self.store_failure(message)
 
-        logging.warning(message)
+        self.logger.warning(message)
 
     def error(self, message:str, print_log=True, store_failure=True):
         message = 'ERROR : ' + str(message)
@@ -62,13 +66,14 @@ class LOG(object):
         if store_failure:
             self.store_failure(message)
 
-        logging.error(message)
+        self.logger.error(message)
 
     def set_basic_config(self):
-        self.format = '%(asctime)s - %(levelname)s : {} :    %(message)s'.format(
-            self.context)
-        logging.basicConfig(filename=self.log_file, level=logging.DEBUG,
-                      datefmt=self.timeformat, filemode='w', format=self.format)
+        self.format = logging.Formatter('%(asctime)s - %(levelname)s :    %(message)s')
+        handler = RotatingFileHandler(self.log_file, maxBytes=500000, backupCount=3)
+        handler.setLevel(logging.DEBUG)
+        handler.setFormatter(self.format)
+        self.logger.addHandler(handler)
 
     def store_success(self, success):
         if self.context not in self.success.keys():
