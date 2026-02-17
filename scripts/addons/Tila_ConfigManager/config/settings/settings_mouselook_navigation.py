@@ -1,7 +1,9 @@
 import bpy
-from .settings import TILA_Config_Settings_Base
+from Tila_ConfigManager.config.settings.settings import TILA_Config_Settings_Base
 
-addon_name = 'mouselook_navigation'
+addon_name = "mouselook_navigation"
+
+
 class TILA_Config_Settings(TILA_Config_Settings_Base):
     addon_name = addon_name
 
@@ -12,7 +14,8 @@ class TILA_Config_Settings(TILA_Config_Settings_Base):
     def set_settings(self):
         context = bpy.context
         addon = context.preferences.addons.get(self.addon_name)
-        self.set_setting(addon, 'show_zbrush_border', False)
-        self.set_setting(addon, 'show_crosshair', False)
-        self.set_setting(addon, 'show_focus', False)
-        self.set_setting(addon, 'rotation_snap_subdivs', 1)
+        self.set_setting(addon, "show_zbrush_border", False)
+        self.set_setting(addon, "show_crosshair", False)
+        self.set_setting(addon, "show_focus", False)
+        self.set_setting(addon, "rotation_snap_subdivs", 1)
+

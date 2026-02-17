@@ -1,7 +1,8 @@
-from .keymaps import TILA_Config_Keymaps_Base
-from ...bversion import BVERSION
+from Tila_ConfigManager.config.keymaps.keymaps import TILA_Config_Keymaps_Base
+from Tila_ConfigManager.bversion import BVERSION
 
 addon_name = "Global"
+
 
 class TILA_Config_Keymaps(TILA_Config_Keymaps_Base):
     addon_name = addon_name
@@ -12,17 +13,30 @@ class TILA_Config_Keymaps(TILA_Config_Keymaps_Base):
     # Global Keymap Functions
     def global_keys(self):
         # Disable Keymap
-        self.kmi_set_active(False, type='X', shift=True)
-        self.kmi_set_active(False, type='TAB', ctrl=True, shift=True)
-        self.kmi_set_active(False, idname='wm.call_panel', type='X', ctrl=True)
+        self.kmi_set_active(False, type="X", shift=True)
+        self.kmi_set_active(False, type="TAB", ctrl=True, shift=True)
+        self.kmi_set_active(False, idname="wm.call_panel", type="X", ctrl=True)
 
         # Set global Keymap
-        self.kmi_set_replace("wm.call_menu_pie", "TAB", "PRESS", ctrl=True, properties={'name': 'VIEW3D_MT_object_mode_pie'})
+        self.kmi_set_replace(
+            "wm.call_menu_pie",
+            "TAB",
+            "PRESS",
+            ctrl=True,
+            properties={"name": "VIEW3D_MT_object_mode_pie"},
+        )
         self.kmi_set_replace("wm.window_fullscreen_toggle", "F11", "PRESS")
-        self.kmi_set_replace('screen.animation_play', self.k_menu, 'PRESS', ctrl=True, shift=True)
-        self.kmi_set_replace('screen.userpref_show', 'F4', 'PRESS')
+        self.kmi_set_replace("screen.animation_play", self.k_menu, "PRESS", ctrl=True, shift=True)
+        self.kmi_set_replace("screen.userpref_show", "F4", "PRESS")
 
-        self.kmi_set_replace('wm.call_menu_pie', 'TAB', 'PRESS', ctrl=True, shift=True, properties={'name': 'TILA_MT_pie_areas'})
+        self.kmi_set_replace(
+            "wm.call_menu_pie",
+            "TAB",
+            "PRESS",
+            ctrl=True,
+            shift=True,
+            properties={"name": "TILA_MT_pie_areas"},
+        )
 
     def navigation_keys(self, pan=None, orbit=None, dolly=None, roll=None):
         # if self.km.name in ['3D View', 'Image']:
@@ -34,323 +48,1366 @@ class TILA_Config_Keymaps(TILA_Config_Keymaps_Base):
         if pan:
             self.kmi_set_replace(pan, self.k_manip, "PRESS", alt=True, shift=True, disable_double=True)
         if dolly:
-            self.kmi_set_replace(dolly, self.k_manip, "CLICK_DRAG", alt=True, ctrl=True, disable_double=True)
+            self.kmi_set_replace(
+                dolly,
+                self.k_manip,
+                "CLICK_DRAG",
+                alt=True,
+                ctrl=True,
+                disable_double=True,
+            )
         if roll:
             self.kmi_set_replace(roll, self.k_context, "PRESS", alt=True, disable_double=True)
 
     def mode_selection(self):
-        self.kmi_set_replace('view3d.tila_smart_editmode', self.k_vert_mode, 'PRESS', properties={'mode': 0, 'use_extend': False, 'use_expand': False, 'alt_mode': False, 'get_border': False}, disable_double=True)
-        self.kmi_set_replace('view3d.tila_smart_editmode', self.k_edge_mode, 'PRESS', properties={'mode': 1, 'use_extend': False, 'use_expand': False, 'alt_mode': False, 'get_border': False}, disable_double=True)
-        self.kmi_set_replace('view3d.tila_smart_editmode', self.k_face_mode, 'PRESS', properties={'mode': 2, 'use_extend': False, 'use_expand': False, 'alt_mode': False, 'get_border': False}, disable_double=True)
+        self.kmi_set_replace(
+            "view3d.tila_smart_editmode",
+            self.k_vert_mode,
+            "PRESS",
+            properties={
+                "mode": 0,
+                "use_extend": False,
+                "use_expand": False,
+                "alt_mode": False,
+                "get_border": False,
+            },
+            disable_double=True,
+        )
+        self.kmi_set_replace(
+            "view3d.tila_smart_editmode",
+            self.k_edge_mode,
+            "PRESS",
+            properties={
+                "mode": 1,
+                "use_extend": False,
+                "use_expand": False,
+                "alt_mode": False,
+                "get_border": False,
+            },
+            disable_double=True,
+        )
+        self.kmi_set_replace(
+            "view3d.tila_smart_editmode",
+            self.k_face_mode,
+            "PRESS",
+            properties={
+                "mode": 2,
+                "use_extend": False,
+                "use_expand": False,
+                "alt_mode": False,
+                "get_border": False,
+            },
+            disable_double=True,
+        )
 
-        self.kmi_set_replace('view3d.tila_smart_editmode', self.k_vert_mode, 'PRESS', shift=True, properties={'mode': 0, 'use_extend': True, 'use_expand': False, 'alt_mode': False, 'get_border': False}, disable_double=True)
-        self.kmi_set_replace('view3d.tila_smart_editmode', self.k_edge_mode, 'PRESS', shift=True, properties={'mode': 1, 'use_extend': True, 'use_expand': False, 'alt_mode': False, 'get_border': False}, disable_double=True)
-        self.kmi_set_replace('view3d.tila_smart_editmode', self.k_face_mode, 'PRESS', shift=True, properties={'mode': 2, 'use_extend': True, 'use_expand': False, 'alt_mode': False, 'get_border': False}, disable_double=True)
+        self.kmi_set_replace(
+            "view3d.tila_smart_editmode",
+            self.k_vert_mode,
+            "PRESS",
+            shift=True,
+            properties={
+                "mode": 0,
+                "use_extend": True,
+                "use_expand": False,
+                "alt_mode": False,
+                "get_border": False,
+            },
+            disable_double=True,
+        )
+        self.kmi_set_replace(
+            "view3d.tila_smart_editmode",
+            self.k_edge_mode,
+            "PRESS",
+            shift=True,
+            properties={
+                "mode": 1,
+                "use_extend": True,
+                "use_expand": False,
+                "alt_mode": False,
+                "get_border": False,
+            },
+            disable_double=True,
+        )
+        self.kmi_set_replace(
+            "view3d.tila_smart_editmode",
+            self.k_face_mode,
+            "PRESS",
+            shift=True,
+            properties={
+                "mode": 2,
+                "use_extend": True,
+                "use_expand": False,
+                "alt_mode": False,
+                "get_border": False,
+            },
+            disable_double=True,
+        )
 
-        self.kmi_set_replace('view3d.tila_smart_editmode', self.k_vert_mode, 'PRESS', ctrl=True, properties={'mode': 0, 'use_extend': False, 'use_expand': True, 'alt_mode': False, 'get_border': False}, disable_double=True)
-        self.kmi_set_replace('view3d.tila_smart_editmode', self.k_edge_mode, 'PRESS', ctrl=True, properties={'mode': 1, 'use_extend': False, 'use_expand': True, 'alt_mode': False, 'get_border': False}, disable_double=True)
-        self.kmi_set_replace('view3d.tila_smart_editmode', self.k_face_mode, 'PRESS', ctrl=True, properties={'mode': 2, 'use_extend': False, 'use_expand': True, 'alt_mode': False, 'get_border': False}, disable_double=True)
+        self.kmi_set_replace(
+            "view3d.tila_smart_editmode",
+            self.k_vert_mode,
+            "PRESS",
+            ctrl=True,
+            properties={
+                "mode": 0,
+                "use_extend": False,
+                "use_expand": True,
+                "alt_mode": False,
+                "get_border": False,
+            },
+            disable_double=True,
+        )
+        self.kmi_set_replace(
+            "view3d.tila_smart_editmode",
+            self.k_edge_mode,
+            "PRESS",
+            ctrl=True,
+            properties={
+                "mode": 1,
+                "use_extend": False,
+                "use_expand": True,
+                "alt_mode": False,
+                "get_border": False,
+            },
+            disable_double=True,
+        )
+        self.kmi_set_replace(
+            "view3d.tila_smart_editmode",
+            self.k_face_mode,
+            "PRESS",
+            ctrl=True,
+            properties={
+                "mode": 2,
+                "use_extend": False,
+                "use_expand": True,
+                "alt_mode": False,
+                "get_border": False,
+            },
+            disable_double=True,
+        )
 
-        self.kmi_set_replace('view3d.tila_smart_editmode', self.k_vert_mode, 'PRESS', ctrl=True, shift=True, properties={'mode': 0, 'use_extend': True, 'use_expand': True, 'alt_mode': False, 'get_border': False}, disable_double=True)
-        self.kmi_set_replace('view3d.tila_smart_editmode', self.k_edge_mode, 'PRESS', ctrl=True, shift=True, properties={'mode': 1, 'use_extend': True, 'use_expand': True, 'alt_mode': False, 'get_border': False}, disable_double=True)
-        self.kmi_set_replace('view3d.tila_smart_editmode', self.k_face_mode, 'PRESS', ctrl=True, shift=True, properties={'mode': 2, 'use_extend': True, 'use_expand': True, 'alt_mode': False, 'get_border': False}, disable_double=True)
+        self.kmi_set_replace(
+            "view3d.tila_smart_editmode",
+            self.k_vert_mode,
+            "PRESS",
+            ctrl=True,
+            shift=True,
+            properties={
+                "mode": 0,
+                "use_extend": True,
+                "use_expand": True,
+                "alt_mode": False,
+                "get_border": False,
+            },
+            disable_double=True,
+        )
+        self.kmi_set_replace(
+            "view3d.tila_smart_editmode",
+            self.k_edge_mode,
+            "PRESS",
+            ctrl=True,
+            shift=True,
+            properties={
+                "mode": 1,
+                "use_extend": True,
+                "use_expand": True,
+                "alt_mode": False,
+                "get_border": False,
+            },
+            disable_double=True,
+        )
+        self.kmi_set_replace(
+            "view3d.tila_smart_editmode",
+            self.k_face_mode,
+            "PRESS",
+            ctrl=True,
+            shift=True,
+            properties={
+                "mode": 2,
+                "use_extend": True,
+                "use_expand": True,
+                "alt_mode": False,
+                "get_border": False,
+            },
+            disable_double=True,
+        )
 
-        self.kmi_set_replace('view3d.tila_smart_editmode', self.k_vert_mode, 'PRESS', alt=True, properties={'mode': 0, 'use_extend': False, 'use_expand': False, 'get_border': True}, disable_double=True)
-        self.kmi_set_replace('view3d.tila_smart_editmode', self.k_edge_mode, 'PRESS', alt=True, properties={'mode': 1, 'use_extend': False, 'use_expand': False, 'get_border': True}, disable_double=True)
-        self.kmi_set_replace('view3d.tila_smart_editmode', self.k_face_mode, 'PRESS', alt=True, properties={'mode': 2, 'use_extend': False, 'use_expand': False, 'get_border': True}, disable_double=True)
-        self.kmi_set_replace('view3d.tila_smart_editmode', 'TAB', 'PRESS', properties={'alt_mode': True}, disable_double=True)
+        self.kmi_set_replace(
+            "view3d.tila_smart_editmode",
+            self.k_vert_mode,
+            "PRESS",
+            alt=True,
+            properties={
+                "mode": 0,
+                "use_extend": False,
+                "use_expand": False,
+                "get_border": True,
+            },
+            disable_double=True,
+        )
+        self.kmi_set_replace(
+            "view3d.tila_smart_editmode",
+            self.k_edge_mode,
+            "PRESS",
+            alt=True,
+            properties={
+                "mode": 1,
+                "use_extend": False,
+                "use_expand": False,
+                "get_border": True,
+            },
+            disable_double=True,
+        )
+        self.kmi_set_replace(
+            "view3d.tila_smart_editmode",
+            self.k_face_mode,
+            "PRESS",
+            alt=True,
+            properties={
+                "mode": 2,
+                "use_extend": False,
+                "use_expand": False,
+                "get_border": True,
+            },
+            disable_double=True,
+        )
+        self.kmi_set_replace(
+            "view3d.tila_smart_editmode",
+            "TAB",
+            "PRESS",
+            properties={"alt_mode": True},
+            disable_double=True,
+        )
 
     def collection_visibility(self, collection_visibility_tool):
-        self.kmi_set_replace(collection_visibility_tool, 'NUMPAD_1', 'PRESS', any=True, properties={'collection_index': 1})
-        self.kmi_set_replace(collection_visibility_tool, 'NUMPAD_2', 'PRESS', any=True, properties={'collection_index': 2})
-        self.kmi_set_replace(collection_visibility_tool, 'NUMPAD_3', 'PRESS', any=True, properties={'collection_index': 3})
-        self.kmi_set_replace(collection_visibility_tool, 'NUMPAD_4', 'PRESS', any=True, properties={'collection_index': 4})
-        self.kmi_set_replace(collection_visibility_tool, 'NUMPAD_5', 'PRESS', any=True, properties={'collection_index': 5})
-        self.kmi_set_replace(collection_visibility_tool, 'NUMPAD_6', 'PRESS', any=True, properties={'collection_index': 6})
-        self.kmi_set_replace(collection_visibility_tool, 'NUMPAD_7', 'PRESS', any=True, properties={'collection_index': 7})
-        self.kmi_set_replace(collection_visibility_tool, 'NUMPAD_8', 'PRESS', any=True, properties={'collection_index': 8})
-        self.kmi_set_replace(collection_visibility_tool, 'NUMPAD_9', 'PRESS', any=True, properties={'collection_index': 9})
-        self.kmi_set_active(False, idname=collection_visibility_tool, type='ZERO')
+        self.kmi_set_replace(
+            collection_visibility_tool,
+            "NUMPAD_1",
+            "PRESS",
+            any=True,
+            properties={"collection_index": 1},
+        )
+        self.kmi_set_replace(
+            collection_visibility_tool,
+            "NUMPAD_2",
+            "PRESS",
+            any=True,
+            properties={"collection_index": 2},
+        )
+        self.kmi_set_replace(
+            collection_visibility_tool,
+            "NUMPAD_3",
+            "PRESS",
+            any=True,
+            properties={"collection_index": 3},
+        )
+        self.kmi_set_replace(
+            collection_visibility_tool,
+            "NUMPAD_4",
+            "PRESS",
+            any=True,
+            properties={"collection_index": 4},
+        )
+        self.kmi_set_replace(
+            collection_visibility_tool,
+            "NUMPAD_5",
+            "PRESS",
+            any=True,
+            properties={"collection_index": 5},
+        )
+        self.kmi_set_replace(
+            collection_visibility_tool,
+            "NUMPAD_6",
+            "PRESS",
+            any=True,
+            properties={"collection_index": 6},
+        )
+        self.kmi_set_replace(
+            collection_visibility_tool,
+            "NUMPAD_7",
+            "PRESS",
+            any=True,
+            properties={"collection_index": 7},
+        )
+        self.kmi_set_replace(
+            collection_visibility_tool,
+            "NUMPAD_8",
+            "PRESS",
+            any=True,
+            properties={"collection_index": 8},
+        )
+        self.kmi_set_replace(
+            collection_visibility_tool,
+            "NUMPAD_9",
+            "PRESS",
+            any=True,
+            properties={"collection_index": 9},
+        )
+        self.kmi_set_active(False, idname=collection_visibility_tool, type="ZERO")
 
-    def selection_keys(self,
-                        select_tool=None,
-                        lasso_tool=None, select_through_tool=None,
-                        box_tool=None, box_through_tool=None, node_box_tool=None,
-                        circle_tool=None, gp_circle_tool=None,
-                        shortestpath_tool=None, shortestring_tool=None,
-                        loop_tool=None, ring_tool=None,
-                        loop_multiselect_tool=None, ring_multiselect_tool=None,
-                        more_tool=None, less_tool=None,
-                        next_tool=None, previous_tool=None,
-                        linked_tool=None, linked_pick_tool=None,
-                        invert_tool=None, inner_tool=None,
-                        collection_tool=None):
-
+    def selection_keys(
+        self,
+        select_tool=None,
+        lasso_tool=None,
+        select_through_tool=None,
+        box_tool=None,
+        box_through_tool=None,
+        node_box_tool=None,
+        circle_tool=None,
+        gp_circle_tool=None,
+        shortestpath_tool=None,
+        shortestring_tool=None,
+        loop_tool=None,
+        ring_tool=None,
+        loop_multiselect_tool=None,
+        ring_multiselect_tool=None,
+        more_tool=None,
+        less_tool=None,
+        next_tool=None,
+        previous_tool=None,
+        linked_tool=None,
+        linked_pick_tool=None,
+        invert_tool=None,
+        inner_tool=None,
+        collection_tool=None,
+    ):
         # Select / Deselect / Add
         if select_tool:
-            if self.km.name in ['Node Editor']:
-                value = 'PRESS'
+            if self.km.name in ["Node Editor"]:
+                value = "PRESS"
             else:
-                value = 'CLICK'
-            self.kmi_set_active(False ,select_tool, self.k_select, ctrl=False, shift=False)
-            self.kmi_set_replace(select_tool, self.k_select, value, properties={'deselect_all': True, 'deselect': False, 'extend': False, 'center':False, 'toggle': False, 'object': False}, disable_double=True)
-            self.kmi_set_active(False ,select_tool, self.k_select, ctrl=False, shift=True)
-            self.kmi_set_replace(select_tool, self.k_select, value, shift=True, properties={'deselect_all': False, 'deselect': False, 'extend': True, 'center':False, 'toggle': False, 'object': False}, disable_double=True)
-            self.kmi_set_active(False ,select_tool, self.k_select, ctrl=True, shift=False)
-            self.kmi_set_replace(select_tool, self.k_select, value, ctrl=True, properties={'deselect_all': False, 'deselect': True, 'extend': False, 'center':False, 'toggle': False, 'object': False}, disable_double=True)
+                value = "CLICK"
+
+            # Select
+            self.kmi_set_active(False, select_tool, self.k_select, ctrl=False, shift=False)
+            self.kmi_set_replace(
+                select_tool,
+                self.k_select,
+                value,
+                properties={
+                    "deselect_all": True,
+                    "deselect": False,
+                    "extend": False,
+                    "center": False,
+                    "toggle": False,
+                    "object": False,
+                    "loop": False,
+                },
+                disable_double=True,
+            )
+
+            # Extend
+            self.kmi_set_active(False, select_tool, self.k_select, ctrl=False, shift=True)
+            self.kmi_set_replace(
+                select_tool,
+                self.k_select,
+                value,
+                shift=True,
+                properties={
+                    "deselect_all": False,
+                    "deselect": False,
+                    "extend": True,
+                    "center": False,
+                    "toggle": False,
+                    "object": False,
+                    "loop": False,
+                },
+                disable_double=True,
+            )
+
+            # Deselect
+            self.kmi_set_active(False, select_tool, self.k_select, ctrl=True, shift=False)
+            self.kmi_set_replace(
+                select_tool,
+                self.k_select,
+                value,
+                ctrl=True,
+                properties={
+                    "deselect_all": False,
+                    "deselect": True,
+                    "extend": False,
+                    "center": False,
+                    "toggle": False,
+                    "object": False,
+                    "loop": False,
+                },
+                disable_double=True,
+            )
 
         # Lasso Select / Deselect / Add
         if lasso_tool:
-            self.kmi_set_replace(lasso_tool, self.k_lasso, 'CLICK_DRAG', properties={'mode': 'SET'}, disable_double=True)
-            self.kmi_set_replace(lasso_tool, self.k_lasso, 'CLICK_DRAG', shift=True, properties={'mode': 'ADD'}, disable_double=True)
-            self.kmi_set_replace(lasso_tool, self.k_lasso, 'CLICK_DRAG', ctrl=True, properties={'mode': 'SUB'}, disable_double=True)
+            self.kmi_set_replace(
+                lasso_tool,
+                self.k_lasso,
+                "CLICK_DRAG",
+                properties={"mode": "SET"},
+                disable_double=True,
+            )
+            self.kmi_set_replace(
+                lasso_tool,
+                self.k_lasso,
+                "CLICK_DRAG",
+                shift=True,
+                properties={"mode": "ADD"},
+                disable_double=True,
+            )
+            self.kmi_set_replace(
+                lasso_tool,
+                self.k_lasso,
+                "CLICK_DRAG",
+                ctrl=True,
+                properties={"mode": "SUB"},
+                disable_double=True,
+            )
 
         # Lasso through Select / Deselect / Add
         if select_through_tool:
-            self.kmi_set_replace(select_through_tool, self.k_lasso_through, 'CLICK_DRAG', properties={'type': 'LASSO', 'mode': 'SET'}, disable_double=True)
-            self.kmi_set_replace(select_through_tool, self.k_lasso_through, 'CLICK_DRAG', shift=True, properties={'type': 'LASSO', 'mode': 'ADD'}, disable_double=True)
-            self.kmi_set_replace(select_through_tool, self.k_lasso_through, 'CLICK_DRAG', ctrl=True, properties={'type': 'LASSO', 'mode': 'SUB'}, disable_double=True)
+            self.kmi_set_replace(
+                select_through_tool,
+                self.k_lasso_through,
+                "CLICK_DRAG",
+                properties={"type": "LASSO", "mode": "SET"},
+                disable_double=True,
+            )
+            self.kmi_set_replace(
+                select_through_tool,
+                self.k_lasso_through,
+                "CLICK_DRAG",
+                shift=True,
+                properties={"type": "LASSO", "mode": "ADD"},
+                disable_double=True,
+            )
+            self.kmi_set_replace(
+                select_through_tool,
+                self.k_lasso_through,
+                "CLICK_DRAG",
+                ctrl=True,
+                properties={"type": "LASSO", "mode": "SUB"},
+                disable_double=True,
+            )
 
         # Box Select / Deselect / Add
         if box_tool:
-            self.kmi_set_replace(box_tool, self.k_box, 'CLICK_DRAG', properties={'mode': 'SET', 'wait_for_input': False, 'tweak': False}, disable_double=True)
-            self.kmi_set_replace(box_tool, self.k_box, 'CLICK_DRAG', shift=True, properties={'mode': 'ADD', 'wait_for_input': False, 'tweak': False}, disable_double=True)
-            self.kmi_set_replace(box_tool, self.k_box, 'CLICK_DRAG', ctrl=True, properties={'mode': 'SUB', 'wait_for_input': False, 'tweak': False}, disable_double=True)
+            self.kmi_set_replace(
+                box_tool,
+                self.k_box,
+                "CLICK_DRAG",
+                properties={"mode": "SET", "wait_for_input": False, "tweak": False},
+                disable_double=True,
+            )
+            self.kmi_set_replace(
+                box_tool,
+                self.k_box,
+                "CLICK_DRAG",
+                shift=True,
+                properties={"mode": "ADD", "wait_for_input": False, "tweak": False},
+                disable_double=True,
+            )
+            self.kmi_set_replace(
+                box_tool,
+                self.k_box,
+                "CLICK_DRAG",
+                ctrl=True,
+                properties={"mode": "SUB", "wait_for_input": False, "tweak": False},
+                disable_double=True,
+            )
 
         if node_box_tool:
-            self.kmi_set_replace(node_box_tool, self.k_select, 'CLICK_DRAG', properties={'mode': 'SET', 'wait_for_input': False, 'tweak': True}, disable_double=True)
-            self.kmi_set_replace(node_box_tool, self.k_box, 'CLICK_DRAG', shift=True, properties={'mode': 'ADD', 'wait_for_input': False, 'tweak': False}, disable_double=True)
-            self.kmi_set_replace(node_box_tool, self.k_box, 'CLICK_DRAG', ctrl=True, properties={'mode': 'SUB', 'wait_for_input': False, 'tweak': False}, disable_double=True)
+            self.kmi_set_replace(
+                node_box_tool,
+                self.k_select,
+                "CLICK_DRAG",
+                properties={"mode": "SET", "wait_for_input": False, "tweak": True},
+                disable_double=True,
+            )
+            self.kmi_set_replace(
+                node_box_tool,
+                self.k_box,
+                "CLICK_DRAG",
+                shift=True,
+                properties={"mode": "ADD", "wait_for_input": False, "tweak": False},
+                disable_double=True,
+            )
+            self.kmi_set_replace(
+                node_box_tool,
+                self.k_box,
+                "CLICK_DRAG",
+                ctrl=True,
+                properties={"mode": "SUB", "wait_for_input": False, "tweak": False},
+                disable_double=True,
+            )
 
         # Box Through Select / Deselect / Add
         if box_through_tool:
-            self.kmi_set_replace(box_through_tool, self.k_box_through, 'CLICK_DRAG', properties={'type': 'BOX', 'mode': 'SET'}, disable_double=True)
-            self.kmi_set_replace(box_through_tool, self.k_box_through, 'CLICK_DRAG', shift=True, properties={'type': 'BOX', 'mode': 'ADD'}, disable_double=True)
-            self.kmi_set_replace(box_through_tool, self.k_box_through, 'CLICK_DRAG', ctrl=True, properties={'type': 'BOX', 'mode': 'SUB'}, disable_double=True)
+            self.kmi_set_replace(
+                box_through_tool,
+                self.k_box_through,
+                "CLICK_DRAG",
+                properties={"type": "BOX", "mode": "SET"},
+                disable_double=True,
+            )
+            self.kmi_set_replace(
+                box_through_tool,
+                self.k_box_through,
+                "CLICK_DRAG",
+                shift=True,
+                properties={"type": "BOX", "mode": "ADD"},
+                disable_double=True,
+            )
+            self.kmi_set_replace(
+                box_through_tool,
+                self.k_box_through,
+                "CLICK_DRAG",
+                ctrl=True,
+                properties={"type": "BOX", "mode": "SUB"},
+                disable_double=True,
+            )
 
         # Circle
         if circle_tool:
-            if self.km.name in ['Weight Paint', 'Vertex Paint', 'Image Paint', 'Grease Pencil Stroke Weight Mode', 'Grease Pencil Stroke Sculpt Mode', 'Paint Face Mask (Weight, Vertex, Texture)', 'Grease Pencil Stroke Paint Mode', 'Grease Pencil Stroke Vertex Mode']:
-                self.kmi_set_replace(circle_tool, self.k_cursor, 'CLICK_DRAG', shift=True, properties={'wait_for_input': False, 'mode': 'ADD', 'radius': 5}, disable_double=True)
-                self.kmi_set_replace(circle_tool, self.k_cursor, 'CLICK_DRAG', ctrl=True, properties={ 'wait_for_input': False, 'mode': 'SUB', 'radius': 5}, disable_double=True)
+            if self.km.name in [
+                "Weight Paint",
+                "Vertex Paint",
+                "Image Paint",
+                "Grease Pencil Stroke Weight Mode",
+                "Grease Pencil Stroke Sculpt Mode",
+                "Paint Face Mask (Weight, Vertex, Texture)",
+                "Grease Pencil Stroke Paint Mode",
+                "Grease Pencil Stroke Vertex Mode",
+            ]:
+                self.kmi_set_replace(
+                    circle_tool,
+                    self.k_cursor,
+                    "CLICK_DRAG",
+                    shift=True,
+                    properties={"wait_for_input": False, "mode": "ADD", "radius": 5},
+                    disable_double=True,
+                )
+                self.kmi_set_replace(
+                    circle_tool,
+                    self.k_cursor,
+                    "CLICK_DRAG",
+                    ctrl=True,
+                    properties={"wait_for_input": False, "mode": "SUB", "radius": 5},
+                    disable_double=True,
+                )
 
             else:
-                self.kmi_set_replace(circle_tool, self.k_select, 'CLICK_DRAG', shift=True, properties={'wait_for_input': False, 'mode': 'ADD', 'radius': 5}, disable_double=True)
-                self.kmi_set_replace(circle_tool, self.k_select, 'CLICK_DRAG', ctrl=True, properties={'wait_for_input': False, 'mode': 'SUB', 'radius': 5}, disable_double=True)
+                self.kmi_set_replace(
+                    circle_tool,
+                    self.k_select,
+                    "CLICK_DRAG",
+                    shift=True,
+                    properties={"wait_for_input": False, "mode": "ADD", "radius": 5},
+                    disable_double=True,
+                )
+                self.kmi_set_replace(
+                    circle_tool,
+                    self.k_select,
+                    "CLICK_DRAG",
+                    ctrl=True,
+                    properties={"wait_for_input": False, "mode": "SUB", "radius": 5},
+                    disable_double=True,
+                )
 
         if gp_circle_tool:
-            self.kmi_set_replace(gp_circle_tool, self.k_select, 'CLICK_DRAG', shift=True, properties={'wait_for_input': False, 'mode': 'ADD', 'radius': 5}, disable_double=True)
-            self.kmi_set_replace(gp_circle_tool, self.k_select, 'CLICK_DRAG', ctrl=True, properties={'wait_for_input': False, 'mode': 'SUB', 'radius': 5}, disable_double=True)
+            self.kmi_set_replace(
+                gp_circle_tool,
+                self.k_select,
+                "CLICK_DRAG",
+                shift=True,
+                properties={"wait_for_input": False, "mode": "ADD", "radius": 5},
+                disable_double=True,
+            )
+            self.kmi_set_replace(
+                gp_circle_tool,
+                self.k_select,
+                "CLICK_DRAG",
+                ctrl=True,
+                properties={"wait_for_input": False, "mode": "SUB", "radius": 5},
+                disable_double=True,
+            )
 
         #  shortest Path Select / Deselect / Add
         if shortestpath_tool:
             self.kmi_remove(idname=shortestpath_tool)
             use_topology_distance = True
 
-            self.kmi_set_replace(shortestpath_tool, self.k_context, 'CLICK', shift=True, disable_double=True, properties={'use_fill': False, 'use_face_step': False, 'use_topology_distance': use_topology_distance})
-            self.kmi_set_replace(shortestpath_tool, self.k_context, 'CLICK', ctrl=True, shift=True, disable_double=True, properties={'use_fill': True, 'use_face_step': False, 'use_topology_distance': use_topology_distance})
+            self.kmi_set_replace(
+                shortestpath_tool,
+                self.k_context,
+                "CLICK",
+                shift=True,
+                disable_double=True,
+                properties={
+                    "use_fill": False,
+                    "use_face_step": False,
+                    "use_topology_distance": use_topology_distance,
+                },
+            )
+            self.kmi_set_replace(
+                shortestpath_tool,
+                self.k_context,
+                "CLICK",
+                ctrl=True,
+                shift=True,
+                disable_double=True,
+                properties={
+                    "use_fill": True,
+                    "use_face_step": False,
+                    "use_topology_distance": use_topology_distance,
+                },
+            )
 
         #  shortest ring
         if shortestring_tool:
-            self.kmi_set_replace(shortestring_tool, self.k_cursor, 'CLICK', shift=True, disable_double=True, properties={'use_fill': False, 'use_face_step': True, 'use_topology_distance': True})
+            self.kmi_set_replace(
+                shortestring_tool,
+                self.k_cursor,
+                "CLICK",
+                shift=True,
+                disable_double=True,
+                properties={
+                    "use_fill": False,
+                    "use_face_step": True,
+                    "use_topology_distance": True,
+                },
+            )
 
         # Loop Select / Deselect / Add
         if loop_tool:
-            if self.km.name in ['UV Editor']:
-                self.kmi_set_replace(loop_tool, self.k_select, 'DOUBLE_CLICK', disable_double=True, properties={'extend': False, 'loop': True})
-                self.kmi_set_replace(loop_tool, self.k_select, 'DOUBLE_CLICK', shift=True, properties={'extend': True, 'loop': True}, disable_double=True)
+            if self.km.name in ["UV Editor"]:
+                self.kmi_set_replace(
+                    loop_tool,
+                    self.k_select,
+                    "DOUBLE_CLICK",
+                    disable_double=True,
+                    properties={"extend": False, "loop": True, "deselect": False},
+                )
+                self.kmi_set_replace(
+                    loop_tool,
+                    self.k_select,
+                    "DOUBLE_CLICK",
+                    shift=True,
+                    properties={"extend": True, "loop": True, "deselect": False},
+                    disable_double=True,
+                )
             else:
-                self.kmi_set_replace(loop_tool, self.k_select, 'DOUBLE_CLICK', disable_double=True, properties={'extend': False, 'deselect': False})
-                self.kmi_set_replace(loop_tool, self.k_select, 'DOUBLE_CLICK', shift=True, properties={'extend': True, 'ring': False, 'deselect': False}, disable_double=True)
-                self.kmi_set_replace(loop_tool, self.k_select, 'DOUBLE_CLICK', ctrl=True, properties={'extend': False, 'deselect': True}, disable_double=True)
+                self.kmi_set_replace(
+                    loop_tool,
+                    self.k_select,
+                    "DOUBLE_CLICK",
+                    disable_double=True,
+                    properties={"extend": False, "deselect": False},
+                )
+                self.kmi_set_replace(
+                    loop_tool,
+                    self.k_select,
+                    "DOUBLE_CLICK",
+                    shift=True,
+                    properties={"extend": True, "ring": False, "deselect": False},
+                    disable_double=True,
+                )
+                self.kmi_set_replace(
+                    loop_tool,
+                    self.k_select,
+                    "DOUBLE_CLICK",
+                    ctrl=True,
+                    properties={"extend": False, "deselect": True},
+                    disable_double=True,
+                )
 
         # Ring Select / Deselect / Add
         if ring_tool:
-            self.kmi_set_replace(ring_tool, self.k_cursor, 'CLICK', ctrl=True, properties={'ring': True, 'deselect': True, 'extend': False, 'toggle': False}, disable_double=True)
-            self.kmi_set_replace(ring_tool, self.k_cursor, 'CLICK', ctrl=True, shift=True, properties={'ring': True, 'deselect': False, 'extend': True, 'toggle': False}, disable_double=True)
+            self.kmi_set_replace(
+                ring_tool,
+                self.k_cursor,
+                "CLICK",
+                ctrl=True,
+                properties={
+                    "ring": True,
+                    "deselect": True,
+                    "extend": False,
+                    "toggle": False,
+                },
+                disable_double=True,
+            )
+            self.kmi_set_replace(
+                ring_tool,
+                self.k_cursor,
+                "CLICK",
+                ctrl=True,
+                shift=True,
+                properties={
+                    "ring": True,
+                    "deselect": False,
+                    "extend": True,
+                    "toggle": False,
+                },
+                disable_double=True,
+            )
 
         # Loop multiselect
         if loop_multiselect_tool:
-            self.kmi_set_replace(loop_multiselect_tool, 'L', 'PRESS', properties={'ring': False}, disable_double=True)
+            self.kmi_set_replace(
+                loop_multiselect_tool,
+                "L",
+                "PRESS",
+                properties={"ring": False},
+                disable_double=True,
+            )
 
         # Ring multiselect
         if ring_multiselect_tool:
-            self.kmi_set_replace(ring_multiselect_tool, 'L', 'PRESS', alt=True, properties={'ring': True}, disable_double=True)
+            self.kmi_set_replace(
+                ring_multiselect_tool,
+                "L",
+                "PRESS",
+                alt=True,
+                properties={"ring": True},
+                disable_double=True,
+            )
 
         # Select More / Less
         if more_tool:
-            self.kmi_set_replace(more_tool, self.k_more, 'PRESS', shift=True, repeat=True)
+            self.kmi_set_replace(more_tool, self.k_more, "PRESS", shift=True, repeat=True)
 
         if less_tool:
-            self.kmi_set_replace(less_tool, self.k_less, 'PRESS', shift=True, repeat=True)
+            self.kmi_set_replace(less_tool, self.k_less, "PRESS", shift=True, repeat=True)
 
         # Select Next / Previous
         if next_tool:
-            self.kmi_set_replace(next_tool, self.k_more, 'PRESS')
+            self.kmi_set_replace(next_tool, self.k_more, "PRESS")
 
         if previous_tool:
-            self.kmi_set_replace(previous_tool, self.k_less, 'PRESS')
+            self.kmi_set_replace(previous_tool, self.k_less, "PRESS")
 
         # Linked
         if linked_tool:
-            self.kmi_set_replace(linked_tool, self.k_linked, 'DOUBLE_CLICK', ctrl=False, properties={'deselect': False, 'delimit': {'SEAM'}})
+            self.kmi_set_replace(
+                linked_tool,
+                self.k_linked,
+                "DOUBLE_CLICK",
+                ctrl=False,
+                properties={"deselect": False, "delimit": {"SEAM"}},
+            )
 
         if linked_pick_tool:
-            if self.km.name in ['Curve', 'Curves', 'Lattice', 'Grease Pencil', 'Particle', 'UV Editor']:
-                self.kmi_set_replace(linked_pick_tool, self.k_linked, 'PRESS', ctrl=False, properties={'deselect': False, 'extend': True}, disable_double=True)
-                self.kmi_set_replace(linked_pick_tool, self.k_linked, 'PRESS', ctrl=True, properties={'deselect': True, 'extend': True}, disable_double=True)
-            elif self.km.name in ['Weight Paint', 'Vertex Paint', 'Image Paint', 'Paint Face Mask (Weight, Vertex, Texture)', 'Grease Pencil Stroke Weight Mode', 'Grease Pencil Stroke Sculpt Mode', 'Grease Pencil Stroke Paint Mode']:
-                self.kmi_set_replace(linked_pick_tool, self.k_linked, 'PRESS', ctrl=False, alt=False, shift=False, properties={'deselect': False},  disable_double=True)
-                self.kmi_set_replace(linked_pick_tool, self.k_linked, 'PRESS', ctrl=True, alt=False, shift=False, properties={'deselect': True},  disable_double=True)
+            if self.km.name in [
+                "Curve",
+                "Curves",
+                "Lattice",
+                "Grease Pencil",
+                "Particle",
+                "UV Editor",
+            ]:
+                self.kmi_set_replace(
+                    linked_pick_tool,
+                    self.k_linked,
+                    "PRESS",
+                    ctrl=False,
+                    properties={"deselect": False, "extend": True},
+                    disable_double=True,
+                )
+                self.kmi_set_replace(
+                    linked_pick_tool,
+                    self.k_linked,
+                    "PRESS",
+                    ctrl=True,
+                    properties={"deselect": True, "extend": True},
+                    disable_double=True,
+                )
+            elif self.km.name in [
+                "Weight Paint",
+                "Vertex Paint",
+                "Image Paint",
+                "Paint Face Mask (Weight, Vertex, Texture)",
+                "Grease Pencil Stroke Weight Mode",
+                "Grease Pencil Stroke Sculpt Mode",
+                "Grease Pencil Stroke Paint Mode",
+            ]:
+                self.kmi_set_replace(
+                    linked_pick_tool,
+                    self.k_linked,
+                    "PRESS",
+                    ctrl=False,
+                    alt=False,
+                    shift=False,
+                    properties={"deselect": False},
+                    disable_double=True,
+                )
+                self.kmi_set_replace(
+                    linked_pick_tool,
+                    self.k_linked,
+                    "PRESS",
+                    ctrl=True,
+                    alt=False,
+                    shift=False,
+                    properties={"deselect": True},
+                    disable_double=True,
+                )
             else:
-                self.kmi_set_replace(linked_pick_tool, self.k_linked, 'PRESS', ctrl=False, alt=False, shift=False, properties={'deselect': False, 'delimit': {'SEAM'}}, disable_double=True)
-                self.kmi_set_replace(linked_pick_tool, self.k_linked, 'PRESS', ctrl=True, properties={'deselect': True, 'delimit': {'SEAM'}}, disable_double=True)
-                self.kmi_set_replace(linked_pick_tool, self.k_linked, 'PRESS', shift=True, properties={'deselect': False, 'delimit': {'MATERIAL'}}, disable_double=True)
-                self.kmi_set_replace(linked_pick_tool, self.k_linked, 'PRESS', ctrl=True, shift=True, properties={'deselect': True, 'delimit': {'MATERIAL'}}, disable_double=True)
-                self.kmi_set_replace(linked_pick_tool, self.k_linked, 'PRESS', alt=True, properties={'deselect': False, 'delimit': {'UV'}}, disable_double=True)
-                self.kmi_set_replace(linked_pick_tool, self.k_linked, 'PRESS', ctrl=True, alt=True, properties={'deselect': True, 'delimit': {'UV'}}, disable_double=True)
+                self.kmi_set_replace(
+                    linked_pick_tool,
+                    self.k_linked,
+                    "PRESS",
+                    ctrl=False,
+                    alt=False,
+                    shift=False,
+                    properties={"deselect": False, "delimit": {"SEAM"}},
+                    disable_double=True,
+                )
+                self.kmi_set_replace(
+                    linked_pick_tool,
+                    self.k_linked,
+                    "PRESS",
+                    ctrl=True,
+                    properties={"deselect": True, "delimit": {"SEAM"}},
+                    disable_double=True,
+                )
+                self.kmi_set_replace(
+                    linked_pick_tool,
+                    self.k_linked,
+                    "PRESS",
+                    shift=True,
+                    properties={"deselect": False, "delimit": {"MATERIAL"}},
+                    disable_double=True,
+                )
+                self.kmi_set_replace(
+                    linked_pick_tool,
+                    self.k_linked,
+                    "PRESS",
+                    ctrl=True,
+                    shift=True,
+                    properties={"deselect": True, "delimit": {"MATERIAL"}},
+                    disable_double=True,
+                )
+                self.kmi_set_replace(
+                    linked_pick_tool,
+                    self.k_linked,
+                    "PRESS",
+                    alt=True,
+                    properties={"deselect": False, "delimit": {"UV"}},
+                    disable_double=True,
+                )
+                self.kmi_set_replace(
+                    linked_pick_tool,
+                    self.k_linked,
+                    "PRESS",
+                    ctrl=True,
+                    alt=True,
+                    properties={"deselect": True, "delimit": {"UV"}},
+                    disable_double=True,
+                )
 
         if invert_tool:
-            self.kmi_set_replace(invert_tool, self.k_context, 'CLICK', ctrl=True, alt=True, shift=True, properties={'action': 'INVERT'})
+            self.kmi_set_replace(
+                invert_tool,
+                self.k_context,
+                "CLICK",
+                ctrl=True,
+                alt=True,
+                shift=True,
+                properties={"action": "INVERT"},
+            )
 
         if inner_tool:
-            self.kmi_set_replace(inner_tool, self.k_select, 'CLICK', ctrl=True, alt=True, shift=True, disable_double=True)
+            self.kmi_set_replace(
+                inner_tool,
+                self.k_select,
+                "CLICK",
+                ctrl=True,
+                alt=True,
+                shift=True,
+                disable_double=True,
+            )
 
         if collection_tool:
-            self.kmi_set_replace(collection_tool, self.k_select, 'DOUBLE_CLICK', shift=False, properties={'type': 'COLLECTION', 'extend': False}, disable_double=True)
-            self.kmi_set_replace(collection_tool, self.k_select, 'DOUBLE_CLICK', shift=True, properties={'type': 'COLLECTION', 'extend': True}, disable_double=True)
+            self.kmi_set_replace(
+                collection_tool,
+                self.k_select,
+                "DOUBLE_CLICK",
+                shift=False,
+                properties={"type": "COLLECTION", "extend": False},
+                disable_double=True,
+            )
+            self.kmi_set_replace(
+                collection_tool,
+                self.k_select,
+                "DOUBLE_CLICK",
+                shift=True,
+                properties={"type": "COLLECTION", "extend": True},
+                disable_double=True,
+            )
 
-    def selection_tool(self, tool='builtin.select', alt='builtin.select_box', mode=None):
-        brush_mode = ['Sculpt',
-                      'Sculpt Curves',
-                      'Weight Paint',
-                      'Vertex Paint',
-                      'Image Paint',
-                      'Grease Pencil Paint Mode',
-                      'Grease Pencil Brush Stroke',
-                      'Grease Pencil Sculpt Mode',
-                      'Grease Pencil Vertex Paint',
-                      'Grease Pencil Weight Paint']
+    def selection_tool(self, tool="builtin.select", alt="builtin.select_box", mode=None):
+        brush_mode = [
+            "Sculpt",
+            "Sculpt Curves",
+            "Weight Paint",
+            "Vertex Paint",
+            "Image Paint",
+            "Grease Pencil Paint Mode",
+            "Grease Pencil Brush Stroke",
+            "Grease Pencil Sculpt Mode",
+            "Grease Pencil Vertex Paint",
+            "Grease Pencil Weight Paint",
+        ]
 
         if self.km.name in brush_mode and mode is not None:
-            self.kmi_set_replace('brush.tila_brush_toggle', self.k_menu, 'PRESS', properties={'mode':mode, 'relative_asset_identifier': tool, 'asset_library_type': 'ESSENTIALS', 'asset_library_identifier':'', 'force_strength':False, 'force_weight':False}, disable_double=True)
+            self.kmi_set_replace(
+                "brush.tila_brush_toggle",
+                self.k_menu,
+                "PRESS",
+                properties={
+                    "mode": mode,
+                    "relative_asset_identifier": tool,
+                    "asset_library_type": "ESSENTIALS",
+                    "asset_library_identifier": "",
+                    "force_strength": False,
+                    "force_weight": False,
+                },
+                disable_double=True,
+            )
             if alt:
-                self.kmi_set_replace('brush.tila_brush_toggle', self.k_manip, 'PRESS', ctrl=True, shift=True, properties={'mode':mode, 'relative_asset_identifier': alt, 'asset_library_type': 'ESSENTIALS', 'asset_library_identifier':'', 'toggle_back_on_release':True, 'force_strength':False, 'force_weight':False}, disable_double=True)
+                self.kmi_set_replace(
+                    "brush.tila_brush_toggle",
+                    self.k_manip,
+                    "PRESS",
+                    ctrl=True,
+                    shift=True,
+                    properties={
+                        "mode": mode,
+                        "relative_asset_identifier": alt,
+                        "asset_library_type": "ESSENTIALS",
+                        "asset_library_identifier": "",
+                        "toggle_back_on_release": True,
+                        "force_strength": False,
+                        "force_weight": False,
+                    },
+                    disable_double=True,
+                )
 
         else:
-            self.kmi_set_replace('wm.tool_set_by_id', self.k_menu, "PRESS", properties={'name': tool, 'cycle': False})
+            self.kmi_set_replace(
+                "wm.tool_set_by_id",
+                self.k_menu,
+                "PRESS",
+                properties={"name": tool, "cycle": False},
+            )
             if alt:
-                self.kmi_set_replace('wm.tool_set_by_id', self.k_menu, "PRESS", ctrl=True, properties={'name': alt, 'cycle': False})
+                self.kmi_set_replace(
+                    "wm.tool_set_by_id",
+                    self.k_menu,
+                    "PRESS",
+                    ctrl=True,
+                    properties={"name": alt, "cycle": False},
+                )
 
     def right_mouse(self):
-        kmi = self.kmi_find(idname='wm.call_menu', type='RIGHTMOUSE', value='PRESS')
+        kmi = self.kmi_find(idname="wm.call_menu", type="RIGHTMOUSE", value="PRESS")
 
         if kmi is not None:
-            kmi.value = 'RELEASE'
+            kmi.value = "RELEASE"
 
-        kmi = self.kmi_find(idname='wm.call_panel', type='RIGHTMOUSE', value='PRESS')
+        kmi = self.kmi_find(idname="wm.call_panel", type="RIGHTMOUSE", value="PRESS")
 
         if kmi is not None:
-            kmi.value = 'RELEASE'
+            kmi.value = "RELEASE"
 
-    def duplicate(self, duplicate=None, duplicate_prop=None, duplicate_link=None, duplicate_link_prop=None):
+    def duplicate(
+        self,
+        duplicate=None,
+        duplicate_prop=None,
+        duplicate_link=None,
+        duplicate_link_prop=None,
+    ):
         if duplicate:
-            self.kmi_set_replace(duplicate, 'D', 'PRESS', ctrl=True, shift=False, properties=duplicate_prop, disable_double=True)
+            self.kmi_set_replace(
+                duplicate,
+                "D",
+                "PRESS",
+                ctrl=True,
+                shift=False,
+                properties=duplicate_prop,
+                disable_double=True,
+            )
         if duplicate_link:
-            self.kmi_set_replace(duplicate_link, 'D', 'PRESS', ctrl=True, shift=True, properties=duplicate_link_prop, disable_double=True)
+            self.kmi_set_replace(
+                duplicate_link,
+                "D",
+                "PRESS",
+                ctrl=True,
+                shift=True,
+                properties=duplicate_link_prop,
+                disable_double=True,
+            )
 
     def hide_reveal(self, hide=None, unhide=None, inverse=None):
         if hide:
-            self.kmi_set_replace(hide, 'H', 'PRESS', properties={'unselected': False})
-            self.kmi_set_replace(hide, 'H', 'PRESS', ctrl=True, properties={'unselected': True})
+            self.kmi_set_replace(hide, "H", "PRESS", properties={"unselected": False})
+            self.kmi_set_replace(hide, "H", "PRESS", ctrl=True, properties={"unselected": True})
         if unhide:
-            self.kmi_set_replace(unhide, 'H', 'PRESS', alt=True, shift=True, properties={'select': False})
+            self.kmi_set_replace(unhide, "H", "PRESS", alt=True, shift=True, properties={"select": False})
         if inverse:
-            self.kmi_set_replace(inverse, 'H', 'PRESS', ctrl=True, alt=True, shift=True)
+            self.kmi_set_replace(inverse, "H", "PRESS", ctrl=True, alt=True, shift=True)
 
     def snap(self, snap_datapath=None, snap_element_panel=None):
-        type = 'X'
+        type = "X"
         if snap_datapath is not None:
-            self.kmi_set_replace('wm.context_toggle', type, 'PRESS', shift=True, properties={'data_path':snap_datapath}, disable_double=True)
-        if snap_element_panel is not None :
-            self.kmi_set_replace('wm.call_panel', type, 'PRESS', ctrl=True, shift=True, properties={'name':snap_element_panel}, disable_double=True)
+            self.kmi_set_replace(
+                "wm.context_toggle",
+                type,
+                "PRESS",
+                shift=True,
+                properties={"data_path": snap_datapath},
+                disable_double=True,
+            )
+        if snap_element_panel is not None:
+            self.kmi_set_replace(
+                "wm.call_panel",
+                type,
+                "PRESS",
+                ctrl=True,
+                shift=True,
+                properties={"name": snap_element_panel},
+                disable_double=True,
+            )
 
     def color_swap_sample(self):
-        self.kmi_set_replace('paint.brush_colors_flip', 'C', 'PRESS', disable_double=True)
+        self.kmi_set_replace("paint.brush_colors_flip", "C", "PRESS", disable_double=True)
 
     def toggle_x_symetry(self):
-        self.kmi_set_replace('view3D.toggle_symetry', 'X', 'PRESS', disable_double=True)
+        self.kmi_set_replace("view3D.toggle_symetry", "X", "PRESS", disable_double=True)
 
     def tool_sculpt(self, sculpt=None):
         if sculpt:
-            self.kmi_set_replace(sculpt, 'W', 'PRESS', ctrl=True, alt=True, shift=True)
+            self.kmi_set_replace(sculpt, "W", "PRESS", ctrl=True, alt=True, shift=True)
 
     def tool_smooth(self):
-        self.kmi_set_replace('mesh.vertices_smooth', 'S', 'PRESS', ctrl=True, alt=True, shift=False, properties={'repeat': 50})
+        self.kmi_set_replace(
+            "mesh.vertices_smooth",
+            "S",
+            "PRESS",
+            ctrl=True,
+            alt=True,
+            shift=False,
+            properties={"repeat": 50},
+        )
 
     def tool_proportional(self):
-        self.modal_set_replace('PROPORTIONAL_SIZE', 'MOUSEMOVE', 'ANY', alt=True)
+        self.modal_set_replace("PROPORTIONAL_SIZE", "MOUSEMOVE", "ANY", alt=True)
 
     def tool_smart_delete(self):
-        self.kmi_set_active(False, type='DEL')
-        self.kmi_set_replace('object.tila_smartdelete', 'DEL', 'PRESS', properties={'menu': False}, disable_double=True)
-        self.kmi_set_replace('object.tila_smartdelete', 'DEL', 'PRESS', alt=True, properties={'menu': True}, disable_double=True)
+        self.kmi_set_active(False, type="DEL")
+        self.kmi_set_replace(
+            "object.tila_smartdelete",
+            "DEL",
+            "PRESS",
+            properties={"menu": False},
+            disable_double=True,
+        )
+        self.kmi_set_replace(
+            "object.tila_smartdelete",
+            "DEL",
+            "PRESS",
+            alt=True,
+            properties={"menu": True},
+            disable_double=True,
+        )
 
-    def tool_radial_control(self, radius=None, opacity=None, eraser_radius=None, fill_color=None, weight=None, mask=None):
-        type = 'Q'
+    def tool_radial_control(
+        self,
+        radius=None,
+        opacity=None,
+        eraser_radius=None,
+        fill_color=None,
+        weight=None,
+        mask=None,
+    ):
+        type = "Q"
         if radius:
-            self.kmi_set_replace('wm.radial_control', type, 'ANY', properties=radius, disable_double=True)
+            self.kmi_set_replace("wm.radial_control", type, "ANY", properties=radius, disable_double=True)
         if opacity:
-            self.kmi_set_replace('wm.radial_control', type, 'ANY', alt=True, shift=True, properties=opacity, disable_double=True)
+            self.kmi_set_replace(
+                "wm.radial_control",
+                type,
+                "ANY",
+                alt=True,
+                shift=True,
+                properties=opacity,
+                disable_double=True,
+            )
         if eraser_radius:
-            self.kmi_set_replace('wm.radial_control', type, 'ANY', ctrl=True, alt=True, properties=eraser_radius, disable_double=True)
+            self.kmi_set_replace(
+                "wm.radial_control",
+                type,
+                "ANY",
+                ctrl=True,
+                alt=True,
+                properties=eraser_radius,
+                disable_double=True,
+            )
         if weight:
-            self.kmi_set_replace('wm.radial_control', type, 'ANY', ctrl=True, alt=True, properties=weight, disable_double=True)
+            self.kmi_set_replace(
+                "wm.radial_control",
+                type,
+                "ANY",
+                ctrl=True,
+                alt=True,
+                properties=weight,
+                disable_double=True,
+            )
         if mask:
-            self.kmi_set_replace('wm.radial_control', type, 'ANY', ctrl=True, shift=True, properties=mask, disable_double=True)
+            self.kmi_set_replace(
+                "wm.radial_control",
+                type,
+                "ANY",
+                ctrl=True,
+                shift=True,
+                properties=mask,
+                disable_double=True,
+            )
         if fill_color:
-            self.kmi_set_replace('wm.radial_control', self.k_lasso, 'ANY', properties=fill_color, disable_double=True)
+            self.kmi_set_replace(
+                "wm.radial_control",
+                self.k_lasso,
+                "ANY",
+                properties=fill_color,
+                disable_double=True,
+            )
 
     def tool_sample_color(self, tool):
-        self.kmi_set_replace(tool, 'C', 'PRESS', shift=True, disable_double=True)
+        self.kmi_set_replace(tool, "C", "PRESS", shift=True, disable_double=True)
 
     def tool_toggle_color(self, tool):
-        self.kmi_set_replace(tool, 'C', 'PRESS', disable_double=True)
+        self.kmi_set_replace(tool, "C", "PRESS", disable_double=True)
 
     def tool_subdivision(self):
         #  Disabling subdivision_set shortcut
-        self.kmi_set_active(False, 'object.subdivision_set', type='ZERO')
-        self.kmi_set_active(False, 'object.subdivision_set', type='ONE')
-        self.kmi_set_active(False, 'object.subdivision_set', type='TWO')
-        self.kmi_set_active(False, 'object.subdivision_set', type='THREE')
-        self.kmi_set_active(False, 'object.subdivision_set', type='FOUR')
-        self.kmi_set_active(False, 'object.subdivision_set', type='FIVE')
+        self.kmi_set_active(False, "object.subdivision_set", type="ZERO")
+        self.kmi_set_active(False, "object.subdivision_set", type="ONE")
+        self.kmi_set_active(False, "object.subdivision_set", type="TWO")
+        self.kmi_set_active(False, "object.subdivision_set", type="THREE")
+        self.kmi_set_active(False, "object.subdivision_set", type="FOUR")
+        self.kmi_set_active(False, "object.subdivision_set", type="FIVE")
 
-        self.kmi_set_replace('sculpt.tila_multires_subdiv_level', 'NUMPAD_PLUS', 'PRESS', properties={'subd': 1, 'mode': 'RELATIVE', 'force_subd': False, 'algorithm': 'CATMULL_CLARK'}, disable_double=True)
-        self.kmi_set_replace('sculpt.tila_multires_subdiv_level', 'NUMPAD_PLUS', 'PRESS', shift=True, properties={'subd': 1, 'mode': 'RELATIVE', 'force_subd': True, 'algorithm': 'CATMULL_CLARK'}, disable_double=True)
-        self.kmi_set_replace('sculpt.tila_multires_subdiv_level', 'NUMPAD_PLUS', 'PRESS', ctrl=True, properties={'subd': 1, 'mode': 'RELATIVE', 'force_subd': False, 'algorithm': 'LINEAR'}, disable_double=True)
-        self.kmi_set_replace('sculpt.tila_multires_subdiv_level', 'NUMPAD_PLUS', 'PRESS', ctrl=True, shift=True, properties={'subd': 1, 'mode': 'RELATIVE', 'force_subd': True, 'algorithm': 'LINEAR'}, disable_double=True)
-        self.kmi_set_replace('sculpt.tila_multires_subdiv_level', 'NUMPAD_PLUS', 'PRESS', ctrl=False, alt=True, shift=True, properties={'mode': 'MAX', 'force_subd': False}, disable_double=True)
-        self.kmi_set_replace('sculpt.tila_multires_delete_subdiv', 'NUMPAD_PLUS', 'PRESS', ctrl=True, alt=True, shift=True, properties={'delete_target': 'HIGHER'}, disable_double=True)
+        self.kmi_set_replace(
+            "sculpt.tila_multires_subdiv_level",
+            "NUMPAD_PLUS",
+            "PRESS",
+            properties={
+                "subd": 1,
+                "mode": "RELATIVE",
+                "force_subd": False,
+                "algorithm": "CATMULL_CLARK",
+            },
+            disable_double=True,
+        )
+        self.kmi_set_replace(
+            "sculpt.tila_multires_subdiv_level",
+            "NUMPAD_PLUS",
+            "PRESS",
+            shift=True,
+            properties={
+                "subd": 1,
+                "mode": "RELATIVE",
+                "force_subd": True,
+                "algorithm": "CATMULL_CLARK",
+            },
+            disable_double=True,
+        )
+        self.kmi_set_replace(
+            "sculpt.tila_multires_subdiv_level",
+            "NUMPAD_PLUS",
+            "PRESS",
+            ctrl=True,
+            properties={
+                "subd": 1,
+                "mode": "RELATIVE",
+                "force_subd": False,
+                "algorithm": "LINEAR",
+            },
+            disable_double=True,
+        )
+        self.kmi_set_replace(
+            "sculpt.tila_multires_subdiv_level",
+            "NUMPAD_PLUS",
+            "PRESS",
+            ctrl=True,
+            shift=True,
+            properties={
+                "subd": 1,
+                "mode": "RELATIVE",
+                "force_subd": True,
+                "algorithm": "LINEAR",
+            },
+            disable_double=True,
+        )
+        self.kmi_set_replace(
+            "sculpt.tila_multires_subdiv_level",
+            "NUMPAD_PLUS",
+            "PRESS",
+            ctrl=False,
+            alt=True,
+            shift=True,
+            properties={"mode": "MAX", "force_subd": False},
+            disable_double=True,
+        )
+        self.kmi_set_replace(
+            "sculpt.tila_multires_delete_subdiv",
+            "NUMPAD_PLUS",
+            "PRESS",
+            ctrl=True,
+            alt=True,
+            shift=True,
+            properties={"delete_target": "HIGHER"},
+            disable_double=True,
+        )
 
+        self.kmi_set_replace(
+            "sculpt.tila_multires_subdiv_level",
+            "NUMPAD_MINUS",
+            "PRESS",
+            properties={
+                "subd": -1,
+                "mode": "RELATIVE",
+                "force_subd": False,
+                "algorithm": "CATMULL_CLARK",
+            },
+            disable_double=True,
+        )
+        self.kmi_set_replace(
+            "sculpt.tila_multires_subdiv_level",
+            "NUMPAD_MINUS",
+            "PRESS",
+            shift=True,
+            properties={
+                "subd": -1,
+                "mode": "RELATIVE",
+                "force_subd": True,
+                "algorithm": "CATMULL_CLARK",
+            },
+            disable_double=True,
+        )
+        self.kmi_set_replace(
+            "sculpt.tila_multires_subdiv_level",
+            "NUMPAD_MINUS",
+            "PRESS",
+            ctrl=True,
+            properties={
+                "subd": -1,
+                "mode": "RELATIVE",
+                "force_subd": False,
+                "algorithm": "LINEAR",
+            },
+            disable_double=True,
+        )
+        self.kmi_set_replace(
+            "sculpt.tila_multires_subdiv_level",
+            "NUMPAD_MINUS",
+            "PRESS",
+            ctrl=True,
+            shift=True,
+            properties={
+                "subd": -1,
+                "mode": "RELATIVE",
+                "force_subd": True,
+                "algorithm": "LINEAR",
+            },
+            disable_double=True,
+        )
+        self.kmi_set_replace(
+            "sculpt.tila_multires_subdiv_level",
+            "NUMPAD_MINUS",
+            "PRESS",
+            ctrl=False,
+            alt=True,
+            shift=True,
+            properties={"mode": "MIN", "force_subd": False},
+            disable_double=True,
+        )
+        self.kmi_set_replace(
+            "sculpt.tila_multires_delete_subdiv",
+            "NUMPAD_MINUS",
+            "PRESS",
+            ctrl=True,
+            alt=True,
+            shift=True,
+            properties={"delete_target": "LOWER"},
+            disable_double=True,
+        )
 
-        self.kmi_set_replace('sculpt.tila_multires_subdiv_level', 'NUMPAD_MINUS', 'PRESS', properties={'subd': -1, 'mode': 'RELATIVE', 'force_subd': False, 'algorithm': 'CATMULL_CLARK'}, disable_double=True)
-        self.kmi_set_replace('sculpt.tila_multires_subdiv_level', 'NUMPAD_MINUS', 'PRESS', shift=True, properties={'subd': -1, 'mode': 'RELATIVE', 'force_subd': True, 'algorithm': 'CATMULL_CLARK'}, disable_double=True)
-        self.kmi_set_replace('sculpt.tila_multires_subdiv_level', 'NUMPAD_MINUS', 'PRESS', ctrl=True, properties={'subd': -1, 'mode': 'RELATIVE', 'force_subd': False, 'algorithm': 'LINEAR'}, disable_double=True)
-        self.kmi_set_replace('sculpt.tila_multires_subdiv_level', 'NUMPAD_MINUS', 'PRESS', ctrl=True, shift=True, properties={'subd': -1, 'mode': 'RELATIVE', 'force_subd': True, 'algorithm': 'LINEAR'}, disable_double=True)
-        self.kmi_set_replace('sculpt.tila_multires_subdiv_level', 'NUMPAD_MINUS', 'PRESS', ctrl=False, alt=True, shift=True, properties={'mode': 'MIN', 'force_subd': False}, disable_double=True)
-        self.kmi_set_replace('sculpt.tila_multires_delete_subdiv', 'NUMPAD_MINUS', 'PRESS', ctrl=True, alt=True, shift=True, properties={'delete_target': 'LOWER'}, disable_double=True)
+        self.kmi_set_replace(
+            "sculpt.tila_multires_rebuild_subdiv",
+            "NUMPAD_ASTERIX",
+            "PRESS",
+            ctrl=True,
+            alt=True,
+            shift=True,
+        )
+        self.kmi_set_replace(
+            "sculpt.tila_multires_apply_base",
+            "NUMPAD_ENTER",
+            "PRESS",
+            ctrl=True,
+            alt=True,
+            shift=True,
+        )
 
-        self.kmi_set_replace('sculpt.tila_multires_rebuild_subdiv', 'NUMPAD_ASTERIX', 'PRESS', ctrl=True, alt=True, shift=True)
-        self.kmi_set_replace('sculpt.tila_multires_apply_base', 'NUMPAD_ENTER', 'PRESS', ctrl=True, alt=True, shift=True)
+        self.kmi_set_replace(
+            "object.subdivision_set",
+            "NUMPAD_PLUS",
+            "PRESS",
+            alt=True,
+            properties={"level": 1, "relative": True},
+            disable_double=True,
+        )
+        self.kmi_set_replace(
+            "object.subdivision_set",
+            "NUMPAD_MINUS",
+            "PRESS",
+            alt=True,
+            properties={"level": -1, "relative": True},
+            disable_double=True,
+        )
 
-        self.kmi_set_replace('object.subdivision_set', 'NUMPAD_PLUS', 'PRESS', alt=True, properties={'level': 1, 'relative': True}, disable_double=True)
-        self.kmi_set_replace('object.subdivision_set', 'NUMPAD_MINUS', 'PRESS', alt=True, properties={'level': -1, 'relative': True}, disable_double=True)
-
-        if self.km.name in ['Sculpt']:
-            self.kmi_set_replace('sculpt.tila_multires_subdiv_level', 'D', 'PRESS', properties={'subd': 1, 'mode': 'RELATIVE', 'force_subd': False, 'algorithm': 'CATMULL_CLARK'})
-            self.kmi_set_replace('sculpt.tila_multires_subdiv_level', 'D', 'PRESS', ctrl=True,  properties={'subd': 1, 'mode': 'RELATIVE', 'force_subd': True, 'algorithm': 'CATMULL_CLARK'})
-            self.kmi_set_replace('sculpt.tila_multires_subdiv_level', 'D', 'PRESS', shift=True,  properties={'subd': -1, 'mode': 'RELATIVE', 'force_subd': False, 'algorithm': 'CATMULL_CLARK'})
+        if self.km.name in ["Sculpt"]:
+            self.kmi_set_replace(
+                "sculpt.tila_multires_subdiv_level",
+                "D",
+                "PRESS",
+                properties={
+                    "subd": 1,
+                    "mode": "RELATIVE",
+                    "force_subd": False,
+                    "algorithm": "CATMULL_CLARK",
+                },
+            )
+            self.kmi_set_replace(
+                "sculpt.tila_multires_subdiv_level",
+                "D",
+                "PRESS",
+                ctrl=True,
+                properties={
+                    "subd": 1,
+                    "mode": "RELATIVE",
+                    "force_subd": True,
+                    "algorithm": "CATMULL_CLARK",
+                },
+            )
+            self.kmi_set_replace(
+                "sculpt.tila_multires_subdiv_level",
+                "D",
+                "PRESS",
+                shift=True,
+                properties={
+                    "subd": -1,
+                    "mode": "RELATIVE",
+                    "force_subd": False,
+                    "algorithm": "CATMULL_CLARK",
+                },
+            )
 
     def tool_center(self, pivot=None, orientation=None, action_center_context=None):
         print(pivot, orientation)
@@ -360,37 +1417,142 @@ class TILA_Config_Keymaps(TILA_Config_Keymaps_Base):
         # 	else:
         # 		self.kmi_set_replace('wm.call_panel', 'X', 'PRESS', ctrl=True, properties={'name', pivot), ('keep_open', False}, disable_double=True)
         if orientation:
-            self.kmi_set_replace('wm.call_panel', 'Q', 'PRESS', ctrl=True, shift=True, properties={'name': orientation, 'keep_open': False}, disable_double=True)
+            self.kmi_set_replace(
+                "wm.call_panel",
+                "Q",
+                "PRESS",
+                ctrl=True,
+                shift=True,
+                properties={"name": orientation, "keep_open": False},
+                disable_double=True,
+            )
         if action_center_context:
-            self.kmi_set_replace('wm.call_menu', 'X', 'PRESS', alt=True, properties={'name': 'TILA_MT_action_center'}, disable_double=True)
+            self.kmi_set_replace(
+                "wm.call_menu",
+                "X",
+                "PRESS",
+                alt=True,
+                properties={"name": "TILA_MT_action_center"},
+                disable_double=True,
+            )
 
     def tool_transform(self, cage_scale=None):
         self.kmi_set_active(False, type=self.k_move, ctrl=False, shift=False, alt=False)
         self.kmi_set_active(False, type=self.k_rotate, ctrl=False, shift=False, alt=False)
         self.kmi_set_active(False, type=self.k_scale, ctrl=False, shift=False, alt=False)
-        self.kmi_set_replace('wm.tool_set_by_id', self.k_move, 'PRESS', properties={'name': 'builtin.move'}, disable_double=True)
-        self.kmi_set_replace('wm.tool_set_by_id', self.k_rotate, 'PRESS', properties={'name': 'builtin.rotate'}, disable_double=True)
-        self.kmi_set_replace('wm.tool_set_by_id', self.k_scale, 'PRESS', properties={'name': 'builtin.scale'}, disable_double=True)
+        self.kmi_set_replace(
+            "wm.tool_set_by_id",
+            self.k_move,
+            "PRESS",
+            properties={"name": "builtin.move"},
+            disable_double=True,
+        )
+        self.kmi_set_replace(
+            "wm.tool_set_by_id",
+            self.k_rotate,
+            "PRESS",
+            properties={"name": "builtin.rotate"},
+            disable_double=True,
+        )
+        self.kmi_set_replace(
+            "wm.tool_set_by_id",
+            self.k_scale,
+            "PRESS",
+            properties={"name": "builtin.scale"},
+            disable_double=True,
+        )
         if cage_scale:
-            self.kmi_set_replace('wm.tool_set_by_id', 'T', 'PRESS', ctrl=True, properties={'name': cage_scale}, disable_double=True)
+            self.kmi_set_replace(
+                "wm.tool_set_by_id",
+                "T",
+                "PRESS",
+                ctrl=True,
+                properties={"name": cage_scale},
+                disable_double=True,
+            )
 
     def isolate(self):
-        self.kmi_set_replace('view3d.tila_isolate', 'X', 'PRESS', ctrl=True, alt=True, properties={'force_object_isolate': False})
-        self.kmi_set_replace('view3d.tila_isolate', 'X', 'PRESS', ctrl=True, alt=True, shift=True, properties={'force_object_isolate': True})
+        self.kmi_set_replace(
+            "view3d.tila_isolate",
+            "X",
+            "PRESS",
+            ctrl=True,
+            alt=True,
+            properties={"force_object_isolate": False},
+        )
+        self.kmi_set_replace(
+            "view3d.tila_isolate",
+            "X",
+            "PRESS",
+            ctrl=True,
+            alt=True,
+            shift=True,
+            properties={"force_object_isolate": True},
+        )
 
     def join(self):
-        self.kmi_set_replace('object.tila_smart_join', 'J', 'PRESS', ctrl=True, shift=False, alt=False, properties={'apply_modifiers': False, 'duplicate': False}, disable_double=True)
-        self.kmi_set_replace('object.tila_smart_join', 'J', 'PRESS', ctrl=True, shift=True, alt=False, properties={'apply_modifiers': True, 'duplicate': False}, disable_double=True)
-        self.kmi_set_replace('object.tila_smart_join', 'J', 'PRESS', ctrl=True, shift=True, alt=True, properties={'apply_modifiers': True, 'duplicate': True}, disable_double=True)
+        self.kmi_set_replace(
+            "object.tila_smart_join",
+            "J",
+            "PRESS",
+            ctrl=True,
+            shift=False,
+            alt=False,
+            properties={"apply_modifiers": False, "duplicate": False},
+            disable_double=True,
+        )
+        self.kmi_set_replace(
+            "object.tila_smart_join",
+            "J",
+            "PRESS",
+            ctrl=True,
+            shift=True,
+            alt=False,
+            properties={"apply_modifiers": True, "duplicate": False},
+            disable_double=True,
+        )
+        self.kmi_set_replace(
+            "object.tila_smart_join",
+            "J",
+            "PRESS",
+            ctrl=True,
+            shift=True,
+            alt=True,
+            properties={"apply_modifiers": True, "duplicate": True},
+            disable_double=True,
+        )
 
     def asset_shelf_popover(self, shelf_name, disable_double=True):
-        self.kmi_set_replace('wm.call_asset_shelf_popover', 'B', 'PRESS', properties={'name': shelf_name}, disable_double=disable_double)
+        self.kmi_set_replace(
+            "wm.call_asset_shelf_popover",
+            "B",
+            "PRESS",
+            properties={"name": shelf_name},
+            disable_double=disable_double,
+        )
 
     def separate(self, separate_selected=True, separate_by_loose_parts=False):
         if separate_selected:
-            self.kmi_set_replace('view3d.separate_and_select', 'D', 'PRESS', ctrl=True, shift=True, properties={'by_loose_parts': False}, disable_double=True)
+            self.kmi_set_replace(
+                "view3d.separate_and_select",
+                "D",
+                "PRESS",
+                ctrl=True,
+                shift=True,
+                properties={"by_loose_parts": False},
+                disable_double=True,
+            )
         if separate_by_loose_parts:
-            self.kmi_set_replace('view3d.separate_and_select', 'D', 'PRESS', ctrl=True, alt=True, shift=True, properties={'by_loose_parts': True}, disable_double=True)
+            self.kmi_set_replace(
+                "view3d.separate_and_select",
+                "D",
+                "PRESS",
+                ctrl=True,
+                alt=True,
+                shift=True,
+                properties={"by_loose_parts": True},
+                disable_double=True,
+            )
 
     # Keymap define
     @TILA_Config_Keymaps_Base.print_assigning_keymap()
@@ -446,22 +1608,22 @@ class TILA_Config_Keymaps(TILA_Config_Keymaps_Base):
         self.set_keymaps_knife_tool_modal_map()
         self.set_keymaps_gesture_box_modal_map()
 
-    @TILA_Config_Keymaps_Base.print_assigning_keymap('Global Windows')
+    @TILA_Config_Keymaps_Base.print_assigning_keymap("Global Windows")
     def set_keymaps_windows(self):
         ##### Window
-        self.kmi_init(name='Window', space_type='EMPTY', region_type='WINDOW', addon=False)
+        self.kmi_init(name="Window", space_type="EMPTY", region_type="WINDOW", addon=False)
         self.global_keys()
         self.right_mouse()
         # self.kmi_set_replace("wm.call_menu_pie", self.k_menu, "PRESS", ctrl=True, shift=True, alt=True)
         # self.kmi_set_replace("wm.revert_without_prompt", "N", "PRESS", shift=True)
 
-        self.kmi_set_active(False, idname='wm.call_menu', type='F2')
-        self.kmi_set_active(False, idname='wm.toolbar')
-        self.selection_tool(tool='builtin.select_box')
+        self.kmi_set_active(False, idname="wm.call_menu", type="F2")
+        self.kmi_set_active(False, idname="wm.toolbar")
+        self.selection_tool(tool="builtin.select_box")
 
-        self.kmi_init(name='Window', space_type='EMPTY', region_type='WINDOW', addon=False)
-        self.kmi_set_active(False, 'wm.save_as_mainfile', type='S', value='PRESS', ctrl=True, shift=True)
-        self.kmi_set_replace('wm.search_operator', 'F3', 'PRESS', ctrl=True, alt=False, shift=False)
+        self.kmi_init(name="Window", space_type="EMPTY", region_type="WINDOW", addon=False)
+        self.kmi_set_active(False, "wm.save_as_mainfile", type="S", value="PRESS", ctrl=True, shift=True)
+        self.kmi_set_replace("wm.search_operator", "F3", "PRESS", ctrl=True, alt=False, shift=False)
 
         # MACHINE3tools
         # self.kmi_set_replace('wm.call_menu_pie', 'S', "PRESS", ctrl=True, shift=True, properties={'name': 'MACHIN3_MT_save_pie'}, disable_double=True)
@@ -469,1238 +1631,2450 @@ class TILA_Config_Keymaps(TILA_Config_Keymaps_Base):
         # Atomic Data Manager
         # self.kmi_set_replace('atomic.invoke_pie_menu_ui', 'DEL', "PRESS", ctrl=True, shift=True, disable_double=True)
 
-    @TILA_Config_Keymaps_Base.print_assigning_keymap('Global 3D View')
+    @TILA_Config_Keymaps_Base.print_assigning_keymap("Global 3D View")
     def set_keymaps_3dview(self):
         ##### 3D View
-        self.kmi_init(name='3D View', space_type='VIEW_3D', region_type='WINDOW', addon=False)
+        self.kmi_init(name="3D View", space_type="VIEW_3D", region_type="WINDOW", addon=False)
         self.global_keys()
         self.right_mouse()
         # self.selection_tool()
         self.tool_smart_delete()
 
-        self.kmi_set_active(False, idname='view3d.select_circle', type="C")
-        self.kmi_set_active(False, idname='view3d.cursor3d', type="RIGHTMOUSE")
-        self.kmi_set_active(False, idname='view3d.rotate', type="MIDDLEMOUSE")
-        self.kmi_set_active(False, idname='view3d.dolly', type="MIDDLEMOUSE")
-        self.kmi_set_active(False, idname='view3d.zoom', type="MIDDLEMOUSE")
-        self.kmi_set_active(False, idname='view3d.move', type="MIDDLEMOUSE")
-        self.kmi_set_active(False, idname='view3d.select_lasso', type="RIGHTMOUSE")
-        self.kmi_set_active(False, idname='view3d.view_center_pick', type='MIDDLEMOUSE')
+        self.kmi_set_active(False, idname="view3d.select_circle", type="C")
+        self.kmi_set_active(False, idname="view3d.cursor3d", type="RIGHTMOUSE")
+        self.kmi_set_active(False, idname="view3d.rotate", type="MIDDLEMOUSE")
+        self.kmi_set_active(False, idname="view3d.dolly", type="MIDDLEMOUSE")
+        self.kmi_set_active(False, idname="view3d.zoom", type="MIDDLEMOUSE")
+        self.kmi_set_active(False, idname="view3d.move", type="MIDDLEMOUSE")
+        self.kmi_set_active(False, idname="view3d.view_center_pick", type="MIDDLEMOUSE")
 
-        self.kmi_set_active(False, idname='wm.tool_set_by_id', type="W")
-        self.kmi_set_replace('view3d.navigate', 'NUMPAD_SLASH', 'PRESS', ctrl=True, alt=True, shift=True, disable_double=True)
+        self.kmi_set_active(False, idname="wm.tool_set_by_id", type="W")
+        self.kmi_set_replace(
+            "view3d.navigate",
+            "NUMPAD_SLASH",
+            "PRESS",
+            ctrl=True,
+            alt=True,
+            shift=True,
+            disable_double=True,
+        )
 
-        self.navigation_keys(pan='view3d.move',
-                            orbit='view3d.rotate',
-                            dolly='view3d.zoom',
-                               roll='view3d.tila_rotate_canvas')
+        self.navigation_keys(
+            pan="view3d.move",
+            orbit="view3d.rotate",
+            dolly="view3d.zoom",
+            roll="view3d.tila_rotate_canvas",
+        )
 
-        self.selection_keys(select_tool='view3d.select',
-                            lasso_tool='view3d.select_lasso',
-                            select_through_tool='view3d.tila_select_through',
-                              circle_tool='view3d.select_circle',
-                            collection_tool='object.select_grouped')
+        self.selection_keys(
+            select_tool="view3d.select",
+            lasso_tool="view3d.select_lasso",
+            select_through_tool="view3d.tila_select_through",
+            circle_tool="view3d.select_circle",
+            collection_tool="object.select_grouped",
+        )
 
-        self.snap(snap_datapath='tool_settings.use_snap', snap_element_panel='VIEW3D_PT_snapping')
-        self.kmi_set_active(True, idname='wm.call_panel', ctrl=True, shift=True)
+        self.snap(
+            snap_datapath="tool_settings.use_snap",
+            snap_element_panel="VIEW3D_PT_snapping",
+        )
+        self.kmi_set_active(True, idname="wm.call_panel", ctrl=True, shift=True)
 
-        self.kmi_set_replace('object.tila_emptymesh', 'N', 'PRESS', ctrl=True, alt=True, shift=True)
+        self.kmi_set_replace("object.tila_emptymesh", "N", "PRESS", ctrl=True, alt=True, shift=True)
 
         self.mode_selection()
 
         self.toggle_x_symetry()
 
-        self.kmi_set_replace('view3d.view_persportho', 'NUMPAD_ASTERIX', 'PRESS')
-        self.kmi_set_replace('view3d.collection_manager', 'M', 'PRESS',  ctrl=True, alt=True, shift=True, disable_double=True)
+        self.kmi_set_replace("view3d.view_persportho", "NUMPAD_ASTERIX", "PRESS")
+        self.kmi_set_replace(
+            "view3d.collection_manager",
+            "M",
+            "PRESS",
+            ctrl=True,
+            alt=True,
+            shift=True,
+            disable_double=True,
+        )
 
-        self.collection_visibility('object.hide_collection')
+        self.collection_visibility("object.hide_collection")
 
-        self.kmi_set_replace('view3d.view_selected', 'A', 'PRESS', ctrl=True, shift=True)
-        self.kmi_set_replace('view3d.snap_cursor_to_center', 'NUMPAD_ASTERIX', 'PRESS', alt=True, shift=True, disable_double=True)
+        self.kmi_set_replace("view3d.view_selected", "A", "PRESS", ctrl=True, shift=True)
+        self.kmi_set_replace(
+            "view3d.snap_cursor_to_center",
+            "NUMPAD_ASTERIX",
+            "PRESS",
+            alt=True,
+            shift=True,
+            disable_double=True,
+        )
 
-        self.kmi_set_replace('view3d.tila_rotate_hdri', self.k_context, 'CLICK_DRAG', ctrl=True, alt=True, shift=False,  disable_double=True)
+        self.kmi_set_replace(
+            "view3d.tila_rotate_hdri",
+            self.k_context,
+            "CLICK_DRAG",
+            ctrl=True,
+            alt=True,
+            shift=False,
+            disable_double=True,
+        )
 
-        self.tool_center(pivot='VIEW3D_PT_pivot_point', orientation='VIEW3D_PT_transform_orientations', action_center_context='VIEW3D')
+        self.tool_center(
+            pivot="VIEW3D_PT_pivot_point",
+            orientation="VIEW3D_PT_transform_orientations",
+            action_center_context="VIEW3D",
+        )
 
-        self.kmi_set_replace('wm.call_menu_pie', 'Q', 'PRESS', ctrl=True, alt=True, shift=True, properties={'name': 'HP_MT_pie_boolean'})
-        self.kmi_set_replace('view3d.toggle_wireframe', 'F5', 'PRESS', properties={'mode': 'OVERLAY', 'selected': False}, disable_double=True)
-        self.kmi_set_replace('view3d.toggle_wireframe', 'F5', 'PRESS', shift=True, properties={'mode': 'OVERLAY', 'selected': True}, disable_double=True)
-        self.kmi_set_replace('view3d.toggle_wireframe', 'F5', 'PRESS', ctrl=True, properties={'mode': 'SET', 'selected': False}, disable_double=True)
-        self.kmi_set_replace('view3d.toggle_wireframe', 'F5', 'PRESS', ctrl=True, shift=True, properties={'mode': 'SET', 'selected': True}, disable_double=True)
-        self.kmi_set_replace('view3d.toggle_wireframe', 'F5', 'PRESS', ctrl=True, alt=True, shift=True, properties={'mode': 'RETOPO', 'selected': False}, disable_double=True)
+        self.kmi_set_replace(
+            "wm.call_menu_pie",
+            "Q",
+            "PRESS",
+            ctrl=True,
+            alt=True,
+            shift=True,
+            properties={"name": "HP_MT_pie_boolean"},
+        )
+        self.kmi_set_replace(
+            "view3d.toggle_wireframe",
+            "F5",
+            "PRESS",
+            properties={"mode": "OVERLAY", "selected": False},
+            disable_double=True,
+        )
+        self.kmi_set_replace(
+            "view3d.toggle_wireframe",
+            "F5",
+            "PRESS",
+            shift=True,
+            properties={"mode": "OVERLAY", "selected": True},
+            disable_double=True,
+        )
+        self.kmi_set_replace(
+            "view3d.toggle_wireframe",
+            "F5",
+            "PRESS",
+            ctrl=True,
+            properties={"mode": "SET", "selected": False},
+            disable_double=True,
+        )
+        self.kmi_set_replace(
+            "view3d.toggle_wireframe",
+            "F5",
+            "PRESS",
+            ctrl=True,
+            shift=True,
+            properties={"mode": "SET", "selected": True},
+            disable_double=True,
+        )
+        self.kmi_set_replace(
+            "view3d.toggle_wireframe",
+            "F5",
+            "PRESS",
+            ctrl=True,
+            alt=True,
+            shift=True,
+            properties={"mode": "RETOPO", "selected": False},
+            disable_double=True,
+        )
 
-        self.kmi_set_replace('wm.call_menu_pie', 'F', 'PRESS', alt=True, shift=True, properties={'name': 'UVTOOLKIT_MT_pie_3dview'})
+        self.kmi_set_replace(
+            "wm.call_menu_pie",
+            "F",
+            "PRESS",
+            alt=True,
+            shift=True,
+            properties={"name": "UVTOOLKIT_MT_pie_3dview"},
+        )
 
-        self.kmi_set_active(False, 'wm.call_menu_pie', type='Z')
-        self.kmi_set_replace('wm.call_menu_pie', 'Z', 'PRESS', properties={'name':'TILA_MT_pie_render_mode'}, disable_double=True)
+        self.kmi_set_active(False, "wm.call_menu_pie", type="Z")
+        self.kmi_set_replace(
+            "wm.call_menu_pie",
+            "Z",
+            "PRESS",
+            properties={"name": "TILA_MT_pie_render_mode"},
+            disable_double=True,
+        )
 
-        self.kmi_set_replace('object.transfer_mode', self.k_cursor, 'CLICK', alt=True, disable_double=True)
+        self.kmi_set_replace(
+            "object.transfer_mode",
+            self.k_cursor,
+            "CLICK",
+            alt=True,
+            disable_double=True,
+        )
 
-        self.kmi_set_replace('view3d.tila_orthographic_navigation', self.k_cursor, 'CLICK_DRAG', ctrl=False, alt=True, shift=False, disable_double=True, properties={'relative_to_selected_element': False})
-        self.kmi_set_replace('view3d.tila_orthographic_navigation', self.k_cursor, 'CLICK_DRAG', ctrl=False, alt=True, shift=True, disable_double=True, properties={'relative_to_selected_element': True})
+        self.kmi_set_replace(
+            "view3d.tila_orthographic_navigation",
+            self.k_cursor,
+            "CLICK_DRAG",
+            ctrl=False,
+            alt=True,
+            shift=False,
+            disable_double=True,
+            properties={"relative_to_selected_element": False},
+        )
+        self.kmi_set_replace(
+            "view3d.tila_orthographic_navigation",
+            self.k_cursor,
+            "CLICK_DRAG",
+            ctrl=False,
+            alt=True,
+            shift=True,
+            disable_double=True,
+            properties={"relative_to_selected_element": True},
+        )
 
-        self.kmi_set_replace('view3d.tila_action_center_3d_cursor_toggle', 'S', 'PRESS', ctrl=True, alt=True, shift=True, disable_double=True)
-        self.kmi_set_replace('view3d.toggle_overlay', 'F6', 'PRESS', properties={'mode': 'SOFT'})
-        self.kmi_set_replace('view3d.toggle_overlay', 'F6', 'PRESS', ctrl=True, properties={'mode': 'TOGGLE'})
+        self.kmi_set_replace(
+            "view3d.tila_action_center_3d_cursor_toggle",
+            "S",
+            "PRESS",
+            ctrl=True,
+            alt=True,
+            shift=True,
+            disable_double=True,
+        )
+        self.kmi_set_replace("view3d.toggle_overlay", "F6", "PRESS", properties={"mode": "SOFT"})
+        self.kmi_set_replace(
+            "view3d.toggle_overlay",
+            "F6",
+            "PRESS",
+            ctrl=True,
+            properties={"mode": "TOGGLE"},
+        )
 
-        self.kmi_set_active(enable=False, idname='view3d.view_axis', type=self.k_cursor, value='CLICK_DRAG',  alt=True, direction='NORTH')
-        self.kmi_set_active(enable=False, idname='view3d.view_axis', type=self.k_cursor, value='CLICK_DRAG',  alt=True, direction='EAST')
-        self.kmi_set_active(enable=False, idname='view3d.view_axis', type=self.k_cursor, value='CLICK_DRAG',  alt=True, direction='SOUTH')
-        self.kmi_set_active(enable=False, idname='view3d.view_axis', type=self.k_cursor, value='CLICK_DRAG',  alt=True, direction='WEST')
-        self.kmi_set_replace('transform.translate', self.k_cursor, 'CLICK_DRAG', ctrl=True, alt=True, shift=True, properties={'cursor_transform': True, 'release_confirm': True, 'orient_type': 'NORMAL', 'snap': True, 'snap_align': True}, disable_double=True)
-        self.kmi_set_replace('animation.tila_time_scrub', self.k_menu, 'PRESS', shift=True, disable_double=True)
-        self.kmi_set_active(False, idname='transform.translate', shift=True, ctrl=False, alt=False, type="RIGHTMOUSE")
+        self.kmi_set_active(
+            enable=False,
+            idname="view3d.view_axis",
+            type=self.k_cursor,
+            value="CLICK_DRAG",
+            alt=True,
+            direction="NORTH",
+        )
+        self.kmi_set_active(
+            enable=False,
+            idname="view3d.view_axis",
+            type=self.k_cursor,
+            value="CLICK_DRAG",
+            alt=True,
+            direction="EAST",
+        )
+        self.kmi_set_active(
+            enable=False,
+            idname="view3d.view_axis",
+            type=self.k_cursor,
+            value="CLICK_DRAG",
+            alt=True,
+            direction="SOUTH",
+        )
+        self.kmi_set_active(
+            enable=False,
+            idname="view3d.view_axis",
+            type=self.k_cursor,
+            value="CLICK_DRAG",
+            alt=True,
+            direction="WEST",
+        )
+        self.kmi_set_replace(
+            "transform.translate",
+            self.k_cursor,
+            "CLICK_DRAG",
+            ctrl=True,
+            alt=True,
+            shift=True,
+            properties={
+                "cursor_transform": True,
+                "release_confirm": True,
+                "orient_type": "NORMAL",
+                "snap": True,
+                "snap_align": True,
+            },
+            disable_double=True,
+        )
+        self.kmi_set_replace(
+            "animation.tila_time_scrub",
+            self.k_menu,
+            "PRESS",
+            shift=True,
+            disable_double=True,
+        )
+        self.kmi_set_active(
+            False,
+            idname="transform.translate",
+            shift=True,
+            ctrl=False,
+            alt=False,
+            type="RIGHTMOUSE",
+        )
         self.join()
 
-    @TILA_Config_Keymaps_Base.print_assigning_keymap('Global View3D Walk Modal')
+    @TILA_Config_Keymaps_Base.print_assigning_keymap("Global View3D Walk Modal")
     def set_keymaps_view3d_walk_modal(self):
         ##### View3D Walk Modal
-        self.kmi_init(name='View3D Walk Modal', space_type='VIEW_3D', region_type='WINDOW', modal=True, addon=False)
-        self.kmi_set_active(False, propvalue='FORWARD')
-        self.kmi_set_active(False, propvalue='FORWARD_STOP')
-        self.kmi_set_active(False, propvalue='LEFT')
-        self.kmi_set_active(False, propvalue='LEFT_STOP')
-        self.kmi_set_active(False, propvalue='DOWN')
-        self.kmi_set_active(False, propvalue='DOWN_STOP')
-        self.kmi_set_active(False, propvalue='SLOW_ENABLE')
-        self.kmi_set_active(False, propvalue='SLOW_DISABLE')
-        self.modal_set_replace('FORWARD', 'Z', 'PRESS', disable_double=True)
-        self.modal_set_replace('FORWARD_STOP', 'Z', 'RELEASE', disable_double=True)
-        self.modal_set_replace('LEFT', 'Q', 'PRESS', disable_double=True)
-        self.modal_set_replace('LEFT_STOP', 'Q', 'RELEASE', disable_double=True)
-        self.modal_set_replace('DOWN', 'A', 'PRESS', disable_double=True)
-        self.modal_set_replace('DOWN_STOP', 'A', 'RELEASE', disable_double=True)
-        self.modal_set_replace('SLOW_ENABLE', 'LEFT_CTRL', 'PRESS', disable_double=True)
-        self.modal_set_replace('SLOW_DISABLE', 'LEFT_CTRL', 'RELEASE', disable_double=True)
-        self.modal_set_replace('AXIS_LOCK_Z', 'W', 'PRESS', disable_double=True)
+        self.kmi_init(
+            name="View3D Walk Modal",
+            space_type="VIEW_3D",
+            region_type="WINDOW",
+            modal=True,
+            addon=False,
+        )
+        self.kmi_set_active(False, propvalue="FORWARD")
+        self.kmi_set_active(False, propvalue="FORWARD_STOP")
+        self.kmi_set_active(False, propvalue="LEFT")
+        self.kmi_set_active(False, propvalue="LEFT_STOP")
+        self.kmi_set_active(False, propvalue="DOWN")
+        self.kmi_set_active(False, propvalue="DOWN_STOP")
+        self.kmi_set_active(False, propvalue="SLOW_ENABLE")
+        self.kmi_set_active(False, propvalue="SLOW_DISABLE")
+        self.modal_set_replace("FORWARD", "Z", "PRESS", disable_double=True)
+        self.modal_set_replace("FORWARD_STOP", "Z", "RELEASE", disable_double=True)
+        self.modal_set_replace("LEFT", "Q", "PRESS", disable_double=True)
+        self.modal_set_replace("LEFT_STOP", "Q", "RELEASE", disable_double=True)
+        self.modal_set_replace("DOWN", "A", "PRESS", disable_double=True)
+        self.modal_set_replace("DOWN_STOP", "A", "RELEASE", disable_double=True)
+        self.modal_set_replace("SLOW_ENABLE", "LEFT_CTRL", "PRESS", disable_double=True)
+        self.modal_set_replace("SLOW_DISABLE", "LEFT_CTRL", "RELEASE", disable_double=True)
+        self.modal_set_replace("AXIS_LOCK_Z", "W", "PRESS", disable_double=True)
 
-    @TILA_Config_Keymaps_Base.print_assigning_keymap('Global 3D View Generic')
+    @TILA_Config_Keymaps_Base.print_assigning_keymap("Global 3D View Generic")
     def set_keymaps_3d_view_generic(self):
         ##### 3D View Generic
-        self.kmi_init(name='3D View Generic', space_type='VIEW_3D', region_type='WINDOW', addon=False)
+        self.kmi_init(
+            name="3D View Generic",
+            space_type="VIEW_3D",
+            region_type="WINDOW",
+            addon=False,
+        )
 
-    @TILA_Config_Keymaps_Base.print_assigning_keymap('Global 3D Cursor')
+    @TILA_Config_Keymaps_Base.print_assigning_keymap("Global 3D Cursor")
     def set_keymaps_3d_cursor(self):
         ###### 3d Cursor
-        self.kmi_set_replace('view3d.cursor3d', self.k_cursor, 'CLICK', ctrl=True, alt=True, shift=True, properties={'use_depth': True, 'orientation': 'GEOM'}, disable_double=True)
-        self.kmi_set_replace('transform.translate', self.k_cursor, 'CLICK_DRAG', ctrl=True, alt=True, shift=True, properties={'cursor_transform': True, 'release_confirm': True, 'orient_type': 'NORMAL', 'snap': True, 'snap_align': True})
+        self.kmi_set_replace(
+            "view3d.cursor3d",
+            self.k_cursor,
+            "CLICK",
+            ctrl=True,
+            alt=True,
+            shift=True,
+            properties={"use_depth": True, "orientation": "GEOM"},
+            disable_double=True,
+        )
+        self.kmi_set_replace(
+            "transform.translate",
+            self.k_cursor,
+            "CLICK_DRAG",
+            ctrl=True,
+            alt=True,
+            shift=True,
+            properties={
+                "cursor_transform": True,
+                "release_confirm": True,
+                "orient_type": "NORMAL",
+                "snap": True,
+                "snap_align": True,
+            },
+        )
 
-    @TILA_Config_Keymaps_Base.print_assigning_keymap('Global View2D')
+    @TILA_Config_Keymaps_Base.print_assigning_keymap("Global View2D")
     def set_keymaps_view2d(self):
         ###### View2D
-        self.kmi_init(name='View2D', space_type='EMPTY', region_type='WINDOW', addon=False)
+        self.kmi_init(name="View2D", space_type="EMPTY", region_type="WINDOW", addon=False)
         self.global_keys()
         self.right_mouse()
-        self.navigation_keys(pan='view2d.pan', orbit=None, dolly='view2d.zoom')
+        self.navigation_keys(pan="view2d.pan", orbit=None, dolly="view2d.zoom")
 
-    @TILA_Config_Keymaps_Base.print_assigning_keymap('Global View2D Buttons List')
+    @TILA_Config_Keymaps_Base.print_assigning_keymap("Global View2D Buttons List")
     def set_keymaps_view2d_buttons_list(self):
         ###### View2D buttons List
-        self.kmi_init(name='View2D Buttons List', space_type='EMPTY', region_type='WINDOW', addon=False)
+        self.kmi_init(
+            name="View2D Buttons List",
+            space_type="EMPTY",
+            region_type="WINDOW",
+            addon=False,
+        )
         self.global_keys()
         self.right_mouse()
-        self.navigation_keys(pan='view2d.pan', orbit=None, dolly='view2d.zoom')
+        self.navigation_keys(pan="view2d.pan", orbit=None, dolly="view2d.zoom")
 
-    @TILA_Config_Keymaps_Base.print_assigning_keymap('Global Image')
+    @TILA_Config_Keymaps_Base.print_assigning_keymap("Global Image")
     def set_keymaps_image(self):
         ###### Image
-        self.kmi_init(name='Image', space_type='IMAGE_EDITOR', region_type='WINDOW', addon=False)
+        self.kmi_init(name="Image", space_type="IMAGE_EDITOR", region_type="WINDOW", addon=False)
         self.global_keys()
         self.right_mouse()
-        self.kmi_set_active(False, 'image.view_pan', self.k_cursor, 'PRESS', shift=True)
-        self.navigation_keys(pan='image.view_pan', orbit=None, dolly='image.view_zoom')
+        self.kmi_set_active(False, "image.view_pan", self.k_cursor, "PRESS", shift=True)
+        self.navigation_keys(pan="image.view_pan", orbit=None, dolly="image.view_zoom")
 
-    @TILA_Config_Keymaps_Base.print_assigning_keymap('Global UV Editor')
+    @TILA_Config_Keymaps_Base.print_assigning_keymap("Global UV Editor")
     def set_keymaps_uv_editor(self):
         ###### UV Editor
-        self.kmi_init(name='UV Editor', space_type='EMPTY', region_type='WINDOW', addon=False)
+        self.kmi_init(name="UV Editor", space_type="EMPTY", region_type="WINDOW", addon=False)
         self.global_keys()
         self.right_mouse()
         self.selection_tool()
-        self.tool_transform(cage_scale='builtin.transform')
-        self.selection_keys(select_tool='uv.tila_uv_select',
-                            lasso_tool='uv.select_lasso',
-                            box_through_tool='uv.select_box',
-                            circle_tool='uv.select_circle',
-                            loop_tool='uv.tila_uv_select',
-                            ring_tool='uv.select_edge_ring',
-                            more_tool='uv.select_more',
-                            less_tool='uv.select_less',
-                            shortestpath_tool='uv.shortest_path_pick',
-                            linked_tool='uv.select_linked',
-                            linked_pick_tool='uv.select_linked_pick',
-                            invert_tool='uv.select_all')
+        self.tool_transform(cage_scale="builtin.transform")
+        self.selection_keys(
+            select_tool="uv.tila_uv_select",
+            lasso_tool="uv.select_lasso",
+            box_through_tool="uv.select_box",
+            circle_tool="uv.select_circle",
+            loop_tool="uv.tila_uv_select",
+            ring_tool="uv.select_edge_ring",
+            more_tool="uv.select_more",
+            less_tool="uv.select_less",
+            shortestpath_tool="uv.shortest_path_pick",
+            linked_tool="uv.select_linked",
+            linked_pick_tool="uv.select_linked_pick",
+            invert_tool="uv.select_all",
+        )
 
-        self.kmi_set_replace('image.view_selected', 'A', 'PRESS', ctrl=True, shift=True, disable_double=True)
-        self.kmi_set_replace('uv.cursor_set', self.k_cursor, 'PRESS', ctrl=True, alt=True, shift=True, disable_double=True)
+        self.kmi_set_replace(
+            "image.view_selected",
+            "A",
+            "PRESS",
+            ctrl=True,
+            shift=True,
+            disable_double=True,
+        )
+        self.kmi_set_replace(
+            "uv.cursor_set",
+            self.k_cursor,
+            "PRESS",
+            ctrl=True,
+            alt=True,
+            shift=True,
+            disable_double=True,
+        )
         self.tool_smooth()
-        self.hide_reveal(hide='uv.hide', unhide='uv.reveal')
-        self.snap(snap_datapath='tool_settings.use_snap_uv', snap_element_panel='IMAGE_PT_snapping')
-        self.tool_center(pivot='space_data.pivot_point')
+        self.hide_reveal(hide="uv.hide", unhide="uv.reveal")
+        self.snap(
+            snap_datapath="tool_settings.use_snap_uv",
+            snap_element_panel="IMAGE_PT_snapping",
+        )
+        self.tool_center(pivot="space_data.pivot_point")
 
-        self.kmi_set_replace('wm.tool_set_by_id', 'W', 'PRESS', ctrl=True, alt=True, shift=True, properties={'name': 'sculpt.uv_sculpt_grab'})
-        self.tool_radial_control(radius={'data_path_primary': 'tool_settings.uv_sculpt.size',
-                                'release_confirm': True},
-                                opacity={'data_path_primary': 'tool_settings.uv_sculpt.strength',
-                                'release_confirm': True})
+        self.kmi_set_replace(
+            "wm.tool_set_by_id",
+            "W",
+            "PRESS",
+            ctrl=True,
+            alt=True,
+            shift=True,
+            properties={"name": "sculpt.uv_sculpt_grab"},
+        )
+        self.tool_radial_control(
+            radius={
+                "data_path_primary": "tool_settings.uv_sculpt.size",
+                "release_confirm": True,
+            },
+            opacity={
+                "data_path_primary": "tool_settings.uv_sculpt.strength",
+                "release_confirm": True,
+            },
+        )
 
-        self.kmi_set_replace('uv.minimize_stretch', 'R', 'PRESS', ctrl=True, disable_double=True, properties={'iterations': 10})
-        self.kmi_set_replace('wm.call_menu_pie', 'F', 'PRESS', alt=True, shift=True, properties={'name': 'UVTOOLKIT_MT_pie_uv_editor'})
+        self.kmi_set_replace(
+            "uv.minimize_stretch",
+            "R",
+            "PRESS",
+            ctrl=True,
+            disable_double=True,
+            properties={"iterations": 10},
+        )
+        self.kmi_set_replace(
+            "wm.call_menu_pie",
+            "F",
+            "PRESS",
+            alt=True,
+            shift=True,
+            properties={"name": "UVTOOLKIT_MT_pie_uv_editor"},
+        )
 
-        self.kmi_set_replace('uv.stitch', 'V', 'PRESS',  disable_double=True)
-        self.kmi_set_replace('uv.select_split', 'V', 'PRESS', shift=True, disable_double=True)
-        self.kmi_set_replace('uv.rip_move', 'V', 'PRESS', ctrl=True, disable_double=True)
+        self.kmi_set_replace("uv.stitch", "V", "PRESS", disable_double=True)
+        self.kmi_set_replace("uv.select_split", "V", "PRESS", shift=True, disable_double=True)
+        self.kmi_set_replace("uv.rip_move", "V", "PRESS", ctrl=True, disable_double=True)
 
-
-        self.kmi_set_replace('uv.toolkit_straighten', 'G', 'PRESS', ctrl=True, disable_double=True, properties={'gridify': False})
-        self.kmi_set_replace('uv.toolkit_unwrap_selected', 'E', 'PRESS', ctrl=True, disable_double=True, properties={'method': 'ANGLE_BASED'})
-        kmi = self.kmi_find('uv.toolkit_distribute')
+        self.kmi_set_replace(
+            "uv.toolkit_straighten",
+            "G",
+            "PRESS",
+            ctrl=True,
+            disable_double=True,
+            properties={"gridify": False},
+        )
+        self.kmi_set_replace(
+            "uv.toolkit_unwrap_selected",
+            "E",
+            "PRESS",
+            ctrl=True,
+            disable_double=True,
+            properties={"method": "ANGLE_BASED"},
+        )
+        kmi = self.kmi_find("uv.toolkit_distribute")
         if kmi is not None:
             kmi.active = False
-        self.kmi_set_replace('uv.tila_uv_straighten_and_relax', 'D', 'PRESS', disable_double=True, properties={'straighten': True, 'relax': True, 'align_to_nearest_axis': False})
-        self.kmi_set_replace('uv.tila_uv_straighten_and_relax', 'D', 'PRESS', shift=True, disable_double=True, properties={'straighten': True, 'relax': True, 'align_to_nearest_axis':True})
+        self.kmi_set_replace(
+            "uv.tila_uv_straighten_and_relax",
+            "D",
+            "PRESS",
+            disable_double=True,
+            properties={
+                "straighten": True,
+                "relax": True,
+                "align_to_nearest_axis": False,
+            },
+        )
+        self.kmi_set_replace(
+            "uv.tila_uv_straighten_and_relax",
+            "D",
+            "PRESS",
+            shift=True,
+            disable_double=True,
+            properties={
+                "straighten": True,
+                "relax": True,
+                "align_to_nearest_axis": True,
+            },
+        )
 
-        self.kmi_set_replace('transform.translate', 'UP_ARROW', 'PRESS', ctrl=True, alt=True, shift=True, disable_double=True, properties={'value': (0.0,1.0,0.0), 'release_confirm': True, 'orient_matrix': ((1, 0, 0), (0, 1, 0), (0, 0, 1)), 'orient_matrix_type': 'GLOBAL'})
-        self.kmi_set_replace('transform.translate', 'DOWN_ARROW', 'PRESS', ctrl=True, alt=True, shift=True, disable_double=True, properties={'value': (0.0,-1.0,0.0), 'release_confirm': True, 'orient_matrix': ((1, 0, 0), (0, 1, 0), (0, 0, 1)), 'orient_matrix_type': 'GLOBAL'})
-        self.kmi_set_replace('transform.translate', 'LEFT_ARROW', 'PRESS', ctrl=True, alt=True, shift=True, disable_double=True, properties={'value': (-1.0,0.0,0.0), 'release_confirm': True, 'orient_matrix': ((1, 0, 0), (0, 1, 0), (0, 0, 1)), 'orient_matrix_type': 'GLOBAL'})
-        self.kmi_set_replace('transform.translate', 'RIGHT_ARROW', 'PRESS', ctrl=True, alt=True, shift=True, disable_double=True, properties={'value': (1.0,0.0,0.0), 'release_confirm': True, 'orient_matrix': ((1, 0, 0), (0, 1, 0), (0, 0, 1)), 'orient_matrix_type': 'GLOBAL'})
+        self.kmi_set_replace(
+            "transform.translate",
+            "UP_ARROW",
+            "PRESS",
+            ctrl=True,
+            alt=True,
+            shift=True,
+            disable_double=True,
+            properties={
+                "value": (0.0, 1.0, 0.0),
+                "release_confirm": True,
+                "orient_matrix": ((1, 0, 0), (0, 1, 0), (0, 0, 1)),
+                "orient_matrix_type": "GLOBAL",
+            },
+        )
+        self.kmi_set_replace(
+            "transform.translate",
+            "DOWN_ARROW",
+            "PRESS",
+            ctrl=True,
+            alt=True,
+            shift=True,
+            disable_double=True,
+            properties={
+                "value": (0.0, -1.0, 0.0),
+                "release_confirm": True,
+                "orient_matrix": ((1, 0, 0), (0, 1, 0), (0, 0, 1)),
+                "orient_matrix_type": "GLOBAL",
+            },
+        )
+        self.kmi_set_replace(
+            "transform.translate",
+            "LEFT_ARROW",
+            "PRESS",
+            ctrl=True,
+            alt=True,
+            shift=True,
+            disable_double=True,
+            properties={
+                "value": (-1.0, 0.0, 0.0),
+                "release_confirm": True,
+                "orient_matrix": ((1, 0, 0), (0, 1, 0), (0, 0, 1)),
+                "orient_matrix_type": "GLOBAL",
+            },
+        )
+        self.kmi_set_replace(
+            "transform.translate",
+            "RIGHT_ARROW",
+            "PRESS",
+            ctrl=True,
+            alt=True,
+            shift=True,
+            disable_double=True,
+            properties={
+                "value": (1.0, 0.0, 0.0),
+                "release_confirm": True,
+                "orient_matrix": ((1, 0, 0), (0, 1, 0), (0, 0, 1)),
+                "orient_matrix_type": "GLOBAL",
+            },
+        )
 
-        self.kmi_set_replace('uv.toolkit_align_uv', 'UP_ARROW', 'PRESS', ctrl=True, alt=False, shift=False, disable_double=True, properties={'align_uv': 'MAX_V'})
-        self.kmi_set_replace('uv.toolkit_align_uv', 'DOWN_ARROW', 'PRESS', ctrl=True, alt=False, shift=False, disable_double=True, properties={'align_uv': 'MIN_V'})
-        self.kmi_set_replace('uv.toolkit_align_uv', 'LEFT_ARROW', 'PRESS', ctrl=True, alt=False, shift=False, disable_double=True, properties={'align_uv': 'MIN_U'})
-        self.kmi_set_replace('uv.toolkit_align_uv', 'RIGHT_ARROW', 'PRESS', ctrl=True, alt=False, shift=False, disable_double=True, properties={'align_uv': 'MAX_U'})
-        self.kmi_set_replace('wm.call_menu_pie', 'X', 'PRESS', alt=True, disable_double=True, properties={'name': 'IMAGE_MT_pivot_pie'})
+        self.kmi_set_replace(
+            "uv.toolkit_align_uv",
+            "UP_ARROW",
+            "PRESS",
+            ctrl=True,
+            alt=False,
+            shift=False,
+            disable_double=True,
+            properties={"align_uv": "MAX_V"},
+        )
+        self.kmi_set_replace(
+            "uv.toolkit_align_uv",
+            "DOWN_ARROW",
+            "PRESS",
+            ctrl=True,
+            alt=False,
+            shift=False,
+            disable_double=True,
+            properties={"align_uv": "MIN_V"},
+        )
+        self.kmi_set_replace(
+            "uv.toolkit_align_uv",
+            "LEFT_ARROW",
+            "PRESS",
+            ctrl=True,
+            alt=False,
+            shift=False,
+            disable_double=True,
+            properties={"align_uv": "MIN_U"},
+        )
+        self.kmi_set_replace(
+            "uv.toolkit_align_uv",
+            "RIGHT_ARROW",
+            "PRESS",
+            ctrl=True,
+            alt=False,
+            shift=False,
+            disable_double=True,
+            properties={"align_uv": "MAX_U"},
+        )
+        self.kmi_set_replace(
+            "wm.call_menu_pie",
+            "X",
+            "PRESS",
+            alt=True,
+            disable_double=True,
+            properties={"name": "IMAGE_MT_pivot_pie"},
+        )
 
-        self.kmi_set_replace('view2d.tila_action_center_2d_cursor_toggle', 'S', 'PRESS', ctrl=True, alt=True, shift=True, disable_double=True)
-        self.kmi_set_replace('transform.translate', self.k_cursor, 'CLICK_DRAG', ctrl=True, alt=True, shift=True, properties={'cursor_transform': True}, disable_double=True)
+        self.kmi_set_replace(
+            "view2d.tila_action_center_2d_cursor_toggle",
+            "S",
+            "PRESS",
+            ctrl=True,
+            alt=True,
+            shift=True,
+            disable_double=True,
+        )
+        self.kmi_set_replace(
+            "transform.translate",
+            self.k_cursor,
+            "CLICK_DRAG",
+            ctrl=True,
+            alt=True,
+            shift=True,
+            properties={"cursor_transform": True},
+            disable_double=True,
+        )
 
-        self.kmi_set_replace('uv.snap_cursor', 'NUMPAD_ASTERIX', 'PRESS', alt=True, shift=True, properties={'target': 'ORIGIN'}, disable_double=True)
+        self.kmi_set_replace(
+            "uv.snap_cursor",
+            "NUMPAD_ASTERIX",
+            "PRESS",
+            alt=True,
+            shift=True,
+            properties={"target": "ORIGIN"},
+            disable_double=True,
+        )
 
-    @TILA_Config_Keymaps_Base.print_assigning_keymap('Global Mesh')
+    @TILA_Config_Keymaps_Base.print_assigning_keymap("Global Mesh")
     def set_keymaps_mesh(self):
         ###### Mesh
-        self.kmi_init(name='Mesh', space_type='EMPTY', region_type='WINDOW', addon=False)
+        self.kmi_init(name="Mesh", space_type="EMPTY", region_type="WINDOW", addon=False)
         self.global_keys()
         self.selection_tool()
         self.right_mouse()
         self.mode_selection()
-        self.kmi_set_active(False, type='X', idname='wm.call_menu')
-        self.tool_transform(cage_scale='builtin.scale_cage')
+        self.kmi_set_active(False, type="X", idname="wm.call_menu")
+        self.tool_transform(cage_scale="builtin.scale_cage")
 
-        self.kmi_set_replace('wm.call_menu_pie', 'X', 'PRESS', alt=True, shift=True, properties={'name': 'HP_MT_pie_symmetry'}, disable_double=False)
-        self.kmi_set_replace('wm.call_menu_pie', 'Q', 'PRESS', alt=True, shift=True, properties={'name': 'TILA_MT_pie_distribute'}, disable_double=True)
+        self.kmi_set_replace(
+            "wm.call_menu_pie",
+            "X",
+            "PRESS",
+            alt=True,
+            shift=True,
+            properties={"name": "HP_MT_pie_symmetry"},
+            disable_double=False,
+        )
+        self.kmi_set_replace(
+            "wm.call_menu_pie",
+            "Q",
+            "PRESS",
+            alt=True,
+            shift=True,
+            properties={"name": "TILA_MT_pie_distribute"},
+            disable_double=True,
+        )
 
-        self.selection_keys(shortestpath_tool='mesh.shortest_path_pick',
-                            shortestring_tool='mesh.shortest_path_pick',
-                            loop_tool='mesh.tila_smart_loopselect',
-                            ring_tool='mesh.edgering_select',
-                            loop_multiselect_tool='mesh.loop_multi_select',
-                            ring_multiselect_tool='mesh.loop_multi_select',
-                            more_tool='mesh.select_more',
-                            less_tool='mesh.select_less',
-                            next_tool='mesh.select_next_item',
-                            previous_tool='mesh.select_prev_item',
-                            linked_tool='mesh.select_linked',
-                            linked_pick_tool='mesh.select_linked_pick',
-                            invert_tool='mesh.select_all', inner_tool='mesh.loop_to_region')
+        self.selection_keys(
+            shortestpath_tool="mesh.shortest_path_pick",
+            shortestring_tool="mesh.shortest_path_pick",
+            loop_tool="mesh.tila_smart_loopselect",
+            ring_tool="mesh.edgering_select",
+            loop_multiselect_tool="mesh.loop_multi_select",
+            ring_multiselect_tool="mesh.loop_multi_select",
+            more_tool="mesh.select_more",
+            less_tool="mesh.select_less",
+            next_tool="mesh.select_next_item",
+            previous_tool="mesh.select_prev_item",
+            linked_tool="mesh.select_linked",
+            linked_pick_tool="mesh.select_linked_pick",
+            invert_tool="mesh.select_all",
+            inner_tool="mesh.loop_to_region",
+        )
 
-        self.kmi_set_active(True, idname='mesh.select_linked_pick', type=self.k_linked)
-        self.kmi_set_active(False, idname='object.switch_object')
-        self.kmi_set_active(False, idname='ls.select', type=self.k_select, value='DOUBLE_CLICK')
-        self.kmi_set_active(False, idname='ls.select', type=self.k_select, value='DOUBLE_CLICK', shift=False)
+        self.kmi_set_active(True, idname="mesh.select_linked_pick", type=self.k_linked)
+        self.kmi_set_active(False, idname="object.switch_object")
+        self.kmi_set_active(False, idname="ls.select", type=self.k_select, value="DOUBLE_CLICK")
+        self.kmi_set_active(
+            False,
+            idname="ls.select",
+            type=self.k_select,
+            value="DOUBLE_CLICK",
+            shift=False,
+        )
 
-        self.duplicate(duplicate='mesh.duplicate_move')
-        self.hide_reveal(hide='mesh.hide', unhide='mesh.reveal', inverse='mesh.tila_inverse_visibility')
+        self.duplicate(duplicate="mesh.duplicate_move")
+        self.hide_reveal(
+            hide="mesh.hide",
+            unhide="mesh.reveal",
+            inverse="mesh.tila_inverse_visibility",
+        )
         self.tool_smart_delete()
 
         self.tool_smooth()
-        self.kmi_set_active(False, 'view3d.select_box')
+        self.kmi_set_active(False, "view3d.select_box")
         # Disable Shearing on this shortcut
-        self.kmi_set_active(False, ctrl=True, alt=True, shift=True, type='S')
-        self.kmi_set_replace('mesh.smart_bevel', 'B', 'PRESS', disable_double=True)
-        self.kmi_set_replace('mesh.smart_extrude', 'E', 'PRESS', disable_double=True)
-        self.kmi_set_replace('mesh.knife_tool', 'C', 'PRESS', disable_double=True)
-        self.kmi_set_replace('mesh.bridge_edge_loops', 'B', 'PRESS', shift=True)
-        self.kmi_set_replace('mesh.edge_collapse', 'DEL', 'PRESS', shift=True)
-        self.kmi_set_replace('mesh.merge', 'DEL', 'PRESS', alt=True, shift=True, properties={'type': 'LAST'},  disable_double=True)
-        self.kmi_set_replace('mesh.fill', 'P', 'PRESS', shift=True, properties={'use_beauty': True})
-        self.kmi_set_replace('mesh.fill_grid', 'P', 'PRESS', alt=True, properties={'use_interp_simple': False})
-        self.kmi_set_replace('mesh.edge_face_add', 'P', 'PRESS', disable_double=True)
-        self.kmi_set_replace('mesh.dissolve_faces', 'P', 'PRESS', alt=True, shift=True,  properties={'use_verts': False}, disable_double=True)
-        self.kmi_set_replace('mesh.flip_normals', 'F', 'PRESS', disable_double=True)
-        self.kmi_set_replace('mesh.subdivide', 'D', 'PRESS', disable_double=True)
-        self.kmi_set_replace('transform.shrink_fatten', 'E', 'PRESS', alt=True, shift=True, disable_double=True)
-        self.kmi_set_replace('transform.edge_bevelweight', 'E', 'PRESS', ctrl=True, shift=True, disable_double=True)
+        self.kmi_set_active(False, ctrl=True, alt=True, shift=True, type="S")
+        self.kmi_set_replace("mesh.smart_bevel", "B", "PRESS", disable_double=True)
+        self.kmi_set_replace("mesh.smart_extrude", "E", "PRESS", disable_double=True)
+        self.kmi_set_replace("mesh.knife_tool", "C", "PRESS", disable_double=True)
+        self.kmi_set_replace("mesh.bridge_edge_loops", "B", "PRESS", shift=True)
+        self.kmi_set_replace("mesh.edge_collapse", "DEL", "PRESS", shift=True)
+        self.kmi_set_replace(
+            "mesh.merge",
+            "DEL",
+            "PRESS",
+            alt=True,
+            shift=True,
+            properties={"type": "LAST"},
+            disable_double=True,
+        )
+        self.kmi_set_replace("mesh.fill", "P", "PRESS", shift=True, properties={"use_beauty": True})
+        self.kmi_set_replace(
+            "mesh.fill_grid",
+            "P",
+            "PRESS",
+            alt=True,
+            properties={"use_interp_simple": False},
+        )
+        self.kmi_set_replace("mesh.edge_face_add", "P", "PRESS", disable_double=True)
+        self.kmi_set_replace(
+            "mesh.dissolve_faces",
+            "P",
+            "PRESS",
+            alt=True,
+            shift=True,
+            properties={"use_verts": False},
+            disable_double=True,
+        )
+        self.kmi_set_replace("mesh.flip_normals", "F", "PRESS", disable_double=True)
+        self.kmi_set_replace("mesh.subdivide", "D", "PRESS", disable_double=True)
+        self.kmi_set_replace(
+            "transform.shrink_fatten",
+            "E",
+            "PRESS",
+            alt=True,
+            shift=True,
+            disable_double=True,
+        )
+        self.kmi_set_replace(
+            "transform.edge_bevelweight",
+            "E",
+            "PRESS",
+            ctrl=True,
+            shift=True,
+            disable_double=True,
+        )
 
         # self.kmi_set_replace('transform.vert_slide', 'S', 'PRESS', ctrl=True, alt=True, properties={'correct_uv': True})
 
         # self.kmi_set_replace('wm.tool_set_by_id', 'F', 'PRESS', shift=True, properties={'name': 'mesh_tool.poly_quilt'}, disable_double=True)
 
-        self.kmi_set_replace('mesh.remove_doubles', 'M', 'PRESS', ctrl=True, shift=True, disable_double=True)
+        self.kmi_set_replace(
+            "mesh.remove_doubles",
+            "M",
+            "PRESS",
+            ctrl=True,
+            shift=True,
+            disable_double=True,
+        )
         self.separate(separate_selected=True, separate_by_loose_parts=True)
 
         self.tool_subdivision()
 
-        self.tool_sculpt('view3d.tila_smart_sculptmode')
+        self.tool_sculpt("view3d.tila_smart_sculptmode")
 
-        self.tool_center(pivot='VIEW3D_PT_pivot_point', orientation='VIEW3D_PT_transform_orientations')
+        self.tool_center(
+            pivot="VIEW3D_PT_pivot_point",
+            orientation="VIEW3D_PT_transform_orientations",
+        )
 
         self.isolate()
         self.join()
 
-        self.kmi_set_replace('mesh.toggle_use_automerge', 'BACK_SLASH', 'PRESS')
+        self.kmi_set_replace("mesh.toggle_use_automerge", "BACK_SLASH", "PRESS")
         # self.kmi_set_replace('object.merge_tool', 'M', 'PRESS')
-        self.kmi_set_replace('wm.call_menu_pie', 'S', 'PRESS', ctrl=False, alt=False, shift=True, properties={'name': 'VIEW3D_MT_snap_pie'}, disable_double=True)
-        self.kmi_set_replace('wm.call_menu_pie', 'S', 'PRESS', alt=True, shift=True, properties={'name': 'TILA_MT_pie_normal'}, disable_double=True)
+        self.kmi_set_replace(
+            "wm.call_menu_pie",
+            "S",
+            "PRESS",
+            ctrl=False,
+            alt=False,
+            shift=True,
+            properties={"name": "VIEW3D_MT_snap_pie"},
+            disable_double=True,
+        )
+        self.kmi_set_replace(
+            "wm.call_menu_pie",
+            "S",
+            "PRESS",
+            alt=True,
+            shift=True,
+            properties={"name": "TILA_MT_pie_normal"},
+            disable_double=True,
+        )
         # self.kmi_set_replace('wm.call_menu_pie', 'S', 'PRESS', ctrl=True, alt=True, shift=True, properties={'name', 'TILA_MT_pie_uv'}, disable_double=True)
 
-        self.kmi_set_replace("mesh.edge_rotate", 'V', "PRESS", properties={'use_ccw': False}, disable_double=True)
-        self.kmi_set_replace("mesh.edge_rotate", 'V', "PRESS", shift=True, properties={'use_ccw': True}, disable_double=True)
+        self.kmi_set_replace(
+            "mesh.edge_rotate",
+            "V",
+            "PRESS",
+            properties={"use_ccw": False},
+            disable_double=True,
+        )
+        self.kmi_set_replace(
+            "mesh.edge_rotate",
+            "V",
+            "PRESS",
+            shift=True,
+            properties={"use_ccw": True},
+            disable_double=True,
+        )
 
-        self.kmi_set_replace('mesh.quads_convert_to_tris', 'T', "PRESS", shift=True, properties={'quad_method': 'BEAUTY', 'ngon_method': 'BEAUTY'}, disable_double=True)
-        self.kmi_set_replace('mesh.tris_convert_to_quads', 'T', "PRESS", alt=True, shift=True)
-        self.kmi_set_replace('mesh.tila_smart_pivot', 'S', 'PRESS', alt=True, disable_double=True)
+        self.kmi_set_replace(
+            "mesh.quads_convert_to_tris",
+            "T",
+            "PRESS",
+            shift=True,
+            properties={"quad_method": "BEAUTY", "ngon_method": "BEAUTY"},
+            disable_double=True,
+        )
+        self.kmi_set_replace("mesh.tris_convert_to_quads", "T", "PRESS", alt=True, shift=True)
+        self.kmi_set_replace("mesh.tila_smart_pivot", "S", "PRESS", alt=True, disable_double=True)
 
-    @TILA_Config_Keymaps_Base.print_assigning_keymap('Global Object Mode')
+    @TILA_Config_Keymaps_Base.print_assigning_keymap("Global Object Mode")
     def set_keymaps_object_mode(self):
         ###### Object Mode
-        self.kmi_init(name='Object Mode', space_type='EMPTY', region_type='WINDOW', addon=False)
+        self.kmi_init(name="Object Mode", space_type="EMPTY", region_type="WINDOW", addon=False)
         self.global_keys()
         self.selection_tool()
         self.right_mouse()
-        self.kmi_set_active(False, type='X', idname='object.delete')
-        self.tool_transform(cage_scale='builtin.scale_cage')
+        self.kmi_set_active(False, type="X", idname="object.delete")
+        self.tool_transform(cage_scale="builtin.scale_cage")
 
-        self.selection_keys(more_tool='object.select_more', less_tool='object.select_less')
+        self.selection_keys(more_tool="object.select_more", less_tool="object.select_less")
 
-        self.duplicate(duplicate='object.duplicate', duplicate_link='object.duplicate', duplicate_link_prop={'linked': True})
+        self.duplicate(
+            duplicate="object.duplicate",
+            duplicate_link="object.duplicate",
+            duplicate_link_prop={"linked": True},
+        )
 
-        self.selection_keys(invert_tool='object.select_all')
+        self.selection_keys(invert_tool="object.select_all")
 
         self.tool_subdivision()
-        self.kmi_set_replace('object.delete', 'DEL', 'PRESS', ctrl=True, alt=True, shift=True, properties={'use_global': True, 'confirm': True})
+        self.kmi_set_replace(
+            "object.delete",
+            "DEL",
+            "PRESS",
+            ctrl=True,
+            alt=True,
+            shift=True,
+            properties={"use_global": True, "confirm": True},
+        )
 
         self.isolate()
 
         self.join()
 
-        self.kmi_set_replace('object.move_to_collection', 'M', 'PRESS', ctrl=True, alt=True, disable_double=True)
-        self.kmi_set_replace('view3d.collection_manager', 'M', 'PRESS', shift=True, disable_double=True)
-        self.kmi_set_replace('object.apply_all_modifiers', 'PAGE_DOWN', 'PRESS', ctrl=True, alt=True, shift=True, disable_double=True)
+        self.kmi_set_replace(
+            "object.move_to_collection",
+            "M",
+            "PRESS",
+            ctrl=True,
+            alt=True,
+            disable_double=True,
+        )
+        self.kmi_set_replace("view3d.collection_manager", "M", "PRESS", shift=True, disable_double=True)
+        self.kmi_set_replace(
+            "object.apply_all_modifiers",
+            "PAGE_DOWN",
+            "PRESS",
+            ctrl=True,
+            alt=True,
+            shift=True,
+            disable_double=True,
+        )
 
         # Set collection visibility shortcut
-        self.collection_visibility('object.hide_collection')
+        self.collection_visibility("object.hide_collection")
         self.mode_selection()
 
-        self.tool_sculpt('view3d.tila_smart_sculptmode')
-        self.kmi_set_replace('wm.call_menu_pie', 'S', 'PRESS', alt=True, shift=True, properties={'name': 'TILA_MT_pie_normal'}, disable_double=True)
+        self.tool_sculpt("view3d.tila_smart_sculptmode")
+        self.kmi_set_replace(
+            "wm.call_menu_pie",
+            "S",
+            "PRESS",
+            alt=True,
+            shift=True,
+            properties={"name": "TILA_MT_pie_normal"},
+            disable_double=True,
+        )
 
-        self.kmi_set_replace('outliner.tila_group_selected', 'G', 'PRESS', ctrl=True, properties={'mode': 'GROUP_TO_BIGGER_NUMBER'}, disable_double=True)
-        self.kmi_set_replace('outliner.tila_group_selected', 'G', 'PRESS', ctrl=True, shift=True, properties={'mode': 'MOVE_TO_ACTIVE'}, disable_double=True)
+        self.kmi_set_replace(
+            "outliner.tila_group_selected",
+            "G",
+            "PRESS",
+            ctrl=True,
+            properties={"mode": "GROUP_TO_BIGGER_NUMBER"},
+            disable_double=True,
+        )
+        self.kmi_set_replace(
+            "outliner.tila_group_selected",
+            "G",
+            "PRESS",
+            ctrl=True,
+            shift=True,
+            properties={"mode": "MOVE_TO_ACTIVE"},
+            disable_double=True,
+        )
 
-        self.kmi_set_replace('object.tila_multires_project_subdivide', 'P', 'PRESS', ctrl=True, alt=True, shift=True, disable_double=True)
+        self.kmi_set_replace(
+            "object.tila_multires_project_subdivide",
+            "P",
+            "PRESS",
+            ctrl=True,
+            alt=True,
+            shift=True,
+            disable_double=True,
+        )
 
-    @TILA_Config_Keymaps_Base.print_assigning_keymap('Global Sculpt')
+    @TILA_Config_Keymaps_Base.print_assigning_keymap("Global Sculpt")
     def set_keymaps_sculpt(self):
         ###### Sculpt
-        self.kmi_init(name='Sculpt', space_type='EMPTY', region_type='WINDOW', addon=False)
+        self.kmi_init(name="Sculpt", space_type="EMPTY", region_type="WINDOW", addon=False)
         self.global_keys()
         self.right_mouse()
-        self.tool_sculpt('view3d.tila_smart_sculptmode')
-        self.selection_tool(tool='brushes\essentials_brushes-mesh_sculpt.blend\Brush\Grab', alt='brushes\essentials_brushes-mesh_sculpt.blend\Brush\Mask', mode='SCULPT')
+        self.tool_sculpt("view3d.tila_smart_sculptmode")
+        self.selection_tool(
+            tool="brushes\essentials_brushes-mesh_sculpt.blend\Brush\Grab",
+            alt="brushes\essentials_brushes-mesh_sculpt.blend\Brush\Mask",
+            mode="SCULPT",
+        )
         self.tool_transform()
 
-        self.tool_toggle_color('paint.brush_colors_flip')
+        self.tool_toggle_color("paint.brush_colors_flip")
         self.toggle_x_symetry()
         self.tool_subdivision()
 
-        self.kmi_set_active(False, idname='object.switch_object')
+        self.kmi_set_active(False, idname="object.switch_object")
 
-        self.kmi_set_replace('object.voxel_size_edit', 'R', 'PRESS', shift=True, disable_double=True)
-        self.kmi_set_replace('object.quadriflow_remesh', 'R', 'PRESS', ctrl=True, disable_double=True)
+        self.kmi_set_replace("object.voxel_size_edit", "R", "PRESS", shift=True, disable_double=True)
+        self.kmi_set_replace("object.quadriflow_remesh", "R", "PRESS", ctrl=True, disable_double=True)
 
-        self.kmi_set_replace('object.tila_duplicate', self.k_manip, 'CLICK_DRAG', ctrl=True, alt=True, shift=True, properties={'linked': False, 'move': True})
+        self.kmi_set_replace(
+            "object.tila_duplicate",
+            self.k_manip,
+            "CLICK_DRAG",
+            ctrl=True,
+            alt=True,
+            shift=True,
+            properties={"linked": False, "move": True},
+        )
 
-        self.asset_shelf_popover(shelf_name='VIEW3D_AST_brush_sculpt')
-        self.kmi_set_active(False, 'paint.mask_box_gesture', 'B')
+        self.asset_shelf_popover(shelf_name="VIEW3D_AST_brush_sculpt")
+        self.kmi_set_active(False, "paint.mask_box_gesture", "B")
 
-        self.tool_radial_control(radius={   'data_path_primary': 'tool_settings.sculpt.brush.size',
-                                            'data_path_secondary': 'tool_settings.sculpt.unified_paint_settings.size',
-                                            'use_secondary': 'tool_settings.sculpt.unified_paint_settings.use_unified_size',
-                                            'rotation_path': 'tool_settings.sculpt.brush.texture_slot.angle',
-                                            'color_path': 'tool_settings.sculpt.brush.cursor_color_add',
-                                            'image_id': 'tool_settings.sculpt.brush',
-                                            'fill_color_path': '',
-                                            'fill_color_override_path': '',
-                                            'fill_color_override_test_path': '',
-                                            'zoom_path': '',
-                                            'secondary_tex': False,
-                                            'release_confirm': True},
-                                opacity={   'data_path_primary': 'tool_settings.sculpt.brush.strength',
-                                            'data_path_secondary': 'tool_settings.sculpt.unified_paint_settings.strength',
-                                            'use_secondary': 'tool_settings.sculpt.unified_paint_settings.use_unified_strength',
-                                            'rotation_path': 'tool_settings.sculpt.brush.texture_slot.angle',
-                                            'color_path': 'tool_settings.sculpt.brush.cursor_color_add',
-                                            'image_id': 'tool_settings.sculpt.brush',
-                                            'fill_color_path': '',
-                                            'fill_color_override_path': '',
-                                            'fill_color_override_test_path': '',
-                                            'zoom_path': '',
-                                            'secondary_tex': False,
-                                            'release_confirm': True},
-                                weight={   'data_path_primary': 'tool_settings.sculpt.brush.texture_slot.angle',
-                                            'data_path_secondary': '',
-                                            'use_secondary': '',
-                                            'rotation_path': 'tool_settings.sculpt.brush.texture_slot.angle',
-                                            'color_path': 'tool_settings.sculpt.brush.cursor_color_add',
-                                            'image_id': 'tool_settings.sculpt.brush',
-                                            'fill_color_path': '',
-                                            'fill_color_override_path': '',
-                                            'fill_color_override_test_path': '',
-                                            'zoom_path': '',
-                                            'secondary_tex': False,
-                                            'release_confirm': True})
+        self.tool_radial_control(
+            radius={
+                "data_path_primary": "tool_settings.sculpt.brush.size",
+                "data_path_secondary": "tool_settings.sculpt.unified_paint_settings.size",
+                "use_secondary": "tool_settings.sculpt.unified_paint_settings.use_unified_size",
+                "rotation_path": "tool_settings.sculpt.brush.texture_slot.angle",
+                "color_path": "tool_settings.sculpt.brush.cursor_color_add",
+                "image_id": "tool_settings.sculpt.brush",
+                "fill_color_path": "",
+                "fill_color_override_path": "",
+                "fill_color_override_test_path": "",
+                "zoom_path": "",
+                "secondary_tex": False,
+                "release_confirm": True,
+            },
+            opacity={
+                "data_path_primary": "tool_settings.sculpt.brush.strength",
+                "data_path_secondary": "tool_settings.sculpt.unified_paint_settings.strength",
+                "use_secondary": "tool_settings.sculpt.unified_paint_settings.use_unified_strength",
+                "rotation_path": "tool_settings.sculpt.brush.texture_slot.angle",
+                "color_path": "tool_settings.sculpt.brush.cursor_color_add",
+                "image_id": "tool_settings.sculpt.brush",
+                "fill_color_path": "",
+                "fill_color_override_path": "",
+                "fill_color_override_test_path": "",
+                "zoom_path": "",
+                "secondary_tex": False,
+                "release_confirm": True,
+            },
+            weight={
+                "data_path_primary": "tool_settings.sculpt.brush.texture_slot.angle",
+                "data_path_secondary": "",
+                "use_secondary": "",
+                "rotation_path": "tool_settings.sculpt.brush.texture_slot.angle",
+                "color_path": "tool_settings.sculpt.brush.cursor_color_add",
+                "image_id": "tool_settings.sculpt.brush",
+                "fill_color_path": "",
+                "fill_color_override_path": "",
+                "fill_color_override_test_path": "",
+                "zoom_path": "",
+                "secondary_tex": False,
+                "release_confirm": True,
+            },
+        )
 
-        self.kmi_set_replace('sculpt.dynamic_topology_toggle', 'D', 'PRESS', ctrl=True, alt=True, shift=True)
+        self.kmi_set_replace(
+            "sculpt.dynamic_topology_toggle",
+            "D",
+            "PRESS",
+            ctrl=True,
+            alt=True,
+            shift=True,
+        )
 
-        self.kmi_set_replace('brush.tila_brush_toggle', self.k_menu, 'PRESS', ctrl=True, properties={'relative_asset_identifier': 'Saved\Brushes\Tila Clay Strips.asset.blend\Brush\Tila Clay Strips', 'asset_library_type': 'CUSTOM', 'asset_library_identifier':'Tilapiatsu', 'force_strength':True, 'force_weight':False, 'strength':3.0})
-        self.kmi_set_replace('brush.tila_brush_toggle', self.k_menu, 'PRESS', alt=True, properties={'relative_asset_identifier': 'Saved\Brushes\Tila Snake Hook.asset.blend\Brush\Tila Snake Hook', 'asset_library_type': 'CUSTOM', 'asset_library_identifier':'Tilapiatsu', 'force_strength':False, 'force_weight':False})
-        self.kmi_set_replace('paint.mask_lasso_gesture', self.k_context, 'CLICK_DRAG', ctrl=True, alt=False, shift=False, properties={'value': 1.0, 'mode': 'VALUE'}, disable_double=True)
-        self.kmi_set_replace('paint.mask_lasso_gesture', self.k_context, 'CLICK_DRAG', ctrl=False, alt=False, shift=True, properties={'value': 0.0, 'mode': 'VALUE'}, disable_double=True)
-        self.kmi_set_replace('paint.mask_flood_fill', self.k_context, 'PRESS', ctrl=True, alt=True, shift=True, properties={'mode': 'INVERT'})
-        self.kmi_set_replace('paint.mask_flood_fill', self.k_context, 'PRESS', ctrl=True, shift=True, properties={'mode': 'VALUE', 'value': 0})
-        self.kmi_set_replace('sculpt.tila_mask_faceset', self.k_context, 'CLICK', ctrl=True, properties={'mode': 'MASK'})
-        self.kmi_set_replace('sculpt.tila_mask_faceset', self.k_context, 'CLICK', shift=True, properties={'mode': 'TOGGLE'})
+        self.kmi_set_replace(
+            "brush.tila_brush_toggle",
+            self.k_menu,
+            "PRESS",
+            ctrl=True,
+            properties={
+                "relative_asset_identifier": "Saved\Brushes\Tila Clay Strips.asset.blend\Brush\Tila Clay Strips",
+                "asset_library_type": "CUSTOM",
+                "asset_library_identifier": "Tilapiatsu",
+                "force_strength": True,
+                "force_weight": False,
+                "strength": 3.0,
+            },
+        )
+        self.kmi_set_replace(
+            "brush.tila_brush_toggle",
+            self.k_menu,
+            "PRESS",
+            alt=True,
+            properties={
+                "relative_asset_identifier": "Saved\Brushes\Tila Snake Hook.asset.blend\Brush\Tila Snake Hook",
+                "asset_library_type": "CUSTOM",
+                "asset_library_identifier": "Tilapiatsu",
+                "force_strength": False,
+                "force_weight": False,
+            },
+        )
+        self.kmi_set_replace(
+            "paint.mask_lasso_gesture",
+            self.k_context,
+            "CLICK_DRAG",
+            ctrl=True,
+            alt=False,
+            shift=False,
+            properties={"value": 1.0, "mode": "VALUE"},
+            disable_double=True,
+        )
+        self.kmi_set_replace(
+            "paint.mask_lasso_gesture",
+            self.k_context,
+            "CLICK_DRAG",
+            ctrl=False,
+            alt=False,
+            shift=True,
+            properties={"value": 0.0, "mode": "VALUE"},
+            disable_double=True,
+        )
+        self.kmi_set_replace(
+            "paint.mask_flood_fill",
+            self.k_context,
+            "PRESS",
+            ctrl=True,
+            alt=True,
+            shift=True,
+            properties={"mode": "INVERT"},
+        )
+        self.kmi_set_replace(
+            "paint.mask_flood_fill",
+            self.k_context,
+            "PRESS",
+            ctrl=True,
+            shift=True,
+            properties={"mode": "VALUE", "value": 0},
+        )
+        self.kmi_set_replace(
+            "sculpt.tila_mask_faceset",
+            self.k_context,
+            "CLICK",
+            ctrl=True,
+            properties={"mode": "MASK"},
+        )
+        self.kmi_set_replace(
+            "sculpt.tila_mask_faceset",
+            self.k_context,
+            "CLICK",
+            shift=True,
+            properties={"mode": "TOGGLE"},
+        )
 
-        self.kmi_set_replace('paint.hide_show', self.k_nav, 'CLICK_DRAG', ctrl=True,  properties={'action': 'HIDE', 'wait_for_input': False, 'area': 'Inside'}, disable_double=True)
-        self.kmi_set_replace('paint.hide_show', self.k_nav, 'CLICK_DRAG', shift=True, properties={'action': 'HIDE', 'wait_for_input': False, 'area': 'OUTSIDE'}, disable_double=True)
-        self.kmi_set_replace('sculpt.face_set_change_visibility', self.k_nav, 'PRESS', ctrl=False, shift=False, alt=False, properties={'mode': 'TOGGLE'}, disable_double=True)
-        self.kmi_set_replace('sculpt.face_set_change_visibility', self.k_nav, 'RELEASE', ctrl=True, shift=False, alt=False, properties={'mode': 'HIDE_ACTIVE'}, disable_double=True)
+        self.kmi_set_replace(
+            "paint.hide_show",
+            self.k_nav,
+            "CLICK_DRAG",
+            ctrl=True,
+            properties={"action": "HIDE", "wait_for_input": False, "area": "Inside"},
+            disable_double=True,
+        )
+        self.kmi_set_replace(
+            "paint.hide_show",
+            self.k_nav,
+            "CLICK_DRAG",
+            shift=True,
+            properties={"action": "HIDE", "wait_for_input": False, "area": "OUTSIDE"},
+            disable_double=True,
+        )
+        self.kmi_set_replace(
+            "sculpt.face_set_change_visibility",
+            self.k_nav,
+            "PRESS",
+            ctrl=False,
+            shift=False,
+            alt=False,
+            properties={"mode": "TOGGLE"},
+            disable_double=True,
+        )
+        self.kmi_set_replace(
+            "sculpt.face_set_change_visibility",
+            self.k_nav,
+            "RELEASE",
+            ctrl=True,
+            shift=False,
+            alt=False,
+            properties={"mode": "HIDE_ACTIVE"},
+            disable_double=True,
+        )
 
+        self.kmi_set_replace(
+            "sculpt.face_sets_create",
+            "W",
+            "PRESS",
+            properties={"mode": "MASKED"},
+            disable_double=True,
+        )
+        self.kmi_set_replace(
+            "sculpt.face_sets_create",
+            "W",
+            "PRESS",
+            alt=True,
+            properties={"mode": "VISIBLE"},
+            disable_double=True,
+        )
+        self.kmi_set_replace(
+            "sculpt.face_set_edit",
+            "W",
+            "PRESS",
+            ctrl=True,
+            properties={"mode": "SHRINK"},
+            disable_double=True,
+        )
+        self.kmi_set_replace(
+            "sculpt.face_set_edit",
+            "W",
+            "PRESS",
+            ctrl=True,
+            shift=True,
+            properties={"mode": "GROW"},
+            disable_double=True,
+        )
 
-        self.kmi_set_replace('sculpt.face_sets_create', 'W', 'PRESS', properties={'mode': 'MASKED'}, disable_double=True)
-        self.kmi_set_replace('sculpt.face_sets_create', 'W', 'PRESS', alt=True, properties={'mode': 'VISIBLE'}, disable_double=True)
-        self.kmi_set_replace('sculpt.face_set_edit', 'W', 'PRESS', ctrl=True, properties={'mode': 'SHRINK'}, disable_double=True)
-        self.kmi_set_replace('sculpt.face_set_edit', 'W', 'PRESS', ctrl=True, shift=True, properties={'mode': 'GROW'}, disable_double=True)
+        self.kmi_set_replace(
+            "sculpt.set_pivot_position",
+            self.k_manip,
+            "PRESS",
+            ctrl=True,
+            alt=True,
+            shift=True,
+            properties={"mode": "SURFACE"},
+            disable_double=True,
+        )
 
-        self.kmi_set_replace('sculpt.set_pivot_position', self.k_manip, 'PRESS', ctrl=True, alt=True, shift=True, properties={'mode': 'SURFACE'}, disable_double=True)
+        self.kmi_set_replace(
+            "wm.context_toggle",
+            "F",
+            "PRESS",
+            shift=True,
+            properties={"data_path": "space_data.overlay.show_sculpt_face_sets"},
+            disable_double=True,
+        )
 
-        self.kmi_set_replace('wm.context_toggle', 'F', 'PRESS', shift=True, properties={'data_path': 'space_data.overlay.show_sculpt_face_sets'}, disable_double=True)
+        self.kmi_set_replace(
+            "paint.visibility_invert",
+            self.k_nav,
+            "PRESS",
+            ctrl=True,
+            alt=True,
+            shift=True,
+            disable_double=True,
+        )
+        self.tool_sample_color("sculpt.sample_color")
 
-        self.kmi_set_replace('paint.visibility_invert', self.k_nav, 'PRESS', ctrl=True, alt=True, shift=True, disable_double=True)
-        self.tool_sample_color('sculpt.sample_color')
-
-    @TILA_Config_Keymaps_Base.print_assigning_keymap('Global Curves')
+    @TILA_Config_Keymaps_Base.print_assigning_keymap("Global Curves")
     def set_keymaps_curves(self):
         if BVERSION >= 3.2:
             # Curves
-            self.kmi_init(name='Curves', space_type='EMPTY', region_type='WINDOW', addon=False)
+            self.kmi_init(name="Curves", space_type="EMPTY", region_type="WINDOW", addon=False)
             self.global_keys()
             self.right_mouse()
             self.tool_transform()
             self.selection_tool()
-            self.tool_toggle_color('paint.brush_colors_flip')
+            self.tool_toggle_color("paint.brush_colors_flip")
             self.toggle_x_symetry()
-            self.kmi_set_active(False, type='X', idname='curves.delete')
+            self.kmi_set_active(False, type="X", idname="curves.delete")
 
-            self.selection_keys(more_tool='curves.select_more', less_tool='curves.select_less',
-                                linked_tool='curves.select_linked', linked_pick_tool='curves.select_linked_pick',
-                                invert_tool='curves.select_all')
+            self.selection_keys(
+                more_tool="curves.select_more",
+                less_tool="curves.select_less",
+                linked_tool="curves.select_linked",
+                linked_pick_tool="curves.select_linked_pick",
+                invert_tool="curves.select_all",
+            )
 
-            self.kmi_set_replace('curves.subdivide', 'D', 'PRESS', disable_double=True)
-            self.kmi_set_replace('curves.switch_direction', 'F', 'PRESS', disable_double=True)
-            self.duplicate(duplicate='curves.duplicate_move')
+            self.kmi_set_replace("curves.subdivide", "D", "PRESS", disable_double=True)
+            self.kmi_set_replace("curves.switch_direction", "F", "PRESS", disable_double=True)
+            self.duplicate(duplicate="curves.duplicate_move")
             self.separate()
 
-    @TILA_Config_Keymaps_Base.print_assigning_keymap('Global Sculpt Curve')
+    @TILA_Config_Keymaps_Base.print_assigning_keymap("Global Sculpt Curve")
     def set_keymaps_sculpt_curve(self):
         if BVERSION >= 3.2:
             ###### Sculpt Curves
-            self.kmi_init(name='Sculpt Curves', space_type='EMPTY', region_type='WINDOW', addon=False)
+            self.kmi_init(
+                name="Sculpt Curves",
+                space_type="EMPTY",
+                region_type="WINDOW",
+                addon=False,
+            )
             self.global_keys()
             self.right_mouse()
             self.tool_transform()
-            self.kmi_set_active(False, idname='sculpt_curves.brush_stroke', properties={'mode': 'SMOOTH'})
-            self.tool_sculpt('view3d.tila_smart_sculptmode')
+            self.kmi_set_active(
+                False,
+                idname="sculpt_curves.brush_stroke",
+                properties={"mode": "SMOOTH"},
+            )
+            self.tool_sculpt("view3d.tila_smart_sculptmode")
 
-            self.selection_tool(tool='brushes\essentials_brushes-curve_sculpt.blend\Brush\Comb', alt='brushes\essentials_brushes-curve_sculpt.blend\Brush\Select', mode='SCULPT_CURVES')
+            self.selection_tool(
+                tool="brushes\essentials_brushes-curve_sculpt.blend\Brush\Comb",
+                alt="brushes\essentials_brushes-curve_sculpt.blend\Brush\Select",
+                mode="SCULPT_CURVES",
+            )
 
-            self.asset_shelf_popover(shelf_name='VIEW3D_AST_brush_sculpt_curves')
+            self.asset_shelf_popover(shelf_name="VIEW3D_AST_brush_sculpt_curves")
 
-            self.tool_radial_control(radius={   'data_path_primary': 'tool_settings.curves_sculpt.brush.size',
-                                            'data_path_secondary': 'tool_settings.curves_sculpt.unified_paint_settings.size',
-                                            'use_secondary': 'tool_settings.curves_sculpt.unified_paint_settings.use_unified_size',
-                                            'rotation_path': 'tool_settings.curves_sculpt.brush.texture_slot.angle',
-                                            'color_path': 'tool_settings.curves_sculpt.brush.cursor_color_add',
-                                            'image_id': 'tool_settings.curves_sculpt.brush',
-                                            'fill_color_path': '',
-                                            'fill_color_override_path': '',
-                                            'fill_color_override_test_path': '',
-                                            'zoom_path': '',
-                                            'secondary_tex': False,
-                                            'release_confirm': True},
-                                    opacity={   'data_path_primary': 'tool_settings.curves_sculpt.brush.strength',
-                                            'data_path_secondary': 'tool_settings.curves_sculpt.unified_paint_settings.strength',
-                                            'use_secondary': 'tool_settings.curves_sculpt.unified_paint_settings.use_unified_strength',
-                                            'rotation_path': 'tool_settings.curves_sculpt.brush.texture_slot.angle',
-                                            'color_path': 'tool_settings.curves_sculpt.brush.cursor_color_add',
-                                            'image_id': 'tool_settings.curves_sculpt.brush',
-                                            'fill_color_path': '',
-                                            'fill_color_override_path': '',
-                                            'fill_color_override_test_path': '',
-                                            'zoom_path': '',
-                                            'secondary_tex': False,
-                                            'release_confirm': True})
+            self.tool_radial_control(
+                radius={
+                    "data_path_primary": "tool_settings.curves_sculpt.brush.size",
+                    "data_path_secondary": "tool_settings.curves_sculpt.unified_paint_settings.size",
+                    "use_secondary": "tool_settings.curves_sculpt.unified_paint_settings.use_unified_size",
+                    "rotation_path": "tool_settings.curves_sculpt.brush.texture_slot.angle",
+                    "color_path": "tool_settings.curves_sculpt.brush.cursor_color_add",
+                    "image_id": "tool_settings.curves_sculpt.brush",
+                    "fill_color_path": "",
+                    "fill_color_override_path": "",
+                    "fill_color_override_test_path": "",
+                    "zoom_path": "",
+                    "secondary_tex": False,
+                    "release_confirm": True,
+                },
+                opacity={
+                    "data_path_primary": "tool_settings.curves_sculpt.brush.strength",
+                    "data_path_secondary": "tool_settings.curves_sculpt.unified_paint_settings.strength",
+                    "use_secondary": "tool_settings.curves_sculpt.unified_paint_settings.use_unified_strength",
+                    "rotation_path": "tool_settings.curves_sculpt.brush.texture_slot.angle",
+                    "color_path": "tool_settings.curves_sculpt.brush.cursor_color_add",
+                    "image_id": "tool_settings.curves_sculpt.brush",
+                    "fill_color_path": "",
+                    "fill_color_override_path": "",
+                    "fill_color_override_test_path": "",
+                    "zoom_path": "",
+                    "secondary_tex": False,
+                    "release_confirm": True,
+                },
+            )
 
-            self.kmi_set_replace('paint.tila_brush_select_and_paint', self.k_manip, 'PRESS', shift=True, properties={'mode': 'SCULPT_CURVES', 'relative_asset_identifier' : 'brushes\essentials_brushes-curve_sculpt.blend\Brush\Smooth', 'asset_library_type':'ESSENTIALS','asset_library_identifier': '' }, disable_double=True)
+            self.kmi_set_replace(
+                "paint.tila_brush_select_and_paint",
+                self.k_manip,
+                "PRESS",
+                shift=True,
+                properties={
+                    "mode": "SCULPT_CURVES",
+                    "relative_asset_identifier": "brushes\essentials_brushes-curve_sculpt.blend\Brush\Smooth",
+                    "asset_library_type": "ESSENTIALS",
+                    "asset_library_identifier": "",
+                },
+                disable_double=True,
+            )
 
-    @TILA_Config_Keymaps_Base.print_assigning_keymap('Global Curve')
+    @TILA_Config_Keymaps_Base.print_assigning_keymap("Global Curve")
     def set_keymaps_curve(self):
         ###### Curve
-        self.kmi_init(name='Curve', space_type='EMPTY', region_type='WINDOW', addon=False)
+        self.kmi_init(name="Curve", space_type="EMPTY", region_type="WINDOW", addon=False)
         self.global_keys()
         self.selection_tool()
-        self.kmi_set_active(False, type='X', idname='wm.call_menu')
-        self.tool_transform(cage_scale='builtin.scale_cage')
+        self.kmi_set_active(False, type="X", idname="wm.call_menu")
+        self.tool_transform(cage_scale="builtin.scale_cage")
         self.right_mouse()
-        self.duplicate(duplicate='curve.duplicate_move')
+        self.duplicate(duplicate="curve.duplicate_move")
         self.tool_smart_delete()
-        self.tool_toggle_color('paint.brush_colors_flip')
+        self.tool_toggle_color("paint.brush_colors_flip")
         self.toggle_x_symetry()
-        self.kmi_set_replace('curve.reveal', 'H', 'PRESS', ctrl=True, shift=True)
-        self.kmi_set_replace('curve.shortest_path_pick', self.k_select, 'PRESS', ctrl=True, shift=True)
-        self.kmi_set_replace('curve.draw', 'LEFTMOUSE', 'PRESS', alt=True, ctrl=True, shift=True, properties={'wait_for_input': False})
+        self.kmi_set_replace("curve.reveal", "H", "PRESS", ctrl=True, shift=True)
+        self.kmi_set_replace("curve.shortest_path_pick", self.k_select, "PRESS", ctrl=True, shift=True)
+        self.kmi_set_replace(
+            "curve.draw",
+            "LEFTMOUSE",
+            "PRESS",
+            alt=True,
+            ctrl=True,
+            shift=True,
+            properties={"wait_for_input": False},
+        )
         self.separate()
-        self.kmi_set_replace('curve.subdivide', 'D', 'PRESS')
-        kmi = self.kmi_set_replace('transform.tilt', 'T', 'PRESS', shift=True)
+        self.kmi_set_replace("curve.subdivide", "D", "PRESS")
+        kmi = self.kmi_set_replace("transform.tilt", "T", "PRESS", shift=True)
         kmi.active = True
 
-        self.selection_keys(more_tool='curve.select_more',
-                            less_tool='curve.select_less',
-                            linked_tool='curve.select_linked',
-                            linked_pick_tool='curve.select_linked_pick',
-                            invert_tool='curve.select_all')
+        self.selection_keys(
+            more_tool="curve.select_more",
+            less_tool="curve.select_less",
+            linked_tool="curve.select_linked",
+            linked_pick_tool="curve.select_linked_pick",
+            invert_tool="curve.select_all",
+        )
 
-    @TILA_Config_Keymaps_Base.print_assigning_keymap('Global Outliner')
+    @TILA_Config_Keymaps_Base.print_assigning_keymap("Global Outliner")
     def set_keymaps_outliner(self):
         ###### Outliner
-        self.kmi_init(name='Outliner', space_type='OUTLINER', region_type='WINDOW', addon=False)
+        self.kmi_init(name="Outliner", space_type="OUTLINER", region_type="WINDOW", addon=False)
         self.global_keys()
         self.right_mouse()
-        self.kmi_set_active(False, type='X', idname='outliner.delete')
-        self.kmi_set_replace('outliner.item_rename', 'F2', 'PRESS')
+        self.kmi_set_active(False, type="X", idname="outliner.delete")
+        self.kmi_set_replace("outliner.item_rename", "F2", "PRESS")
 
-        self.duplicate(duplicate='object.tila_duplicate', duplicate_prop={'linked': False, 'move': False}, duplicate_link='object.tila_duplicate', duplicate_link_prop={'linked': True, 'move': False})
+        self.duplicate(
+            duplicate="object.tila_duplicate",
+            duplicate_prop={"linked": False, "move": False},
+            duplicate_link="object.tila_duplicate",
+            duplicate_link_prop={"linked": True, "move": False},
+        )
 
         self.tool_smart_delete()
-        self.kmi_set_replace('object.tila_emptymesh', 'N', 'PRESS', ctrl=True, alt=True, shift=True)
+        self.kmi_set_replace("object.tila_emptymesh", "N", "PRESS", ctrl=True, alt=True, shift=True)
 
         # disable duplicate
         # self.kmi_set_active(False, type='X', idname='wm.call_menu')
-        self.kmi_set_replace('outliner.tila_select_hierarchy', self.k_select, 'DOUBLE_CLICK', disable_double=True)
-        self.kmi_set_replace('outliner.show_active', 'A', 'PRESS', ctrl=True, shift=True, disable_double=True)
+        self.kmi_set_replace(
+            "outliner.tila_select_hierarchy",
+            self.k_select,
+            "DOUBLE_CLICK",
+            disable_double=True,
+        )
+        self.kmi_set_replace(
+            "outliner.show_active",
+            "A",
+            "PRESS",
+            ctrl=True,
+            shift=True,
+            disable_double=True,
+        )
 
         self.isolate()
         self.join()
 
-        self.kmi_set_replace('outliner.tila_group_selected', 'G', 'PRESS', ctrl=True, properties={'mode': 'GROUP_TO_BIGGER_NUMBER'}, disable_double=True)
-        self.kmi_set_replace('outliner.tila_group_selected', 'G', 'PRESS', ctrl=True, shift=True, properties={'mode': 'MOVE_TO_ACTIVE'}, disable_double=True)
+        self.kmi_set_replace(
+            "outliner.tila_group_selected",
+            "G",
+            "PRESS",
+            ctrl=True,
+            properties={"mode": "GROUP_TO_BIGGER_NUMBER"},
+            disable_double=True,
+        )
+        self.kmi_set_replace(
+            "outliner.tila_group_selected",
+            "G",
+            "PRESS",
+            ctrl=True,
+            shift=True,
+            properties={"mode": "MOVE_TO_ACTIVE"},
+            disable_double=True,
+        )
 
-    @TILA_Config_Keymaps_Base.print_assigning_keymap('Global File Browser')
+    @TILA_Config_Keymaps_Base.print_assigning_keymap("Global File Browser")
     def set_keymaps_file_browser(self):
         ###### File Browser
-        self.kmi_init(name='File Browser', space_type='FILE_BROWSER', region_type='WINDOW', addon=False)
+        self.kmi_init(
+            name="File Browser",
+            space_type="FILE_BROWSER",
+            region_type="WINDOW",
+            addon=False,
+        )
         self.global_keys()
         self.right_mouse()
-        self.kmi_set_active(False, type='X', idname='file.delete')
+        self.kmi_set_active(False, type="X", idname="file.delete")
         self.tool_smart_delete()
-        self.kmi_set_replace('object.tila_emptymesh', 'N', 'PRESS', ctrl=True, alt=True, shift=True)
+        self.kmi_set_replace("object.tila_emptymesh", "N", "PRESS", ctrl=True, alt=True, shift=True)
 
-    @TILA_Config_Keymaps_Base.print_assigning_keymap('Global Dopesheet')
+    @TILA_Config_Keymaps_Base.print_assigning_keymap("Global Dopesheet")
     def set_keymaps_dopesheet(self):
         ###### Dopesheet
-        self.kmi_init(name='Dopesheet', space_type='DOPESHEET_EDITOR', region_type='WINDOW', addon=False)
+        self.kmi_init(
+            name="Dopesheet",
+            space_type="DOPESHEET_EDITOR",
+            region_type="WINDOW",
+            addon=False,
+        )
         self.global_keys()
         self.right_mouse()
-        self.kmi_set_active(False, type='X', idname='wm.call_menu')
-        self.duplicate(duplicate='action.duplicate_move')
-        self.selection_keys(more_tool='action.select_more', less_tool='action.select_less')
+        self.kmi_set_active(False, type="X", idname="wm.call_menu")
+        self.duplicate(duplicate="action.duplicate_move")
+        self.selection_keys(more_tool="action.select_more", less_tool="action.select_less")
 
-    @TILA_Config_Keymaps_Base.print_assigning_keymap('Global Mask Editing')
+    @TILA_Config_Keymaps_Base.print_assigning_keymap("Global Mask Editing")
     def set_keymaps_mask_editing(self):
         ###### Mask Editing
-        self.kmi_init(name='Mask Editing', space_type='EMPTY', region_type='WINDOW', addon=False)
+        self.kmi_init(name="Mask Editing", space_type="EMPTY", region_type="WINDOW", addon=False)
         self.global_keys()
         self.right_mouse()
-        self.kmi_set_replace('mask.duplicate_move', 'D', 'PRESS', ctrl=True)
-        self.selection_keys(more_tool='mask.select_more',
-                            less_tool='mask.select_less', linked_tool='mask.select_linked_pick')
+        self.kmi_set_replace("mask.duplicate_move", "D", "PRESS", ctrl=True)
+        self.selection_keys(
+            more_tool="mask.select_more",
+            less_tool="mask.select_less",
+            linked_tool="mask.select_linked_pick",
+        )
 
-    @TILA_Config_Keymaps_Base.print_assigning_keymap('Global Sequencer')
+    @TILA_Config_Keymaps_Base.print_assigning_keymap("Global Sequencer")
     def set_keymaps_sequencer(self):
         ##### Sequencer
-        self.kmi_init(name='Sequencer', space_type='EMPTY', region_type='WINDOW', addon=False)
+        self.kmi_init(name="Sequencer", space_type="EMPTY", region_type="WINDOW", addon=False)
         self.global_keys()
         self.right_mouse()
-        self.selection_keys(more_tool='sequencer.select_more', less_tool='sequencer.select_less')
+        self.selection_keys(more_tool="sequencer.select_more", less_tool="sequencer.select_less")
 
-    @TILA_Config_Keymaps_Base.print_assigning_keymap('Global Graph Editor')
+    @TILA_Config_Keymaps_Base.print_assigning_keymap("Global Graph Editor")
     def set_keymaps_graph_editor(self):
         ###### Graph Editor
-        self.kmi_init(name='Graph Editor', space_type='GRAPH_EDITOR', region_type='WINDOW', addon=False)
+        self.kmi_init(
+            name="Graph Editor",
+            space_type="GRAPH_EDITOR",
+            region_type="WINDOW",
+            addon=False,
+        )
         self.global_keys()
         self.right_mouse()
-        self.duplicate(duplicate='graph.duplicate_move')
-        self.kmi_set_active(False, type='X', idname='wm.call_menu')
-        self.selection_keys(more_tool='graph.select_more', less_tool='graph.select_less')
+        self.duplicate(duplicate="graph.duplicate_move")
+        self.kmi_set_active(False, type="X", idname="wm.call_menu")
+        self.selection_keys(more_tool="graph.select_more", less_tool="graph.select_less")
 
-    @TILA_Config_Keymaps_Base.print_assigning_keymap('Global Property Editor')
+    @TILA_Config_Keymaps_Base.print_assigning_keymap("Global Property Editor")
     def set_keymaps_property_editor(self):
         ###### Property Editor
-        self.kmi_init(name='Property Editor', space_type='PROPERTIES', region_type='WINDOW', addon=False)
+        self.kmi_init(
+            name="Property Editor",
+            space_type="PROPERTIES",
+            region_type="WINDOW",
+            addon=False,
+        )
         self.global_keys()
         self.right_mouse()
-        self.navigation_keys(pan='view2d.pan', orbit=None, dolly='view2d.zoom')
+        self.navigation_keys(pan="view2d.pan", orbit=None, dolly="view2d.zoom")
 
-    @TILA_Config_Keymaps_Base.print_assigning_keymap('Global Vertex Paint')
+    @TILA_Config_Keymaps_Base.print_assigning_keymap("Global Vertex Paint")
     def set_keymaps_vertex_paint(self):
         ###### Vertex Paint
-        self.kmi_init(name='Vertex Paint', space_type='EMPTY', region_type='WINDOW', addon=False)
+        self.kmi_init(name="Vertex Paint", space_type="EMPTY", region_type="WINDOW", addon=False)
         self.global_keys()
         self.right_mouse()
-        self.selection_tool(tool='brushes\essentials_brushes-mesh_vertex.blend\Brush\Paint Hard', mode='VERTEX')
-        self.tool_sculpt('view3d.tila_smart_sculptmode')
-        self.tool_toggle_color('paint.brush_colors_flip')
+        self.selection_tool(
+            tool="brushes\essentials_brushes-mesh_vertex.blend\Brush\Paint Hard",
+            mode="VERTEX",
+        )
+        self.tool_sculpt("view3d.tila_smart_sculptmode")
+        self.tool_toggle_color("paint.brush_colors_flip")
         self.toggle_x_symetry()
-        self.kmi_set_active(enable=False, idname='view3d.select', type=self.k_manip, alt=True)
+        self.kmi_set_active(enable=False, idname="view3d.select", type=self.k_manip, alt=True)
 
-        self.tool_radial_control(radius={   'data_path_primary': 'tool_settings.vertex_paint.brush.size',
-                                            'data_path_secondary': 'tool_settings.vertex_paint.unified_paint_settings.size',
-                                            'use_secondary': 'tool_settings.vertex_paint.unified_paint_settings.use_unified_size',
-                                            'rotation_path': 'tool_settings.vertex_paint.brush.texture_slot.angle',
-                                            'color_path': 'tool_settings.vertex_paint.brush.cursor_color_add',
-                                            'image_id': 'tool_settings.vertex_paint.brush',
-                                            'fill_color_path': '',
-                                            'fill_color_override_path': '',
-                                            'fill_color_override_test_path': '',
-                                            'zoom_path': '',
-                                            'secondary_tex': False,
-                                            'release_confirm': True},
-                                opacity={   'data_path_primary': 'tool_settings.vertex_paint.brush.strength',
-                                            'data_path_secondary': 'tool_settings.vertex_paint.unified_paint_settings.strength',
-                                            'use_secondary': 'tool_settings.vertex_paint.unified_paint_settings.use_unified_strength',
-                                            'rotation_path': 'tool_settings.vertex_paint.brush.texture_slot.angle',
-                                            'color_path': 'tool_settings.vertex_paint.brush.cursor_color_add',
-                                            'image_id': 'tool_settings.vertex_paint.brush',
-                                            'fill_color_path': '',
-                                            'fill_color_override_path': '',
-                                            'fill_color_override_test_path': '',
-                                            'zoom_path': '',
-                                            'secondary_tex': False,
-                                            'release_confirm': True},
-                                weight={'data_path_primary': 'tool_settings.vertex_paint.brush.texture_slot.angle',
-                                            'data_path_secondary': '',
-                                            'use_secondary': '',
-                                            'rotation_path': 'tool_settings.vertex_paint.brush.texture_slot.angle',
-                                            'color_path': 'tool_settings.vertex_paint.brush.cursor_color_add',
-                                            'image_id': 'tool_settings.vertex_paint.brush',
-                                            'fill_color_path': 'tool_settings.vertex_paint.brush.color',
-                                            'fill_color_override_path': 'tool_settings.unified_paint_settings.color',
-                                            'fill_color_override_test_path': 'tool_settings.unified_paint_settings.use_unified_color',
-                                            'zoom_path': '',
-                                            'secondary_tex': False,
-                                            'release_confirm': True})
+        self.tool_radial_control(
+            radius={
+                "data_path_primary": "tool_settings.vertex_paint.brush.size",
+                "data_path_secondary": "tool_settings.vertex_paint.unified_paint_settings.size",
+                "use_secondary": "tool_settings.vertex_paint.unified_paint_settings.use_unified_size",
+                "rotation_path": "tool_settings.vertex_paint.brush.texture_slot.angle",
+                "color_path": "tool_settings.vertex_paint.brush.cursor_color_add",
+                "image_id": "tool_settings.vertex_paint.brush",
+                "fill_color_path": "",
+                "fill_color_override_path": "",
+                "fill_color_override_test_path": "",
+                "zoom_path": "",
+                "secondary_tex": False,
+                "release_confirm": True,
+            },
+            opacity={
+                "data_path_primary": "tool_settings.vertex_paint.brush.strength",
+                "data_path_secondary": "tool_settings.vertex_paint.unified_paint_settings.strength",
+                "use_secondary": "tool_settings.vertex_paint.unified_paint_settings.use_unified_strength",
+                "rotation_path": "tool_settings.vertex_paint.brush.texture_slot.angle",
+                "color_path": "tool_settings.vertex_paint.brush.cursor_color_add",
+                "image_id": "tool_settings.vertex_paint.brush",
+                "fill_color_path": "",
+                "fill_color_override_path": "",
+                "fill_color_override_test_path": "",
+                "zoom_path": "",
+                "secondary_tex": False,
+                "release_confirm": True,
+            },
+            weight={
+                "data_path_primary": "tool_settings.vertex_paint.brush.texture_slot.angle",
+                "data_path_secondary": "",
+                "use_secondary": "",
+                "rotation_path": "tool_settings.vertex_paint.brush.texture_slot.angle",
+                "color_path": "tool_settings.vertex_paint.brush.cursor_color_add",
+                "image_id": "tool_settings.vertex_paint.brush",
+                "fill_color_path": "tool_settings.vertex_paint.brush.color",
+                "fill_color_override_path": "tool_settings.unified_paint_settings.color",
+                "fill_color_override_test_path": "tool_settings.unified_paint_settings.use_unified_color",
+                "zoom_path": "",
+                "secondary_tex": False,
+                "release_confirm": True,
+            },
+        )
 
-        self.asset_shelf_popover(shelf_name='VIEW3D_AST_brush_vertex_paint')
+        self.asset_shelf_popover(shelf_name="VIEW3D_AST_brush_vertex_paint")
 
-        self.tool_sample_color('paint.sample_color')
-        self.selection_keys(more_tool='paint.vert_select_more', less_tool='paint.vert_select_less',
-                            lasso_tool='view3d.select_lasso', circle_tool='view3d.select_circle',
-                            linked_tool='paint.face_select_linked', linked_pick_tool='paint.face_select_linked_pick',
-                            invert_tool='paint.face_select_all')
+        self.tool_sample_color("paint.sample_color")
+        self.selection_keys(
+            more_tool="paint.vert_select_more",
+            less_tool="paint.vert_select_less",
+            lasso_tool="view3d.select_lasso",
+            circle_tool="view3d.select_circle",
+            linked_tool="paint.face_select_linked",
+            linked_pick_tool="paint.face_select_linked_pick",
+            invert_tool="paint.face_select_all",
+        )
 
         # self.kmi_set_replace('paint.tila_brush_select_and_paint', self.k_manip, 'PRESS', shift=True, properties={'tool': 'VERTEX', 'mode': 'BLUR', 'brush': 'Blur'})
         # self.kmi_set_replace('paint.tila_brush_select_and_paint', self.k_manip, 'PRESS', ctrl=True, properties={'tool': 'VERTEX', 'mode': 'DRAW', 'brush': 'Multiply'})
 
-    @TILA_Config_Keymaps_Base.print_assigning_keymap('Global Weight Paint')
+    @TILA_Config_Keymaps_Base.print_assigning_keymap("Global Weight Paint")
     def set_keymaps_weight_paint(self):
         ###### Weight Paint
-        self.kmi_init(name='Weight Paint', space_type='EMPTY', region_type='WINDOW', addon=False)
+        self.kmi_init(name="Weight Paint", space_type="EMPTY", region_type="WINDOW", addon=False)
         self.global_keys()
         self.right_mouse()
-        self.selection_tool(tool='brushes\essentials_brushes-mesh_weight.blend\Brush\Paint', mode='WEIGHT')
-        self.tool_sculpt('view3d.tila_smart_sculptmode')
+        self.selection_tool(
+            tool="brushes\essentials_brushes-mesh_weight.blend\Brush\Paint",
+            mode="WEIGHT",
+        )
+        self.tool_sculpt("view3d.tila_smart_sculptmode")
         self.toggle_x_symetry()
 
-        self.tool_radial_control(radius={   'data_path_primary': 'tool_settings.weight_paint.brush.size',
-                                            'data_path_secondary': 'tool_settings.weight_paint.unified_paint_settings.size',
-                                            'use_secondary': 'tool_settings.weight_paint.unified_paint_settings.use_unified_size',
-                                            'rotation_path': 'tool_settings.weight_paint.brush.texture_slot.angle',
-                                            'color_path': 'tool_settings.weight_paint.brush.cursor_color_add',
-                                            'image_id': 'tool_settings.weight_paint.brush',
-                                            'fill_color_path': '',
-                                            'fill_color_override_path': '',
-                                            'fill_color_override_test_path': '',
-                                            'zoom_path': '',
-                                            'secondary_tex': False,
-                                            'release_confirm': True},
-                                opacity={   'data_path_primary': 'tool_settings.weight_paint.brush.strength',
-                                            'data_path_secondary': 'tool_settings.unified_paint_settings.strength',
-                                            'use_secondary': 'tool_settings.unified_paint_settings.use_unified_strength',
-                                            'rotation_path': 'tool_settings.weight_paint.brush.texture_slot.angle',
-                                            'color_path': 'tool_settings.weight_paint.brush.cursor_color_add',
-                                            'image_id': 'tool_settings.weight_paint.brush',
-                                            'fill_color_path': '',
-                                            'fill_color_override_path': '',
-                                            'fill_color_override_test_path': '',
-                                            'zoom_path': '',
-                                            'secondary_tex': False,
-                                            'release_confirm': True},
-                                weight={    'data_path_primary': 'tool_settings.weight_paint.brush.weight',
-                                            'data_path_secondary': 'tool_settings.unified_paint_settings.weight',
-                                            'use_secondary': 'tool_settings.unified_paint_settings.use_unified_weight',
-                                            'rotation_path': 'tool_settings.weight_paint.brush.texture_slot.angle',
-                                            'color_path': 'tool_settings.weight_paint.brush.cursor_color_add',
-                                            'image_id': 'tool_settings.weight_paint.brush',
-                                            'fill_color_path': '',
-                                            'fill_color_override_path': '',
-                                            'fill_color_override_test_path': '',
-                                            'zoom_path': '',
-                                            'secondary_tex': False,
-                                            'release_confirm': True})
+        self.tool_radial_control(
+            radius={
+                "data_path_primary": "tool_settings.weight_paint.brush.size",
+                "data_path_secondary": "tool_settings.weight_paint.unified_paint_settings.size",
+                "use_secondary": "tool_settings.weight_paint.unified_paint_settings.use_unified_size",
+                "rotation_path": "tool_settings.weight_paint.brush.texture_slot.angle",
+                "color_path": "tool_settings.weight_paint.brush.cursor_color_add",
+                "image_id": "tool_settings.weight_paint.brush",
+                "fill_color_path": "",
+                "fill_color_override_path": "",
+                "fill_color_override_test_path": "",
+                "zoom_path": "",
+                "secondary_tex": False,
+                "release_confirm": True,
+            },
+            opacity={
+                "data_path_primary": "tool_settings.weight_paint.brush.strength",
+                "data_path_secondary": "tool_settings.unified_paint_settings.strength",
+                "use_secondary": "tool_settings.unified_paint_settings.use_unified_strength",
+                "rotation_path": "tool_settings.weight_paint.brush.texture_slot.angle",
+                "color_path": "tool_settings.weight_paint.brush.cursor_color_add",
+                "image_id": "tool_settings.weight_paint.brush",
+                "fill_color_path": "",
+                "fill_color_override_path": "",
+                "fill_color_override_test_path": "",
+                "zoom_path": "",
+                "secondary_tex": False,
+                "release_confirm": True,
+            },
+            weight={
+                "data_path_primary": "tool_settings.weight_paint.brush.weight",
+                "data_path_secondary": "tool_settings.unified_paint_settings.weight",
+                "use_secondary": "tool_settings.unified_paint_settings.use_unified_weight",
+                "rotation_path": "tool_settings.weight_paint.brush.texture_slot.angle",
+                "color_path": "tool_settings.weight_paint.brush.cursor_color_add",
+                "image_id": "tool_settings.weight_paint.brush",
+                "fill_color_path": "",
+                "fill_color_override_path": "",
+                "fill_color_override_test_path": "",
+                "zoom_path": "",
+                "secondary_tex": False,
+                "release_confirm": True,
+            },
+        )
 
-        self.asset_shelf_popover(shelf_name='VIEW3D_AST_brush_weight_paint')
+        self.asset_shelf_popover(shelf_name="VIEW3D_AST_brush_weight_paint")
 
-        self.kmi_set_active(enable=False, idname='paint.weight_set')
-        self.kmi_set_active(enable=False, idname='view3d.select', type=self.k_manip, alt=True)
+        self.kmi_set_active(enable=False, idname="paint.weight_set")
+        self.kmi_set_active(enable=False, idname="view3d.select", type=self.k_manip, alt=True)
 
-        self.selection_keys(more_tool='paint.vert_select_more', less_tool='paint.vert_select_less',
-                            lasso_tool='view3d.select_lasso', circle_tool='view3d.select_circle', linked_tool='paint.face_select_linked')
+        self.selection_keys(
+            more_tool="paint.vert_select_more",
+            less_tool="paint.vert_select_less",
+            lasso_tool="view3d.select_lasso",
+            circle_tool="view3d.select_circle",
+            linked_tool="paint.face_select_linked",
+        )
 
-        self.tool_sample_color('paint.weight_sample')
+        self.tool_sample_color("paint.weight_sample")
 
-        self.kmi_set_replace('paint.weight_gradient', self.k_manip, 'PRESS', ctrl=True, shift=True, properties={'type': 'LINEAR'})
-        self.kmi_set_replace('paint.weight_gradient', self.k_manip, 'PRESS', ctrl=True, shift=True, alt=True, properties={'type': 'RADIAL'})
+        self.kmi_set_replace(
+            "paint.weight_gradient",
+            self.k_manip,
+            "PRESS",
+            ctrl=True,
+            shift=True,
+            properties={"type": "LINEAR"},
+        )
+        self.kmi_set_replace(
+            "paint.weight_gradient",
+            self.k_manip,
+            "PRESS",
+            ctrl=True,
+            shift=True,
+            alt=True,
+            properties={"type": "RADIAL"},
+        )
 
-        self.kmi_set_replace('paint.weight_sample_group', self.k_context, 'RELEASE', disable_double=True)
+        self.kmi_set_replace("paint.weight_sample_group", self.k_context, "RELEASE", disable_double=True)
 
         # self.kmi_set_replace('paint.tila_brush_select_and_paint', self.k_manip, 'PRESS', shift=True, properties={'tool': 'WEIGHT', 'mode': 'AVERAGE', 'brush': 'Average'})
         # self.kmi_set_replace('paint.tila_brush_select_and_paint', self.k_manip, 'PRESS', ctrl=True, properties={'tool': 'WEIGHT', 'mode': 'DRAW', 'brush': 'Subtract'})
 
-        self.kmi_set_replace('paint.weight_set', self.k_linked, 'PRESS')
+        self.kmi_set_replace("paint.weight_set", self.k_linked, "PRESS")
 
-        self.tool_toggle_color('paint.toggle_brushweight')
+        self.tool_toggle_color("paint.toggle_brushweight")
 
-    @TILA_Config_Keymaps_Base.print_assigning_keymap('Global Image Paint')
+    @TILA_Config_Keymaps_Base.print_assigning_keymap("Global Image Paint")
     def set_keymaps_image_paint(self):
         ###### Image Paint
-        self.kmi_init(name='Image Paint', space_type='EMPTY', region_type='WINDOW', addon=False)
+        self.kmi_init(name="Image Paint", space_type="EMPTY", region_type="WINDOW", addon=False)
         self.global_keys()
         self.right_mouse()
 
-        self.selection_tool(tool='brushes\essentials_brushes-mesh_texture.blend\Brush\Paint Hard', mode='IMAGE')
-        self.kmi_set_active(enable=False, idname='view3d.select', type=self.k_manip, alt=True)
-        self.tool_sculpt('view3d.tila_smart_sculptmode')
+        self.selection_tool(
+            tool="brushes\essentials_brushes-mesh_texture.blend\Brush\Paint Hard",
+            mode="IMAGE",
+        )
+        self.kmi_set_active(enable=False, idname="view3d.select", type=self.k_manip, alt=True)
+        self.tool_sculpt("view3d.tila_smart_sculptmode")
 
-        self.tool_radial_control(radius={   'data_path_primary': 'tool_settings.image_paint.brush.size',
-                                            'data_path_secondary': 'tool_settings.image_paint.unified_paint_settings.size',
-                                            'use_secondary': 'tool_settings.image_paint.unified_paint_settings.use_unified_size',
-                                            'rotation_path': 'tool_settings.image_paint.brush.texture_slot.angle',
-                                            'color_path': 'tool_settings.image_paint.brush.cursor_color_add',
-                                            'image_id': 'tool_settings.image_paint.brush',
-                                            'fill_color_path': 'tool_settings.image_paint.brush.color',
-                                            'fill_color_override_path': 'tool_settings.image_paint.unified_paint_settings.color',
-                                            'fill_color_override_test_path': 'tool_settings.image_paint.unified_paint_settings.use_unified_color',
-                                            'zoom_path': 'space_data.zoom',
-                                            'secondary_tex': True,
-                                            'release_confirm': True},
-                                opacity={   'data_path_primary': 'tool_settings.image_paint.brush.strength',
-                                            'data_path_secondary': 'tool_settings.image_paint.unified_paint_settings.strength',
-                                            'use_secondary': 'tool_settings.image_paint.unified_paint_settings.use_unified_strength',
-                                            'rotation_path': 'tool_settings.image_paint.brush.texture_slot.angle',
-                                            'color_path': 'tool_settings.image_paint.brush.cursor_color_add',
-                                            'image_id': 'tool_settings.image_paint.brush',
-                                            'fill_color_path': 'tool_settings.image_paint.brush.color',
-                                            'fill_color_override_path': 'tool_settings.image_paint.unified_paint_settings.color',
-                                            'fill_color_override_test_path': 'tool_settings.image_paint.unified_paint_settings.use_unified_color',
-                                            'zoom_path': '',
-                                            'secondary_tex': True,
-                                            'release_confirm': True},
-                                weight={    'data_path_primary': 'tool_settings.image_paint.brush.texture_slot.angle',
-                                            'data_path_secondary': '',
-                                            'use_secondary': '',
-                                            'rotation_path': 'tool_settings.image_paint.brush.texture_slot.angle',
-                                            'color_path': 'tool_settings.image_paint.brush.cursor_color_add',
-                                            'image_id': 'tool_settings.image_paint.brush',
-                                            'fill_color_path': 'tool_settings.image_paint.brush.color',
-                                            'fill_color_override_path': 'tool_settings.image_paint.unified_paint_settings.color',
-                                            'fill_color_override_test_path': 'tool_settings.image_paint.unified_paint_settings.use_unified_color',
-                                            'zoom_path': '',
-                                            'secondary_tex': False,
-                                            'release_confirm': True},
-                                mask={      'data_path_primary': 'tool_settings.image_paint.brush.texture_slot.angle',
-                                            'data_path_secondary': '',
-                                            'use_secondary': '',
-                                            'rotation_path': 'tool_settings.image_paint.brush.texture_slot.angle',
-                                            'color_path': 'tool_settings.image_paint.brush.cursor_color_add',
-                                            'image_id': 'tool_settings.image_paint.brush',
-                                            'fill_color_path': 'tool_settings.image_paint.brush.color',
-                                            'fill_color_override_path': 'tool_settings.image_paint.unified_paint_settings.color',
-                                            'fill_color_override_test_path': 'tool_settings.image_paint.unified_paint_settings.use_unified_color',
-                                            'zoom_path': '',
-                                            'secondary_tex': True,
-                                            'release_confirm': True})
+        self.tool_radial_control(
+            radius={
+                "data_path_primary": "tool_settings.image_paint.brush.size",
+                "data_path_secondary": "tool_settings.image_paint.unified_paint_settings.size",
+                "use_secondary": "tool_settings.image_paint.unified_paint_settings.use_unified_size",
+                "rotation_path": "tool_settings.image_paint.brush.texture_slot.angle",
+                "color_path": "tool_settings.image_paint.brush.cursor_color_add",
+                "image_id": "tool_settings.image_paint.brush",
+                "fill_color_path": "tool_settings.image_paint.brush.color",
+                "fill_color_override_path": "tool_settings.image_paint.unified_paint_settings.color",
+                "fill_color_override_test_path": "tool_settings.image_paint.unified_paint_settings.use_unified_color",
+                "zoom_path": "space_data.zoom",
+                "secondary_tex": True,
+                "release_confirm": True,
+            },
+            opacity={
+                "data_path_primary": "tool_settings.image_paint.brush.strength",
+                "data_path_secondary": "tool_settings.image_paint.unified_paint_settings.strength",
+                "use_secondary": "tool_settings.image_paint.unified_paint_settings.use_unified_strength",
+                "rotation_path": "tool_settings.image_paint.brush.texture_slot.angle",
+                "color_path": "tool_settings.image_paint.brush.cursor_color_add",
+                "image_id": "tool_settings.image_paint.brush",
+                "fill_color_path": "tool_settings.image_paint.brush.color",
+                "fill_color_override_path": "tool_settings.image_paint.unified_paint_settings.color",
+                "fill_color_override_test_path": "tool_settings.image_paint.unified_paint_settings.use_unified_color",
+                "zoom_path": "",
+                "secondary_tex": True,
+                "release_confirm": True,
+            },
+            weight={
+                "data_path_primary": "tool_settings.image_paint.brush.texture_slot.angle",
+                "data_path_secondary": "",
+                "use_secondary": "",
+                "rotation_path": "tool_settings.image_paint.brush.texture_slot.angle",
+                "color_path": "tool_settings.image_paint.brush.cursor_color_add",
+                "image_id": "tool_settings.image_paint.brush",
+                "fill_color_path": "tool_settings.image_paint.brush.color",
+                "fill_color_override_path": "tool_settings.image_paint.unified_paint_settings.color",
+                "fill_color_override_test_path": "tool_settings.image_paint.unified_paint_settings.use_unified_color",
+                "zoom_path": "",
+                "secondary_tex": False,
+                "release_confirm": True,
+            },
+            mask={
+                "data_path_primary": "tool_settings.image_paint.brush.texture_slot.angle",
+                "data_path_secondary": "",
+                "use_secondary": "",
+                "rotation_path": "tool_settings.image_paint.brush.texture_slot.angle",
+                "color_path": "tool_settings.image_paint.brush.cursor_color_add",
+                "image_id": "tool_settings.image_paint.brush",
+                "fill_color_path": "tool_settings.image_paint.brush.color",
+                "fill_color_override_path": "tool_settings.image_paint.unified_paint_settings.color",
+                "fill_color_override_test_path": "tool_settings.image_paint.unified_paint_settings.use_unified_color",
+                "zoom_path": "",
+                "secondary_tex": True,
+                "release_confirm": True,
+            },
+        )
 
-        self.asset_shelf_popover(shelf_name='VIEW3D_AST_brush_texture_paint')
-        self.asset_shelf_popover(shelf_name='IMAGE_AST_brush_paint', disable_double=False)
+        self.asset_shelf_popover(shelf_name="VIEW3D_AST_brush_texture_paint")
+        self.asset_shelf_popover(shelf_name="IMAGE_AST_brush_paint", disable_double=False)
 
-        self.selection_keys(more_tool='paint.vert_select_more', less_tool='paint.vert_select_less',
-                            lasso_tool='view3d.select_lasso', circle_tool='view3d.select_circle', linked_tool='paint.face_select_linked')
+        self.selection_keys(
+            more_tool="paint.vert_select_more",
+            less_tool="paint.vert_select_less",
+            lasso_tool="view3d.select_lasso",
+            circle_tool="view3d.select_circle",
+            linked_tool="paint.face_select_linked",
+        )
 
-        self.tool_sample_color('paint.sample_color')
-        self.tool_toggle_color('paint.brush_colors_flip')
+        self.tool_sample_color("paint.sample_color")
+        self.tool_toggle_color("paint.brush_colors_flip")
 
         self.toggle_x_symetry()
 
-    @TILA_Config_Keymaps_Base.print_assigning_keymap('Global Node Tool Tweak')
+    @TILA_Config_Keymaps_Base.print_assigning_keymap("Global Node Tool Tweak")
     def set_keymaps_node_tool_tweak(self):
         ###### Node Tool: Tweak
-        self.kmi_init(name='Node Tool: Tweak', space_type='NODE_EDITOR', region_type='WINDOW', addon=False)
+        self.kmi_init(
+            name="Node Tool: Tweak",
+            space_type="NODE_EDITOR",
+            region_type="WINDOW",
+            addon=False,
+        )
         # self.selection_keys(select_tool='node.select')
 
-    @TILA_Config_Keymaps_Base.print_assigning_keymap('Global Node Tool Select box')
+    @TILA_Config_Keymaps_Base.print_assigning_keymap("Global Node Tool Select box")
     def set_keymaps_node_tool_select_box(self):
         ###### Node Tool: Select Box
-        self.kmi_init(name='Node Tool: Select Box', space_type='NODE_EDITOR', region_type='WINDOW', addon=False)
+        self.kmi_init(
+            name="Node Tool: Select Box",
+            space_type="NODE_EDITOR",
+            region_type="WINDOW",
+            addon=False,
+        )
         # self.selection_keys(select_tool='node.select')
 
-    @TILA_Config_Keymaps_Base.print_assigning_keymap('Global Node Editor')
+    @TILA_Config_Keymaps_Base.print_assigning_keymap("Global Node Editor")
     def set_keymaps_node_editor(self):
         ###### Node Editor
-        self.kmi_init(name='Node Editor', space_type='NODE_EDITOR', region_type='WINDOW', addon=False)
+        self.kmi_init(
+            name="Node Editor",
+            space_type="NODE_EDITOR",
+            region_type="WINDOW",
+            addon=False,
+        )
         self.global_keys()
         self.right_mouse()
-        self.kmi_set_active(False, type='X', idname='node.delete')
+        self.kmi_set_active(False, type="X", idname="node.delete")
 
         # self.selection_keys(select_tool='node.select')
         # self.duplicate(duplicate='node.duplicate_move_keep_inputs', duplicate_prop={'keep_inputs': True, 'linked': True})
-        self.kmi_set('node.duplicate_move_keep_inputs', type='D', value='PRESS', ctrl=True,
-                     alt=False, shift=False, properties={'keep_inputs': True, 'linked': True})
-        self.snap(snap_datapath='tool_settings.use_snap_node')
-        self.kmi_set_replace('node.view_selected', 'A', 'PRESS', ctrl=True, shift=True)
-        self.kmi_set_replace('wm.call_menu', self.k_menu, 'PRESS', properties={'name': 'NODE_MT_add'}, disable_double=True)
+        self.kmi_set(
+            "node.duplicate_move_keep_inputs",
+            type="D",
+            value="PRESS",
+            ctrl=True,
+            alt=False,
+            shift=False,
+            properties={"keep_inputs": True, "linked": True},
+        )
+        self.snap(snap_datapath="tool_settings.use_snap_node")
+        self.kmi_set_replace("node.view_selected", "A", "PRESS", ctrl=True, shift=True)
+        self.kmi_set_replace(
+            "wm.call_menu",
+            self.k_menu,
+            "PRESS",
+            properties={"name": "NODE_MT_add"},
+            disable_double=True,
+        )
 
-        self.kmi_set_replace('node.backimage_move', self.k_cursor, 'PRESS', disable_double=True)
-        self.kmi_set_replace('node.backimage_zoom', self.k_lasso_through, 'CLICK_DRAG', direction='EAST', alt=True, properties={'factor': 1.2}, disable_double=True)
-        self.kmi_set_replace('node.backimage_zoom', self.k_lasso_through, 'CLICK_DRAG', direction='WEST', alt=True, properties={'factor': 0.8}, disable_double=True)
+        self.kmi_set_replace("node.backimage_move", self.k_cursor, "PRESS", disable_double=True)
+        self.kmi_set_replace(
+            "node.backimage_zoom",
+            self.k_lasso_through,
+            "CLICK_DRAG",
+            direction="EAST",
+            alt=True,
+            properties={"factor": 1.2},
+            disable_double=True,
+        )
+        self.kmi_set_replace(
+            "node.backimage_zoom",
+            self.k_lasso_through,
+            "CLICK_DRAG",
+            direction="WEST",
+            alt=True,
+            properties={"factor": 0.8},
+            disable_double=True,
+        )
 
-        self.kmi_set_replace('node.node_copy_color', 'C', 'PRESS', ctrl=True, shift=True, disable_double=True)
-        self.kmi_set_replace('node.detach', 'J', 'PRESS', alt=True, disable_double=True)
+        self.kmi_set_replace(
+            "node.node_copy_color",
+            "C",
+            "PRESS",
+            ctrl=True,
+            shift=True,
+            disable_double=True,
+        )
+        self.kmi_set_replace("node.detach", "J", "PRESS", alt=True, disable_double=True)
 
-    @TILA_Config_Keymaps_Base.print_assigning_keymap('Global Animation')
+    @TILA_Config_Keymaps_Base.print_assigning_keymap("Global Animation")
     def set_keymaps_animation(self):
         ###### Animation
-        self.kmi_init(name='Animation', space_type='EMPTY', region_type='WINDOW', addon=False)
+        self.kmi_init(name="Animation", space_type="EMPTY", region_type="WINDOW", addon=False)
         self.global_keys()
         self.right_mouse()
 
-    @TILA_Config_Keymaps_Base.print_assigning_keymap('Global Armature')
+    @TILA_Config_Keymaps_Base.print_assigning_keymap("Global Armature")
     def set_keymaps_armature(self):
         ###### Armature
-        self.kmi_init(name='Armature', space_type='EMPTY', region_type='WINDOW', addon=False)
+        self.kmi_init(name="Armature", space_type="EMPTY", region_type="WINDOW", addon=False)
         self.global_keys()
         self.right_mouse()
-        self.duplicate(duplicate='armature.duplicate_move')
-        self.tool_transform(cage_scale='builtin.scale_cage')
-        self.selection_keys(more_tool='armature.select_more', less_tool='armature.select_less')
+        self.duplicate(duplicate="armature.duplicate_move")
+        self.tool_transform(cage_scale="builtin.scale_cage")
+        self.selection_keys(more_tool="armature.select_more", less_tool="armature.select_less")
 
-    @TILA_Config_Keymaps_Base.print_assigning_keymap('Global Pose')
+    @TILA_Config_Keymaps_Base.print_assigning_keymap("Global Pose")
     def set_keymaps_pose(self):
         ###### Pose
-        self.kmi_init(name='Pose', space_type='EMPTY', region_type='WINDOW', addon=False)
+        self.kmi_init(name="Pose", space_type="EMPTY", region_type="WINDOW", addon=False)
         self.global_keys()
         self.right_mouse()
         self.tool_transform()
         # MACHIN3tools
         # self.kmi_set_replace('machin3.align', 'A', "PRESS", alt=True, disable_double=True)
 
-    @TILA_Config_Keymaps_Base.print_assigning_keymap('Global Metaball')
+    @TILA_Config_Keymaps_Base.print_assigning_keymap("Global Metaball")
     def set_keymaps_metaball(self):
         ###### Metaball
-        self.kmi_init(name='Metaball', space_type='EMPTY', region_type='WINDOW', addon=False)
+        self.kmi_init(name="Metaball", space_type="EMPTY", region_type="WINDOW", addon=False)
         self.global_keys()
         self.right_mouse()
-        self.kmi_set_active(False, type='X', idname='mball.delete_metaelems')
-        self.tool_transform(cage_scale='builtin.scale_cage')
-        self.duplicate(duplicate='mball.duplicate_metaelems')
+        self.kmi_set_active(False, type="X", idname="mball.delete_metaelems")
+        self.tool_transform(cage_scale="builtin.scale_cage")
+        self.duplicate(duplicate="mball.duplicate_metaelems")
         self.selection_tool()
         self.tool_smart_delete()
-        self.kmi_set_replace('mball.tila_metaball_adjust_parameter', 'S', 'PRESS', alt=True, shift=True, properties={'param': 'STIFFNESS'}, disable_double=True)
-        self.kmi_set_replace('mball.tila_metaball_adjust_parameter', 'R', 'PRESS', alt=True, shift=True, properties={'param': 'RESOLUTION'}, disable_double=True)
-        self.kmi_set_replace('mball.tila_metaball_type_cycle', 'W', 'PRESS', ctrl=True, properties={'direction': 'NEXT'}, disable_double=True)
-        self.kmi_set_replace('mball.tila_metaball_type_cycle', 'W', 'PRESS', ctrl=True, shift=True, properties={'direction': 'PREVIOUS'}, disable_double=True)
-        self.kmi_set_replace('mball.tila_metaball_substract_toggle', 'X', 'PRESS', disable_double=True)
+        self.kmi_set_replace(
+            "mball.tila_metaball_adjust_parameter",
+            "S",
+            "PRESS",
+            alt=True,
+            shift=True,
+            properties={"param": "STIFFNESS"},
+            disable_double=True,
+        )
+        self.kmi_set_replace(
+            "mball.tila_metaball_adjust_parameter",
+            "R",
+            "PRESS",
+            alt=True,
+            shift=True,
+            properties={"param": "RESOLUTION"},
+            disable_double=True,
+        )
+        self.kmi_set_replace(
+            "mball.tila_metaball_type_cycle",
+            "W",
+            "PRESS",
+            ctrl=True,
+            properties={"direction": "NEXT"},
+            disable_double=True,
+        )
+        self.kmi_set_replace(
+            "mball.tila_metaball_type_cycle",
+            "W",
+            "PRESS",
+            ctrl=True,
+            shift=True,
+            properties={"direction": "PREVIOUS"},
+            disable_double=True,
+        )
+        self.kmi_set_replace("mball.tila_metaball_substract_toggle", "X", "PRESS", disable_double=True)
 
-    @TILA_Config_Keymaps_Base.print_assigning_keymap('Global NLA Editor')
+    @TILA_Config_Keymaps_Base.print_assigning_keymap("Global NLA Editor")
     def set_keymaps_nla_edtior(self):
         ###### NLA Editor
-        self.kmi_init(name='NLA Editor', space_type='EMPTY', region_type='WINDOW')
+        self.kmi_init(name="NLA Editor", space_type="EMPTY", region_type="WINDOW")
         self.global_keys()
         self.right_mouse()
-        self.kmi_set_active(False, type='X', idname='nla.delete')
-        self.duplicate(duplicate='nla.duplicate', duplicate_link='nla.duplicate', duplicate_link_prop={'linked': True})
+        self.kmi_set_active(False, type="X", idname="nla.delete")
+        self.duplicate(
+            duplicate="nla.duplicate",
+            duplicate_link="nla.duplicate",
+            duplicate_link_prop={"linked": True},
+        )
 
-    @TILA_Config_Keymaps_Base.print_assigning_keymap('Global Lattice')
+    @TILA_Config_Keymaps_Base.print_assigning_keymap("Global Lattice")
     def set_keymaps_lattice(self):
         ###### Lattice
-        self.kmi_init(name='Lattice', space_type='EMPTY', region_type='WINDOW')
+        self.kmi_init(name="Lattice", space_type="EMPTY", region_type="WINDOW")
         self.global_keys()
         self.right_mouse()
-        self.tool_transform(cage_scale='builtin.scale_cage')
-        self.selection_keys(select_tool='view3d.select',
-                            lasso_tool='view3d.select_lasso',
-                            select_through_tool='view3d.tila_select_through',
-                              circle_tool='view3d.select_circle',
-                            invert_tool='lattice.select_all',
-                            more_tool='lattice.select_more',
-                              less_tool='lattice.select_less')
+        self.tool_transform(cage_scale="builtin.scale_cage")
+        self.selection_keys(
+            select_tool="view3d.select",
+            lasso_tool="view3d.select_lasso",
+            select_through_tool="view3d.tila_select_through",
+            circle_tool="view3d.select_circle",
+            invert_tool="lattice.select_all",
+            more_tool="lattice.select_more",
+            less_tool="lattice.select_less",
+        )
 
-    @TILA_Config_Keymaps_Base.print_assigning_keymap('Global Grease Pencil')
+    @TILA_Config_Keymaps_Base.print_assigning_keymap("Global Grease Pencil")
     def set_keymaps_grease_pencil(self):
         ###### Grease Pencil
-        self.kmi_init(name='Grease Pencil', space_type='EMPTY', region_type='WINDOW', addon=False)
+        self.kmi_init(name="Grease Pencil", space_type="EMPTY", region_type="WINDOW", addon=False)
         self.global_keys()
         self.right_mouse()
         self.mode_selection()
-        self.tool_sculpt('view3d.tila_smart_sculptmode')
+        self.tool_sculpt("view3d.tila_smart_sculptmode")
         # self.selection_tool('builtin_brush.Draw')
-        self.duplicate(duplicate='grease_pencil.duplicate_move')
+        self.duplicate(duplicate="grease_pencil.duplicate_move")
         self.selection_keys(
-                            more_tool='grease_pencil.select_more',
-                            less_tool='grease_pencil.select_less',
-                            linked_tool='grease_pencil.select_linked')
+            more_tool="grease_pencil.select_more",
+            less_tool="grease_pencil.select_less",
+            linked_tool="grease_pencil.select_linked",
+        )
 
-        self.tool_sculpt('grease_pencil.sculptmode_toggle')
+        self.tool_sculpt("grease_pencil.sculptmode_toggle")
 
         self.isolate()
 
-    @TILA_Config_Keymaps_Base.print_assigning_keymap('Global Grease Pencil Edit Mode')
+    @TILA_Config_Keymaps_Base.print_assigning_keymap("Global Grease Pencil Edit Mode")
     def set_keymaps_grease_pencil_edit_mode(self):
         ###### Grease Pencil Edit Mode
-        self.kmi_init(name='Grease Pencil Edit Mode', space_type='EMPTY', region_type='WINDOW', addon=False)
+        self.kmi_init(
+            name="Grease Pencil Edit Mode",
+            space_type="EMPTY",
+            region_type="WINDOW",
+            addon=False,
+        )
         self.global_keys()
         self.right_mouse()
-        self.tool_sculpt('view3d.tila_smart_sculptmode')
-        self.tool_transform(cage_scale='builtin.scale_cage')
-        self.collection_visibility('object.hide_collection')
+        self.tool_sculpt("view3d.tila_smart_sculptmode")
+        self.tool_transform(cage_scale="builtin.scale_cage")
+        self.collection_visibility("object.hide_collection")
         self.mode_selection()
         self.tool_smart_delete()
-        self.selection_tool(tool='builtin.select')
-        self.duplicate(duplicate='grease_pencil.duplicate_move')
-        self.kmi_set_active(False, idname='grease_pencil.dissolve')
-        self.kmi_set_replace('grease_pencil.dissolve', 'DEL', 'PRESS', shift=True, properties={'type': 'POINTS'}, disable_double=True)
-        self.selection_keys(more_tool='grease_pencil.select_more',
-                            less_tool='grease_pencil.select_less',
-                            invert_tool='grease_pencil.select_all',
-                            linked_tool='grease_pencil.select_linked')
-        self.kmi_set_replace('grease_pencil.stroke_subdivide', 'D', 'PRESS',  properties={'only_selected': False}, disable_double=True)
+        self.selection_tool(tool="builtin.select")
+        self.duplicate(duplicate="grease_pencil.duplicate_move")
+        self.kmi_set_active(False, idname="grease_pencil.dissolve")
+        self.kmi_set_replace(
+            "grease_pencil.dissolve",
+            "DEL",
+            "PRESS",
+            shift=True,
+            properties={"type": "POINTS"},
+            disable_double=True,
+        )
+        self.selection_keys(
+            more_tool="grease_pencil.select_more",
+            less_tool="grease_pencil.select_less",
+            invert_tool="grease_pencil.select_all",
+            linked_tool="grease_pencil.select_linked",
+        )
+        self.kmi_set_replace(
+            "grease_pencil.stroke_subdivide",
+            "D",
+            "PRESS",
+            properties={"only_selected": False},
+            disable_double=True,
+        )
         self.isolate()
-        self.tool_center(pivot='VIEW3D_PT_pivot_point', orientation='VIEW3D_PT_transform_orientations', action_center_context='VIEW3D')
+        self.tool_center(
+            pivot="VIEW3D_PT_pivot_point",
+            orientation="VIEW3D_PT_transform_orientations",
+            action_center_context="VIEW3D",
+        )
 
-    @TILA_Config_Keymaps_Base.print_assigning_keymap('Global Grease Pencil Brush Stroke')
+    @TILA_Config_Keymaps_Base.print_assigning_keymap("Global Grease Pencil Brush Stroke")
     def set_keymaps_grease_pencil_brush_stroke(self):
         ###### Grease Pencil Brush Stroke
-        self.kmi_init(name='Grease Pencil Brush Stroke', space_type='EMPTY', region_type='WINDOW', addon=False)
+        self.kmi_init(
+            name="Grease Pencil Brush Stroke",
+            space_type="EMPTY",
+            region_type="WINDOW",
+            addon=False,
+        )
         self.global_keys()
         self.right_mouse()
-        self.duplicate(duplicate='grease_pencil.duplicate_move')
-        self.collection_visibility('object.hide_collection')
-        self.tool_sculpt('view3d.tila_smart_sculptmode')
+        self.duplicate(duplicate="grease_pencil.duplicate_move")
+        self.collection_visibility("object.hide_collection")
+        self.tool_sculpt("view3d.tila_smart_sculptmode")
         self.mode_selection()
 
-        self.tool_radial_control(radius={'data_path_primary': 'tool_settings.gpencil_paint.brush.size', 'release_confirm': True},
-                                opacity={'data_path_primary': 'tool_settings.gpencil_paint.brush.gpencil_settings.pen_strength', 'release_confirm': True})
+        self.tool_radial_control(
+            radius={
+                "data_path_primary": "tool_settings.gpencil_paint.brush.size",
+                "release_confirm": True,
+            },
+            opacity={
+                "data_path_primary": "tool_settings.gpencil_paint.brush.gpencil_settings.pen_strength",
+                "release_confirm": True,
+            },
+        )
 
-        self.selection_keys(linked_pick_tool='grease_pencil.select_linked',
-                            more_tool='grease_pencil.select_more',
-                            less_tool='grease_pencil.select_less',
-                            invert_tool='grease_pencil.select_all'
-                            )
+        self.selection_keys(
+            linked_pick_tool="grease_pencil.select_linked",
+            more_tool="grease_pencil.select_more",
+            less_tool="grease_pencil.select_less",
+            invert_tool="grease_pencil.select_all",
+        )
 
-    @TILA_Config_Keymaps_Base.print_assigning_keymap('Global Grease Pencil Paint Mode')
+    @TILA_Config_Keymaps_Base.print_assigning_keymap("Global Grease Pencil Paint Mode")
     def set_keymaps_grease_pencil_paint_mode(self):
         ###### Grease Pencil Paint Mode
-        self.kmi_init(name='Grease Pencil Paint Mode', space_type='EMPTY', region_type='WINDOW', addon=False)
-        kmi = self.kmi_find(idname='gpencil.draw', ctrl=False, alt=True, shift=False)
+        self.kmi_init(
+            name="Grease Pencil Paint Mode",
+            space_type="EMPTY",
+            region_type="WINDOW",
+            addon=False,
+        )
+        kmi = self.kmi_find(idname="gpencil.draw", ctrl=False, alt=True, shift=False)
         if kmi is not None:
             kmi.ctrl = True
             kmi.alt = False
             kmi.shift = True
 
-        kmi = self.kmi_find(idname='gpencil.draw', ctrl=False, alt=True, shift=True)
+        kmi = self.kmi_find(idname="gpencil.draw", ctrl=False, alt=True, shift=True)
         if kmi is not None:
             kmi.ctrl = True
             kmi.alt = True
             kmi.shift = True
 
-        self.tool_sculpt('view3d.tila_smart_sculptmode')
-        self.selection_tool(tool='brushes\essentials_brushes-gp_draw.blend\Brush\Pencil', mode='GPENCIL_PAINT')
+        self.tool_sculpt("view3d.tila_smart_sculptmode")
+        self.selection_tool(
+            tool="brushes\essentials_brushes-gp_draw.blend\Brush\Pencil",
+            mode="GPENCIL_PAINT",
+        )
 
-        self.tool_radial_control(radius={'data_path_primary': 'tool_settings.gpencil_paint.brush.size', 'release_confirm': True},
-                                opacity={ 'data_path_primary': 'tool_settings.gpencil_paint.brush.gpencil_settings.pen_strength', 'release_confirm': True})
+        self.tool_radial_control(
+            radius={
+                "data_path_primary": "tool_settings.gpencil_paint.brush.size",
+                "release_confirm": True,
+            },
+            opacity={
+                "data_path_primary": "tool_settings.gpencil_paint.brush.gpencil_settings.pen_strength",
+                "release_confirm": True,
+            },
+        )
 
-        self.asset_shelf_popover(shelf_name='VIEW3D_AST_brush_gpencil_paint')
+        self.asset_shelf_popover(shelf_name="VIEW3D_AST_brush_gpencil_paint")
 
-    @TILA_Config_Keymaps_Base.print_assigning_keymap('Global Grease Pencil Vertex Paint')
+    @TILA_Config_Keymaps_Base.print_assigning_keymap("Global Grease Pencil Vertex Paint")
     def set_keymaps_grease_pencil_vertex_paint(self):
         ##### Grease Pencil Vertex Paint
-        self.kmi_init(name='Grease Pencil Vertex Paint', space_type='EMPTY', region_type='WINDOW', addon=False)
+        self.kmi_init(
+            name="Grease Pencil Vertex Paint",
+            space_type="EMPTY",
+            region_type="WINDOW",
+            addon=False,
+        )
         self.global_keys()
         self.right_mouse()
-        self.tool_sculpt('view3d.tila_smart_sculptmode')
+        self.tool_sculpt("view3d.tila_smart_sculptmode")
         self.mode_selection()
-        self.tool_sculpt('view3d.tila_smart_sculptmode')
+        self.tool_sculpt("view3d.tila_smart_sculptmode")
 
-        self.selection_tool(tool='brushes\essentials_brushes-gp_vertex.blend\Brush\Paint', mode='GPENCIL_VERTEX')
+        self.selection_tool(
+            tool="brushes\essentials_brushes-gp_vertex.blend\Brush\Paint",
+            mode="GPENCIL_VERTEX",
+        )
 
-        self.tool_radial_control(radius={   'data_path_primary': 'tool_settings.gpencil_vertex_paint.brush.size',
-                                            'data_path_secondary': 'tool_settings.gpencil_vertex_paint.unified_paint_settings.size',
-                                            'use_secondary': 'tool_settings.gpencil_vertex_paint.unified_paint_settings.use_unified_size',
-                                            'rotation_path': 'tool_settings.gpencil_vertex_paint.brush.texture_slot.angle',
-                                            'color_path': 'tool_settings.gpencil_vertex_paint.brush.cursor_color_add',
-                                            'image_id': 'tool_settings.gpencil_vertex_paint.brush',
-                                            'fill_color_path': '',
-                                            'fill_color_override_path': '',
-                                            'fill_color_override_test_path': '',
-                                            'zoom_path': '',
-                                            'secondary_tex': False,
-                                            'release_confirm': True},
-                                opacity={   'data_path_primary': 'tool_settings.gpencil_vertex_paint.brush.strength',
-                                            'data_path_secondary': 'tool_settings.gpencil_vertex_paint.unified_paint_settings.strength',
-                                            'use_secondary': 'tool_settings.gpencil_vertex_paint.unified_paint_settings.use_unified_strength',
-                                            'rotation_path': 'tool_settings.gpencil_vertex_paint.brush.texture_slot.angle',
-                                            'color_path': 'tool_settings.gpencil_vertex_paint.brush.cursor_color_add',
-                                            'image_id': 'tool_settings.gpencil_vertex_paint.brush',
-                                            'fill_color_path': '',
-                                            'fill_color_override_path': '',
-                                            'fill_color_override_test_path': '',
-                                            'zoom_path': '',
-                                            'secondary_tex': False,
-                                            'release_confirm': True},
-                                weight={   'data_path_primary': 'tool_settings.gpencil_vertex_paint.brush.weight',
-                                            'data_path_secondary': 'tool_settings.gpencil_vertex_paint.unified_paint_settings.weight',
-                                            'use_secondary': 'tool_settings.gpencil_vertex_paint.unified_paint_settings.use_unified_weight',
-                                            'rotation_path': 'tool_settings.gpencil_vertex_paint.brush.texture_slot.angle',
-                                            'color_path': 'tool_settings.gpencil_vertex_paint.brush.cursor_color_add',
-                                            'image_id': 'tool_settings.gpencil_vertex_paint.brush',
-                                            'fill_color_path': '',
-                                            'fill_color_override_path': '',
-                                            'fill_color_override_test_path': '',
-                                            'zoom_path': '',
-                                            'secondary_tex': False,
-                                            'release_confirm': True})
+        self.tool_radial_control(
+            radius={
+                "data_path_primary": "tool_settings.gpencil_vertex_paint.brush.size",
+                "data_path_secondary": "tool_settings.gpencil_vertex_paint.unified_paint_settings.size",
+                "use_secondary": "tool_settings.gpencil_vertex_paint.unified_paint_settings.use_unified_size",
+                "rotation_path": "tool_settings.gpencil_vertex_paint.brush.texture_slot.angle",
+                "color_path": "tool_settings.gpencil_vertex_paint.brush.cursor_color_add",
+                "image_id": "tool_settings.gpencil_vertex_paint.brush",
+                "fill_color_path": "",
+                "fill_color_override_path": "",
+                "fill_color_override_test_path": "",
+                "zoom_path": "",
+                "secondary_tex": False,
+                "release_confirm": True,
+            },
+            opacity={
+                "data_path_primary": "tool_settings.gpencil_vertex_paint.brush.strength",
+                "data_path_secondary": "tool_settings.gpencil_vertex_paint.unified_paint_settings.strength",
+                "use_secondary": "tool_settings.gpencil_vertex_paint.unified_paint_settings.use_unified_strength",
+                "rotation_path": "tool_settings.gpencil_vertex_paint.brush.texture_slot.angle",
+                "color_path": "tool_settings.gpencil_vertex_paint.brush.cursor_color_add",
+                "image_id": "tool_settings.gpencil_vertex_paint.brush",
+                "fill_color_path": "",
+                "fill_color_override_path": "",
+                "fill_color_override_test_path": "",
+                "zoom_path": "",
+                "secondary_tex": False,
+                "release_confirm": True,
+            },
+            weight={
+                "data_path_primary": "tool_settings.gpencil_vertex_paint.brush.weight",
+                "data_path_secondary": "tool_settings.gpencil_vertex_paint.unified_paint_settings.weight",
+                "use_secondary": "tool_settings.gpencil_vertex_paint.unified_paint_settings.use_unified_weight",
+                "rotation_path": "tool_settings.gpencil_vertex_paint.brush.texture_slot.angle",
+                "color_path": "tool_settings.gpencil_vertex_paint.brush.cursor_color_add",
+                "image_id": "tool_settings.gpencil_vertex_paint.brush",
+                "fill_color_path": "",
+                "fill_color_override_path": "",
+                "fill_color_override_test_path": "",
+                "zoom_path": "",
+                "secondary_tex": False,
+                "release_confirm": True,
+            },
+        )
 
-        self.selection_keys(linked_pick_tool='grease_pencil.select_linked',
-                            more_tool='grease_pencil.select_more',
-                            less_tool='grease_pencil.select_less',
-                            invert_tool='grease_pencil.select_all'
-                            )
+        self.selection_keys(
+            linked_pick_tool="grease_pencil.select_linked",
+            more_tool="grease_pencil.select_more",
+            less_tool="grease_pencil.select_less",
+            invert_tool="grease_pencil.select_all",
+        )
 
-        self.kmi_set_replace('paint.tila_brush_select_and_paint', self.k_manip, 'PRESS', shift=True, properties={'mode': 'GPENCIL_PAINT', 'relative_asset_identifier' : 'brushes\essentials_brushes-gp_vertex.blend\Brush\Blur', 'asset_library_type':'ESSENTIALS','asset_library_identifier': '' }, disable_double=True)
+        self.kmi_set_replace(
+            "paint.tila_brush_select_and_paint",
+            self.k_manip,
+            "PRESS",
+            shift=True,
+            properties={
+                "mode": "GPENCIL_PAINT",
+                "relative_asset_identifier": "brushes\essentials_brushes-gp_vertex.blend\Brush\Blur",
+                "asset_library_type": "ESSENTIALS",
+                "asset_library_identifier": "",
+            },
+            disable_double=True,
+        )
 
-        self.asset_shelf_popover(shelf_name='VIEW3D_AST_brush_gpencil_vertex')
+        self.asset_shelf_popover(shelf_name="VIEW3D_AST_brush_gpencil_vertex")
 
-        self.tool_toggle_color('paint.toggle_brushweight')
+        self.tool_toggle_color("paint.toggle_brushweight")
 
         self.toggle_x_symetry()
 
-    @TILA_Config_Keymaps_Base.print_assigning_keymap('Global Grease Pencil Sculpt Mode')
+    @TILA_Config_Keymaps_Base.print_assigning_keymap("Global Grease Pencil Sculpt Mode")
     def set_keymaps_grease_pencil_sculpt_mode(self):
         ###### Grease Pencil Sculpt Mode
-        self.kmi_init(name='Grease Pencil Sculpt Mode', space_type='EMPTY', region_type='WINDOW', addon=False)
+        self.kmi_init(
+            name="Grease Pencil Sculpt Mode",
+            space_type="EMPTY",
+            region_type="WINDOW",
+            addon=False,
+        )
         self.global_keys()
         self.right_mouse()
         self.mode_selection()
-        self.tool_sculpt('view3d.tila_smart_sculptmode')
-        self.selection_tool(tool='brushes\essentials_brushes-gp_sculpt.blend\Brush\Grab', mode='GPENCIL_SCULPT')
+        self.tool_sculpt("view3d.tila_smart_sculptmode")
+        self.selection_tool(
+            tool="brushes\essentials_brushes-gp_sculpt.blend\Brush\Grab",
+            mode="GPENCIL_SCULPT",
+        )
         # self.kmi_set_replace('wm.tool_set_by_id', 'G', 'PRESS', properties={'name': 'builtin_brush.Grab'})
 
-        self.tool_radial_control(radius={   'data_path_primary': 'tool_settings.gpencil_sculpt_paint.brush.size',
-                                            'data_path_secondary': 'tool_settings.gpencil_sculpt_paint.unified_paint_settings.size',
-                                            'use_secondary': 'tool_settings.gpencil_sculpt_paint.unified_paint_settings.use_unified_size',
-                                            'rotation_path': 'tool_settings.gpencil_sculpt_paint.brush.texture_slot.angle',
-                                            'color_path': 'tool_settings.gpencil_sculpt_paint.brush.cursor_color_add',
-                                            'image_id': 'tool_settings.gpencil_sculpt_paint.brush',
-                                            'fill_color_path': '',
-                                            'fill_color_override_path': '',
-                                            'fill_color_override_test_path': '',
-                                            'zoom_path': '',
-                                            'secondary_tex': False,
-                                            'release_confirm': True},
-                                opacity={   'data_path_primary': 'tool_settings.gpencil_sculpt_paint.brush.strength',
-                                            'data_path_secondary': 'tool_settings.gpencil_sculpt_paint.unified_paint_settings.strength',
-                                            'use_secondary': 'tool_settings.gpencil_sculpt_paint.unified_paint_settings.use_unified_strength',
-                                            'rotation_path': 'tool_settings.gpencil_sculpt_paint.brush.texture_slot.angle',
-                                            'color_path': 'tool_settings.gpencil_sculpt_paint.brush.cursor_color_add',
-                                            'image_id': 'tool_settings.gpencil_sculpt_paint.brush',
-                                            'fill_color_path': '',
-                                            'fill_color_override_path': '',
-                                            'fill_color_override_test_path': '',
-                                            'zoom_path': '',
-                                            'secondary_tex': False,
-                                            'release_confirm': True})
+        self.tool_radial_control(
+            radius={
+                "data_path_primary": "tool_settings.gpencil_sculpt_paint.brush.size",
+                "data_path_secondary": "tool_settings.gpencil_sculpt_paint.unified_paint_settings.size",
+                "use_secondary": "tool_settings.gpencil_sculpt_paint.unified_paint_settings.use_unified_size",
+                "rotation_path": "tool_settings.gpencil_sculpt_paint.brush.texture_slot.angle",
+                "color_path": "tool_settings.gpencil_sculpt_paint.brush.cursor_color_add",
+                "image_id": "tool_settings.gpencil_sculpt_paint.brush",
+                "fill_color_path": "",
+                "fill_color_override_path": "",
+                "fill_color_override_test_path": "",
+                "zoom_path": "",
+                "secondary_tex": False,
+                "release_confirm": True,
+            },
+            opacity={
+                "data_path_primary": "tool_settings.gpencil_sculpt_paint.brush.strength",
+                "data_path_secondary": "tool_settings.gpencil_sculpt_paint.unified_paint_settings.strength",
+                "use_secondary": "tool_settings.gpencil_sculpt_paint.unified_paint_settings.use_unified_strength",
+                "rotation_path": "tool_settings.gpencil_sculpt_paint.brush.texture_slot.angle",
+                "color_path": "tool_settings.gpencil_sculpt_paint.brush.cursor_color_add",
+                "image_id": "tool_settings.gpencil_sculpt_paint.brush",
+                "fill_color_path": "",
+                "fill_color_override_path": "",
+                "fill_color_override_test_path": "",
+                "zoom_path": "",
+                "secondary_tex": False,
+                "release_confirm": True,
+            },
+        )
 
-        self.selection_keys(linked_pick_tool='grease_pencil.select_linked',
-                            more_tool='grease_pencil.select_more',
-                            less_tool='grease_pencil.select_less',
-                            invert_tool='grease_pencil.select_all',
-                            )
+        self.selection_keys(
+            linked_pick_tool="grease_pencil.select_linked",
+            more_tool="grease_pencil.select_more",
+            less_tool="grease_pencil.select_less",
+            invert_tool="grease_pencil.select_all",
+        )
 
-        self.asset_shelf_popover(shelf_name='VIEW3D_AST_brush_gpencil_sculpt')
+        self.asset_shelf_popover(shelf_name="VIEW3D_AST_brush_gpencil_sculpt")
 
-    @TILA_Config_Keymaps_Base.print_assigning_keymap('Global Grease Pencil Weight Paint')
+    @TILA_Config_Keymaps_Base.print_assigning_keymap("Global Grease Pencil Weight Paint")
     def set_keymaps_grease_pencil_weight_paint(self):
         # Grease Pencil Weight Paint
-        self.kmi_init(name='Grease Pencil Weight Paint', space_type='EMPTY', region_type='WINDOW', addon=False)
+        self.kmi_init(
+            name="Grease Pencil Weight Paint",
+            space_type="EMPTY",
+            region_type="WINDOW",
+            addon=False,
+        )
         self.global_keys()
         self.right_mouse()
         self.mode_selection()
-        self.tool_sculpt('view3d.tila_smart_sculptmode')
-        self.selection_tool(tool='brushes\essentials_brushes-gp_weight.blend\Brush\Paint', mode='GPENCIL_WEIGHT')
+        self.tool_sculpt("view3d.tila_smart_sculptmode")
+        self.selection_tool(
+            tool="brushes\essentials_brushes-gp_weight.blend\Brush\Paint",
+            mode="GPENCIL_WEIGHT",
+        )
 
-        self.tool_radial_control(radius={   'data_path_primary': 'tool_settings.gpencil_weight_paint.brush.size',
-                                            'data_path_secondary': 'tool_settings.gpencil_weight_paint.unified_paint_settings.size',
-                                            'use_secondary': 'tool_settings.gpencil_weight_paint.unified_paint_settings.use_unified_size',
-                                            'rotation_path': 'tool_settings.gpencil_weight_paint.brush.texture_slot.angle',
-                                            'color_path': 'tool_settings.gpencil_weight_paint.brush.cursor_color_add',
-                                            'image_id': 'tool_settings.gpencil_weight_paint.brush',
-                                            'fill_color_path': '',
-                                            'fill_color_override_path': '',
-                                            'fill_color_override_test_path': '',
-                                            'zoom_path': '',
-                                            'secondary_tex': False,
-                                            'release_confirm': True},
-                                opacity={   'data_path_primary': 'tool_settings.gpencil_weight_paint.brush.strength',
-                                            'data_path_secondary': 'tool_settings.gpencil_weight_paint.unified_paint_settings.strength',
-                                            'use_secondary': 'tool_settings.gpencil_weight_paint.unified_paint_settings.use_unified_strength',
-                                            'rotation_path': 'tool_settings.gpencil_weight_paint.brush.texture_slot.angle',
-                                            'color_path': 'tool_settings.gpencil_weight_paint.brush.cursor_color_add',
-                                            'image_id': 'tool_settings.gpencil_weight_paint.brush',
-                                            'fill_color_path': '',
-                                            'fill_color_override_path': '',
-                                            'fill_color_override_test_path': '',
-                                            'zoom_path': '',
-                                            'secondary_tex': False,
-                                            'release_confirm': True},
-                                weight={'data_path_primary': 'tool_settings.gpencil_weight_paint.brush.weight',
-                                            'data_path_secondary': 'tool_settings.gpencil_weight_paint.unified_paint_settings.weight',
-                                            'use_secondary': 'tool_settings.gpencil_weight_paint.unified_paint_settings.use_unified_weight',
-                                            'rotation_path': 'tool_settings.gpencil_weight_paint.brush.texture_slot.angle',
-                                            'color_path': 'tool_settings.gpencil_weight_paint.brush.cursor_color_add',
-                                            'image_id': 'tool_settings.gpencil_weight_paint.brush',
-                                            'fill_color_path': '',
-                                            'fill_color_override_path': '',
-                                            'fill_color_override_test_path': '',
-                                            'zoom_path': '',
-                                            'secondary_tex': False,
-                                            'release_confirm': True})
+        self.tool_radial_control(
+            radius={
+                "data_path_primary": "tool_settings.gpencil_weight_paint.brush.size",
+                "data_path_secondary": "tool_settings.gpencil_weight_paint.unified_paint_settings.size",
+                "use_secondary": "tool_settings.gpencil_weight_paint.unified_paint_settings.use_unified_size",
+                "rotation_path": "tool_settings.gpencil_weight_paint.brush.texture_slot.angle",
+                "color_path": "tool_settings.gpencil_weight_paint.brush.cursor_color_add",
+                "image_id": "tool_settings.gpencil_weight_paint.brush",
+                "fill_color_path": "",
+                "fill_color_override_path": "",
+                "fill_color_override_test_path": "",
+                "zoom_path": "",
+                "secondary_tex": False,
+                "release_confirm": True,
+            },
+            opacity={
+                "data_path_primary": "tool_settings.gpencil_weight_paint.brush.strength",
+                "data_path_secondary": "tool_settings.gpencil_weight_paint.unified_paint_settings.strength",
+                "use_secondary": "tool_settings.gpencil_weight_paint.unified_paint_settings.use_unified_strength",
+                "rotation_path": "tool_settings.gpencil_weight_paint.brush.texture_slot.angle",
+                "color_path": "tool_settings.gpencil_weight_paint.brush.cursor_color_add",
+                "image_id": "tool_settings.gpencil_weight_paint.brush",
+                "fill_color_path": "",
+                "fill_color_override_path": "",
+                "fill_color_override_test_path": "",
+                "zoom_path": "",
+                "secondary_tex": False,
+                "release_confirm": True,
+            },
+            weight={
+                "data_path_primary": "tool_settings.gpencil_weight_paint.brush.weight",
+                "data_path_secondary": "tool_settings.gpencil_weight_paint.unified_paint_settings.weight",
+                "use_secondary": "tool_settings.gpencil_weight_paint.unified_paint_settings.use_unified_weight",
+                "rotation_path": "tool_settings.gpencil_weight_paint.brush.texture_slot.angle",
+                "color_path": "tool_settings.gpencil_weight_paint.brush.cursor_color_add",
+                "image_id": "tool_settings.gpencil_weight_paint.brush",
+                "fill_color_path": "",
+                "fill_color_override_path": "",
+                "fill_color_override_test_path": "",
+                "zoom_path": "",
+                "secondary_tex": False,
+                "release_confirm": True,
+            },
+        )
 
-        self.selection_keys(linked_pick_tool='grease_pencil.select_linked',
-                            more_tool='grease_pencil.select_more',
-                            less_tool='grease_pencil.select_less'
-                            )
+        self.selection_keys(
+            linked_pick_tool="grease_pencil.select_linked",
+            more_tool="grease_pencil.select_more",
+            less_tool="grease_pencil.select_less",
+        )
 
-        self.asset_shelf_popover(shelf_name='VIEW3D_AST_brush_gpencil_weight')
+        self.asset_shelf_popover(shelf_name="VIEW3D_AST_brush_gpencil_weight")
 
-        self.kmi_set_replace('wm.tool_set_by_id', self.k_manip, 'PRESS', ctrl=True, shift=True, alt=True, properties={'name': 'builtin_brush.Weight'})
+        self.kmi_set_replace(
+            "wm.tool_set_by_id",
+            self.k_manip,
+            "PRESS",
+            ctrl=True,
+            shift=True,
+            alt=True,
+            properties={"name": "builtin_brush.Weight"},
+        )
 
-        self.kmi_set_replace('paint.tila_brush_select_and_paint', self.k_manip, 'PRESS', shift=True, properties={'mode': 'GPENCIL_WEIGHT', 'relative_asset_identifier' : 'brushes\essentials_brushes-gp_weight.blend\Brush\Blur', 'asset_library_type':'ESSENTIALS', 'asset_library_identifier': '' }, disable_double=True)
+        self.kmi_set_replace(
+            "paint.tila_brush_select_and_paint",
+            self.k_manip,
+            "PRESS",
+            shift=True,
+            properties={
+                "mode": "GPENCIL_WEIGHT",
+                "relative_asset_identifier": "brushes\essentials_brushes-gp_weight.blend\Brush\Blur",
+                "asset_library_type": "ESSENTIALS",
+                "asset_library_identifier": "",
+            },
+            disable_double=True,
+        )
 
         # self.kmi_set_replace('paint.tila_brush_select_and_paint', self.k_manip, 'PRESS', shift=True, properties={'tool': 'WEIGHT', 'mode': 'AVERAGE', 'brush': 'Average'})
         # self.kmi_set_replace('paint.tila_brush_select_and_paint', self.k_manip, 'PRESS', ctrl=True, properties={'tool': 'WEIGHT', 'mode': 'DRAW', 'brush': 'Subtract'})
 
-    @TILA_Config_Keymaps_Base.print_assigning_keymap('Global 3D Paint Face Mask')
+    @TILA_Config_Keymaps_Base.print_assigning_keymap("Global 3D Paint Face Mask")
     def set_keymaps_3d_paint_face_mask(self):
         # Paint Face Mask (Weight, Vertex, Texture)
-        self.kmi_init(name='Paint Face Mask (Weight, Vertex, Texture)', space_type='EMPTY', region_type='WINDOW', addon=False)
+        self.kmi_init(
+            name="Paint Face Mask (Weight, Vertex, Texture)",
+            space_type="EMPTY",
+            region_type="WINDOW",
+            addon=False,
+        )
 
-        self.selection_keys(more_tool='paint.face_select_more',
-                            less_tool='paint.face_select_less',
-                            linked_pick_tool='paint.face_select_linked_pick')
+        self.selection_keys(
+            more_tool="paint.face_select_more",
+            less_tool="paint.face_select_less",
+            linked_pick_tool="paint.face_select_linked_pick",
+        )
 
-    @TILA_Config_Keymaps_Base.print_assigning_keymap('Global Paint Vertex Selection')
+    @TILA_Config_Keymaps_Base.print_assigning_keymap("Global Paint Vertex Selection")
     def set_keymaps_paint_vertex_selection(self):
         # Paint Vertex Selection (Weight, Vertex)
-        self.kmi_init(name='Paint Vertex Selection (Weight, Vertex)', space_type='EMPTY', region_type='WINDOW', addon=False)
+        self.kmi_init(
+            name="Paint Vertex Selection (Weight, Vertex)",
+            space_type="EMPTY",
+            region_type="WINDOW",
+            addon=False,
+        )
 
-        self.selection_keys(more_tool='paint.vert_select_more',
-                            less_tool='paint.vert_select_less')
+        self.selection_keys(more_tool="paint.vert_select_more", less_tool="paint.vert_select_less")
 
-    @TILA_Config_Keymaps_Base.print_assigning_keymap('Global Frames')
+    @TILA_Config_Keymaps_Base.print_assigning_keymap("Global Frames")
     def set_keymaps_frames(self):
         ###### Frames
-        self.kmi_init(name='Frames', space_type='EMPTY', region_type='WINDOW', addon=False)
+        self.kmi_init(name="Frames", space_type="EMPTY", region_type="WINDOW", addon=False)
         self.global_keys()
         self.right_mouse()
 
-    @TILA_Config_Keymaps_Base.print_assigning_keymap('Global Paint Vertex Selection')
+    @TILA_Config_Keymaps_Base.print_assigning_keymap("Global Paint Vertex Selection")
     def set_keymaps_screen(self):
         ###### Screen
-        self.kmi_init(name='Screen', space_type='EMPTY', region_type='WINDOW', addon=False)
+        self.kmi_init(name="Screen", space_type="EMPTY", region_type="WINDOW", addon=False)
         self.global_keys()
         self.right_mouse()
-        self.kmi_set_replace('screen.screen_full_area', 'SPACE', 'PRESS', ctrl=True, alt=True)
-        self.kmi_set_replace('screen.screen_full_area', 'SPACE', 'PRESS', ctrl=True, alt=True, shift=True, properties={'use_hide_panels': True})
+        self.kmi_set_replace("screen.screen_full_area", "SPACE", "PRESS", ctrl=True, alt=True)
+        self.kmi_set_replace(
+            "screen.screen_full_area",
+            "SPACE",
+            "PRESS",
+            ctrl=True,
+            alt=True,
+            shift=True,
+            properties={"use_hide_panels": True},
+        )
 
-    @TILA_Config_Keymaps_Base.print_assigning_keymap('Global Particle')
+    @TILA_Config_Keymaps_Base.print_assigning_keymap("Global Particle")
     def set_keymaps_particle(self):
         ###### Particle
-        self.kmi_init(name='Particle', space_type='EMPTY', region_type='WINDOW', addon=False)
+        self.kmi_init(name="Particle", space_type="EMPTY", region_type="WINDOW", addon=False)
         self.global_keys()
         self.mode_selection()
-        self.kmi_set_active(False, type='X', idname='particle.delete')
-        self.tool_radial_control(radius={'data_path_primary': 'tool_settings.particle_edit.brush.size',
-        'release_confirm': True},
-        opacity={'data_path_primary': 'tool_settings.particle_edit.brush.strength'})
+        self.kmi_set_active(False, type="X", idname="particle.delete")
+        self.tool_radial_control(
+            radius={
+                "data_path_primary": "tool_settings.particle_edit.brush.size",
+                "release_confirm": True,
+            },
+            opacity={"data_path_primary": "tool_settings.particle_edit.brush.strength"},
+        )
 
-        kmi = self.kmi_find(idname='wm.call_menu', type=self.k_context)
-        kmi.value = 'RELEASE'
-        self.selection_keys(lasso_tool='view3d.select_lasso',
-                            select_through_tool='view3d.tila_select_through',
-                            more_tool='particle.select_more',
-                              less_tool='particle.select_less',
-                              linked_tool='particle.select_linked',
-                            linked_pick_tool='particle.select_linked_pick',
-                            invert_tool='particle.select_all')
+        kmi = self.kmi_find(idname="wm.call_menu", type=self.k_context)
+        kmi.value = "RELEASE"
+        self.selection_keys(
+            lasso_tool="view3d.select_lasso",
+            select_through_tool="view3d.tila_select_through",
+            more_tool="particle.select_more",
+            less_tool="particle.select_less",
+            linked_tool="particle.select_linked",
+            linked_pick_tool="particle.select_linked_pick",
+            invert_tool="particle.select_all",
+        )
 
-    @TILA_Config_Keymaps_Base.print_assigning_keymap('Global Transform Modal Map')
+    @TILA_Config_Keymaps_Base.print_assigning_keymap("Global Transform Modal Map")
     def set_keymaps_transform_modal_map(self):
         ###### Transform Modal Map
-        self.kmi_init(name='Transform Modal Map', space_type='EMPTY', region_type='WINDOW', addon=False)
+        self.kmi_init(
+            name="Transform Modal Map",
+            space_type="EMPTY",
+            region_type="WINDOW",
+            addon=False,
+        )
         self.tool_proportional()
 
-    @TILA_Config_Keymaps_Base.print_assigning_keymap('Global Knife Tool Modal Map')
+    @TILA_Config_Keymaps_Base.print_assigning_keymap("Global Knife Tool Modal Map")
     def set_keymaps_knife_tool_modal_map(self):
         ###### Knife Tool Modal Map
-        self.kmi_init(name='Knife Tool Modal Map', space_type='EMPTY', region_type='WINDOW', addon=False)
-        panning = self.kmi_find(propvalue='PANNING')
+        self.kmi_init(
+            name="Knife Tool Modal Map",
+            space_type="EMPTY",
+            region_type="WINDOW",
+            addon=False,
+        )
+        panning = self.kmi_find(propvalue="PANNING")
         if panning:
             panning.type = self.k_select
-            panning.value = 'ANY'
+            panning.value = "ANY"
             panning.any = True
 
-        add_cut = self.kmi_find(propvalue='ADD_CUT')
+        add_cut = self.kmi_find(propvalue="ADD_CUT")
         if add_cut:
-            add_cut.type = 'RIGHTMOUSE'
+            add_cut.type = "RIGHTMOUSE"
 
-        end_cut = self.kmi_find(propvalue='NEW_CUT')
+        end_cut = self.kmi_find(propvalue="NEW_CUT")
         if end_cut:
-            end_cut.type = 'MIDDLEMOUSE'
+            end_cut.type = "MIDDLEMOUSE"
 
-        self.modal_set_replace('NEW_CUT', 'SPACE', 'PRESS')
+        self.modal_set_replace("NEW_CUT", "SPACE", "PRESS")
 
-    @TILA_Config_Keymaps_Base.print_assigning_keymap('Global Gesture Box Modal Map')
+    @TILA_Config_Keymaps_Base.print_assigning_keymap("Global Gesture Box Modal Map")
     def set_keymaps_gesture_box_modal_map(self):
         ###### Gesture Box Modal Map
-        self.kmi_init(name='Gesture Box', space_type='EMPTY', region_type='WINDOW', addon=False)
-        self.modal_set_replace('SELECT', self.k_cursor, 'RELEASE', any=True)
+        self.kmi_init(name="Gesture Box", space_type="EMPTY", region_type="WINDOW", addon=False)
+        self.modal_set_replace("SELECT", self.k_cursor, "RELEASE", any=True)

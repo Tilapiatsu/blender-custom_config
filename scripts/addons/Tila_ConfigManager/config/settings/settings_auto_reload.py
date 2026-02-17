@@ -1,7 +1,9 @@
 import bpy
-from .settings import TILA_Config_Settings_Base
+from Tila_ConfigManager.config.settings.settings import TILA_Config_Settings_Base
 
-addon_name = 'Auto_Reload'
+addon_name = "Auto_Reload"
+
+
 class TILA_Config_Settings(TILA_Config_Settings_Base):
     addon_name = addon_name
 
@@ -12,4 +14,4 @@ class TILA_Config_Settings(TILA_Config_Settings_Base):
     def set_settings(self):
         context = bpy.context
         addon = context.preferences.addons.get(self.addon_name)
-        self.set_setting(addon, 'update_check_launch', False)
+        self.set_setting(addon, "update_check_launch", False)
