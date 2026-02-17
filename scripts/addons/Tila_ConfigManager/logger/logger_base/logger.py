@@ -37,20 +37,17 @@ class LOG(object):
     def info(self, message:str, print_log=True):
         if print_log:
             print(message)
-        self.set_basic_config()
         self.logger.info(message)
 
     def debug(self, message:str, print_log=True):
         if print_log:
             print(message)
-        self.set_basic_config()
         self.logger.debug(message)
 
     def warning(self, message:str, print_log=True, store_failure=True):
         message = 'WARNING : ' + str(message)
         if print_log:
             print(message)
-        self.set_basic_config()
 
         if store_failure:
             self.store_failure(message)
@@ -61,7 +58,6 @@ class LOG(object):
         message = 'ERROR : ' + str(message)
         if print_log:
             print(message)
-        self.set_basic_config()
 
         if store_failure:
             self.store_failure(message)
