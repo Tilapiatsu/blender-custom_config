@@ -298,6 +298,9 @@ class PathElementAM:
             return None
 
         if self.local_subpath_resolved.path is None or self.destination_path.path is None:
+            self.log_progress.warning(
+                f"Path is invalid : Skipping {self.local_subpath_resolved.path}, {self.destination_path.path}"
+            )
             return None
 
         if self.destination_path.exists:
@@ -310,8 +313,8 @@ class PathElementAM:
         self.log_progress.start(f"Linking {self.local_subpath_resolved.path} -> {self.destination_path.path}")
 
         result = [
-            self.local_subpath_resolved.path,
-            self.destination_path.path,
+            self.local_subpath_resolved.path if platform.system() == "Linux" else str(self.local_subpath_resolved.path),
+            self.destination_path.path if platform.system() == "Linux" else str(self.destination_path.path),
             self.local_subpath_resolved.is_dir,
         ]
 
@@ -321,6 +324,7 @@ class PathElementAM:
         if not force and not self.is_enable:
             return
         if not self.destination_path.is_set:
+            self.log_progress.warning(f"Path is not set : Skipping {self.destination_path.path}")
             return
         elif self.destination_path.is_file:
             addon_name = path.splitext(path.basename(self.destination_path.path))[0]
@@ -734,6 +738,7 @@ class AddonManager:
             link_command = command
 
         sp_command = [create_symbolic_link_file, "--", "--file_to_link", *link_command]
+
         match platform.system():
             case "Windows":
                 admin.elevate(sp_command)
