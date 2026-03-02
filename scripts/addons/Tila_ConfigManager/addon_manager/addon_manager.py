@@ -118,8 +118,8 @@ def disable_addon(addon_name):
 
 
 def file_acces_handler(func, path, exc_info):
-    # print('Handling Error for file ', path)
-    # print(exc_info)
+    LOG.debug("Handling Error for file ", path)
+    LOG.debug(exc_info)
     # Check if file access issue
     if not os.access(path, os.W_OK):
         # Try to change the permision of file
@@ -301,7 +301,7 @@ class PathAM:
             if self.is_file:
                 os.remove(self.path)
             elif self.is_dir:
-                shutil.rmtree(self.path, onerror=file_acces_handler)
+                shutil.rmtree(self.path, onexc=file_acces_handler)
 
 
 class PathElementAM:

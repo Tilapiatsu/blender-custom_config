@@ -107,5 +107,13 @@ class TILA_Config_Settings(TILA_Config_Settings_Base):
         self.set_setting(context, "inputs.use_zoom_to_mouse", True)
         self.set_setting(context, "inputs.pressure_softness", -0.5)
 
+        # Filepath Settings
+        self.set_setting(context, "filepaths.auto_save_time", 2)
+        self.set_setting(context, "filepaths.save_version", 1)
+        if platform.system() == "Linux":
+            temp_path = Path("/home/tilapiatsu/.blender_autosave/")
+            temp_path.mkdir(exist_ok=True)
+            self.set_setting(context, "filepaths.temporary_directory", str(temp_path))
+
         # System
         self.set_setting(context, "system.gpu_backend", "VULKAN")
