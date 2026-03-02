@@ -40,14 +40,10 @@ class TILA_Config_SetupBlender(Operator):
         bpy.ops.tila.config_display_current_log()
 
         self.wm = bpy.context.window_manager
-        self.log_status = log_list(
-            self.wm.tila_config_status_list, "tila_config_status_list_idx"
-        )
+        self.log_status = log_list(self.wm.tila_config_status_list, "tila_config_status_list_idx")
         self.wm.tila_setup_blender_progress = "NONE"
 
-        self._timer = bpy.context.window_manager.event_timer_add(
-            0.01, window=context.window
-        )
+        self._timer = bpy.context.window_manager.event_timer_add(0.01, window=context.window)
         bpy.context.window_manager.modal_handler_add(self)
         self.report({"INFO"}, "TilaConfig : Blender Setup Started !")
         self.log_status.start_stage("Blender Setup Started !")
@@ -98,9 +94,7 @@ class TILA_Config_UpdateSetupBlender(Operator):
         self.wm = bpy.context.window_manager
         self.wm.tila_setup_blender_progress = "NONE"
 
-        self._timer = bpy.context.window_manager.event_timer_add(
-            0.01, window=context.window
-        )
+        self._timer = bpy.context.window_manager.event_timer_add(0.01, window=context.window)
         bpy.context.window_manager.modal_handler_add(self)
         self.report({"INFO"}, "TilaConfig : Update Blender Setup Started !")
         self.log_status.start_stage("Update Blender Setup Started !")
@@ -112,9 +106,7 @@ class TILA_Config_UpdateSetupBlender(Operator):
                 case "NONE":
                     bpy.ops.tila.config_disable_addon_list("EXEC_DEFAULT", force=True)
                 case "DISABLE_DONE":
-                    bpy.ops.tila.config_clean_addon_list(
-                        "EXEC_DEFAULT", force=True, clean_cloned=True
-                    )
+                    bpy.ops.tila.config_clean_addon_list("EXEC_DEFAULT", force=True, clean_cloned=True)
                 case "CLEAN_DONE":
                     bpy.ops.tila.config_sync_addon_list("EXEC_DEFAULT", overwrite=False)
                 case "SYNC_DONE":
@@ -144,22 +136,16 @@ class TILA_Config_ForceEnableAddon(Operator):
     bl_label = "Tila Config : Force Enable Addon"
     bl_options = {"REGISTER"}
 
-    name: bpy.props.StringProperty(
-        name="Addon Name", default="", description="Name of the addon Enable"
-    )
+    name: bpy.props.StringProperty(name="Addon Name", default="", description="Name of the addon Enable")
 
     def execute(self, context):
         self.AM = addon_manager.AddonManager(AL)
 
         self.wm = bpy.context.window_manager
-        self.log_status = log_list(
-            self.wm.tila_config_status_list, "tila_config_status_list_idx"
-        )
+        self.log_status = log_list(self.wm.tila_config_status_list, "tila_config_status_list_idx")
         self.wm.tila_setup_blender_progress = "NONE"
 
-        self._timer = bpy.context.window_manager.event_timer_add(
-            0.01, window=context.window
-        )
+        self._timer = bpy.context.window_manager.event_timer_add(0.01, window=context.window)
         bpy.context.window_manager.modal_handler_add(self)
         self.report({"INFO"}, "TilaConfig : Force Enable Addon Started !")
         self.log_status.start_stage("Force Enable Addon Started !")
@@ -169,17 +155,11 @@ class TILA_Config_ForceEnableAddon(Operator):
         if event.type == "TIMER":
             match context.window_manager.tila_setup_blender_progress:
                 case "NONE":
-                    bpy.ops.tila.config_sync_addon_list(
-                        "EXEC_DEFAULT", name=self.name, force=True, overwrite=True
-                    )
+                    bpy.ops.tila.config_sync_addon_list("EXEC_DEFAULT", name=self.name, force=True, overwrite=True)
                 case "SYNC_DONE":
-                    bpy.ops.tila.config_link_addon_list(
-                        "EXEC_DEFAULT", name=self.name, force=True, overwrite=True
-                    )
+                    bpy.ops.tila.config_link_addon_list("EXEC_DEFAULT", name=self.name, force=True, overwrite=True)
                 case "LINK_DONE":
-                    bpy.ops.tila.config_enable_addon_list(
-                        "EXEC_DEFAULT", name=self.name, force=True
-                    )
+                    bpy.ops.tila.config_enable_addon_list("EXEC_DEFAULT", name=self.name, force=True)
                 case "ENABLE_DONE":
                     bpy.ops.tila.config_register_keymaps("EXEC_DEFAULT", name=self.name)
                 case "REGISTER_KEYMAP_DONE":
@@ -200,22 +180,16 @@ class TILA_Config_ForceDisableAddon(Operator):
     bl_label = "Tila Config : Force Disable Addon"
     bl_options = {"REGISTER"}
 
-    name: bpy.props.StringProperty(
-        name="Addon Name", default="", description="Name of the addon Disable"
-    )
+    name: bpy.props.StringProperty(name="Addon Name", default="", description="Name of the addon Disable")
 
     def execute(self, context):
         self.AM = addon_manager.AddonManager(AL)
 
         self.wm = bpy.context.window_manager
-        self.log_status = log_list(
-            self.wm.tila_config_status_list, "tila_config_status_list_idx"
-        )
+        self.log_status = log_list(self.wm.tila_config_status_list, "tila_config_status_list_idx")
         self.wm.tila_setup_blender_progress = "NONE"
 
-        self._timer = bpy.context.window_manager.event_timer_add(
-            0.01, window=context.window
-        )
+        self._timer = bpy.context.window_manager.event_timer_add(0.01, window=context.window)
         bpy.context.window_manager.modal_handler_add(self)
         self.report({"INFO"}, "TilaConfig : Force Disable Addon Started !")
         self.log_status.start_stage("Force Disable Addon Started !")
@@ -225,13 +199,9 @@ class TILA_Config_ForceDisableAddon(Operator):
         if event.type == "TIMER":
             match context.window_manager.tila_setup_blender_progress:
                 case "NONE":
-                    bpy.ops.tila.config_disable_addon_list(
-                        "EXEC_DEFAULT", name=self.name, force=True
-                    )
+                    bpy.ops.tila.config_disable_addon_list("EXEC_DEFAULT", name=self.name, force=True)
                 case "DISABLE_DONE":
-                    bpy.ops.tila.config_clean_addon_list(
-                        "EXEC_DEFAULT", name=self.name, force=True
-                    )
+                    bpy.ops.tila.config_clean_addon_list("EXEC_DEFAULT", name=self.name, force=True)
                 case "CLEAN_DONE":
                     context.window_manager.tila_setup_blender_progress = "NONE"
                     self.report({"INFO"}, "TilaConfig : Force Disable Addon Done !")
@@ -272,9 +242,7 @@ class TILA_Config_RemoveConfig(Operator):
         self.wm = bpy.context.window_manager
         self.wm.tila_setup_blender_progress = "NONE"
 
-        self._timer = bpy.context.window_manager.event_timer_add(
-            0.01, window=context.window
-        )
+        self._timer = bpy.context.window_manager.event_timer_add(0.01, window=context.window)
         bpy.context.window_manager.modal_handler_add(self)
         self.report({"INFO"}, "TilaConfig : Remove Config Started !")
         self.log_status.start_stage("Remove Blender Setup Started !")
@@ -310,9 +278,7 @@ class TILA_Config_CleanAddonList(Operator):
     bl_label = "Tila Config : clean Addon List"
     bl_options = {"REGISTER"}
 
-    name: bpy.props.StringProperty(
-        name="Addon Name", default="", description="Name of the addon to Clean"
-    )
+    name: bpy.props.StringProperty(name="Addon Name", default="", description="Name of the addon to Clean")
     force: bpy.props.BoolProperty(
         name="Force Clean",
         default=False,
@@ -342,13 +308,9 @@ class TILA_Config_CleanAddonList(Operator):
         if self.name == "":
             self.AM.queue_clean(force=self.force, clean_cloned=self.clean_cloned)
         else:
-            self.AM.queue_clean(
-                element_name=self.name, force=self.force, clean_cloned=self.clean_cloned
-            )
+            self.AM.queue_clean(element_name=self.name, force=self.force, clean_cloned=self.clean_cloned)
 
-        self._timer = bpy.context.window_manager.event_timer_add(
-            0.01, window=context.window
-        )
+        self._timer = bpy.context.window_manager.event_timer_add(0.01, window=context.window)
         bpy.context.window_manager.modal_handler_add(self)
         return {"RUNNING_MODAL"}
 
@@ -384,9 +346,7 @@ class TILA_Config_SyncAddonList(Operator):
     bl_label = "Tila Config : Sync Addon List"
     bl_options = {"REGISTER"}
 
-    name: bpy.props.StringProperty(
-        name="Addon Name", default="", description="Name of the addon to sync"
-    )
+    name: bpy.props.StringProperty(name="Addon Name", default="", description="Name of the addon to sync")
     force: bpy.props.BoolProperty(
         name="Force Sync",
         default=False,
@@ -418,13 +378,9 @@ class TILA_Config_SyncAddonList(Operator):
         if self.name == "":
             self.AM.queue_sync(force=self.force, overwrite=self.overwrite)
         else:
-            self.AM.queue_sync(
-                element_name=self.name, force=self.force, overwrite=self.overwrite
-            )
+            self.AM.queue_sync(element_name=self.name, force=self.force, overwrite=self.overwrite)
 
-        self._timer = bpy.context.window_manager.event_timer_add(
-            0.01, window=context.window
-        )
+        self._timer = bpy.context.window_manager.event_timer_add(0.01, window=context.window)
         bpy.context.window_manager.modal_handler_add(self)
         return {"RUNNING_MODAL"}
 
@@ -457,9 +413,7 @@ class TILA_Config_LinkAddonList(Operator):
     bl_label = "Tila Config : Link Addon List"
     bl_options = {"REGISTER"}
 
-    name: bpy.props.StringProperty(
-        name="Addon Name", default="", description="Name of the addon to Sync"
-    )
+    name: bpy.props.StringProperty(name="Addon Name", default="", description="Name of the addon to Sync")
     force: bpy.props.BoolProperty(
         name="Force Link",
         default=False,
@@ -487,9 +441,7 @@ class TILA_Config_LinkAddonList(Operator):
         if self.name == "":
             self.AM.link(force=self.force, overwrite=self.overwrite)
         else:
-            self.AM.link(
-                element_name=self.name, force=self.force, overwrite=self.overwrite
-            )
+            self.AM.link(element_name=self.name, force=self.force, overwrite=self.overwrite)
 
         time.sleep(1)
 
@@ -512,9 +464,7 @@ class TILA_Config_EnableAddonList(Operator):
     bl_label = "Tila Config : Enable Addon List"
     bl_options = {"REGISTER"}
 
-    name: bpy.props.StringProperty(
-        name="Addon Name", default="", description="Name of the addon to enable"
-    )
+    name: bpy.props.StringProperty(name="Addon Name", default="", description="Name of the addon to enable")
     force: bpy.props.BoolProperty(
         name="Force Enable",
         default=False,
@@ -536,9 +486,7 @@ class TILA_Config_EnableAddonList(Operator):
         else:
             self.AM.queue_enable(element_name=self.name, force=self.force)
 
-        self._timer = bpy.context.window_manager.event_timer_add(
-            0.01, window=context.window
-        )
+        self._timer = bpy.context.window_manager.event_timer_add(0.01, window=context.window)
         bpy.context.window_manager.modal_handler_add(self)
         return {"RUNNING_MODAL"}
 
@@ -570,9 +518,7 @@ class TILA_Config_DisableAddonList(Operator):
     bl_label = "Tila Config : Disable Addon List"
     bl_options = {"REGISTER"}
 
-    name: bpy.props.StringProperty(
-        name="Addon Name", default="", description="Name of the addon to enable"
-    )
+    name: bpy.props.StringProperty(name="Addon Name", default="", description="Name of the addon to enable")
     force: bpy.props.BoolProperty(
         name="Force Disable",
         default=False,
@@ -594,9 +540,7 @@ class TILA_Config_DisableAddonList(Operator):
         else:
             self.AM.queue_disable(element_name=self.name, force=self.force)
 
-        self._timer = bpy.context.window_manager.event_timer_add(
-            0.01, window=context.window
-        )
+        self._timer = bpy.context.window_manager.event_timer_add(0.01, window=context.window)
         bpy.context.window_manager.modal_handler_add(self)
         return {"RUNNING_MODAL"}
 
@@ -653,9 +597,7 @@ class TILA_Config_RegisterKeymaps(Operator):
         else:
             self.AM.queue_set_keymaps(element_name=self.name, restore=self.restore)
 
-        self._timer = bpy.context.window_manager.event_timer_add(
-            0.01, window=context.window
-        )
+        self._timer = bpy.context.window_manager.event_timer_add(0.01, window=context.window)
         bpy.context.window_manager.modal_handler_add(self)
         return {"RUNNING_MODAL"}
 
@@ -698,9 +640,7 @@ class TILA_Config_SetSettings(Operator):
     bl_label = "Tila Config : Set Settings"
     bl_options = {"REGISTER"}
 
-    name: bpy.props.StringProperty(
-        name="Addon Name", default="", description="Name of the addon to enable"
-    )
+    name: bpy.props.StringProperty(name="Addon Name", default="", description="Name of the addon to enable")
 
     def execute(self, context):
         self.log_status = log_list(
@@ -717,9 +657,7 @@ class TILA_Config_SetSettings(Operator):
         else:
             self.AM.queue_set_settings(element_name=self.name)
 
-        self._timer = bpy.context.window_manager.event_timer_add(
-            0.01, window=context.window
-        )
+        self._timer = bpy.context.window_manager.event_timer_add(0.01, window=context.window)
         bpy.context.window_manager.modal_handler_add(self)
         return {"RUNNING_MODAL"}
 
@@ -742,9 +680,9 @@ class TILA_Config_SetSettings(Operator):
         return {"PASS_THROUGH"}
 
 
-def import_addon_element(source_element, target_element):
+def import_addon_element(source_element: addon_manager.ElementAM, target_element):
     def get_valid_string(string, fallback):
-        return fallback if string is None else string
+        return fallback if string is None or string == "." else string
 
     target_element.name = source_element.name
     target_element.is_enable = source_element.is_enable
@@ -757,9 +695,7 @@ def import_addon_element(source_element, target_element):
     target_element.branch = get_valid_string(source_element.branch, "")
     target_element.is_submodule = source_element.is_submodule
     target_element.local_path = get_valid_string(str(source_element.local_path), "")
-    target_element.windows_drive = get_valid_string(
-        str(source_element.windows_drive), ""
-    )
+    target_element.windows_drive = get_valid_string(str(source_element.windows_drive), "")
     target_element.linux_drive = get_valid_string(str(source_element.linux_drive), "")
     target_element.keymaps = source_element.keymaps
     target_element.paths.clear()
@@ -779,26 +715,14 @@ def get_addon_element_dict(element, path_fallback):
     addon_element_dict["is_enable"] = element.is_enable
     addon_element_dict["is_sync"] = element.is_sync
     addon_element_dict["is_extension"] = element.is_extension
-    addon_element_dict["extension_id"] = get_valid_string(
-        element.extension_id, path_fallback
-    )
-    addon_element_dict["online_url"] = get_valid_string(
-        element.online_url, path_fallback
-    )
-    addon_element_dict["repository_url"] = get_valid_string(
-        element.repository_url, path_fallback
-    )
+    addon_element_dict["extension_id"] = get_valid_string(element.extension_id, path_fallback)
+    addon_element_dict["online_url"] = get_valid_string(element.online_url, path_fallback)
+    addon_element_dict["repository_url"] = get_valid_string(element.repository_url, path_fallback)
     addon_element_dict["branch"] = get_valid_string(element.branch, path_fallback)
     addon_element_dict["is_submodule"] = element.is_submodule
-    addon_element_dict["local_path"] = get_valid_string(
-        element.local_path, path_fallback
-    )
-    addon_element_dict["windows_drive"] = get_valid_string(
-        element.windows_drive, path_fallback
-    )
-    addon_element_dict["linux_drive"] = get_valid_string(
-        element.linux_drive, path_fallback
-    )
+    addon_element_dict["local_path"] = get_valid_string(element.local_path, path_fallback)
+    addon_element_dict["windows_drive"] = get_valid_string(element.windows_drive, path_fallback)
+    addon_element_dict["linux_drive"] = get_valid_string(element.linux_drive, path_fallback)
     addon_element_dict["keymaps"] = element.keymaps
 
     if not len(element.paths):
@@ -809,9 +733,7 @@ def get_addon_element_dict(element, path_fallback):
             path = {}
             path["is_enable"] = p.is_enable
             path["local_subpath"] = get_valid_string(p.local_subpath, path_fallback)
-            path["destination_path"] = get_valid_string(
-                p.destination_path, path_fallback
-            )
+            path["destination_path"] = get_valid_string(p.destination_path, path_fallback)
             addon_element_dict["paths"].append(path)
 
     return addon_element_dict
@@ -971,15 +893,11 @@ class TILA_Config_AddAddon(bpy.types.Operator):
     bl_label = "Tila Config : Add Addon"
     bl_options = {"REGISTER"}
 
-    name: bpy.props.StringProperty(
-        name="Addon Name", default="", description="name of the addon"
-    )
+    name: bpy.props.StringProperty(name="Addon Name", default="", description="name of the addon")
     is_sync: bpy.props.BoolProperty(default=False)
     is_enable: bpy.props.BoolProperty(default=False)
     is_extension: bpy.props.BoolProperty(default=False)
-    extension_id: bpy.props.StringProperty(
-        name="Extention ID", default="", description="Extension website ID"
-    )
+    extension_id: bpy.props.StringProperty(name="Extention ID", default="", description="Extension website ID")
     online_url: bpy.props.StringProperty(
         name="Online URL",
         default="",
@@ -990,9 +908,7 @@ class TILA_Config_AddAddon(bpy.types.Operator):
         default="",
         description="Path to the git repository of the addon",
     )
-    branch: bpy.props.StringProperty(
-        name="Branch", default="", description="Name of the branch to sync"
-    )
+    branch: bpy.props.StringProperty(name="Branch", default="", description="Name of the branch to sync")
     is_submodule: bpy.props.BoolProperty(default=False)
     local_path: bpy.props.StringProperty(
         name="Local Path",
@@ -1002,9 +918,7 @@ class TILA_Config_AddAddon(bpy.types.Operator):
     windows_drive: bpy.props.StringProperty(
         name="Windows Drive", default="", description="Windows OS specific drive name"
     )
-    linux_drive: bpy.props.StringProperty(
-        name="Linux Drive", default="", description="Linux OS specific drive name"
-    )
+    linux_drive: bpy.props.StringProperty(name="Linux Drive", default="", description="Linux OS specific drive name")
     keymaps: bpy.props.BoolProperty(default=False)
     path_count: bpy.props.IntProperty(default=1, update=update_path_count)
     paths: bpy.props.CollectionProperty(type=TILA_Config_PathElement)
@@ -1027,9 +941,7 @@ class TILA_Config_AddAddon(bpy.types.Operator):
         json_dict = {}
 
         for e in wm.tila_config_addon_list:
-            json_dict[e.name] = get_addon_element_dict(
-                wm.tila_config_addon_list[e.name], None
-            )
+            json_dict[e.name] = get_addon_element_dict(wm.tila_config_addon_list[e.name], None)
 
         json_dict[self.name] = get_addon_element_dict(self, None)
 
@@ -1072,15 +984,11 @@ class TILA_Config_EditAddon(bpy.types.Operator):
     bl_label = "Tila Config : Edit Addon"
     bl_options = {"REGISTER"}
 
-    name: bpy.props.StringProperty(
-        name="Addon Name", default="", description="name of the addon"
-    )
+    name: bpy.props.StringProperty(name="Addon Name", default="", description="name of the addon")
     is_sync: bpy.props.BoolProperty(default=False)
     is_enable: bpy.props.BoolProperty(default=False)
     is_extension: bpy.props.BoolProperty(default=False)
-    extension_id: bpy.props.StringProperty(
-        name="Extention ID", default="", description="Extension website ID"
-    )
+    extension_id: bpy.props.StringProperty(name="Extention ID", default="", description="Extension website ID")
     online_url: bpy.props.StringProperty(
         name="Online URL",
         default="",
@@ -1091,9 +999,7 @@ class TILA_Config_EditAddon(bpy.types.Operator):
         default="",
         description="Path to the git repository of the addon",
     )
-    branch: bpy.props.StringProperty(
-        name="Branch", default="", description="Name of the branch to sync"
-    )
+    branch: bpy.props.StringProperty(name="Branch", default="", description="Name of the branch to sync")
     is_submodule: bpy.props.BoolProperty(default=False)
     local_path: bpy.props.StringProperty(
         name="Local Path",
@@ -1103,9 +1009,7 @@ class TILA_Config_EditAddon(bpy.types.Operator):
     windows_drive: bpy.props.StringProperty(
         name="Windows Drive", default="", description="Windows OS specific drive name"
     )
-    linux_drive: bpy.props.StringProperty(
-        name="Linux Drive", default="", description="Linux OS specific drive name"
-    )
+    linux_drive: bpy.props.StringProperty(name="Linux Drive", default="", description="Linux OS specific drive name")
     keymaps: bpy.props.BoolProperty(default=False)
     path_count: bpy.props.IntProperty(default=1, update=update_path_count)
     paths: bpy.props.CollectionProperty(type=TILA_Config_PathElement)
@@ -1138,17 +1042,13 @@ class TILA_Config_EditAddon(bpy.types.Operator):
             if e.name == self.previous_name:
                 json_dict[self.name] = get_addon_element_dict(self, None)
             else:
-                json_dict[e.name] = get_addon_element_dict(
-                    wm.tila_config_addon_list[e.name], None
-                )
+                json_dict[e.name] = get_addon_element_dict(wm.tila_config_addon_list[e.name], None)
 
         AM = addon_manager.AddonManager(AL)
 
         AM.save_json(json_dict=json_dict)
 
-        import_addon_element(
-            AM.elements[self.name], wm.tila_config_addon_list[self.previous_name]
-        )
+        import_addon_element(AM.elements[self.name], wm.tila_config_addon_list[self.previous_name])
 
         self.report({"INFO"}, f"TilaConfig : {self.name} addon edited")
         self.log_status.done_stage(f"{self.name} addon edited")
@@ -1178,9 +1078,7 @@ class TILA_Config_RemoveAddon(bpy.types.Operator):
     bl_label = "Remove Addon ?"
     bl_options = {"REGISTER"}
 
-    name: bpy.props.StringProperty(
-        name="Addon Name", default="", description="name of the addon"
-    )
+    name: bpy.props.StringProperty(name="Addon Name", default="", description="name of the addon")
 
     def invoke(self, context, event):
         wm = context.window_manager
@@ -1201,9 +1099,7 @@ class TILA_Config_RemoveAddon(bpy.types.Operator):
             if e.name == self.name:
                 index = i
                 continue
-            json_dict[e.name] = get_addon_element_dict(
-                wm.tila_config_addon_list[e.name], None
-            )
+            json_dict[e.name] = get_addon_element_dict(wm.tila_config_addon_list[e.name], None)
 
         AM = addon_manager.AddonManager(AL)
         AM.save_json(json_dict=json_dict)
@@ -1274,9 +1170,7 @@ def register():
         default="NONE", items=setup_blender_progress
     )
     bpy.types.WindowManager.tila_path_count = bpy.props.IntProperty(default=1)
-    bpy.types.WindowManager.tila_config_keymap_restored = bpy.props.BoolProperty(
-        default=False
-    )
+    bpy.types.WindowManager.tila_config_keymap_restored = bpy.props.BoolProperty(default=False)
 
     from bpy.utils import register_class
 
