@@ -1059,8 +1059,8 @@
         ]
     },
     "node_booster": {
-        "is_enable": true,
-        "is_sync": true,
+        "is_enable": false,
+        "is_sync": false,
         "is_extension": false,
         "extension_id": null,
         "online_url": null,
@@ -1073,7 +1073,7 @@
         "keymaps": true,
         "paths": [
             {
-                "is_enable": true,
+                "is_enable": false,
                 "local_subpath": null,
                 "destination_path": "#/scripts/addons/node_booster"
             }
@@ -4234,6 +4234,27 @@
                 "is_enable": false,
                 "local_subpath": null,
                 "destination_path": "."
+            }
+        ]
+    },
+    "save_your_autosave": {
+        "is_enable": false,
+        "is_sync": false,
+        "is_extension": false,
+        "extension_id": null,
+        "online_url": "https://codeberg.org/semagnum/save_your_autosave",
+        "repository_url": "https://codeberg.org/semagnum/save_your_autosave.git",
+        "branch": null,
+        "is_submodule": false,
+        "local_path": "#/scripts/addon_library/GIT_Clones/save_your_autosave",
+        "windows_drive": ".",
+        "linux_drive": ".",
+        "keymaps": false,
+        "paths": [
+            {
+                "is_enable": false,
+                "local_subpath": null,
+                "destination_path": "#/scripts/addons/save_your_autosave"
             }
         ]
     }
