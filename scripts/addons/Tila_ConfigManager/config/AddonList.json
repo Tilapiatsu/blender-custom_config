@@ -65,7 +65,7 @@
         "repository_url": null,
         "branch": null,
         "is_submodule": false,
-        "local_path": "/mnt/ressources/00_Blender_Asset_Library/Hdri",
+        "local_path": "/00_Blender_Asset_Library/Hdri",
         "windows_drive": "R:/Mon Drive",
         "linux_drive": "/mnt/ressources",
         "keymaps": false,
