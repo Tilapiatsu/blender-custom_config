@@ -75,11 +75,12 @@ def disable_addon(addon_name):
     return True
 
 
-def file_acces_handler(func, path, exc_info):
-    # print('Handling Error for file ', path)
-    # print(exc_info)
+def file_acces_handler(func, path: Path, exc_info):
+
     # Check if file access issue
     if not os.access(path, os.W_OK):
+        LOG.debug(f"Handling Error for file {path}")
+        LOG.debug(exc_info)
         # Try to change the permision of file
         os.chmod(path, stat.S_IWUSR)
         # call the calling function again
@@ -251,7 +252,10 @@ class PathAM:
             if self.is_file:
                 os.remove(self.path)
             elif self.is_dir:
-                shutil.rmtree(self.path, onerror=file_acces_handler)
+                if not self.is_set:
+                    LOG.warning(f"skip removing invalid folder : {str(self.path)}")
+                    return
+                shutil.rmtree(self.path, onexc=file_acces_handler)
 
 
 class PathElementAM:
