@@ -4257,5 +4257,26 @@
                 "destination_path": "#/scripts/addons/save_your_autosave"
             }
         ]
+    },
+    "polyzamboni": {
+        "is_enable": false,
+        "is_sync": false,
+        "is_extension": true,
+        "extension_id": "polyzamboni",
+        "online_url": "https://extensions.blender.org/add-ons/polyzamboni/",
+        "repository_url": "blender_org",
+        "branch": null,
+        "is_submodule": false,
+        "local_path": null,
+        "windows_drive": null,
+        "linux_drive": null,
+        "keymaps": false,
+        "paths": [
+            {
+                "is_enable": false,
+                "local_subpath": null,
+                "destination_path": null
+            }
+        ]
     }
 }
