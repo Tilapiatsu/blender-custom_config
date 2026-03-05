@@ -9,7 +9,7 @@ import bpy
 import addon_utils
 import importlib
 import git
-from pathlib import Path
+from pathlib import Path, PurePath
 from os import path
 from . import admin
 from Tila_ConfigManager.config import keymaps, settings
@@ -460,7 +460,8 @@ class ElementAM:
         if local_path is None:
             return PathAM()
 
-        return PathAM(self.os_drive.joinpath(Path(self.element_dict["local_path"])))
+        local_path = PathAM(PurePath(self.os_drive, Path(local_path)))
+        return local_path
 
     @property
     def keymaps(self):

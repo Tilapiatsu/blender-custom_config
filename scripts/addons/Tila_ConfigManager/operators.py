@@ -1,6 +1,8 @@
 import bpy
 import time
+import platform
 from bpy.types import Operator
+from pathlib import PurePath
 from .config import AL
 from .addon_manager import addon_manager
 from .preferences.ui.log_list import TILA_Config_Log as log_list
@@ -710,6 +712,12 @@ def get_addon_element_dict(element, path_fallback):
     def get_valid_string(string, fallback):
         return fallback if string == "" else string
 
+    def get_valid_path(string:str, fallback:str, root:str=None):
+        if root is None:
+            return fallback if string == "" else str(PurePath(string).as_posix())
+        else:
+            return fallback if string == "" else str(PurePath(string).relative_to(root).as_posix())
+
     addon_element_dict = {}
 
     addon_element_dict["is_enable"] = element.is_enable
@@ -720,9 +728,9 @@ def get_addon_element_dict(element, path_fallback):
     addon_element_dict["repository_url"] = get_valid_string(element.repository_url, path_fallback)
     addon_element_dict["branch"] = get_valid_string(element.branch, path_fallback)
     addon_element_dict["is_submodule"] = element.is_submodule
-    addon_element_dict["local_path"] = get_valid_string(element.local_path, path_fallback)
-    addon_element_dict["windows_drive"] = get_valid_string(element.windows_drive, path_fallback)
-    addon_element_dict["linux_drive"] = get_valid_string(element.linux_drive, path_fallback)
+    addon_element_dict["local_path"] = get_valid_path(element.local_path, path_fallback, element.windows_drive if platform.system() == "Windows" else element.linux_drive)
+    addon_element_dict["windows_drive"] = get_valid_path(element.windows_drive, path_fallback)
+    addon_element_dict["linux_drive"] = get_valid_path(element.linux_drive, path_fallback)
     addon_element_dict["keymaps"] = element.keymaps
 
     if not len(element.paths):
@@ -732,8 +740,8 @@ def get_addon_element_dict(element, path_fallback):
         for p in element.paths:
             path = {}
             path["is_enable"] = p.is_enable
-            path["local_subpath"] = get_valid_string(p.local_subpath, path_fallback)
-            path["destination_path"] = get_valid_string(p.destination_path, path_fallback)
+            path["local_subpath"] = get_valid_path(p.local_subpath, path_fallback)
+            path["destination_path"] = get_valid_path(p.destination_path, path_fallback)
             addon_element_dict["paths"].append(path)
 
     return addon_element_dict
