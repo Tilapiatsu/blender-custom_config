@@ -1841,7 +1841,15 @@ class TILA_Config_Keymaps(TILA_Config_Keymaps_Base):
             ctrl=True,
             properties={"mode": "TOGGLE"},
         )
-
+        self.kmi_set_replace(
+            "view3d.tila_set_ref_images_opacity",
+            "Q",
+            "PRESS",
+            ctrl=True,
+            alt=True,
+            shift=True,
+            disable_double=True,
+        )
         self.kmi_set_active(
             enable=False,
             idname="view3d.view_axis",
