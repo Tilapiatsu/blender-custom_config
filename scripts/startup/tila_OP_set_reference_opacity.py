@@ -1,13 +1,7 @@
 import bpy
 import mathutils
 from time import time
-
-
 from bpy.types import Panel
-
-use_snap_ctrl = False
-use_snap_shift = True
-use_snap_alt = False
 
 
 def clamp(value, min_value, max_value):
