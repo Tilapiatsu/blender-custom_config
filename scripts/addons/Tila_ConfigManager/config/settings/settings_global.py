@@ -40,7 +40,7 @@ class TILA_Config_Settings(TILA_Config_Settings_Base):
                 case "Linux":
                     library_root = Path("/mnt/ressources")
                 case _:
-                    return Path("")
+                    library_root = Path("")
 
             asset_library_path = library_root / library_name
             bpy.ops.preferences.asset_library_add("EXEC_DEFAULT", directory=str(asset_library_path))
@@ -65,7 +65,7 @@ class TILA_Config_Settings(TILA_Config_Settings_Base):
             self.set_setting(context, "view.show_statusbar_vram", True)
 
         # Edit Weight color
-        for c in enumerate(context.preferences.view.weight_color_range.elements):
+        for _ in enumerate(context.preferences.view.weight_color_range.elements):
             if len(context.preferences.view.weight_color_range.elements) > 1:
                 context.preferences.view.weight_color_range.elements.remove(
                     context.preferences.view.weight_color_range.elements[0]
@@ -105,7 +105,13 @@ class TILA_Config_Settings(TILA_Config_Settings_Base):
         self.set_setting(context, "inputs.use_mouse_depth_navigate", True)
         self.set_setting(context, "inputs.use_numeric_input_advanced", True)
         self.set_setting(context, "inputs.use_zoom_to_mouse", True)
-        self.set_setting(context, "inputs.pressure_softness", -0.5)
+        match platform.system():
+            case "Windows":
+                self.set_setting(context, "inputs.pressure_softness", -0.5)
+            case "Linux":
+                self.set_setting(context, "inputs.pressure_softness", -0.2)
+            case _:
+                pass
 
         # Filepath Settings
         self.set_setting(context, "filepaths.auto_save_time", 2)
