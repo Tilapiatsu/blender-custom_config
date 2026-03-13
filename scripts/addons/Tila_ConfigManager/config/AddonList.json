@@ -304,7 +304,7 @@
     },
     "kekit": {
         "is_enable": true,
-        "is_sync": false,
+        "is_sync": true,
         "is_extension": false,
         "extension_id": null,
         "online_url": "https://kjell.gumroad.com/l/kekit_blender",
