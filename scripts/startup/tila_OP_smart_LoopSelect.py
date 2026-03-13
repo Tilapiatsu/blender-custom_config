@@ -1,4 +1,3 @@
-
 from bpy.props import IntProperty, BoolProperty, EnumProperty
 from mathutils import Vector
 import bpy, bmesh, math
@@ -13,27 +12,25 @@ bl_info = {
     "location": "",
     "warning": "",
     "doc_url": "",
-    "category": "3D View"
+    "category": "3D View",
 }
 
 
 class TILA_smart_loopselect(bpy.types.Operator):
     bl_idname = "mesh.tila_smart_loopselect"
     bl_label = "Smart Loop Select"
-    bl_options = {'REGISTER', 'UNDO'}
+    bl_options = {"REGISTER", "UNDO"}
 
+    extend: bpy.props.BoolProperty(name="extend", default=False)
+    deselect: bpy.props.BoolProperty(name="deselect", default=False)
 
-    extend : bpy.props.BoolProperty(name='extend', default=False)
-    deselect : bpy.props.BoolProperty(name='deselect', default=False)
-
-
-    mesh_mode = ['VERT', 'EDGE', 'FACE']
-    gpencil_mode = ['POINT', 'STROKE', 'SEGMENT']
-    uv_mode = ['VERTEX', 'EDGE', 'FACE', 'ISLAND']
-    particle_mode = ['PATH', 'POINT', 'TIP']
+    mesh_mode = ["VERT", "EDGE", "FACE"]
+    gpencil_mode = ["POINT", "STROKE", "SEGMENT"]
+    uv_mode = ["VERTEX", "EDGE", "FACE", "ISLAND"]
+    particle_mode = ["PATH", "POINT", "TIP"]
     selected_elements = []
     max_elements = 1000
-    debug=True
+    debug = True
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -43,7 +40,7 @@ class TILA_smart_loopselect(bpy.types.Operator):
 
     @classmethod
     def poll(cls, context):
-        return context.space_data.type in ['VIEW_3D']
+        return context.space_data.type in ["VIEW_3D"]
 
     def modal(self, context, event):
         pass
@@ -98,7 +95,7 @@ class TILA_smart_loopselect(bpy.types.Operator):
 
     def print_debug(self, message):
         if self.debug:
-            print('Smart LoopSelect :', message)
+            print("Smart LoopSelect :", message)
 
     def get_mesh_element_selection(self, mode):
         if mode == 0:
@@ -165,23 +162,23 @@ class TILA_smart_loopselect(bpy.types.Operator):
         return border_edges
 
     def select_edge_loop(self, edge, angle_threshold, deselect):
-        self.print_debug('Select Edge Loop')
+        self.print_debug("Select Edge Loop")
         edge_angle = math.degrees(edge.calc_face_angle(0))
         if edge_angle < angle_threshold:
-            self.print_debug('Standard Select Loop')
-            bpy.ops.mesh.loop_select('INVOKE_DEFAULT', extend=self.extend, deselect=deselect, toggle=False, ring=False)
+            self.print_debug("Standard Select Loop")
+            bpy.ops.mesh.loop_select("INVOKE_DEFAULT", extend=self.extend, deselect=deselect, toggle=False)
         else:
-            self.print_debug('Angle Based Select Loop')
-            bpy.ops.ls.select('INVOKE_DEFAULT', deselect=self.deselect)
+            self.print_debug("Angle Based Select Loop")
+            bpy.ops.ls.select("INVOKE_DEFAULT", deselect=self.deselect)
 
     def contextual_select(self, event):
         # select Border edgeloop
         if self.border_edge_selected() is not None:
-            bpy.ops.mesh.select_border('INVOKE_DEFAULT', extend=self.extend, deselect=self.deselect)
+            bpy.ops.mesh.select_border("INVOKE_DEFAULT", extend=self.extend, deselect=self.deselect)
 
         # select ngon borders
         elif self.ngon_edge_selected() is not None:
-            self.print_debug('Select NGon')
+            self.print_debug("Select NGon")
             ngon_edges = self.ngon_edge_selected().edges
             self.select_elements(self.deselect, ngon_edges)
             # if self.extend and len(self.selected_elements):
@@ -189,7 +186,7 @@ class TILA_smart_loopselect(bpy.types.Operator):
             # re select element under cursor
             if self.deselect:
                 loc = event.mouse_region_x, event.mouse_region_y
-                bpy.ops.view3d.select(deselect=True,  location=loc)
+                bpy.ops.view3d.select(deselect=True, location=loc)
 
         #  Fallback : select edge loop
         else:
@@ -208,18 +205,18 @@ class TILA_smart_loopselect(bpy.types.Operator):
         # if not self.extend and not self.deselect:
         # 	self.bmesh.select_flush(True)
 
-        if bpy.context.mode in ['EDIT_MESH']:
+        if bpy.context.mode in ["EDIT_MESH"]:
             # vert selection mode
             if bpy.context.scene.tool_settings.mesh_select_mode[0]:
-                bpy.ops.mesh.loop_select('INVOKE_DEFAULT', extend=self.extend, ring=False, deselect=self.deselect, toggle=False)
+                bpy.ops.mesh.loop_select("INVOKE_DEFAULT", extend=self.extend, deselect=self.deselect, toggle=False)
 
-               # Edge selection mode
+            # Edge selection mode
             elif bpy.context.scene.tool_settings.mesh_select_mode[1]:
                 self.contextual_select(event)
 
             # Face selection mode
             elif bpy.context.scene.tool_settings.mesh_select_mode[2]:
-                bpy.ops.mesh.loop_select('INVOKE_DEFAULT', extend=self.extend, ring=False, deselect=self.deselect, toggle=False)
+                bpy.ops.mesh.loop_select("INVOKE_DEFAULT", extend=self.extend, deselect=self.deselect, toggle=False)
 
         # elif bpy.context.mode in ['EDIT_CURVE']:
         # 	pass
@@ -233,12 +230,10 @@ class TILA_smart_loopselect(bpy.types.Operator):
         # 	pass
 
         self.deinit_bmesh()
-        return {'FINISHED'}
+        return {"FINISHED"}
 
 
-classes = (
-    TILA_smart_loopselect,
-)
+classes = (TILA_smart_loopselect,)
 
 
 register, unregister = bpy.utils.register_classes_factory(classes)
