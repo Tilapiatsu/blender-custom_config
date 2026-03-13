@@ -464,6 +464,10 @@ class ElementAM:
         return local_path
 
     @property
+    def raw_local_path(self):
+        return self.element_dict["local_path"]
+
+    @property
     def keymaps(self):
         return self.element_dict["keymaps"]
 

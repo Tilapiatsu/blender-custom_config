@@ -1,8 +1,9 @@
+from typing import Optional
 import bpy
 import time
 import platform
 from bpy.types import Operator
-from pathlib import PurePath
+from pathlib import PurePath, Path
 from .config import AL
 from .addon_manager import addon_manager
 from .preferences.ui.log_list import TILA_Config_Log as log_list
@@ -683,8 +684,16 @@ class TILA_Config_SetSettings(Operator):
 
 
 def import_addon_element(source_element: addon_manager.ElementAM, target_element):
-    def get_valid_string(string, fallback):
-        return fallback if string is None or string == "." else string
+    def get_valid_string(input, fallback):
+        if input is None or (isinstance(input, addon_manager.PathAM) and str(input) == "."):
+            return fallback
+        elif isinstance(input, Path):
+            return str(input) if str(input) != "." else ""
+        elif isinstance(input, str):
+            return input
+        elif isinstance(input, addon_manager.PathAM):
+            return str(input) if str(input) != "." else ""
+        return str(input)
 
     target_element.name = source_element.name
     target_element.is_enable = source_element.is_enable
@@ -696,27 +705,27 @@ def import_addon_element(source_element: addon_manager.ElementAM, target_element
     target_element.repository_url = get_valid_string(source_element.repository_url, "")
     target_element.branch = get_valid_string(source_element.branch, "")
     target_element.is_submodule = source_element.is_submodule
-    target_element.local_path = get_valid_string(str(source_element.local_path), "")
-    target_element.windows_drive = get_valid_string(str(source_element.windows_drive), "")
-    target_element.linux_drive = get_valid_string(str(source_element.linux_drive), "")
+    target_element.raw_local_path = get_valid_string(source_element.raw_local_path, "")
+    target_element.windows_drive = get_valid_string(source_element.windows_drive, "")
+    target_element.linux_drive = get_valid_string(source_element.linux_drive, "")
     target_element.keymaps = source_element.keymaps
     target_element.paths.clear()
     for p in source_element.paths:
         path = target_element.paths.add()
         path.is_enable = p.is_enable
-        path.local_subpath = get_valid_string(str(p.local_subpath), "")
-        path.destination_path = get_valid_string(str(p.destination_path), "")
+        path.local_subpath = get_valid_string(p.local_subpath, "")
+        path.destination_path = get_valid_string(p.destination_path, "")
 
 
 def get_addon_element_dict(element, path_fallback):
     def get_valid_string(string, fallback):
         return fallback if string == "" else string
 
-    def get_valid_path(string:str, fallback:str, root:str=None):
+    def get_valid_path(string: str, fallback: str, root: Optional[str]):
         if root is None:
             return fallback if string == "" else str(PurePath(string).as_posix())
         else:
-            return fallback if string == "" else str(PurePath(string).relative_to(root).as_posix())
+            return fallback if string == "" or string == "None" else string
 
     addon_element_dict = {}
 
@@ -728,9 +737,13 @@ def get_addon_element_dict(element, path_fallback):
     addon_element_dict["repository_url"] = get_valid_string(element.repository_url, path_fallback)
     addon_element_dict["branch"] = get_valid_string(element.branch, path_fallback)
     addon_element_dict["is_submodule"] = element.is_submodule
-    addon_element_dict["local_path"] = get_valid_path(element.local_path, path_fallback, element.windows_drive if platform.system() == "Windows" else element.linux_drive)
-    addon_element_dict["windows_drive"] = get_valid_path(element.windows_drive, path_fallback)
-    addon_element_dict["linux_drive"] = get_valid_path(element.linux_drive, path_fallback)
+    addon_element_dict["local_path"] = get_valid_path(
+        element.raw_local_path,
+        path_fallback,
+        element.windows_drive if platform.system() == "Windows" else element.linux_drive,
+    )
+    addon_element_dict["windows_drive"] = get_valid_path(element.windows_drive, path_fallback, None)
+    addon_element_dict["linux_drive"] = get_valid_path(element.linux_drive, path_fallback, None)
     addon_element_dict["keymaps"] = element.keymaps
 
     if not len(element.paths):
@@ -740,8 +753,8 @@ def get_addon_element_dict(element, path_fallback):
         for p in element.paths:
             path = {}
             path["is_enable"] = p.is_enable
-            path["local_subpath"] = get_valid_path(p.local_subpath, path_fallback)
-            path["destination_path"] = get_valid_path(p.destination_path, path_fallback)
+            path["local_subpath"] = get_valid_path(p.local_subpath, path_fallback, None)
+            path["destination_path"] = get_valid_path(p.destination_path, path_fallback, None)
             addon_element_dict["paths"].append(path)
 
     return addon_element_dict
@@ -853,7 +866,7 @@ def draw_addon_layout(self, context):
         col_b.prop(self, "is_enable", text="")
 
         col_a.label(text="Local Path :  ")
-        col_b.prop(self, "local_path", text="")
+        col_b.prop(self, "raw_local_path", text="")
 
         col_a.label(text="Windows Drive :  ")
         col_b.prop(self, "windows_drive", text="")
@@ -918,7 +931,7 @@ class TILA_Config_AddAddon(bpy.types.Operator):
     )
     branch: bpy.props.StringProperty(name="Branch", default="", description="Name of the branch to sync")
     is_submodule: bpy.props.BoolProperty(default=False)
-    local_path: bpy.props.StringProperty(
+    raw_local_path: bpy.props.StringProperty(
         name="Local Path",
         default="",
         description="Path to the addon on the Addon. The blender Preference setting can be noted as # for relative path",
@@ -1009,7 +1022,7 @@ class TILA_Config_EditAddon(bpy.types.Operator):
     )
     branch: bpy.props.StringProperty(name="Branch", default="", description="Name of the branch to sync")
     is_submodule: bpy.props.BoolProperty(default=False)
-    local_path: bpy.props.StringProperty(
+    raw_local_path: bpy.props.StringProperty(
         name="Local Path",
         default="",
         description="Path to the addon on the Addon. The blender Preference setting can be noted as # for relative path",

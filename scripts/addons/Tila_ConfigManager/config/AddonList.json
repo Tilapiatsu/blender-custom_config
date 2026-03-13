@@ -311,9 +311,9 @@
         "repository_url": null,
         "branch": null,
         "is_submodule": false,
-        "local_path": "#/scripts/addon_library/local/kekit",
-        "windows_drive": null,
-        "linux_drive": null,
+        "local_path": "15_Blender/00_INSTALLED_ADDONS/kekit/",
+        "windows_drive": "S:/Mon Drive",
+        "linux_drive": "/mnt/software_data",
         "keymaps": true,
         "paths": [
             {

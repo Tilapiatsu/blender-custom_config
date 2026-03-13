@@ -20,7 +20,7 @@ class TILA_Config_AddonElement(bpy.types.PropertyGroup):
     repository_url: bpy.props.StringProperty(default="")
     branch: bpy.props.StringProperty(default="")
     is_submodule: bpy.props.BoolProperty(default=False)
-    local_path: bpy.props.StringProperty(default="")
+    raw_local_path: bpy.props.StringProperty(default="")
     windows_drive: bpy.props.StringProperty(default="")
     linux_drive: bpy.props.StringProperty(default="")
     keymaps: bpy.props.BoolProperty(default=False)
@@ -30,9 +30,7 @@ class TILA_Config_AddonElement(bpy.types.PropertyGroup):
 class TILA_Config_AddonList(bpy.types.UIList):
     bl_idname = "TILA_UL_Config_addon_list"
 
-    def draw_item(
-        self, context, layout, data, item, icon, active_data, active_propname, index
-    ):
+    def draw_item(self, context, layout, data, item, icon, active_data, active_propname, index):
         self.use_filter_sort_alpha = True
         main_col = layout.column(align=True)
 
@@ -45,25 +43,17 @@ class TILA_Config_AddonList(bpy.types.UIList):
         installed = item.name in context.preferences.addons
 
         if installed:
-            rowsub.operator(
-                "tila.config_force_disable_addon", text="Disable", icon="CHECKBOX_HLT"
-            ).name = item.name
+            rowsub.operator("tila.config_force_disable_addon", text="Disable", icon="CHECKBOX_HLT").name = item.name
         else:
             header_row.active = False
-            rowsub.operator(
-                "tila.config_force_enable_addon", text="Enable", icon="CHECKBOX_DEHLT"
-            ).name = item.name
+            rowsub.operator("tila.config_force_enable_addon", text="Enable", icon="CHECKBOX_DEHLT").name = item.name
 
         if panel:
             col = panel.column()
 
             row = col.row()
-            row.operator(
-                "tila.config_edit_addon", text=f"Edit {item.name}", icon="GREASEPENCIL"
-            ).name = item.name
-            row.operator(
-                "tila.config_remove_addon", text=f"Remove {item.name}", icon="TRASH"
-            ).name = item.name
+            row.operator("tila.config_edit_addon", text=f"Edit {item.name}", icon="GREASEPENCIL").name = item.name
+            row.operator("tila.config_remove_addon", text=f"Remove {item.name}", icon="TRASH").name = item.name
 
             col.separator(type="LINE")
 
@@ -79,15 +69,11 @@ class TILA_Config_AddonList(bpy.types.UIList):
 
             if len(item.online_url):
                 col_a.label(text="Website")
-                col_b.operator(
-                    "wm.url_open", text=item.online_url, icon="URL"
-                ).url = item.online_url
+                col_b.operator("wm.url_open", text=item.online_url, icon="URL").url = item.online_url
 
             if len(item.repository_url):
                 col_a.label(text="Repository")
-                col_b.operator(
-                    "wm.url_open", text=item.repository_url, icon="PACKAGE"
-                ).url = item.repository_url
+                col_b.operator("wm.url_open", text=item.repository_url, icon="PACKAGE").url = item.repository_url
 
                 col_a.label(text="Submodule")
                 col_b.label(text="Yes" if item.is_submodule else "No")
@@ -125,9 +111,7 @@ def register():
         register_class(cls)
 
     bpy.types.WindowManager.tila_config_addon_list_idx = bpy.props.IntProperty()
-    bpy.types.WindowManager.tila_config_addon_list = bpy.props.CollectionProperty(
-        type=TILA_Config_AddonElement
-    )
+    bpy.types.WindowManager.tila_config_addon_list = bpy.props.CollectionProperty(type=TILA_Config_AddonElement)
 
 
 def unregister():
@@ -135,4 +119,3 @@ def unregister():
 
     for cls in reversed(classes):
         unregister_class(cls)
-

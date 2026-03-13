@@ -233,9 +233,9 @@ class TILA_Config_Preferences(bpy.types.AddonPreferences):
                 if installed:
                     for i in range(len(item.paths)):
                         item_path = (
-                            os.path.join(item.local_path, item.paths[i].local_subpath)
+                            os.path.join(item.raw_local_path, item.paths[i].local_subpath)
                             if len(item.paths[i].local_subpath)
-                            else item.local_path
+                            else item.raw_local_path
                         )
                         item_path = item_path.replace("#", ROOT_FOLDER)
                         if os.path.exists(item_path):
