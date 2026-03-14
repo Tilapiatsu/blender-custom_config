@@ -1,5 +1,5 @@
 import bpy
-from abc import ABC, abstractmethod
+from abc import abstractmethod
 from ...keymap_manager import KeymapManager
 
 # TODO
@@ -74,9 +74,7 @@ class TILA_Config_Keymaps_Base(KeymapManager.KeymapManager):
 
                 self.print_status(f"Assigning {message} Keymaps")
                 func(self)
-                self.print_status(
-                    f"Assignment of {message} Keymaps complete", start=False
-                )
+                self.print_status(f"Assignment of {message} Keymaps complete", start=False)
 
             return print_message
 
@@ -111,4 +109,3 @@ class TILA_Config_Keymaps_Base_Empty(TILA_Config_Keymaps_Base):
     @TILA_Config_Keymaps_Base.print_assigning_keymap()
     def set_keymaps(self):
         pass
-

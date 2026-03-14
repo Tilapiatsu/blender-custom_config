@@ -2599,6 +2599,8 @@ class TILA_Config_Keymaps(TILA_Config_Keymaps_Base):
             roll="view3d.tila_rotate_canvas",
         )
 
+        self.kmi_set_active(False, idname="sculpt.brush_stroke", type=self.k_manip, ctrl=True, alt=True)
+
         self.tool_toggle_color("paint.brush_colors_flip")
         self.toggle_x_symetry()
         self.tool_subdivision()

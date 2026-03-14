@@ -383,8 +383,8 @@ class KeymapManager:
             self.kmi_set_active(
                 False,
                 type=type,
-                # value=value,
-                # direction=direction,
+                value=value,
+                direction=direction,
                 alt=alt,
                 any=any,
                 ctrl=ctrl,
