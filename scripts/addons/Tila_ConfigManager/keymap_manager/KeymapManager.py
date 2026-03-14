@@ -383,15 +383,15 @@ class KeymapManager:
             self.kmi_set_active(
                 False,
                 type=type,
-                value=value,
-                direction=direction,
+                # value=value,
+                # direction=direction,
                 alt=alt,
                 any=any,
                 ctrl=ctrl,
                 shift=shift,
                 oskey=oskey,
                 key_modifier=key_modifier,
-                properties=properties,
+                # properties=properties,
             )
         if key_modifier is None:
             key_modifier = "NONE"

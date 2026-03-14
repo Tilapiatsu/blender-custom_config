@@ -2319,8 +2319,8 @@ class TILA_Config_Keymaps(TILA_Config_Keymaps_Base):
             shortestring_tool="mesh.shortest_path_pick",
             loop_tool="mesh.tila_smart_loopselect",
             ring_tool="mesh.edgering_select",
-            loop_multiselect_tool="mesh.loop_multi_select",
-            ring_multiselect_tool="mesh.loop_multi_select",
+            loop_multiselect_tool="mesh.select_edge_loop_multi",
+            ring_multiselect_tool="mesh.select_edge_loop_multi",
             more_tool="mesh.select_more",
             less_tool="mesh.select_less",
             next_tool="mesh.select_next_item",
@@ -2592,6 +2592,13 @@ class TILA_Config_Keymaps(TILA_Config_Keymaps_Base):
         )
         self.tool_transform()
 
+        self.navigation_keys(
+            pan="view3d.move",
+            orbit="view3d.rotate",
+            dolly="view3d.zoom",
+            roll="view3d.tila_rotate_canvas",
+        )
+
         self.tool_toggle_color("paint.brush_colors_flip")
         self.toggle_x_symetry()
         self.tool_subdivision()
@@ -2846,7 +2853,7 @@ class TILA_Config_Keymaps(TILA_Config_Keymaps_Base):
             shift=True,
             disable_double=True,
         )
-        self.tool_sample_color("sculpt.sample_color")
+        self.tool_sample_color("paint.sample_color")
 
     @TILA_Config_Keymaps_Base.print_assigning_keymap("Global Curves")
     def set_keymaps_curves(self):
