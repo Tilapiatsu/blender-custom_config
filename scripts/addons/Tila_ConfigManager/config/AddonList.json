@@ -4278,5 +4278,26 @@
                 "destination_path": null
             }
         ]
+    },
+    "SketchUp Importer": {
+        "is_enable": false,
+        "is_sync": false,
+        "is_extension": false,
+        "extension_id": null,
+        "online_url": "https://github.com/RedHaloStudio/Sketchup_Importer",
+        "repository_url": "https://github.com/RedHaloStudio/Sketchup_Importer.git",
+        "branch": "master",
+        "is_submodule": false,
+        "local_path": "#/scripts/addon_library/GIT_Clones/sketchup_importer",
+        "windows_drive": null,
+        "linux_drive": null,
+        "keymaps": false,
+        "paths": [
+            {
+                "is_enable": false,
+                "local_subpath": "sketchup_importer",
+                "destination_path": "#/scripts/addons/sketchup_importer"
+            }
+        ]
     }
 }
