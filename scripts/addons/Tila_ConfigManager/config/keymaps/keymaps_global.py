@@ -2480,6 +2480,7 @@ class TILA_Config_Keymaps(TILA_Config_Keymaps_Base):
         )
         self.kmi_set_replace("mesh.tris_convert_to_quads", "T", "PRESS", alt=True, shift=True)
         self.kmi_set_replace("mesh.tila_smart_pivot", "S", "PRESS", alt=True, disable_double=True)
+        self.kmi_set_replace("mesh.loopcut_slide", "C", "PRESS", alt=True, shift=True, disable_double=True)
 
     @TILA_Config_Keymaps_Base.print_assigning_keymap("Global Object Mode")
     def set_keymaps_object_mode(self):
