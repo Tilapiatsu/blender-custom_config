@@ -753,7 +753,6 @@ class TILA_Config_Keymaps(TILA_Config_Keymaps_Base):
                 loop_multiselect_tool,
                 "L",
                 "PRESS",
-                properties={"ring": False},
                 disable_double=True,
             )
 
@@ -764,7 +763,6 @@ class TILA_Config_Keymaps(TILA_Config_Keymaps_Base):
                 "L",
                 "PRESS",
                 alt=True,
-                properties={"ring": True},
                 disable_double=True,
             )
 
@@ -2320,7 +2318,7 @@ class TILA_Config_Keymaps(TILA_Config_Keymaps_Base):
             loop_tool="mesh.tila_smart_loopselect",
             ring_tool="mesh.edgering_select",
             loop_multiselect_tool="mesh.select_edge_loop_multi",
-            ring_multiselect_tool="mesh.select_edge_loop_multi",
+            ring_multiselect_tool="mesh.select_edge_ring_multi",
             more_tool="mesh.select_more",
             less_tool="mesh.select_less",
             next_tool="mesh.select_next_item",
