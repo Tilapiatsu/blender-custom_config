@@ -27,3 +27,11 @@ class TILA_Config_Keymaps(TILA_Config_Keymaps_Base):
                 shift=True,
                 disable_double=True,
             )
+            self.kmi_set_replace(
+                "uv.toolkit_straighten",
+                "G",
+                "PRESS",
+                ctrl=True,
+                disable_double=True,
+                properties={"gridify": False},
+            )

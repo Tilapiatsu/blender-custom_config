@@ -312,7 +312,8 @@ class KeymapManager:
             repeat=repeat,
             head=head,
         )
-        kmi.active = True
+        if kmi:
+            kmi.active = True
         return kmi
 
     @replace_km_dec
