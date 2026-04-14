@@ -2577,8 +2577,8 @@ class TILA_Config_Keymaps(TILA_Config_Keymaps_Base):
         self.right_mouse()
         self.tool_sculpt("view3d.tila_smart_sculptmode")
         self.selection_tool(
-            tool="brushes\essentials_brushes-mesh_sculpt.blend\Brush\Grab",
-            alt="brushes\essentials_brushes-mesh_sculpt.blend\Brush\Mask",
+            tool="brushes/essentials_brushes-mesh_sculpt.blend/Brush/Grab",
+            alt="brushes/essentials_brushes-mesh_sculpt.blend/Brush/Mask",
             mode="SCULPT",
         )
         self.tool_transform()
@@ -2674,7 +2674,7 @@ class TILA_Config_Keymaps(TILA_Config_Keymaps_Base):
             "PRESS",
             ctrl=True,
             properties={
-                "relative_asset_identifier": "Saved\Brushes\Tila Clay Strips.asset.blend\Brush\Tila Clay Strips",
+                "relative_asset_identifier": "Saved/Brushes/Tila Clay Strips.asset.blend/Brush/Tila Clay Strips",
                 "asset_library_type": "CUSTOM",
                 "asset_library_identifier": "Tilapiatsu",
                 "force_strength": True,
@@ -2688,7 +2688,7 @@ class TILA_Config_Keymaps(TILA_Config_Keymaps_Base):
             "PRESS",
             alt=True,
             properties={
-                "relative_asset_identifier": "Saved\Brushes\Tila Snake Hook.asset.blend\Brush\Tila Snake Hook",
+                "relative_asset_identifier": "Saved/Brushes/Tila Snake Hook.asset.blend/Brush/Tila Snake Hook",
                 "asset_library_type": "CUSTOM",
                 "asset_library_identifier": "Tilapiatsu",
                 "force_strength": False,
@@ -2895,8 +2895,8 @@ class TILA_Config_Keymaps(TILA_Config_Keymaps_Base):
             self.tool_sculpt("view3d.tila_smart_sculptmode")
 
             self.selection_tool(
-                tool="brushes\essentials_brushes-curve_sculpt.blend\Brush\Comb",
-                alt="brushes\essentials_brushes-curve_sculpt.blend\Brush\Select",
+                tool="brushes/essentials_brushes-curve_sculpt.blend/Brush/Comb",
+                alt="brushes/essentials_brushes-curve_sculpt.blend/Brush/Select",
                 mode="SCULPT_CURVES",
             )
 
@@ -2940,7 +2940,7 @@ class TILA_Config_Keymaps(TILA_Config_Keymaps_Base):
                 shift=True,
                 properties={
                     "mode": "SCULPT_CURVES",
-                    "relative_asset_identifier": "brushes\essentials_brushes-curve_sculpt.blend\Brush\Smooth",
+                    "relative_asset_identifier": "brushes/essentials_brushes-curve_sculpt.blend/Brush/Smooth",
                     "asset_library_type": "ESSENTIALS",
                     "asset_library_identifier": "",
                 },
@@ -3127,7 +3127,7 @@ class TILA_Config_Keymaps(TILA_Config_Keymaps_Base):
         self.global_keys()
         self.right_mouse()
         self.selection_tool(
-            tool="brushes\essentials_brushes-mesh_vertex.blend\Brush\Paint Hard",
+            tool="brushes/essentials_brushes-mesh_vertex.blend/Brush/Paint Hard",
             mode="VERTEX",
         )
         self.tool_sculpt("view3d.tila_smart_sculptmode")
@@ -3203,7 +3203,7 @@ class TILA_Config_Keymaps(TILA_Config_Keymaps_Base):
         self.global_keys()
         self.right_mouse()
         self.selection_tool(
-            tool="brushes\essentials_brushes-mesh_weight.blend\Brush\Paint",
+            tool="brushes/essentials_brushes-mesh_weight.blend/Brush/Paint",
             mode="WEIGHT",
         )
         self.tool_sculpt("view3d.tila_smart_sculptmode")
@@ -3304,7 +3304,7 @@ class TILA_Config_Keymaps(TILA_Config_Keymaps_Base):
         self.right_mouse()
 
         self.selection_tool(
-            tool="brushes\essentials_brushes-mesh_texture.blend\Brush\Paint Hard",
+            tool="brushes/essentials_brushes-mesh_texture.blend/Brush/Paint Hard",
             mode="IMAGE",
         )
         self.kmi_set_active(enable=False, idname="view3d.select", type=self.k_manip, alt=True)
@@ -3700,7 +3700,7 @@ class TILA_Config_Keymaps(TILA_Config_Keymaps_Base):
 
         self.tool_sculpt("view3d.tila_smart_sculptmode")
         self.selection_tool(
-            tool="brushes\essentials_brushes-gp_draw.blend\Brush\Pencil",
+            tool="brushes/essentials_brushes-gp_draw.blend/Brush/Pencil",
             mode="GPENCIL_PAINT",
         )
 
@@ -3733,7 +3733,7 @@ class TILA_Config_Keymaps(TILA_Config_Keymaps_Base):
         self.tool_sculpt("view3d.tila_smart_sculptmode")
 
         self.selection_tool(
-            tool="brushes\essentials_brushes-gp_vertex.blend\Brush\Paint",
+            tool="brushes/essentials_brushes-gp_vertex.blend/Brush/Paint",
             mode="GPENCIL_VERTEX",
         )
 
@@ -3796,7 +3796,7 @@ class TILA_Config_Keymaps(TILA_Config_Keymaps_Base):
             shift=True,
             properties={
                 "mode": "GPENCIL_PAINT",
-                "relative_asset_identifier": "brushes\essentials_brushes-gp_vertex.blend\Brush\Blur",
+                "relative_asset_identifier": "brushes/essentials_brushes-gp_vertex.blend/Brush/Blur",
                 "asset_library_type": "ESSENTIALS",
                 "asset_library_identifier": "",
             },
@@ -3823,7 +3823,7 @@ class TILA_Config_Keymaps(TILA_Config_Keymaps_Base):
         self.mode_selection()
         self.tool_sculpt("view3d.tila_smart_sculptmode")
         self.selection_tool(
-            tool="brushes\essentials_brushes-gp_sculpt.blend\Brush\Grab",
+            tool="brushes/essentials_brushes-gp_sculpt.blend/Brush/Grab",
             mode="GPENCIL_SCULPT",
         )
         # self.kmi_set_replace('wm.tool_set_by_id', 'G', 'PRESS', properties={'name': 'builtin_brush.Grab'})
@@ -3882,7 +3882,7 @@ class TILA_Config_Keymaps(TILA_Config_Keymaps_Base):
         self.mode_selection()
         self.tool_sculpt("view3d.tila_smart_sculptmode")
         self.selection_tool(
-            tool="brushes\essentials_brushes-gp_weight.blend\Brush\Paint",
+            tool="brushes/essentials_brushes-gp_weight.blend/Brush/Paint",
             mode="GPENCIL_WEIGHT",
         )
 
@@ -3956,7 +3956,7 @@ class TILA_Config_Keymaps(TILA_Config_Keymaps_Base):
             shift=True,
             properties={
                 "mode": "GPENCIL_WEIGHT",
-                "relative_asset_identifier": "brushes\essentials_brushes-gp_weight.blend\Brush\Blur",
+                "relative_asset_identifier": "brushes/essentials_brushes-gp_weight.blend/Brush/Blur",
                 "asset_library_type": "ESSENTIALS",
                 "asset_library_identifier": "",
             },

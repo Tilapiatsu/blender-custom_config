@@ -1,5 +1,5 @@
 import bpy
-from os import path
+from pathlib import Path
 from bversion import BVERSION
 
 bl_info = {
@@ -23,7 +23,7 @@ class TILA_Brush:
         force_weight: bool = False,
         weight: float = -1.0,
     ):
-        self.relative_asset_identifier = path.normpath(relative_asset_identifier)
+        self.relative_asset_identifier = str(Path(relative_asset_identifier))
         self.asset_library_type = asset_library_type
         self.asset_library_identifier = asset_library_identifier
         self.force_strength = force_strength
@@ -33,7 +33,7 @@ class TILA_Brush:
 
     @property
     def name(self):
-        return path.basename(self.relative_asset_identifier)
+        return Path(self.relative_asset_identifier).stem
 
     def activate(self):
         bpy.ops.brush.asset_activate(
@@ -100,14 +100,14 @@ class TILA_Brush_toggle(bpy.types.Operator):
 
     mode: bpy.props.EnumProperty(name="mode", items=mode_enum(), default="SCULPT")
     default_relative_asset_identifier: bpy.props.StringProperty(
-        name="default brush", default="brushes\essentials_brushes-mesh_sculpt.blend\Brush\Grab"
+        name="default brush", default="brushes/essentials_brushes-mesh_sculpt.blend/Brush/Grab"
     )
     default_asset_library_type: bpy.props.StringProperty(name="asset library type", default="ESSENTIALS")
     default_asset_library_identifier: bpy.props.StringProperty(name="asset library identifier", default="")
     default_strength: bpy.props.FloatProperty(name="default strength", default=1.0)
     default_weight: bpy.props.FloatProperty(name="default weight", default=1.0)
     relative_asset_identifier: bpy.props.StringProperty(
-        name="brush", default="brushes\essentials_brushes-mesh_sculpt.blend\Brush\Grab"
+        name="brush", default="brushes/essentials_brushes-mesh_sculpt.blend/Brush/Grab"
     )
     asset_library_type: bpy.props.EnumProperty(
         name="asset library type", default="ESSENTIALS", items=asset_library_types_enum()
@@ -246,10 +246,16 @@ class TILA_Brush_toggle(bpy.types.Operator):
             if not self.brush_is_set:
                 if brush == self.current_brush:
                     brush = self.previous_brush
+                    brush.force_strength = self.force_strength
+                    brush.force_weight = self.force_weight
                 elif brush == self.default_brush and self.current_brush == self.default_brush:
                     brush = self.previous_brush
+                    brush.force_strength = self.force_strength
+                    brush.force_weight = self.force_weight
                 elif brush == self.previous_brush:
-                    brush == self.default_brush
+                    brush = self.default_brush
+                    brush.force_strength = self.force_strength
+                    brush.force_weight = self.force_weight
 
                 self.set_brush_settings(brush)
 
@@ -345,4 +351,3 @@ def unregister():
 
 if __name__ == "__main__":
     register()
-
