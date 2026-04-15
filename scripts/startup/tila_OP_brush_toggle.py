@@ -227,13 +227,17 @@ class TILA_Brush_toggle(bpy.types.Operator):
         brush.activate()
 
         if self.force_strength and brush.force_strength:
+            print(f"set strength for brush to {self.strength}")
             self.current_tool.brush.strength = self.strength
         elif brush == self.default_brush and brush == self.current_brush:
+            print(f"set strength for brush to previous_brush {self.previous_brush.strength}")
             self.current_tool.brush.strength = self.previous_brush.strength
 
         if self.force_weight and brush.force_weight:
+            print(f"set weight for brush to {self.weight}")
             self.current_tool.brush.weight = self.weight
         elif brush == self.default_brush and brush == self.current_brush:
+            print(f"set weight for brush to previous_brush {self.previous_brush.weight}")
             self.current_tool.brush.weight = self.previous_brush.weight
 
         self.brush_is_set = True
@@ -245,17 +249,14 @@ class TILA_Brush_toggle(bpy.types.Operator):
 
             if not self.brush_is_set:
                 if brush == self.current_brush:
+                    print("set brush to previous_brush")
                     brush = self.previous_brush
-                    brush.force_strength = self.force_strength
-                    brush.force_weight = self.force_weight
                 elif brush == self.default_brush and self.current_brush == self.default_brush:
+                    print("set brush to previous_brush")
                     brush = self.previous_brush
-                    brush.force_strength = self.force_strength
-                    brush.force_weight = self.force_weight
                 elif brush == self.previous_brush:
+                    print("set brush to default_brush")
                     brush = self.default_brush
-                    brush.force_strength = self.force_strength
-                    brush.force_weight = self.force_weight
 
                 self.set_brush_settings(brush)
 
