@@ -60,8 +60,12 @@ def get_max_collumn_width(images_to_process, max_row_size):
     max_crops = []
     row_count = math.ceil(len(original_crops) / max_row_size)
     for i in range(max_row_size):
-        left_command = r'min('
-        right_command = r'max('
+        if row_count > 1:
+            left_command = r'min('
+            right_command = r'max('
+        else:
+            left_command = r'('
+            right_command = r'('
         left = 0
         right = 0
         for j in range(row_count):
