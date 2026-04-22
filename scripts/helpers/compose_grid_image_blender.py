@@ -212,7 +212,8 @@ for i, current_image_to_process in enumerate(images_to_process):
             paste_position = (0, paste_position[3], 0, 0)
 
     with Image.open(image_path) as image:
-        image = image.resize((size[2], size[3]))
+        if normalize_size[0] or normalize_size[1]:
+            image = image.resize((size[2], size[3]))
         height_crop = max_row_height[math.floor(image_number / max_row_size)]
         width_crop =  max_collumn_width[image_number % max_row_size]
         
