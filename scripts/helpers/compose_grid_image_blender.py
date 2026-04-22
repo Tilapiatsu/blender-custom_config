@@ -25,6 +25,8 @@ contains = 'contains'
 output_filename = contains
 max_row_size = 4
 crop_overscan = 0.02
+normalize_size = (True, False)
+
 
 def get_max_row_height(images_to_process, max_row_size):
     original_crops = [i[1] for i in images_to_process]
@@ -112,7 +114,22 @@ def get_images_to_process(source_folder):
             # Store Image Path and BBox to crop later
             images_to_process.append((image_path, bbox))
     
-    return images_to_process
+    _, bboxes = zip(*images_to_process)
+    _, _, width, height = zip(*bboxes)
+    max_width = max(*width)
+    max_height = max(*height)
+    
+    normalized_images_to_process = []
+    
+    for i, e in enumerate(images_to_process):        
+        if normalize_size[0]:
+            normalized_images_to_process.append( (e[0], (e[1][0], e[1][1], max_width, math.ceil(e[1][3] * max_width / e[1][2]))))
+        elif normalize_size[1]:
+            normalized_images_to_process.append( (e[0], (e[1][0], e[1][1], math.ceil(e[1][2] * max_height / e[1][3]), max_height)))
+        else:
+            normalized_images_to_process.append(e)
+
+    return normalized_images_to_process
 
 
 def get_image_size(images_to_process, max_row_size, max_row_height, max_collumn_width):
@@ -187,16 +204,18 @@ new_row = 0
 if not len(image_pathes):
     exit()
 
-for image_path in image_pathes:
+for i, current_image_to_process in enumerate(images_to_process):
+    image_path, size = current_image_to_process
     if image_number != 0:
         if image_number % max_row_size == 0:
             row_number +=1
             paste_position = (0, paste_position[3], 0, 0)
 
     with Image.open(image_path) as image:
+        image = image.resize((size[2], size[3]))
         height_crop = max_row_height[math.floor(image_number / max_row_size)]
         width_crop =  max_collumn_width[image_number % max_row_size]
-
+        
         cropped = image.crop((	width_crop[0], 
                                 height_crop[0],
                                 width_crop[1],
