@@ -26,9 +26,9 @@ light[1].vec.y 0.906404
 light[1].vec.z 0.422383
 light[2].flag 1
 light[2].smooth 0.300000
-light[2].col.x 0.099349
-light[2].col.y 0.099349
-light[2].col.z 0.099349
+light[2].col.x 0.399427
+light[2].col.y 0.399427
+light[2].col.z 0.399427
 light[2].spec.x 0.852641
 light[2].spec.y 0.852641
 light[2].spec.z 0.852641
@@ -37,9 +37,9 @@ light[2].vec.y 0.906404
 light[2].vec.z 0.422383
 light[3].flag 1
 light[3].smooth 0.100000
-light[3].col.x 0.073239
-light[3].col.y 0.073239
-light[3].col.z 0.073239
+light[3].col.x 0.073240
+light[3].col.y 0.073240
+light[3].col.z 0.073240
 light[3].spec.x 0.000000
 light[3].spec.y 0.000000
 light[3].spec.z 0.000000
