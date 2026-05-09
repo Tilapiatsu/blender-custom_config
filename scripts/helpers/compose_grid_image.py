@@ -11,33 +11,88 @@ except ModuleNotFoundError as e:
 
 import os
 import math
-
+from pathlib import Path
+from enum import Enum
 
 # =====================================================
 # USER SETTINGS
 # =====================================================
 
-INPUT_FOLDER = r"/path/to/images"
-NAME_FILTER = "contains"
 
-MAX_PER_ROW = 4
-GAP = 20
+class NormalizeMode(Enum):
+    NONE = 0
+    WIDTH = 1
+    HEIGHT = 2
 
-NORMALIZE_MODE = "width"  # None / "height" / "width"
 
+class Settings:
+    def __init__(
+        self,
+        input_folder: Path,
+        name_filter: str,
+        max_per_row: int,
+        gap: int,
+        normalize_mode: NormalizeMode,
+        background_color: tuple,
+        max_output_size: tuple,
+        export_png: bool = True,
+        export_jpg: bool = True,
+        jpg_quality: int = 95,
+    ):
+
+        self.input_folder = input_folder
+        self.name_filter = name_filter
+        self.max_per_row = max_per_row
+        self.gap = gap
+        self.normalize_mode = normalize_mode
+        self.background_color = background_color
+        self.max_output_size = max_output_size
+        self.export_png = export_png
+        self.export_jpg = export_jpg
+        self.jpg_quality = jpg_quality
+
+
+INPUT_FOLDER = Path(r"/path/to/images/")
 BACKGROUND = (0, 0, 0, 1)
-
-MAX_OUTPUT_WIDTH = 6000
-MAX_OUTPUT_HEIGHT = 6000
-
+MAX_OUTPUT_SIZE = (6000, 6000)
 JPG_QUALITY = 95
+
+compose_settings = []
+
+# turn_settings
+compose_settings.append(
+    Settings(
+        INPUT_FOLDER,
+        "contains_greyscale",
+        3,
+        40,
+        NormalizeMode.NONE,
+        BACKGROUND,
+        MAX_OUTPUT_SIZE,
+    )
+)
+
+
+#  match_settings
+compose_settings.append(
+    Settings(
+        INPUT_FOLDER,
+        "contains_beauty",
+        2,
+        40,
+        NormalizeMode.WIDTH,
+        BACKGROUND,
+        MAX_OUTPUT_SIZE,
+    )
+)
+
 
 # =====================================================
 # HELPERS
 # =====================================================
 
 
-def find_images(folder, name_filter):
+def find_images(folder: Path, name_filter: str):
     exts = (".png", ".jpg", ".jpeg", ".webp", ".bmp", ".tif", ".tiff")
 
     files = []
@@ -58,14 +113,14 @@ def crop_alpha(img):
     return img
 
 
-def normalize_images(images, mode):
+def normalize_images(images: list, mode: NormalizeMode):
     """
     Scale UP smaller images only.
     Use largest width or height as target.
     Never scale down.
     """
 
-    if mode == "height":
+    if mode == NormalizeMode.HEIGHT:
         target = max(img.height for img in images)
 
         out = []
@@ -78,7 +133,7 @@ def normalize_images(images, mode):
 
         return out
 
-    elif mode == "width":
+    elif mode == NormalizeMode.WIDTH:
         target = max(img.width for img in images)
 
         out = []
@@ -94,14 +149,14 @@ def normalize_images(images, mode):
     return images
 
 
-def build_rows(images, max_per_row):
+def build_rows(images: list, max_per_row: int):
     rows = []
     for i in range(0, len(images), max_per_row):
         rows.append(images[i : i + max_per_row])
     return rows
 
 
-def compute_canvas_size(rows, gap):
+def compute_canvas_size(rows: list, gap: int):
     total_w = 0
     total_h = 0
     row_sizes = []
@@ -120,7 +175,7 @@ def compute_canvas_size(rows, gap):
     return total_w, total_h, row_sizes
 
 
-def compose(rows, gap, bg):
+def compose(rows: list, gap: int, bg: tuple):
     canvas_w, canvas_h, row_sizes = compute_canvas_size(rows, gap)
 
     canvas = Image.new("RGBA", (canvas_w, canvas_h), bg)
@@ -141,7 +196,7 @@ def compose(rows, gap, bg):
     return canvas
 
 
-def fit_max_size(img, max_w, max_h):
+def fit_max_size(img, max_w: int, max_h: int):
     w, h = img.size
 
     scale = min(max_w / w, max_h / h, 1.0)
@@ -154,14 +209,8 @@ def fit_max_size(img, max_w, max_h):
     return img
 
 
-# =====================================================
-# MAIN
-# =====================================================
-
-
-def main():
-
-    files = find_images(INPUT_FOLDER, NAME_FILTER)
+def compose_all_images(settings: Settings):
+    files = find_images(settings.input_folder, settings.name_filter)
 
     if not files:
         print("No matching images found.")
@@ -175,29 +224,41 @@ def main():
         images.append(img)
 
     # Normalize only if requested
-    if NORMALIZE_MODE in ("height", "width"):
-        images = normalize_images(images, NORMALIZE_MODE)
+    if settings.normalize_mode in (NormalizeMode.WIDTH, NormalizeMode.HEIGHT):
+        images = normalize_images(images, settings.normalize_mode)
 
-    rows = build_rows(images, MAX_PER_ROW)
+    rows = build_rows(images, settings.max_per_row)
 
-    final_img = compose(rows, GAP, BACKGROUND)
+    final_img = compose(rows, settings.gap, settings.background_color)
 
-    final_img = fit_max_size(final_img, MAX_OUTPUT_WIDTH, MAX_OUTPUT_HEIGHT)
+    final_img = fit_max_size(final_img, settings.max_output_size[0], settings.max_output_size[1])
 
-    output_base = os.path.join(INPUT_FOLDER, NAME_FILTER + "_composite")
+    output_base = os.path.join(settings.input_folder, settings.name_filter + "_composite")
 
-    png_path = output_base + ".png"
-    jpg_path = output_base + ".jpg"
+    if settings.export_jpg or settings.export_png:
+        print("Saved:")
 
-    final_img.save(png_path)
+    if settings.export_png:
+        png_path = output_base + ".png"
+        final_img.save(png_path)
+        print(png_path)
 
-    rgb = Image.new("RGB", final_img.size, BACKGROUND[:3])
-    rgb.paste(final_img, mask=final_img.getchannel("A"))
-    rgb.save(jpg_path, quality=JPG_QUALITY)
+    if settings.export_jpg:
+        jpg_path = output_base + ".jpg"
+        rgb = Image.new("RGB", final_img.size, settings.background_color[:3])
+        rgb.paste(final_img, mask=final_img.getchannel("A"))
+        rgb.save(jpg_path, quality=settings.jpg_quality)
+        print(jpg_path)
 
-    print("Saved:")
-    print(png_path)
-    print(jpg_path)
+
+# =====================================================
+# MAIN
+# =====================================================
+
+
+def main():
+    for s in compose_settings:
+        compose_all_images(s)
 
 
 if __name__ == "__main__":
