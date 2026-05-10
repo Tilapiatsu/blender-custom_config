@@ -63,7 +63,7 @@ compose_settings = []
 compose_settings.append(
     Settings(
         INPUT_FOLDER,
-        "contains_greyscale",
+        "contains_name_greyscale",
         3,
         40,
         NormalizeMode.NONE,
@@ -77,7 +77,7 @@ compose_settings.append(
 compose_settings.append(
     Settings(
         INPUT_FOLDER,
-        "contains_beauty",
+        "contains_name_beauty",
         2,
         40,
         NormalizeMode.WIDTH,
@@ -97,7 +97,11 @@ def find_images(folder: Path, name_filter: str):
 
     files = []
     for f in os.listdir(folder):
-        if f.lower().endswith(exts) and name_filter.lower() in f.lower():
+        if (
+            f.lower().endswith(exts)
+            and name_filter.lower() in f.lower()
+            and os.path.splitext(f.lower())[0] != (name_filter + "_composite").lower()
+        ):
             files.append(os.path.join(folder, f))
 
     return sorted(files)
