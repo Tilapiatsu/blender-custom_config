@@ -4299,5 +4299,26 @@
                 "destination_path": "#/scripts/addons/sketchup_importer"
             }
         ]
+    },
+    "batch_render_scenes": {
+        "is_enable": true,
+        "is_sync": false,
+        "is_extension": false,
+        "extension_id": null,
+        "online_url": "https://github.com/Tilapiatsu/blender-batch_render_scenes",
+        "repository_url": "https://github.com/Tilapiatsu/blender-batch_render_scenes",
+        "branch": "main",
+        "is_submodule": true,
+        "local_path": "#/scripts/addon_library/GIT_Submodules/tila_batch_render_scenes/",
+        "windows_drive": null,
+        "linux_drive": null,
+        "keymaps": false,
+        "paths": [
+            {
+                "is_enable": true,
+                "local_subpath": "src/batch_render_scenes",
+                "destination_path": "#/scripts/addons/batch_render_scenes"
+            }
+        ]
     }
 }

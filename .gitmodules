@@ -17,3 +17,6 @@
 [submodule "scripts/addon_library/GIT_Submodules/tila_customization_handler"]
 	path = scripts/addon_library/GIT_Submodules/tila_customization_handler
 	url = https://github.com/Tilapiatsu/blender-customization_handler.git
+[submodule "scripts/addon_library/GIT_Submodules/tila_batch_render_scenes"]
+	path = scripts/addon_library/GIT_Submodules/tila_batch_render_scenes
+	url = git@github.com:Tilapiatsu/blender-batch_render_scenes.git
