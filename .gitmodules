@@ -23,3 +23,6 @@
 [submodule "scripts/addon_library/GIT_Submodules/tila_compose_grid_images"]
 	path = scripts/addon_library/GIT_Submodules/tila_compose_grid_images
 	url = git@github.com:Tilapiatsu/blender-compose_grid_images.git
+[submodule "scripts/addon_library/GIT_Submodules/tila_multi_objects_sculpt"]
+	path = scripts/addon_library/GIT_Submodules/tila_multi_objects_sculpt
+	url = git@github.com:Tilapiatsu/blender-multi_objects_sculpt.git
