@@ -20,3 +20,6 @@
 [submodule "scripts/addon_library/GIT_Submodules/tila_batch_render_scenes"]
 	path = scripts/addon_library/GIT_Submodules/tila_batch_render_scenes
 	url = git@github.com:Tilapiatsu/blender-batch_render_scenes.git
+[submodule "scripts/addon_library/GIT_Submodules/tila_compose_grid_images"]
+	path = scripts/addon_library/GIT_Submodules/tila_compose_grid_images
+	url = git@github.com:Tilapiatsu/blender-compose_grid_images.git
