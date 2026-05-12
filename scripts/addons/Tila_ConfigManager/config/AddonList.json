@@ -1881,7 +1881,7 @@
         "is_extension": false,
         "extension_id": null,
         "online_url": null,
-        "repository_url": "https://github.com/Tilapiatsu/blender-export_as_blend.git",
+        "repository_url": "git@github.com:Tilapiatsu/blender-export_as_blend.git",
         "branch": "main",
         "is_submodule": true,
         "local_path": "#/scripts/addon_library/GIT_Submodules/tila_export_as_blend",
@@ -3440,7 +3440,7 @@
         "is_extension": false,
         "extension_id": null,
         "online_url": null,
-        "repository_url": "https://github.com/Tilapiatsu/PolyQuilt.git",
+        "repository_url": "git@github.com:Tilapiatsu/PolyQuilt.git",
         "branch": "master",
         "is_submodule": true,
         "local_path": "#/scripts/addon_library/GIT_Submodules/tila_polyquilt",
@@ -3461,7 +3461,7 @@
         "is_extension": false,
         "extension_id": null,
         "online_url": null,
-        "repository_url": "https://github.com/Tilapiatsu/blender-Universal_Multi_Importer.git",
+        "repository_url": "git@github.com:Tilapiatsu/blender-Universal_Multi_Importer.git",
         "branch": "develop",
         "is_submodule": true,
         "local_path": "#/scripts/addon_library/GIT_Submodules/tila_universal_multi_importer",
@@ -3545,7 +3545,7 @@
         "is_extension": false,
         "extension_id": null,
         "online_url": null,
-        "repository_url": "https://github.com/Tilapiatsu/blender-customization_handler.git",
+        "repository_url": "git@github.com:Tilapiatsu/blender-customization_handler.git",
         "branch": "main",
         "is_submodule": true,
         "local_path": "#/scripts/addon_library/GIT_Submodules/tila_customization_handler",
@@ -4302,11 +4302,11 @@
     },
     "batch_render_scenes": {
         "is_enable": true,
-        "is_sync": false,
+        "is_sync": true,
         "is_extension": false,
         "extension_id": null,
         "online_url": "https://github.com/Tilapiatsu/blender-batch_render_scenes",
-        "repository_url": "https://github.com/Tilapiatsu/blender-batch_render_scenes",
+        "repository_url": "git@github.com:Tilapiatsu/blender-batch_render_scenes.git",
         "branch": "main",
         "is_submodule": true,
         "local_path": "#/scripts/addon_library/GIT_Submodules/tila_batch_render_scenes/",
@@ -4318,6 +4318,27 @@
                 "is_enable": true,
                 "local_subpath": "src/batch_render_scenes",
                 "destination_path": "#/scripts/addons/batch_render_scenes"
+            }
+        ]
+    },
+    "compose_grid_iamges": {
+        "is_enable": true,
+        "is_sync": true,
+        "is_extension": false,
+        "extension_id": null,
+        "online_url": "https://github.com/Tilapiatsu/blender-compose_grid_images",
+        "repository_url": "git@github.com:Tilapiatsu/blender-compose_grid_images.git",
+        "branch": "main",
+        "is_submodule": true,
+        "local_path": "#/scripts/addon_library/GIT_Submodules/tila_compose_grid_images/",
+        "windows_drive": null,
+        "linux_drive": null,
+        "keymaps": false,
+        "paths": [
+            {
+                "is_enable": true,
+                "local_subpath": "src/compose_grid_images",
+                "destination_path": "#/scripts/addons/compose_grid_images"
             }
         ]
     }
