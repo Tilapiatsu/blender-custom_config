@@ -4342,24 +4342,24 @@
             }
         ]
     },
-    "multi_objects_sculpt": {
+    "universal_multi_edit": {
         "is_enable": true,
         "is_sync": true,
         "is_extension": false,
         "extension_id": null,
-        "online_url": "https://github.com/Tilapiatsu/blender-multi_objects_sculpt",
-        "repository_url": "git@github.com:Tilapiatsu/blender-multi_objects_sculpt.git",
+        "online_url": "https://github.com/Tilapiatsu/blender-universal_multi_edit",
+        "repository_url": "git@github.com:Tilapiatsu/blender-universal_multi_edit.git",
         "branch": "main",
         "is_submodule": true,
-        "local_path": "#/scripts/addon_library/GIT_Submodules/tila_multi_objects_sculpt/",
+        "local_path": "#/scripts/addon_library/GIT_Submodules/tila_universal_multi_edit/",
         "windows_drive": null,
         "linux_drive": null,
         "keymaps": false,
         "paths": [
             {
                 "is_enable": true,
-                "local_subpath": "src/multi_objects_sculpt",
-                "destination_path": "#/scripts/addons/multi_objects_sculpt"
+                "local_subpath": "src/universal_multi_edit",
+                "destination_path": "#/scripts/addons/universal_multi_edit"
             }
         ]
     }
