@@ -43,7 +43,11 @@ class TILA_Config_Settings(TILA_Config_Settings_Base):
                     library_root = Path("")
 
             asset_library_path = library_root / library_name
-            bpy.ops.preferences.asset_library_add("EXEC_DEFAULT", directory=str(asset_library_path))
+            if BVERSION >= 5.2:
+                bpy.ops.preferences.asset_library_add("EXEC_DEFAULT", type="LOCAL", directory=str(asset_library_path))
+            else:
+                bpy.ops.preferences.asset_library_add("EXEC_DEFAULT", directory=str(asset_library_path))
+
             if BVERSION < 3.2:
                 library_name = ""
 
