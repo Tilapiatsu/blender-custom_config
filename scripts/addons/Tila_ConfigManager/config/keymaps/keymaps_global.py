@@ -782,13 +782,25 @@ class TILA_Config_Keymaps(TILA_Config_Keymaps_Base):
 
         # Linked
         if linked_tool:
-            self.kmi_set_replace(
-                linked_tool,
-                self.k_linked,
-                "DOUBLE_CLICK",
-                ctrl=False,
-                properties={"deselect": False, "delimit": {"SEAM"}},
-            )
+            if self.km.name in [
+                "Grease Pencil",
+            ]:
+                self.kmi_set_replace(
+                    linked_tool,
+                    self.k_linked,
+                    "DOUBLE_CLICK",
+                    ctrl=False,
+                    properties={"deselect": False},
+                )
+
+            else:
+                self.kmi_set_replace(
+                    linked_tool,
+                    self.k_linked,
+                    "DOUBLE_CLICK",
+                    ctrl=False,
+                    properties={"deselect": False, "delimit": {"SEAM"}},
+                )
 
         if linked_pick_tool:
             if self.km.name in [
