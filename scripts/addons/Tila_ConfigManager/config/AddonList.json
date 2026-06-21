@@ -4375,7 +4375,7 @@
         "local_path": "#/scripts/addon_library/GIT_Submodules/tila_universal_clipboard/",
         "windows_drive": null,
         "linux_drive": null,
-        "keymaps": false,
+        "keymaps": true,
         "paths": [
             {
                 "is_enable": true,
