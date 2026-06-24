@@ -27,38 +27,38 @@ class TILA_Config_Keymaps(TILA_Config_Keymaps_Base):
             addon=False,
             restore_to_default=False,
         ):
-            kmi = self.kmi_find(idname="wm.call_menu", type="C", ctrl=True)
-            if kmi is not None:
-                kmi.shift = True
-
-            kmi = self.kmi_find(idname="wm.call_menu", type="V", ctrl=True)
-            if kmi is not None:
-                kmi.shift = True
-
-            self.kmi_set_replace(
-                "view3d.ke_copyplus",
-                "C",
-                "PRESS",
-                ctrl=True,
-                properties={"mode": "COPY"},
-                disable_double=True,
-            )
-            self.kmi_set_replace(
-                "view3d.ke_copyplus",
-                "X",
-                "PRESS",
-                ctrl=True,
-                properties={"mode": "CUT"},
-                disable_double=True,
-            )
-            self.kmi_set_replace(
-                "view3d.ke_copyplus",
-                "V",
-                "PRESS",
-                ctrl=True,
-                properties={"mode": "PASTE"},
-                disable_double=True,
-            )
+            # kmi = self.kmi_find(idname="wm.call_menu", type="C", ctrl=True)
+            # if kmi is not None:
+            #     kmi.shift = True
+            #
+            # kmi = self.kmi_find(idname="wm.call_menu", type="V", ctrl=True)
+            # if kmi is not None:
+            #     kmi.shift = True
+            #
+            # self.kmi_set_replace(
+            #     "view3d.ke_copyplus",
+            #     "C",
+            #     "PRESS",
+            #     ctrl=True,
+            #     properties={"mode": "COPY"},
+            #     disable_double=True,
+            # )
+            # self.kmi_set_replace(
+            #     "view3d.ke_copyplus",
+            #     "X",
+            #     "PRESS",
+            #     ctrl=True,
+            #     properties={"mode": "CUT"},
+            #     disable_double=True,
+            # )
+            # self.kmi_set_replace(
+            #     "view3d.ke_copyplus",
+            #     "V",
+            #     "PRESS",
+            #     ctrl=True,
+            #     properties={"mode": "PASTE"},
+            #     disable_double=True,
+            # )
 
             self.kmi_set_replace(
                 "mesh.ke_direct_loop_cut",

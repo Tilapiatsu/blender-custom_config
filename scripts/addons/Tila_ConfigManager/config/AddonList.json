@@ -2968,8 +2968,8 @@
         "paths": null
     },
     "Texel_Density": {
-        "is_enable": true,
-        "is_sync": true,
+        "is_enable": false,
+        "is_sync": false,
         "is_extension": true,
         "extension_id": "texel_density_checker",
         "online_url": "https://extensions.blender.org/add-ons/texel-density-checker/",
