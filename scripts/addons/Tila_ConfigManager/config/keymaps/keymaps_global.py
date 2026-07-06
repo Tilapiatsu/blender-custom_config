@@ -631,7 +631,7 @@ class TILA_Config_Keymaps(TILA_Config_Keymaps_Base):
         #  shortest Path Select / Deselect / Add
         if shortestpath_tool:
             self.kmi_remove(idname=shortestpath_tool)
-            use_topology_distance = True
+            use_topology_distance = False
 
             self.kmi_set_replace(
                 shortestpath_tool,
