@@ -29,3 +29,6 @@
 [submodule "scripts/addon_library/GIT_Submodules/tila_universal_clipboard"]
 	path = scripts/addon_library/GIT_Submodules/tila_universal_clipboard
 	url = git@github.com:Tilapiatsu/blender-universal_clipboard.git
+[submodule "scripts/addon_library/GIT_Submodules/tila_universal_baker"]
+	path = scripts/addon_library/GIT_Submodules/tila_universal_baker
+	url = git@github.com:Tilapiatsu/blender-universal_baker.git
