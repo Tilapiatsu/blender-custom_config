@@ -91,6 +91,7 @@ class TILA_Config_Settings(TILA_Config_Settings_Base):
         context.preferences.view.weight_color_range.elements[3].color = (1, 0, 0, 1)
 
         self.set_setting(context, "view.color_picker_type", "SQUARE_SV")
+        self.set_setting(context, "view.use_text_render_subpixelaa", True)
 
         # Edit Settings
         self.set_setting(context, "edit.object_align", "CURSOR")
