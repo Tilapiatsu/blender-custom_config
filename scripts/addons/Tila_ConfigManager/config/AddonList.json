@@ -4404,5 +4404,31 @@
                 "destination_path": "#/scripts/addons/universal_baker"
             }
         ]
+    },
+    "k_tools_view_sync": {
+        "is_enable": true,
+        "is_sync": true,
+        "is_extension": true,
+        "extension_id": "k_tools_view_sync",
+        "online_url": "https://extensions.blender.org/add-ons/k-tools-view-sync/",
+        "repository_url": null,
+        "branch": null,
+        "is_submodule": false,
+        "local_path": null,
+        "windows_drive": null,
+        "linux_drive": null,
+        "keymaps": false,
+        "paths": [
+            {
+                "is_enable": false,
+                "local_subpath": null,
+                "destination_path": null
+            },
+            {
+                "is_enable": false,
+                "local_subpath": null,
+                "destination_path": null
+            }
+        ]
     }
 }
