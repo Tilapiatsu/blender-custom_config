@@ -1108,6 +1108,9 @@ class TILA_Config_Keymaps(TILA_Config_Keymaps_Base):
     def tool_proportional(self):
         self.modal_set_replace("PROPORTIONAL_SIZE", "MOUSEMOVE", "ANY", alt=True)
 
+    def tool_proportional_radius(self):
+        self.kmi_set_replace("view3d.adjust_proportional_radius", "Q", "PRESS")
+
     def tool_smart_delete(self):
         self.kmi_set_active(False, type="DEL")
         self.kmi_set_replace(
@@ -1706,6 +1709,8 @@ class TILA_Config_Keymaps(TILA_Config_Keymaps_Base):
             shift=True,
             disable_double=True,
         )
+
+        self.tool_proportional_radius()
 
         self.collection_visibility("object.hide_collection")
 
