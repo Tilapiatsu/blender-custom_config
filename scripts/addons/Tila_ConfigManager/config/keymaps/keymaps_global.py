@@ -16,6 +16,7 @@ class TILA_Config_Keymaps(TILA_Config_Keymaps_Base):
         self.kmi_set_active(False, type="X", shift=True)
         self.kmi_set_active(False, type="TAB", ctrl=True, shift=True)
         self.kmi_set_active(False, idname="wm.call_panel", type="X", ctrl=True)
+        self.kmi_set_active(False, idname="object.transfer_mode", type="Q")
 
         # Set global Keymap
         self.kmi_set_replace(
@@ -1110,6 +1111,14 @@ class TILA_Config_Keymaps(TILA_Config_Keymaps_Base):
 
     def tool_proportional_radius(self):
         self.kmi_set_replace("view3d.adjust_proportional_radius", "Q", "PRESS")
+        self.kmi_set_replace(
+            "wm.context_toggle",
+            "Q",
+            "PRESS",
+            alt=True,
+            properties={"data_path": "tool_settings.use_proportional_connected"},
+            disable_double=True,
+        )
 
     def tool_smart_delete(self):
         self.kmi_set_active(False, type="DEL")
@@ -1580,6 +1589,7 @@ class TILA_Config_Keymaps(TILA_Config_Keymaps_Base):
         self.set_keymaps_image()
         self.set_keymaps_uv_editor()
         self.set_keymaps_mesh()
+        self.set_keymaps_object_non_modal()
         self.set_keymaps_object_mode()
         self.set_keymaps_sculpt()
         self.set_keymaps_curves()
@@ -2488,6 +2498,11 @@ class TILA_Config_Keymaps(TILA_Config_Keymaps_Base):
         self.kmi_set_replace("mesh.tris_convert_to_quads", "T", "PRESS", alt=True, shift=True)
         self.kmi_set_replace("mesh.tila_smart_pivot", "S", "PRESS", alt=True, disable_double=True)
         self.kmi_set_replace("mesh.loopcut_slide", "C", "PRESS", alt=True, shift=True, disable_double=True)
+
+    @TILA_Config_Keymaps_Base.print_assigning_keymap("Object Non-Modal")
+    def set_keymaps_object_non_modal(self):
+        self.kmi_init(name="Object Non-modal", space_type="EMPTY", region_type="WINDOW", addon=False)
+        self.kmi_set_active(False, idname="object.transfer_mode", type="Q")
 
     @TILA_Config_Keymaps_Base.print_assigning_keymap("Global Object Mode")
     def set_keymaps_object_mode(self):
