@@ -197,7 +197,7 @@ class VIEW3D_OT_adjust_proportional_radius(bpy.types.Operator):
 
         # Base change.
 
-        change = dx / PIXELS_PER_RADIUS
+        change = dx / PIXELS_PER_RADIUS * 0.5
 
         # Precision / boost.
 
