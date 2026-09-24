@@ -4411,7 +4411,7 @@
         "is_extension": true,
         "extension_id": "k_tools_view_sync",
         "online_url": "https://extensions.blender.org/add-ons/k-tools-view-sync/",
-        "repository_url": null,
+        "repository_url": "blender_org",
         "branch": null,
         "is_submodule": false,
         "local_path": null,
@@ -4428,6 +4428,27 @@
                 "is_enable": false,
                 "local_subpath": null,
                 "destination_path": null
+            }
+        ]
+    },
+    "curve_face_color": {
+        "is_enable": true,
+        "is_sync": false,
+        "is_extension": false,
+        "extension_id": null,
+        "online_url": "https://kushiro.gumroad.com/l/xwxst?layout=profile",
+        "repository_url": null,
+        "branch": null,
+        "is_submodule": false,
+        "local_path": "#/scripts/addon_library/local/curve_face_color",
+        "windows_drive": null,
+        "linux_drive": null,
+        "keymaps": false,
+        "paths": [
+            {
+                "is_enable": true,
+                "local_subpath": null,
+                "destination_path": "#/scripts/addons/curve_face_color"
             }
         ]
     }
