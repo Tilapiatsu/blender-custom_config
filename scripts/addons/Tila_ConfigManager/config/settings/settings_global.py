@@ -29,30 +29,8 @@ class TILA_Config_Settings(TILA_Config_Settings_Base):
         theme_filepath = os.path.join(root_path, "scripts", "presets", "interface_theme", "Tila_Ide.xml")
         bpy.ops.script.execute_preset(filepath=theme_filepath, menu_idname="USERPREF_MT_interface_theme_presets")
 
-        # # Set Asset Library
-        if "Tilapiatsu" not in context.preferences.filepaths.asset_libraries:
-            library_name = "00_Blender_Asset_Library"
-
-            library_root = Path("")
-            match platform.system():
-                case "Windows":
-                    library_root = Path("R:/Mon Drive")
-                case "Linux":
-                    library_root = Path("/mnt/ressources")
-                case _:
-                    library_root = Path("")
-
-            asset_library_path = library_root / library_name
-            if BVERSION >= 5.2:
-                bpy.ops.preferences.asset_library_add("EXEC_DEFAULT", type="LOCAL", directory=str(asset_library_path))
-            else:
-                bpy.ops.preferences.asset_library_add("EXEC_DEFAULT", directory=str(asset_library_path))
-
-            if BVERSION < 3.2:
-                library_name = ""
-
-            context.preferences.filepaths.asset_libraries[library_name].import_method = "PACK"
-            context.preferences.filepaths.asset_libraries[library_name].name = "Tilapiatsu"
+        self.ensure_library(context, "Tilapiatsu", Path("00_Blender_Asset_Library"))
+        self.ensure_library(context, "Higgsas", Path("01_Higgsas Geo Nodes"))
 
         # View Settings
         self.set_setting(context, "view.show_tooltips", True)
@@ -128,3 +106,28 @@ class TILA_Config_Settings(TILA_Config_Settings_Base):
 
         # System
         self.set_setting(context, "system.gpu_backend", "VULKAN")
+
+    def ensure_library(self, context: bpy.types.Context, library_name: str, library_path: Path) -> None:
+        if library_name not in context.preferences.filepaths.asset_libraries:
+            library_tip = library_path.name
+
+            library_root = Path("")
+            match platform.system():
+                case "Windows":
+                    library_root = Path("R:/Mon Drive")
+                case "Linux":
+                    library_root = Path("/mnt/ressources")
+                case _:
+                    library_root = Path("")
+
+            asset_library_path = library_root / library_tip
+            if BVERSION >= 5.2:
+                bpy.ops.preferences.asset_library_add("EXEC_DEFAULT", type="LOCAL", directory=str(asset_library_path))
+            else:
+                bpy.ops.preferences.asset_library_add("EXEC_DEFAULT", directory=str(asset_library_path))
+
+            if BVERSION < 3.2:
+                library_name = ""
+
+            context.preferences.filepaths.asset_libraries[library_tip].import_method = "PACK"
+            context.preferences.filepaths.asset_libraries[library_tip].name = library_name
