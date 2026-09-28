@@ -1,5 +1,5 @@
-from Tila_ConfigManager.config.keymaps.keymaps import TILA_Config_Keymaps_Base
 from Tila_ConfigManager.bversion import BVERSION
+from Tila_ConfigManager.config.keymaps.keymaps import TILA_Config_Keymaps_Base
 
 addon_name = "Global"
 
@@ -1670,6 +1670,7 @@ class TILA_Config_Keymaps(TILA_Config_Keymaps_Base):
         self.kmi_set_active(False, idname="view3d.zoom", type="MIDDLEMOUSE")
         self.kmi_set_active(False, idname="view3d.move", type="MIDDLEMOUSE")
         self.kmi_set_active(False, idname="view3d.view_center_pick", type="MIDDLEMOUSE")
+        self.kmi_set_active(False, idname="view3d.smart_pan", type="MIDDLEMOUSE")
 
         self.kmi_set_active(False, idname="wm.tool_set_by_id", type="W")
         self.kmi_set_replace(
