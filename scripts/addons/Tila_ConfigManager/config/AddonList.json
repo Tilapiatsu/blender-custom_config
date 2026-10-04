@@ -4472,5 +4472,26 @@
                 "destination_path": "#/scripts/addons/bwrap"
             }
         ]
+    },
+    "befx_probaker": {
+        "is_enable": true,
+        "is_sync": true,
+        "is_extension": false,
+        "extension_id": null,
+        "online_url": "https://superhivemarket.com/products/pro-baker",
+        "repository_url": null,
+        "branch": null,
+        "is_submodule": false,
+        "local_path": "15_Blender/00_INSTALLED_ADDONS/pro_baker/",
+        "windows_drive": "S:/Mon Drive",
+        "linux_drive": "/mnt/software_data",
+        "keymaps": false,
+        "paths": [
+            {
+                "is_enable": true,
+                "local_subpath": null,
+                "destination_path": "#/scripts/addons/befx_probaker"
+            }
+        ]
     }
 }
