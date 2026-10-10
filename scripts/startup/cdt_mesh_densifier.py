@@ -1,7 +1,7 @@
 bl_info = {
     "name": "CDT Mesh Densifier",
     "author": "OpenAI",
-    "version": (0, 3, 0),
+    "version": (0, 4, 0),
     "blender": (4, 2, 0),
     "location": "View3D > Sidebar > Item > CDT Densifier",
     "description": "Duplicate a mesh and densify selected triangles while preserving shared boundaries",
@@ -27,7 +27,6 @@ from bpy.props import (
 # 2D geometry helpers
 # -----------------------------------------------------------------------------
 
-
 def cross2(a, b, c):
     return (b[0] - a[0]) * (c[1] - a[1]) - (b[1] - a[1]) * (c[0] - a[0])
 
@@ -36,7 +35,9 @@ def point_in_triangle_2d(p, a, b, c, eps=1e-10):
     c1 = cross2(a, b, p)
     c2 = cross2(b, c, p)
     c3 = cross2(c, a, p)
-    return (c1 >= -eps and c2 >= -eps and c3 >= -eps) or (c1 <= eps and c2 <= eps and c3 <= eps)
+    return (c1 >= -eps and c2 >= -eps and c3 >= -eps) or (
+        c1 <= eps and c2 <= eps and c3 <= eps
+    )
 
 
 def _projected_intervals_overlap(poly, axis, rect):
@@ -58,13 +59,13 @@ def triangle_intersects_rect(tri, xmin, ymin, xmax, ymax):
 
 def _mask_pixel_value(rgba, channel):
     r, g, b, a = rgba
-    if channel == "RED":
+    if channel == 'RED':
         return r
-    if channel == "GREEN":
+    if channel == 'GREEN':
         return g
-    if channel == "BLUE":
+    if channel == 'BLUE':
         return b
-    if channel == "ALPHA":
+    if channel == 'ALPHA':
         return a
     return 0.2126 * r + 0.7152 * g + 0.0722 * b
 
@@ -72,10 +73,10 @@ def _mask_pixel_value(rgba, channel):
 class ImageMask:
     """Cached UV-space image mask, sampled from Blender's image datablock."""
 
-    def __init__(self, image, threshold=0.0, channel="LUMINANCE"):
+    def __init__(self, image, threshold=0.0, channel='LUMINANCE'):
         if image is None:
             raise ValueError("No mask image was supplied.")
-        if image.source == "TILED":
+        if image.source == 'TILED':
             raise ValueError("UDIM/tiled mask images are not supported by this prototype yet.")
         self.image = image
         self.width, self.height = image.size[:]
@@ -83,7 +84,7 @@ class ImageMask:
             raise ValueError(f"Mask image '{image.name}' has no pixel data.")
         self.threshold = threshold
         self.channel = channel
-        self.pixels = array("f", [0.0]) * (self.width * self.height * 4)
+        self.pixels = array('f', [0.0]) * (self.width * self.height * 4)
         image.pixels.foreach_get(self.pixels)
 
     def value_at_uv(self, uv):
@@ -94,7 +95,7 @@ class ImageMask:
         x = min(self.width - 1, max(0, int(math.floor(u * self.width))))
         y = min(self.height - 1, max(0, int(math.floor(v * self.height))))
         idx = (y * self.width + x) * 4
-        return _mask_pixel_value(self.pixels[idx : idx + 4], self.channel)
+        return _mask_pixel_value(self.pixels[idx:idx + 4], self.channel)
 
     def uv_is_active(self, uv):
         return self.value_at_uv(uv) > self.threshold
@@ -120,7 +121,7 @@ class ImageMask:
                 if not triangle_intersects_rect(tri, px0, py0, px1, py1):
                     continue
                 idx = (y * self.width + x) * 4
-                rgba = self.pixels[idx : idx + 4]
+                rgba = self.pixels[idx:idx + 4]
                 if _mask_pixel_value(rgba, self.channel) > self.threshold:
                     return True
         return False
@@ -129,7 +130,6 @@ class ImageMask:
 # -----------------------------------------------------------------------------
 # Sampling and local coordinate helpers
 # -----------------------------------------------------------------------------
-
 
 def triangle_basis(p0, p1, p2):
     e1 = p1 - p0
@@ -204,7 +204,6 @@ def barycentric_weights_2d(p, a, b, c):
 # Main densifier
 # -----------------------------------------------------------------------------
 
-
 class CDTMeshDensifier:
     """Create a triangulated duplicate while keeping original vertices fixed.
 
@@ -223,10 +222,10 @@ class CDTMeshDensifier:
         seed=1,
         mask_image=None,
         mask_threshold=0.0,
-        mask_channel="LUMINANCE",
+        mask_channel='LUMINANCE',
         preserve_custom_normals=True,
     ):
-        if obj is None or obj.type != "MESH":
+        if obj is None or obj.type != 'MESH':
             raise TypeError("Active object must be a mesh object.")
         if spacing_cm <= 0:
             raise ValueError("Spacing must be greater than zero.")
@@ -253,290 +252,314 @@ class CDTMeshDensifier:
         original_local = [v.co.copy() for v in src.vertices]
         original_world = [matrix_world @ co for co in original_local]
 
-        # Blender stores shading normals per loop/corner, allowing hard edges to
-        # retain distinct normals on their two sides.
         try:
             src_corner_normals = [loop.normal.copy() for loop in src.loops]
         except Exception:
-            src_corner_normals = [Vector((0, 0, 1)) for _ in src.loops]
+            src_corner_normals = [Vector((0.0, 0.0, 1.0)) for _ in src.loops]
 
+        source_uv_layers = list(src.uv_layers)
         uv_layer = src.uv_layers.active if self.mask_image else None
         if self.mask_image and uv_layer is None:
-            raise ValueError("A UV map is required when a mask image is supplied.")
+            raise ValueError("A UV map is required when an image mask is supplied.")
         mask = ImageMask(self.mask_image, self.mask_threshold, self.mask_channel) if self.mask_image else None
 
-        # Build an endpoint-pair lookup. MeshLoopTriangle does not expose edge
-        # indices consistently across Blender versions, so resolve triangle edges
-        # from their vertex pairs instead.
-        edge_lookup = {}
-        for edge in src.edges:
-            a, b = edge.vertices
-            edge_lookup[(min(a, b), max(a, b))] = edge.index
+        triangles = list(src.loop_triangles)
+        if not triangles:
+            raise ValueError("The input mesh has no triangulatable faces.")
 
-        # Decide which source triangles are selected before splitting edges.
-        # A triangle is selected when at least one active mask texel intersects
-        # its UV triangle. Without a mask, all triangles are selected.
-        selected_triangle_indices = set()
-        selected_edge_indices = set()
-        for tri_index, tri in enumerate(src.loop_triangles):
-            tri_vertices = list(tri.vertices)
+        # Select triangles in UV space. Use texel/triangle intersection rather
+        # than centroid sampling so small active mask regions are not missed.
+        selected_triangles = set()
+        for ti, tri in enumerate(triangles):
             selected = True
-            if mask:
-                uv_tri = [uv_layer.data[loop_index].uv.copy() for loop_index in tri.loops]
+            if mask is not None:
+                uv_tri = [uv_layer.data[li].uv.copy() for li in tri.loops]
                 selected = mask.triangle_has_nonzero_texel(uv_tri)
             if selected:
-                selected_triangle_indices.add(tri_index)
-                for side in range(3):
-                    a = tri_vertices[side]
-                    b = tri_vertices[(side + 1) % 3]
-                    edge_index = edge_lookup.get((min(a, b), max(a, b)))
-                    if edge_index is not None:
-                        selected_edge_indices.add(edge_index)
+                selected_triangles.add(ti)
 
-        # Preflight only the edges that actually need splitting. Edges shared
-        # with selected triangles are split on both sides to avoid cracks.
+        # Build a shared edge graph from the *triangulated surface*, not just
+        # Mesh.edges. This includes virtual diagonals introduced when an ngon
+        # or quad is represented by loop_triangles. A key is an unordered pair
+        # of original vertex indices, so adjacent triangles reuse the same chain.
+        edge_to_triangles = {}
+        for ti, tri in enumerate(triangles):
+            vids = list(tri.vertices)
+            for side in range(3):
+                a, b = vids[side], vids[(side + 1) % 3]
+                key = (min(a, b), max(a, b))
+                edge_to_triangles.setdefault(key, []).append(ti)
+
+        # An edge is split if any incident triangle is selected. This also
+        # splits the shared side on the inactive neighbour to avoid cracks.
         edge_segments = {}
         required_vertices = len(src.vertices)
-        for edge in src.edges:
-            if edge.index not in selected_edge_indices:
-                edge_segments[edge.index] = 1
-                continue
-            a, b = edge.vertices
-            length = (original_world[b] - original_world[a]).length
-            segments = max(1, int(math.ceil(length / self.spacing_world)))
-            edge_segments[edge.index] = segments
+        for key, incident in edge_to_triangles.items():
+            should_split = any(ti in selected_triangles for ti in incident)
+            if should_split:
+                a, b = key
+                length = (original_world[b] - original_world[a]).length
+                segments = max(1, int(math.ceil(length / self.spacing_world)))
+            else:
+                segments = 1
+            edge_segments[key] = segments
             required_vertices += segments - 1
+
+        # Loose original edges are split in full-mesh mode only. They do not
+        # belong to a surface/UV region, so a mask cannot select them reliably.
+        triangle_edge_keys = set(edge_to_triangles)
+        loose_edge_keys = []
+        for edge in src.edges:
+            a, b = edge.vertices
+            key = (min(a, b), max(a, b))
+            if key not in triangle_edge_keys:
+                loose_edge_keys.append(key)
+                if mask is None:
+                    length = (original_world[key[1]] - original_world[key[0]]).length
+                    segs = max(1, int(math.ceil(length / self.spacing_world)))
+                    edge_segments[key] = segs
+                    required_vertices += segs - 1
+                else:
+                    edge_segments[key] = 1
+
         if required_vertices > self.max_vertices:
             raise RuntimeError(
-                f"Splitting selected/shared edges requires at least {required_vertices:,} vertices, "
+                f"Splitting surface edges requires at least {required_vertices:,} vertices, "
                 f"exceeding the limit of {self.max_vertices:,}. Increase the limit or use a larger spacing."
             )
 
-        # Original vertices retain their original indices and local coordinates.
+        # Allocate all shared edge-chain vertices once, in deterministic order.
         out_local = [co.copy() for co in original_local]
-        edge_vertex_ids = {}
-        for edge in src.edges:
-            a, b = edge.vertices
-            segments = edge_segments[edge.index]
-            ids = [a]
+        edge_chains = {}
+        for key, segments in edge_segments.items():
+            a, b = key  # chain is always stored low vertex index -> high index
+            chain = [a]
             for step in range(1, segments):
                 t = step / segments
                 world_co = original_world[a].lerp(original_world[b], t)
-                local_co = inverse_world @ world_co
-                ids.append(len(out_local))
-                out_local.append(local_co)
-            ids.append(b)
-            edge_vertex_ids[edge.index] = ids
+                chain.append(len(out_local))
+                out_local.append(inverse_world @ world_co)
+            chain.append(b)
+            edge_chains[key] = chain
 
         out_faces = []
         out_face_materials = []
         out_face_smooth = []
         out_corner_normals = []
-        out_uvs = {layer.name: [] for layer in src.uv_layers}
-        source_uv_layers = list(src.uv_layers)
+        out_uvs = {layer.name: [] for layer in source_uv_layers}
         interior_budget = self.max_vertices - len(out_local)
 
-        for tri_index, tri in enumerate(src.loop_triangles):
-            v_ids = list(tri.vertices)
+        # To avoid point-cloud edges crossing the constrained boundary, every
+        # triangle is triangulated independently with all boundary subsegments
+        # supplied as constraints. Adjacent triangles share the exact same
+        # boundary vertex IDs through edge_chains.
+        for ti, tri in enumerate(triangles):
+            vids = list(tri.vertices)
             loop_ids = list(tri.loops)
-            p0, p1, p2 = [original_world[i] for i in v_ids]
+            p0, p1, p2 = [original_world[i] for i in vids]
             basis = triangle_basis(p0, p1, p2)
             if basis is None:
                 continue
             project, unproject = basis
-
             tri_2d = [project(p0), project(p1), project(p2)]
             if cross2(*tri_2d) < 0:
-                v_ids[1], v_ids[2] = v_ids[2], v_ids[1]
+                vids[1], vids[2] = vids[2], vids[1]
                 loop_ids[1], loop_ids[2] = loop_ids[2], loop_ids[1]
-                p0, p1, p2 = [original_world[i] for i in v_ids]
-                project, unproject = triangle_basis(p0, p1, p2)
+                p0, p1, p2 = [original_world[i] for i in vids]
+                basis = triangle_basis(p0, p1, p2)
+                if basis is None:
+                    continue
+                project, unproject = basis
                 tri_2d = [project(p0), project(p1), project(p2)]
 
-            # Selection was computed before edge splitting so the vertex budget
-            # and edge chains are consistent. Only selected triangles receive
-            # interior samples; unselected triangles are retriangulated only when
-            # a shared edge had to be split to keep the surface connected.
-            selected = tri_index in selected_triangle_indices
+            selected = ti in selected_triangles
+            boundary_ids = []
+            for side in range(3):
+                va, vb = vids[side], vids[(side + 1) % 3]
+                chain = edge_chains[(min(va, vb), max(va, vb))]
+                if chain[0] != va:
+                    chain = list(reversed(chain))
+                # omit endpoint vb; it starts the next side's chain
+                boundary_ids.extend(chain[:-1])
+
+            # An inactive triangle with no split edge stays exactly as one
+            # triangle. If a neighbour forced edge splits, retriangulate it to
+            # maintain shared connectivity, but add no interior samples.
             has_split_boundary = any(
-                edge_segments.get(
-                    edge_lookup.get(
-                        (min(v_ids[side], v_ids[(side + 1) % 3]), max(v_ids[side], v_ids[(side + 1) % 3])), -1
-                    ),
-                    1,
-                )
-                > 1
-                for side in range(3)
+                edge_segments[(min(vids[i], vids[(i + 1) % 3]), max(vids[i], vids[(i + 1) % 3]))] > 1
+                for i in range(3)
             )
             if not selected and not has_split_boundary:
-                # Preserve an untouched source triangle as-is. This is the key
-                # mask behavior: inactive triangles away from the remesh boundary
-                # do not get triangulated or have their topology changed.
-                face = list(v_ids)
-                out_faces.append(face)
-                out_face_materials.append(src.polygons[tri.polygon_index].material_index)
-                out_face_smooth.append(src.polygons[tri.polygon_index].use_smooth)
-                for loop_index in loop_ids:
-                    out_corner_normals.append(src_corner_normals[loop_index].copy())
+                out_faces.append(list(vids))
+                poly = src.polygons[tri.polygon_index]
+                out_face_materials.append(poly.material_index)
+                out_face_smooth.append(poly.use_smooth)
+                for li in loop_ids:
+                    out_corner_normals.append(src_corner_normals[li].copy())
                     for layer in source_uv_layers:
-                        out_uvs[layer.name].append(layer.data[loop_index].uv.copy())
+                        out_uvs[layer.name].append(layer.data[li].uv.copy())
                 continue
 
-            # Build ordered boundary chain: original corners plus evenly spaced
-            # samples along each of the triangle's three original mesh edges.
-            boundary_global_ids = []
-            for side in range(3):
-                va = v_ids[side]
-                vb = v_ids[(side + 1) % 3]
-                edge_key = (min(va, vb), max(va, vb))
-                edge_index = edge_lookup.get(edge_key)
-                if edge_index is None:
-                    # Defensive fallback for malformed/non-manifold input.
-                    boundary_global_ids.append(va)
-                    continue
-                chain = edge_vertex_ids[edge_index]
-                if chain[0] == va:
-                    ordered_chain = chain[:-1]
-                else:
-                    ordered_chain = list(reversed(chain))[:-1]
-                boundary_global_ids.extend(ordered_chain)
-
-            # Unique boundary ids in perimeter order.
-            compact_boundary = []
-            for idx in boundary_global_ids:
-                if not compact_boundary or compact_boundary[-1] != idx:
-                    compact_boundary.append(idx)
-            if len(compact_boundary) > 1 and compact_boundary[0] == compact_boundary[-1]:
-                compact_boundary.pop()
-            if len(compact_boundary) < 3:
-                continue
-
-            # Add interior points only to triangles intersecting nonzero mask texels.
+            # Interior sampling is only done for selected triangles. The sampler
+            # is bounded by the remaining vertex budget.
             samples_world = []
             if selected and interior_budget > 0:
-                # Reserve some budget for later triangles by bounding each triangle's
-                # requested sample count to the remaining global budget.
-                samples_world = sample_triangle(p0, p1, p2, self.spacing_world, self.rng, interior_budget)
+                samples_world = sample_triangle(
+                    p0, p1, p2, self.spacing_world, self.rng, interior_budget
+                )
                 interior_budget -= len(samples_world)
 
-            # CDT input consists of boundary vertices first, then interior samples.
-            cdt_input_global_ids = list(compact_boundary)
-            cdt_points_2d = []
-            for global_id in compact_boundary:
-                cdt_points_2d.append(project(matrix_world @ out_local[global_id]))
+            # CDT inputs are unique boundary vertices followed by interior points.
+            input_global_ids = list(boundary_ids)
+            points_2d = [project(matrix_world @ out_local[gid]) for gid in boundary_ids]
             for point in samples_world:
-                global_id = len(out_local)
+                gid = len(out_local)
                 out_local.append(inverse_world @ point)
-                cdt_input_global_ids.append(global_id)
-                cdt_points_2d.append(project(point))
+                input_global_ids.append(gid)
+                points_2d.append(project(point))
 
-            # Constraints preserve every segment along the original triangle boundary.
-            boundary_count = len(compact_boundary)
-            cdt_edges = [(i, (i + 1) % boundary_count) for i in range(boundary_count)]
-            cdt_face = [tuple(range(boundary_count))]
+            boundary_count = len(boundary_ids)
+            if boundary_count < 3:
+                continue
+            constraints = [(i, (i + 1) % boundary_count) for i in range(boundary_count)]
+            boundary_face = [tuple(range(boundary_count))]
             try:
                 cdt_verts, _cdt_edges, cdt_faces, orig_verts, _orig_edges, _orig_faces = delaunay_2d_cdt(
-                    [Vector((p[0], p[1])) for p in cdt_points_2d],
-                    cdt_edges,
-                    cdt_face,
-                    0,  # triangulate inside the constrained boundary
-                    1e-9,
+                    [Vector((float(p[0]), float(p[1]))) for p in points_2d],
+                    constraints,
+                    boundary_face,
+                    1,       # triangulate inside boundary
+                    1e-10,
                     True,
                 )
             except Exception as exc:
-                raise RuntimeError(
-                    f"Constrained triangulation failed for source triangle {tuple(tri.vertices)}: {exc}"
-                ) from exc
+                raise RuntimeError(f"CDT failed for source triangle {tuple(tri.vertices)}: {exc}") from exc
 
-            # The input vertices are all retained in this setup. Use CDT's
-            # original-vertex map instead of matching positions by floating point.
-            output_to_global = {}
-            for out_i in range(len(cdt_verts)):
-                source_indices = orig_verts[out_i] if out_i < len(orig_verts) else []
-                if not source_indices:
-                    raise RuntimeError("CDT returned a vertex without an input-vertex mapping.")
-                output_to_global[out_i] = cdt_input_global_ids[source_indices[0]]
+            # Map CDT points back to the input vertices. If the CDT merged an
+            # input point, choose the first provenance index; for this input,
+            # distinct boundary/sample points should not normally be merged.
+            cdt_to_global = {}
+            for oi, provenance in enumerate(orig_verts):
+                if not provenance:
+                    # CDT may introduce a point only for intersections. There
+                    # should be none for a triangle plus interior samples.
+                    co2 = Vector(cdt_verts[oi])
+                    nearest = min(range(len(points_2d)), key=lambda j: (co2 - Vector(points_2d[j])).length_squared)
+                    if (co2 - Vector(points_2d[nearest])).length_squared > 1e-12:
+                        raise RuntimeError("CDT introduced an unmapped vertex; refusing to create potentially non-manifold output.")
+                    provenance = [nearest]
+                cdt_to_global[oi] = input_global_ids[provenance[0]]
 
-            # Per-loop source normals and UVs follow the source triangle's corner order.
-            source_normals = [src_corner_normals[i].copy() for i in loop_ids]
+            source_normals = [src_corner_normals[li].copy() for li in loop_ids]
             source_uv_triangles = {
-                layer.name: [layer.data[i].uv.copy() for i in loop_ids] for layer in source_uv_layers
+                layer.name: [layer.data[li].uv.copy() for li in loop_ids]
+                for layer in source_uv_layers
             }
             a2, b2, c2 = tri_2d
-            material_index = src.polygons[tri.polygon_index].material_index
-            smooth = src.polygons[tri.polygon_index].use_smooth
+            denom = cross2(a2, b2, c2)
+            poly = src.polygons[tri.polygon_index]
 
             for cdt_face_indices in cdt_faces:
-                if len(cdt_face_indices) != 3:
+                if len(cdt_face_indices) < 3:
                     continue
-                face = [output_to_global[i] for i in cdt_face_indices]
-                if len(set(face)) != 3:
-                    continue
-                q0, q1, q2 = [Vector(cdt_verts[i]) for i in cdt_face_indices]
-                if abs(cross2(q0, q1, q2)) < 1e-12:
-                    continue
-                out_faces.append(face)
-                out_face_materials.append(material_index)
-                out_face_smooth.append(smooth)
+                # CDT normally returns triangles for this mode. If a polygon is
+                # returned, fan-triangulate it around its first vertex.
+                local_tris = []
+                if len(cdt_face_indices) == 3:
+                    local_tris.append(tuple(cdt_face_indices))
+                else:
+                    for k in range(1, len(cdt_face_indices) - 1):
+                        local_tris.append((cdt_face_indices[0], cdt_face_indices[k], cdt_face_indices[k + 1]))
 
-                for cdt_vertex_index in cdt_face_indices:
-                    q = Vector(cdt_verts[cdt_vertex_index])
-                    weights = barycentric_weights_2d(q, a2, b2, c2)
-                    normal = (
-                        source_normals[0] * weights[0] + source_normals[1] * weights[1] + source_normals[2] * weights[2]
-                    )
-                    if normal.length_squared > 1e-20:
-                        normal.normalize()
-                    else:
-                        normal = source_normals[0].copy()
-                    out_corner_normals.append(normal)
+                for cdt_tri in local_tris:
+                    face = [cdt_to_global[i] for i in cdt_tri]
+                    if len(set(face)) != 3:
+                        continue
+                    q0, q1, q2 = [Vector(cdt_verts[i]) for i in cdt_tri]
+                    area2 = cross2(q0, q1, q2)
+                    if abs(area2) < 1e-12:
+                        continue
+                    # Match the source triangle's winding. This avoids flipped
+                    # faces and helps ensure a consistent manifold surface.
+                    if area2 * denom < 0:
+                        face[1], face[2] = face[2], face[1]
+                        cdt_tri = (cdt_tri[0], cdt_tri[2], cdt_tri[1])
+                    out_faces.append(face)
+                    out_face_materials.append(poly.material_index)
+                    out_face_smooth.append(poly.use_smooth)
 
-                    for layer_name, uv_tri in source_uv_triangles.items():
-                        uv = uv_tri[0] * weights[0] + uv_tri[1] * weights[1] + uv_tri[2] * weights[2]
-                        out_uvs[layer_name].append(uv)
+                    for cdt_vi in cdt_tri:
+                        q = Vector(cdt_verts[cdt_vi])
+                        weights = barycentric_weights_2d(q, a2, b2, c2)
+                        normal = source_normals[0] * weights[0] + source_normals[1] * weights[1] + source_normals[2] * weights[2]
+                        if normal.length_squared > 1e-20:
+                            normal.normalize()
+                        else:
+                            normal = source_normals[0].copy()
+                        out_corner_normals.append(normal)
+                        for name, uv_tri in source_uv_triangles.items():
+                            out_uvs[name].append(uv_tri[0] * weights[0] + uv_tri[1] * weights[1] + uv_tri[2] * weights[2])
 
-        # Include loose edges not represented by faces, retaining original endpoints.
-        face_edge_keys = set()
-        for face in out_faces:
-            for i, a in enumerate(face):
-                b = face[(i + 1) % len(face)]
-                face_edge_keys.add((min(a, b), max(a, b)))
+        # Split loose edges in full-mesh mode and preserve them as edge chains.
         loose_edges = []
-        for edge in src.edges:
-            a, b = edge.vertices
-            key = (min(a, b), max(a, b))
-            if key not in face_edge_keys:
-                loose_edges.extend(
-                    (edge_vertex_ids[edge.index][i], edge_vertex_ids[edge.index][i + 1])
-                    for i in range(len(edge_vertex_ids[edge.index]) - 1)
-                )
+        for key in loose_edge_keys:
+            chain = edge_chains[key]
+            loose_edges.extend((chain[i], chain[i + 1]) for i in range(len(chain) - 1))
+
+        # Final defensive checks: no duplicate-index faces and no duplicate faces.
+        clean_faces = []
+        clean_mats = []
+        clean_smooth = []
+        clean_normals = []
+        clean_uvs = {layer.name: [] for layer in source_uv_layers}
+        seen_faces = set()
+        loop_cursor = 0
+        for fi, face in enumerate(out_faces):
+            # All generated output faces should be triangles.
+            if len(face) != 3 or len(set(face)) != 3:
+                loop_cursor += len(face)
+                continue
+            canonical = tuple(sorted(face))
+            if canonical in seen_faces:
+                loop_cursor += len(face)
+                continue
+            seen_faces.add(canonical)
+            clean_faces.append(face)
+            clean_mats.append(out_face_materials[fi])
+            clean_smooth.append(out_face_smooth[fi])
+            clean_normals.extend(out_corner_normals[loop_cursor:loop_cursor + 3])
+            for name in clean_uvs:
+                clean_uvs[name].extend(out_uvs[name][loop_cursor:loop_cursor + 3])
+            loop_cursor += len(face)
+
+        if len(out_local) > self.max_vertices:
+            raise RuntimeError(f"Vertex limit exceeded ({len(out_local):,} > {self.max_vertices:,}).")
 
         new_mesh = bpy.data.meshes.new(f"{src.name}_Densified")
-        new_mesh.from_pydata(out_local, loose_edges, out_faces)
-        new_mesh.update()
+        new_mesh.from_pydata(out_local, loose_edges, clean_faces)
+        new_mesh.update(calc_edges=True)
 
         for i, poly in enumerate(new_mesh.polygons):
-            if i < len(out_face_materials):
-                poly.material_index = out_face_materials[i]
-                poly.use_smooth = out_face_smooth[i]
+            if i < len(clean_mats):
+                poly.material_index = clean_mats[i]
+                poly.use_smooth = clean_smooth[i]
         for material in src.materials:
             new_mesh.materials.append(material)
 
-        # UV coordinates are transferred per output loop, preserving seams.
         for src_uv in source_uv_layers:
             dst_uv = new_mesh.uv_layers.new(name=src_uv.name)
-            values = out_uvs[src_uv.name]
+            values = clean_uvs[src_uv.name]
             if len(values) == len(dst_uv.data):
                 for i, uv in enumerate(values):
                     dst_uv.data[i].uv = uv
 
-        if self.preserve_custom_normals and len(out_corner_normals) == len(new_mesh.loops):
+        if self.preserve_custom_normals and len(clean_normals) == len(new_mesh.loops):
             try:
-                new_mesh.normals_split_custom_set(out_corner_normals)
+                new_mesh.normals_split_custom_set(clean_normals)
             except Exception:
-                # Some Blender builds/mesh states may reject custom-normal writes.
                 pass
 
+        # Copy polygon-relevant object settings via object.copy(); source data is untouched.
         new_obj = self.obj.copy()
         new_obj.data = new_mesh
         new_obj.name = f"{self.obj.name}_Densified"
@@ -550,7 +573,6 @@ class CDTMeshDensifier:
 # -----------------------------------------------------------------------------
 # Blender UI
 # -----------------------------------------------------------------------------
-
 
 class CDT_DENSIFIER_Props(bpy.types.PropertyGroup):
     spacing_cm: FloatProperty(
@@ -585,13 +607,13 @@ class CDT_DENSIFIER_Props(bpy.types.PropertyGroup):
     mask_channel: EnumProperty(
         name="Mask Channel",
         items=[
-            ("LUMINANCE", "Luminance", "Use weighted RGB luminance"),
-            ("RED", "Red", "Use the red channel"),
-            ("GREEN", "Green", "Use the green channel"),
-            ("BLUE", "Blue", "Use the blue channel"),
-            ("ALPHA", "Alpha", "Use the alpha channel"),
+            ('LUMINANCE', "Luminance", "Use weighted RGB luminance"),
+            ('RED', "Red", "Use the red channel"),
+            ('GREEN', "Green", "Use the green channel"),
+            ('BLUE', "Blue", "Use the blue channel"),
+            ('ALPHA', "Alpha", "Use the alpha channel"),
         ],
-        default="LUMINANCE",
+        default='LUMINANCE',
     )
     preserve_custom_normals: BoolProperty(
         name="Preserve / Interpolate Normals",
@@ -604,11 +626,11 @@ class MESH_OT_cdt_densify_duplicate(bpy.types.Operator):
     bl_idname = "mesh.cdt_densify_duplicate"
     bl_label = "Create Densified Duplicate"
     bl_description = "Duplicate the active mesh, evenly split its original edges, and densify masked regions"
-    bl_options = {"REGISTER", "UNDO"}
+    bl_options = {'REGISTER', 'UNDO'}
 
     @classmethod
     def poll(cls, context):
-        return context.active_object is not None and context.active_object.type == "MESH"
+        return context.active_object is not None and context.active_object.type == 'MESH'
 
     def execute(self, context):
         obj = context.active_object
@@ -626,29 +648,26 @@ class MESH_OT_cdt_densify_duplicate(bpy.types.Operator):
             )
             result = densifier.build()
         except Exception as exc:
-            self.report({"ERROR"}, str(exc))
-            return {"CANCELLED"}
+            self.report({'ERROR'}, str(exc))
+            return {'CANCELLED'}
 
-        bpy.ops.object.select_all(action="DESELECT")
+        bpy.ops.object.select_all(action='DESELECT')
         result.select_set(True)
         context.view_layer.objects.active = result
-        self.report(
-            {"INFO"},
-            f"Created {result.name}: {len(result.data.vertices):,} vertices, {len(result.data.polygons):,} triangles",
-        )
-        return {"FINISHED"}
+        self.report({ 'INFO' }, f"Created {result.name}: {len(result.data.vertices):,} vertices, {len(result.data.polygons):,} triangles")
+        return {'FINISHED'}
 
 
 class VIEW3D_PT_cdt_densifier(bpy.types.Panel):
     bl_label = "CDT Densifier"
     bl_idname = "VIEW3D_PT_cdt_densifier"
-    bl_space_type = "VIEW_3D"
-    bl_region_type = "UI"
+    bl_space_type = 'VIEW_3D'
+    bl_region_type = 'UI'
     bl_category = "Item"
 
     @classmethod
     def poll(cls, context):
-        return context.active_object is not None and context.active_object.type == "MESH"
+        return context.active_object is not None and context.active_object.type == 'MESH'
 
     def draw(self, context):
         layout = self.layout
@@ -664,7 +683,7 @@ class VIEW3D_PT_cdt_densifier(bpy.types.Panel):
             layout.prop(props, "mask_channel")
             layout.prop(props, "mask_threshold")
         layout.prop(props, "preserve_custom_normals")
-        layout.operator("mesh.cdt_densify_duplicate", icon="MOD_TRIANGULATE")
+        layout.operator("mesh.cdt_densify_duplicate", icon='MOD_TRIANGULATE')
 
 
 classes = (
