@@ -1,10 +1,10 @@
 bl_info = {
     "name": "CDT Mesh Densifier",
     "author": "OpenAI",
-    "version": (0, 2, 0),
+    "version": (0, 3, 0),
     "blender": (4, 2, 0),
     "location": "View3D > Sidebar > Item > CDT Densifier",
-    "description": "Duplicate a mesh, evenly split original edges, and densify selected surface regions",
+    "description": "Duplicate a mesh and densify selected triangles while preserving shared boundaries",
     "category": "Mesh",
 }
 
@@ -27,6 +27,7 @@ from bpy.props import (
 # 2D geometry helpers
 # -----------------------------------------------------------------------------
 
+
 def cross2(a, b, c):
     return (b[0] - a[0]) * (c[1] - a[1]) - (b[1] - a[1]) * (c[0] - a[0])
 
@@ -35,9 +36,7 @@ def point_in_triangle_2d(p, a, b, c, eps=1e-10):
     c1 = cross2(a, b, p)
     c2 = cross2(b, c, p)
     c3 = cross2(c, a, p)
-    return (c1 >= -eps and c2 >= -eps and c3 >= -eps) or (
-        c1 <= eps and c2 <= eps and c3 <= eps
-    )
+    return (c1 >= -eps and c2 >= -eps and c3 >= -eps) or (c1 <= eps and c2 <= eps and c3 <= eps)
 
 
 def _projected_intervals_overlap(poly, axis, rect):
@@ -59,24 +58,24 @@ def triangle_intersects_rect(tri, xmin, ymin, xmax, ymax):
 
 def _mask_pixel_value(rgba, channel):
     r, g, b, a = rgba
-    if channel == 'RED':
+    if channel == "RED":
         return r
-    if channel == 'GREEN':
+    if channel == "GREEN":
         return g
-    if channel == 'BLUE':
+    if channel == "BLUE":
         return b
-    if channel == 'ALPHA':
+    if channel == "ALPHA":
         return a
     return 0.2126 * r + 0.7152 * g + 0.0722 * b
 
 
 class ImageMask:
-    """Cached image mask. A UV triangle is selected if it intersects any nonzero texel."""
+    """Cached UV-space image mask, sampled from Blender's image datablock."""
 
-    def __init__(self, image, threshold=0.0, channel='LUMINANCE'):
+    def __init__(self, image, threshold=0.0, channel="LUMINANCE"):
         if image is None:
             raise ValueError("No mask image was supplied.")
-        if image.source == 'TILED':
+        if image.source == "TILED":
             raise ValueError("UDIM/tiled mask images are not supported by this prototype yet.")
         self.image = image
         self.width, self.height = image.size[:]
@@ -84,8 +83,21 @@ class ImageMask:
             raise ValueError(f"Mask image '{image.name}' has no pixel data.")
         self.threshold = threshold
         self.channel = channel
-        self.pixels = array('f', [0.0]) * (self.width * self.height * 4)
+        self.pixels = array("f", [0.0]) * (self.width * self.height * 4)
         image.pixels.foreach_get(self.pixels)
+
+    def value_at_uv(self, uv):
+        """Read the nearest texel at UV coordinates. UVs outside 0..1 are inactive."""
+        u, v = float(uv.x), float(uv.y)
+        if u < 0.0 or u > 1.0 or v < 0.0 or v > 1.0:
+            return 0.0
+        x = min(self.width - 1, max(0, int(math.floor(u * self.width))))
+        y = min(self.height - 1, max(0, int(math.floor(v * self.height))))
+        idx = (y * self.width + x) * 4
+        return _mask_pixel_value(self.pixels[idx : idx + 4], self.channel)
+
+    def uv_is_active(self, uv):
+        return self.value_at_uv(uv) > self.threshold
 
     def triangle_has_nonzero_texel(self, uv_triangle):
         tri = [(float(uv.x), float(uv.y)) for uv in uv_triangle]
@@ -108,7 +120,7 @@ class ImageMask:
                 if not triangle_intersects_rect(tri, px0, py0, px1, py1):
                     continue
                 idx = (y * self.width + x) * 4
-                rgba = self.pixels[idx:idx + 4]
+                rgba = self.pixels[idx : idx + 4]
                 if _mask_pixel_value(rgba, self.channel) > self.threshold:
                     return True
         return False
@@ -117,6 +129,7 @@ class ImageMask:
 # -----------------------------------------------------------------------------
 # Sampling and local coordinate helpers
 # -----------------------------------------------------------------------------
+
 
 def triangle_basis(p0, p1, p2):
     e1 = p1 - p0
@@ -191,13 +204,15 @@ def barycentric_weights_2d(p, a, b, c):
 # Main densifier
 # -----------------------------------------------------------------------------
 
+
 class CDTMeshDensifier:
     """Create a triangulated duplicate while keeping original vertices fixed.
 
-    Every original edge is divided into equal-length segments based on the
-    requested spacing. Interior sampling is limited to triangles selected by an
-    optional UV image mask. A triangle is selected when it intersects at least
-    one nonzero mask texel.
+    Original edges belonging to selected triangles are divided into equal-length
+    segments. Edges shared with unselected triangles are split as needed to avoid
+    cracks. Interior sampling is limited to selected triangles. A triangle is
+    selected when it intersects at least one active mask texel. This is a
+    triangle-level mask approximation, not exact clipping to individual texels.
     """
 
     def __init__(
@@ -208,10 +223,10 @@ class CDTMeshDensifier:
         seed=1,
         mask_image=None,
         mask_threshold=0.0,
-        mask_channel='LUMINANCE',
+        mask_channel="LUMINANCE",
         preserve_custom_normals=True,
     ):
-        if obj is None or obj.type != 'MESH':
+        if obj is None or obj.type != "MESH":
             raise TypeError("Active object must be a mesh object.")
         if spacing_cm <= 0:
             raise ValueError("Spacing must be greater than zero.")
@@ -250,10 +265,42 @@ class CDTMeshDensifier:
             raise ValueError("A UV map is required when a mask image is supplied.")
         mask = ImageMask(self.mask_image, self.mask_threshold, self.mask_channel) if self.mask_image else None
 
-        # Preflight the required edge vertices before allocating the output.
+        # Build an endpoint-pair lookup. MeshLoopTriangle does not expose edge
+        # indices consistently across Blender versions, so resolve triangle edges
+        # from their vertex pairs instead.
+        edge_lookup = {}
+        for edge in src.edges:
+            a, b = edge.vertices
+            edge_lookup[(min(a, b), max(a, b))] = edge.index
+
+        # Decide which source triangles are selected before splitting edges.
+        # A triangle is selected when at least one active mask texel intersects
+        # its UV triangle. Without a mask, all triangles are selected.
+        selected_triangle_indices = set()
+        selected_edge_indices = set()
+        for tri_index, tri in enumerate(src.loop_triangles):
+            tri_vertices = list(tri.vertices)
+            selected = True
+            if mask:
+                uv_tri = [uv_layer.data[loop_index].uv.copy() for loop_index in tri.loops]
+                selected = mask.triangle_has_nonzero_texel(uv_tri)
+            if selected:
+                selected_triangle_indices.add(tri_index)
+                for side in range(3):
+                    a = tri_vertices[side]
+                    b = tri_vertices[(side + 1) % 3]
+                    edge_index = edge_lookup.get((min(a, b), max(a, b)))
+                    if edge_index is not None:
+                        selected_edge_indices.add(edge_index)
+
+        # Preflight only the edges that actually need splitting. Edges shared
+        # with selected triangles are split on both sides to avoid cracks.
         edge_segments = {}
         required_vertices = len(src.vertices)
         for edge in src.edges:
+            if edge.index not in selected_edge_indices:
+                edge_segments[edge.index] = 1
+                continue
             a, b = edge.vertices
             length = (original_world[b] - original_world[a]).length
             segments = max(1, int(math.ceil(length / self.spacing_world)))
@@ -261,7 +308,7 @@ class CDTMeshDensifier:
             required_vertices += segments - 1
         if required_vertices > self.max_vertices:
             raise RuntimeError(
-                f"Evenly splitting original edges requires at least {required_vertices:,} vertices, "
+                f"Splitting selected/shared edges requires at least {required_vertices:,} vertices, "
                 f"exceeding the limit of {self.max_vertices:,}. Increase the limit or use a larger spacing."
             )
 
@@ -281,12 +328,6 @@ class CDTMeshDensifier:
             ids.append(b)
             edge_vertex_ids[edge.index] = ids
 
-        # Map undirected endpoint pair to original edge index.
-        edge_lookup = {}
-        for edge in src.edges:
-            a, b = edge.vertices
-            edge_lookup[(min(a, b), max(a, b))] = edge.index
-
         out_faces = []
         out_face_materials = []
         out_face_smooth = []
@@ -295,7 +336,7 @@ class CDTMeshDensifier:
         source_uv_layers = list(src.uv_layers)
         interior_budget = self.max_vertices - len(out_local)
 
-        for tri in src.loop_triangles:
+        for tri_index, tri in enumerate(src.loop_triangles):
             v_ids = list(tri.vertices)
             loop_ids = list(tri.loops)
             p0, p1, p2 = [original_world[i] for i in v_ids]
@@ -312,13 +353,34 @@ class CDTMeshDensifier:
                 project, unproject = triangle_basis(p0, p1, p2)
                 tri_2d = [project(p0), project(p1), project(p2)]
 
-            # Select this triangle by UV mask. A triangle is selected if any
-            # nonzero image texel intersects its UV triangle, not merely its centroid.
-            selected = True
-            tri_uvs = None
-            if mask:
-                tri_uvs = [uv_layer.data[i].uv.copy() for i in loop_ids]
-                selected = mask.triangle_has_nonzero_texel(tri_uvs)
+            # Selection was computed before edge splitting so the vertex budget
+            # and edge chains are consistent. Only selected triangles receive
+            # interior samples; unselected triangles are retriangulated only when
+            # a shared edge had to be split to keep the surface connected.
+            selected = tri_index in selected_triangle_indices
+            has_split_boundary = any(
+                edge_segments.get(
+                    edge_lookup.get(
+                        (min(v_ids[side], v_ids[(side + 1) % 3]), max(v_ids[side], v_ids[(side + 1) % 3])), -1
+                    ),
+                    1,
+                )
+                > 1
+                for side in range(3)
+            )
+            if not selected and not has_split_boundary:
+                # Preserve an untouched source triangle as-is. This is the key
+                # mask behavior: inactive triangles away from the remesh boundary
+                # do not get triangulated or have their topology changed.
+                face = list(v_ids)
+                out_faces.append(face)
+                out_face_materials.append(src.polygons[tri.polygon_index].material_index)
+                out_face_smooth.append(src.polygons[tri.polygon_index].use_smooth)
+                for loop_index in loop_ids:
+                    out_corner_normals.append(src_corner_normals[loop_index].copy())
+                    for layer in source_uv_layers:
+                        out_uvs[layer.name].append(layer.data[loop_index].uv.copy())
+                continue
 
             # Build ordered boundary chain: original corners plus evenly spaced
             # samples along each of the triangle's three original mesh edges.
@@ -336,7 +398,7 @@ class CDTMeshDensifier:
                 if chain[0] == va:
                     ordered_chain = chain[:-1]
                 else:
-                    ordered_chain = list(reversed(chain))[ :-1]
+                    ordered_chain = list(reversed(chain))[:-1]
                 boundary_global_ids.extend(ordered_chain)
 
             # Unique boundary ids in perimeter order.
@@ -354,9 +416,7 @@ class CDTMeshDensifier:
             if selected and interior_budget > 0:
                 # Reserve some budget for later triangles by bounding each triangle's
                 # requested sample count to the remaining global budget.
-                samples_world = sample_triangle(
-                    p0, p1, p2, self.spacing_world, self.rng, interior_budget
-                )
+                samples_world = sample_triangle(p0, p1, p2, self.spacing_world, self.rng, interior_budget)
                 interior_budget -= len(samples_world)
 
             # CDT input consists of boundary vertices first, then interior samples.
@@ -375,15 +435,13 @@ class CDTMeshDensifier:
             cdt_edges = [(i, (i + 1) % boundary_count) for i in range(boundary_count)]
             cdt_face = [tuple(range(boundary_count))]
             try:
-                cdt_verts, _cdt_edges, cdt_faces, orig_verts, _orig_edges, _orig_faces = (
-                    delaunay_2d_cdt(
-                        [Vector((p[0], p[1])) for p in cdt_points_2d],
-                        cdt_edges,
-                        cdt_face,
-                        1,       # triangulate inside the constrained boundary
-                        1e-9,
-                        True,
-                    )
+                cdt_verts, _cdt_edges, cdt_faces, orig_verts, _orig_edges, _orig_faces = delaunay_2d_cdt(
+                    [Vector((p[0], p[1])) for p in cdt_points_2d],
+                    cdt_edges,
+                    cdt_face,
+                    0,  # triangulate inside the constrained boundary
+                    1e-9,
+                    True,
                 )
             except Exception as exc:
                 raise RuntimeError(
@@ -402,8 +460,7 @@ class CDTMeshDensifier:
             # Per-loop source normals and UVs follow the source triangle's corner order.
             source_normals = [src_corner_normals[i].copy() for i in loop_ids]
             source_uv_triangles = {
-                layer.name: [layer.data[i].uv.copy() for i in loop_ids]
-                for layer in source_uv_layers
+                layer.name: [layer.data[i].uv.copy() for i in loop_ids] for layer in source_uv_layers
             }
             a2, b2, c2 = tri_2d
             material_index = src.polygons[tri.polygon_index].material_index
@@ -426,9 +483,7 @@ class CDTMeshDensifier:
                     q = Vector(cdt_verts[cdt_vertex_index])
                     weights = barycentric_weights_2d(q, a2, b2, c2)
                     normal = (
-                        source_normals[0] * weights[0]
-                        + source_normals[1] * weights[1]
-                        + source_normals[2] * weights[2]
+                        source_normals[0] * weights[0] + source_normals[1] * weights[1] + source_normals[2] * weights[2]
                     )
                     if normal.length_squared > 1e-20:
                         normal.normalize()
@@ -451,8 +506,10 @@ class CDTMeshDensifier:
             a, b = edge.vertices
             key = (min(a, b), max(a, b))
             if key not in face_edge_keys:
-                loose_edges.extend((edge_vertex_ids[edge.index][i], edge_vertex_ids[edge.index][i + 1])
-                                    for i in range(len(edge_vertex_ids[edge.index]) - 1))
+                loose_edges.extend(
+                    (edge_vertex_ids[edge.index][i], edge_vertex_ids[edge.index][i + 1])
+                    for i in range(len(edge_vertex_ids[edge.index]) - 1)
+                )
 
         new_mesh = bpy.data.meshes.new(f"{src.name}_Densified")
         new_mesh.from_pydata(out_local, loose_edges, out_faces)
@@ -494,6 +551,7 @@ class CDTMeshDensifier:
 # Blender UI
 # -----------------------------------------------------------------------------
 
+
 class CDT_DENSIFIER_Props(bpy.types.PropertyGroup):
     spacing_cm: FloatProperty(
         name="Spacing (cm)",
@@ -513,7 +571,7 @@ class CDT_DENSIFIER_Props(bpy.types.PropertyGroup):
     seed: IntProperty(name="Random Seed", default=1, min=0, max=2147483647)
     mask_image: PointerProperty(
         name="Mask Image",
-        description="Optional UV-space image mask. Triangles touching nonzero texels are densified",
+        description="Optional UV-space image mask. Only selected triangles are densified; shared boundary edges may split",
         type=bpy.types.Image,
     )
     mask_threshold: FloatProperty(
@@ -527,13 +585,13 @@ class CDT_DENSIFIER_Props(bpy.types.PropertyGroup):
     mask_channel: EnumProperty(
         name="Mask Channel",
         items=[
-            ('LUMINANCE', "Luminance", "Use weighted RGB luminance"),
-            ('RED', "Red", "Use the red channel"),
-            ('GREEN', "Green", "Use the green channel"),
-            ('BLUE', "Blue", "Use the blue channel"),
-            ('ALPHA', "Alpha", "Use the alpha channel"),
+            ("LUMINANCE", "Luminance", "Use weighted RGB luminance"),
+            ("RED", "Red", "Use the red channel"),
+            ("GREEN", "Green", "Use the green channel"),
+            ("BLUE", "Blue", "Use the blue channel"),
+            ("ALPHA", "Alpha", "Use the alpha channel"),
         ],
-        default='LUMINANCE',
+        default="LUMINANCE",
     )
     preserve_custom_normals: BoolProperty(
         name="Preserve / Interpolate Normals",
@@ -546,11 +604,11 @@ class MESH_OT_cdt_densify_duplicate(bpy.types.Operator):
     bl_idname = "mesh.cdt_densify_duplicate"
     bl_label = "Create Densified Duplicate"
     bl_description = "Duplicate the active mesh, evenly split its original edges, and densify masked regions"
-    bl_options = {'REGISTER', 'UNDO'}
+    bl_options = {"REGISTER", "UNDO"}
 
     @classmethod
     def poll(cls, context):
-        return context.active_object is not None and context.active_object.type == 'MESH'
+        return context.active_object is not None and context.active_object.type == "MESH"
 
     def execute(self, context):
         obj = context.active_object
@@ -568,26 +626,29 @@ class MESH_OT_cdt_densify_duplicate(bpy.types.Operator):
             )
             result = densifier.build()
         except Exception as exc:
-            self.report({'ERROR'}, str(exc))
-            return {'CANCELLED'}
+            self.report({"ERROR"}, str(exc))
+            return {"CANCELLED"}
 
-        bpy.ops.object.select_all(action='DESELECT')
+        bpy.ops.object.select_all(action="DESELECT")
         result.select_set(True)
         context.view_layer.objects.active = result
-        self.report({ 'INFO' }, f"Created {result.name}: {len(result.data.vertices):,} vertices, {len(result.data.polygons):,} triangles")
-        return {'FINISHED'}
+        self.report(
+            {"INFO"},
+            f"Created {result.name}: {len(result.data.vertices):,} vertices, {len(result.data.polygons):,} triangles",
+        )
+        return {"FINISHED"}
 
 
 class VIEW3D_PT_cdt_densifier(bpy.types.Panel):
     bl_label = "CDT Densifier"
     bl_idname = "VIEW3D_PT_cdt_densifier"
-    bl_space_type = 'VIEW_3D'
-    bl_region_type = 'UI'
+    bl_space_type = "VIEW_3D"
+    bl_region_type = "UI"
     bl_category = "Item"
 
     @classmethod
     def poll(cls, context):
-        return context.active_object is not None and context.active_object.type == 'MESH'
+        return context.active_object is not None and context.active_object.type == "MESH"
 
     def draw(self, context):
         layout = self.layout
@@ -597,12 +658,13 @@ class VIEW3D_PT_cdt_densifier(bpy.types.Panel):
         layout.prop(props, "seed")
         layout.separator()
         layout.label(text="Optional UV Image Mask")
+        layout.label(text="Mask selects triangles touching active texels")
         layout.prop(props, "mask_image")
         if props.mask_image:
             layout.prop(props, "mask_channel")
             layout.prop(props, "mask_threshold")
         layout.prop(props, "preserve_custom_normals")
-        layout.operator("mesh.cdt_densify_duplicate", icon='MOD_TRIANGULATE')
+        layout.operator("mesh.cdt_densify_duplicate", icon="MOD_TRIANGULATE")
 
 
 classes = (
