@@ -1,7 +1,7 @@
 bl_info = {
     "name": "CDT Mesh Densifier",
     "author": "OpenAI",
-    "version": (0, 4, 0),
+    "version": (0, 5, 0),
     "blender": (4, 2, 0),
     "location": "View3D > Sidebar > Item > CDT Densifier",
     "description": "Duplicate a mesh and densify selected triangles while preserving shared boundaries",
@@ -11,6 +11,8 @@ bl_info = {
 import bpy
 import math
 import random
+import os
+import re
 from array import array
 from mathutils import Vector
 from mathutils.geometry import delaunay_2d_cdt
@@ -71,60 +73,152 @@ def _mask_pixel_value(rgba, channel):
 
 
 class ImageMask:
-    """Cached UV-space image mask, sampled from Blender's image datablock."""
+    """Cached UV-space image mask, including per-tile UDIM pixel buffers.
+
+    For UDIM images, each tile is read through Blender's active-tile image
+    buffer. Missing tiles are treated as inactive. UV coordinates are mapped
+    to tile numbers using the standard UDIM formula.
+    """
 
     def __init__(self, image, threshold=0.0, channel='LUMINANCE'):
         if image is None:
             raise ValueError("No mask image was supplied.")
-        if image.source == 'TILED':
-            raise ValueError("UDIM/tiled mask images are not supported by this prototype yet.")
         self.image = image
-        self.width, self.height = image.size[:]
-        if self.width < 1 or self.height < 1:
-            raise ValueError(f"Mask image '{image.name}' has no pixel data.")
-        self.threshold = threshold
+        self.threshold = float(threshold)
         self.channel = channel
-        self.pixels = array('f', [0.0]) * (self.width * self.height * 4)
-        image.pixels.foreach_get(self.pixels)
+        self.is_tiled = image.source == 'TILED'
+        self.tiles = {}
+
+        if self.is_tiled:
+            tile_numbers = [int(tile.number) for tile in image.tiles]
+            if not tile_numbers:
+                raise ValueError(f"UDIM image '{image.name}' has no tiles.")
+
+            # Important Blender API limitation: image.pixels.foreach_get() reads
+            # tile 1001 even when tiles.active_index points at another tile.
+            # Therefore, load each file-backed tile as a temporary ordinary image
+            # instead of pretending active_index changes the pixel buffer.
+            image_path = bpy.path.abspath(image.filepath) if image.filepath else ""
+            has_udim_token = "<UDIM>" in image_path.upper()
+            for tile in image.tiles:
+                number = int(tile.number)
+                tile_pixels = None
+                width = height = 0
+
+                # Generated UDIM tiles have a uniform generated color; preserve
+                # that color without trying to access a nonexistent pixel buffer.
+                if getattr(tile, "is_generated_tile", False):
+                    width, height = map(int, tile.size[:2])
+                    if width < 1 or height < 1:
+                        width = int(getattr(tile, "generated_width", 0) or image.size[0])
+                        height = int(getattr(tile, "generated_height", 0) or image.size[1])
+                    if width > 0 and height > 0:
+                        rgba = tuple(float(c) for c in tile.generated_color)
+                        tile_pixels = array('f', rgba) * (width * height)
+
+                # External UDIM image sets use a filename token such as
+                # texture.<UDIM>.png. Load each concrete file independently.
+                if tile_pixels is None and has_udim_token:
+                    concrete_path = re.sub(r"<UDIM>", str(number), image_path, flags=re.IGNORECASE)
+                    if os.path.isfile(concrete_path):
+                        temp_image = None
+                        try:
+                            temp_image = bpy.data.images.load(concrete_path, check_existing=False)
+                            width, height = map(int, temp_image.size[:2])
+                            if width > 0 and height > 0:
+                                tile_pixels = array('f', [0.0]) * (width * height * 4)
+                                temp_image.pixels.foreach_get(tile_pixels)
+                        finally:
+                            if temp_image is not None:
+                                bpy.data.images.remove(temp_image)
+
+                # Packed or otherwise non-file-backed tile 1001 can still be read
+                # from the image datablock. Blender's public Python pixel buffer
+                # does not expose packed non-1001 tile buffers independently.
+                if tile_pixels is None and number == 1001:
+                    width, height = map(int, image.size[:2])
+                    if width > 0 and height > 0:
+                        tile_pixels = array('f', [0.0]) * (width * height * 4)
+                        image.pixels.foreach_get(tile_pixels)
+
+                if tile_pixels is not None and width > 0 and height > 0:
+                    self.tiles[number] = (width, height, tile_pixels)
+
+            if not self.tiles:
+                raise ValueError(
+                    f"UDIM image '{image.name}' has no readable tile pixels. "
+                    "For file-backed UDIMs, use a filepath containing <UDIM>."
+                )
+            missing = sorted(set(tile_numbers) - set(self.tiles))
+            if missing:
+                raise ValueError(
+                    f"Could not read UDIM tile(s) {', '.join(map(str, missing))} from '{image.name}'. "
+                    "Blender's Python image.pixels API only exposes tile 1001 directly; "
+                    "make sure each tile exists as a separate file matching the <UDIM> filepath."
+                )
+        else:
+            width, height = map(int, image.size[:2])
+            if width < 1 or height < 1:
+                raise ValueError(f"Mask image '{image.name}' has no pixel data.")
+            pixels = array('f', [0.0]) * (width * height * 4)
+            image.pixels.foreach_get(pixels)
+            self.tiles[1001] = (width, height, pixels)
+
+    @staticmethod
+    def _tile_for_uv(u, v):
+        """Return (UDIM number, local U, local V), or None for negative UVs."""
+        if u < 0.0 or v < 0.0:
+            return None
+        tile_u = int(math.floor(u))
+        tile_v = int(math.floor(v))
+        return 1001 + tile_u + 10 * tile_v, u - tile_u, v - tile_v
 
     def value_at_uv(self, uv):
-        """Read the nearest texel at UV coordinates. UVs outside 0..1 are inactive."""
         u, v = float(uv.x), float(uv.y)
-        if u < 0.0 or u > 1.0 or v < 0.0 or v > 1.0:
+        mapped = self._tile_for_uv(u, v)
+        if mapped is None:
             return 0.0
-        x = min(self.width - 1, max(0, int(math.floor(u * self.width))))
-        y = min(self.height - 1, max(0, int(math.floor(v * self.height))))
-        idx = (y * self.width + x) * 4
-        return _mask_pixel_value(self.pixels[idx:idx + 4], self.channel)
+        tile_number, local_u, local_v = mapped
+        if not self.is_tiled and tile_number != 1001:
+            return 0.0
+        tile_data = self.tiles.get(tile_number)
+        if tile_data is None:
+            return 0.0
+        width, height, pixels = tile_data
+        # Avoid treating an exact tile boundary as the last texel of the
+        # previous tile; floor() maps it to the tile on the positive side.
+        x = min(width - 1, max(0, int(math.floor(local_u * width))))
+        y = min(height - 1, max(0, int(math.floor(local_v * height))))
+        idx = (y * width + x) * 4
+        return _mask_pixel_value(pixels[idx:idx + 4], self.channel)
 
     def uv_is_active(self, uv):
         return self.value_at_uv(uv) > self.threshold
 
+    def triangle_active_fraction(self, uv_triangle):
+        """Estimate active coverage from interior samples, across UDIM tiles.
+
+        This intentionally avoids the old 'any active texel touched' rule,
+        which caused a large UV triangle to be selected by a tiny active texel.
+        It remains a triangle-level approximation, not exact mask clipping.
+        """
+        a, b, c = [Vector((float(uv.x), float(uv.y))) for uv in uv_triangle]
+        samples = (
+            (a + b + c) / 3.0,
+            a * 0.6 + b * 0.2 + c * 0.2,
+            a * 0.2 + b * 0.6 + c * 0.2,
+            a * 0.2 + b * 0.2 + c * 0.6,
+            (a + b) * 0.5,
+            (b + c) * 0.5,
+            (c + a) * 0.5,
+        )
+        active = sum(self.uv_is_active(uv) for uv in samples)
+        return active / len(samples)
+
     def triangle_has_nonzero_texel(self, uv_triangle):
-        tri = [(float(uv.x), float(uv.y)) for uv in uv_triangle]
-        min_u = max(0.0, min(p[0] for p in tri))
-        max_u = min(1.0, max(p[0] for p in tri))
-        min_v = max(0.0, min(p[1] for p in tri))
-        max_v = min(1.0, max(p[1] for p in tri))
-        if min_u > max_u or min_v > max_v:
-            return False
-
-        x0 = max(0, min(self.width - 1, int(math.floor(min_u * self.width))))
-        x1 = max(0, min(self.width - 1, int(math.floor(max_u * self.width))))
-        y0 = max(0, min(self.height - 1, int(math.floor(min_v * self.height))))
-        y1 = max(0, min(self.height - 1, int(math.floor(max_v * self.height))))
-
-        for y in range(y0, y1 + 1):
-            py0, py1 = y / self.height, (y + 1) / self.height
-            for x in range(x0, x1 + 1):
-                px0, px1 = x / self.width, (x + 1) / self.width
-                if not triangle_intersects_rect(tri, px0, py0, px1, py1):
-                    continue
-                idx = (y * self.width + x) * 4
-                rgba = self.pixels[idx:idx + 4]
-                if _mask_pixel_value(rgba, self.channel) > self.threshold:
-                    return True
-        return False
+        # Backwards-compatible name; now uses sampled coverage rather than
+        # activating an entire triangle because of a single touched texel.
+        return self.triangle_active_fraction(uv_triangle) >= 0.5
 
 
 # -----------------------------------------------------------------------------
@@ -212,6 +306,7 @@ class CDTMeshDensifier:
     cracks. Interior sampling is limited to selected triangles. A triangle is
     selected when it intersects at least one active mask texel. This is a
     triangle-level mask approximation, not exact clipping to individual texels.
+    UDIM mask sampling supports tile-number lookup (1001 + U + 10*V).
     """
 
     def __init__(
@@ -267,14 +362,15 @@ class CDTMeshDensifier:
         if not triangles:
             raise ValueError("The input mesh has no triangulatable faces.")
 
-        # Select triangles in UV space. Use texel/triangle intersection rather
-        # than centroid sampling so small active mask regions are not missed.
+        # Select triangles in UV space using a small set of coverage samples.
+        # The previous any-intersection rule could select huge UV triangles
+        # when only a tiny part of the mask was active.
         selected_triangles = set()
         for ti, tri in enumerate(triangles):
             selected = True
             if mask is not None:
                 uv_tri = [uv_layer.data[li].uv.copy() for li in tri.loops]
-                selected = mask.triangle_has_nonzero_texel(uv_tri)
+                selected = mask.triangle_active_fraction(uv_tri) >= 0.5
             if selected:
                 selected_triangles.add(ti)
 
@@ -677,7 +773,8 @@ class VIEW3D_PT_cdt_densifier(bpy.types.Panel):
         layout.prop(props, "seed")
         layout.separator()
         layout.label(text="Optional UV Image Mask")
-        layout.label(text="Mask selects triangles touching active texels")
+        layout.label(text="Mask selects triangles with >=50% active sample coverage")
+        layout.label(text="UDIM tiles are supported when pixel buffers are readable")
         layout.prop(props, "mask_image")
         if props.mask_image:
             layout.prop(props, "mask_channel")
