@@ -1,7 +1,7 @@
 bl_info = {
     "name": "CDT Mesh Densifier",
     "author": "OpenAI",
-    "version": (0, 6, 0),
+    "version": (0, 6, 1),
     "blender": (4, 2, 0),
     "location": "View3D > Sidebar > Item > CDT Densifier",
     "description": "Duplicate a mesh and densify selected triangles while preserving shared boundaries",
@@ -291,8 +291,14 @@ class ImageMask:
                         return True
         return False
 
-    def segment_has_active_texel(self, uv_a, uv_b):
-        """Sample a UV edge at sub-texel intervals to detect painted boundaries."""
+    def active_edge_parameters(self, uv_a, uv_b, world_length, spacing):
+        """Return edge parameters to split only painted portions of a UV edge.
+
+        The edge is sampled at half-texel intervals. Each contiguous run of
+        active samples is split independently, so a painted stroke does not
+        cause the unpainted remainder of the same mesh edge to be subdivided.
+        Returned values are normalized parameters in the open interval (0, 1).
+        """
         a = Vector((float(uv_a.x), float(uv_a.y)))
         b = Vector((float(uv_b.x), float(uv_b.y)))
         max_steps = 1
@@ -300,10 +306,32 @@ class ImageMask:
             max_steps = max(max_steps, int(math.ceil(max(abs(b.x - a.x) * width,
                                                          abs(b.y - a.y) * height) * 2.0)))
         max_steps = min(max_steps, 200000)
-        for i in range(max_steps + 1):
-            if self.uv_is_active(a.lerp(b, i / max_steps)):
-                return True
-        return False
+        active = [self.uv_is_active(a.lerp(b, i / max_steps))
+                  for i in range(max_steps + 1)]
+        params = set()
+        i = 0
+        while i <= max_steps:
+            if not active[i]:
+                i += 1
+                continue
+            start = i
+            while i + 1 <= max_steps and active[i + 1]:
+                i += 1
+            end = i
+            t0 = start / max_steps
+            t1 = end / max_steps
+            if 0.0 < t0 < 1.0:
+                params.add(t0)
+            if 0.0 < t1 < 1.0:
+                params.add(t1)
+            run_length = max(0.0, (t1 - t0) * world_length)
+            segments = max(1, int(math.ceil(run_length / spacing)))
+            for j in range(1, segments):
+                t = t0 + (t1 - t0) * (j / segments)
+                if 0.0 < t < 1.0:
+                    params.add(t)
+            i += 1
+        return sorted(params)
 
     def active_texel_centers_in_triangle(self, uv_triangle, limit=5000):
         """Return active texel-center UVs inside a triangle, with bounded memory.
@@ -499,8 +527,8 @@ def sample_masked_triangle(p0, p1, p2, uv0, uv1, uv2, spacing, rng, max_samples,
 class CDTMeshDensifier:
     """Create a triangulated duplicate while keeping original vertices fixed.
 
-    Original edges are split when the mask is active along the edge. For image
-    masks, triangles intersecting painted texels are processed, but interior
+    For image masks, edges are split only within sampled painted runs along
+    their UVs. Triangles intersecting painted texels are processed, but interior
     points are added only at masked UV positions. This supports small strokes in
     the middle of large polygons while leaving unpainted areas comparatively
     coarse. UDIM mask sampling supports tile-number lookup (1001 + U + 10*V).
@@ -590,26 +618,37 @@ class CDTMeshDensifier:
                         uv_layer.data[loops[(side + 1) % 3]].uv.copy(),
                     )
 
-        # In mask mode split only edges whose UV span crosses active texels.
-        # If an edge is shared, one shared chain is reused by every incident face.
-        edge_segments = {}
+        # In mask mode compute split positions only inside painted runs along
+        # each UV edge. Shared mesh edges use the union of incident UV-side
+        # positions, preserving connectivity even when the UVs are split.
+        edge_parameters = {}
         required_vertices = len(src.vertices)
         for key, incident in edge_to_triangles.items():
+            a, b = key
+            length = (original_world[b] - original_world[a]).length
             if mask is None:
-                should_split = True
-            else:
-                should_split = any(
-                    mask.segment_has_active_texel(*edge_uv_by_triangle[(ti, key)])
-                    for ti in incident
-                )
-            if should_split:
-                a, b = key
-                length = (original_world[b] - original_world[a]).length
                 segments = max(1, int(math.ceil(length / self.spacing_world)))
+                params = [step / segments for step in range(1, segments)]
             else:
-                segments = 1
-            edge_segments[key] = segments
-            required_vertices += segments - 1
+                param_set = set()
+                for ti in incident:
+                    uv_a, uv_b = edge_uv_by_triangle[(ti, key)]
+                    tri_vids = list(triangles[ti].vertices)
+                    side_direction = None
+                    for side in range(3):
+                        va, vb = tri_vids[side], tri_vids[(side + 1) % 3]
+                        if (min(va, vb), max(va, vb)) == key:
+                            side_direction = (va, vb)
+                            break
+                    local_params = mask.active_edge_parameters(
+                        uv_a, uv_b, length, self.spacing_world
+                    )
+                    if side_direction is not None and side_direction[0] != a:
+                        local_params = [1.0 - t for t in local_params]
+                    param_set.update(t for t in local_params if 0.0 < t < 1.0)
+                params = sorted(param_set)
+            edge_parameters[key] = params
+            required_vertices += len(params)
 
         # Loose original edges are split in full-mesh mode only. They do not
         # belong to a surface/UV region, so a mask cannot select them reliably.
@@ -623,10 +662,10 @@ class CDTMeshDensifier:
                 if mask is None:
                     length = (original_world[key[1]] - original_world[key[0]]).length
                     segs = max(1, int(math.ceil(length / self.spacing_world)))
-                    edge_segments[key] = segs
+                    edge_parameters[key] = [step / segs for step in range(1, segs)]
                     required_vertices += segs - 1
                 else:
-                    edge_segments[key] = 1
+                    edge_parameters[key] = []
 
         if required_vertices > self.max_vertices:
             raise RuntimeError(
@@ -637,11 +676,10 @@ class CDTMeshDensifier:
         # Allocate all shared edge-chain vertices once, in deterministic order.
         out_local = [co.copy() for co in original_local]
         edge_chains = {}
-        for key, segments in edge_segments.items():
+        for key, params in edge_parameters.items():
             a, b = key  # chain is always stored low vertex index -> high index
             chain = [a]
-            for step in range(1, segments):
-                t = step / segments
+            for t in params:
                 world_co = original_world[a].lerp(original_world[b], t)
                 chain.append(len(out_local))
                 out_local.append(inverse_world @ world_co)
@@ -692,7 +730,7 @@ class CDTMeshDensifier:
             # triangle. If a neighbour forced edge splits, retriangulate it to
             # maintain shared connectivity, but add no interior samples.
             has_split_boundary = any(
-                edge_segments[(min(vids[i], vids[(i + 1) % 3]), max(vids[i], vids[(i + 1) % 3]))] > 1
+                bool(edge_parameters[(min(vids[i], vids[(i + 1) % 3]), max(vids[i], vids[(i + 1) % 3]))])
                 for i in range(3)
             )
             if not selected and not has_split_boundary:
@@ -910,7 +948,7 @@ class CDT_DENSIFIER_Props(bpy.types.PropertyGroup):
     seed: IntProperty(name="Random Seed", default=1, min=0, max=2147483647)
     mask_image: PointerProperty(
         name="Mask Image",
-        description="Optional UV-space image mask. Interior points are added only inside painted regions; painted boundary edges may split",
+        description="Optional UV-space image mask. Interior points and edge splits are restricted to painted regions",
         type=bpy.types.Image,
     )
     mask_threshold: FloatProperty(
