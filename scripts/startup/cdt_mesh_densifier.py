@@ -1,7 +1,7 @@
 bl_info = {
     "name": "CDT Mesh Densifier",
     "author": "OpenAI",
-    "version": (0, 5, 0),
+    "version": (0, 6, 0),
     "blender": (4, 2, 0),
     "location": "View3D > Sidebar > Item > CDT Densifier",
     "description": "Duplicate a mesh and densify selected triangles while preserving shared boundaries",
@@ -88,6 +88,9 @@ class ImageMask:
         self.channel = channel
         self.is_tiled = image.source == 'TILED'
         self.tiles = {}
+        # Lazily computed active-pixel bounds make black/mostly-empty masks
+        # inexpensive to query across meshes with many triangles.
+        self.active_bounds = {}
 
         if self.is_tiled:
             tile_numbers = [int(tile.number) for tile in image.tiles]
@@ -215,10 +218,149 @@ class ImageMask:
         active = sum(self.uv_is_active(uv) for uv in samples)
         return active / len(samples)
 
+    def _tile_uv_origin(self, tile_number):
+        index = int(tile_number) - 1001
+        return float(index % 10), float(index // 10)
+
+    def _active_pixel_bounds(self, tile_number):
+        if tile_number in self.active_bounds:
+            return self.active_bounds[tile_number]
+        width, height, pixels = self.tiles[tile_number]
+        min_x, min_y, max_x, max_y = width, height, -1, -1
+        for y in range(height):
+            row = y * width * 4
+            for x in range(width):
+                idx = row + x * 4
+                if _mask_pixel_value(pixels[idx:idx + 4], self.channel) > self.threshold:
+                    min_x = min(min_x, x)
+                    min_y = min(min_y, y)
+                    max_x = max(max_x, x)
+                    max_y = max(max_y, y)
+        bounds = None if max_x < 0 else (min_x, min_y, max_x, max_y)
+        self.active_bounds[tile_number] = bounds
+        return bounds
+
     def triangle_has_nonzero_texel(self, uv_triangle):
-        # Backwards-compatible name; now uses sampled coverage rather than
-        # activating an entire triangle because of a single touched texel.
-        return self.triangle_active_fraction(uv_triangle) >= 0.5
+        """Return True if any active texel intersects the UV triangle.
+
+        Unlike triangle_active_fraction(), this is a precise *selection test*:
+        it detects small strokes even when they occupy much less than half of a
+        large triangle. It does not mean the whole triangle will be densely
+        sampled; interior points are filtered against the mask separately.
+        """
+        tri = [(float(uv.x), float(uv.y)) for uv in uv_triangle]
+        tri_min_u = min(p[0] for p in tri)
+        tri_max_u = max(p[0] for p in tri)
+        tri_min_v = min(p[1] for p in tri)
+        tri_max_v = max(p[1] for p in tri)
+
+        for tile_number, (width, height, pixels) in self.tiles.items():
+            tile_u, tile_v = self._tile_uv_origin(tile_number)
+            if not self.is_tiled and tile_number != 1001:
+                continue
+            active_bounds = self._active_pixel_bounds(tile_number)
+            if active_bounds is None:
+                continue
+            active_x0, active_y0, active_x1, active_y1 = active_bounds
+            min_u = max(tri_min_u, tile_u)
+            max_u = min(tri_max_u, tile_u + 1.0)
+            min_v = max(tri_min_v, tile_v)
+            max_v = min(tri_max_v, tile_v + 1.0)
+            if min_u > max_u or min_v > max_v:
+                continue
+
+            x0 = max(active_x0, 0, min(width - 1, int(math.floor((min_u - tile_u) * width))))
+            x1 = min(active_x1, width - 1, max(0, int(math.floor((max_u - tile_u) * width))))
+            y0 = max(active_y0, 0, min(height - 1, int(math.floor((min_v - tile_v) * height))))
+            y1 = min(active_y1, height - 1, max(0, int(math.floor((max_v - tile_v) * height))))
+            if x0 > x1 or y0 > y1:
+                continue
+
+            for y in range(y0, y1 + 1):
+                py0 = tile_v + y / height
+                py1 = tile_v + (y + 1) / height
+                row = y * width * 4
+                for x in range(x0, x1 + 1):
+                    idx = row + x * 4
+                    rgba = pixels[idx:idx + 4]
+                    if _mask_pixel_value(rgba, self.channel) <= self.threshold:
+                        continue
+                    px0 = tile_u + x / width
+                    px1 = tile_u + (x + 1) / width
+                    if triangle_intersects_rect(tri, px0, py0, px1, py1):
+                        return True
+        return False
+
+    def segment_has_active_texel(self, uv_a, uv_b):
+        """Sample a UV edge at sub-texel intervals to detect painted boundaries."""
+        a = Vector((float(uv_a.x), float(uv_a.y)))
+        b = Vector((float(uv_b.x), float(uv_b.y)))
+        max_steps = 1
+        for width, height, _pixels in self.tiles.values():
+            max_steps = max(max_steps, int(math.ceil(max(abs(b.x - a.x) * width,
+                                                         abs(b.y - a.y) * height) * 2.0)))
+        max_steps = min(max_steps, 200000)
+        for i in range(max_steps + 1):
+            if self.uv_is_active(a.lerp(b, i / max_steps)):
+                return True
+        return False
+
+    def active_texel_centers_in_triangle(self, uv_triangle, limit=5000):
+        """Return active texel-center UVs inside a triangle, with bounded memory.
+
+        Used as a fallback when random world-space samples miss a thin brush
+        stroke. The scan is restricted to the triangle's UV bounding box.
+        """
+        tri = [(float(uv.x), float(uv.y)) for uv in uv_triangle]
+        tri_min_u = min(p[0] for p in tri)
+        tri_max_u = max(p[0] for p in tri)
+        tri_min_v = min(p[1] for p in tri)
+        tri_max_v = max(p[1] for p in tri)
+        found = []
+        seen = 0
+        for tile_number, (width, height, pixels) in self.tiles.items():
+            tile_u, tile_v = self._tile_uv_origin(tile_number)
+            active_bounds = self._active_pixel_bounds(tile_number)
+            if active_bounds is None:
+                continue
+            active_x0, active_y0, active_x1, active_y1 = active_bounds
+            min_u = max(tri_min_u, tile_u)
+            max_u = min(tri_max_u, tile_u + 1.0)
+            min_v = max(tri_min_v, tile_v)
+            max_v = min(tri_max_v, tile_v + 1.0)
+            if min_u > max_u or min_v > max_v:
+                continue
+            x0 = max(active_x0, 0, min(width - 1, int(math.floor((min_u - tile_u) * width))))
+            x1 = min(active_x1, width - 1, max(0, int(math.floor((max_u - tile_u) * width))))
+            y0 = max(active_y0, 0, min(height - 1, int(math.floor((min_v - tile_v) * height))))
+            y1 = min(active_y1, height - 1, max(0, int(math.floor((max_v - tile_v) * height))))
+            if x0 > x1 or y0 > y1:
+                continue
+            for y in range(y0, y1 + 1):
+                row = y * width * 4
+                v = tile_v + (y + 0.5) / height
+                for x in range(x0, x1 + 1):
+                    idx = row + x * 4
+                    if _mask_pixel_value(pixels[idx:idx + 4], self.channel) <= self.threshold:
+                        continue
+                    u = tile_u + (x + 0.5) / width
+                    if not point_in_triangle_2d((u, v), *tri):
+                        continue
+                    seen += 1
+                    # Reservoir sampling prevents a solid/large mask from
+                    # biasing the fallback toward the first scanlines.
+                    uv = Vector((u, v))
+                    if len(found) < limit:
+                        found.append(uv)
+                    else:
+                        j = self._reservoir_index(seen)
+                        if j < limit:
+                            found[j] = uv
+        return found
+
+    @staticmethod
+    def _reservoir_index(seen):
+        return random.randrange(seen)
 
 
 # -----------------------------------------------------------------------------
@@ -294,6 +436,62 @@ def barycentric_weights_2d(p, a, b, c):
     return w0, w1, w2
 
 
+def sample_masked_triangle(p0, p1, p2, uv0, uv1, uv2, spacing, rng, max_samples, mask):
+    """Generate interior points only where the image mask is active.
+
+    Random world-space candidates provide spacing-aware coverage. If a narrow
+    stroke is missed (or under-sampled), active texel centers provide fallback
+    candidates. CDT still triangulates the complete source triangle, so the
+    unpainted area remains coarse instead of being densely sampled everywhere.
+    """
+    if max_samples <= 0:
+        return []
+    uv_tri = [Vector(uv0), Vector(uv1), Vector(uv2)]
+    basis = triangle_basis(p0, p1, p2)
+    if basis is None:
+        return []
+    project, _unproject = basis
+    tri2 = [project(p0), project(p1), project(p2)]
+    denom = cross2(*tri2)
+    if abs(denom) < 1e-15:
+        return []
+
+    area = 0.5 * (p1 - p0).cross(p2 - p0).length
+    target = min(max_samples, max(1, int(area / (0.866025403784 * spacing * spacing))))
+    # Oversample modestly so painted areas smaller than the triangle have a
+    # chance to receive points, but cap attempts to keep the operation bounded.
+    raw = sample_triangle(p0, p1, p2, spacing, rng, min(max_samples, max(target * 4, 32)))
+    candidates = []
+    for point in raw:
+        q = project(point)
+        weights = barycentric_weights_2d(q, *tri2)
+        uv = uv_tri[0] * weights[0] + uv_tri[1] * weights[1] + uv_tri[2] * weights[2]
+        if mask.uv_is_active(uv):
+            candidates.append(point)
+
+    # Only perform the more expensive texel scan when random sampling did not
+    # provide enough points. This is what makes tiny strokes inside huge faces
+    # discoverable without scanning every pixel for every triangle.
+    if len(candidates) < min(max(1, int(target * 0.25)), 32):
+        uv_centers = mask.active_texel_centers_in_triangle(
+            uv_tri, limit=min(5000, max(256, target * 8))
+        )
+        for uv in uv_centers:
+            weights = barycentric_weights_2d((uv.x, uv.y), *[(q.x, q.y) for q in uv_tri])
+            point = p0 * weights[0] + p1 * weights[1] + p2 * weights[2]
+            candidates.append(point)
+
+    rng.shuffle(candidates)
+    accepted = []
+    min_dist_sq = (spacing * 0.82) ** 2
+    for point in candidates:
+        if all((point - existing).length_squared >= min_dist_sq for existing in accepted):
+            accepted.append(point)
+            if len(accepted) >= target:
+                break
+    return accepted
+
+
 # -----------------------------------------------------------------------------
 # Main densifier
 # -----------------------------------------------------------------------------
@@ -301,12 +499,11 @@ def barycentric_weights_2d(p, a, b, c):
 class CDTMeshDensifier:
     """Create a triangulated duplicate while keeping original vertices fixed.
 
-    Original edges belonging to selected triangles are divided into equal-length
-    segments. Edges shared with unselected triangles are split as needed to avoid
-    cracks. Interior sampling is limited to selected triangles. A triangle is
-    selected when it intersects at least one active mask texel. This is a
-    triangle-level mask approximation, not exact clipping to individual texels.
-    UDIM mask sampling supports tile-number lookup (1001 + U + 10*V).
+    Original edges are split when the mask is active along the edge. For image
+    masks, triangles intersecting painted texels are processed, but interior
+    points are added only at masked UV positions. This supports small strokes in
+    the middle of large polygons while leaving unpainted areas comparatively
+    coarse. UDIM mask sampling supports tile-number lookup (1001 + U + 10*V).
     """
 
     def __init__(
@@ -362,36 +559,49 @@ class CDTMeshDensifier:
         if not triangles:
             raise ValueError("The input mesh has no triangulatable faces.")
 
-        # Select triangles in UV space using a small set of coverage samples.
-        # The previous any-intersection rule could select huge UV triangles
-        # when only a tiny part of the mask was active.
+        # Select triangles that actually intersect at least one active texel.
+        # This detects tiny brush strokes even when their coverage is far below
+        # 50% of a large source triangle. Interior samples are mask-filtered later.
+        triangle_uvs = []
         selected_triangles = set()
         for ti, tri in enumerate(triangles):
-            selected = True
-            if mask is not None:
-                uv_tri = [uv_layer.data[li].uv.copy() for li in tri.loops]
-                selected = mask.triangle_active_fraction(uv_tri) >= 0.5
+            uv_tri = [uv_layer.data[li].uv.copy() for li in tri.loops] if mask else None
+            triangle_uvs.append(uv_tri)
+            selected = mask is None or mask.triangle_has_nonzero_texel(uv_tri)
             if selected:
                 selected_triangles.add(ti)
 
-        # Build a shared edge graph from the *triangulated surface*, not just
-        # Mesh.edges. This includes virtual diagonals introduced when an ngon
-        # or quad is represented by loop_triangles. A key is an unordered pair
-        # of original vertex indices, so adjacent triangles reuse the same chain.
+        # Build a shared edge graph from the triangulated surface, including
+        # virtual diagonals. Store each triangle's UV edge so only painted edges
+        # are split in mask mode; an interior stroke must not force every outer
+        # edge of a large polygon to subdivide.
         edge_to_triangles = {}
+        edge_uv_by_triangle = {}
         for ti, tri in enumerate(triangles):
             vids = list(tri.vertices)
+            loops = list(tri.loops)
             for side in range(3):
                 a, b = vids[side], vids[(side + 1) % 3]
                 key = (min(a, b), max(a, b))
                 edge_to_triangles.setdefault(key, []).append(ti)
+                if mask is not None:
+                    edge_uv_by_triangle[(ti, key)] = (
+                        uv_layer.data[loops[side]].uv.copy(),
+                        uv_layer.data[loops[(side + 1) % 3]].uv.copy(),
+                    )
 
-        # An edge is split if any incident triangle is selected. This also
-        # splits the shared side on the inactive neighbour to avoid cracks.
+        # In mask mode split only edges whose UV span crosses active texels.
+        # If an edge is shared, one shared chain is reused by every incident face.
         edge_segments = {}
         required_vertices = len(src.vertices)
         for key, incident in edge_to_triangles.items():
-            should_split = any(ti in selected_triangles for ti in incident)
+            if mask is None:
+                should_split = True
+            else:
+                should_split = any(
+                    mask.segment_has_active_texel(*edge_uv_by_triangle[(ti, key)])
+                    for ti in incident
+                )
             if should_split:
                 a, b = key
                 length = (original_world[b] - original_world[a]).length
@@ -496,13 +706,24 @@ class CDTMeshDensifier:
                         out_uvs[layer.name].append(layer.data[li].uv.copy())
                 continue
 
-            # Interior sampling is only done for selected triangles. The sampler
-            # is bounded by the remaining vertex budget.
+            # Generate samples only at active UV positions. In mask mode this
+            # means a small stroke in a huge polygon receives points without
+            # filling the unpainted parts of that polygon with random vertices.
             samples_world = []
             if selected and interior_budget > 0:
-                samples_world = sample_triangle(
-                    p0, p1, p2, self.spacing_world, self.rng, interior_budget
-                )
+                if mask is None:
+                    samples_world = sample_triangle(
+                        p0, p1, p2, self.spacing_world, self.rng, interior_budget
+                    )
+                else:
+                    # Match UV corners to the possibly winding-corrected
+                    # vertex/loop order used for p0, p1, p2 above.
+                    uv_tri = [uv_layer.data[li].uv.copy() for li in loop_ids]
+                    samples_world = sample_masked_triangle(
+                        p0, p1, p2,
+                        uv_tri[0], uv_tri[1], uv_tri[2],
+                        self.spacing_world, self.rng, interior_budget, mask,
+                    )
                 interior_budget -= len(samples_world)
 
             # CDT inputs are unique boundary vertices followed by interior points.
@@ -689,7 +910,7 @@ class CDT_DENSIFIER_Props(bpy.types.PropertyGroup):
     seed: IntProperty(name="Random Seed", default=1, min=0, max=2147483647)
     mask_image: PointerProperty(
         name="Mask Image",
-        description="Optional UV-space image mask. Only selected triangles are densified; shared boundary edges may split",
+        description="Optional UV-space image mask. Interior points are added only inside painted regions; painted boundary edges may split",
         type=bpy.types.Image,
     )
     mask_threshold: FloatProperty(
@@ -773,7 +994,7 @@ class VIEW3D_PT_cdt_densifier(bpy.types.Panel):
         layout.prop(props, "seed")
         layout.separator()
         layout.label(text="Optional UV Image Mask")
-        layout.label(text="Mask selects triangles with >=50% active sample coverage")
+        layout.label(text="Only interior points inside painted mask regions are added")
         layout.label(text="UDIM tiles are supported when pixel buffers are readable")
         layout.prop(props, "mask_image")
         if props.mask_image:
