@@ -1,7 +1,7 @@
 bl_info = {
     "name": "CDT Mesh Densifier",
     "author": "OpenAI",
-    "version": (0, 6, 1),
+    "version": (0, 7, 0),
     "blender": (4, 2, 0),
     "location": "View3D > Sidebar > Item > CDT Densifier",
     "description": "Duplicate a mesh and densify selected triangles while preserving shared boundaries",
@@ -22,12 +22,14 @@ from bpy.props import (
     BoolProperty,
     PointerProperty,
     EnumProperty,
+    StringProperty,
 )
 
 
 # -----------------------------------------------------------------------------
 # 2D geometry helpers
 # -----------------------------------------------------------------------------
+
 
 def cross2(a, b, c):
     return (b[0] - a[0]) * (c[1] - a[1]) - (b[1] - a[1]) * (c[0] - a[0])
@@ -37,9 +39,7 @@ def point_in_triangle_2d(p, a, b, c, eps=1e-10):
     c1 = cross2(a, b, p)
     c2 = cross2(b, c, p)
     c3 = cross2(c, a, p)
-    return (c1 >= -eps and c2 >= -eps and c3 >= -eps) or (
-        c1 <= eps and c2 <= eps and c3 <= eps
-    )
+    return (c1 >= -eps and c2 >= -eps and c3 >= -eps) or (c1 <= eps and c2 <= eps and c3 <= eps)
 
 
 def _projected_intervals_overlap(poly, axis, rect):
@@ -61,13 +61,13 @@ def triangle_intersects_rect(tri, xmin, ymin, xmax, ymax):
 
 def _mask_pixel_value(rgba, channel):
     r, g, b, a = rgba
-    if channel == 'RED':
+    if channel == "RED":
         return r
-    if channel == 'GREEN':
+    if channel == "GREEN":
         return g
-    if channel == 'BLUE':
+    if channel == "BLUE":
         return b
-    if channel == 'ALPHA':
+    if channel == "ALPHA":
         return a
     return 0.2126 * r + 0.7152 * g + 0.0722 * b
 
@@ -80,13 +80,13 @@ class ImageMask:
     to tile numbers using the standard UDIM formula.
     """
 
-    def __init__(self, image, threshold=0.0, channel='LUMINANCE'):
+    def __init__(self, image, threshold=0.0, channel="LUMINANCE"):
         if image is None:
             raise ValueError("No mask image was supplied.")
         self.image = image
         self.threshold = float(threshold)
         self.channel = channel
-        self.is_tiled = image.source == 'TILED'
+        self.is_tiled = image.source == "TILED"
         self.tiles = {}
         # Lazily computed active-pixel bounds make black/mostly-empty masks
         # inexpensive to query across meshes with many triangles.
@@ -117,7 +117,7 @@ class ImageMask:
                         height = int(getattr(tile, "generated_height", 0) or image.size[1])
                     if width > 0 and height > 0:
                         rgba = tuple(float(c) for c in tile.generated_color)
-                        tile_pixels = array('f', rgba) * (width * height)
+                        tile_pixels = array("f", rgba) * (width * height)
 
                 # External UDIM image sets use a filename token such as
                 # texture.<UDIM>.png. Load each concrete file independently.
@@ -129,7 +129,7 @@ class ImageMask:
                             temp_image = bpy.data.images.load(concrete_path, check_existing=False)
                             width, height = map(int, temp_image.size[:2])
                             if width > 0 and height > 0:
-                                tile_pixels = array('f', [0.0]) * (width * height * 4)
+                                tile_pixels = array("f", [0.0]) * (width * height * 4)
                                 temp_image.pixels.foreach_get(tile_pixels)
                         finally:
                             if temp_image is not None:
@@ -141,7 +141,7 @@ class ImageMask:
                 if tile_pixels is None and number == 1001:
                     width, height = map(int, image.size[:2])
                     if width > 0 and height > 0:
-                        tile_pixels = array('f', [0.0]) * (width * height * 4)
+                        tile_pixels = array("f", [0.0]) * (width * height * 4)
                         image.pixels.foreach_get(tile_pixels)
 
                 if tile_pixels is not None and width > 0 and height > 0:
@@ -163,7 +163,7 @@ class ImageMask:
             width, height = map(int, image.size[:2])
             if width < 1 or height < 1:
                 raise ValueError(f"Mask image '{image.name}' has no pixel data.")
-            pixels = array('f', [0.0]) * (width * height * 4)
+            pixels = array("f", [0.0]) * (width * height * 4)
             image.pixels.foreach_get(pixels)
             self.tiles[1001] = (width, height, pixels)
 
@@ -193,7 +193,7 @@ class ImageMask:
         x = min(width - 1, max(0, int(math.floor(local_u * width))))
         y = min(height - 1, max(0, int(math.floor(local_v * height))))
         idx = (y * width + x) * 4
-        return _mask_pixel_value(pixels[idx:idx + 4], self.channel)
+        return _mask_pixel_value(pixels[idx : idx + 4], self.channel)
 
     def uv_is_active(self, uv):
         return self.value_at_uv(uv) > self.threshold
@@ -231,7 +231,7 @@ class ImageMask:
             row = y * width * 4
             for x in range(width):
                 idx = row + x * 4
-                if _mask_pixel_value(pixels[idx:idx + 4], self.channel) > self.threshold:
+                if _mask_pixel_value(pixels[idx : idx + 4], self.channel) > self.threshold:
                     min_x = min(min_x, x)
                     min_y = min(min_y, y)
                     max_x = max(max_x, x)
@@ -282,7 +282,7 @@ class ImageMask:
                 row = y * width * 4
                 for x in range(x0, x1 + 1):
                     idx = row + x * 4
-                    rgba = pixels[idx:idx + 4]
+                    rgba = pixels[idx : idx + 4]
                     if _mask_pixel_value(rgba, self.channel) <= self.threshold:
                         continue
                     px0 = tile_u + x / width
@@ -303,11 +303,9 @@ class ImageMask:
         b = Vector((float(uv_b.x), float(uv_b.y)))
         max_steps = 1
         for width, height, _pixels in self.tiles.values():
-            max_steps = max(max_steps, int(math.ceil(max(abs(b.x - a.x) * width,
-                                                         abs(b.y - a.y) * height) * 2.0)))
+            max_steps = max(max_steps, int(math.ceil(max(abs(b.x - a.x) * width, abs(b.y - a.y) * height) * 2.0)))
         max_steps = min(max_steps, 200000)
-        active = [self.uv_is_active(a.lerp(b, i / max_steps))
-                  for i in range(max_steps + 1)]
+        active = [self.uv_is_active(a.lerp(b, i / max_steps)) for i in range(max_steps + 1)]
         params = set()
         i = 0
         while i <= max_steps:
@@ -369,7 +367,7 @@ class ImageMask:
                 v = tile_v + (y + 0.5) / height
                 for x in range(x0, x1 + 1):
                     idx = row + x * 4
-                    if _mask_pixel_value(pixels[idx:idx + 4], self.channel) <= self.threshold:
+                    if _mask_pixel_value(pixels[idx : idx + 4], self.channel) <= self.threshold:
                         continue
                     u = tile_u + (x + 0.5) / width
                     if not point_in_triangle_2d((u, v), *tri):
@@ -394,6 +392,7 @@ class ImageMask:
 # -----------------------------------------------------------------------------
 # Sampling and local coordinate helpers
 # -----------------------------------------------------------------------------
+
 
 def triangle_basis(p0, p1, p2):
     e1 = p1 - p0
@@ -501,9 +500,7 @@ def sample_masked_triangle(p0, p1, p2, uv0, uv1, uv2, spacing, rng, max_samples,
     # provide enough points. This is what makes tiny strokes inside huge faces
     # discoverable without scanning every pixel for every triangle.
     if len(candidates) < min(max(1, int(target * 0.25)), 32):
-        uv_centers = mask.active_texel_centers_in_triangle(
-            uv_tri, limit=min(5000, max(256, target * 8))
-        )
+        uv_centers = mask.active_texel_centers_in_triangle(uv_tri, limit=min(5000, max(256, target * 8)))
         for uv in uv_centers:
             weights = barycentric_weights_2d((uv.x, uv.y), *[(q.x, q.y) for q in uv_tri])
             point = p0 * weights[0] + p1 * weights[1] + p2 * weights[2]
@@ -524,6 +521,7 @@ def sample_masked_triangle(p0, p1, p2, uv0, uv1, uv2, spacing, rng, max_samples,
 # Main densifier
 # -----------------------------------------------------------------------------
 
+
 class CDTMeshDensifier:
     """Create a triangulated duplicate while keeping original vertices fixed.
 
@@ -542,10 +540,11 @@ class CDTMeshDensifier:
         seed=1,
         mask_image=None,
         mask_threshold=0.0,
-        mask_channel='LUMINANCE',
+        mask_channel="LUMINANCE",
+        mask_attribute_name="MaskValue",
         preserve_custom_normals=True,
     ):
-        if obj is None or obj.type != 'MESH':
+        if obj is None or obj.type != "MESH":
             raise TypeError("Active object must be a mesh object.")
         if spacing_cm <= 0:
             raise ValueError("Spacing must be greater than zero.")
@@ -562,6 +561,7 @@ class CDTMeshDensifier:
         self.mask_image = mask_image
         self.mask_threshold = mask_threshold
         self.mask_channel = mask_channel
+        self.mask_attribute_name = (mask_attribute_name or "MaskValue").strip() or "MaskValue"
         self.preserve_custom_normals = preserve_custom_normals
 
     def build(self):
@@ -640,9 +640,7 @@ class CDTMeshDensifier:
                         if (min(va, vb), max(va, vb)) == key:
                             side_direction = (va, vb)
                             break
-                    local_params = mask.active_edge_parameters(
-                        uv_a, uv_b, length, self.spacing_world
-                    )
+                    local_params = mask.active_edge_parameters(uv_a, uv_b, length, self.spacing_world)
                     if side_direction is not None and side_direction[0] != a:
                         local_params = [1.0 - t for t in local_params]
                     param_set.update(t for t in local_params if 0.0 < t < 1.0)
@@ -697,6 +695,7 @@ class CDTMeshDensifier:
         # triangle is triangulated independently with all boundary subsegments
         # supplied as constraints. Adjacent triangles share the exact same
         # boundary vertex IDs through edge_chains.
+        selected_indices = []
         for ti, tri in enumerate(triangles):
             vids = list(tri.vertices)
             loop_ids = list(tri.loops)
@@ -750,17 +749,23 @@ class CDTMeshDensifier:
             samples_world = []
             if selected and interior_budget > 0:
                 if mask is None:
-                    samples_world = sample_triangle(
-                        p0, p1, p2, self.spacing_world, self.rng, interior_budget
-                    )
+                    samples_world = sample_triangle(p0, p1, p2, self.spacing_world, self.rng, interior_budget)
                 else:
+                    selected_indices.append(ti)
                     # Match UV corners to the possibly winding-corrected
                     # vertex/loop order used for p0, p1, p2 above.
                     uv_tri = [uv_layer.data[li].uv.copy() for li in loop_ids]
                     samples_world = sample_masked_triangle(
-                        p0, p1, p2,
-                        uv_tri[0], uv_tri[1], uv_tri[2],
-                        self.spacing_world, self.rng, interior_budget, mask,
+                        p0,
+                        p1,
+                        p2,
+                        uv_tri[0],
+                        uv_tri[1],
+                        uv_tri[2],
+                        self.spacing_world,
+                        self.rng,
+                        interior_budget,
+                        mask,
                     )
                 interior_budget -= len(samples_world)
 
@@ -783,7 +788,7 @@ class CDTMeshDensifier:
                     [Vector((float(p[0]), float(p[1]))) for p in points_2d],
                     constraints,
                     boundary_face,
-                    1,       # triangulate inside boundary
+                    1,  # triangulate inside boundary
                     1e-10,
                     True,
                 )
@@ -801,14 +806,15 @@ class CDTMeshDensifier:
                     co2 = Vector(cdt_verts[oi])
                     nearest = min(range(len(points_2d)), key=lambda j: (co2 - Vector(points_2d[j])).length_squared)
                     if (co2 - Vector(points_2d[nearest])).length_squared > 1e-12:
-                        raise RuntimeError("CDT introduced an unmapped vertex; refusing to create potentially non-manifold output.")
+                        raise RuntimeError(
+                            "CDT introduced an unmapped vertex; refusing to create potentially non-manifold output."
+                        )
                     provenance = [nearest]
                 cdt_to_global[oi] = input_global_ids[provenance[0]]
 
             source_normals = [src_corner_normals[li].copy() for li in loop_ids]
             source_uv_triangles = {
-                layer.name: [layer.data[li].uv.copy() for li in loop_ids]
-                for layer in source_uv_layers
+                layer.name: [layer.data[li].uv.copy() for li in loop_ids] for layer in source_uv_layers
             }
             a2, b2, c2 = tri_2d
             denom = cross2(a2, b2, c2)
@@ -846,14 +852,20 @@ class CDTMeshDensifier:
                     for cdt_vi in cdt_tri:
                         q = Vector(cdt_verts[cdt_vi])
                         weights = barycentric_weights_2d(q, a2, b2, c2)
-                        normal = source_normals[0] * weights[0] + source_normals[1] * weights[1] + source_normals[2] * weights[2]
+                        normal = (
+                            source_normals[0] * weights[0]
+                            + source_normals[1] * weights[1]
+                            + source_normals[2] * weights[2]
+                        )
                         if normal.length_squared > 1e-20:
                             normal.normalize()
                         else:
                             normal = source_normals[0].copy()
                         out_corner_normals.append(normal)
                         for name, uv_tri in source_uv_triangles.items():
-                            out_uvs[name].append(uv_tri[0] * weights[0] + uv_tri[1] * weights[1] + uv_tri[2] * weights[2])
+                            out_uvs[name].append(
+                                uv_tri[0] * weights[0] + uv_tri[1] * weights[1] + uv_tri[2] * weights[2]
+                            )
 
         # Split loose edges in full-mesh mode and preserve them as edge chains.
         loose_edges = []
@@ -882,9 +894,9 @@ class CDTMeshDensifier:
             clean_faces.append(face)
             clean_mats.append(out_face_materials[fi])
             clean_smooth.append(out_face_smooth[fi])
-            clean_normals.extend(out_corner_normals[loop_cursor:loop_cursor + 3])
+            clean_normals.extend(out_corner_normals[loop_cursor : loop_cursor + 3])
             for name in clean_uvs:
-                clean_uvs[name].extend(out_uvs[name][loop_cursor:loop_cursor + 3])
+                clean_uvs[name].extend(out_uvs[name][loop_cursor : loop_cursor + 3])
             loop_cursor += len(face)
 
         if len(out_local) > self.max_vertices:
@@ -908,6 +920,29 @@ class CDTMeshDensifier:
                 for i, uv in enumerate(values):
                     dst_uv.data[i].uv = uv
 
+        # Store the source mask value per face corner. This is deliberately a
+        # CORNER-domain attribute (not POINT/vertex domain), because one mesh
+        # vertex may have different UVs on different faces at a UV seam.
+        # Values at or below the threshold are explicitly written as zero.
+        if mask is not None and uv_layer is not None:
+            mask_uvs = clean_uvs.get(uv_layer.name, [])
+            if len(mask_uvs) == len(new_mesh.loops):
+                attr = new_mesh.attributes.get(self.mask_attribute_name)
+                if attr is not None:
+                    raise ValueError(
+                        f"Corner attribute name '{self.mask_attribute_name}' conflicts "
+                        "with an existing output attribute (for example a UV map). "
+                        "Choose a different name."
+                    )
+                attr = new_mesh.attributes.new(
+                    name=self.mask_attribute_name,
+                    type="FLOAT",
+                    domain="CORNER",
+                )
+                for i, uv in enumerate(mask_uvs):
+                    value = mask.value_at_uv(uv)
+                    attr.data[i].value = value if value > self.mask_threshold else 0.0
+
         if self.preserve_custom_normals and len(clean_normals) == len(new_mesh.loops):
             try:
                 new_mesh.normals_split_custom_set(clean_normals)
@@ -928,6 +963,7 @@ class CDTMeshDensifier:
 # -----------------------------------------------------------------------------
 # Blender UI
 # -----------------------------------------------------------------------------
+
 
 class CDT_DENSIFIER_Props(bpy.types.PropertyGroup):
     spacing_cm: FloatProperty(
@@ -962,13 +998,18 @@ class CDT_DENSIFIER_Props(bpy.types.PropertyGroup):
     mask_channel: EnumProperty(
         name="Mask Channel",
         items=[
-            ('LUMINANCE', "Luminance", "Use weighted RGB luminance"),
-            ('RED', "Red", "Use the red channel"),
-            ('GREEN', "Green", "Use the green channel"),
-            ('BLUE', "Blue", "Use the blue channel"),
-            ('ALPHA', "Alpha", "Use the alpha channel"),
+            ("LUMINANCE", "Luminance", "Use weighted RGB luminance"),
+            ("RED", "Red", "Use the red channel"),
+            ("GREEN", "Green", "Use the green channel"),
+            ("BLUE", "Blue", "Use the blue channel"),
+            ("ALPHA", "Alpha", "Use the alpha channel"),
         ],
-        default='LUMINANCE',
+        default="LUMINANCE",
+    )
+    mask_attribute_name: StringProperty(
+        name="Corner Attribute",
+        description="Name of the FLOAT face-corner attribute that stores the sampled mask value",
+        default="MaskValue",
     )
     preserve_custom_normals: BoolProperty(
         name="Preserve / Interpolate Normals",
@@ -981,11 +1022,11 @@ class MESH_OT_cdt_densify_duplicate(bpy.types.Operator):
     bl_idname = "mesh.cdt_densify_duplicate"
     bl_label = "Create Densified Duplicate"
     bl_description = "Duplicate the active mesh, evenly split its original edges, and densify masked regions"
-    bl_options = {'REGISTER', 'UNDO'}
+    bl_options = {"REGISTER", "UNDO"}
 
     @classmethod
     def poll(cls, context):
-        return context.active_object is not None and context.active_object.type == 'MESH'
+        return context.active_object is not None and context.active_object.type == "MESH"
 
     def execute(self, context):
         obj = context.active_object
@@ -999,30 +1040,34 @@ class MESH_OT_cdt_densify_duplicate(bpy.types.Operator):
                 mask_image=props.mask_image,
                 mask_threshold=props.mask_threshold,
                 mask_channel=props.mask_channel,
+                mask_attribute_name=props.mask_attribute_name,
                 preserve_custom_normals=props.preserve_custom_normals,
             )
             result = densifier.build()
         except Exception as exc:
-            self.report({'ERROR'}, str(exc))
-            return {'CANCELLED'}
+            self.report({"ERROR"}, str(exc))
+            return {"CANCELLED"}
 
-        bpy.ops.object.select_all(action='DESELECT')
+        bpy.ops.object.select_all(action="DESELECT")
         result.select_set(True)
         context.view_layer.objects.active = result
-        self.report({ 'INFO' }, f"Created {result.name}: {len(result.data.vertices):,} vertices, {len(result.data.polygons):,} triangles")
-        return {'FINISHED'}
+        self.report(
+            {"INFO"},
+            f"Created {result.name}: {len(result.data.vertices):,} vertices, {len(result.data.polygons):,} triangles",
+        )
+        return {"FINISHED"}
 
 
 class VIEW3D_PT_cdt_densifier(bpy.types.Panel):
     bl_label = "CDT Densifier"
     bl_idname = "VIEW3D_PT_cdt_densifier"
-    bl_space_type = 'VIEW_3D'
-    bl_region_type = 'UI'
+    bl_space_type = "VIEW_3D"
+    bl_region_type = "UI"
     bl_category = "Item"
 
     @classmethod
     def poll(cls, context):
-        return context.active_object is not None and context.active_object.type == 'MESH'
+        return context.active_object is not None and context.active_object.type == "MESH"
 
     def draw(self, context):
         layout = self.layout
@@ -1038,8 +1083,9 @@ class VIEW3D_PT_cdt_densifier(bpy.types.Panel):
         if props.mask_image:
             layout.prop(props, "mask_channel")
             layout.prop(props, "mask_threshold")
+            layout.prop(props, "mask_attribute_name")
         layout.prop(props, "preserve_custom_normals")
-        layout.operator("mesh.cdt_densify_duplicate", icon='MOD_TRIANGULATE')
+        layout.operator("mesh.cdt_densify_duplicate", icon="MOD_TRIANGULATE")
 
 
 classes = (
