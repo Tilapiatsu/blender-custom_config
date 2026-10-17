@@ -8,23 +8,23 @@ bl_info = {
     "category": "Mesh",
 }
 
-import bpy
 import math
-import random
 import os
+import random
 import re
 from array import array
-from mathutils import Vector
-from mathutils.geometry import delaunay_2d_cdt
+
+import bpy
 from bpy.props import (
+    BoolProperty,
+    EnumProperty,
     FloatProperty,
     IntProperty,
-    BoolProperty,
     PointerProperty,
-    EnumProperty,
     StringProperty,
 )
-
+from mathutils import Vector
+from mathutils.geometry import delaunay_2d_cdt
 
 # -----------------------------------------------------------------------------
 # 2D geometry helpers
@@ -687,6 +687,10 @@ class CDTMeshDensifier:
         out_faces = []
         out_face_materials = []
         out_face_smooth = []
+        # Whether each output face belongs to the active (subdivided) mask
+        # region. This is face-local rather than vertex-local so a shared
+        # boundary vertex can have different values on either side.
+        out_face_mask_active = []
         out_corner_normals = []
         out_uvs = {layer.name: [] for layer in source_uv_layers}
         interior_budget = self.max_vertices - len(out_local)
@@ -695,7 +699,6 @@ class CDTMeshDensifier:
         # triangle is triangulated independently with all boundary subsegments
         # supplied as constraints. Adjacent triangles share the exact same
         # boundary vertex IDs through edge_chains.
-        selected_indices = []
         for ti, tri in enumerate(triangles):
             vids = list(tri.vertices)
             loop_ids = list(tri.loops)
@@ -734,6 +737,7 @@ class CDTMeshDensifier:
             )
             if not selected and not has_split_boundary:
                 out_faces.append(list(vids))
+                out_face_mask_active.append(False)
                 poly = src.polygons[tri.polygon_index]
                 out_face_materials.append(poly.material_index)
                 out_face_smooth.append(poly.use_smooth)
@@ -751,7 +755,6 @@ class CDTMeshDensifier:
                 if mask is None:
                     samples_world = sample_triangle(p0, p1, p2, self.spacing_world, self.rng, interior_budget)
                 else:
-                    selected_indices.append(ti)
                     # Match UV corners to the possibly winding-corrected
                     # vertex/loop order used for p0, p1, p2 above.
                     uv_tri = [uv_layer.data[li].uv.copy() for li in loop_ids]
@@ -848,6 +851,21 @@ class CDTMeshDensifier:
                     out_faces.append(face)
                     out_face_materials.append(poly.material_index)
                     out_face_smooth.append(poly.use_smooth)
+                    if mask is not None:
+                        # Classify the FACE by its interior, not by its corner
+                        # vertices. A boundary vertex can be shared by an
+                        # active face and an inactive face, and corner-domain
+                        # data must be allowed to differ on those two sides.
+                        centroid_2d = (q0 + q1 + q2) / 3.0
+                        centroid_weights = barycentric_weights_2d(centroid_2d, a2, b2, c2)
+                        centroid_uv = (
+                            source_uv_triangles[uv_layer.name][0] * centroid_weights[0]
+                            + source_uv_triangles[uv_layer.name][1] * centroid_weights[1]
+                            + source_uv_triangles[uv_layer.name][2] * centroid_weights[2]
+                        )
+                        out_face_mask_active.append(mask.value_at_uv(centroid_uv) > self.mask_threshold)
+                    else:
+                        out_face_mask_active.append(False)
 
                     for cdt_vi in cdt_tri:
                         q = Vector(cdt_verts[cdt_vi])
@@ -877,6 +895,7 @@ class CDTMeshDensifier:
         clean_faces = []
         clean_mats = []
         clean_smooth = []
+        clean_face_mask_active = []
         clean_normals = []
         clean_uvs = {layer.name: [] for layer in source_uv_layers}
         seen_faces = set()
@@ -894,6 +913,7 @@ class CDTMeshDensifier:
             clean_faces.append(face)
             clean_mats.append(out_face_materials[fi])
             clean_smooth.append(out_face_smooth[fi])
+            clean_face_mask_active.append(out_face_mask_active[fi])
             clean_normals.extend(out_corner_normals[loop_cursor : loop_cursor + 3])
             for name in clean_uvs:
                 clean_uvs[name].extend(out_uvs[name][loop_cursor : loop_cursor + 3])
@@ -920,13 +940,14 @@ class CDTMeshDensifier:
                 for i, uv in enumerate(values):
                     dst_uv.data[i].uv = uv
 
-        # Store the source mask value per face corner. This is deliberately a
-        # CORNER-domain attribute (not POINT/vertex domain), because one mesh
-        # vertex may have different UVs on different faces at a UV seam.
-        # Values at or below the threshold are explicitly written as zero.
+        # Store mask values on the CORNER domain. Initialize every corner to
+        # zero, then write sampled image values only for corners belonging to
+        # faces classified as inside the subdivided region. This is important
+        # at the boundary: the same mesh vertex may have a nonzero corner on
+        # the active face and zero on the adjacent inactive face.
         if mask is not None and uv_layer is not None:
             mask_uvs = clean_uvs.get(uv_layer.name, [])
-            if len(mask_uvs) == len(new_mesh.loops):
+            if len(mask_uvs) == len(new_mesh.loops) and len(clean_face_mask_active) == len(new_mesh.polygons):
                 attr = new_mesh.attributes.get(self.mask_attribute_name)
                 if attr is not None:
                     raise ValueError(
@@ -939,9 +960,16 @@ class CDTMeshDensifier:
                     type="FLOAT",
                     domain="CORNER",
                 )
-                for i, uv in enumerate(mask_uvs):
-                    value = mask.value_at_uv(uv)
-                    attr.data[i].value = value if value > self.mask_threshold else 0.0
+                # Explicit initialization documents and guarantees the outside
+                # region remains zero regardless of image values at its edges.
+                for item in attr.data:
+                    item.value = 0.0
+                loop_start = 0
+                for poly_index, poly in enumerate(new_mesh.polygons):
+                    if clean_face_mask_active[poly_index]:
+                        for loop_index in range(loop_start, loop_start + poly.loop_total):
+                            attr.data[loop_index].value = mask.value_at_uv(mask_uvs[loop_index])
+                    loop_start += poly.loop_total
 
         if self.preserve_custom_normals and len(clean_normals) == len(new_mesh.loops):
             try:
