@@ -4149,8 +4149,8 @@
         ]
     },
     "Vertex_Color_Tool": {
-        "is_enable": true,
-        "is_sync": true,
+        "is_enable": false,
+        "is_sync": false,
         "is_extension": false,
         "extension_id": null,
         "online_url": "https://tarmunds.gumroad.com/l/EnhancedVertexColorTool",
@@ -4163,7 +4163,7 @@
         "keymaps": false,
         "paths": [
             {
-                "is_enable": true,
+                "is_enable": false,
                 "local_subpath": null,
                 "destination_path": "#/scripts/addons/Vertex_Color_Tool"
             }
@@ -4500,7 +4500,7 @@
         "is_extension": true,
         "extension_id": "yl_vertexcolforge",
         "online_url": "https://extensions.blender.org/add-ons/yl-vertexcolforge/",
-        "repository_url": null,
+        "repository_url": "blender_org",
         "branch": null,
         "is_submodule": false,
         "local_path": null,
