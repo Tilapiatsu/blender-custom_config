@@ -4493,5 +4493,26 @@
                 "destination_path": "#/scripts/addons/befx_probaker"
             }
         ]
+    },
+    "yl_vertexcolforge": {
+        "is_enable": true,
+        "is_sync": true,
+        "is_extension": true,
+        "extension_id": "yl_vertexcolforge",
+        "online_url": "https://extensions.blender.org/add-ons/yl-vertexcolforge/",
+        "repository_url": null,
+        "branch": null,
+        "is_submodule": false,
+        "local_path": null,
+        "windows_drive": null,
+        "linux_drive": null,
+        "keymaps": false,
+        "paths": [
+            {
+                "is_enable": false,
+                "local_subpath": null,
+                "destination_path": null
+            }
+        ]
     }
 }
