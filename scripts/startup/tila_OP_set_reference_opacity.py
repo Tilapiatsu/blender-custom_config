@@ -3,6 +3,17 @@ import mathutils
 from time import time
 from bpy.types import Panel
 
+bl_info = {
+	"name": "Tila : Set Reference Opacity",
+	"description": "Change the opacity of all registered reference at once",
+	"author": ("Tilapiatsu"),
+	"version": (1, 0, 0),
+	"blender": (2, 80, 0),
+	"location": "",
+	"warning": "",
+	"doc_url": "",
+	"category": "3D View"
+}
 
 def clamp(value, min_value, max_value):
     return max(min_value, min(value, max_value))
