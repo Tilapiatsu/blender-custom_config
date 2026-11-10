@@ -538,7 +538,7 @@ class ElementAM:
 
         if self.is_submodule:
             self.ensure_repo_init()
-            repo = git.Repo(str(self.local_path.path))
+            repo = git.Repo(str(self.local_path.path.resolve()))
             repo.git.submodule("update", "--init")
             if self.branch is not None:
                 message = f"Cheking out branch : {self.branch}"
@@ -552,7 +552,7 @@ class ElementAM:
             kwargs = {"branch": self.branch} if self.branch is not None else {}
             # if self.branch is not None:
             try:
-                git.Repo.clone_from(self.repository_url, str(self.local_path.path), **kwargs)
+                git.Repo.clone_from(self.repository_url, str(self.local_path.path.resolve()), **kwargs)
             except Exception as e:
                 print(e)
                 self.log_progress.done("Syncing Failed!")
