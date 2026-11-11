@@ -1,20 +1,24 @@
 from __future__ import annotations
-import os
+
+import importlib
 import json
+import os
+import platform
 import shutil
 import stat
-import platform
-from typing import Optional
-import bpy
-import addon_utils
-import importlib
-import git
-from pathlib import Path, PurePath
 from os import path
-from . import admin
+from pathlib import Path
+from typing import Optional
+
+import addon_utils
+import bpy
+import git
+
 from Tila_ConfigManager.config import keymaps, settings
 from Tila_ConfigManager.logger import LOG
 from Tila_ConfigManager.preferences.ui.log_list import TILA_Config_Log as log_list
+
+from . import admin
 
 root_folder: Path = Path(bpy.utils.script_path_user()).parent
 
@@ -460,7 +464,7 @@ class ElementAM:
         if local_path is None:
             return PathAM()
 
-        local_path = PathAM(PurePath(self.os_drive, Path(local_path)))
+        local_path = PathAM(Path(self.os_drive, Path(local_path)))
         return local_path
 
     @property
@@ -491,7 +495,7 @@ class ElementAM:
 
         if ".git" not in subdir:
             self.log_progress.start("Init Submodule")
-            repo = git.Repo(root_folder)
+            repo = git.Repo(root_folder.resolve())
             repo.git.submodule("update", "--init")
 
     def clean(self, force=False, clean_cloned=False):
