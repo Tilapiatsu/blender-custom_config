@@ -1,4 +1,3 @@
-from scripts.addon_library.GIT_Clones.asset_snapshot import properties
 from Tila_ConfigManager.bversion import BVERSION
 from Tila_ConfigManager.config.keymaps.keymaps import TILA_Config_Keymaps_Base
 
