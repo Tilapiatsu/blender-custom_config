@@ -1,3 +1,4 @@
+from scripts.addon_library.GIT_Clones.asset_snapshot import properties
 from Tila_ConfigManager.bversion import BVERSION
 from Tila_ConfigManager.config.keymaps.keymaps import TILA_Config_Keymaps_Base
 
@@ -3006,6 +3007,7 @@ class TILA_Config_Keymaps(TILA_Config_Keymaps_Base):
         )
         self.separate()
         self.kmi_set_replace("curve.subdivide", "D", "PRESS")
+        self.kmi_set_replace("curve.radius_set", "S", "PRESS", alt=True, shift=True, properties={"radius": 1.0})
         kmi = self.kmi_set_replace("transform.tilt", "T", "PRESS", shift=True)
         kmi.active = True
 
